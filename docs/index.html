@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brownfield Opportunities — Top Superfund Sites</title>
+<meta name="description" content="Static dashboard of large EPA Superfund sites: map and table view with site details.">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin="">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <h1>Brownfield Opportunities</h1>
+    <p class="sub" id="meta">Loading…</p>
+  </div>
+  <nav class="tabs" role="tablist" aria-label="View">
+    <button id="tab-map" class="tab active" role="tab" aria-selected="true" aria-controls="view-map">Map</button>
+    <button id="tab-table" class="tab" role="tab" aria-selected="false" aria-controls="view-table">Table</button>
+  </nav>
+</header>
+
+<main>
+  <section id="view-map" class="view active" role="tabpanel" aria-labelledby="tab-map">
+    <div id="map" aria-label="Map of Superfund sites"></div>
+  </section>
+
+  <section id="view-table" class="view" role="tabpanel" aria-labelledby="tab-table" hidden>
+    <div class="table-wrap">
+      <table id="sites-table">
+        <thead>
+          <tr>
+            <th data-sort="name">Site</th>
+            <th data-sort="state">State</th>
+            <th data-sort="acreage" class="num">Acreage</th>
+            <th data-sort="npl_status">NPL Status</th>
+            <th data-sort="city">City</th>
+            <th data-sort="county">County</th>
+          </tr>
+        </thead>
+        <tbody><!-- rows injected --></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<aside id="detail" class="detail" hidden aria-labelledby="detail-title">
+  <button id="detail-close" class="close" aria-label="Close detail panel">×</button>
+  <h2 id="detail-title">—</h2>
+  <p id="detail-loc" class="muted"></p>
+
+  <dl class="kv">
+    <dt>Acreage</dt><dd id="d-acreage">—</dd>
+    <dt>NPL Status</dt><dd id="d-status">—</dd>
+    <dt>EPA ID</dt><dd id="d-epaid">—</dd>
+    <dt>Federal Facility</dt><dd id="d-fed">—</dd>
+    <dt>EPA Region</dt><dd id="d-region">—</dd>
+    <dt>Address</dt><dd id="d-addr">—</dd>
+    <dt>Coordinates</dt><dd id="d-coord">—</dd>
+    <dt>Last Updated</dt><dd id="d-updated">—</dd>
+  </dl>
+
+  <h3>Owner &amp; encumbrances</h3>
+  <dl class="kv">
+    <dt>Current owner</dt><dd id="d-owner">N/A — see backlog</dd>
+    <dt>Historical owners</dt><dd id="d-owners-hist">N/A — see backlog</dd>
+    <dt>Encumbrances</dt><dd id="d-encumb">N/A — see backlog</dd>
+  </dl>
+
+  <h3>Infrastructure proximity</h3>
+  <dl class="kv">
+    <dt>Electrical / water / transport / fiber</dt>
+    <dd id="d-prox">N/A — see backlog</dd>
+  </dl>
+
+  <p class="source"><a id="d-profile" href="#" target="_blank" rel="noopener">EPA Site Profile</a></p>
+</aside>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

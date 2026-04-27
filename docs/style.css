@@ -1,0 +1,219 @@
+:root {
+  --bg: #0f1419;
+  --surface: #1a2028;
+  --surface-2: #232a33;
+  --border: #2e3742;
+  --text: #e6e8eb;
+  --muted: #8a94a3;
+  --accent: #4ea1ff;
+  --accent-strong: #2a7fdc;
+  --status-final: #d96666;
+  --status-deleted: #6e7785;
+  --status-proposed: #e0b04a;
+  --status-other: #5a8f5a;
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ----- Topbar ----- */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  gap: 16px;
+}
+.brand h1 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+.brand .sub {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+.tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--surface-2);
+  padding: 4px;
+  border-radius: 8px;
+}
+.tab {
+  background: transparent;
+  color: var(--muted);
+  border: none;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 120ms, color 120ms;
+}
+.tab.active {
+  background: var(--accent-strong);
+  color: white;
+}
+.tab:hover:not(.active) { color: var(--text); }
+
+/* ----- Views ----- */
+main {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+.view {
+  position: absolute;
+  inset: 0;
+  display: none;
+}
+.view.active { display: block; }
+#map { width: 100%; height: 100%; background: #0a0d11; }
+
+/* Leaflet tile dark filter (using OSM tiles unmodified would be too bright on dark UI) */
+.leaflet-tile-pane { filter: brightness(0.85) contrast(1.05); }
+.leaflet-control-attribution { font-size: 10px !important; }
+
+/* ----- Table ----- */
+.table-wrap {
+  height: 100%;
+  overflow: auto;
+  padding: 0;
+}
+#sites-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+#sites-table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  padding: 10px 14px;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+#sites-table thead th.num { text-align: right; }
+#sites-table thead th[aria-sort] { color: var(--accent); }
+#sites-table tbody tr {
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+#sites-table tbody tr:hover { background: var(--surface); }
+#sites-table tbody tr.selected { background: rgba(78, 161, 255, 0.12); }
+#sites-table td {
+  padding: 8px 14px;
+  vertical-align: top;
+}
+#sites-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ----- Detail panel ----- */
+.detail {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: min(420px, 92vw);
+  height: 100vh;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  padding: 20px 22px 28px;
+  overflow-y: auto;
+  z-index: 1000;
+  transform: translateX(0);
+  transition: transform 180ms ease-out;
+}
+.detail[hidden] {
+  display: block;
+  transform: translateX(110%);
+  pointer-events: none;
+}
+.detail h2 {
+  margin: 0 36px 4px 0;
+  font-size: 17px;
+  line-height: 1.3;
+}
+.detail h3 {
+  margin: 22px 0 8px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--muted);
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+.detail .muted { color: var(--muted); font-size: 13px; margin: 0 0 16px; }
+.close {
+  position: absolute;
+  top: 10px; right: 10px;
+  width: 32px; height: 32px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 6px;
+}
+.close:hover { background: var(--surface-2); color: var(--text); }
+
+.kv {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 6px 12px;
+  font-size: 13px;
+  margin: 0;
+}
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; word-wrap: break-word; }
+
+.source { margin-top: 22px; font-size: 12px; }
+
+/* ----- NPL status pill ----- */
+.pill {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  background: var(--status-other);
+  color: white;
+}
+.pill[data-status="F"] { background: var(--status-final); }
+.pill[data-status="D"] { background: var(--status-deleted); }
+.pill[data-status="P"] { background: var(--status-proposed); color: #2a1d00; }
+.pill[data-status="N"] { background: var(--status-other); }
+
+/* ----- Mobile ----- */
+@media (max-width: 640px) {
+  .topbar { flex-direction: column; align-items: stretch; gap: 10px; padding: 10px 14px; }
+  .brand h1 { font-size: 16px; }
+  .kv { grid-template-columns: 110px 1fr; }
+  #sites-table { font-size: 12px; }
+  #sites-table th, #sites-table td { padding: 8px 10px; }
+}
