@@ -3,13 +3,26 @@
 // Click a marker or row to open the side panel.
 
 const DATA_URL = "data/sites.json";
-// Pre-rendered dark tiles — avoids CSS filter on every tile during pan/zoom.
-const TILE_URL = "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
+// Pre-rendered light tiles — avoids CSS filter on every tile during pan/zoom.
+const TILE_URL = "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
 const TILE_ATTRIB =
   '&copy; <a href="https://openstreetmap.org/copyright">OSM</a> · &copy; <a href="https://carto.com/attributions">CARTO</a>';
 
 // US continental view as default.
 const DEFAULT_VIEW = { center: [39.5, -98.35], zoom: 4 };
+
+// Hard cap to US-only panning. Wide enough to include AK Aleutians (lon ~-176)
+// and PR (lon ~-65, lat ~18); tight enough to keep South America and most of
+// Canada/Mexico out of the visible area at minZoom.
+const US_BOUNDS = L.latLngBounds([15, -180], [72, -60]);
+const MIN_ZOOM = 3;
+
+const STATUS_LEGEND = [
+  { code: "F", label: "Final NPL" },
+  { code: "P", label: "Proposed" },
+  { code: "D", label: "Deleted" },
+  { code: "N", label: "Not on NPL" },
+];
 
 const el = (id) => document.getElementById(id);
 const fmt = {
@@ -56,18 +69,24 @@ fetch(DATA_URL)
 function initMap() {
   const renderer = L.canvas({ padding: 0.5 });
   map = L.map("map", {
-    worldCopyJump: true,
     preferCanvas: true,
     renderer,
     zoomControl: true,
     tap: false, // avoid double-fire on touch devices
+    minZoom: MIN_ZOOM,
+    maxBounds: US_BOUNDS,
+    maxBoundsViscosity: 1.0,
+    worldCopyJump: false,
   }).setView(DEFAULT_VIEW.center, DEFAULT_VIEW.zoom);
 
   L.tileLayer(TILE_URL, {
     attribution: TILE_ATTRIB,
     maxZoom: 19,
+    minZoom: MIN_ZOOM,
     detectRetina: true,
     crossOrigin: true,
+    bounds: US_BOUNDS, // skip tile fetches outside the US
+    noWrap: true,
   }).addTo(map);
 
   markerLayer = L.layerGroup().addTo(map);
@@ -81,13 +100,34 @@ function initMap() {
       color,
       weight: 1.5,
       fillColor: color,
-      fillOpacity: 0.6,
+      fillOpacity: 0.65,
     }).bindTooltip(s.name, { direction: "top" });
 
     marker.on("click", () => selectSite(s.epa_id, { fromMap: true }));
     markerLayer.addLayer(marker);
     markersById.set(s.epa_id, marker);
   }
+
+  addLegend();
+}
+
+function addLegend() {
+  const legend = L.control({ position: "bottomright" });
+  legend.onAdd = () => {
+    const div = L.DomUtil.create("div", "legend");
+    const rows = STATUS_LEGEND.map(
+      (s) =>
+        `<div class="legend-row"><span class="legend-dot" style="color:${colorForStatus(
+          s.code
+        )}"></span>${s.label}</div>`
+    ).join("");
+    div.innerHTML =
+      `<div class="legend-title">NPL Status</div>${rows}` +
+      `<div class="legend-foot">Marker size ∝ acreage (log)</div>`;
+    L.DomEvent.disableClickPropagation(div);
+    return div;
+  };
+  legend.addTo(map);
 }
 
 function radiusForAcreage(a) {
@@ -98,11 +138,11 @@ function radiusForAcreage(a) {
 
 function colorForStatus(code) {
   switch (code) {
-    case "F": return "#d96666"; // Currently on Final NPL
-    case "P": return "#e0b04a"; // Proposed
+    case "F": return "#c83838"; // Currently on Final NPL
+    case "P": return "#b8821a"; // Proposed
     case "D": return "#8a94a3"; // Deleted
-    case "N": return "#5a8f5a"; // Not on NPL
-    default:  return "#4ea1ff";
+    case "N": return "#3f7a3f"; // Not on NPL
+    default:  return "#1f6fcf";
   }
 }
 
