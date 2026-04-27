@@ -84,5 +84,17 @@ Turn this into a "Where can I site a hyperscale data center on a remediated brow
 ## Engineering hygiene
 
 - **[high] Tests for refresh.py.** Mock the EPA API response; assert normalize() handles all unit variants and missing fields.
+- **[high] Frontend smoke test (Playwright or similar).** Covers the regression where `wireTabs()` shadowed the module-level Leaflet `map` with the tab-button DOM node. Should at minimum: load the page, click both tabs, click a marker, click a row, open the side panel, hit Esc to close. Run in CI on every PR.
+- **[med] Marker clustering or spatial decimation at low zoom.** Clustering was removed in favor of a Canvas-rendered `L.layerGroup`. At country zoom this is fine for 100 markers; once we expand to 2k+ it'll become a soup. Either re-introduce `leaflet.markercluster` (with proper SRI hashes this time) or add zoom-based decimation.
+- **[high] Resolve dual-deploy ambiguity.** Pages is currently deploying via the legacy `main:/docs` source. Once the staged `.github/workflows/deploy.yml` lands (blocked on OAuth `workflow` scope), pick one: either disable legacy Pages and run only the Action, or keep legacy and delete the workflow. Document the choice in README.
+- **[med] Move `docs/serve.py` out of `docs/`.** It's a local-dev shim that's currently bundled into the deployed Pages output. Move to repo root (e.g. `scripts/serve.py`) or add an exclusion if we switch to the Action-based deploy.
 - **[med] Schema validation.** Pydantic model for the output JSON; CI fails if schema drifts.
 - **[med] Diff log.** When `refresh.py` runs, write a `data/changes.md` summary of which sites were added/removed/changed since last run.
+- **[med] Defensive over-fetch guard.** `refresh.py` over-fetches 3× the limit assuming most top features have valid acreage. Log a warning if more than half are dropped during normalization, and bump the multiplier.
+
+## Data quality (deferred normalizations)
+
+- **[med] Decode `FEDERAL_FACILITY_DETER_CODE`.** Currently rendered as raw single-letter codes ("F", "N", "Y"). Pull the layer's coded-value domain and surface human labels, like we already do for `NPL_STATUS_CODE`.
+- **[med] Dedupe / nest parent-child NPL sites.** Status code `A` ("Site is Part of NPL Site") indicates the row is a sub-site of a parent NPL listing. The top-100-by-acreage list may contain both a parent and one or more of its children, double-counting acreage. Either dedupe to parent only, or visually nest children under the parent in the table view.
+- **[med] Fallback EPA site-profile URL.** When both `URL_ALIAS_TXT` and `FEATURE_INFO_URL` are null, fall back to the EPA Cleanups in My Community pattern using `EPA_ID`. Avoids hiding the "EPA Site Profile" link unnecessarily.
+- **[low] Cosmetic acreage formatting.** Hide trailing `.0` for whole-acre values; add thousands separators in the side panel (already done in the table).
