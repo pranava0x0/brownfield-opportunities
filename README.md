@@ -7,7 +7,9 @@ Static dashboard of large EPA Superfund sites — map and table view with site-l
 ## What's in v1
 
 - **Top 100 Superfund sites by acreage** (NPL listed, proposed, deleted, and partial — all included).
-- **Map view (default)** with Canvas-rendered markers on CARTO dark tiles; **Table view** with sortable columns.
+- **Map view (default)** with Canvas-rendered markers on CARTO light tiles; markers sized by acreage (log scale) and colored by NPL status, with an in-map legend.
+- **US-only.** `maxBounds` and `minZoom` constrain the map to the contiguous US plus Alaska and Puerto Rico — you can't pan or zoom out to other countries.
+- **Table view** with sortable columns.
 - **Mobile-friendly:** detail panel becomes a bottom sheet on phones; tap targets sized for touch; tiles preconnected and `sites.json` preloaded for fast first paint.
 - **Side panel** on click: name, NPL status, acreage, EPA ID, full address, coordinates, link to EPA site profile.
 - **Source:** [EPA NPL Superfund Site Boundaries (Public)](https://hub.arcgis.com/datasets/EPA::npl-superfund-site-boundaries-epa-public-2022/about) ArcGIS FeatureServer.
@@ -41,10 +43,10 @@ python3 docs/serve.py 8765
 
 Two GitHub Actions workflows in `.github/workflows/`:
 
-- **`deploy.yml`** — every push to `main` publishes `docs/` to GitHub Pages.
+- **`deploy.yml`** — every push to `main` publishes `docs/` to GitHub Pages via `actions/deploy-pages`.
 - **`refresh.yml`** — weekly cron (Mon 07:00 UTC) re-runs `refresh.py` and commits the JSON if it changed. Manually triggerable from the Actions tab with a `--limit` override.
 
-To enable Pages on a fresh repo: **Settings → Pages → Source: GitHub Actions**.
+Pages source is set to **GitHub Actions** (not the legacy "deploy from `main:/docs`"). On a fresh repo, configure under **Settings → Pages → Source: GitHub Actions**, or set it via API: `gh api -X PUT repos/<owner>/<repo>/pages -f build_type=workflow`.
 
 ## Project structure
 
