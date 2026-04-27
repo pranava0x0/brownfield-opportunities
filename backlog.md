@@ -73,7 +73,9 @@ Turn this into a "Where can I site a hyperscale data center on a remediated brow
 - **[med] URL state sharing.** `?site=<EPA_ID>` deep-links to a specific site's detail panel.
 - **[med] CSV export.** "Download filtered set as CSV" button on the table.
 - **[low] Print/PDF site card.** For pitch decks.
-- **[low] Light theme toggle.** Currently dark-only.
+- **[low] Theme toggle.** Currently light-only (was dark-only, swapped 2026-04-27). Add a toggle + persist in `localStorage` if anyone misses dark.
+- **[low] Single source of truth for status colors.** NPL status colors are duplicated across `colorForStatus()` (app.js), the `STATUS_LEGEND` array (app.js), the `--status-*` CSS variables, and the `.pill[data-status]` rules (style.css). Centralize — e.g. emit CSS vars from JS at boot, or generate the pill rules from the same constant.
+- **[low] Polygon mask for non-US areas.** `maxBounds` + `minZoom` keep the user inside US-only territory, but at the edges Mexico/Canada/Cuba tiles are still visible. A US outline polygon overlay (filled with the page bg) would fully blank them out. Tradeoff: +1 fetch (~30–60KB simplified outline) and a polygon-render cost on every pan/zoom.
 
 ## Performance / hosting
 
@@ -86,7 +88,7 @@ Turn this into a "Where can I site a hyperscale data center on a remediated brow
 - **[high] Tests for refresh.py.** Mock the EPA API response; assert normalize() handles all unit variants and missing fields.
 - **[high] Frontend smoke test (Playwright or similar).** Covers the regression where `wireTabs()` shadowed the module-level Leaflet `map` with the tab-button DOM node. Should at minimum: load the page, click both tabs, click a marker, click a row, open the side panel, hit Esc to close. Run in CI on every PR.
 - **[med] Marker clustering or spatial decimation at low zoom.** Clustering was removed in favor of a Canvas-rendered `L.layerGroup`. At country zoom this is fine for 100 markers; once we expand to 2k+ it'll become a soup. Either re-introduce `leaflet.markercluster` (with proper SRI hashes this time) or add zoom-based decimation.
-- **[high] Resolve dual-deploy ambiguity.** Pages is currently deploying via the legacy `main:/docs` source. Once the staged `.github/workflows/deploy.yml` lands (blocked on OAuth `workflow` scope), pick one: either disable legacy Pages and run only the Action, or keep legacy and delete the workflow. Document the choice in README.
+- ~~**[high] Resolve dual-deploy ambiguity.**~~ Done 2026-04-27 — pushed `deploy.yml` + `refresh.yml`, switched Pages source to GitHub Actions via `gh api PUT pages -f build_type=workflow`. README and issues.md updated.
 - **[med] Move `docs/serve.py` out of `docs/`.** It's a local-dev shim that's currently bundled into the deployed Pages output. Move to repo root (e.g. `scripts/serve.py`) or add an exclusion if we switch to the Action-based deploy.
 - **[med] Schema validation.** Pydantic model for the output JSON; CI fails if schema drifts.
 - **[med] Diff log.** When `refresh.py` runs, write a `data/changes.md` summary of which sites were added/removed/changed since last run.
