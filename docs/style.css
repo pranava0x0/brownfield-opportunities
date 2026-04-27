@@ -1,17 +1,17 @@
 :root {
-  --bg: #0f1419;
-  --surface: #1a2028;
-  --surface-2: #232a33;
-  --border: #2e3742;
-  --text: #e6e8eb;
-  --muted: #8a94a3;
-  --accent: #4ea1ff;
-  --accent-strong: #2a7fdc;
-  --status-final: #d96666;
-  --status-deleted: #6e7785;
-  --status-proposed: #e0b04a;
-  --status-other: #5a8f5a;
-  --shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --bg: #eef2f7;
+  --surface: #ffffff;
+  --surface-2: #f3f5f9;
+  --border: #d8dde6;
+  --text: #1a2230;
+  --muted: #6b7480;
+  --accent: #1f6fcf;
+  --accent-strong: #1857a8;
+  --status-final: #c83838;
+  --status-deleted: #8a94a3;
+  --status-proposed: #b8821a;
+  --status-other: #3f7a3f;
+  --shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
 }
 
@@ -91,15 +91,62 @@ main {
   display: none;
 }
 .view.active { display: block; }
-#map { width: 100%; height: 100%; background: #0a0d11; }
+#map { width: 100%; height: 100%; background: var(--bg); }
 .leaflet-control-attribution { font-size: 10px !important; }
-.leaflet-container { background: #0a0d11; }
+.leaflet-container { background: var(--bg); }
+
+/* ----- Map legend ----- */
+.legend {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--text);
+  box-shadow: var(--shadow);
+  max-width: 180px;
+}
+.legend-title {
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.legend-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 2px 0;
+}
+.legend-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  background: currentColor;
+  flex-shrink: 0;
+  opacity: 0.75;
+}
+.legend-foot {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 10px;
+}
 
 /* ----- Table ----- */
 .table-wrap {
   height: 100%;
   overflow: auto;
   padding: 0;
+  background: var(--surface);
 }
 #sites-table {
   width: 100%;
@@ -124,8 +171,8 @@ main {
   border-bottom: 1px solid var(--border);
   cursor: pointer;
 }
-#sites-table tbody tr:hover { background: var(--surface); }
-#sites-table tbody tr.selected { background: rgba(78, 161, 255, 0.12); }
+#sites-table tbody tr:hover { background: var(--surface-2); }
+#sites-table tbody tr.selected { background: rgba(31, 111, 207, 0.1); }
 #sites-table td {
   padding: 8px 14px;
   vertical-align: top;
@@ -207,7 +254,7 @@ main {
 }
 .pill[data-status="F"] { background: var(--status-final); }
 .pill[data-status="D"] { background: var(--status-deleted); }
-.pill[data-status="P"] { background: var(--status-proposed); color: #2a1d00; }
+.pill[data-status="P"] { background: var(--status-proposed); }
 .pill[data-status="N"] { background: var(--status-other); }
 
 /* ----- Mobile ----- */
@@ -219,6 +266,9 @@ main {
   .kv { grid-template-columns: 110px 1fr; }
   #sites-table { font-size: 12px; }
   #sites-table th, #sites-table td { padding: 8px 10px; }
+
+  .legend { font-size: 10px; padding: 6px 8px; max-width: 150px; }
+  .legend-title { font-size: 10px; }
 
   /* Bottom-sheet detail panel — easier reach, doesn't block the map. */
   .detail {
