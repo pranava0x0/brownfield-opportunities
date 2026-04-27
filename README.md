@@ -7,7 +7,8 @@ Static dashboard of large EPA Superfund sites — map and table view with site-l
 ## What's in v1
 
 - **Top 100 Superfund sites by acreage** (NPL listed, proposed, deleted, and partial — all included).
-- **Map view (default)** with clustered markers; **Table view** with sortable columns.
+- **Map view (default)** with Canvas-rendered markers on CARTO dark tiles; **Table view** with sortable columns.
+- **Mobile-friendly:** detail panel becomes a bottom sheet on phones; tap targets sized for touch; tiles preconnected and `sites.json` preloaded for fast first paint.
 - **Side panel** on click: name, NPL status, acreage, EPA ID, full address, coordinates, link to EPA site profile.
 - **Source:** [EPA NPL Superfund Site Boundaries (Public)](https://hub.arcgis.com/datasets/EPA::npl-superfund-site-boundaries-epa-public-2022/about) ArcGIS FeatureServer.
 
