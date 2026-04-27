@@ -190,3 +190,13 @@ Maintain a `backlog.md` for ideas, features, and enhancements.
 - **Closed-loop validation.** Build projects so the agent can compile, lint, run tests, and verify its own output without human intervention. When the agent can close the loop itself, you can trust the result.
 - **Keep this file current.** When something unexpected happens — a pattern that failed, a correct CLI invocation, a library quirk — add a concise note here. This file should grow incrementally as organizational scar tissue, not be rewritten from scratch.
 - **Write big plans to files.** For large tasks, write the spec to a `docs/` markdown file and review it before executing. This persists context across sessions and allows a second-opinion review before building.
+
+---
+
+## Project-specific notes (Brownfield Opportunities)
+
+- **Map stack.** Leaflet only — no `leaflet.markercluster`. Dataset is small (≤ a few hundred points); a Canvas-rendered `L.layerGroup` with a shared `L.canvas` renderer pans/zooms faster than clustering and saves the cluster-plugin payload. Re-introduce clustering only when the point count exceeds ~2k (see backlog).
+- **Tile provider.** CARTO `dark_all` (pre-rendered dark). **Do not** layer a CSS `filter: brightness/contrast` on `.leaflet-tile-pane` to dark-mode bright tiles — the filter recomposites every tile during pan/zoom and tanks mobile performance. If swapping providers, pick one whose tiles already match the UI theme.
+- **Mobile detail panel.** Below 640px the side panel becomes a bottom sheet (`top:auto; bottom:0; border-radius` + drag-handle pseudo-element). Don't reach for a full-height slide-over on phones — it covers the map and breaks the "tap a marker, see info, keep panning" loop.
+- **First-paint perf.** `index.html` preloads `data/sites.json` (`<link rel="preload" as="fetch" crossorigin>`) and preconnects to the tile CDN. Leaflet + `app.js` are `defer`-loaded so the JSON request races them. Keep this pattern when adding new data files.
+- **Touch hygiene.** `viewport-fit=cover`, `theme-color`, `-webkit-tap-highlight-color: transparent`, and `touch-action: manipulation` on interactive elements. Leaflet is initialized with `tap: false` to avoid duplicate touch+click events.
