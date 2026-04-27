@@ -23,7 +23,10 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
 }
+button, .tab, a { touch-action: manipulation; }
 
 a { color: var(--accent); }
 a:focus-visible, button:focus-visible {
@@ -89,10 +92,8 @@ main {
 }
 .view.active { display: block; }
 #map { width: 100%; height: 100%; background: #0a0d11; }
-
-/* Leaflet tile dark filter (using OSM tiles unmodified would be too bright on dark UI) */
-.leaflet-tile-pane { filter: brightness(0.85) contrast(1.05); }
 .leaflet-control-attribution { font-size: 10px !important; }
+.leaflet-container { background: #0a0d11; }
 
 /* ----- Table ----- */
 .table-wrap {
@@ -211,9 +212,38 @@ main {
 
 /* ----- Mobile ----- */
 @media (max-width: 640px) {
-  .topbar { flex-direction: column; align-items: stretch; gap: 10px; padding: 10px 14px; }
-  .brand h1 { font-size: 16px; }
+  .topbar { padding: 8px 12px; gap: 10px; }
+  .brand h1 { font-size: 15px; }
+  .brand .sub { font-size: 11px; }
+  .tab { padding: 8px 12px; font-size: 13px; }
   .kv { grid-template-columns: 110px 1fr; }
   #sites-table { font-size: 12px; }
   #sites-table th, #sites-table td { padding: 8px 10px; }
+
+  /* Bottom-sheet detail panel — easier reach, doesn't block the map. */
+  .detail {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 60vh;
+    max-height: 70vh;
+    border-left: none;
+    border-top: 1px solid var(--border);
+    border-radius: 14px 14px 0 0;
+    padding: 16px 18px calc(20px + env(safe-area-inset-bottom));
+    transform: translateY(0);
+  }
+  .detail[hidden] { transform: translateY(110%); }
+  .detail::before {
+    content: "";
+    display: block;
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border);
+    margin: -4px auto 10px;
+  }
+  .close { top: 8px; right: 8px; }
 }

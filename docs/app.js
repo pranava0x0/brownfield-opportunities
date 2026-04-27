@@ -3,9 +3,10 @@
 // Click a marker or row to open the side panel.
 
 const DATA_URL = "data/sites.json";
-const TILE_URL = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+// Pre-rendered dark tiles — avoids CSS filter on every tile during pan/zoom.
+const TILE_URL = "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
 const TILE_ATTRIB =
-  '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>';
+  '&copy; <a href="https://openstreetmap.org/copyright">OSM</a> · &copy; <a href="https://carto.com/attributions">CARTO</a>';
 
 // US continental view as default.
 const DEFAULT_VIEW = { center: [39.5, -98.35], zoom: 4 };
@@ -24,7 +25,7 @@ const fmt = {
 
 // ----- State -----
 let sites = [];
-let map, cluster;
+let map, markerLayer;
 const markersById = new Map(); // epa_id -> Leaflet marker
 const tableRowsById = new Map(); // epa_id -> tr
 let selectedId = null;
@@ -53,31 +54,40 @@ fetch(DATA_URL)
 
 // ----- Map -----
 function initMap() {
-  map = L.map("map", { worldCopyJump: true, preferCanvas: true })
-    .setView(DEFAULT_VIEW.center, DEFAULT_VIEW.zoom);
-  L.tileLayer(TILE_URL, { attribution: TILE_ATTRIB, maxZoom: 18 }).addTo(map);
+  const renderer = L.canvas({ padding: 0.5 });
+  map = L.map("map", {
+    worldCopyJump: true,
+    preferCanvas: true,
+    renderer,
+    zoomControl: true,
+    tap: false, // avoid double-fire on touch devices
+  }).setView(DEFAULT_VIEW.center, DEFAULT_VIEW.zoom);
 
-  cluster = L.markerClusterGroup({
-    chunkedLoading: true,
-    spiderfyOnMaxZoom: true,
-    showCoverageOnHover: false,
-  });
+  L.tileLayer(TILE_URL, {
+    attribution: TILE_ATTRIB,
+    maxZoom: 19,
+    detectRetina: true,
+    crossOrigin: true,
+  }).addTo(map);
+
+  markerLayer = L.layerGroup().addTo(map);
 
   for (const s of sites) {
     if (s.lat == null || s.lon == null) continue;
+    const color = colorForStatus(s.npl_status_code);
     const marker = L.circleMarker([s.lat, s.lon], {
+      renderer,
       radius: radiusForAcreage(s.acreage),
-      color: colorForStatus(s.npl_status_code),
+      color,
       weight: 1.5,
-      fillColor: colorForStatus(s.npl_status_code),
-      fillOpacity: 0.55,
+      fillColor: color,
+      fillOpacity: 0.6,
     }).bindTooltip(s.name, { direction: "top" });
 
     marker.on("click", () => selectSite(s.epa_id, { fromMap: true }));
-    cluster.addLayer(marker);
+    markerLayer.addLayer(marker);
     markersById.set(s.epa_id, marker);
   }
-  map.addLayer(cluster);
 }
 
 function radiusForAcreage(a) {
@@ -214,8 +224,7 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
 
   if (!fromMap && s.lat != null && s.lon != null) {
     map.setView([s.lat, s.lon], Math.max(map.getZoom(), 8), { animate: true });
-    const marker = markersById.get(id);
-    if (marker) cluster.zoomToShowLayer(marker, () => marker.openTooltip());
+    markersById.get(id)?.openTooltip();
   }
 }
 
