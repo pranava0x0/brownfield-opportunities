@@ -1,0 +1,36 @@
+name: Refresh site data
+
+on:
+  schedule:
+    - cron: "0 7 * * 1"  # weekly, Monday 07:00 UTC
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "Number of top sites by acreage"
+        required: false
+        default: "100"
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - run: python refresh.py --no-cache --limit "${{ inputs.limit || 100 }}"
+      - name: Commit refreshed JSON if changed
+        run: |
+          if [[ -n "$(git status --porcelain docs/data)" ]]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add docs/data
+            git commit -m "data: refresh Superfund sites JSON"
+            git push
+          else
+            echo "No data changes."
+          fi
