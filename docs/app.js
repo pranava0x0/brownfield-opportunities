@@ -16,8 +16,70 @@ const TILE_ATTRIB =
   '&copy; <a href="https://openstreetmap.org/copyright">OSM</a> · &copy; <a href="https://carto.com/attributions">CARTO</a>';
 
 const DEFAULT_VIEW = { center: [39.5, -98.35], zoom: 4 };
-const US_BOUNDS = L.latLngBounds([15, -180], [72, -60]);
-const MIN_ZOOM = 3;
+// Continental US (lower 48) + a strip below it where AK/HI/PR/Pacific insets
+// live (classic US-map-with-insets layout — see INSETS below).
+const US_BOUNDS = L.latLngBounds([18, -127], [51, -65]);
+const MIN_ZOOM = 4;
+
+// Cartographic insets: states/territories whose real coordinates fall outside
+// the lower-48 view get linearly remapped into labeled boxes at the bottom of
+// the map. Real coords are preserved on `lat_real`/`lon_real` for the detail
+// panel and CSV export. `states` lists every state/territory code routed into
+// each box; `src` is the source bbox of the real coords; `dst` is where the
+// box sits within US_BOUNDS.
+const INSETS = [
+  {
+    key: "AK",
+    label: "ALASKA",
+    states: ["AK"],
+    src: { south: 51, north: 72, west: -180, east: -130 },
+    dst: { south: 19.2, north: 25.2, west: -125.5, east: -115.5 },
+  },
+  {
+    key: "HI",
+    label: "HAWAII",
+    states: ["HI"],
+    src: { south: 18.5, north: 22.5, west: -161, east: -154 },
+    dst: { south: 19.2, north: 21.6, west: -114.0, east: -109.0 },
+  },
+  {
+    key: "CARIB",
+    label: "PR / USVI",
+    states: ["PR", "VI"],
+    src: { south: 17.5, north: 18.7, west: -67.5, east: -64.5 },
+    dst: { south: 19.2, north: 21.0, west: -107.5, east: -102.5 },
+  },
+  {
+    key: "PAC",
+    label: "GU / MP / AS",
+    states: ["GU", "MP", "AS", "FM"],
+    src: { south: -15, north: 16, west: 144, east: 146 },
+    dst: { south: 19.2, north: 20.6, west: -101.0, east: -96.0 },
+  },
+];
+const INSET_BY_STATE = (() => {
+  const m = {};
+  for (const inset of INSETS) for (const st of inset.states) m[st] = inset;
+  return m;
+})();
+
+// Linearly remap (lat, lon) from inset.src into inset.dst. Mutates the record:
+// stashes the original on lat_real/lon_real and overwrites lat/lon with the
+// display coords used for marker placement.
+function applyInsetRemap(record) {
+  if (record.lat == null || record.lon == null) return;
+  const inset = INSET_BY_STATE[record.state];
+  if (!inset) return;
+  const lat = Math.max(inset.src.south, Math.min(inset.src.north, record.lat));
+  const lon = Math.max(inset.src.west, Math.min(inset.src.east, record.lon));
+  const fLat = (lat - inset.src.south) / (inset.src.north - inset.src.south);
+  const fLon = (lon - inset.src.west) / (inset.src.east - inset.src.west);
+  record.lat_real = record.lat;
+  record.lon_real = record.lon;
+  record.lat = inset.dst.south + fLat * (inset.dst.north - inset.dst.south);
+  record.lon = inset.dst.west + fLon * (inset.dst.east - inset.dst.west);
+  record._inset = inset.key;
+}
 
 // Marker decimation: at low zoom levels with thousands of markers, drawing
 // every point is wasteful. Hash-based sampling keeps a stable subset visible.
@@ -138,6 +200,7 @@ fetch(PRIMARY_DATA_URL)
 function ingestSites(records) {
   for (const s of records) {
     if (sitesById.has(s.id)) continue;
+    applyInsetRemap(s);
     sitesById.set(s.id, s);
   }
   sites = Array.from(sitesById.values());
@@ -189,7 +252,7 @@ function initMap() {
     maxBounds: US_BOUNDS,
     maxBoundsViscosity: 1.0,
     worldCopyJump: false,
-  }).setView(DEFAULT_VIEW.center, DEFAULT_VIEW.zoom);
+  }).fitBounds(US_BOUNDS, { padding: [10, 10], animate: false });
 
   L.tileLayer(TILE_BASE_URL, {
     attribution: TILE_ATTRIB,
@@ -213,6 +276,8 @@ function initMap() {
     noWrap: true,
     pane: "shadowPane",
   }).addTo(map);
+
+  drawInsetBoxes();
 
   markerLayer = L.layerGroup().addTo(map);
   window.__markerLayer = markerLayer;
@@ -243,6 +308,43 @@ function addMarkersForRecords(records) {
     marker.on("click", () => selectSite(s.id, { fromMap: true }));
     markerLayer.addLayer(marker);
     markersById.set(s.id, marker);
+  }
+}
+
+// Draws an opaque rectangle for each inset (covering the underlying basemap
+// so AK/HI/PR markers don't sit visually on top of Mexican land/ocean) plus a
+// label tag at the top-left of the box.
+let insetLayer = null;
+function drawInsetBoxes() {
+  if (insetLayer) {
+    insetLayer.remove();
+  }
+  insetLayer = L.layerGroup().addTo(map);
+  const fill = cssColor("--surface", "#ffffff");
+  const stroke = cssColor("--border", "#d8dde6");
+  for (const inset of INSETS) {
+    const bounds = [
+      [inset.dst.south, inset.dst.west],
+      [inset.dst.north, inset.dst.east],
+    ];
+    L.rectangle(bounds, {
+      color: stroke,
+      weight: 1,
+      fillColor: fill,
+      fillOpacity: 1,
+      interactive: false,
+    }).addTo(insetLayer);
+    // Label sits just above the top edge of the box so labels don't crowd
+    // adjacent insets; bottom-left of the label anchors at the box NW corner.
+    L.marker([inset.dst.north, inset.dst.west], {
+      icon: L.divIcon({
+        className: "inset-label",
+        html: inset.label,
+        iconAnchor: [-2, 20],
+      }),
+      interactive: false,
+      keyboard: false,
+    }).addTo(insetLayer);
   }
 }
 
@@ -615,7 +717,12 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
 
   el("d-region").textContent = s.region != null ? `Region ${s.region}` : "—";
   el("d-addr").textContent = [s.address, s.city, s.state, s.zip].filter(Boolean).join(", ") || "—";
-  el("d-coord").textContent = s.lat != null && s.lon != null ? `${s.lat.toFixed(4)}, ${s.lon.toFixed(4)}` : "—";
+  // Show real coordinates in the detail panel — `s.lat`/`s.lon` may be the
+  // remapped inset display coords for AK/HI/PR/Pacific records.
+  const realLat = s.lat_real ?? s.lat;
+  const realLon = s.lon_real ?? s.lon;
+  el("d-coord").textContent =
+    realLat != null && realLon != null ? `${realLat.toFixed(4)}, ${realLon.toFixed(4)}` : "—";
 
   // Children block — only Superfund sites with rolled-up sub-sites.
   const childBlock = el("d-children-block");
@@ -670,7 +777,7 @@ function wireExportCsv() {
       rows.push([
         s.id, s.program, s.name || "", s.state || "", s.city || "", s.county || "",
         s.acreage ?? "", s.npl_status_code || "", s.npl_status || "",
-        s.lat ?? "", s.lon ?? "", s.profile_url || "",
+        (s.lat_real ?? s.lat) ?? "", (s.lon_real ?? s.lon) ?? "", s.profile_url || "",
       ]);
     }
     const csv = rows.map(csvRow).join("\n");
@@ -718,9 +825,10 @@ function wireThemeToggle() {
     const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
     localStorage.setItem("theme", next);
     applyTheme(next);
-    // Restyle markers + legend with new CSS-var values.
+    // Restyle markers + legend + inset boxes with new CSS-var values.
     refreshMarkerColors();
     rerenderLegend();
+    drawInsetBoxes();
   });
 }
 
