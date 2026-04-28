@@ -4,10 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#ffffff" id="theme-color-meta">
+<meta name="color-scheme" content="light dark">
 <title>Brownfield Opportunities — EPA Superfund &amp; Brownfield Sites</title>
 <meta name="description" content="Static dashboard of EPA Superfund (NPL) sites and ACRES brownfield properties: map and table view with site details, filters, and CSV export.">
 <link rel="preload" href="data/sites.json" as="fetch" crossorigin>
-<link rel="preconnect" href="https://basemaps.cartocdn.com" crossorigin>
+<link rel="preload" href="data/us-states.json" as="fetch" crossorigin>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
       integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
       crossorigin="">
@@ -130,6 +131,9 @@
 
 <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""></script>
+<script defer src="https://unpkg.com/topojson-client@3.1.0/dist/topojson-client.min.js"
+        integrity="sha256-Jc0CrkhsxQY+AhWk5M+xXeg3AMh6xIusTVfcaq8+u4k="
         crossorigin=""></script>
 <script defer src="app.js"></script>
 </body>
