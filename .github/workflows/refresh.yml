@@ -22,14 +22,32 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install -r requirements.txt
-      - run: python refresh.py --no-cache --limit "${{ inputs.limit || 100 }}"
+      - name: Refresh
+        run: |
+          if [[ -n "${{ inputs.limit }}" ]]; then
+            python refresh.py --source superfund-npl --no-cache --limit "${{ inputs.limit }}"
+          else
+            python refresh.py --source superfund-npl --no-cache
+          fi
+      - name: Build commit message from diff
+        id: msg
+        run: |
+          if [[ -f data/changes.md ]]; then
+            SUMMARY=$(awk '/\*\*Summary:\*\*/ { sub(/^\*\*Summary:\*\* /, ""); sub(/  $/, ""); print; exit }' data/changes.md)
+            echo "summary=$SUMMARY" >> "$GITHUB_OUTPUT"
+          else
+            echo "summary=refresh" >> "$GITHUB_OUTPUT"
+          fi
       - name: Commit refreshed JSON if changed
         run: |
+          # Only commit when the canonical data file actually changed; the
+          # changes.md timestamp churns even on no-op runs and we don't want
+          # a commit per cron tick.
           if [[ -n "$(git status --porcelain docs/data)" ]]; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add docs/data
-            git commit -m "data: refresh Superfund sites JSON"
+            git add docs/data data/changes.md
+            git commit -m "data: refresh Superfund — ${{ steps.msg.outputs.summary }}"
             git push
           else
             echo "No data changes."

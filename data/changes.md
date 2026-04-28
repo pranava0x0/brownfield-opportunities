@@ -1,0 +1,55 @@
+# Changes — 2026-04-28T00:42:01Z
+
+**Summary:** +0 −0 ~24 sites  
+prior: 1908 sites → current: 1908 sites
+
+## Changed (24)
+
+- `AK0001897602` — SALT CHUCK MINE
+  - **acreage:** `134.6` → `1523.6`
+- `AK1570028646` — EIELSON AIR FORCE BASE
+  - **acreage:** `51.9` → `24760.4`
+- `IDD048340921` — BUNKER HILL MINING & METALLURGICAL COMPLEX
+  - **acreage:** `None` → `36234.4`
+- `IDD984666610` — EASTERN MICHAUD FLATS CONTAMINATION
+  - **acreage:** `1892.5` → `4316.8`
+- `ORD009049412` — UNION PACIFIC RAILROAD CO. TIE-TREATING PLANT
+  - **acreage:** `180.1` → `389.2`
+- `ORD050955848` — TELEDYNE WAH CHANG
+  - **acreage:** `7.1` → `306.5`
+- `ORD052221025` — MARTIN-MARIETTA ALUMINUM CO.
+  - **acreage:** `None` → `709.5`
+- `ORD980988307` — NORTHWEST PIPE & CASING/HALL PROCESS COMPANY
+  - **acreage:** `44.1` → `109.8`
+- `ORN001002476` — NORTH RIDGE ESTATES
+  - **acreage:** `21.9` → `310.0`
+- `ORSFN1002155` — PORTLAND HARBOR
+  - **acreage:** `None` → `9488.1`
+- `WA0002329803` — LOWER DUWAMISH WATERWAY
+  - **acreage:** `None` → `1670.0`
+- `WA5210890096` — HAMILTON ISLAND LANDFILL (USA/COE)
+  - **acreage:** `11.8` → `412.9`
+- `WAD008957243` — OESER CO.
+  - **acreage:** `53.7` → `112.1`
+- `WAD009248295` — WYCKOFF CO./EAGLE HARBOR
+  - **acreage:** `19.3` → `1158.3`
+- `WAD009624453` — BOOMSNUB/AIRCO
+  - **acreage:** `1.4` → `23.2`
+- `WAD980722839` — HARBOR ISLAND (LEAD)
+  - **acreage:** `None` → `856.8`
+- `WAD980723506` — TOFTDAHL DRUMS
+  - **acreage:** `0.9` → `3.4`
+- `WAD980726301` — COMMENCEMENT BAY, SOUTH TACOMA CHANNEL
+  - **acreage:** `None` → `1063.6`
+- `WAD980726368` — COMMENCEMENT BAY, NEAR SHORE/TIDE FLATS
+  - **acreage:** `None` → `3612.3`
+- `WAD980833065` — AMERICAN LAKE GARDENS/MCCHORD AFB
+  - **acreage:** `613.6` → `1493.0`
+- `WAD980978753` — MIDNITE MINE
+  - **acreage:** `787.6` → `5691.4`
+- `WAD988466355` — MOSES LAKE WELLFIELD CONTAMINATION
+  - **acreage:** `None` → `623.1`
+- `WAN001002907` — BREMERTON GASWORKS
+  - **acreage:** `5.7` → `111.0`
+- `WASFN1002174` — HAMILTON/LABREE ROADS GW CONTAMINATION
+  - **acreage:** `3.4` → `373.8`
