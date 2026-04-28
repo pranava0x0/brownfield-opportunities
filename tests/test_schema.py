@@ -9,6 +9,8 @@ from schema import Payload, SiteRecord
 
 def _minimal_site(**overrides) -> dict:
     base = {
+        "id": "TEST00000001",
+        "program": "superfund",
         "epa_id": "TEST00000001",
         "name": "Test Site",
         "acreage": 100.0,
@@ -72,3 +74,50 @@ def test_payload_unlimited():
         sites=[],
     )
     assert p.limit is None
+
+
+def test_brownfield_record_minimal():
+    """ACRES record: program='brownfield', no NPL fields, no acreage."""
+    SiteRecord(
+        id="ACRES-1234",
+        program="brownfield",
+        name="Old Mill",
+        state="ME",
+        lat=44.0, lon=-70.0,
+    )
+
+
+def test_program_validates():
+    """program must be one of the two literals."""
+    with pytest.raises(ValidationError):
+        SiteRecord(id="X", program="rcra", lat=0, lon=0)
+
+
+def test_exclude_none_drops_placeholders():
+    """The serializer must drop None fields so the combined JSON stays small."""
+    rec = SiteRecord(id="ACRES-1", program="brownfield", name="X", lat=1, lon=2)
+    js = rec.model_dump_json(exclude_none=True)
+    # Future enrichment slots should not appear at all in the wire format.
+    assert "current_owner" not in js
+    assert "encumbrances" not in js
+    assert "remediation_detail" not in js
+    assert "proximity" not in js
+    assert "children" not in js
+
+
+def test_combined_payload_with_programs():
+    p = Payload(
+        generated_at="2026-04-27T00:00:00Z",
+        source="combined",
+        source_url="",
+        count=2,
+        sites=[
+            _minimal_site(),
+            _minimal_site(id="ACRES-9", program="brownfield",
+                          epa_id=None, npl_status_code=None, npl_status=None,
+                          federal_facility=None, federal_facility_code=None,
+                          last_updated=None, acreage=None),
+        ],
+        programs={"superfund": 1, "brownfield": 1},
+    )
+    assert p.programs == {"superfund": 1, "brownfield": 1}
