@@ -6,12 +6,13 @@ Ideas and enhancements. Priorities: **high** = next, **med** = soon, **low** = n
 
 ## v1 follow-ups (data completeness)
 
-- **[high] Expand beyond top-100.** Lift the limit to all 2,114 NPL Superfund sites with acreage. Will likely need state-sharded JSON + lazy load to keep payload under ~1MB per shard.
-- **[high] Sites without acreage.** ~A few hundred features lack `GIS_AREA` or have non-acre units (Miles, null). Currently dropped on the floor. Add a fallback bucket so those sites still appear (sorted alphabetically or by ORIGINAL_CREATION_DATE), with acreage shown as "N/A".
-- **[high] EPA Brownfields (ACRES).** ~40k sites from EPA's Assessment, Cleanup and Redevelopment Exchange System. Distinct from Superfund — usually smaller, urban, and further along in cleanup. Pull from Envirofacts (table names: `BF_ASSESSMENT_PROPERTY`, `BF_CLEANUP_PROPERTY`) or the public ACRES export.
-- **[med] State environmental agency sites.** Each state has its own brownfield/voluntary cleanup program (NY State Superfund, CA DTSC EnviroStor, TX VCP, etc.). Aggregate via a connector framework — one normalizer per source.
+- ~~**[high] Expand beyond top-100.**~~ Done 2026-04-27 — all 1,908 unique NPL sites now load (~1.6MB JSON, ~200KB gzipped). Connector handles pagination through the FeatureServer's 2000-record cap.
+- ~~**[high] Sites without acreage.**~~ Done 2026-04-27 — `--include-no-acreage` (default on) keeps non-areal features with `acreage: null`. Frontend renders "N/A" and uses a small marker.
+- **[high] EPA Brownfields (ACRES).** ~40k sites from EPA's Assessment, Cleanup and Redevelopment Exchange System. Distinct from Superfund — usually smaller, urban, and further along in cleanup. Pull from Envirofacts (table names: `BF_ASSESSMENT_PROPERTY`, `BF_CLEANUP_PROPERTY`) or the public ACRES export. Connector framework is in place — drop a new file in `connectors/` and register.
+- **[med] State environmental agency sites.** Each state has its own brownfield/voluntary cleanup program (NY State Superfund, CA DTSC EnviroStor, TX VCP, etc.). Now trivial to aggregate — one connector per source.
 - **[med] RCRA Corrective Action sites.** EPA Resource Conservation and Recovery Act sites under corrective action — another large universe of contaminated industrial properties.
 - **[low] DOD FUDS (Formerly Used Defense Sites).** USACE-administered. Big, often rural, sometimes acquirable.
+- **[med] State-sharded JSON.** Defer until EPA Brownfields (~40k) lands. At that scale the single sites.json approaches a megabyte gzipped and is worth sharding by state for lazy load.
 
 ## Site-level enrichment (Owner / encumbrances / history)
 
@@ -67,10 +68,11 @@ Turn this into a "Where can I site a hyperscale data center on a remediated brow
 
 ## Frontend / UX
 
-- **[high] Polygon overlays on map.** Currently we flatten polygons to a centroid marker. Render the actual site boundary on zoom-in.
-- **[med] State filter, status filter, acreage range slider.** Faceted filtering on both map and table.
-- **[med] Search box.** Free-text search by site name / city / county.
-- **[med] URL state sharing.** `?site=<EPA_ID>` deep-links to a specific site's detail panel.
+- **[high] Polygon overlays on map.** Currently we flatten polygons to a centroid marker. Render the actual site boundary on zoom-in. Now even more useful since multi-polygon sites (Portland Harbor's 100 fragments) get merged for marker placement but the source rings are dropped — would need to keep them on disk.
+- **[high] Surface dedupe / parent-child relationships in UI.** `parent_epa_id` is now populated for status-A sub-sites we drop, but the frontend doesn't show "this site has N sub-sites" or let the user expand to see them.
+- **[med] State filter, status filter, acreage range slider.** Faceted filtering on both map and table. Pairs naturally with the existing search box.
+- ~~**[med] Search box.**~~ Done 2026-04-27 — free-text on name / city / county / state, filters both table and markers, ESC to clear.
+- **[med] URL state sharing.** `?site=<EPA_ID>` deep-links to a specific site's detail panel. `?q=<search>` for the filter query.
 - **[med] CSV export.** "Download filtered set as CSV" button on the table.
 - **[low] Print/PDF site card.** For pitch decks.
 - **[low] Theme toggle.** Currently light-only (was dark-only, swapped 2026-04-27). Add a toggle + persist in `localStorage` if anyone misses dark.
@@ -85,18 +87,19 @@ Turn this into a "Where can I site a hyperscale data center on a remediated brow
 
 ## Engineering hygiene
 
-- **[high] Tests for refresh.py.** Mock the EPA API response; assert normalize() handles all unit variants and missing fields.
-- **[high] Frontend smoke test (Playwright or similar).** Covers the regression where `wireTabs()` shadowed the module-level Leaflet `map` with the tab-button DOM node. Should at minimum: load the page, click both tabs, click a marker, click a row, open the side panel, hit Esc to close. Run in CI on every PR.
-- **[med] Marker clustering or spatial decimation at low zoom.** Clustering was removed in favor of a Canvas-rendered `L.layerGroup`. At country zoom this is fine for 100 markers; once we expand to 2k+ it'll become a soup. Either re-introduce `leaflet.markercluster` (with proper SRI hashes this time) or add zoom-based decimation.
+- ~~**[high] Tests for refresh.py.**~~ Done 2026-04-27 — pytest suite covers normalize/envelope/fetch/dedupe/merge/diff/schema (~57 unit tests).
+- ~~**[high] Frontend smoke test (Playwright or similar).**~~ Done 2026-04-27 — `tests/e2e/test_smoke.py` covers page load, tab switch, marker click, table click, Esc close, search filtering, legend render. Runs in CI on every PR.
+- **[med] Marker clustering or spatial decimation at low zoom.** Canvas markers handle 1.9k fine; once Brownfields/ACRES (~40k) lands, re-introduce `leaflet.markercluster` (with proper SRI hashes) or add zoom-based decimation.
 - ~~**[high] Resolve dual-deploy ambiguity.**~~ Done 2026-04-27 — pushed `deploy.yml` + `refresh.yml`, switched Pages source to GitHub Actions via `gh api PUT pages -f build_type=workflow`. README and issues.md updated.
-- **[med] Move `docs/serve.py` out of `docs/`.** It's a local-dev shim that's currently bundled into the deployed Pages output. Move to repo root (e.g. `scripts/serve.py`) or add an exclusion if we switch to the Action-based deploy.
-- **[med] Schema validation.** Pydantic model for the output JSON; CI fails if schema drifts.
-- **[med] Diff log.** When `refresh.py` runs, write a `data/changes.md` summary of which sites were added/removed/changed since last run.
-- **[med] Defensive over-fetch guard.** `refresh.py` over-fetches 3× the limit assuming most top features have valid acreage. Log a warning if more than half are dropped during normalization, and bump the multiplier.
+- ~~**[med] Move `docs/serve.py` out of `docs/`.**~~ Done 2026-04-27 — moved to `scripts/serve.py`; chdirs to docs/ so still runs from repo root.
+- ~~**[med] Schema validation.**~~ Done 2026-04-27 — Pydantic `Payload`/`SiteRecord` in `schema.py` with `extra="forbid"`. `refresh.py` validates before write.
+- ~~**[med] Diff log.**~~ Done 2026-04-27 — `diff.py` writes `data/changes.md`; `refresh.yml` parses summary into commit message.
+- ~~**[med] Defensive over-fetch guard.**~~ Done 2026-04-27 — connector logs a warning if >50% of fetched features drop during normalize.
 
 ## Data quality (deferred normalizations)
 
-- **[med] Decode `FEDERAL_FACILITY_DETER_CODE`.** Currently rendered as raw single-letter codes ("F", "N", "Y"). Pull the layer's coded-value domain and surface human labels, like we already do for `NPL_STATUS_CODE`.
-- **[med] Dedupe / nest parent-child NPL sites.** Status code `A` ("Site is Part of NPL Site") indicates the row is a sub-site of a parent NPL listing. The top-100-by-acreage list may contain both a parent and one or more of its children, double-counting acreage. Either dedupe to parent only, or visually nest children under the parent in the table view.
-- **[med] Fallback EPA site-profile URL.** When both `URL_ALIAS_TXT` and `FEATURE_INFO_URL` are null, fall back to the EPA Cleanups in My Community pattern using `EPA_ID`. Avoids hiding the "EPA Site Profile" link unnecessarily.
-- **[low] Cosmetic acreage formatting.** Hide trailing `.0` for whole-acre values; add thousands separators in the side panel (already done in the table).
+- ~~**[med] Decode `FEDERAL_FACILITY_DETER_CODE`.**~~ Done 2026-04-27 — pulled from layer metadata at refresh time alongside `NPL_STATUS_CODE`.
+- ~~**[med] Dedupe / nest parent-child NPL sites.**~~ Done 2026-04-27 — status-A sub-sites whose name matches a parent's prefix are dropped from the main list and tagged with `parent_epa_id`. Orphans kept. UI doesn't yet show the parent→children relationship (separate backlog item under Frontend/UX).
+- ~~**[med] Fallback EPA site-profile URL.**~~ Done 2026-04-27 — falls back to `cumulis.epa.gov/supercpad/CurSites/csitinfo.cfm?id=<EPA_ID>` when both source fields are null.
+- ~~**[low] Cosmetic acreage formatting.**~~ Done 2026-04-27 — `fmt.acres()` now uses thousands separators everywhere and hides trailing `.0`.
+- **[med] Multi-polygon merge surfacing.** `_merge_by_epa_id()` collapses fragmented sites (e.g. Portland Harbor) into one record, but the source rings are dropped — when polygon overlays land, we'll need to keep the per-fragment geometry on disk.
