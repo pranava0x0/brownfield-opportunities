@@ -42,13 +42,11 @@
 </header>
 
 <section id="filters" class="filters" hidden aria-label="Filters">
-  <label class="filter">
-    Program
-    <select id="f-program" multiple size="2" aria-label="Program">
-      <option value="superfund" selected>Superfund (NPL)</option>
-      <option value="brownfield">Brownfield (ACRES)</option>
-    </select>
-  </label>
+  <fieldset class="filter filter-program">
+    <legend>Program</legend>
+    <label class="check"><input type="checkbox" id="f-program-superfund" checked> Superfund (NPL)</label>
+    <label class="check"><input type="checkbox" id="f-program-brownfield" checked> Brownfield (ACRES)</label>
+  </fieldset>
   <label class="filter">
     State
     <select id="f-state" aria-label="State">
