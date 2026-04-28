@@ -6,8 +6,12 @@
 
 const PRIMARY_DATA_URL = "data/sites.json";
 const ACRES_DATA_URL = "data/epa-acres.json";
-// Pre-rendered light tiles — avoids CSS filter on every tile during pan/zoom.
-const TILE_URL = "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
+// Two-layer basemap: clean landmasses always, labels only when zoomed in.
+// At low zoom users see the US silhouette + state borders without world clutter;
+// county/city labels fade in at zoom ≥ LABEL_MIN_ZOOM.
+const TILE_BASE_URL = "https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png";
+const TILE_LABELS_URL = "https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png";
+const LABEL_MIN_ZOOM = 5;
 const TILE_ATTRIB =
   '&copy; <a href="https://openstreetmap.org/copyright">OSM</a> · &copy; <a href="https://carto.com/attributions">CARTO</a>';
 
@@ -24,16 +28,21 @@ const DECIMATION = [
   { maxZoom: Infinity, keepEvery: 1 },
 ];
 
-// NPL status legend — labels are stable; colors come from CSS vars so the
-// theme controls them in one place.
+// NPL status filter options — pill colors still vary by status (see CSS), but
+// markers are colored by program only (see PROGRAM_LEGEND).
 const STATUS_LEGEND = [
   { code: "F", label: "Final NPL", cssVar: "--status-final" },
   { code: "P", label: "Proposed", cssVar: "--status-proposed" },
   { code: "D", label: "Deleted", cssVar: "--status-deleted" },
   { code: "N", label: "Not on NPL", cssVar: "--status-other" },
 ];
-const STATUS_COLOR_BY_CODE = Object.fromEntries(
-  STATUS_LEGEND.map((s) => [s.code, s.cssVar])
+// Map legend / marker colors are program-based: one dot per program.
+const PROGRAM_LEGEND = [
+  { program: "superfund", label: "Superfund (NPL)", cssVar: "--program-superfund" },
+  { program: "brownfield", label: "Brownfield (ACRES)", cssVar: "--program-brownfield" },
+];
+const PROGRAM_COLOR_BY_PROGRAM = Object.fromEntries(
+  PROGRAM_LEGEND.map((p) => [p.program, p.cssVar])
 );
 const PROGRAM_LABEL = {
   superfund: "Superfund (NPL)",
@@ -67,9 +76,10 @@ let sortKey = "acreage";
 let sortDir = "desc";
 
 // Filter state. Defaults match URL parsing below.
+// Both programs are on by default — Superfund paints first, brownfields lazy-load.
 const filterState = {
   q: "",
-  programs: new Set(["superfund"]),
+  programs: new Set(["superfund", "brownfield"]),
   state: "",
   statuses: new Set(),
   minAcreage: 0, // log10 base; 0 means "show all" (incl. null acreage)
@@ -85,8 +95,7 @@ function cssColor(varName, fallback = "#1f6fcf") {
   return v || fallback;
 }
 function colorForRecord(s) {
-  if (s.program === "brownfield") return cssColor("--status-acres");
-  const cssVar = STATUS_COLOR_BY_CODE[s.npl_status_code] || "--status-other";
+  const cssVar = PROGRAM_COLOR_BY_PROGRAM[s.program] || "--program-superfund";
   return cssColor(cssVar);
 }
 
@@ -100,8 +109,10 @@ fetch(PRIMARY_DATA_URL)
   })
   .then((payload) => {
     ingestSites(payload.sites || []);
-    el("meta").textContent =
-      `${sites.length.toLocaleString()} Superfund sites · refreshed ${fmt.date(payload.generated_at)}`;
+    const refreshed = fmt.date(payload.generated_at);
+    el("meta").textContent = filterState.programs.has("brownfield")
+      ? `${sites.length.toLocaleString()} Superfund sites · loading brownfields… · refreshed ${refreshed}`
+      : `${sites.length.toLocaleString()} Superfund sites · refreshed ${refreshed}`;
     initMap();
     populateStatusFilter();
     populateStateFilter();
@@ -154,6 +165,7 @@ function ensureAcresLoaded() {
       addMarkersForRecords(payload.sites || []);
       populateStateFilter();
       renderTable();
+      rerenderLegend();
       applyFilter();
     })
     .catch((err) => {
@@ -179,7 +191,7 @@ function initMap() {
     worldCopyJump: false,
   }).setView(DEFAULT_VIEW.center, DEFAULT_VIEW.zoom);
 
-  L.tileLayer(TILE_URL, {
+  L.tileLayer(TILE_BASE_URL, {
     attribution: TILE_ATTRIB,
     maxZoom: 19,
     minZoom: MIN_ZOOM,
@@ -187,6 +199,19 @@ function initMap() {
     crossOrigin: true,
     bounds: US_BOUNDS,
     noWrap: true,
+  }).addTo(map);
+
+  // Labels (states/counties/cities) only appear once the user zooms in past
+  // the country level — keeps the low-zoom view clean and US-focused.
+  L.tileLayer(TILE_LABELS_URL, {
+    attribution: "",
+    maxZoom: 19,
+    minZoom: LABEL_MIN_ZOOM,
+    detectRetina: true,
+    crossOrigin: true,
+    bounds: US_BOUNDS,
+    noWrap: true,
+    pane: "shadowPane",
   }).addTo(map);
 
   markerLayer = L.layerGroup().addTo(map);
@@ -225,22 +250,28 @@ function addLegend() {
   const legend = L.control({ position: "bottomright" });
   legend.onAdd = () => {
     const div = L.DomUtil.create("div", "legend");
-    const rows = STATUS_LEGEND.map(
-      (s) =>
-        `<div class="legend-row"><span class="legend-dot" style="color:${cssColor(
-          s.cssVar
-        )}"></span>${s.label}</div>`
-    ).join("");
-    const acres = `<div class="legend-row"><span class="legend-dot" style="color:${cssColor(
-      "--status-acres"
-    )}"></span>Brownfield (ACRES)</div>`;
+    // Only show rows for programs that exist in the currently-loaded data.
+    const programsPresent = new Set(sites.map((s) => s.program));
+    const rows = PROGRAM_LEGEND.filter((p) => programsPresent.has(p.program))
+      .map(
+        (p) =>
+          `<div class="legend-row"><span class="legend-dot" style="color:${cssColor(
+            p.cssVar
+          )}"></span>${p.label}</div>`
+      )
+      .join("");
     div.innerHTML =
-      `<div class="legend-title">Status</div>${rows}${acres}` +
+      `<div class="legend-title">Program</div>${rows}` +
       `<div class="legend-foot">Marker size ∝ acreage (log)</div>`;
     L.DomEvent.disableClickPropagation(div);
     return div;
   };
   legend.addTo(map);
+}
+
+function rerenderLegend() {
+  document.querySelectorAll(".legend").forEach((n) => n.remove());
+  if (map) addLegend();
 }
 
 function radiusForAcreage(a) {
@@ -289,9 +320,17 @@ function applyFilter() {
   const keepEvery = decimateKeep(zoom);
   let visible = 0;
   let mapVisible = 0;
+  let acreSum = 0;
+  let acreSites = 0;
   for (const s of sites) {
     const match = siteMatchesFilters(s, { q });
-    if (match) visible++;
+    if (match) {
+      visible++;
+      if (typeof s.acreage === "number") {
+        acreSum += s.acreage;
+        acreSites++;
+      }
+    }
 
     const row = tableRowsById.get(s.id);
     if (row) row.hidden = !match;
@@ -308,7 +347,13 @@ function applyFilter() {
   }
   const countEl = el("search-count");
   if (q || filtersActive()) {
-    countEl.textContent = `${visible.toLocaleString()} of ${sites.length.toLocaleString()}`;
+    const acresLabel = acreSites
+      ? ` · ${Math.round(acreSum).toLocaleString()} ac` +
+        (acreSites < visible ? ` (${acreSites.toLocaleString()} w/ acreage)` : "")
+      : "";
+    const stateLabel = filterState.state ? ` in ${filterState.state}` : "";
+    countEl.textContent =
+      `${visible.toLocaleString()} of ${sites.length.toLocaleString()}${stateLabel}${acresLabel}`;
   } else {
     countEl.textContent = "";
   }
@@ -320,7 +365,7 @@ function filtersActive() {
     filterState.state !== "" ||
     filterState.statuses.size > 0 ||
     filterState.minAcreage > 0 ||
-    !(filterState.programs.size === 1 && filterState.programs.has("superfund"))
+    filterState.programs.size !== 2
   );
 }
 
@@ -350,17 +395,30 @@ function wireFilters() {
     if (map) setTimeout(() => map.invalidateSize(), 50);
   });
 
-  const programSel = el("f-program");
-  // Reflect URL state into the multi-select.
-  for (const opt of programSel.options) {
-    opt.selected = filterState.programs.has(opt.value);
+  const progBoxes = {
+    superfund: el("f-program-superfund"),
+    brownfield: el("f-program-brownfield"),
+  };
+  // Reflect URL state into the checkboxes.
+  for (const [program, box] of Object.entries(progBoxes)) {
+    box.checked = filterState.programs.has(program);
   }
-  programSel.addEventListener("change", () => {
-    const selected = Array.from(programSel.selectedOptions).map((o) => o.value);
-    filterState.programs = new Set(selected.length ? selected : ["superfund"]);
+  const onProgramChange = () => {
+    const next = new Set();
+    for (const [program, box] of Object.entries(progBoxes)) {
+      if (box.checked) next.add(program);
+    }
+    // Avoid the empty-set degenerate case that would hide everything.
+    if (!next.size) {
+      progBoxes.superfund.checked = true;
+      next.add("superfund");
+    }
+    filterState.programs = next;
     if (filterState.programs.has("brownfield")) ensureAcresLoaded();
     applyFilter();
-  });
+  };
+  progBoxes.superfund.addEventListener("change", onProgramChange);
+  progBoxes.brownfield.addEventListener("change", onProgramChange);
 
   const stateSel = el("f-state");
   stateSel.addEventListener("change", () => {
@@ -388,13 +446,15 @@ function wireFilters() {
     filterState.minAcreage === 0 ? "0" : Math.round(Math.pow(10, filterState.minAcreage)).toLocaleString() + " ac";
 
   el("filters-reset").addEventListener("click", () => {
-    filterState.programs = new Set(["superfund"]);
+    filterState.programs = new Set(["superfund", "brownfield"]);
     filterState.state = "";
     filterState.statuses = new Set();
     filterState.minAcreage = 0;
     filterState.q = "";
     el("search").value = "";
-    for (const opt of programSel.options) opt.selected = opt.value === "superfund";
+    progBoxes.superfund.checked = true;
+    progBoxes.brownfield.checked = true;
+    if (filterState.programs.has("brownfield")) ensureAcresLoaded();
     stateSel.value = "";
     for (const opt of el("f-status").options) opt.selected = false;
     acreEl.value = "0";
@@ -660,8 +720,7 @@ function wireThemeToggle() {
     applyTheme(next);
     // Restyle markers + legend with new CSS-var values.
     refreshMarkerColors();
-    document.querySelectorAll(".legend").forEach((n) => n.remove());
-    if (map) addLegend();
+    rerenderLegend();
   });
 }
 
@@ -712,9 +771,11 @@ function syncUrl() {
     if (filterState.q) p.set("q", filterState.q);
     if (filterState.state) p.set("state", filterState.state);
     if (filterState.statuses.size) p.set("status", Array.from(filterState.statuses).join(","));
-    // Only encode programs when they differ from the default (Superfund only).
+    // Only encode programs when they differ from the default (both programs on).
     const isDefaultProgram =
-      filterState.programs.size === 1 && filterState.programs.has("superfund");
+      filterState.programs.size === 2 &&
+      filterState.programs.has("superfund") &&
+      filterState.programs.has("brownfield");
     if (!isDefaultProgram) p.set("program", Array.from(filterState.programs).join(","));
     if (filterState.minAcreage > 0) p.set("min_ac", String(filterState.minAcreage));
     if (selectedId) p.set("site", selectedId);

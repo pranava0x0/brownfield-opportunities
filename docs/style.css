@@ -14,7 +14,10 @@
   --status-deleted: #8a94a3;   /* D: Deleted from NPL */
   --status-proposed: #b8821a;  /* P: Proposed */
   --status-other: #3f7a3f;     /* N / unknown / fallback */
-  --status-acres: #1f6fcf;     /* program=brownfield (no NPL status) */
+  --status-acres: #1f6fcf;     /* legacy alias for --program-brownfield */
+  /* Map markers and legend are colored by program (single source of truth). */
+  --program-superfund: #c83838;
+  --program-brownfield: #1f6fcf;
   --shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
 }
@@ -33,6 +36,8 @@
   --status-proposed: #d4a93f;
   --status-other: #5fa45f;
   --status-acres: #6ea8e6;
+  --program-superfund: #ef5050;
+  --program-brownfield: #6ea8e6;
   --shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
@@ -199,6 +204,34 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 }
 .filter input[type="range"] { padding: 0; min-width: 160px; accent-color: var(--accent); }
 .filter select[multiple] { min-height: 60px; padding: 4px; }
+.filter-program {
+  border: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.filter-program legend {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--muted);
+  font-weight: 600;
+  padding: 0 0 2px 0;
+}
+.filter-program .check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text);
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 400;
+  cursor: pointer;
+}
+.filter-program .check input { accent-color: var(--accent); cursor: pointer; }
 .muted-num { font-variant-numeric: tabular-nums; color: var(--text); font-weight: 400; text-transform: none; }
 .text-btn {
   font: inherit;
