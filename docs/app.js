@@ -6,14 +6,15 @@
 
 const PRIMARY_DATA_URL = "data/sites.json";
 const ACRES_DATA_URL = "data/epa-acres.json";
-// Two-layer basemap: clean landmasses always, labels only when zoomed in.
-// At low zoom users see the US silhouette + state borders without world clutter;
-// county/city labels fade in at zoom ≥ LABEL_MIN_ZOOM.
-const TILE_BASE_URL = "https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png";
-const TILE_LABELS_URL = "https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png";
-const LABEL_MIN_ZOOM = 5;
-const TILE_ATTRIB =
-  '&copy; <a href="https://openstreetmap.org/copyright">OSM</a> · &copy; <a href="https://carto.com/attributions">CARTO</a>';
+// Vector basemap: US states (always) + US counties (lazy at zoom ≥ COUNTY_MIN_ZOOM).
+// No tiles — Canada/Mexico literally don't exist on the map. Choropleth-style
+// look (think CNN election tracker / datacenterbans.com) with bold state borders
+// and CSS-var-driven fills so the same render works in light and dark.
+const STATES_DATA_URL = "data/us-states.json";
+const COUNTIES_DATA_URL = "data/us-counties-topo.json";
+const COUNTY_MIN_ZOOM = 7;
+const BASEMAP_ATTRIB =
+  'Boundaries: <a href="https://www.census.gov/geographies/mapping-files/time-series/geo/cartographic-boundary.html">US Census</a>';
 
 const DEFAULT_VIEW = { center: [39.5, -98.35], zoom: 4 };
 // Continental US (lower 48) + a strip below it where AK/HI/PR/Pacific insets
@@ -252,31 +253,14 @@ function initMap() {
     maxBounds: US_BOUNDS,
     maxBoundsViscosity: 1.0,
     worldCopyJump: false,
+    attributionControl: true,
   }).fitBounds(US_BOUNDS, { padding: [10, 10], animate: false });
 
-  L.tileLayer(TILE_BASE_URL, {
-    attribution: TILE_ATTRIB,
-    maxZoom: 19,
-    minZoom: MIN_ZOOM,
-    detectRetina: true,
-    crossOrigin: true,
-    bounds: US_BOUNDS,
-    noWrap: true,
-  }).addTo(map);
+  map.attributionControl.setPrefix("").addAttribution(BASEMAP_ATTRIB);
+  // The Leaflet container background is the "ocean" outside CONUS.
+  document.getElementById("map").style.background = cssColor("--map-ocean");
 
-  // Labels (states/counties/cities) only appear once the user zooms in past
-  // the country level — keeps the low-zoom view clean and US-focused.
-  L.tileLayer(TILE_LABELS_URL, {
-    attribution: "",
-    maxZoom: 19,
-    minZoom: LABEL_MIN_ZOOM,
-    detectRetina: true,
-    crossOrigin: true,
-    bounds: US_BOUNDS,
-    noWrap: true,
-    pane: "shadowPane",
-  }).addTo(map);
-
+  drawBasemap();
   drawInsetBoxes();
 
   markerLayer = L.layerGroup().addTo(map);
@@ -286,8 +270,99 @@ function initMap() {
   addMarkersForRecords(sites);
   addLegend();
 
-  // Re-evaluate decimation on zoom.
-  map.on("zoomend", applyFilter);
+  // Re-evaluate decimation + counties visibility on zoom.
+  map.on("zoomend", () => {
+    updateCountyVisibility();
+    applyFilter();
+  });
+}
+
+// ----- Vector basemap -----
+let statesLayer = null;
+let countiesLayer = null;
+let countiesLoadPromise = null;
+
+function statesStyle() {
+  return {
+    color: cssColor("--map-state-stroke"),
+    weight: 1.4,
+    fillColor: cssColor("--map-land"),
+    fillOpacity: 1,
+    lineJoin: "round",
+    lineCap: "round",
+  };
+}
+function countiesStyle() {
+  return {
+    color: cssColor("--map-county-stroke"),
+    weight: 0.6,
+    fill: false,
+    opacity: 0.9,
+  };
+}
+
+function drawBasemap() {
+  fetch(STATES_DATA_URL)
+    .then((r) => {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then((gj) => {
+      // States sit on Leaflet's tilePane so they render under markers/insets.
+      statesLayer = L.geoJSON(gj, {
+        style: statesStyle,
+        interactive: false,
+        pane: "tilePane",
+      }).addTo(map);
+    })
+    .catch((err) => {
+      console.error("Failed to load states basemap:", err);
+    });
+}
+
+function ensureCountiesLoaded() {
+  if (countiesLayer) return Promise.resolve();
+  if (countiesLoadPromise) return countiesLoadPromise;
+  countiesLoadPromise = fetch(COUNTIES_DATA_URL)
+    .then((r) => {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then((topo) => {
+      if (!window.topojson || !topo.objects || !topo.objects.counties) {
+        throw new Error("topojson-client not loaded or counties topo malformed");
+      }
+      const gj = window.topojson.feature(topo, topo.objects.counties);
+      countiesLayer = L.geoJSON(gj, {
+        style: countiesStyle,
+        interactive: false,
+        pane: "tilePane",
+      });
+      // Only attach if user is still zoomed in by the time it lands.
+      if (map.getZoom() >= COUNTY_MIN_ZOOM) countiesLayer.addTo(map);
+    })
+    .catch((err) => {
+      console.error("Failed to load counties basemap:", err);
+      countiesLoadPromise = null; // allow retry
+    });
+  return countiesLoadPromise;
+}
+
+function updateCountyVisibility() {
+  if (!map) return;
+  const shouldShow = map.getZoom() >= COUNTY_MIN_ZOOM;
+  if (shouldShow) {
+    ensureCountiesLoaded();
+    if (countiesLayer && !map.hasLayer(countiesLayer)) countiesLayer.addTo(map);
+  } else if (countiesLayer && map.hasLayer(countiesLayer)) {
+    map.removeLayer(countiesLayer);
+  }
+}
+
+function refreshBasemapColors() {
+  document.getElementById("map").style.background = cssColor("--map-ocean");
+  if (statesLayer) statesLayer.setStyle(statesStyle());
+  if (countiesLayer) countiesLayer.setStyle(countiesStyle());
 }
 
 function addMarkersForRecords(records) {
@@ -299,10 +374,13 @@ function addMarkersForRecords(records) {
     const marker = L.circleMarker([s.lat, s.lon], {
       renderer,
       radius: radiusForAcreage(s.acreage),
-      color,
-      weight: 1.2,
+      // Thin theme-aware ring around the program-colored fill so markers stay
+      // legible against both the light land fill and the dark land fill.
+      color: cssColor("--map-marker-stroke"),
+      weight: 1,
       fillColor: color,
-      fillOpacity: 0.6,
+      fillOpacity: 0.85,
+      opacity: 0.9,
     }).bindTooltip(s.name || "(unnamed site)", { direction: "top" });
 
     marker.on("click", () => selectSite(s.id, { fromMap: true }));
@@ -825,19 +903,21 @@ function wireThemeToggle() {
     const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
     localStorage.setItem("theme", next);
     applyTheme(next);
-    // Restyle markers + legend + inset boxes with new CSS-var values.
+    // Restyle markers + legend + inset boxes + basemap with new CSS-var values.
     refreshMarkerColors();
     rerenderLegend();
     drawInsetBoxes();
+    refreshBasemapColors();
   });
 }
 
 function refreshMarkerColors() {
+  const stroke = cssColor("--map-marker-stroke");
   for (const [id, marker] of markersById) {
     const s = sitesById.get(id);
     if (!s) continue;
     const c = colorForRecord(s);
-    marker.setStyle({ color: c, fillColor: c });
+    marker.setStyle({ color: stroke, fillColor: c });
   }
 }
 
