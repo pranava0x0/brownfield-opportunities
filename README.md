@@ -1,37 +1,51 @@
 # Brownfield Opportunities
 
-Static dashboard of EPA Superfund sites — map and table view with site-level detail. Designed to live on GitHub Pages and refresh via a one-command CLI.
+Static dashboard of EPA Superfund + ACRES brownfield sites — map and table view with filters, site-level detail, CSV export, and shareable URL state. Designed to live on GitHub Pages and refresh via a one-command CLI.
 
 **Live:** https://pranava0x0.github.io/brownfield-opportunities/
 
-## What's in v1.1
+## What's in v1.2
 
-- **All 1,908 unique NPL Superfund sites** (was top-100 by acreage). Multi-polygon sites merged by EPA_ID; ~200 sites with non-areal geometry surfaced in an "N/A acreage" bucket rather than dropped.
-- **Map view (default)** with Canvas-rendered markers on CARTO light tiles; markers sized by acreage (log scale) and colored by NPL status, with an in-map legend.
+- **All 1,908 unique NPL Superfund sites** (multi-polygon sites merged by EPA_ID; ~200 with non-areal geometry surfaced in an "N/A acreage" bucket).
+- **36,003 EPA ACRES brownfield properties** loaded lazily — the user enables them via the program filter, keeping first paint at ~170KB gzipped.
+- **Map view (default)** with Canvas-rendered markers, sized by acreage (log scale), colored by NPL status, with an in-map legend including the brownfield series.
+- **Table view** with sortable columns and a Program column.
+- **Filters strip** (toggle from the toolbar): program (Superfund / Brownfield / both), state, NPL status (multi-select), minimum acreage (log slider). Plus the existing free-text search. All filters operate on both the table and the map markers.
+- **URL state sharing.** `?site=<ID>` deep-links to a site; `?q=<text>`, `?state=NY`, `?status=F,P`, `?program=brownfield`, `?min_ac=2` round-trip via `history.replaceState`. Legacy `?epa_id=` still works.
+- **CSV export** of the currently-filtered set (date-stamped filename).
+- **Theme toggle** (light/dark) with `localStorage` persistence; honors `prefers-color-scheme` on first visit. Markers + legend re-stylize on swap.
+- **Sub-site surfacing.** Status-A NPL sub-sites that get rolled up under a parent now appear as a "Sub-sites" list on the parent's detail panel.
 - **US-only.** `maxBounds` and `minZoom` constrain the map to the contiguous US plus Alaska and Puerto Rico.
-- **Table view** with sortable columns.
-- **Search** — free-text filter on site name / city / county / state. Filters both the table and the map markers.
+- **Marker decimation at low zoom.** At zoom ≤4 we render 1 in 8 markers, ≤5 keeps 1 in 4, ≤6 keeps 1 in 2, ≥7 shows all. Stable hash-based sampling so the visible subset doesn't flicker on zoom.
 - **Mobile-friendly:** detail panel becomes a bottom sheet on phones; tap targets sized for touch; tiles preconnected and `sites.json` preloaded for fast first paint.
-- **Side panel** on click: name, NPL status, acreage, EPA ID, full address, coordinates, link to EPA site profile (with EPA_ID-based fallback URL when source links are missing).
-- **Dynamic code labels.** Both NPL status and federal-facility codes are decoded from the layer's coded-value domain at refresh time — no risk of going stale.
-- **Source:** [EPA NPL Superfund Site Boundaries (Public)](https://hub.arcgis.com/datasets/EPA::npl-superfund-site-boundaries-epa-public-2022/about) ArcGIS FeatureServer.
+- **Dynamic code labels.** NPL status and federal-facility codes are decoded from the layer's coded-value domain at refresh time — no risk of going stale.
+- **Sources:**
+  - [EPA NPL Superfund Site Boundaries (Public)](https://hub.arcgis.com/datasets/EPA::npl-superfund-site-boundaries-epa-public-2022/about) ArcGIS FeatureServer.
+  - [EPA ACRES Brownfield Properties](https://www.epa.gov/cleanups/assessment-cleanup-and-redevelopment-exchange-system-acres) (`All ACRES Properties 8_30_2021` ArcGIS FeatureServer).
 
-Owner / encumbrance / infrastructure-proximity data and the broader Brownfields/ACRES universe are deferred. See [`backlog.md`](backlog.md) for the data-center-opportunity pivot and the data sources that would feed it.
+Owner / encumbrance / infrastructure-proximity data is deferred. See [`backlog.md`](backlog.md) for the data-center-opportunity pivot and the data sources that would feed it.
 
 ## Refresh the data
 
 ```bash
 pip install -r requirements.txt
 python refresh.py --list-sources                   # show registered connectors
-python refresh.py                                  # default: all NPL sites
-python refresh.py --source superfund-npl --limit 200
+python refresh.py                                  # default: Superfund only → docs/data/sites.json
+python refresh.py --source epa-acres               # ACRES → docs/data/epa-acres.json
+python refresh.py --all                            # both, plus mirror Superfund → sites.json
+python refresh.py --all --combined                 # also write a single fat sites.json (~2MB gz)
 python refresh.py --source superfund-npl --no-cache
 python refresh.py --source superfund-npl --dry-run # use only cached responses
+python refresh.py --pretty                         # pretty-printed JSON (default is minified)
 ```
 
-Output: `docs/data/sites.json` (committed, served by Pages) + `data/changes.md` (diff vs prior run).
+Output:
+- `docs/data/sites.json` — canonical fast-path file the frontend loads first (~170KB gzipped, Superfund only)
+- `docs/data/superfund-npl.json` — same as `sites.json`, written by `--all`
+- `docs/data/epa-acres.json` — ACRES brownfields, lazy-loaded by the frontend (~1.5MB gzipped)
+- `data/changes.md` — diff vs prior run (canonical file only)
 
-The script is idempotent: re-runs hit a local cache (`data/cache/`) until you pass `--no-cache`.
+The script is idempotent: re-runs hit a local cache (`data/cache/`) until you pass `--no-cache`. JSON is minified by default and skips null fields; `exclude_none=True` keeps the per-record overhead small.
 
 ### Adding a new data source
 
@@ -49,6 +63,7 @@ class MySource(Connector):
     def fetch_records(self, args, use_cache):
         # call self.http_get_json(...) — caching + rate-limiting are handled
         # return list of dicts matching schema.SiteRecord
+        # MUST set 'id' and 'program' on every record.
         ...
 ```
 
@@ -75,8 +90,8 @@ python scripts/serve.py 8080       # custom port
 pip install -r requirements-dev.txt
 python -m playwright install chromium
 
-pytest tests/ --ignore=tests/e2e          # unit tests (~50 tests, <1s)
-pytest tests/e2e --browser chromium       # Playwright smoke tests
+pytest tests/ --ignore=tests/e2e          # unit tests (~69 tests, <1s)
+pytest tests/e2e --browser chromium       # Playwright smoke tests (11 tests)
 ```
 
 Run on every PR by `.github/workflows/test.yml`.
@@ -86,7 +101,7 @@ Run on every PR by `.github/workflows/test.yml`.
 Three GitHub Actions workflows:
 
 - **`deploy.yml`** — every push to `main` publishes `docs/` to GitHub Pages.
-- **`refresh.yml`** — weekly cron (Mon 07:00 UTC) re-runs `refresh.py`. Commits if `sites.json` changed; commit message includes the diff summary (`+N −N ~N sites`). Manually triggerable with a `--limit` override.
+- **`refresh.yml`** — weekly cron (Mon 07:00 UTC) re-runs `refresh.py --all`. Commits if any output changed; commit message includes the diff summary (`+N −N ~N sites`). Manually triggerable with a `--limit` override.
 - **`test.yml`** — pytest + Playwright on every PR.
 
 Pages source: **Settings → Pages → Source: GitHub Actions** (or `gh api -X PUT repos/<owner>/<repo>/pages -f build_type=workflow`).
@@ -101,7 +116,8 @@ Pages source: **Settings → Pages → Source: GitHub Actions** (or `gh api -X P
 ├── connectors/
 │   ├── __init__.py             # Connector registry
 │   ├── base.py                 # Connector ABC + shared HTTP/cache infra
-│   └── superfund_npl.py        # EPA NPL FeatureServer
+│   ├── superfund_npl.py        # EPA NPL FeatureServer
+│   └── epa_acres.py            # EPA ACRES Brownfield Properties
 ├── tests/
 │   ├── test_normalize.py       # Unit tests
 │   ├── test_envelope.py
@@ -110,6 +126,7 @@ Pages source: **Settings → Pages → Source: GitHub Actions** (or `gh api -X P
 │   ├── test_dedupe.py
 │   ├── test_merge_by_epa_id.py
 │   ├── test_diff.py
+│   ├── test_acres.py           # ACRES connector
 │   └── e2e/
 │       └── test_smoke.py       # Playwright smoke test for the frontend
 ├── scripts/
@@ -118,7 +135,10 @@ Pages source: **Settings → Pages → Source: GitHub Actions** (or `gh api -X P
 │   ├── index.html
 │   ├── style.css
 │   ├── app.js
-│   └── data/sites.json         # committed; regenerated by refresh.py
+│   └── data/
+│       ├── sites.json          # canonical fast-path (Superfund) — committed
+│       ├── superfund-npl.json  # written by --all (mirror of sites.json)
+│       └── epa-acres.json      # lazy-loaded by the frontend
 ├── data/
 │   ├── cache/                  # raw API responses (gitignored)
 │   └── changes.md              # diff log from last refresh
