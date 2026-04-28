@@ -108,4 +108,62 @@ def test_legend_renders(page, base_url):
     page.wait_for_function("document.getElementById('meta').textContent.indexOf('sites') > -1")
     legend = page.locator(".legend")
     legend.wait_for()
-    assert "NPL Status" in legend.text_content()
+    text = legend.text_content()
+    assert "Final NPL" in text
+    assert "Brownfield" in text  # ACRES legend row added in v1.2
+
+
+def test_filters_panel_toggles(page, base_url):
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("document.getElementById('meta').textContent.indexOf('sites') > -1")
+    page.locator("#filters-toggle").click()
+    page.wait_for_selector("#filters:not([hidden])")
+    assert page.locator("#f-state").is_visible()
+    assert page.locator("#f-status").is_visible()
+    assert page.locator("#f-acreage").is_visible()
+
+
+def test_state_filter_narrows_table(page, base_url):
+    """Picking a state from the dropdown filters table + map markers."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("document.getElementById('meta').textContent.indexOf('sites') > -1")
+    page.locator("#tab-table").click()
+    page.locator("#filters-toggle").click()
+    page.wait_for_selector("#filters:not([hidden])")
+
+    # Pick the first non-empty state option deterministically.
+    page.evaluate(
+        "() => { const sel = document.getElementById('f-state');"
+        " const opt = Array.from(sel.options).find(o => o.value);"
+        " sel.value = opt.value; sel.dispatchEvent(new Event('change')); }"
+    )
+    page.wait_for_function("document.getElementById('search-count').textContent.length > 0")
+    visible = page.evaluate(
+        "Array.from(document.querySelectorAll('#sites-table tbody tr')).filter(r => !r.hidden).length"
+    )
+    total = page.evaluate("document.querySelectorAll('#sites-table tbody tr').length")
+    assert 0 < visible < total
+
+
+def test_url_state_sharing(page, base_url):
+    """Filters round-trip through ?state= in the URL."""
+    page.goto(f"{base_url}/index.html?state=NY")
+    page.wait_for_function("document.getElementById('meta').textContent.indexOf('sites') > -1")
+    page.locator("#tab-table").click()
+    page.wait_for_function("document.getElementById('search-count').textContent.length > 0")
+    states = page.evaluate(
+        "Array.from(document.querySelectorAll('#sites-table tbody tr'))"
+        ".filter(r => !r.hidden).slice(0, 5).map(r => r.children[2].textContent.trim())"
+    )
+    assert all(s == "NY" for s in states), states
+
+
+def test_theme_toggle_persists(page, base_url):
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("document.getElementById('meta').textContent.indexOf('sites') > -1")
+    initial = page.evaluate("document.documentElement.getAttribute('data-theme')")
+    page.locator("#theme-toggle").click()
+    after = page.evaluate("document.documentElement.getAttribute('data-theme')")
+    assert after != initial
+    stored = page.evaluate("localStorage.getItem('theme')")
+    assert stored in ("light", "dark")

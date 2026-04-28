@@ -24,10 +24,12 @@ jobs:
       - run: pip install -r requirements.txt
       - name: Refresh
         run: |
+          # --all runs every connector. sites.json stays Superfund-only for
+          # fast first paint; the frontend lazy-loads epa-acres.json on demand.
           if [[ -n "${{ inputs.limit }}" ]]; then
-            python refresh.py --source superfund-npl --no-cache --limit "${{ inputs.limit }}"
+            python refresh.py --all --no-cache --limit "${{ inputs.limit }}"
           else
-            python refresh.py --source superfund-npl --no-cache
+            python refresh.py --all --no-cache
           fi
       - name: Build commit message from diff
         id: msg

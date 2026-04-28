@@ -5,7 +5,13 @@ from connectors.superfund_npl import SuperfundNPL
 
 
 def _r(epa_id: str, name: str, status: str) -> dict:
-    return {"epa_id": epa_id, "name": name, "npl_status_code": status, "parent_epa_id": None}
+    return {
+        "id": epa_id,
+        "program": "superfund",
+        "epa_id": epa_id,
+        "name": name,
+        "npl_status_code": status,
+    }
 
 
 def test_child_dropped_when_parent_present():
@@ -20,7 +26,9 @@ def test_orphan_child_kept():
     orphan = _r("XXX", "Orphan Sub-Site", "A")
     out = SuperfundNPL._dedupe_status_a([orphan])
     assert out == [orphan]
-    assert orphan["parent_epa_id"] is None
+    # No parent in the dataset → parent_epa_id is left unset (drops to default
+    # None via Pydantic on the way out).
+    assert orphan.get("parent_epa_id") is None
 
 
 def test_non_a_records_unaffected():
@@ -43,3 +51,17 @@ def test_child_records_parent_epa_id():
     child = _r("PPP-OU2", "Parent Plant OU2", "A")
     SuperfundNPL._dedupe_status_a([parent, child])
     assert child["parent_epa_id"] == "PPP"
+
+
+def test_parent_accumulates_children_summary():
+    """Parent surfaces a `children` list so the UI can show sub-sites."""
+    parent = _r("MMM", "Big Site", "F")
+    c1 = _r("MMM-OU1", "Big Site OU1", "A")
+    c2 = _r("MMM-OU2", "Big Site OU2", "A")
+    SuperfundNPL._dedupe_status_a([parent, c1, c2])
+    assert "children" in parent
+    assert len(parent["children"]) == 2
+    names = sorted(c["name"] for c in parent["children"])
+    assert names == ["Big Site OU1", "Big Site OU2"]
+    # Parent must keep its own id intact.
+    assert parent["epa_id"] == "MMM"
