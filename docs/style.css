@@ -263,6 +263,20 @@ main {
 [data-theme="dark"] .leaflet-control-attribution { background: rgba(20,25,35,0.85) !important; color: #aab !important; }
 [data-theme="dark"] .leaflet-control-attribution a { color: var(--accent); }
 
+/* ----- Inset region labels (AK / HI / PR / Pacific) ----- */
+.inset-label {
+  background: var(--surface);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 4px 4px 0 0;
+  padding: 2px 6px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
 /* ----- Map legend ----- */
 .legend {
   background: rgba(255, 255, 255, 0.95);
