@@ -18,6 +18,12 @@
   /* Map markers and legend are colored by program (single source of truth). */
   --program-superfund: #c83838;
   --program-brownfield: #1f6fcf;
+  /* Vector basemap palette (states/counties drawn as GeoJSON, no tiles). */
+  --map-ocean: #dbe3ee;        /* outside-CONUS canvas */
+  --map-land: #f4f6fa;         /* state polygon fill */
+  --map-state-stroke: #6b7689; /* state borders — bold, high contrast */
+  --map-county-stroke: #b9c2d0;/* county borders — softer, zoom ≥ 7 only */
+  --map-marker-stroke: #ffffff;/* marker outline for contrast against land */
   --shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
 }
@@ -38,6 +44,13 @@
   --status-acres: #6ea8e6;
   --program-superfund: #ef5050;
   --program-brownfield: #6ea8e6;
+  /* Vector basemap palette — dark theme. Land is slightly lifted from page bg
+     so state shapes read as a unit; ocean is the page bg so insets float above. */
+  --map-ocean: #0b1018;
+  --map-land: #1d2531;
+  --map-state-stroke: #4f5a6c;
+  --map-county-stroke: #2e3848;
+  --map-marker-stroke: #0e131a;
   --shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
