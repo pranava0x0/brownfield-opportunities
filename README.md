@@ -4,6 +4,11 @@ Static dashboard of EPA Superfund + ACRES brownfield sites — map and table vie
 
 **Live:** https://pranava0x0.github.io/brownfield-opportunities/
 
+## What's in v1.4
+
+- **Continental-US-focused map.** `maxBounds` and `minZoom` are tightened so the lower 48 dominates the basemap — no more Canada/Mexico filling the screen at first paint. The map fits to bounds at init so the view adapts to viewport size.
+- **Cartographic insets for AK / HI / PR / VI / Pacific territories.** Records from those states/territories are linearly remapped into labeled boxes along the bottom of the map (classic US-map-with-insets layout: ALASKA, HAWAII, PR / USVI, GU / MP / AS). The detail panel and CSV export still show the real geographic coordinates — only the marker placement is remapped. Adding a new state/territory to an inset is one edit in `INSETS` in `docs/app.js`.
+
 ## What's in v1.2
 
 - **All 1,908 unique NPL Superfund sites** (multi-polygon sites merged by EPA_ID; ~200 with non-areal geometry surfaced in an "N/A acreage" bucket).
@@ -18,7 +23,7 @@ Static dashboard of EPA Superfund + ACRES brownfield sites — map and table vie
 - **CSV export** of the currently-filtered set (date-stamped filename).
 - **Theme toggle** (light/dark) with `localStorage` persistence; honors `prefers-color-scheme` on first visit. Markers + legend re-stylize on swap.
 - **Sub-site surfacing.** Status-A NPL sub-sites that get rolled up under a parent now appear as a "Sub-sites" list on the parent's detail panel.
-- **US-only.** `maxBounds` and `minZoom` constrain the map to the contiguous US plus Alaska and Puerto Rico.
+- **US-only.** `maxBounds` and `minZoom` constrain the map to continental US; AK / HI / PR / VI / Pacific territories appear as inset boxes (see v1.4 above).
 - **Marker decimation at low zoom.** At zoom ≤4 we render 1 in 8 markers, ≤5 keeps 1 in 4, ≤6 keeps 1 in 2, ≥7 shows all. Stable hash-based sampling so the visible subset doesn't flicker on zoom.
 - **Mobile-friendly:** detail panel becomes a bottom sheet on phones; tap targets sized for touch; tiles preconnected and `sites.json` preloaded for fast first paint.
 - **Dynamic code labels.** NPL status and federal-facility codes are decoded from the layer's coded-value domain at refresh time — no risk of going stale.
