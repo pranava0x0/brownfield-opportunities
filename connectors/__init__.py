@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 from connectors.base import Connector
+from connectors.epa_acres import EpaAcres
 from connectors.superfund_npl import SuperfundNPL
 
 REGISTRY: dict[str, type[Connector]] = {}
@@ -29,3 +30,4 @@ def names() -> list[str]:
 
 
 register("superfund-npl", SuperfundNPL)
+register("epa-acres", EpaAcres)

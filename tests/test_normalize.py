@@ -215,13 +215,20 @@ def test_all_optional_fields_null(conn):
 
 
 def test_record_shape_complete(conn):
-    """Every key the schema expects must be present (None ok)."""
+    """Every key the connector emits must be schema-known.
+
+    Future enrichment slots (current_owner, proximity, etc.) live in the
+    schema but are no longer emitted by the connector — they're added by
+    downstream enrichment passes. Dropping them here keeps the JSON small.
+    """
     rec = conn.normalize(_feature({}))
     expected = {
+        "id", "program",
         "epa_id", "name", "acreage", "npl_status_code", "npl_status",
         "federal_facility", "federal_facility_code", "region", "address",
         "city", "county", "state", "zip", "lat", "lon", "profile_url",
-        "last_updated", "parent_epa_id", "current_owner", "historical_owners",
-        "encumbrances", "remediation_detail", "proximity",
+        "last_updated",
     }
     assert set(rec.keys()) == expected
+    assert rec["program"] == "superfund"
+    assert rec["id"] == rec["epa_id"]

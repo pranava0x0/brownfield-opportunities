@@ -326,7 +326,12 @@ class SuperfundNPL(Connector):
         fed_label = (federal_facility_labels or {}).get(fed_code or "", fed_code)
         labels = npl_status_labels or NPL_STATUS_LABELS
 
+        # Records without an EPA_ID still get a synthetic id so the frontend
+        # can key by it. We hash the OBJECTID + name as a stable fallback.
+        record_id = epa_id or f"NPL-O{a.get('OBJECTID')}"
         return {
+            "id": record_id,
+            "program": "superfund",
             "epa_id": epa_id,
             "name": a.get("SITE_NAME"),
             "acreage": acres,
@@ -344,12 +349,6 @@ class SuperfundNPL(Connector):
             "lon": round(lon, 6),
             "profile_url": profile_url,
             "last_updated": a.get("LAST_CHANGE_DATE"),
-            "parent_epa_id": None,  # populated by _dedupe_status_a if applicable
-            "current_owner": None,
-            "historical_owners": None,
-            "encumbrances": None,
-            "remediation_detail": None,
-            "proximity": None,
         }
 
     # ----- dedupe -----
@@ -363,7 +362,9 @@ class SuperfundNPL(Connector):
         status-'A' site whose name starts with another (non-A) site's name.
 
         Sub-sites without a discoverable parent are kept (so we never silently
-        lose data) and tagged with `parent_epa_id = None`.
+        lose data) and tagged with `parent_epa_id = None`. Parents accumulate
+        a `children` list of `{id, name}` so the UI can surface the
+        relationship without re-fetching the dropped sub-site rows.
         """
         non_a_by_name = {
             (r.get("name") or "").lower(): r
@@ -384,6 +385,11 @@ class SuperfundNPL(Connector):
                     break
             if parent is not None:
                 r["parent_epa_id"] = parent.get("epa_id")
+                # Attach a compact summary onto the parent for UI surfacing.
+                parent.setdefault("children", []).append({
+                    "id": r.get("id") or r.get("epa_id"),
+                    "name": r.get("name"),
+                })
                 merged += 1
                 continue  # drop from main list
             kept.append(r)
