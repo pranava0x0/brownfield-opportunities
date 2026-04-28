@@ -19,10 +19,17 @@
     <h1>Brownfield Opportunities</h1>
     <p class="sub" id="meta">Loading…</p>
   </div>
-  <nav class="tabs" role="tablist" aria-label="View">
-    <button id="tab-map" class="tab active" role="tab" aria-selected="true" aria-controls="view-map">Map</button>
-    <button id="tab-table" class="tab" role="tab" aria-selected="false" aria-controls="view-table">Table</button>
-  </nav>
+  <div class="topbar-controls">
+    <label class="search">
+      <span class="search-icon" aria-hidden="true">⌕</span>
+      <input id="search" type="search" placeholder="Search by name, city, county…" aria-label="Search sites">
+      <span id="search-count" class="search-count" aria-live="polite"></span>
+    </label>
+    <nav class="tabs" role="tablist" aria-label="View">
+      <button id="tab-map" class="tab active" role="tab" aria-selected="true" aria-controls="view-map">Map</button>
+      <button id="tab-table" class="tab" role="tab" aria-selected="false" aria-controls="view-table">Table</button>
+    </nav>
+  </div>
 </header>
 
 <main>

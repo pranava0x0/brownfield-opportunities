@@ -26,7 +26,12 @@ const STATUS_LEGEND = [
 
 const el = (id) => document.getElementById(id);
 const fmt = {
-  acres: (n) => (n == null ? "—" : n.toLocaleString(undefined, { maximumFractionDigits: 0 }) + " ac"),
+  acres: (n) => {
+    if (n == null) return "N/A";
+    // Hide trailing .0 for whole-acre values; thousands separators always.
+    const rounded = Math.round(n * 10) / 10;
+    return rounded.toLocaleString(undefined, { maximumFractionDigits: 1 }) + " ac";
+  },
   date: (s) => {
     if (!s) return "—";
     const d = new Date(typeof s === "number" ? s : Date.parse(s));
@@ -44,6 +49,7 @@ const tableRowsById = new Map(); // epa_id -> tr
 let selectedId = null;
 let sortKey = "acreage";
 let sortDir = "desc";
+let searchQuery = "";
 
 // ----- Boot -----
 fetch(DATA_URL)
@@ -59,6 +65,8 @@ fetch(DATA_URL)
     renderTable();
     wireTabs();
     wireDetailPanel();
+    wireSearch();
+    window.__sitesLoaded = true; // e2e hook
   })
   .catch((err) => {
     el("meta").textContent = "Failed to load site data: " + err.message;
@@ -90,6 +98,9 @@ function initMap() {
   }).addTo(map);
 
   markerLayer = L.layerGroup().addTo(map);
+  // Test hooks — Canvas markers have no DOM, so e2e tests need a handle.
+  window.__markerLayer = markerLayer;
+  window.__map = map;
 
   for (const s of sites) {
     if (s.lat == null || s.lon == null) continue;
@@ -131,8 +142,9 @@ function addLegend() {
 }
 
 function radiusForAcreage(a) {
-  if (!a) return 5;
-  // log scale: 100 ac -> ~5px, 10000 ac -> ~9px, 1M ac -> ~14px
+  // No-acreage bucket: small but visible. Real acreages: log scale.
+  if (a == null) return 3;
+  // 100 ac -> ~5px, 10000 ac -> ~9px, 1M ac -> ~14px
   return Math.max(4, Math.min(16, 3 + Math.log10(a)));
 }
 
@@ -146,10 +158,54 @@ function colorForStatus(code) {
   }
 }
 
+// ----- Search -----
+function siteMatches(s, q) {
+  if (!q) return true;
+  const hay = (s.name || "") + "|" + (s.city || "") + "|" + (s.county || "") + "|" + (s.state || "");
+  return hay.toLowerCase().includes(q);
+}
+
+function applyFilter() {
+  const q = searchQuery.trim().toLowerCase();
+  let visible = 0;
+  for (const s of sites) {
+    const match = siteMatches(s, q);
+    if (match) visible++;
+    const row = tableRowsById.get(s.epa_id);
+    if (row) row.hidden = !match;
+    const marker = markersById.get(s.epa_id);
+    if (marker) {
+      const onMap = markerLayer.hasLayer(marker);
+      if (match && !onMap) markerLayer.addLayer(marker);
+      else if (!match && onMap) markerLayer.removeLayer(marker);
+    }
+  }
+  const countEl = el("search-count");
+  countEl.textContent = q ? `${visible.toLocaleString()} of ${sites.length.toLocaleString()}` : "";
+}
+
+function wireSearch() {
+  const input = el("search");
+  input.addEventListener("input", () => {
+    searchQuery = input.value;
+    applyFilter();
+  });
+  // ESC clears the search if it has focus, otherwise closes the detail panel.
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && input.value) {
+      e.stopPropagation();
+      input.value = "";
+      searchQuery = "";
+      applyFilter();
+    }
+  });
+}
+
 // ----- Table -----
 function renderTable() {
   const tbody = document.querySelector("#sites-table tbody");
   tbody.innerHTML = "";
+  tableRowsById.clear();
   const sorted = [...sites].sort(makeComparator(sortKey, sortDir));
   const frag = document.createDocumentFragment();
   for (const s of sorted) {
@@ -169,6 +225,7 @@ function renderTable() {
   }
   tbody.appendChild(frag);
   updateSortIndicators();
+  applyFilter();
 }
 
 function makeComparator(key, dir) {
