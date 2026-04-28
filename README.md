@@ -7,10 +7,13 @@ Static dashboard of EPA Superfund + ACRES brownfield sites — map and table vie
 ## What's in v1.2
 
 - **All 1,908 unique NPL Superfund sites** (multi-polygon sites merged by EPA_ID; ~200 with non-areal geometry surfaced in an "N/A acreage" bucket).
-- **36,003 EPA ACRES brownfield properties** loaded lazily — the user enables them via the program filter, keeping first paint at ~170KB gzipped.
-- **Map view (default)** with Canvas-rendered markers, sized by acreage (log scale), colored by NPL status, with an in-map legend including the brownfield series.
+- **36,003 EPA ACRES brownfield properties** loaded lazily — both programs are on by default, but Superfund paints first (~170KB gzipped) and brownfields stream in over the wire afterwards.
+- **Map view (default)** with Canvas-rendered markers, sized by acreage (log scale), colored **by program** (Superfund vs. Brownfield). NPL-status detail lives in the table pill and detail panel.
+- **Two-tier basemap.** At low zoom the map shows just landmasses + the US silhouette — labels (states / counties / cities) only render once the user zooms in past zoom 5, so the first view stays clean and US-focused.
+- **Program-based legend.** The in-map legend has one row per program and only shows rows that exist in currently-loaded data (Superfund first paint → Brownfield row appears once the lazy fetch completes).
 - **Table view** with sortable columns and a Program column.
-- **Filters strip** (toggle from the toolbar): program (Superfund / Brownfield / both), state, NPL status (multi-select), minimum acreage (log slider). Plus the existing free-text search. All filters operate on both the table and the map markers.
+- **Filters strip** (toggle from the toolbar): program (Superfund / Brownfield checkboxes — both on by default), state, NPL status (multi-select), minimum acreage (log slider). Plus the existing free-text search. All filters operate on both the table and the map markers.
+- **Filtered summary.** Whenever a filter is active the search-count surface displays `N of M [in <state>] · X total ac` so you get a per-state (or per-filter) "# sites / total acres" roll-up at a glance.
 - **URL state sharing.** `?site=<ID>` deep-links to a site; `?q=<text>`, `?state=NY`, `?status=F,P`, `?program=brownfield`, `?min_ac=2` round-trip via `history.replaceState`. Legacy `?epa_id=` still works.
 - **CSV export** of the currently-filtered set (date-stamped filename).
 - **Theme toggle** (light/dark) with `localStorage` persistence; honors `prefers-color-scheme` on first visit. Markers + legend re-stylize on swap.

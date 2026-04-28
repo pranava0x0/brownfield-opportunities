@@ -104,13 +104,15 @@ def test_search_filters_table(page, base_url):
 
 
 def test_legend_renders(page, base_url):
+    """Legend shows program rows that exist in loaded data — Superfund first paint
+    only includes 'Superfund'; 'Brownfield' shows up after lazy-load completes."""
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("document.getElementById('meta').textContent.indexOf('sites') > -1")
     legend = page.locator(".legend")
     legend.wait_for()
     text = legend.text_content()
-    assert "Final NPL" in text
-    assert "Brownfield" in text  # ACRES legend row added in v1.2
+    assert "Superfund" in text
+    assert "Program" in text  # legend title
 
 
 def test_filters_panel_toggles(page, base_url):
@@ -156,6 +158,39 @@ def test_url_state_sharing(page, base_url):
         ".filter(r => !r.hidden).slice(0, 5).map(r => r.children[2].textContent.trim())"
     )
     assert all(s == "NY" for s in states), states
+
+
+def test_brownfields_visible_by_default(page, base_url):
+    """v1.3: both programs are on by default. Once ACRES finishes lazy-loading,
+    the table contains brownfield rows and the legend shows the Brownfield row."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("document.getElementById('meta').textContent.indexOf('sites') > -1")
+    # Wait for lazy-loaded brownfield records to land in the dataset.
+    page.wait_for_function(
+        "Array.from(document.querySelectorAll('#sites-table tbody tr'))"
+        ".some(r => r.querySelector('[data-program=\"brownfield\"]'))",
+        timeout=20000,
+    )
+    legend_text = page.locator(".legend").text_content()
+    assert "Brownfield" in legend_text
+
+
+def test_state_filter_shows_acreage_summary(page, base_url):
+    """v1.3: search-count includes total acres + state name when a state filter is on."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("document.getElementById('meta').textContent.indexOf('sites') > -1")
+    page.locator("#filters-toggle").click()
+    page.wait_for_selector("#filters:not([hidden])")
+    page.evaluate(
+        "() => { const sel = document.getElementById('f-state');"
+        " const opt = Array.from(sel.options).find(o => o.value);"
+        " sel.value = opt.value; sel.dispatchEvent(new Event('change')); }"
+    )
+    page.wait_for_function("document.getElementById('search-count').textContent.indexOf(' in ') > -1")
+    text = page.locator("#search-count").text_content()
+    # "X of Y in ST · Z ac …" — assert the structure
+    assert " in " in text
+    assert " ac" in text
 
 
 def test_theme_toggle_persists(page, base_url):
