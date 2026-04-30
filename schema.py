@@ -9,7 +9,7 @@ from typing import Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
-ProgramLiteral = Literal["superfund", "brownfield"]
+ProgramLiteral = Literal["superfund", "brownfield", "fuds", "brac"]
 
 
 class SiteRecord(BaseModel):
@@ -65,6 +65,48 @@ class SiteRecord(BaseModel):
     children: Optional[list[dict[str, Optional[str]]]] = Field(
         default=None,
         description="Compact `{id, name}` records for status-'A' sub-sites rolled up under this parent.",
+    )
+
+    # FUDS-specific fields
+    eligibility: Optional[str] = Field(
+        default=None, description="FUDS eligibility: Eligible, Ineligible, Categorical Exclusion."
+    )
+    fuds_status: Optional[str] = Field(
+        default=None, description="FUDS property status (e.g. 'Properties with projects')."
+    )
+    has_projects: Optional[str] = Field(
+        default=None, description="Whether the FUDS property has projects: yes/no/tbd."
+    )
+    congressional_district: Optional[str] = None
+
+    # BRAC-specific fields
+    component: Optional[str] = Field(
+        default=None, description="Military component (e.g. 'Army Active', 'Navy Active')."
+    )
+
+    # EPA Superfund Redevelopment infrastructure-proximity fields
+    near_electric_transmission: Optional[str] = Field(
+        default=None, description="Proximity to electrical transmission line."
+    )
+    near_highway: Optional[str] = None
+    near_railroad: Optional[str] = None
+    near_water_supply: Optional[str] = Field(
+        default=None, description="Within municipal water service area."
+    )
+    near_wastewater: Optional[str] = None
+    near_water_body: Optional[str] = None
+    pop_density: Optional[str] = Field(
+        default=None, description="Urban/rural classification."
+    )
+    in_opp_zone: Optional[str] = Field(
+        default=None, description="Within a Federal Opportunity Zone."
+    )
+    in_reuse: Optional[str] = Field(
+        default=None, description="Whether site is already in reuse."
+    )
+    data_center_reuse_candidate: Optional[bool] = Field(
+        default=None,
+        description="Computed: meets EPA data-center siting criteria (power, water, acreage).",
     )
 
     # Future enrichment slots — None today, dropped from JSON via exclude_none.

@@ -6,6 +6,9 @@
 
 const PRIMARY_DATA_URL = "data/sites.json";
 const ACRES_DATA_URL = "data/epa-acres.json";
+const FUDS_DATA_URL = "data/dod-fuds.json";
+const BRAC_DATA_URL = "data/dod-brac.json";
+const REDEV_DATA_URL = "data/epa-redev.json";
 // Vector basemap: US states (always) + US counties (lazy at zoom ≥ COUNTY_MIN_ZOOM).
 // No tiles — Canada/Mexico literally don't exist on the map. Choropleth-style
 // look (think CNN election tracker / datacenterbans.com) with bold state borders
@@ -103,6 +106,8 @@ const STATUS_LEGEND = [
 const PROGRAM_LEGEND = [
   { program: "superfund", label: "Superfund (NPL)", cssVar: "--program-superfund" },
   { program: "brownfield", label: "Brownfield (ACRES)", cssVar: "--program-brownfield" },
+  { program: "fuds", label: "FUDS (Defense)", cssVar: "--program-fuds" },
+  { program: "brac", label: "BRAC (Bases)", cssVar: "--program-brac" },
 ];
 const PROGRAM_COLOR_BY_PROGRAM = Object.fromEntries(
   PROGRAM_LEGEND.map((p) => [p.program, p.cssVar])
@@ -110,6 +115,8 @@ const PROGRAM_COLOR_BY_PROGRAM = Object.fromEntries(
 const PROGRAM_LABEL = {
   superfund: "Superfund (NPL)",
   brownfield: "Brownfield (ACRES)",
+  fuds: "FUDS (Defense)",
+  brac: "BRAC (Bases)",
 };
 
 // Postal-code → full name. Splits states from territories so the dropdown can
@@ -163,13 +170,16 @@ let sortDir = "desc";
 // Both programs are on by default — Superfund paints first, brownfields lazy-load.
 const filterState = {
   q: "",
-  programs: new Set(["superfund", "brownfield"]),
+  programs: new Set(["superfund", "brownfield", "fuds", "brac"]),
   state: "",
   statuses: new Set(),
   minAcreage: 0, // log10 base; 0 means "show all" (incl. null acreage)
 };
 
 let acresLoadingPromise = null; // de-dup parallel toggles
+let fudsLoadingPromise = null;
+let bracLoadingPromise = null;
+let redevLoadingPromise = null;
 
 // Programmatic ready signal so UAT / Playwright / agent automation can wait
 // on a stable event instead of polling network responses. Fires once after
@@ -211,7 +221,7 @@ fetch(PRIMARY_DATA_URL)
     el("meta").textContent = filterState.programs.has("brownfield")
       ? `${sites.length.toLocaleString()} Superfund sites · loading brownfields… · refreshed ${refreshed}`
       : `${sites.length.toLocaleString()} Superfund sites · refreshed ${refreshed}`;
-    initMap();
+    try { initMap(); } catch (e) { console.error("initMap error (non-fatal):", e); }
     populateStatusFilter();
     populateStateFilter();
     rebuildTable();
@@ -223,12 +233,18 @@ fetch(PRIMARY_DATA_URL)
     wireThemeToggle();
     applyUrlSelection();
     window.__sitesLoaded = true; // e2e hook
-    // If the URL asked for brownfields, kick off the lazy load now.
-    if (filterState.programs.has("brownfield")) {
-      ensureAcresLoaded();
-    } else {
-      // Brownfields are off — Superfund-only first paint is the final state.
+    // Kick off lazy loads for enabled programs. Redev enrichment runs after
+    // Superfund first paint to annotate existing records with infrastructure
+    // proximity data and the data-center reuse candidate flag.
+    const lazyLoads = [];
+    if (filterState.programs.has("brownfield")) lazyLoads.push(ensureAcresLoaded());
+    if (filterState.programs.has("fuds")) lazyLoads.push(ensureFudsLoaded());
+    if (filterState.programs.has("brac")) lazyLoads.push(ensureBracLoaded());
+    lazyLoads.push(ensureRedevLoaded());
+    if (lazyLoads.length === 0) {
       markAppReady();
+    } else {
+      Promise.allSettled(lazyLoads).then(() => markAppReady());
     }
   })
   .catch((err) => {
@@ -282,6 +298,91 @@ function ensureAcresLoaded() {
       acresLoadingPromise = null; // allow retry
     });
   return acresLoadingPromise;
+}
+
+function ensureFudsLoaded() {
+  if (fudsLoadingPromise) return fudsLoadingPromise;
+  if (sites.some((s) => s.program === "fuds")) return Promise.resolve();
+  fudsLoadingPromise = fetch(FUDS_DATA_URL)
+    .then((r) => {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then((payload) => {
+      const before = sites.length;
+      ingestSites(payload.sites || []);
+      const added = sites.length - before;
+      el("meta").textContent =
+        `${sites.length.toLocaleString()} sites · loaded ${added.toLocaleString()} FUDS`;
+      populateStateFilter();
+      rebuildTable();
+      rerenderLegend();
+      return hydrateMarkersChunked(payload.sites || []).then(() => {
+        applyFilter();
+      });
+    })
+    .catch((err) => {
+      console.error("FUDS load failed:", err);
+      fudsLoadingPromise = null;
+    });
+  return fudsLoadingPromise;
+}
+
+function ensureBracLoaded() {
+  if (bracLoadingPromise) return bracLoadingPromise;
+  if (sites.some((s) => s.program === "brac")) return Promise.resolve();
+  bracLoadingPromise = fetch(BRAC_DATA_URL)
+    .then((r) => {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then((payload) => {
+      const before = sites.length;
+      ingestSites(payload.sites || []);
+      const added = sites.length - before;
+      el("meta").textContent =
+        `${sites.length.toLocaleString()} sites · loaded ${added.toLocaleString()} BRAC`;
+      populateStateFilter();
+      rebuildTable();
+      rerenderLegend();
+      addMarkersForRecords(payload.sites || []);
+      applyFilter();
+    })
+    .catch((err) => {
+      console.error("BRAC load failed:", err);
+      bracLoadingPromise = null;
+    });
+  return bracLoadingPromise;
+}
+
+function ensureRedevLoaded() {
+  if (redevLoadingPromise) return redevLoadingPromise;
+  redevLoadingPromise = fetch(REDEV_DATA_URL)
+    .then((r) => {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then((payload) => {
+      for (const rec of payload.sites || []) {
+        const existing = sitesById.get(rec.id || rec.epa_id);
+        if (!existing) continue;
+        if (rec.near_electric_transmission) existing.near_electric_transmission = rec.near_electric_transmission;
+        if (rec.near_highway) existing.near_highway = rec.near_highway;
+        if (rec.near_railroad) existing.near_railroad = rec.near_railroad;
+        if (rec.near_water_supply) existing.near_water_supply = rec.near_water_supply;
+        if (rec.near_wastewater) existing.near_wastewater = rec.near_wastewater;
+        if (rec.pop_density) existing.pop_density = rec.pop_density;
+        if (rec.in_opp_zone) existing.in_opp_zone = rec.in_opp_zone;
+        if (rec.in_reuse) existing.in_reuse = rec.in_reuse;
+        if (rec.data_center_reuse_candidate != null) existing.data_center_reuse_candidate = rec.data_center_reuse_candidate;
+        if (rec.acreage != null && existing.acreage == null) existing.acreage = rec.acreage;
+      }
+    })
+    .catch((err) => {
+      console.error("Redev enrichment load failed:", err);
+      redevLoadingPromise = null;
+    });
+  return redevLoadingPromise;
 }
 
 // ----- Map -----
@@ -709,7 +810,7 @@ function filtersActive() {
     filterState.state !== "" ||
     filterState.statuses.size > 0 ||
     filterState.minAcreage > 0 ||
-    filterState.programs.size !== 2
+    filterState.programs.size !== PROGRAM_LEGEND.length
   );
 }
 
@@ -746,31 +847,32 @@ function wireFilters() {
     if (map) setTimeout(() => map.invalidateSize(), 50);
   });
 
-  const progBoxes = {
-    superfund: el("f-program-superfund"),
-    brownfield: el("f-program-brownfield"),
-  };
-  // Reflect URL state into the checkboxes.
+  const progBoxes = {};
+  for (const p of PROGRAM_LEGEND) {
+    progBoxes[p.program] = el("f-program-" + p.program);
+  }
   for (const [program, box] of Object.entries(progBoxes)) {
-    box.checked = filterState.programs.has(program);
+    if (box) box.checked = filterState.programs.has(program);
   }
   const onProgramChange = () => {
     const next = new Set();
     for (const [program, box] of Object.entries(progBoxes)) {
-      if (box.checked) next.add(program);
+      if (box && box.checked) next.add(program);
     }
-    // Avoid the empty-set degenerate case that would hide everything.
     if (!next.size) {
-      progBoxes.superfund.checked = true;
+      if (progBoxes.superfund) progBoxes.superfund.checked = true;
       next.add("superfund");
     }
     filterState.programs = next;
     if (filterState.programs.has("brownfield")) ensureAcresLoaded();
+    if (filterState.programs.has("fuds")) ensureFudsLoaded();
+    if (filterState.programs.has("brac")) ensureBracLoaded();
     applyFilter();
     refitMapToFilters();
   };
-  progBoxes.superfund.addEventListener("change", onProgramChange);
-  progBoxes.brownfield.addEventListener("change", onProgramChange);
+  for (const box of Object.values(progBoxes)) {
+    if (box) box.addEventListener("change", onProgramChange);
+  }
 
   const stateSel = el("f-state");
   stateSel.addEventListener("change", () => {
@@ -1073,24 +1175,61 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
     el("d-id-label").textContent = "EPA ID";
     el("d-epaid").textContent = fmt.text(s.epa_id || s.id);
     el("d-fed-label").textContent = "Federal Facility";
-    // EPA's `federal_facility` is already the decoded human label
-    // (e.g. "Federal Facility", "Not a  Federal Facility"). Collapse the
-    // upstream double-space and print directly — don't prepend "Code ".
     el("d-fed").textContent = s.federal_facility
       ? String(s.federal_facility).replace(/\s+/g, " ").trim()
       : "—";
     el("d-updated-label").textContent = "Last Updated";
     el("d-updated").textContent = fmt.date(s.last_updated);
+  } else if (s.program === "fuds") {
+    el("d-status-label").textContent = "NPL Status";
+    statusEl.textContent = fmt.text(s.npl_status);
+    el("d-id-label").textContent = "FUDS Property ID";
+    el("d-epaid").textContent = (s.id || "").replace(/^FUDS-/, "") || "—";
+    el("d-fed-label").textContent = "Current Owner";
+    el("d-fed").textContent = fmt.text(s.current_owner);
+    el("d-updated-label").textContent = "Congressional District";
+    el("d-updated").textContent = fmt.text(s.congressional_district);
+  } else if (s.program === "brac") {
+    el("d-status-label").textContent = "Status";
+    statusEl.textContent = "BRAC";
+    el("d-id-label").textContent = "Installation ID";
+    el("d-epaid").textContent = (s.id || "").replace(/^BRAC-/, "") || "—";
+    el("d-fed-label").textContent = "Component";
+    el("d-fed").textContent = fmt.text(s.component);
+    el("d-updated-label").textContent = "Last Updated";
+    el("d-updated").textContent = "—";
   } else {
     el("d-status-label").textContent = "Status";
     statusEl.textContent = "—";
-    el("d-id-label").textContent = "ACRES Property ID";
+    el("d-id-label").textContent = "Property ID";
     el("d-epaid").textContent = (s.id || "").replace(/^ACRES-/, "") || "—";
     el("d-fed-label").textContent = "Federal Facility";
     el("d-fed").textContent = "—";
     el("d-updated-label").textContent = "Last Updated";
     el("d-updated").textContent = "—";
   }
+
+  // FUDS-specific detail block
+  const fudsBlock = el("d-fuds-block");
+  if (fudsBlock) {
+    if (s.program === "fuds") {
+      fudsBlock.hidden = false;
+      el("d-eligibility").textContent = fmt.text(s.eligibility);
+      el("d-fuds-status").textContent = fmt.text(s.fuds_status);
+      el("d-has-projects").textContent = fmt.text(s.has_projects);
+    } else {
+      fudsBlock.hidden = true;
+    }
+  }
+
+  // Infrastructure proximity (from Redev enrichment)
+  el("d-near-elec").textContent = fmt.text(s.near_electric_transmission);
+  el("d-near-hwy").textContent = fmt.text(s.near_highway);
+  el("d-near-rr").textContent = fmt.text(s.near_railroad);
+  el("d-near-water").textContent = fmt.text(s.near_water_supply);
+  el("d-near-ww").textContent = fmt.text(s.near_wastewater);
+  el("d-pop-density").textContent = fmt.text(s.pop_density);
+  el("d-dc-candidate").textContent = s.data_center_reuse_candidate === true ? "Yes" : s.data_center_reuse_candidate === false ? "No" : "—";
 
   el("d-region").textContent = s.region != null ? `Region ${s.region}` : "—";
   el("d-addr").textContent = [s.address, s.city, s.state, s.zip].filter(Boolean).join(", ") || "—";
@@ -1114,10 +1253,18 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
     childBlock.hidden = true;
   }
 
+  // Populate owner if available (FUDS provides current_owner)
+  const ownerEl = document.getElementById("d-owner");
+  if (ownerEl) {
+    ownerEl.textContent = s.current_owner || "Not available";
+    ownerEl.className = s.current_owner ? "" : "muted-cell";
+  }
+
   const profile = el("d-profile");
   if (s.profile_url) {
     profile.href = s.profile_url;
-    profile.textContent = s.program === "brownfield" ? "ACRES property profile" : "EPA Site Profile";
+    const profileLabels = { brownfield: "ACRES property profile", fuds: "FUDS property profile", brac: "Installation profile" };
+    profile.textContent = profileLabels[s.program] || "EPA Site Profile";
     profile.style.display = "";
   } else {
     profile.style.display = "none";
@@ -1274,10 +1421,8 @@ function syncUrl() {
     if (filterState.state) p.set("state", filterState.state);
     if (filterState.statuses.size) p.set("status", Array.from(filterState.statuses).join(","));
     // Only encode programs when they differ from the default (both programs on).
-    const isDefaultProgram =
-      filterState.programs.size === 2 &&
-      filterState.programs.has("superfund") &&
-      filterState.programs.has("brownfield");
+    const isDefaultProgram = filterState.programs.size === PROGRAM_LEGEND.length &&
+      PROGRAM_LEGEND.every((p) => filterState.programs.has(p.program));
     if (!isDefaultProgram) p.set("program", Array.from(filterState.programs).join(","));
     if (filterState.minAcreage > 0) p.set("min_ac", String(filterState.minAcreage));
     if (selectedId) p.set("site", selectedId);

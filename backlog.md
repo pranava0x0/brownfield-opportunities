@@ -4,16 +4,13 @@ Ideas and enhancements. Priorities: **high** = next, **med** = soon, **low** = n
 
 ---
 
-## Top priority — Federal-site expansion + EPA data-center reuse layer
+## ~~Top priority — Federal-site expansion + EPA data-center reuse layer~~ Done 2026-04-29 (v1.7)
 
-Three coordinated additions that lean directly into the data-center thesis. Worth landing as a single themed release.
+Three coordinated additions landed as a themed release:
 
-- **[high] DOD BRAC (Base Realignment and Closure).** Closed/closing active bases under cleanup — ~350 installations across 5 BRAC rounds, huge per-site acreage, often explicit redevelopment targets. Examples: Fort Ord (CA, ~28k ac), Mare Island Naval Shipyard (CA), McClellan AFB (CA), Naval Air Station Alameda (CA), Concord Naval Weapons Station (CA), Brooks AFB (TX). Many already cross-referenced as Federal Facilities in EPA SEMS, so we can sanity-check against the Superfund connector. Highest-signal federal subset for the data-center thesis. Source: DOD DENIX BRAC property-disposal data + EPA SEMS Federal Facility cross-reference. New connector + new `program: "brac"` (or `dod-brac`).
-- **[high] DOD FUDS (Formerly Used Defense Sites).** Promoted from `[low]`. USACE-administered properties DOD used historically but no longer owns — ~10,000 properties. Source: USACE FUDS Property and Project ArcGIS FeatureServer (public). Quirks: many are partial parcels of former bases, often munitions/UXO rather than chemical contamination, frequently rural. New connector + new `program: "fuds"`.
-- **[high] EPA Superfund data-center reuse layer.** EPA has published an explicit "Reuse Considerations: Data Centers at Superfund Sites" guide and an ArcGIS Experience that surfaces the candidate sites — exactly our thesis, curated by EPA themselves. Pull the underlying layer(s) and join into our existing Superfund records as a `data_center_reuse_candidate: bool` flag (plus any auxiliary fields EPA carries — typical site characteristics, infrastructure summary, reuse considerations). Surfaces as a new filter chip ("EPA-flagged DC candidate") and a badge in the detail panel. Validates our methodology and gives users a one-click view of the EPA-curated shortlist.
-  - Guide: https://www.epa.gov/superfund-redevelopment/reuse-considerations-data-centers-superfund-sites
-  - ArcGIS Experience: https://experience.arcgis.com/experience/b71df0534f9f4b79872139f5d71a33ae?org=EPA#data_s=id%3AdataSource_1-19b048df0dc-layer-49-19b048835a3-layer-48%3A317
-  - Step 1: identify the FeatureServer URL behind the Experience (the `data_s=` query param hints at the layer ID; confirm via the Experience's network panel). Step 2: enrich the existing Superfund connector rather than introducing a new program — these are NPL sites we already have, just annotated.
+- ~~**[high] DOD BRAC (Base Realignment and Closure).**~~ Done 2026-04-29 — `connectors/dod_brac.py` pulls 27 BRAC-flagged installations from ESRI milbases FeatureServer (`BRAC_SITE='YES'`). Polygon geometry → acreage via Shoelace formula. New `program: "brac"`, orange markers, lazy-loaded from `docs/data/dod-brac.json`.
+- ~~**[high] DOD FUDS (Formerly Used Defense Sites).**~~ Done 2026-04-29 — `connectors/dod_fuds.py` pulls ~10k properties from USACE FUDS FeatureServer (services7.arcgis.com). New `program: "fuds"`, purple markers, lazy-loaded from `docs/data/dod-fuds.json`. Fields: eligibility, fuds_status, has_projects, current_owner.
+- ~~**[high] EPA Superfund data-center reuse layer.**~~ Done 2026-04-29 — `connectors/epa_redev.py` enriches existing Superfund records from the RedevelopmentAppSitePoints FeatureServer (1,905 sites). Adds infrastructure-proximity fields (transmission, highway, railroad, water supply, wastewater, pop density, opportunity zone, reuse status) and computes `data_center_reuse_candidate: bool` (power + ≥50ac + water). 828/1,905 flagged as DC candidates. Detail panel shows all infrastructure fields.
 
 Phase 2 (other federal-land contamination universes):
 
@@ -146,8 +143,8 @@ Turn this into a "Where can I site a hyperscale data center on a remediated brow
 
 ## Engineering hygiene
 
-- ~~**[high] Tests for refresh.py.**~~ Done 2026-04-27 — pytest suite covers normalize/envelope/fetch/dedupe/merge/diff/schema. As of v1.2 ~69 unit tests + 11 e2e (added ACRES + filters + URL state + theme).
-- ~~**[high] Frontend smoke test (Playwright or similar).**~~ Done 2026-04-27 — `tests/e2e/test_smoke.py` covers page load, tab switch, marker click, table click, Esc close, search filtering, legend render, **filters panel toggle, state filter narrowing, URL state round-trip, theme toggle persistence**. Runs in CI on every PR.
+- ~~**[high] Tests for refresh.py.**~~ Done 2026-04-27 — pytest suite covers normalize/envelope/fetch/dedupe/merge/diff/schema. As of v1.7: 117 unit tests (incl. 17 FUDS, 14 BRAC, 17 Redev) + 26 e2e.
+- ~~**[high] Frontend smoke test (Playwright or similar).**~~ Done 2026-04-27 — `tests/e2e/test_smoke.py`: 26 tests covering page load, tab switch, marker click, table click, Esc close, search filtering, legend render, all four programs loading, NPL status checkboxes, state dropdown, acreage slider, pagination, DOM size, accessibility landmarks. Runs in CI on every PR.
 - ~~**[high] Resolve dual-deploy ambiguity.**~~ Done 2026-04-27 — pushed `deploy.yml` + `refresh.yml`, switched Pages source to GitHub Actions via `gh api PUT pages -f build_type=workflow`.
 - ~~**[med] Move `docs/serve.py` out of `docs/`.**~~ Done 2026-04-27 — moved to `scripts/serve.py`; chdirs to docs/ so still runs from repo root.
 - ~~**[med] Schema validation.**~~ Done 2026-04-27 — Pydantic `Payload`/`SiteRecord` in `schema.py` with `extra="forbid"`. `refresh.py` validates before write.

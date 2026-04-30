@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#ffffff" id="theme-color-meta">
 <meta name="color-scheme" content="light dark">
-<title>Brownfield Opportunities — EPA Superfund &amp; Brownfield Sites</title>
-<meta name="description" content="Static dashboard of EPA Superfund (NPL) sites and ACRES brownfield properties: map and table view with site details, filters, and CSV export.">
+<title>Brownfield Opportunities — Superfund, Brownfield, FUDS &amp; BRAC Sites</title>
+<meta name="description" content="Static dashboard of EPA Superfund (NPL), ACRES brownfield, DOD FUDS, and BRAC sites: map and table view with data-center reuse scoring, filters, and CSV export.">
 <link rel="preload" href="data/sites.json" as="fetch" crossorigin>
 <link rel="preload" href="data/us-states.json" as="fetch" crossorigin>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -48,6 +48,8 @@
     <legend>Program</legend>
     <label class="check"><input type="checkbox" id="f-program-superfund" checked> Superfund (NPL)</label>
     <label class="check"><input type="checkbox" id="f-program-brownfield" checked> Brownfield (ACRES)</label>
+    <label class="check"><input type="checkbox" id="f-program-fuds" checked> FUDS (Defense)</label>
+    <label class="check"><input type="checkbox" id="f-program-brac" checked> BRAC (Bases)</label>
   </fieldset>
   <label class="filter">
     State
@@ -80,7 +82,7 @@
 
 <main id="main" role="main" tabindex="-1">
   <section id="view-map" class="view active" role="tabpanel" aria-labelledby="tab-map">
-    <div id="map" aria-label="Map of Superfund and brownfield sites"></div>
+    <div id="map" aria-label="Map of EPA Superfund, brownfield, FUDS, and BRAC sites"></div>
   </section>
 
   <section id="view-table" class="view" role="tabpanel" aria-labelledby="tab-table" hidden>
@@ -133,10 +135,24 @@
     <dt>Encumbrances</dt><dd id="d-encumb" class="muted-cell">Not available</dd>
   </dl>
 
+  <div id="d-fuds-block" hidden>
+    <h3>FUDS details</h3>
+    <dl class="kv">
+      <dt>Eligibility</dt><dd id="d-eligibility">—</dd>
+      <dt>Property status</dt><dd id="d-fuds-status">—</dd>
+      <dt>Has projects</dt><dd id="d-has-projects">—</dd>
+    </dl>
+  </div>
+
   <h3>Infrastructure proximity</h3>
-  <dl class="kv">
-    <dt>Electrical / water / transport / fiber</dt>
-    <dd id="d-prox" class="muted-cell">Not available</dd>
+  <dl class="kv" id="d-infra-block">
+    <dt>Electrical transmission</dt><dd id="d-near-elec" class="muted-cell">Not available</dd>
+    <dt>Highway</dt><dd id="d-near-hwy" class="muted-cell">Not available</dd>
+    <dt>Railroad</dt><dd id="d-near-rr" class="muted-cell">Not available</dd>
+    <dt>Water supply</dt><dd id="d-near-water" class="muted-cell">Not available</dd>
+    <dt>Wastewater</dt><dd id="d-near-ww" class="muted-cell">Not available</dd>
+    <dt>Population density</dt><dd id="d-pop-density" class="muted-cell">Not available</dd>
+    <dt>Data center candidate</dt><dd id="d-dc-candidate" class="muted-cell">Not available</dd>
   </dl>
 
   <p class="source"><a id="d-profile" href="#" target="_blank" rel="noopener">Source profile</a></p>
