@@ -121,30 +121,42 @@ def test_filters_panel_toggles(page, base_url):
     page.locator("#filters-toggle").click()
     page.wait_for_selector("#filters:not([hidden])")
     assert page.locator("#f-state").is_visible()
-    assert page.locator("#f-status").is_visible()
+    # NPL Status was a `<select multiple>` (UAT bug: hidden Cmd-click
+    # interaction). It's now a checkbox group keyed by `data-status`.
+    assert page.locator("#f-status-checks").is_visible()
+    assert page.locator("#f-status-checks input[data-status='F']").is_visible()
     assert page.locator("#f-acreage").is_visible()
 
 
 def test_state_filter_narrows_table(page, base_url):
-    """Picking a state from the dropdown filters table + map markers."""
+    """Picking a state from the dropdown filters table + map markers.
+
+    Table is now paginated, so DOM-row count maxes out at TABLE_PAGE_SIZE.
+    Assert against the in-memory filtered count (search-count text + the
+    `tableState.filtered` length exposed for tests).
+    """
     page.goto(f"{base_url}/index.html")
-    page.wait_for_function("document.getElementById('meta').textContent.indexOf('sites') > -1")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
     page.locator("#tab-table").click()
     page.locator("#filters-toggle").click()
     page.wait_for_selector("#filters:not([hidden])")
 
-    # Pick the first non-empty state option deterministically.
     page.evaluate(
         "() => { const sel = document.getElementById('f-state');"
         " const opt = Array.from(sel.options).find(o => o.value);"
         " sel.value = opt.value; sel.dispatchEvent(new Event('change')); }"
     )
-    page.wait_for_function("document.getElementById('search-count').textContent.length > 0")
-    visible = page.evaluate(
-        "Array.from(document.querySelectorAll('#sites-table tbody tr')).filter(r => !r.hidden).length"
+    page.wait_for_function(
+        "document.getElementById('search-count').textContent.indexOf(' of 37,911') > -1"
     )
-    total = page.evaluate("document.querySelectorAll('#sites-table tbody tr').length")
-    assert 0 < visible < total
+    text = page.locator("#search-count").text_content()
+    # Format: "N of 37,911 in ST · X ac (…)"
+    import re
+    m = re.match(r"([\d,]+) of ([\d,]+)", text)
+    assert m, f"unexpected count text: {text!r}"
+    filtered = int(m.group(1).replace(",", ""))
+    total = int(m.group(2).replace(",", ""))
+    assert 0 < filtered < total
 
 
 def test_url_state_sharing(page, base_url):
@@ -162,17 +174,15 @@ def test_url_state_sharing(page, base_url):
 
 def test_brownfields_visible_by_default(page, base_url):
     """v1.3: both programs are on by default. Once ACRES finishes lazy-loading,
-    the table contains brownfield rows and the legend shows the Brownfield row."""
+    the legend shows the Brownfield row and the meta text reflects both
+    programs. (Table is paginated and default-sorted by acreage-desc, so
+    brownfield rows — most with null acreage — fall past the first page.)"""
     page.goto(f"{base_url}/index.html")
-    page.wait_for_function("document.getElementById('meta').textContent.indexOf('sites') > -1")
-    # Wait for lazy-loaded brownfield records to land in the dataset.
-    page.wait_for_function(
-        "Array.from(document.querySelectorAll('#sites-table tbody tr'))"
-        ".some(r => r.querySelector('[data-program=\"brownfield\"]'))",
-        timeout=20000,
-    )
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
     legend_text = page.locator(".legend").text_content()
     assert "Brownfield" in legend_text
+    meta = page.locator("#meta").text_content()
+    assert "brownfields" in meta.lower()
 
 
 def test_state_filter_shows_acreage_summary(page, base_url):
@@ -202,3 +212,236 @@ def test_theme_toggle_persists(page, base_url):
     assert after != initial
     stored = page.evaluate("localStorage.getItem('theme')")
     assert stored in ("light", "dark")
+
+
+# ----- Regression tests for UAT 2026-04-29 fixes -----
+
+
+def test_app_ready_signal(page, base_url):
+    """`window.__APP_READY__` flips true and `brownfield:ready` event fires
+    after Superfund + ACRES hydration completes. UAT had no reliable
+    hydration hook; tests had to poll header text or network status."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    rows = page.evaluate("document.querySelectorAll('#sites-table tbody tr').length")
+    # Pagination: cap at TABLE_PAGE_SIZE on first paint, not all 38k.
+    assert rows <= 300, f"expected paginated table, got {rows} rows"
+
+
+def test_table_is_paginated(page, base_url):
+    """Table starts paginated at TABLE_PAGE_SIZE and scrolling near the end
+    triggers IntersectionObserver-driven append. Replaces the previous
+    behavior of injecting all 37,911 rows on first paint."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    page.locator("#tab-table").click()
+    initial_rows = page.evaluate("document.querySelectorAll('#sites-table tbody tr').length")
+    assert 100 <= initial_rows <= 300
+
+    page.evaluate("""
+        () => { const w = document.querySelector('.table-wrap'); w.scrollTop = w.scrollHeight; }
+    """)
+    page.wait_for_function(
+        f"document.querySelectorAll('#sites-table tbody tr').length > {initial_rows}",
+        timeout=5000,
+    )
+
+
+def test_dom_size_under_5k_nodes(page, base_url):
+    """Page weight regression test: total DOM nodes must stay under ~5k.
+    UAT measured ~265k (37,911 rows × 7 cells); pagination drops it to ~3k."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    nodes = page.evaluate("document.querySelectorAll('*').length")
+    assert nodes < 5000, f"DOM has {nodes} nodes — pagination is broken"
+
+
+def test_npl_status_checkboxes(page, base_url):
+    """NPL Status filter is now four checkboxes (was a `<select multiple>`
+    with hidden Cmd-click semantics). Selecting Final NPL narrows the set."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("document.getElementById('meta').textContent.indexOf('sites') > -1")
+    page.locator("#filters-toggle").click()
+    page.wait_for_selector("#filters:not([hidden])")
+
+    # All four checkboxes present and unchecked initially.
+    for code in ("F", "P", "D", "N"):
+        loc = page.locator(f"#f-status-checks input[data-status='{code}']")
+        assert loc.is_visible()
+        assert not loc.is_checked()
+
+    page.locator("#f-status-checks input[data-status='F']").check()
+    page.wait_for_function(
+        "document.getElementById('search-count').textContent.length > 0"
+    )
+    text = page.locator("#search-count").text_content()
+    assert " of 37,911" in text or " of 1,908" in text
+
+
+def test_state_dropdown_shows_full_names(page, base_url):
+    """Bug: dropdown only showed postal codes. Now shows 'Alabama (AL)' etc.,
+    with territories grouped under <optgroup label="Territories">."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    page.locator("#filters-toggle").click()
+
+    first_state_label = page.evaluate(
+        "() => Array.from(document.querySelectorAll('#f-state > option')).filter(o=>o.value)[0].textContent"
+    )
+    # Sorted by full name → first non-empty real state is "Alabama (AL)".
+    assert "Alabama" in first_state_label
+    assert "(AL)" in first_state_label
+
+    territory_count = page.evaluate(
+        "document.querySelectorAll(\"#f-state optgroup[label='Territories'] option\").length"
+    )
+    assert territory_count > 0
+
+
+def test_acreage_slider_has_visible_ticks(page, base_url):
+    """Slider was an unlabeled log10 0–6 — users had no scale reference.
+    Tick labels (1, 10, 100, 1k, 10k, 100k, 1M) are now rendered below."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("document.getElementById('meta').textContent.indexOf('sites') > -1")
+    page.locator("#filters-toggle").click()
+    labels = page.evaluate(
+        "Array.from(document.querySelectorAll('.acreage-ticks-labels span')).map(s => s.textContent)"
+    )
+    assert labels == ["1", "10", "100", "1k", "10k", "100k", "1M"]
+
+
+def test_detail_panel_truly_hides_on_close(page, base_url):
+    """Bug: `.detail[hidden]` had `display: block` overriding the [hidden]
+    attribute, leaving a visible sliver of stale text. Fix uses
+    `visibility: hidden` synced to the slide-out transform (180 ms delay
+    so the slide animation plays out before visibility flips)."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("document.getElementById('meta').textContent.indexOf('sites') > -1")
+    page.locator("#tab-table").click()
+    page.locator("#sites-table tbody tr").first.click()
+    page.wait_for_selector("#detail:not([hidden])")
+    page.locator("#detail-close").click()
+    page.wait_for_selector("#detail[hidden]")
+
+    # aria-hidden flips synchronously.
+    aria_hidden = page.evaluate(
+        "document.getElementById('detail').getAttribute('aria-hidden')"
+    )
+    assert aria_hidden == "true"
+
+    # visibility transition is 180ms — wait it out and verify the panel is
+    # truly off-screen (no stale-content sliver on the right edge).
+    page.wait_for_function(
+        "getComputedStyle(document.getElementById('detail')).visibility === 'hidden'",
+        timeout=2000,
+    )
+    rect = page.evaluate(
+        "() => { const r = document.getElementById('detail').getBoundingClientRect();"
+        " return { x: r.x, w: r.width, vw: window.innerWidth }; }"
+    )
+    # Panel left-edge must be at or past the viewport's right edge.
+    assert rect["x"] >= rect["vw"] - 1, f"panel still in viewport: {rect}"
+
+
+def test_unknown_site_id_shows_toast(page, base_url):
+    """Bug: `?site=BOGUS` opened an empty detail panel with em-dashes.
+    Fix shows a non-blocking toast and keeps the URL intact so the user
+    can copy/correct the ID."""
+    page.goto(f"{base_url}/index.html?site=BOGUS_NOT_REAL_ID")
+    # Wait long enough for ACRES lazy-load to either land or fail before the
+    # "not found" toast fires (the click path also waits on acresLoadingPromise).
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    page.wait_for_selector("#toast.visible", timeout=2000)
+    text = page.locator("#toast").text_content()
+    assert "not found" in text.lower()
+    assert page.locator("#detail").is_hidden()
+
+
+def test_url_unwinds_on_filter_clear(page, base_url):
+    """Bug per UAT: clearing search left `?q=` in the URL. `min_ac=0` left
+    `?min_ac=` in the URL. Verify the URL writer drops keys at default."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("document.getElementById('meta').textContent.indexOf('sites') > -1")
+    page.locator("#filters-toggle").click()
+
+    # Search round-trip
+    page.locator("#search").fill("philly")
+    page.wait_for_function("location.search.indexOf('q=philly') > -1")
+    page.locator("#search").fill("")
+    # Re-fire the input event — fill('') doesn't always emit input on some browsers.
+    page.evaluate(
+        "document.getElementById('search').dispatchEvent(new Event('input', {bubbles:true}))"
+    )
+    page.wait_for_function("location.search.indexOf('q=') === -1", timeout=2000)
+
+    # Acreage round-trip
+    page.evaluate(
+        "() => { const a = document.getElementById('f-acreage'); a.value = '2'; a.dispatchEvent(new Event('input', {bubbles:true})); }"
+    )
+    page.wait_for_function("location.search.indexOf('min_ac=') > -1")
+    page.evaluate(
+        "() => { const a = document.getElementById('f-acreage'); a.value = '0'; a.dispatchEvent(new Event('input', {bubbles:true})); }"
+    )
+    page.wait_for_function("location.search.indexOf('min_ac=') === -1", timeout=2000)
+
+
+def test_search_auto_fits_map(page, base_url):
+    """When a filter narrows to a small set, the map auto-fits to the
+    visible bbox. UAT: searching 'picillo' (1 result) left the lower-48
+    view active and the marker was nearly invisible."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    initial_zoom = page.evaluate("window.__map.getZoom()")
+    page.locator("#search").fill("picillo")
+    # refit is debounced 350ms
+    page.wait_for_function(
+        f"window.__map.getZoom() > {initial_zoom + 2}",
+        timeout=4000,
+    )
+
+
+def test_skip_link_and_landmarks(page, base_url):
+    """A11y: skip-to-content link, toolbar nav landmark, main role."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("document.getElementById('meta').textContent.indexOf('sites') > -1")
+    skip = page.locator("a.skip-link")
+    assert skip.get_attribute("href") == "#main"
+    assert page.locator("nav.topbar-controls[aria-label='Toolbar']").count() == 1
+    assert page.locator("main#main").count() == 1
+    assert page.locator("aside#detail[aria-hidden='true']").count() == 1
+
+
+def test_federal_facility_decoded_cleanly(page, base_url):
+    """Bug: detail panel showed 'Code Not a Federal Facility' (raw EPA code
+    leaked through). Fix decodes to a clean label and collapses the upstream
+    double-space EPA ships in 'Not a  Federal Facility'."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("document.getElementById('meta').textContent.indexOf('sites') > -1")
+    page.locator("#tab-table").click()
+    # First Superfund row (ACRES rows have no NPL status → use program filter)
+    page.evaluate(
+        "() => { const tr = Array.from(document.querySelectorAll('#sites-table tbody tr'))"
+        ".find(r => r.querySelector('[data-program=\"superfund\"]')); tr.click(); }"
+    )
+    page.wait_for_selector("#detail:not([hidden])")
+    fed = page.locator("#d-fed").text_content()
+    # Must not show "Code …" prefix and must not have double-space.
+    assert not fed.startswith("Code ")
+    assert "  " not in fed
+    # Should be one of the two clean labels.
+    assert fed in ("Federal Facility", "Not a Federal Facility", "—")
+
+
+def test_owner_section_uses_user_friendly_copy(page, base_url):
+    """Bug: detail panel showed 'N/A — see backlog' (project jargon) for
+    Current owner, Historical owners, Encumbrances, and Infrastructure
+    proximity. Fix shows 'Not available' instead."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("document.getElementById('meta').textContent.indexOf('sites') > -1")
+    page.locator("#tab-table").click()
+    page.locator("#sites-table tbody tr").first.click()
+    page.wait_for_selector("#detail:not([hidden])")
+    for sel in ("#d-owner", "#d-owners-hist", "#d-encumb", "#d-prox"):
+        text = page.locator(sel).text_content()
+        assert "see backlog" not in text.lower()
+        assert text == "Not available"
