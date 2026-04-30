@@ -4,6 +4,24 @@ Ideas and enhancements. Priorities: **high** = next, **med** = soon, **low** = n
 
 ---
 
+## Top priority — Federal-site expansion + EPA data-center reuse layer
+
+Three coordinated additions that lean directly into the data-center thesis. Worth landing as a single themed release.
+
+- **[high] DOD BRAC (Base Realignment and Closure).** Closed/closing active bases under cleanup — ~350 installations across 5 BRAC rounds, huge per-site acreage, often explicit redevelopment targets. Examples: Fort Ord (CA, ~28k ac), Mare Island Naval Shipyard (CA), McClellan AFB (CA), Naval Air Station Alameda (CA), Concord Naval Weapons Station (CA), Brooks AFB (TX). Many already cross-referenced as Federal Facilities in EPA SEMS, so we can sanity-check against the Superfund connector. Highest-signal federal subset for the data-center thesis. Source: DOD DENIX BRAC property-disposal data + EPA SEMS Federal Facility cross-reference. New connector + new `program: "brac"` (or `dod-brac`).
+- **[high] DOD FUDS (Formerly Used Defense Sites).** Promoted from `[low]`. USACE-administered properties DOD used historically but no longer owns — ~10,000 properties. Source: USACE FUDS Property and Project ArcGIS FeatureServer (public). Quirks: many are partial parcels of former bases, often munitions/UXO rather than chemical contamination, frequently rural. New connector + new `program: "fuds"`.
+- **[high] EPA Superfund data-center reuse layer.** EPA has published an explicit "Reuse Considerations: Data Centers at Superfund Sites" guide and an ArcGIS Experience that surfaces the candidate sites — exactly our thesis, curated by EPA themselves. Pull the underlying layer(s) and join into our existing Superfund records as a `data_center_reuse_candidate: bool` flag (plus any auxiliary fields EPA carries — typical site characteristics, infrastructure summary, reuse considerations). Surfaces as a new filter chip ("EPA-flagged DC candidate") and a badge in the detail panel. Validates our methodology and gives users a one-click view of the EPA-curated shortlist.
+  - Guide: https://www.epa.gov/superfund-redevelopment/reuse-considerations-data-centers-superfund-sites
+  - ArcGIS Experience: https://experience.arcgis.com/experience/b71df0534f9f4b79872139f5d71a33ae?org=EPA#data_s=id%3AdataSource_1-19b048df0dc-layer-49-19b048835a3-layer-48%3A317
+  - Step 1: identify the FeatureServer URL behind the Experience (the `data_s=` query param hints at the layer ID; confirm via the Experience's network panel). Step 2: enrich the existing Superfund connector rather than introducing a new program — these are NPL sites we already have, just annotated.
+
+Phase 2 (other federal-land contamination universes):
+
+- **[med] BLM Abandoned Mine Lands (AML).** ~50,000+ sites on BLM-managed land — heavy metals, acid mine drainage, occasional uranium. Mostly small, remote, off-grid → low per-site data-center value, but aggregated they tell the "post-industrial West" story and a handful are real redevelopment targets (e.g. Iron Mountain Mine CA, Berkeley Pit MT — both also NPL). Source: BLM AML Inventory ArcGIS hub (`gis.blm.gov/AMLPublic/`). New connector + `program: "blm-aml"`. Cross-reference against Superfund EPA_IDs to avoid double-counting.
+- **[med] DOI orphan oil & gas wells.** IIJA-funded plugging program publishes a federal-lands orphan-well inventory; states publish their own (Pennsylvania alone has ~27k documented). Most are tiny point features with low individual signal but enormous count, and they cluster meaningfully in Appalachia, the Permian, and the Bakken. Source: DOI Orphaned Wells Program data + state O&G commission feeds. New connector + `program: "orphan-wells"`. Consider clustering visually rather than per-site markers given the volume.
+
+---
+
 ## v1 follow-ups (data completeness)
 
 - ~~**[high] Expand beyond top-100.**~~ Done 2026-04-27 — all 1,908 unique NPL sites now load (~1.6MB JSON, ~200KB gzipped). Connector handles pagination through the FeatureServer's 2000-record cap.
@@ -11,7 +29,6 @@ Ideas and enhancements. Priorities: **high** = next, **med** = soon, **low** = n
 - ~~**[high] EPA Brownfields (ACRES).**~~ Done 2026-04-27 — 36,003 ACRES properties now ship as a separate `docs/data/epa-acres.json` (~1.5MB gzipped). The frontend lazy-loads it when the user picks "Brownfield (ACRES)" in the program filter so first paint stays at ~170KB. Source: `All ACRES Properties 8_30_2021` ArcGIS FeatureServer hosted by EPA. The Envirofacts `BF_*` tables (`BF_PROPERTY`, `BF_GRANT_RECIPIENT`, etc.) returned "table not available" — see `issues.md` 2026-04-27.
 - **[med] State environmental agency sites.** Each state has its own brownfield/voluntary cleanup program (NY State Superfund, CA DTSC EnviroStor, TX VCP, etc.). Now trivial to aggregate — one connector per source.
 - **[med] RCRA Corrective Action sites.** EPA Resource Conservation and Recovery Act sites under corrective action — another large universe of contaminated industrial properties.
-- **[low] DOD FUDS (Formerly Used Defense Sites).** USACE-administered. Big, often rural, sometimes acquirable.
 - **[med] State-sharded JSON.** With ACRES landed (~1.5MB gz) the lazy-load pattern handles it. Defer further sharding until per-state filtering becomes a perf bottleneck.
 - **[high] ACRES dataset is from 2021.** EPA's ArcGIS hub publishes annual snapshots; a newer `All_ACRES_Properties_*` service may exist. Audit and pin to the most recent stable release. (Tracked in `issues.md`.)
 - **[med] ACRES enrichment from `ACRES_assessments_*` and `ACRES_cleanups_*` layers.** Carries Award_Type, CA_Status, Assessment_Completion_Date, Cleanup_Completion_Date — would let us show real status pills for brownfields instead of just the program label.
