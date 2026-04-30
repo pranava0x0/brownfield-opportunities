@@ -18,6 +18,8 @@
   /* Map markers and legend are colored by program (single source of truth). */
   --program-superfund: #c83838;
   --program-brownfield: #1f6fcf;
+  --program-fuds: #7b3fa0;
+  --program-brac: #d47a1a;
   /* Vector basemap palette (states/counties drawn as GeoJSON, no tiles). */
   --map-ocean: #dbe3ee;        /* outside-CONUS canvas */
   --map-land: #f4f6fa;         /* state polygon fill */
@@ -48,6 +50,8 @@
   --status-acres: #6ea8e6;
   --program-superfund: #ef5050;
   --program-brownfield: #6ea8e6;
+  --program-fuds: #b47ad8;
+  --program-brac: #e6a040;
   /* Vector basemap palette — dark theme. Land is slightly lifted from page bg
      so state shapes read as a unit; ocean is the page bg so insets float above. */
   --map-ocean: #0b1018;
