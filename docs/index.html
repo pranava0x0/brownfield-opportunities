@@ -15,17 +15,18 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header class="topbar">
+<a href="#main" class="skip-link">Skip to main content</a>
+<header class="topbar" role="banner">
   <div class="brand">
     <h1>Brownfield Opportunities</h1>
     <p class="sub" id="meta">Loading…</p>
   </div>
-  <div class="topbar-controls">
+  <nav class="topbar-controls" aria-label="Toolbar">
     <label class="search">
       <span class="search-icon" aria-hidden="true">⌕</span>
-      <input id="search" type="search" placeholder="Search by name, city, county…" aria-label="Search sites">
-      <span id="search-count" class="search-count" aria-live="polite"></span>
+      <input id="search" type="search" placeholder="Search sites…" aria-label="Search by name, city, county, or state" title="Search by name, city, county, or state">
     </label>
+    <span id="search-count" class="search-count" aria-live="polite"></span>
     <button id="filters-toggle" class="icon-btn" aria-expanded="false" aria-controls="filters" title="Filters">
       <span aria-hidden="true">⚙</span><span class="sr-only">Filters</span>
     </button>
@@ -35,11 +36,11 @@
     <button id="theme-toggle" class="icon-btn" title="Toggle dark mode">
       <span aria-hidden="true" id="theme-icon">☾</span><span class="sr-only">Toggle theme</span>
     </button>
-    <nav class="tabs" role="tablist" aria-label="View">
+    <div class="tabs" role="tablist" aria-label="View">
       <button id="tab-map" class="tab active" role="tab" aria-selected="true" aria-controls="view-map">Map</button>
       <button id="tab-table" class="tab" role="tab" aria-selected="false" aria-controls="view-table">Table</button>
-    </nav>
-  </div>
+    </div>
+  </nav>
 </header>
 
 <section id="filters" class="filters" hidden aria-label="Filters">
@@ -54,18 +55,30 @@
       <option value="">All states</option>
     </select>
   </label>
-  <label class="filter">
-    NPL Status
-    <select id="f-status" multiple size="4" aria-label="NPL status"></select>
-  </label>
-  <label class="filter">
+  <fieldset class="filter filter-program filter-status">
+    <legend>NPL Status</legend>
+    <div id="f-status-checks" class="check-group" role="group" aria-label="NPL status"></div>
+  </fieldset>
+  <label class="filter filter-acreage">
     Min acreage <span id="f-acreage-val" class="muted-num">0</span>
-    <input id="f-acreage" type="range" min="0" max="6" step="0.1" value="0" aria-label="Minimum acreage (log scale)">
+    <input id="f-acreage" type="range" min="0" max="6" step="0.1" value="0" list="acreage-ticks" aria-label="Minimum acreage (log scale)">
+    <datalist id="acreage-ticks">
+      <option value="0"></option>
+      <option value="1"></option>
+      <option value="2"></option>
+      <option value="3"></option>
+      <option value="4"></option>
+      <option value="5"></option>
+      <option value="6"></option>
+    </datalist>
+    <span class="acreage-ticks-labels" aria-hidden="true">
+      <span>1</span><span>10</span><span>100</span><span>1k</span><span>10k</span><span>100k</span><span>1M</span>
+    </span>
   </label>
   <button id="filters-reset" class="text-btn">Reset</button>
 </section>
 
-<main>
+<main id="main" role="main" tabindex="-1">
   <section id="view-map" class="view active" role="tabpanel" aria-labelledby="tab-map">
     <div id="map" aria-label="Map of Superfund and brownfield sites"></div>
   </section>
@@ -90,7 +103,7 @@
   </section>
 </main>
 
-<aside id="detail" class="detail" hidden aria-labelledby="detail-title">
+<aside id="detail" class="detail" hidden aria-hidden="true" aria-labelledby="detail-title" role="complementary">
   <button id="detail-close" class="close" aria-label="Close detail panel">×</button>
   <h2 id="detail-title">—</h2>
   <p id="detail-loc" class="muted"></p>
@@ -115,15 +128,15 @@
 
   <h3>Owner &amp; encumbrances</h3>
   <dl class="kv">
-    <dt>Current owner</dt><dd id="d-owner">N/A — see backlog</dd>
-    <dt>Historical owners</dt><dd id="d-owners-hist">N/A — see backlog</dd>
-    <dt>Encumbrances</dt><dd id="d-encumb">N/A — see backlog</dd>
+    <dt>Current owner</dt><dd id="d-owner" class="muted-cell">Not available</dd>
+    <dt>Historical owners</dt><dd id="d-owners-hist" class="muted-cell">Not available</dd>
+    <dt>Encumbrances</dt><dd id="d-encumb" class="muted-cell">Not available</dd>
   </dl>
 
   <h3>Infrastructure proximity</h3>
   <dl class="kv">
     <dt>Electrical / water / transport / fiber</dt>
-    <dd id="d-prox">N/A — see backlog</dd>
+    <dd id="d-prox" class="muted-cell">Not available</dd>
   </dl>
 
   <p class="source"><a id="d-profile" href="#" target="_blank" rel="noopener">Source profile</a></p>
