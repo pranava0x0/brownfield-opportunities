@@ -4,6 +4,21 @@ Static dashboard of EPA Superfund + ACRES brownfield sites — map and table vie
 
 **Live:** https://pranava0x0.github.io/brownfield-opportunities/
 
+## What's in v1.6 (UAT 2026-04-29 fixes)
+
+- **Cold-load freeze fixed.** ACRES marker hydration is now chunked via `requestIdleCallback` (800 markers per tick), so DOM-interactive lands in ~30 ms even with both programs on. Previously the main thread froze for 30+ s.
+- **Paginated table.** The table paginates at 250 rows with an IntersectionObserver-driven sentinel that auto-appends the next page on scroll. Total DOM nodes dropped from ~265k to ~2,700.
+- **Auto-fit map on filter narrow.** Searching a single site or filtering a single state now zooms the map to the visible bbox instead of leaving the lower-48 view active.
+- **NPL Status checkboxes** (replaces the trap-door `<select multiple>`) and **state dropdown with full names** (sorted by full name, territories grouped under `<optgroup label="Territories">`).
+- **Acreage slider with tick labels** (1 / 10 / 100 / 1k / 10k / 100k / 1M).
+- **Toast for unknown `?site=<id>`** instead of silently opening an empty detail panel.
+- **Cleaner copy** in the detail panel — no more "N/A — see backlog" or "Code Not a Federal Facility".
+- **A11y additions** — skip-to-content link, toolbar `<nav>` landmark, `<main id="main">` skip target, detail panel `aria-hidden` synced to its `hidden` attr.
+- **Detail panel actually hides on close** (was leaving a sliver of stale text on the right edge from a CSS specificity bug).
+- **Non-CONUS state polygons masked** — Alaska / Hawaii / Puerto Rico no longer render at their real coords while their markers sit in the inset boxes.
+- **Counties auto-load** on direct deep-zoom entry (via `?site=` or marker auto-zoom), not just on user-initiated zoom-in past 7.
+- **Programmatic ready signal.** `window.__APP_READY__ = true` and `brownfield:ready` event fire after both programs hydrate — automation no longer has to poll header text or network status.
+
 ## What's in v1.4
 
 - **Continental-US-focused map.** `maxBounds` and `minZoom` are tightened so the lower 48 dominates the basemap — no more Canada/Mexico filling the screen at first paint. The map fits to bounds at init so the view adapts to viewport size.
