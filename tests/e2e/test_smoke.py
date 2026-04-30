@@ -444,3 +444,183 @@ def test_owner_section_uses_user_friendly_copy(page, base_url):
         text = page.locator(sel).text_content()
         assert "see backlog" not in text.lower()
         assert text == "Not available"
+
+
+# ----- v1.8 design refresh + UAT 2026-04-30 fixes -----
+
+
+def test_hero_strip_renders(page, base_url):
+    """v1.8: hero strip with eyebrow, serif H2, dek, and KPI deck above the map."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    # Hero copy (visible on desktop)
+    assert page.locator(".hero h2").count() == 1
+    assert "America" in page.locator(".hero h2").text_content()
+    # Hero refresh stamp filled in (not the dash placeholder)
+    refresh = page.locator("#hero-refresh").text_content()
+    assert refresh.startswith("Updated") and "—" not in refresh
+    # KPI deck — four cells, each with a non-dash number
+    for kpi_id in ("kpi-total", "kpi-acres", "kpi-dc", "kpi-states"):
+        text = page.locator(f"#{kpi_id}").text_content()
+        assert text != "—" and text != "", f"{kpi_id} still showing placeholder: {text!r}"
+
+
+def test_footer_with_sources(page, base_url):
+    """v1.8: footer cites the five data sources + refresh date + GitHub link."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("document.getElementById('meta').textContent.indexOf('sites') > -1")
+    footer = page.locator("footer.site-footer")
+    assert footer.count() == 1
+    text = footer.text_content()
+    for source in ("EPA Superfund", "EPA ACRES", "USACE FUDS", "DOD BRAC", "EPA RE-Powering"):
+        assert source in text, f"missing source: {source}"
+    refresh = page.locator("#footer-refresh").text_content()
+    assert refresh.startswith("Refreshed") and "—" not in refresh
+
+
+def test_meta_text_shows_per_program_counts(page, base_url):
+    """v1.8: meta text now reflects every loaded program — the previous
+    "X Superfund + Y brownfields" template mislabeled the breakdown after
+    FUDS/BRAC also lazy-loaded."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    text = page.locator("#meta").text_content()
+    # All four programs should be named in the meta after ready.
+    assert "Superfund" in text
+    assert "brownfields" in text
+    assert "FUDS" in text
+    assert "BRAC" in text
+    # And it should still carry the refreshed date.
+    assert "refreshed" in text.lower()
+
+
+def test_filter_chip_hidden_by_default_visible_when_active(page, base_url):
+    """v1.8: chip badge on the gear button counts active filters.
+    Bug fix: `display: inline-flex` was overriding `[hidden]` so the chip
+    always showed (with stale "0") regardless of state."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    # No filters yet → chip is display:none.
+    chip_display = page.evaluate(
+        "getComputedStyle(document.getElementById('filters-chip')).display"
+    )
+    assert chip_display == "none", f"chip leaking on first paint: {chip_display}"
+
+    # Apply a filter → chip becomes visible with count 1.
+    page.locator("#search").fill("philly")
+    page.wait_for_function(
+        "getComputedStyle(document.getElementById('filters-chip')).display !== 'none'",
+        timeout=2000,
+    )
+    chip_text = page.locator("#filters-chip").text_content()
+    assert chip_text == "1"
+
+    # Clear the search → chip hides again.
+    page.locator("#search").fill("")
+    page.evaluate(
+        "document.getElementById('search').dispatchEvent(new Event('input', {bubbles:true}))"
+    )
+    page.wait_for_function(
+        "getComputedStyle(document.getElementById('filters-chip')).display === 'none'",
+        timeout=2000,
+    )
+
+
+def test_city_and_county_titlecased(page, base_url):
+    """v1.8: source data ships ALL CAPS for city/county. `prettyPlace()`
+    title-cases at ingest time so the table doesn't shout."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("document.getElementById('meta').textContent.indexOf('sites') > -1")
+    page.locator("#tab-table").click()
+    page.wait_for_selector("#sites-table tbody tr")
+    # Pull the first 20 rows' city/county cells. None should be all-caps
+    # words (allow short uppercase tokens like "AFB", "DC" to pass).
+    rows = page.evaluate(
+        "() => Array.from(document.querySelectorAll('#sites-table tbody tr')).slice(0,20).map(r => ({"
+        " city: r.children[5].textContent.trim(),"
+        " county: r.children[6].textContent.trim() })) "
+    )
+    for r in rows:
+        for field in ("city", "county"):
+            v = r[field]
+            if not v or v == "—":
+                continue
+            words = [w for w in v.split() if len(w) > 3 and w.isalpha()]
+            for w in words:
+                assert w != w.upper(), (
+                    f"row has un-prettified {field}: {v!r} (word: {w!r})"
+                )
+
+
+def test_address_titlecased_in_detail_panel(page, base_url):
+    """v1.8: bug — `s.city` was prettified at ingest but `s.address` was not,
+    so detail panel showed 'FOX RIVER AND GREEN BAY, Green Bay, WI'."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("document.getElementById('meta').textContent.indexOf('sites') > -1")
+    page.locator("#tab-table").click()
+    # Pick a Superfund row (those are the records that carry s.address).
+    page.evaluate(
+        "() => { const tr = Array.from(document.querySelectorAll('#sites-table tbody tr'))"
+        ".find(r => r.querySelector('[data-program=\"superfund\"]')); tr.click(); }"
+    )
+    page.wait_for_selector("#detail:not([hidden])")
+    addr = page.locator("#d-addr").text_content().strip()
+    if addr in ("—", ""):
+        return  # row had no address — try not to flake on a sparse record
+    # Address often contains tokens like "WI" / "USA" / "NW" that should stay
+    # uppercase. Look only at multi-char alphabetic words.
+    words = [w for w in addr.replace(",", " ").split() if len(w) > 3 and w.isalpha()]
+    for w in words:
+        assert w != w.upper(), f"address still ALL CAPS: {addr!r} (word: {w!r})"
+
+
+def test_detail_panel_program_stripe(page, base_url):
+    """v1.8: 4px program-color top stripe set via `--detail-stripe` CSS var.
+    Verify the var is set to the expected program color when a row is clicked."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("document.getElementById('meta').textContent.indexOf('sites') > -1")
+    page.locator("#tab-table").click()
+    # Click a Superfund row — stripe should be the --program-superfund color.
+    page.evaluate(
+        "() => { const tr = Array.from(document.querySelectorAll('#sites-table tbody tr'))"
+        ".find(r => r.querySelector('[data-program=\"superfund\"]')); tr.click(); }"
+    )
+    page.wait_for_selector("#detail:not([hidden])")
+    stripe = page.evaluate(
+        "document.getElementById('detail').style.getPropertyValue('--detail-stripe')"
+    )
+    expected = page.evaluate(
+        "getComputedStyle(document.documentElement).getPropertyValue('--program-superfund').trim()"
+    )
+    assert stripe.strip().lower() == expected.lower(), f"stripe {stripe!r} != program color {expected!r}"
+
+
+def test_table_sort_glyph_appears(page, base_url):
+    """v1.8: active sort column header gets a ▲/▼ glyph via
+    `data-sort-glyph` attr; CSS reads it through `[aria-sort]::after`."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("document.getElementById('meta').textContent.indexOf('sites') > -1")
+    page.locator("#tab-table").click()
+    # Default sort is acreage desc — the Acreage <th> should carry the glyph.
+    glyph = page.evaluate(
+        "document.querySelector('#sites-table thead th[data-sort=\"acreage\"]').getAttribute('data-sort-glyph')"
+    )
+    assert glyph in ("▲", "▼")
+
+
+def test_chip_count_hidden_attribute_works(page, base_url):
+    """Regression for the [hidden] vs `display: inline-flex` trap.
+    The class of bug bit detail-panel once already; the same trap is on
+    `.chip-count`. Add a CSS rule `[hidden] { display: none }` for any
+    element that has both an explicit `display:` rule and a `hidden` attr."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    chip = page.locator("#filters-chip")
+    assert chip.evaluate("el => el.hidden") is True
+    display = page.evaluate(
+        "getComputedStyle(document.getElementById('filters-chip')).display"
+    )
+    assert display == "none", (
+        f"chip with hidden=true rendered as display:{display} — "
+        "the [hidden] trap is back. Add `.chip-count[hidden] { display: none }`."
+    )
