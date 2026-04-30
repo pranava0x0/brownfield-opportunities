@@ -154,7 +154,60 @@ const fmt = {
     return d.toISOString().slice(0, 10);
   },
   text: (s) => (s == null || s === "" ? "—" : String(s)),
+  // Compact numeric formatter for KPI deck: 47k / 3.2M / 1.9B style.
+  // Falls back to comma-grouped for browsers without compact notation.
+  compact: (n) => {
+    if (n == null || isNaN(n)) return "—";
+    try {
+      return new Intl.NumberFormat(undefined, {
+        notation: "compact",
+        maximumFractionDigits: 1,
+      }).format(n);
+    } catch {
+      return Math.round(n).toLocaleString();
+    }
+  },
 };
+
+// ----- Place-name prettifier (display-time fix for ALL CAPS source data) -----
+//
+// EPA Superfund + ACRES + USACE FUDS ship cities/counties as either ALL CAPS
+// or mixed case. The frontend used to render them verbatim, leaking
+// "GREEN BAY", "KODIAK ISLAND BOROUGH", etc. into the table and detail panel.
+// We title-case at display time only — the underlying data file is unchanged
+// so re-running connectors won't regress, and connector logic stays simple.
+//
+// Also strips a few sentinel placeholders the source uses for "unknown":
+//   - "-- Not Defined --"  (EPA Superfund)
+//   - "_NULL_"             (occasional ACRES rows)
+const PLACE_SENTINELS = new Set(["-- not defined --", "_null_", "n/a", "na", "none", ""]);
+const PLACE_KEEP_LOWER = new Set(["of", "and", "the", "in", "on", "at", "by", "for"]);
+const PLACE_KEEP_UPPER = new Set(["us", "usa", "ne", "nw", "se", "sw", "ii", "iii", "iv", "afb", "aap"]);
+
+function prettyPlace(s) {
+  if (s == null) return "";
+  const trimmed = String(s).trim();
+  if (!trimmed || PLACE_SENTINELS.has(trimmed.toLowerCase())) return "";
+  // Already mixed case → trust the source.
+  if (trimmed !== trimmed.toUpperCase()) return trimmed;
+  // ALL CAPS → title case word-by-word with small-word + initialism rules.
+  return trimmed.split(/(\s+|[-/])/g).map((tok, i) => {
+    if (/^\s+$/.test(tok) || tok === "-" || tok === "/") return tok;
+    const lower = tok.toLowerCase();
+    if (i > 0 && PLACE_KEEP_LOWER.has(lower)) return lower;
+    if (PLACE_KEEP_UPPER.has(lower)) return lower.toUpperCase();
+    // O'Brien, McAllister — keep the bump after an apostrophe / Mc prefix.
+    if (lower.startsWith("mc") && lower.length > 2) {
+      return "Mc" + lower.charAt(2).toUpperCase() + lower.slice(3);
+    }
+    if (lower.includes("'")) {
+      return lower.split("'").map((p, j) => j === 0
+        ? p.charAt(0).toUpperCase() + p.slice(1)
+        : p.charAt(0).toUpperCase() + p.slice(1)).join("'");
+    }
+    return lower.charAt(0).toUpperCase() + lower.slice(1);
+  }).join("");
+}
 
 // ----- State -----
 let sites = [];
@@ -195,6 +248,101 @@ function markAppReady() {
   }
 }
 
+// ----- Hero / KPI deck / footer / meta -----
+//
+// All numbers are derived from the in-memory `sites` array; no extra fetches.
+// Called after each lazy-load lands so the deck progressively fills in.
+function setHeroRefresh(dateStr) {
+  if (!dateStr || dateStr === "—") return;
+  const heroEl = el("hero-refresh");
+  if (heroEl) heroEl.textContent = `Updated ${dateStr}`;
+  const footerEl = el("footer-refresh");
+  if (footerEl) footerEl.textContent = `Refreshed ${dateStr}`;
+}
+
+// Compose the topbar subtitle from the actual per-program counts so it
+// can't drift after lazy loads land. Replaces the previous hardcoded
+// "X Superfund + Y brownfields" template that mislabeled the breakdown
+// once FUDS / BRAC also lazy-loaded.
+const PROGRAM_META_LABEL = {
+  superfund: "Superfund",
+  brownfield: "brownfields",
+  fuds: "FUDS",
+  brac: "BRAC",
+};
+function updateMetaText({ loadingLabel = null } = {}) {
+  const counts = {};
+  for (const s of sites) {
+    if (!s.program) continue;
+    counts[s.program] = (counts[s.program] || 0) + 1;
+  }
+  const total = sites.length;
+  const parts = [];
+  for (const program of ["superfund", "brownfield", "fuds", "brac"]) {
+    if (counts[program]) {
+      parts.push(`${counts[program].toLocaleString()} ${PROGRAM_META_LABEL[program]}`);
+    }
+  }
+  const refreshed = window.__refreshedAt;
+  let text = `${total.toLocaleString()} sites`;
+  if (parts.length) text += ` (${parts.join(" + ")})`;
+  if (loadingLabel) text += ` · loading ${loadingLabel}…`;
+  if (refreshed && refreshed !== "—") text += ` · refreshed ${refreshed}`;
+  const node = el("meta");
+  if (node) node.textContent = text;
+}
+
+function updateKpiDeck() {
+  const total = sites.length;
+  let acreSum = 0;
+  let acreCount = 0;
+  let dcCount = 0;
+  const stateSet = new Set();
+  const programSet = new Set();
+  for (const s of sites) {
+    if (typeof s.acreage === "number") {
+      acreSum += s.acreage;
+      acreCount++;
+    }
+    if (s.data_center_reuse_candidate === true) dcCount++;
+    if (s.state) stateSet.add(s.state);
+    if (s.program) programSet.add(s.program);
+  }
+  const set = (id, value) => {
+    const node = el(id);
+    if (node) node.textContent = value;
+  };
+  set("kpi-total", fmt.compact(total));
+  set("kpi-total-sub", `across ${programSet.size} program${programSet.size === 1 ? "" : "s"}`);
+  set("kpi-acres", fmt.compact(acreSum));
+  set("kpi-acres-sub", `${fmt.compact(acreCount)} sites with reported area`);
+  set("kpi-dc", fmt.compact(dcCount));
+  set("kpi-states", String(stateSet.size));
+}
+
+// Active-filter chip count on the gear icon. Also updates aria-label on the
+// filter button so screen readers know the active count.
+function updateFilterChip() {
+  let count = 0;
+  if (filterState.q) count++;
+  if (filterState.state) count++;
+  count += filterState.statuses.size;
+  if (filterState.minAcreage > 0) count++;
+  // Default is all four programs on; any deselection counts as a filter.
+  if (filterState.programs.size && filterState.programs.size < PROGRAM_LEGEND.length) count++;
+  const chip = el("filters-chip");
+  const btn = el("filters-toggle");
+  if (chip) {
+    if (count > 0) {
+      chip.hidden = false;
+      chip.textContent = String(count);
+    } else {
+      chip.hidden = true;
+    }
+  }
+  if (btn) btn.setAttribute("aria-label", count ? `Filters (${count} active)` : "Filters");
+}
+
 // ----- CSS-var color resolver ----- //
 // Single source of truth for status colors lives in CSS. JS reads via
 // getComputedStyle so a dark-mode swap is automatic.
@@ -218,9 +366,12 @@ fetch(PRIMARY_DATA_URL)
   .then((payload) => {
     ingestSites(payload.sites || []);
     const refreshed = fmt.date(payload.generated_at);
-    el("meta").textContent = filterState.programs.has("brownfield")
-      ? `${sites.length.toLocaleString()} Superfund sites · loading brownfields… · refreshed ${refreshed}`
-      : `${sites.length.toLocaleString()} Superfund sites · refreshed ${refreshed}`;
+    window.__refreshedAt = refreshed;
+    setHeroRefresh(refreshed);
+    updateMetaText({
+      loadingLabel: filterState.programs.has("brownfield") ? "brownfields" : null,
+    });
+    updateKpiDeck();
     try { initMap(); } catch (e) { console.error("initMap error (non-fatal):", e); }
     populateStatusFilter();
     populateStateFilter();
@@ -255,6 +406,24 @@ fetch(PRIMARY_DATA_URL)
 function ingestSites(records) {
   for (const s of records) {
     if (sitesById.has(s.id)) continue;
+    // Title-case ALL CAPS city/county at ingest time so search, filter, table,
+    // detail panel, and CSV export all see the prettified form. Source data
+    // is preserved on `*_raw` for debugging.
+    if (s.city) {
+      const pretty = prettyPlace(s.city);
+      if (pretty && pretty !== s.city) { s.city_raw = s.city; s.city = pretty; }
+      else if (!pretty) s.city = null;
+    }
+    if (s.county) {
+      const pretty = prettyPlace(s.county);
+      if (pretty && pretty !== s.county) { s.county_raw = s.county; s.county = pretty; }
+      else if (!pretty) s.county = null;
+    }
+    if (s.address) {
+      const pretty = prettyPlace(s.address);
+      if (pretty && pretty !== s.address) { s.address_raw = s.address; s.address = pretty; }
+      else if (!pretty) s.address = null;
+    }
     applyInsetRemap(s);
     sitesById.set(s.id, s);
   }
@@ -267,22 +436,19 @@ function ensureAcresLoaded() {
   if (sites.some((s) => s.program === "brownfield")) {
     return Promise.resolve();
   }
-  el("meta").textContent =
-    `${sites.length.toLocaleString()} Superfund sites · loading brownfields…`;
+  updateMetaText({ loadingLabel: "brownfields" });
   acresLoadingPromise = fetch(ACRES_DATA_URL)
     .then((r) => {
       if (!r.ok) throw new Error("HTTP " + r.status);
       return r.json();
     })
     .then((payload) => {
-      const before = sites.length;
       ingestSites(payload.sites || []);
-      const added = sites.length - before;
-      el("meta").textContent =
-        `${sites.length.toLocaleString()} sites (${before.toLocaleString()} Superfund + ${added.toLocaleString()} brownfields)`;
+      updateMetaText();
       populateStateFilter();
       rebuildTable();
       rerenderLegend();
+      updateKpiDeck();
       // Chunk marker hydration so the main thread stays responsive while
       // the 36k ACRES markers light up. We resolve `acresLoadingPromise`
       // (and dispatch `brownfield:ready`) only after the last batch lands.
@@ -292,8 +458,9 @@ function ensureAcresLoaded() {
       });
     })
     .catch((err) => {
-      el("meta").textContent =
-        `${sites.length.toLocaleString()} Superfund sites · brownfields failed to load (${err.message})`;
+      updateMetaText();
+      const node = el("meta");
+      if (node) node.textContent += ` · brownfields failed (${err.message})`;
       console.error(err);
       acresLoadingPromise = null; // allow retry
     });
@@ -309,14 +476,12 @@ function ensureFudsLoaded() {
       return r.json();
     })
     .then((payload) => {
-      const before = sites.length;
       ingestSites(payload.sites || []);
-      const added = sites.length - before;
-      el("meta").textContent =
-        `${sites.length.toLocaleString()} sites · loaded ${added.toLocaleString()} FUDS`;
+      updateMetaText();
       populateStateFilter();
       rebuildTable();
       rerenderLegend();
+      updateKpiDeck();
       return hydrateMarkersChunked(payload.sites || []).then(() => {
         applyFilter();
       });
@@ -337,14 +502,12 @@ function ensureBracLoaded() {
       return r.json();
     })
     .then((payload) => {
-      const before = sites.length;
       ingestSites(payload.sites || []);
-      const added = sites.length - before;
-      el("meta").textContent =
-        `${sites.length.toLocaleString()} sites · loaded ${added.toLocaleString()} BRAC`;
+      updateMetaText();
       populateStateFilter();
       rebuildTable();
       rerenderLegend();
+      updateKpiDeck();
       addMarkersForRecords(payload.sites || []);
       applyFilter();
     })
@@ -377,6 +540,8 @@ function ensureRedevLoaded() {
         if (rec.data_center_reuse_candidate != null) existing.data_center_reuse_candidate = rec.data_center_reuse_candidate;
         if (rec.acreage != null && existing.acreage == null) existing.acreage = rec.acreage;
       }
+      // DC candidate count + acreage totals can change after enrichment.
+      updateKpiDeck();
     })
     .catch((err) => {
       console.error("Redev enrichment load failed:", err);
@@ -624,18 +789,25 @@ function addLegend() {
   const legend = L.control({ position: "bottomright" });
   legend.onAdd = () => {
     const div = L.DomUtil.create("div", "legend");
-    // Only show rows for programs that exist in the currently-loaded data.
-    const programsPresent = new Set(sites.map((s) => s.program));
+    // Per-program count for the per-row tally on the right.
+    const counts = {};
+    for (const s of sites) {
+      if (!s.program) continue;
+      counts[s.program] = (counts[s.program] || 0) + 1;
+    }
+    const programsPresent = new Set(Object.keys(counts));
     const rows = PROGRAM_LEGEND.filter((p) => programsPresent.has(p.program))
       .map(
         (p) =>
-          `<div class="legend-row"><span class="legend-dot" style="color:${cssColor(
-            p.cssVar
-          )}"></span>${p.label}</div>`
+          `<div class="legend-row">` +
+          `<span class="legend-dot" style="color:${cssColor(p.cssVar)}"></span>` +
+          `<span class="legend-label">${escapeHtml(p.label)}</span>` +
+          `<span class="legend-num">${(counts[p.program] || 0).toLocaleString()}</span>` +
+          `</div>`
       )
       .join("");
     div.innerHTML =
-      `<div class="legend-title">Program</div>${rows}` +
+      `<div class="legend-title"><span>Program</span></div>${rows}` +
       `<div class="legend-foot">Marker size ∝ acreage (log)</div>`;
     L.DomEvent.disableClickPropagation(div);
     return div;
@@ -739,6 +911,7 @@ function applyFilter() {
   applyMarkerVisibility();
   refreshTableForFilter();
   updateCountText();
+  updateFilterChip();
   syncUrl();
 }
 
@@ -1105,8 +1278,10 @@ function makeComparator(key, dir) {
 function updateSortIndicators() {
   document.querySelectorAll("#sites-table thead th").forEach((th) => {
     th.removeAttribute("aria-sort");
+    th.removeAttribute("data-sort-glyph");
     if (th.dataset.sort === sortKey) {
       th.setAttribute("aria-sort", sortDir === "asc" ? "ascending" : "descending");
+      th.setAttribute("data-sort-glyph", sortDir === "asc" ? "▲" : "▼");
     }
   });
 }
@@ -1164,7 +1339,13 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
   el("detail-title").textContent = s.name || "—";
   const locParts = [s.city, s.state].filter(Boolean).join(", ");
   el("detail-loc").textContent = locParts || "Location unknown";
-  el("d-program").innerHTML = `<span class="pill" data-program="${escapeAttr(s.program)}">${escapeHtml(PROGRAM_LABEL[s.program] || s.program || "—")}</span>`;
+  // Program pill, plus a small "DC candidate" badge when the redev enrichment
+  // flagged this site as data-center reuse-suitable.
+  const programPill = `<span class="pill" data-program="${escapeAttr(s.program)}">${escapeHtml(PROGRAM_LABEL[s.program] || s.program || "—")}</span>`;
+  const dcPill = s.data_center_reuse_candidate === true
+    ? ` <span class="pill dc-pill" title="Power, ≥50 acres, water service area">DC candidate</span>`
+    : "";
+  el("d-program").innerHTML = programPill + dcPill;
   el("d-acreage").textContent = fmt.acres(s.acreage);
 
   // Status / ID labels vary by program.
@@ -1271,6 +1452,9 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
   }
 
   const detail = el("detail");
+  // Program-color top stripe — set as a CSS var so the ::before reads it
+  // without inline-style churn on every reflow.
+  detail.style.setProperty("--detail-stripe", colorForRecord(s));
   detail.hidden = false;
   detail.setAttribute("aria-hidden", "false");
 
@@ -1288,6 +1472,9 @@ function closeDetail() {
   if (selectedId && tableRowsById.has(selectedId)) {
     tableRowsById.get(selectedId).classList.remove("selected");
   }
+  // Marker tooltip (opened by selectSite for off-table selections) was sticking
+  // open after the panel closed. Close it explicitly.
+  if (selectedId) markersById.get(selectedId)?.closeTooltip();
   selectedId = null;
   syncUrl();
 }
