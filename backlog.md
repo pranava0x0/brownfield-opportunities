@@ -56,11 +56,40 @@ Phase 2 (other federal-land contamination universes):
 
 ## Site-level enrichment (Owner / encumbrances / history)
 
+- **[high] Acreage + ownership/transfer/leasing source map.** Researched 2026-04-30 — for each program, here's where the data actually lives. Most are scrapes, not feeds.
+
+  **Acreage** (gap-fill where the connector returns null today):
+  - **Superfund** — already populated from polygon source. ~13% remain null because EPA codes them as `Miles` (linear features) or `null` (point features). Defer; not a real gap.
+  - **EPA ACRES** (~36k, *all* null today) — public FeatureServer has zero acreage. Two paths: (a) scrape per-property profile HTML at `https://acres6.epa.gov/acres/cms/PropertyProfileReports/Output/<PROPERTY_ID>.html` — the Property Profile Form (PPF, OMB 2050-0192) carries `Property Size (Acres)` plus owner blocks; or (b) ask the ACRES Help Desk (helpdesk@acrebs.epa.gov / 703-284-8212) for a bulk extract of the PPF table. (a) is rate-limit-bounded but free; (b) is one-shot but requires email-loop turnaround.
+  - **DOD FUDS** (~10k, all null today) — *easy fix*. We're querying [layer 1 (points)](https://services7.arcgis.com/n1YM8pTrFmm7L4hs/arcgis/rest/services/fuds/FeatureServer/1) which has no area. **Layer 4 ([FUDS Property Polygon](https://geospatial-usace.opendata.arcgis.com/datasets/3f8354667d5b4b1b8ad7a6e00c3cf3b1_4))** carries `Shape__Area` on every record. Switch the connector to layer 4 (or join layer 1 + 4 via `DODFUDSPROPERTYIDPK`) and compute acres from `Shape__Area`. Polygon centroids replace today's point coords for the ~87% of FUDS properties that have polygons. Promote this to a standalone `[high]` task — it's a one-connector edit.
+  - **DOD BRAC** — already computed via Shoelace from the milbases polygon source.
+
+  **Current owner**:
+  - **Superfund** — not in EPA data. EPA SEMS tracks PRPs (Potentially Responsible Parties), not record-title owners; PRP ≠ owner. Cross-walk to parcel data via address.
+  - **EPA ACRES** — PPF page (same source as acreage above) has a `Property Ownership` block: current owner name + indicator of public/private/non-profit.
+  - **DOD FUDS** — already capturing `CURRENTOWNER` (e.g. "Private", "State of California", or specific entity). Coarse but populated.
+  - **DOD BRAC** — installation-level only on the milbases service; for parcel-level (each base has 5–500 parcels with different transfer status), see transfer-status item below.
+  - **Cross-program commercial fallback**: [Regrid / Landgrid Parcel API](https://regrid.com/api) — ~3,000 US counties, daily ownership refresh on the Enhanced Ownership add-on. Quote-based pricing (parcels@landgrid.com). Geocode our `address` → APN → owner. ReportAll USA is the close competitor. Both are ~$0.001–0.01/parcel-lookup territory; one-time enrichment of all ~47k records is a few hundred dollars but locks us into a vendor for refreshes.
+
+  **Transfer / leasing / deed status** (the BRAC + federal-property axis):
+  - **DOD BRAC parcel-level transfer status** — each Service publishes its own:
+    - Navy: [bracpmo.navy.mil](https://www.bracpmo.navy.mil/) per-base "Closure History, Property Transfer Summary & Remaining Transferred" pages. PDF tables of LIFOC / EDC / PBC / quitclaim deed by parcel, updated quarterly. Scrape per-base (27 BRAC sites; ~50 Navy bases historically).
+    - Army: [Army Environmental Command BRAC](https://aec.army.mil/index.php/cleanup/brac) — quarterly "BRAC Property Disposal Report" PDFs.
+    - Air Force: [AFCEC BRAC](https://www.afcec.af.mil/) Real Property Transactions PDFs.
+    - No structured public feed exists. Roll-your-own: per-base scrape → normalize to `{parcel_id, transfer_type, transfer_date, grantee, deed_url}`. Heavy lift but the only public path; would convert BRAC from 27 dots to the actual ~500–1000 parcel records that drive deals.
+  - **Conveyance type taxonomy** (worth baking into schema): `LIFOC` (lease in furtherance of conveyance — interim control before deed), `EDC` (Economic Development Conveyance — at-cost or profit-sharing), `PBC` (Public Benefit Conveyance — discounted to eligible entity), `Negotiated Sale`, `Public Sale`, `Quitclaim Deed`, `Federal-to-Federal Transfer`. See [DON BRAC implementation guidance (2022)](https://media.defense.gov/2022/Jun/08/2003014188/-1/-1/0/DON_BRAC_IMPLEMENTATION_GUDANCE.PDF) for definitions.
+  - **DOD FUDS real-estate instruments** — USACE Real Estate (CEFMS / IRP databases) tracks deeds, easements, and licenses per FUDS property. Not in the public FeatureServer; FOIA-only. Defer.
+  - **Federal civilian real property** ([GSA FRPP Public Dataset](https://catalog.data.gov/dataset/fy-2024-federal-real-property-profile-frpp-public-dataset)) — annual CSV of all federal civilian real estate by agency: ownership status (`Owned` / `Leased` / `Other`), use code, square footage. DOD assets are excluded for security, so this *won't* help BRAC/FUDS but *will* help when we add federal civilian (e.g. legacy DOE / NRC / GSA-controlled contaminated sites). Cleanest single-file source we found.
+  - **Superfund Institutional Controls** — EPA's [ICTS](https://www.epa.gov/superfund/superfund-institutional-controls) lists IC instruments (deed restrictions, environmental easements) for cleanup sites. Public site has search-only UI; bulk data via FOIA or scrape.
+
+  **Suggested phasing**: ship the FUDS polygon-layer acreage swap first (one-connector edit, lights up ~10k records), then ACRES PPF scrape for acreage + owner (rate-limited overnight job, lights up ~36k records), then BRAC parcel-level transfer-status scrape (per-Service, multi-week effort). Defer FOIA paths and paid parcel APIs until a paying customer needs the depth.
+
 - **[high] Current owner.** Not in EPA data. Source options:
   - County recorder offices (per-county scraping; messy, no standard schema)
   - **ReportAll USA / Regrid / Loveland Tech** — paid parcel APIs covering ~3,000 US counties
   - State assessor open data (varies wildly)
   - Strategy: start with a single high-value state (e.g. NJ — has a free statewide parcel layer)
+  - *See "source map" item above for per-program detail.*
 - **[high] Historical owners.** County deed history. Same access constraints as above; some title-search vendors expose APIs.
 - **[high] Encumbrances.** Liens, easements, environmental covenants (institutional controls). EPA's *Superfund Institutional Controls Tracking System (ICTS)* publishes some of this; needs investigation.
 - **[med] Remediation detail.** Current site only carries NPL status code. Add: Record of Decision (ROD) summary, current cleanup phase, remedy type, lead party (PRP/EPA/state), Five-Year Review status. EPA SEMS has these in adjacent tables.
