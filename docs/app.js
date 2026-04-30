@@ -112,6 +112,27 @@ const PROGRAM_LABEL = {
   brownfield: "Brownfield (ACRES)",
 };
 
+// Postal-code → full name. Splits states from territories so the dropdown can
+// group territories into a separate <optgroup> rather than letting "AS"
+// (American Samoa) sort alphabetically before "AZ" (Arizona).
+const STATE_NAMES = {
+  AL: "Alabama", AK: "Alaska", AZ: "Arizona", AR: "Arkansas", CA: "California",
+  CO: "Colorado", CT: "Connecticut", DE: "Delaware", FL: "Florida", GA: "Georgia",
+  HI: "Hawaii", ID: "Idaho", IL: "Illinois", IN: "Indiana", IA: "Iowa",
+  KS: "Kansas", KY: "Kentucky", LA: "Louisiana", ME: "Maine", MD: "Maryland",
+  MA: "Massachusetts", MI: "Michigan", MN: "Minnesota", MS: "Mississippi",
+  MO: "Missouri", MT: "Montana", NE: "Nebraska", NV: "Nevada", NH: "New Hampshire",
+  NJ: "New Jersey", NM: "New Mexico", NY: "New York", NC: "North Carolina",
+  ND: "North Dakota", OH: "Ohio", OK: "Oklahoma", OR: "Oregon", PA: "Pennsylvania",
+  RI: "Rhode Island", SC: "South Carolina", SD: "South Dakota", TN: "Tennessee",
+  TX: "Texas", UT: "Utah", VT: "Vermont", VA: "Virginia", WA: "Washington",
+  WV: "West Virginia", WI: "Wisconsin", WY: "Wyoming", DC: "District of Columbia",
+};
+const TERRITORY_NAMES = {
+  AS: "American Samoa", GU: "Guam", MP: "Northern Mariana Islands",
+  PR: "Puerto Rico", VI: "U.S. Virgin Islands", FM: "Micronesia",
+};
+
 const el = (id) => document.getElementById(id);
 const fmt = {
   acres: (n) => {
@@ -150,6 +171,20 @@ const filterState = {
 
 let acresLoadingPromise = null; // de-dup parallel toggles
 
+// Programmatic ready signal so UAT / Playwright / agent automation can wait
+// on a stable event instead of polling network responses. Fires once after
+// Superfund first paint AND, if brownfields are enabled, after the chunked
+// ACRES marker hydration completes.
+function markAppReady() {
+  if (window.__APP_READY__) return;
+  window.__APP_READY__ = true;
+  try {
+    document.dispatchEvent(new CustomEvent("brownfield:ready"));
+  } catch (e) {
+    // Older browsers may not have CustomEvent constructor — ignore.
+  }
+}
+
 // ----- CSS-var color resolver ----- //
 // Single source of truth for status colors lives in CSS. JS reads via
 // getComputedStyle so a dark-mode swap is automatic.
@@ -179,7 +214,7 @@ fetch(PRIMARY_DATA_URL)
     initMap();
     populateStatusFilter();
     populateStateFilter();
-    renderTable();
+    rebuildTable();
     wireTabs();
     wireDetailPanel();
     wireSearch();
@@ -191,6 +226,9 @@ fetch(PRIMARY_DATA_URL)
     // If the URL asked for brownfields, kick off the lazy load now.
     if (filterState.programs.has("brownfield")) {
       ensureAcresLoaded();
+    } else {
+      // Brownfields are off — Superfund-only first paint is the final state.
+      markAppReady();
     }
   })
   .catch((err) => {
@@ -226,11 +264,16 @@ function ensureAcresLoaded() {
       const added = sites.length - before;
       el("meta").textContent =
         `${sites.length.toLocaleString()} sites (${before.toLocaleString()} Superfund + ${added.toLocaleString()} brownfields)`;
-      addMarkersForRecords(payload.sites || []);
       populateStateFilter();
-      renderTable();
+      rebuildTable();
       rerenderLegend();
-      applyFilter();
+      // Chunk marker hydration so the main thread stays responsive while
+      // the 36k ACRES markers light up. We resolve `acresLoadingPromise`
+      // (and dispatch `brownfield:ready`) only after the last batch lands.
+      return hydrateMarkersChunked(payload.sites || []).then(() => {
+        applyFilter();
+        markAppReady();
+      });
     })
     .catch((err) => {
       el("meta").textContent =
@@ -270,11 +313,16 @@ function initMap() {
   addMarkersForRecords(sites);
   addLegend();
 
-  // Re-evaluate decimation + counties visibility on zoom.
+  // Re-evaluate decimation + counties visibility on zoom. Only marker
+  // visibility changes — the filtered set and table are unaffected by zoom.
   map.on("zoomend", () => {
     updateCountyVisibility();
-    applyFilter();
+    applyMarkerVisibility();
   });
+  // Direct entry at high zoom (via ?site= or detail-panel auto-zoom) skips the
+  // zoomend hook because there's no zoom transition. Hook moveend so any view
+  // change triggers the county lazy-load.
+  map.on("moveend", updateCountyVisibility);
 }
 
 // ----- Vector basemap -----
@@ -301,6 +349,12 @@ function countiesStyle() {
   };
 }
 
+// Names in us-states.json for states/territories whose markers are remapped
+// into inset boxes — we filter these features out so the basemap doesn't
+// render their real-world polygons (AK at top-left, HI at far-bottom-left,
+// PR floating off the right edge) while their markers sit in inset boxes.
+const NON_CONUS_STATE_NAMES = new Set(["Alaska", "Hawaii", "Puerto Rico"]);
+
 function drawBasemap() {
   fetch(STATES_DATA_URL)
     .then((r) => {
@@ -308,8 +362,14 @@ function drawBasemap() {
       return r.json();
     })
     .then((gj) => {
+      const filtered = {
+        type: gj.type,
+        features: (gj.features || []).filter(
+          (f) => !NON_CONUS_STATE_NAMES.has(f?.properties?.name)
+        ),
+      };
       // States sit on Leaflet's tilePane so they render under markers/insets.
-      statesLayer = L.geoJSON(gj, {
+      statesLayer = L.geoJSON(filtered, {
         style: statesStyle,
         interactive: false,
         pane: "tilePane",
@@ -365,28 +425,61 @@ function refreshBasemapColors() {
   if (countiesLayer) countiesLayer.setStyle(countiesStyle());
 }
 
-function addMarkersForRecords(records) {
-  const renderer = L.canvas({ padding: 0.5 });
-  for (const s of records) {
-    if (s.lat == null || s.lon == null) continue;
-    if (markersById.has(s.id)) continue;
-    const color = colorForRecord(s);
-    const marker = L.circleMarker([s.lat, s.lon], {
-      renderer,
-      radius: radiusForAcreage(s.acreage),
-      // Thin theme-aware ring around the program-colored fill so markers stay
-      // legible against both the light land fill and the dark land fill.
-      color: cssColor("--map-marker-stroke"),
-      weight: 1,
-      fillColor: color,
-      fillOpacity: 0.85,
-      opacity: 0.9,
-    }).bindTooltip(s.name || "(unnamed site)", { direction: "top" });
+// Shared canvas renderer — instantiated once so chunked hydration shares it
+// instead of allocating a new renderer per batch.
+let _markerRenderer = null;
+function markerRenderer() {
+  if (!_markerRenderer) _markerRenderer = L.canvas({ padding: 0.5 });
+  return _markerRenderer;
+}
 
-    marker.on("click", () => selectSite(s.id, { fromMap: true }));
-    markerLayer.addLayer(marker);
-    markersById.set(s.id, marker);
-  }
+function addOneMarker(s, strokeColor) {
+  if (s.lat == null || s.lon == null) return;
+  if (markersById.has(s.id)) return;
+  const color = colorForRecord(s);
+  const marker = L.circleMarker([s.lat, s.lon], {
+    renderer: markerRenderer(),
+    radius: radiusForAcreage(s.acreage),
+    // Thin theme-aware ring around the program-colored fill so markers stay
+    // legible against both the light land fill and the dark land fill.
+    color: strokeColor,
+    weight: 1,
+    fillColor: color,
+    fillOpacity: 0.85,
+    opacity: 0.9,
+  }).bindTooltip(s.name || "(unnamed site)", { direction: "top" });
+
+  marker.on("click", () => selectSite(s.id, { fromMap: true }));
+  markerLayer.addLayer(marker);
+  markersById.set(s.id, marker);
+}
+
+function addMarkersForRecords(records) {
+  const stroke = cssColor("--map-marker-stroke");
+  for (const s of records) addOneMarker(s, stroke);
+}
+
+// Chunked marker hydration. Used for the 36k ACRES dataset so Leaflet doesn't
+// freeze the main thread for 30+ seconds. requestIdleCallback yields between
+// batches so input/scroll/zoom stay responsive while the markers light up.
+function hydrateMarkersChunked(records, batchSize = 800) {
+  return new Promise((resolve) => {
+    if (!records.length) return resolve();
+    const stroke = cssColor("--map-marker-stroke");
+    const sched =
+      window.requestIdleCallback
+        ? (cb) => window.requestIdleCallback(cb, { timeout: 200 })
+        : (cb) => setTimeout(cb, 0);
+    let i = 0;
+    const tick = () => {
+      const end = Math.min(i + batchSize, records.length);
+      for (let j = i; j < end; j++) addOneMarker(records[j], stroke);
+      i = end;
+      if (i < records.length) sched(tick);
+      else resolve();
+    };
+    sched(tick);
+  });
 }
 
 // Draws an opaque rectangle for each inset (covering the underlying basemap
@@ -398,8 +491,8 @@ function drawInsetBoxes() {
     insetLayer.remove();
   }
   insetLayer = L.layerGroup().addTo(map);
-  const fill = cssColor("--surface", "#ffffff");
-  const stroke = cssColor("--border", "#d8dde6");
+  const fill = cssColor("--inset-bg", "#ffffff");
+  const stroke = cssColor("--inset-stroke", "#4a5568");
   for (const inset of INSETS) {
     const bounds = [
       [inset.dst.south, inset.dst.west],
@@ -494,35 +587,36 @@ function siteMatchesFilters(s, opts = {}) {
   return true;
 }
 
-function applyFilter() {
-  const q = filterState.q.trim().toLowerCase();
-  const zoom = map ? map.getZoom() : DEFAULT_VIEW.zoom;
+// Update only the marker visibility on the map (used by zoomend, where the
+// filtered set hasn't changed but decimation thresholds may have).
+function applyMarkerVisibility() {
+  if (!map || !markerLayer) return;
+  const zoom = map.getZoom();
   const keepEvery = decimateKeep(zoom);
+  const q = filterState.q.trim().toLowerCase();
+  for (const [id, marker] of markersById) {
+    const s = sitesById.get(id);
+    if (!s) continue;
+    const match = siteMatchesFilters(s, { q });
+    const decimated = match && shouldDecimateOut(id, keepEvery);
+    const showOnMap = match && !decimated;
+    const onMap = markerLayer.hasLayer(marker);
+    if (showOnMap && !onMap) markerLayer.addLayer(marker);
+    else if (!showOnMap && onMap) markerLayer.removeLayer(marker);
+  }
+}
+
+function updateCountText() {
+  const q = filterState.q.trim().toLowerCase();
   let visible = 0;
-  let mapVisible = 0;
   let acreSum = 0;
   let acreSites = 0;
   for (const s of sites) {
-    const match = siteMatchesFilters(s, { q });
-    if (match) {
-      visible++;
-      if (typeof s.acreage === "number") {
-        acreSum += s.acreage;
-        acreSites++;
-      }
-    }
-
-    const row = tableRowsById.get(s.id);
-    if (row) row.hidden = !match;
-
-    const marker = markersById.get(s.id);
-    if (marker) {
-      const decimated = match && shouldDecimateOut(s.id, keepEvery);
-      const showOnMap = match && !decimated;
-      if (showOnMap) mapVisible++;
-      const onMap = markerLayer.hasLayer(marker);
-      if (showOnMap && !onMap) markerLayer.addLayer(marker);
-      else if (!showOnMap && onMap) markerLayer.removeLayer(marker);
+    if (!siteMatchesFilters(s, { q })) continue;
+    visible++;
+    if (typeof s.acreage === "number") {
+      acreSum += s.acreage;
+      acreSites++;
     }
   }
   const countEl = el("search-count");
@@ -537,7 +631,77 @@ function applyFilter() {
   } else {
     countEl.textContent = "";
   }
+}
+
+// Full filter pass: refresh markers, rebuild paginated table, update count.
+function applyFilter() {
+  applyMarkerVisibility();
+  refreshTableForFilter();
+  updateCountText();
   syncUrl();
+}
+
+// Auto-fit the map to the visible (filtered) markers. Called only on user
+// filter changes — NOT from zoomend, otherwise zooming would fight itself.
+// Heuristics:
+//   - 0 visible → leave the view alone (so an empty state doesn't blank the map).
+//   - >5,000 visible → leave the view alone (the user didn't narrow much).
+//   - 1 visible → zoom to it at zoom 12.
+//   - else fitBounds to the visible-set bbox at maxZoom 11, but only if the
+//     bbox covers materially less than the current viewport. This avoids
+//     refitting when a filter narrows the count without narrowing the
+//     geographic spread (e.g. "Final NPL only" still spans the whole US).
+function refitMapToFilters() {
+  if (!map) return;
+  const lats = [];
+  const lons = [];
+  for (const s of sites) {
+    if (s.lat == null || s.lon == null) continue;
+    if (!siteMatchesFilters(s)) continue;
+    lats.push(s.lat);
+    lons.push(s.lon);
+  }
+  if (lats.length === 0 || lats.length > 5000) return;
+  if (lats.length === 1) {
+    map.setView([lats[0], lons[0]], 12, { animate: true });
+    return;
+  }
+  const bbox = L.latLngBounds(
+    [Math.min(...lats), Math.min(...lons)],
+    [Math.max(...lats), Math.max(...lons)]
+  );
+  const cur = map.getBounds();
+  const curArea =
+    Math.abs(cur.getNorth() - cur.getSouth()) *
+    Math.abs(cur.getEast() - cur.getWest());
+  const bbArea =
+    Math.abs(bbox.getNorth() - bbox.getSouth()) *
+    Math.abs(bbox.getEast() - bbox.getWest());
+  // Skip when the visible set still spans most of the current view.
+  if (curArea > 0 && bbArea > curArea * 0.5) return;
+  map.fitBounds(bbox, { maxZoom: 11, padding: [40, 40], animate: true });
+}
+
+// Lightweight non-blocking toast. Used for "site not found" and could be
+// reused for future hydration messages.
+let _toastTimer = null;
+function showToast(message, { ms = 4000 } = {}) {
+  let toast = document.getElementById("toast");
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.id = "toast";
+    toast.className = "toast";
+    toast.setAttribute("role", "status");
+    toast.setAttribute("aria-live", "polite");
+    document.body.appendChild(toast);
+  }
+  toast.textContent = message;
+  toast.classList.add("visible");
+  if (_toastTimer) clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => {
+    toast.classList.remove("visible");
+    _toastTimer = null;
+  }, ms);
 }
 
 function filtersActive() {
@@ -552,9 +716,16 @@ function filtersActive() {
 function wireSearch() {
   const input = el("search");
   if (filterState.q) input.value = filterState.q;
+  // Debounce the geographic refit so we don't fitBounds on every keystroke.
+  let refitTimer = null;
+  const queueRefit = () => {
+    if (refitTimer) clearTimeout(refitTimer);
+    refitTimer = setTimeout(refitMapToFilters, 350);
+  };
   input.addEventListener("input", () => {
     filterState.q = input.value;
     applyFilter();
+    queueRefit();
   });
   input.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && input.value) {
@@ -596,6 +767,7 @@ function wireFilters() {
     filterState.programs = next;
     if (filterState.programs.has("brownfield")) ensureAcresLoaded();
     applyFilter();
+    refitMapToFilters();
   };
   progBoxes.superfund.addEventListener("change", onProgramChange);
   progBoxes.brownfield.addEventListener("change", onProgramChange);
@@ -604,21 +776,32 @@ function wireFilters() {
   stateSel.addEventListener("change", () => {
     filterState.state = stateSel.value;
     applyFilter();
+    refitMapToFilters();
   });
 
-  el("f-status").addEventListener("change", (ev) => {
-    const selected = Array.from(ev.target.selectedOptions).map((o) => o.value);
-    filterState.statuses = new Set(selected);
+  // NPL Status checkboxes — delegated change handler so we don't have to
+  // re-bind each time `populateStatusFilter()` re-renders the inputs.
+  el("f-status-checks").addEventListener("change", (ev) => {
+    if (!(ev.target instanceof HTMLInputElement)) return;
+    const code = ev.target.dataset.status;
+    if (code == null) return;
+    if (ev.target.checked) filterState.statuses.add(code);
+    else filterState.statuses.delete(code);
     applyFilter();
+    refitMapToFilters();
   });
 
   const acreEl = el("f-acreage");
   const acreVal = el("f-acreage-val");
+  // Debounce the slider refit so dragging doesn't fitBounds every frame.
+  let acreRefitTimer = null;
   acreEl.addEventListener("input", () => {
     filterState.minAcreage = parseFloat(acreEl.value);
     acreVal.textContent =
       filterState.minAcreage === 0 ? "0" : Math.round(Math.pow(10, filterState.minAcreage)).toLocaleString() + " ac";
     applyFilter();
+    if (acreRefitTimer) clearTimeout(acreRefitTimer);
+    acreRefitTimer = setTimeout(refitMapToFilters, 350);
   });
   // Initial label
   acreEl.value = String(filterState.minAcreage);
@@ -636,65 +819,173 @@ function wireFilters() {
     progBoxes.brownfield.checked = true;
     if (filterState.programs.has("brownfield")) ensureAcresLoaded();
     stateSel.value = "";
-    for (const opt of el("f-status").options) opt.selected = false;
+    for (const cb of el("f-status-checks").querySelectorAll("input[type=checkbox]")) cb.checked = false;
     acreEl.value = "0";
     acreVal.textContent = "0";
     applyFilter();
+    // Reset zooms back out to the lower-48 default.
+    if (map) map.fitBounds(US_BOUNDS, { padding: [10, 10], animate: true });
   });
 }
 
 function populateStateFilter() {
   const sel = el("f-state");
-  const states = new Set();
-  for (const s of sites) if (s.state) states.add(s.state);
-  const sorted = Array.from(states).sort();
+  const codes = new Set();
+  for (const s of sites) if (s.state) codes.add(s.state);
   // Preserve current selection across re-population.
   const current = sel.value;
-  sel.innerHTML = '<option value="">All states</option>' +
-    sorted.map((st) => `<option value="${escapeAttr(st)}">${escapeHtml(st)}</option>`).join("");
-  if (sorted.includes(current)) sel.value = current;
-  else if (sorted.includes(filterState.state)) sel.value = filterState.state;
+  // Split into states (alphabetical by full name) and territories (separate
+  // optgroup so AS doesn't sort before AZ).
+  const labelFor = (c) => STATE_NAMES[c] || TERRITORY_NAMES[c] || c;
+  const present = Array.from(codes);
+  const stateCodes = present
+    .filter((c) => STATE_NAMES[c])
+    .sort((a, b) => labelFor(a).localeCompare(labelFor(b)));
+  const territoryCodes = present
+    .filter((c) => TERRITORY_NAMES[c])
+    .sort((a, b) => labelFor(a).localeCompare(labelFor(b)));
+  const otherCodes = present
+    .filter((c) => !STATE_NAMES[c] && !TERRITORY_NAMES[c])
+    .sort();
+  const renderOpt = (c) =>
+    `<option value="${escapeAttr(c)}">${escapeHtml(labelFor(c))} (${escapeHtml(c)})</option>`;
+  let html = '<option value="">All states</option>' + stateCodes.map(renderOpt).join("");
+  if (territoryCodes.length) {
+    html +=
+      `<optgroup label="Territories">` +
+      territoryCodes.map(renderOpt).join("") +
+      `</optgroup>`;
+  }
+  if (otherCodes.length) {
+    html +=
+      `<optgroup label="Other">` +
+      otherCodes.map(renderOpt).join("") +
+      `</optgroup>`;
+  }
+  sel.innerHTML = html;
+  const all = new Set(present);
+  if (all.has(current)) sel.value = current;
+  else if (all.has(filterState.state)) sel.value = filterState.state;
 }
 
 function populateStatusFilter() {
-  const sel = el("f-status");
-  sel.innerHTML = STATUS_LEGEND.map(
-    (s) => `<option value="${escapeAttr(s.code)}"${
-      filterState.statuses.has(s.code) ? " selected" : ""
-    }>${escapeHtml(s.label)}</option>`
+  const wrap = el("f-status-checks");
+  wrap.innerHTML = STATUS_LEGEND.map(
+    (s) =>
+      `<label class="check"><input type="checkbox" data-status="${escapeAttr(s.code)}"${
+        filterState.statuses.has(s.code) ? " checked" : ""
+      }> ${escapeHtml(s.label)}</label>`
   ).join("");
 }
 
-// ----- Table -----
-function renderTable() {
+// ----- Table (paginated) -----
+//
+// Rendering all ~38k <tr> elements at once balloons the document to ~265k
+// elements and freezes the main thread on cold load. We paginate instead:
+// a sorted+filtered list lives in memory; we render one page (TABLE_PAGE_SIZE
+// rows) into the DOM at a time. A sentinel <tr> at the bottom of the visible
+// rows is observed by IntersectionObserver — when it scrolls into view (with
+// a buffer) we append the next page. Filter / sort changes reset back to the
+// first page.
+const TABLE_PAGE_SIZE = 250;
+const tableState = {
+  sorted: [],   // all sites, sorted by current key
+  filtered: [], // sorted ∩ current filter
+  rendered: 0,  // count of rows actually in DOM
+};
+let _tableSentinel = null;
+let _tableObserver = null;
+
+function makeRow(s) {
+  const tr = document.createElement("tr");
+  tr.dataset.id = s.id;
+  const programLabel = PROGRAM_LABEL[s.program] || s.program || "—";
+  const statusHtml = s.npl_status_code
+    ? `<span class="pill" data-status="${escapeAttr(s.npl_status_code)}">${escapeHtml(s.npl_status || "Unknown")}</span>`
+    : `<span class="pill" data-program="${escapeAttr(s.program)}">${escapeHtml(programLabel)}</span>`;
+  tr.innerHTML = `
+    <td>${escapeHtml(s.name || "—")}</td>
+    <td><span class="pill" data-program="${escapeAttr(s.program)}">${escapeHtml(programLabel)}</span></td>
+    <td>${escapeHtml(s.state || "—")}</td>
+    <td class="num">${fmt.acres(s.acreage)}</td>
+    <td>${statusHtml}</td>
+    <td>${escapeHtml(s.city || "—")}</td>
+    <td>${escapeHtml(s.county || "—")}</td>
+  `;
+  tr.addEventListener("click", () => selectSite(s.id, { fromTable: true }));
+  return tr;
+}
+
+// Re-sort the in-memory list and reset the rendered table. Use after data
+// ingest or sort-key change.
+function rebuildTable() {
+  tableState.sorted = [...sites].sort(makeComparator(sortKey, sortDir));
+  refreshTableForFilter();
+  updateSortIndicators();
+}
+
+// Re-evaluate the filter, reset to page 1, render. Use after filter changes.
+function refreshTableForFilter() {
+  tableState.filtered = tableState.sorted.filter((s) => siteMatchesFilters(s));
   const tbody = document.querySelector("#sites-table tbody");
   tbody.innerHTML = "";
   tableRowsById.clear();
-  const sorted = [...sites].sort(makeComparator(sortKey, sortDir));
+  tableState.rendered = 0;
+  appendNextPage();
+  setupTableInfiniteScroll();
+  if (selectedId) tableRowsById.get(selectedId)?.classList.add("selected");
+}
+
+function appendNextPage() {
+  if (tableState.rendered >= tableState.filtered.length) return;
+  const tbody = document.querySelector("#sites-table tbody");
+  const end = Math.min(
+    tableState.rendered + TABLE_PAGE_SIZE,
+    tableState.filtered.length
+  );
   const frag = document.createDocumentFragment();
-  for (const s of sorted) {
-    const tr = document.createElement("tr");
-    tr.dataset.id = s.id;
-    const programLabel = PROGRAM_LABEL[s.program] || s.program || "—";
-    const statusHtml = s.npl_status_code
-      ? `<span class="pill" data-status="${escapeAttr(s.npl_status_code)}">${escapeHtml(s.npl_status || "Unknown")}</span>`
-      : `<span class="pill" data-program="${escapeAttr(s.program)}">${escapeHtml(programLabel)}</span>`;
-    tr.innerHTML = `
-      <td>${escapeHtml(s.name || "—")}</td>
-      <td><span class="pill" data-program="${escapeAttr(s.program)}">${escapeHtml(programLabel)}</span></td>
-      <td>${escapeHtml(s.state || "—")}</td>
-      <td class="num">${fmt.acres(s.acreage)}</td>
-      <td>${statusHtml}</td>
-      <td>${escapeHtml(s.city || "—")}</td>
-      <td>${escapeHtml(s.county || "—")}</td>
-    `;
-    tr.addEventListener("click", () => selectSite(s.id, { fromTable: true }));
+  for (let i = tableState.rendered; i < end; i++) {
+    const s = tableState.filtered[i];
+    const tr = makeRow(s);
     frag.appendChild(tr);
     tableRowsById.set(s.id, tr);
   }
   tbody.appendChild(frag);
-  updateSortIndicators();
-  applyFilter();
+  tableState.rendered = end;
+}
+
+function setupTableInfiniteScroll() {
+  const wrap = document.querySelector(".table-wrap");
+  if (!wrap) return;
+  if (_tableObserver) _tableObserver.disconnect();
+  if (!_tableSentinel) {
+    _tableSentinel = document.createElement("div");
+    _tableSentinel.className = "table-sentinel";
+    _tableSentinel.setAttribute("aria-hidden", "true");
+  }
+  // Always re-append so the sentinel stays at the end after table reset.
+  wrap.appendChild(_tableSentinel);
+  _tableObserver = new IntersectionObserver(
+    (entries) => {
+      if (entries.some((e) => e.isIntersecting)) appendNextPage();
+    },
+    { root: wrap, rootMargin: "300px" }
+  );
+  _tableObserver.observe(_tableSentinel);
+}
+
+// Ensure the row for `id` has been rendered into the DOM — used by selectSite
+// when the user opens a marker whose row is far past the rendered window.
+function ensureRowRendered(id) {
+  if (tableRowsById.has(id)) return true;
+  const idx = tableState.filtered.findIndex((s) => s.id === id);
+  if (idx < 0) return false;
+  while (tableState.rendered <= idx) {
+    const before = tableState.rendered;
+    appendNextPage();
+    if (tableState.rendered === before) break; // safety
+  }
+  return tableRowsById.has(id);
 }
 
 function makeComparator(key, dir) {
@@ -724,7 +1015,7 @@ document.querySelectorAll("#sites-table thead th").forEach((th) => {
     if (!key) return;
     if (key === sortKey) sortDir = sortDir === "asc" ? "desc" : "asc";
     else { sortKey = key; sortDir = (key === "acreage") ? "desc" : "asc"; }
-    renderTable();
+    rebuildTable();
     if (selectedId) tableRowsById.get(selectedId)?.classList.add("selected");
   });
 });
@@ -763,6 +1054,9 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
     tableRowsById.get(selectedId).classList.remove("selected");
   }
   selectedId = id;
+  // Paginated table: the row may be past the rendered window. Page rows in
+  // until it lands so the highlight + scroll-into-view work consistently.
+  ensureRowRendered(id);
   tableRowsById.get(id)?.classList.add("selected");
 
   el("detail-title").textContent = s.name || "—";
@@ -779,7 +1073,12 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
     el("d-id-label").textContent = "EPA ID";
     el("d-epaid").textContent = fmt.text(s.epa_id || s.id);
     el("d-fed-label").textContent = "Federal Facility";
-    el("d-fed").textContent = s.federal_facility ? `Code ${s.federal_facility}` : "—";
+    // EPA's `federal_facility` is already the decoded human label
+    // (e.g. "Federal Facility", "Not a  Federal Facility"). Collapse the
+    // upstream double-space and print directly — don't prepend "Code ".
+    el("d-fed").textContent = s.federal_facility
+      ? String(s.federal_facility).replace(/\s+/g, " ").trim()
+      : "—";
     el("d-updated-label").textContent = "Last Updated";
     el("d-updated").textContent = fmt.date(s.last_updated);
   } else {
@@ -824,7 +1123,9 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
     profile.style.display = "none";
   }
 
-  el("detail").hidden = false;
+  const detail = el("detail");
+  detail.hidden = false;
+  detail.setAttribute("aria-hidden", "false");
 
   if (!fromMap && s.lat != null && s.lon != null) {
     map.setView([s.lat, s.lon], Math.max(map.getZoom(), 8), { animate: true });
@@ -834,7 +1135,9 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
 }
 
 function closeDetail() {
-  el("detail").hidden = true;
+  const detail = el("detail");
+  detail.hidden = true;
+  detail.setAttribute("aria-hidden", "true");
   if (selectedId && tableRowsById.has(selectedId)) {
     tableRowsById.get(selectedId).classList.remove("selected");
   }
@@ -943,10 +1246,21 @@ function applyUrlSelection() {
   const p = new URLSearchParams(location.search);
   // Support both ?site=ID (new) and ?epa_id=ID (legacy).
   const id = p.get("site") || p.get("epa_id");
-  if (id && sitesById.has(id)) {
+  if (!id) return;
+  if (sitesById.has(id)) {
     selectSite(id);
-    el("tab-table")?.click ? null : null; // no-op; just ensure selection happens after init
+    return;
   }
+  // ID provided but not loaded yet. Brownfields lazy-load, so wait once for
+  // ACRES to land before declaring the ID unknown.
+  if (filterState.programs.has("brownfield") && acresLoadingPromise) {
+    acresLoadingPromise.then(() => {
+      if (sitesById.has(id)) selectSite(id);
+      else showToast(`Site "${id}" not found — check the EPA ID.`);
+    });
+    return;
+  }
+  showToast(`Site "${id}" not found — check the EPA ID.`);
 }
 
 let _syncUrlPending = null;
