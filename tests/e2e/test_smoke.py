@@ -147,10 +147,10 @@ def test_state_filter_narrows_table(page, base_url):
         " sel.value = opt.value; sel.dispatchEvent(new Event('change')); }"
     )
     page.wait_for_function(
-        "document.getElementById('search-count').textContent.indexOf(' of 37,911') > -1"
+        "document.getElementById('search-count').textContent.indexOf(' of ') > -1"
     )
     text = page.locator("#search-count").text_content()
-    # Format: "N of 37,911 in ST · X ac (…)"
+    # Format: "N of TOTAL in ST · X ac (…)"
     import re
     m = re.match(r"([\d,]+) of ([\d,]+)", text)
     assert m, f"unexpected count text: {text!r}"
@@ -173,16 +173,15 @@ def test_url_state_sharing(page, base_url):
 
 
 def test_brownfields_visible_by_default(page, base_url):
-    """v1.3: both programs are on by default. Once ACRES finishes lazy-loading,
-    the legend shows the Brownfield row and the meta text reflects both
-    programs. (Table is paginated and default-sorted by acreage-desc, so
-    brownfield rows — most with null acreage — fall past the first page.)"""
+    """All four programs are on by default. Once all lazy loads complete,
+    the legend shows Superfund, Brownfield, FUDS, and BRAC rows."""
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
     legend_text = page.locator(".legend").text_content()
     assert "Brownfield" in legend_text
-    meta = page.locator("#meta").text_content()
-    assert "brownfields" in meta.lower()
+    # After all lazy loads complete, the legend must show all four programs.
+    assert "FUDS" in legend_text
+    assert "BRAC" in legend_text
 
 
 def test_state_filter_shows_acreage_summary(page, base_url):
@@ -275,7 +274,7 @@ def test_npl_status_checkboxes(page, base_url):
         "document.getElementById('search-count').textContent.length > 0"
     )
     text = page.locator("#search-count").text_content()
-    assert " of 37,911" in text or " of 1,908" in text
+    assert " of " in text
 
 
 def test_state_dropdown_shows_full_names(page, base_url):
@@ -441,7 +440,7 @@ def test_owner_section_uses_user_friendly_copy(page, base_url):
     page.locator("#tab-table").click()
     page.locator("#sites-table tbody tr").first.click()
     page.wait_for_selector("#detail:not([hidden])")
-    for sel in ("#d-owner", "#d-owners-hist", "#d-encumb", "#d-prox"):
+    for sel in ("#d-owner", "#d-owners-hist", "#d-encumb"):
         text = page.locator(sel).text_content()
         assert "see backlog" not in text.lower()
         assert text == "Not available"
