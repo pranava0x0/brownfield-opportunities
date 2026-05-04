@@ -379,7 +379,12 @@ main:focus { outline: none; }
   margin-top: 3px;
   line-height: 1.3;
   /* Truncate at one line on desktop (avoids a tall second row); allow wrap
-     on the mobile carousel where each KPI gets generous min-width. */
+     on the mobile carousel where each KPI gets generous min-width.
+     `display: block` is required for `overflow: hidden` + `text-overflow:
+     ellipsis` to take effect — those properties no-op on `display: inline`,
+     which is the default for `<span>`. Without this, the subtext bleeds
+     across the column boundary into the next KPI cell (UAT-006). */
+  display: block;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
