@@ -84,3 +84,40 @@ class Connector(ABC):
         path.write_text(json.dumps(data))
         log.info("cached     %s", path.name)
         return data
+
+    def http_get_text(
+        self,
+        url: str,
+        params: dict[str, Any] | None = None,
+        use_cache: bool = True,
+        cache_key: Any = None,
+    ) -> str:
+        """GET arbitrary text (HTML, XML) with disk-backed caching.
+
+        Used by enrichment connectors that scrape EPA / DOD profile pages
+        which don't expose a JSON API. Failures (4xx/5xx) raise
+        requests.HTTPError; the caller is responsible for catching and
+        deciding whether to skip the record or abort the run.
+        """
+        path = self.cache_path(
+            cache_key if cache_key is not None else {"url": url, "params": params or {}}
+        )
+        # Use a distinct extension so JSON / text caches don't collide for the same key.
+        path = path.with_suffix(".txt")
+        if use_cache and path.exists():
+            log.info("cache hit  %s", path.name)
+            return path.read_text()
+
+        log.info("fetching   %s", path.name)
+        time.sleep(REQUEST_DELAY_S)
+        resp = requests.get(
+            url,
+            params=params or {},
+            headers={"User-Agent": USER_AGENT},
+            timeout=REQUEST_TIMEOUT_S,
+        )
+        resp.raise_for_status()
+        text = resp.text
+        path.write_text(text)
+        log.info("cached     %s", path.name)
+        return text

@@ -109,12 +109,28 @@ class SiteRecord(BaseModel):
         description="Computed: meets EPA data-center siting criteria (power, water, acreage).",
     )
 
-    # Future enrichment slots — None today, dropped from JSON via exclude_none.
+    # Ownership / transfer / history. Most are still None for most programs;
+    # FUDS populates `current_owner` directly from the source.
     current_owner: Optional[str] = None
+    current_owner_source: Optional[str] = Field(
+        default=None,
+        description="Provenance label for current_owner (e.g. 'USACE FUDS', "
+                    "'EPA ACRES PPF') so the UI can cite without ambiguity.",
+    )
     historical_owners: Optional[list[str]] = None
     encumbrances: Optional[list[str]] = None
     remediation_detail: Optional[dict] = None
     proximity: Optional[dict] = None
+
+    # Related federal documents per site (RODs, ESDs, Five Year Reviews,
+    # fact sheets, technical reports). Populated by enrichment connectors
+    # such as `epa-superfund-docs`. Each entry is a small dict — the
+    # frontend renders title + date + link in the detail panel.
+    documents: Optional[list[dict]] = Field(
+        default=None,
+        description="Related federal documents (title, url, date, category, "
+                    "doc_id, ou_id, size, pages).",
+    )
 
 
 class Payload(BaseModel):

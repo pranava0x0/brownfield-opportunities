@@ -105,8 +105,15 @@ def _run_one(
         log.info("--fetch-only: skipping output write (%d records)", len(records))
         return 0, records, inst.source_label
     if not records:
-        log.error("[%s] no records normalized; aborting", slug)
-        return 1, None, inst.source_label
+        # The canonical Superfund file going empty would be a real outage —
+        # abort so we don't corrupt the deployed dashboard. For enrichment
+        # connectors a sparse run is normal (small --docs-limit, partial
+        # coverage); write an empty payload so the file exists and the
+        # frontend's lazy-load 404 path doesn't trigger.
+        if slug == CANONICAL_SLUG:
+            log.error("[%s] no records normalized; aborting", slug)
+            return 1, None, inst.source_label
+        log.warning("[%s] no records normalized; writing empty payload", slug)
 
     out_path = _resolve_output_path(slug, output_override or args.output)
     out_path.parent.mkdir(parents=True, exist_ok=True)

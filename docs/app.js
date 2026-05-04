@@ -9,6 +9,7 @@ const ACRES_DATA_URL = "data/epa-acres.json";
 const FUDS_DATA_URL = "data/dod-fuds.json";
 const BRAC_DATA_URL = "data/dod-brac.json";
 const REDEV_DATA_URL = "data/epa-redev.json";
+const SUPERFUND_DOCS_URL = "data/epa-superfund-docs.json";
 // Vector basemap: US states (always) + US counties (lazy at zoom ≥ COUNTY_MIN_ZOOM).
 // No tiles — Canada/Mexico literally don't exist on the map. Choropleth-style
 // look (think CNN election tracker / datacenterbans.com) with bold state borders
@@ -233,6 +234,7 @@ let acresLoadingPromise = null; // de-dup parallel toggles
 let fudsLoadingPromise = null;
 let bracLoadingPromise = null;
 let redevLoadingPromise = null;
+let superfundDocsLoadingPromise = null;
 
 // Programmatic ready signal so UAT / Playwright / agent automation can wait
 // on a stable event instead of polling network responses. Fires once after
@@ -384,6 +386,15 @@ fetch(PRIMARY_DATA_URL)
     wireThemeToggle();
     applyUrlSelection();
     window.__sitesLoaded = true; // e2e hook
+    // Expose data + a programmatic site-selector so e2e tests can target
+    // an enriched record by id without depending on table sort order.
+    // Use a getter — `sites` is reassigned by ingestSites (`sites =
+    // Array.from(sitesById.values())`), so a snapshot would go stale.
+    Object.defineProperty(window, "__sites", {
+      configurable: true,
+      get: () => sites,
+    });
+    window.__selectSite = selectSite;
     // Kick off lazy loads for enabled programs. Redev enrichment runs after
     // Superfund first paint to annotate existing records with infrastructure
     // proximity data and the data-center reuse candidate flag.
@@ -392,6 +403,7 @@ fetch(PRIMARY_DATA_URL)
     if (filterState.programs.has("fuds")) lazyLoads.push(ensureFudsLoaded());
     if (filterState.programs.has("brac")) lazyLoads.push(ensureBracLoaded());
     lazyLoads.push(ensureRedevLoaded());
+    lazyLoads.push(ensureSuperfundDocsLoaded());
     if (lazyLoads.length === 0) {
       markAppReady();
     } else {
@@ -548,6 +560,35 @@ function ensureRedevLoaded() {
       redevLoadingPromise = null;
     });
   return redevLoadingPromise;
+}
+
+// EPA Superfund Documents enrichment. Per-EPA_ID list of public-facing
+// documents (RODs, ESDs, Five Year Reviews, fact sheets, technical reports)
+// pulled from the SEMS cachejson API by the epa-superfund-docs connector.
+// Only sites the connector has covered so far are present — coverage grows
+// as the connector's `--docs-limit` re-runs land more sites.
+function ensureSuperfundDocsLoaded() {
+  if (superfundDocsLoadingPromise) return superfundDocsLoadingPromise;
+  superfundDocsLoadingPromise = fetch(SUPERFUND_DOCS_URL)
+    .then((r) => {
+      if (r.status === 404) return { sites: [] };
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then((payload) => {
+      for (const rec of payload.sites || []) {
+        const existing = sitesById.get(rec.id || rec.epa_id);
+        if (!existing) continue;
+        if (Array.isArray(rec.documents) && rec.documents.length) {
+          existing.documents = rec.documents;
+        }
+      }
+    })
+    .catch((err) => {
+      console.error("Superfund docs enrichment load failed:", err);
+      superfundDocsLoadingPromise = null;
+    });
+  return superfundDocsLoadingPromise;
 }
 
 // ----- Map -----
@@ -1434,12 +1475,26 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
     childBlock.hidden = true;
   }
 
-  // Populate owner if available (FUDS provides current_owner)
+  // Populate owner if available (FUDS provides current_owner; future
+  // connectors may add ACRES PPF, Regrid parcel, etc.). The source label
+  // sits below so users can cite the upstream feed.
   const ownerEl = document.getElementById("d-owner");
   if (ownerEl) {
     ownerEl.textContent = s.current_owner || "Not available";
     ownerEl.className = s.current_owner ? "" : "muted-cell";
   }
+  const ownerSrcEl = document.getElementById("d-owner-source");
+  if (ownerSrcEl) {
+    if (s.current_owner && s.current_owner_source) {
+      ownerSrcEl.textContent = s.current_owner_source;
+      ownerSrcEl.className = "";
+    } else {
+      ownerSrcEl.textContent = "—";
+      ownerSrcEl.className = "muted-cell";
+    }
+  }
+
+  renderDocuments(s);
 
   const profile = el("d-profile");
   if (s.profile_url) {
@@ -1463,6 +1518,50 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
     markersById.get(id)?.openTooltip();
   }
   syncUrl();
+}
+
+// Render the per-site federal documents block. Hidden when the site has
+// none — coverage grows over time as the epa-superfund-docs connector
+// processes more sites in batches. The "all documents on EPA" link always
+// resolves so users can pivot to the canonical SEMS docdata page even when
+// our cached enrichment is empty.
+function renderDocuments(s) {
+  const block = el("d-docs-block");
+  if (!block) return;
+  const docs = Array.isArray(s.documents) ? s.documents : [];
+  const list = el("d-docs");
+  const countEl = el("d-docs-count");
+  const moreLink = el("d-docs-more");
+
+  if (!docs.length) {
+    block.hidden = true;
+    list.innerHTML = "";
+    return;
+  }
+
+  block.hidden = false;
+  countEl.textContent = `(${docs.length})`;
+
+  list.innerHTML = docs
+    .map((d) => {
+      const date = d.date ? `<span class="doc-date">${escapeHtml(d.date)}</span>` : "";
+      const cat = d.category ? `<span class="doc-cat">${escapeHtml(d.category)}</span>` : "";
+      const meta = [date, cat].filter(Boolean).join(" · ");
+      const sizeBits = [d.pages ? `${d.pages} pp` : null, d.size].filter(Boolean).join(", ");
+      const sizeStr = sizeBits ? ` <span class="doc-size">(${escapeHtml(sizeBits)})</span>` : "";
+      const safeTitle = escapeHtml(d.title || `Document ${d.doc_id}`);
+      const safeUrl = escapeAttr(d.url || "#");
+      return `<li><a href="${safeUrl}" target="_blank" rel="noopener">${safeTitle}</a>${sizeStr}${meta ? `<div class="doc-meta">${meta}</div>` : ""}</li>`;
+    })
+    .join("");
+
+  // Direct deep-link to the EPA SEMS Site Documents & Data page for full coverage.
+  if (s.program === "superfund" && (s.epa_id || s.id)) {
+    moreLink.href = `https://cumulis.epa.gov/supercpad/SiteProfiles/index.cfm?fuseaction=second.docdata&id=${encodeURIComponent(s.epa_id || s.id)}`;
+    moreLink.style.display = "";
+  } else {
+    moreLink.style.display = "none";
+  }
 }
 
 function closeDetail() {

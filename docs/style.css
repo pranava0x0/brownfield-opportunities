@@ -793,6 +793,43 @@ main {
 .children-list li { margin: 2px 0; }
 .children-list a { cursor: pointer; }
 
+/* Federal documents block in detail panel */
+#d-docs-block { margin-top: 16px; }
+#d-docs-block h3 { display: flex; align-items: baseline; gap: 8px; margin: 14px 0 6px; }
+.docs-count { color: var(--muted); font-size: 12px; font-weight: 400; font-variant-numeric: tabular-nums; }
+.docs-list {
+  margin: 4px 0 8px;
+  padding-left: 0;
+  list-style: none;
+  font-size: 13px;
+  color: var(--text-soft);
+}
+.docs-list li {
+  margin: 0 0 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed var(--border);
+}
+.docs-list li:last-child { border-bottom: 0; }
+.docs-list a {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 500;
+  line-height: 1.35;
+}
+.docs-list a:hover { text-decoration: underline; }
+.doc-size { color: var(--muted); font-weight: 400; font-size: 12px; }
+.doc-meta {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+}
+.doc-date { font-variant-numeric: tabular-nums; }
+.doc-cat::before { content: "· "; color: var(--border); }
+.doc-cat:first-child::before { content: ""; }
+.docs-source-line { margin: 6px 0 0; font-size: 12px; }
+.docs-source-line a { color: var(--accent); }
+
 .source { margin-top: 22px; font-size: 12px; }
 
 /* ============================================================
