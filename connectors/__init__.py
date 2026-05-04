@@ -11,6 +11,7 @@ from connectors.dod_brac import DodBrac
 from connectors.dod_fuds import DodFuds
 from connectors.epa_acres import EpaAcres
 from connectors.epa_redev import EpaRedev
+from connectors.epa_superfund_docs import EpaSuperfundDocs
 from connectors.superfund_npl import SuperfundNPL
 
 REGISTRY: dict[str, type[Connector]] = {}
@@ -37,3 +38,4 @@ register("epa-acres", EpaAcres)
 register("dod-fuds", DodFuds)
 register("dod-brac", DodBrac)
 register("epa-redev", EpaRedev)
+register("epa-superfund-docs", EpaSuperfundDocs)

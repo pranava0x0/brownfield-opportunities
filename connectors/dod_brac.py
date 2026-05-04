@@ -12,6 +12,11 @@ import logging
 from typing import Any
 
 from connectors.base import Connector
+from connectors.geom import (
+    ACRES_PER_SQ_METER,
+    envelope_center,
+    polygon_area_sq_meters,
+)
 
 log = logging.getLogger("connector.dod_brac")
 
@@ -30,9 +35,6 @@ OUTFIELDS = [
     "BRAC_SITE",
     "STPOSTAL",
 ]
-
-ACRES_PER_SQ_METER = 0.000247105
-
 
 class DodBrac(Connector):
     slug = "dod-brac"
@@ -94,45 +96,11 @@ class DodBrac(Connector):
         log.info("retrieved %d BRAC features", len(features))
         return features
 
-    @staticmethod
-    def envelope_center(rings: list[list[list[float]]]) -> tuple[float, float]:
-        xs: list[float] = []
-        ys: list[float] = []
-        for ring in rings:
-            for x, y in ring:
-                xs.append(x)
-                ys.append(y)
-        if not xs:
-            raise ValueError("empty geometry")
-        return (min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2
-
-    @staticmethod
-    def polygon_area_sq_meters(rings: list[list[list[float]]]) -> float:
-        """Approximate polygon area using the Shoelace formula on lat/lon.
-
-        Converts to meters using cos(latitude) scaling. Good enough for
-        acreage estimates on the contiguous US.
-        """
-        import math
-        total = 0.0
-        for ring in rings:
-            n = len(ring)
-            if n < 3:
-                continue
-            mid_lat = sum(p[1] for p in ring) / n
-            cos_lat = math.cos(math.radians(mid_lat))
-            m_per_deg_lon = 111_320 * cos_lat
-            m_per_deg_lat = 110_540
-            area = 0.0
-            for i in range(n):
-                j = (i + 1) % n
-                x_i = ring[i][0] * m_per_deg_lon
-                y_i = ring[i][1] * m_per_deg_lat
-                x_j = ring[j][0] * m_per_deg_lon
-                y_j = ring[j][1] * m_per_deg_lat
-                area += x_i * y_j - x_j * y_i
-            total += abs(area) / 2.0
-        return total
+    # Polygon math now lives in connectors.geom — see envelope_center +
+    # polygon_area_sq_meters. Re-exported as static methods for the existing
+    # test surface so tests/test_brac.py continues to import them as before.
+    envelope_center = staticmethod(envelope_center)
+    polygon_area_sq_meters = staticmethod(polygon_area_sq_meters)
 
     def normalize(self, feature: dict[str, Any]) -> dict[str, Any] | None:
         a = feature.get("attributes", {}) or {}
@@ -142,11 +110,11 @@ class DodBrac(Connector):
             return None
 
         try:
-            lon, lat = self.envelope_center(rings)
+            lon, lat = envelope_center(rings)
         except ValueError:
             return None
 
-        area_sq_m = self.polygon_area_sq_meters(rings)
+        area_sq_m = polygon_area_sq_meters(rings)
         acreage = round(area_sq_m * ACRES_PER_SQ_METER, 1) if area_sq_m > 0 else None
 
         site_name = a.get("SITE_NAME")

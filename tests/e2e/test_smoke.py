@@ -624,3 +624,59 @@ def test_chip_count_hidden_attribute_works(page, base_url):
         f"chip with hidden=true rendered as display:{display} — "
         "the [hidden] trap is back. Add `.chip-count[hidden] { display: none }`."
     )
+
+
+# ----- v1.9: federal acreage / ownership / documents enrichment -----
+
+
+def test_owner_source_label_shown_for_fuds(page, base_url):
+    """v1.9: detail panel shows owner-source citation alongside current owner.
+    Picks a FUDS site (which always has an owner from USACE) by clicking
+    its row in the table after filtering programs to FUDS only."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    # Programmatically pick a FUDS site with an owner — table sort/state may vary.
+    site_id = page.evaluate(
+        "(() => {"
+        "  for (const s of (window.__sites || [])) {"
+        "    if (s.program === 'fuds' && s.current_owner) return s.id;"
+        "  }"
+        "  return null;"
+        "})()"
+    )
+    assert site_id, "no FUDS site with current_owner found in loaded data"
+    page.evaluate(f"window.__selectSite('{site_id}')")
+    page.wait_for_selector("#detail:not([hidden])")
+    owner_source = page.locator("#d-owner-source").text_content()
+    assert "FUDS" in owner_source, f"expected FUDS in owner source, got {owner_source!r}"
+
+
+def test_documents_block_renders_for_enriched_site(page, base_url):
+    """v1.9: detail panel renders Federal documents block when the site
+    has been enriched by epa-superfund-docs. Skips silently if the
+    sample dataset doesn't yet include any enriched sites."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    enriched_id = page.evaluate(
+        "(() => {"
+        "  for (const s of (window.__sites || [])) {"
+        "    if (Array.isArray(s.documents) && s.documents.length > 0) return s.id;"
+        "  }"
+        "  return null;"
+        "})()"
+    )
+    if not enriched_id:
+        import pytest
+        pytest.skip("no docs-enriched sites in current dataset — re-run epa-superfund-docs")
+    page.evaluate(f"window.__selectSite('{enriched_id}')")
+    page.wait_for_selector("#detail:not([hidden])")
+    block = page.locator("#d-docs-block")
+    assert block.evaluate("el => el.hidden") is False
+    # Each document should render as a link with title text + date metadata.
+    items = page.locator("#d-docs li")
+    assert items.count() > 0
+    first_link = items.first.locator("a").first
+    assert first_link.get_attribute("href").startswith("https://semspub.epa.gov")
+    # "All site documents on EPA →" deep-link should point at cumulis docdata
+    more_href = page.locator("#d-docs-more").get_attribute("href")
+    assert "second.docdata" in more_href
