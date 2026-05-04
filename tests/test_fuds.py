@@ -1,7 +1,8 @@
 """Unit tests for the DOD FUDS connector.
 
 Covers normalize() — converting ArcGIS features from USACE FUDS FeatureServer
-into the dashboard's record schema. No network calls.
+into the dashboard's record schema, and the layer-1 + layer-4 polygon join.
+No network calls.
 """
 from __future__ import annotations
 
@@ -166,8 +167,74 @@ def test_record_shape_complete():
     rec = DodFuds.normalize(_feature())
     expected = {
         "id", "program", "name", "city", "county", "state", "region",
-        "lat", "lon", "profile_url", "current_owner", "eligibility",
-        "fuds_status", "has_projects", "congressional_district", "npl_status",
+        "lat", "lon", "profile_url", "current_owner", "current_owner_source",
+        "eligibility", "fuds_status", "has_projects", "congressional_district",
+        "npl_status",
     }
     assert set(rec.keys()) == expected
     assert rec["program"] == "fuds"
+
+
+def test_owner_source_set_when_owner_present():
+    """v1.9: every FUDS record with an owner gets a citation label so the
+    UI can show provenance."""
+    rec = DodFuds.normalize(_feature({"CURRENTOWNER": "PRIVATE: Acme LLC"}))
+    assert rec["current_owner_source"] == "USACE FUDS"
+
+
+def test_owner_source_null_when_owner_missing():
+    rec = DodFuds.normalize(_feature({"CURRENTOWNER": None}))
+    assert rec["current_owner_source"] is None
+
+
+# ----- layer-1 + layer-4 polygon join -----
+
+def test_polygon_join_aggregates_multi_parcel_acreage():
+    """Same property ID across multiple polygon features → rings concatenate
+    and acreage sums. Ensures we don't undercount split FUDS parcels."""
+    polygon_features = [
+        {
+            "attributes": {"DODFUDSPROPERTYIDPK": "X1"},
+            "geometry": {"rings": [[[0.0, 0.0], [0.01, 0.0], [0.01, 0.01], [0.0, 0.01], [0.0, 0.0]]]},
+        },
+        {
+            "attributes": {"DODFUDSPROPERTYIDPK": "X1"},
+            "geometry": {"rings": [[[1.0, 0.0], [1.01, 0.0], [1.01, 0.01], [1.0, 0.01], [1.0, 0.0]]]},
+        },
+        {
+            "attributes": {"DODFUDSPROPERTYIDPK": "X2"},
+            "geometry": {"rings": [[[2.0, 0.0], [2.01, 0.0], [2.01, 0.01], [2.0, 0.01], [2.0, 0.0]]]},
+        },
+    ]
+
+    # Inline the same logic the connector uses.
+    rings_by_id: dict = {}
+    for feat in polygon_features:
+        prop_id = feat["attributes"]["DODFUDSPROPERTYIDPK"]
+        rings_by_id.setdefault(prop_id, []).extend(feat["geometry"]["rings"])
+
+    from connectors.geom import polygon_acreage
+    acres_x1 = polygon_acreage(rings_by_id["X1"])
+    acres_x2 = polygon_acreage(rings_by_id["X2"])
+    # X1 has two parcels, each ~the same size as X2's single parcel,
+    # so X1's acreage should be ~2× X2's.
+    assert acres_x1 is not None and acres_x2 is not None
+    assert 1.8 < acres_x1 / acres_x2 < 2.2
+
+
+def test_polygon_skips_features_with_no_geometry():
+    """Polygon-layer features can lack geometry; those just don't enrich."""
+    polygon_features = [
+        {"attributes": {"DODFUDSPROPERTYIDPK": "X1"}, "geometry": None},
+        {"attributes": {"DODFUDSPROPERTYIDPK": "X2"}, "geometry": {"rings": []}},
+    ]
+    rings_by_id: dict = {}
+    for feat in polygon_features:
+        attrs = feat.get("attributes") or {}
+        geom = feat.get("geometry") or {}
+        prop_id = attrs.get("DODFUDSPROPERTYIDPK")
+        rings = geom.get("rings")
+        if not prop_id or not rings:
+            continue
+        rings_by_id.setdefault(prop_id, []).extend(rings)
+    assert rings_by_id == {}

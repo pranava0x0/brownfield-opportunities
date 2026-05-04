@@ -1,8 +1,18 @@
 # Brownfield Opportunities
 
-Static dashboard of EPA Superfund + ACRES brownfield sites — map and table view with filters, site-level detail, CSV export, and shareable URL state. Designed to live on GitHub Pages and refresh via a one-command CLI.
+Static dashboard of EPA Superfund + ACRES brownfield + USACE FUDS + DOD BRAC sites — map and table view with filters, site-level detail, CSV export, and shareable URL state. Designed to live on GitHub Pages and refresh via a one-command CLI.
 
 **Live:** https://pranava0x0.github.io/brownfield-opportunities/
+
+## What's in v1.9 (federal acreage / ownership / documents enrichment)
+
+Two new federal data paths land per-site acreage, current owner, and related documents that were previously gaps:
+
+- **FUDS polygon acreage.** `connectors/dod_fuds.py` now joins layer 1 (points, ~10k properties) with layer 4 (polygons, ~3k boundaries) of the USACE FUDS FeatureServer, computing acreage from the polygon geometry via Shoelace + cos(latitude). ~3k previously-null FUDS records gain accurate acreage; affected records also get a polygon-centroid lat/lon (more accurate than the point representation for properties spanning miles).
+- **Per-site owner provenance.** Schema gains `current_owner_source` so the detail panel can cite where the owner came from (today: "USACE FUDS"; future: ACRES PPF, Regrid, etc.). FUDS records that already carried a `CURRENTOWNER` value now also carry the citation label.
+- **EPA Superfund federal documents.** New `connectors/epa_superfund_docs.py` enrichment connector walks three hops to assemble a per-site list of curated public documents (RODs, ESDs, Five Year Reviews, fact sheets, technical reports) from EPA's SEMS infrastructure: (1) EPA pretty page → SF_SITE_ID, (2) cumulis docdata → collection IDs, (3) `semspub.epa.gov/src/cachejson/...` → document records. Output writes to `docs/data/epa-superfund-docs.json`; the frontend lazy-loads and joins by EPA_ID.
+- **Detail panel: Federal documents block.** When a Superfund site has been enriched, the detail panel renders a "Federal documents" section with title + date + collection category + size + page count, plus an "All site documents on EPA →" deep-link to the canonical SEMS docdata page for full coverage.
+- **Resumable batched coverage.** The Superfund docs connector defaults to `--docs-limit 100` (largest Final/Deleted-NPL sites first). Re-runs are cheap (everything cached); future batches use `--docs-skip 100 --docs-limit 100` to stripe coverage across the ~1,800-site Final/Deleted-NPL universe without re-fetching.
 
 ## What's in v1.6 (UAT 2026-04-29 fixes)
 
@@ -55,7 +65,10 @@ pip install -r requirements.txt
 python refresh.py --list-sources                   # show registered connectors
 python refresh.py                                  # default: Superfund only → docs/data/sites.json
 python refresh.py --source epa-acres               # ACRES → docs/data/epa-acres.json
-python refresh.py --all                            # both, plus mirror Superfund → sites.json
+python refresh.py --source dod-fuds                # FUDS (point + polygon join) → docs/data/dod-fuds.json
+python refresh.py --source epa-superfund-docs --docs-limit 100  # docs enrichment, 100 sites/batch
+python refresh.py --source epa-superfund-docs --docs-limit 100 --docs-skip 100  # next 100
+python refresh.py --all                            # all connectors, plus mirror Superfund → sites.json
 python refresh.py --all --combined                 # also write a single fat sites.json (~2MB gz)
 python refresh.py --source superfund-npl --no-cache
 python refresh.py --source superfund-npl --dry-run # use only cached responses
@@ -66,6 +79,10 @@ Output:
 - `docs/data/sites.json` — canonical fast-path file the frontend loads first (~170KB gzipped, Superfund only)
 - `docs/data/superfund-npl.json` — same as `sites.json`, written by `--all`
 - `docs/data/epa-acres.json` — ACRES brownfields, lazy-loaded by the frontend (~1.5MB gzipped)
+- `docs/data/dod-fuds.json` — USACE FUDS (~8.8k records, ~4MB), 3k now carry polygon-derived acreage
+- `docs/data/dod-brac.json` — DOD BRAC installations (27 records, polygon-derived acreage)
+- `docs/data/epa-redev.json` — Superfund Redevelopment infrastructure-proximity enrichment
+- `docs/data/epa-superfund-docs.json` — per-EPA_ID list of related federal documents (RODs, ESDs, etc.); merged client-side by `ensureSuperfundDocsLoaded()`
 - `data/changes.md` — diff vs prior run (canonical file only)
 
 The script is idempotent: re-runs hit a local cache (`data/cache/`) until you pass `--no-cache`. JSON is minified by default and skips null fields; `exclude_none=True` keeps the per-record overhead small.
