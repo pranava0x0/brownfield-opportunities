@@ -434,16 +434,30 @@ def test_federal_facility_decoded_cleanly(page, base_url):
 def test_owner_section_uses_user_friendly_copy(page, base_url):
     """Bug: detail panel showed 'N/A — see backlog' (project jargon) for
     Current owner, Historical owners, Encumbrances, and Infrastructure
-    proximity. Fix shows 'Not available' instead."""
+    proximity. Fix shows 'Not available' instead.
+
+    Pick a Superfund site with no owner data — FUDS records carry
+    `current_owner` from `CURRENTOWNER` (v1.9) and BRAC carries the
+    component, so the first table row is no longer guaranteed to be
+    owner-null. Use a programmatic site selector to land on a record
+    where all three fields are null."""
     page.goto(f"{base_url}/index.html")
-    page.wait_for_function("document.getElementById('meta').textContent.indexOf('sites') > -1")
-    page.locator("#tab-table").click()
-    page.locator("#sites-table tbody tr").first.click()
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    null_owner_id = page.evaluate(
+        "(() => {"
+        "  for (const s of (window.__sites || [])) {"
+        "    if (s.program === 'superfund' && !s.current_owner) return s.id;"
+        "  }"
+        "  return null;"
+        "})()"
+    )
+    assert null_owner_id, "no Superfund record with null current_owner"
+    page.evaluate(f"window.__selectSite('{null_owner_id}')")
     page.wait_for_selector("#detail:not([hidden])")
     for sel in ("#d-owner", "#d-owners-hist", "#d-encumb"):
         text = page.locator(sel).text_content()
         assert "see backlog" not in text.lower()
-        assert text == "Not available"
+        assert text == "Not available", f"{sel} text = {text!r}"
 
 
 # ----- v1.8 design refresh + UAT 2026-04-30 fixes -----
@@ -680,3 +694,121 @@ def test_documents_block_renders_for_enriched_site(page, base_url):
     # "All site documents on EPA →" deep-link should point at cumulis docdata
     more_href = page.locator("#d-docs-more").get_attribute("href")
     assert "second.docdata" in more_href
+
+
+def test_kpi_subtext_does_not_overflow_cell(page, base_url):
+    """UAT-006 (2026-05-03): At desktop widths the KPI subtext used to
+    overflow its cell because `.kpi-sub` was a `<span>` with `display:
+    inline` — `overflow: hidden` and `text-overflow: ellipsis` no-op on
+    inline elements, so the second cell's "4.9K sites with reported area"
+    bled visually into the third cell's "≥50 ac · power · water".
+
+    Guard: at 1280px (the desktop breakpoint we ship for), each
+    `.kpi-sub`'s rendered right edge must stay within its parent cell's
+    right edge minus the cell's right padding."""
+    page.set_viewport_size({"width": 1280, "height": 800})
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    overflows = page.evaluate(
+        "(() => Array.from(document.querySelectorAll('.kpi')).map((cell, i) => {"
+        "  const sub = cell.querySelector('.kpi-sub');"
+        "  if (!sub) return null;"
+        "  const cr = cell.getBoundingClientRect();"
+        "  const sr = sub.getBoundingClientRect();"
+        "  return {"
+        "    i,"
+        "    display: getComputedStyle(sub).display,"
+        "    overflows: sr.right - cr.right,"
+        "  };"
+        "}).filter(Boolean))()"
+    )
+    assert overflows, "no .kpi cells found"
+    for row in overflows:
+        # Subtext must be a block-level box for ellipsis to engage.
+        assert row["display"] == "block", f"kpi-sub[{row['i']}] display={row['display']!r}"
+        # Right edge must be inside the cell (allow up to 0px tolerance).
+        assert row["overflows"] <= 0, (
+            f"kpi-sub[{row['i']}] overflows cell by {row['overflows']:.1f}px"
+        )
+
+
+def test_reset_restores_all_four_programs(page, base_url):
+    """UAT-007 (2026-05-03): the Reset button used to hard-code v1.6's
+    `[superfund, brownfield]` defaults, silently dropping FUDS + BRAC on
+    every click. Symptom: chip "1" stayed lit, URL kept
+    `?program=superfund,brownfield`, and the action did nothing visible.
+
+    Guard: after toggling any program off and clicking Reset, every
+    program checkbox is re-checked, `filterState.programs` covers all
+    four programs (verified via `searchCount` showing the full
+    `46,759 of 46,759` set), the chip badge is hidden, and the URL is
+    clean of any `?program=` param."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    # Sanity: all 4 programs visible at start.
+    program_ids = ["superfund", "brownfield", "fuds", "brac"]
+    for p in program_ids:
+        assert page.locator(f"#f-program-{p}").is_checked(), f"{p} not checked at start"
+
+    # Open the filters panel + uncheck Superfund.
+    page.locator("#filters-toggle").click()
+    page.locator("#f-program-superfund").uncheck()
+    # Filter system writes URL state debounced 200ms; wait it out.
+    page.wait_for_function(
+        "window.location.search.includes('program=')",
+        timeout=3000,
+    )
+    # Chip should be visible with active count.
+    page.wait_for_function(
+        "getComputedStyle(document.getElementById('filters-chip')).display !== 'none'",
+        timeout=2000,
+    )
+
+    # Click Reset.
+    page.locator("#filters-reset").click()
+    # All 4 program checkboxes should be re-checked.
+    for p in program_ids:
+        assert page.locator(f"#f-program-{p}").is_checked(), f"{p} not checked after Reset"
+
+    # Chip should be hidden again.
+    page.wait_for_function(
+        "getComputedStyle(document.getElementById('filters-chip')).display === 'none'",
+        timeout=3000,
+    )
+
+    # URL should be clean (no ?program= param).
+    page.wait_for_function(
+        "!window.location.search.includes('program=')",
+        timeout=3000,
+    )
+
+    # Meta text should reflect all 4 programs (per-program counts present).
+    meta = page.locator("#meta").text_content()
+    for label in ("Superfund", "brownfields", "FUDS", "BRAC"):
+        assert label in meta, f"meta missing {label!r}: {meta!r}"
+
+
+def test_reset_clears_filter_chip(page, base_url):
+    """Companion to test_reset_restores_all_four_programs: regardless of
+    which filter is active (state, status, acreage, search, program),
+    Reset must clear the chip badge."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+
+    # Apply a search filter → chip lights up.
+    page.locator("#search").fill("philly")
+    page.wait_for_function(
+        "getComputedStyle(document.getElementById('filters-chip')).display !== 'none'",
+        timeout=2000,
+    )
+
+    # Open filters + click Reset.
+    page.locator("#filters-toggle").click()
+    page.locator("#filters-reset").click()
+
+    # Search input cleared and chip hidden.
+    assert page.locator("#search").input_value() == ""
+    page.wait_for_function(
+        "getComputedStyle(document.getElementById('filters-chip')).display === 'none'",
+        timeout=3000,
+    )

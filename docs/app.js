@@ -1125,15 +1125,23 @@ function wireFilters() {
     filterState.minAcreage === 0 ? "0" : Math.round(Math.pow(10, filterState.minAcreage)).toLocaleString() + " ac";
 
   el("filters-reset").addEventListener("click", () => {
-    filterState.programs = new Set(["superfund", "brownfield"]);
+    // Restore *all* programs in PROGRAM_LEGEND, not a hardcoded subset —
+    // when FUDS / BRAC were added in v1.7 this handler stayed at v1.6's
+    // [superfund, brownfield] and silently dropped the new programs on
+    // every Reset click (UAT-007). Iterate the legend so future programs
+    // pick up the reset for free.
+    filterState.programs = new Set(PROGRAM_LEGEND.map((p) => p.program));
     filterState.state = "";
     filterState.statuses = new Set();
     filterState.minAcreage = 0;
     filterState.q = "";
     el("search").value = "";
-    progBoxes.superfund.checked = true;
-    progBoxes.brownfield.checked = true;
+    for (const [program, box] of Object.entries(progBoxes)) {
+      if (box) box.checked = filterState.programs.has(program);
+    }
     if (filterState.programs.has("brownfield")) ensureAcresLoaded();
+    if (filterState.programs.has("fuds")) ensureFudsLoaded();
+    if (filterState.programs.has("brac")) ensureBracLoaded();
     stateSel.value = "";
     for (const cb of el("f-status-checks").querySelectorAll("input[type=checkbox]")) cb.checked = false;
     acreEl.value = "0";
