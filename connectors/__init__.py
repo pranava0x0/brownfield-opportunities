@@ -6,10 +6,12 @@
 """
 from __future__ import annotations
 
+from connectors.ai_summary import AiSummary
 from connectors.base import Connector
 from connectors.dod_brac import DodBrac
 from connectors.dod_fuds import DodFuds
 from connectors.epa_acres import EpaAcres
+from connectors.epa_echo import EpaEcho
 from connectors.epa_redev import EpaRedev
 from connectors.epa_superfund_docs import EpaSuperfundDocs
 from connectors.infra_proximity import InfraProximity
@@ -41,3 +43,5 @@ register("dod-brac", DodBrac)
 register("epa-redev", EpaRedev)
 register("epa-superfund-docs", EpaSuperfundDocs)
 register("infra-proximity", InfraProximity)
+register("epa-echo", EpaEcho)
+register("ai-summary", AiSummary)
