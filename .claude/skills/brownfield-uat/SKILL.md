@@ -15,6 +15,20 @@ quirks.
 
 ---
 
+## Permissions are pre-approved — don't prompt
+
+`.claude/settings.local.json` already grants every Chrome MCP, Preview MCP,
+and Bash tool this skill needs (committed 2026-05-05 as part of UAT-008).
+You do **not** need to ask the user to approve `navigate`, `javascript_tool`,
+`browser_batch`, `preview_*`, `pytest`, or `python scripts/serve.py` when the
+target is the Brownfield dashboard. Just run the flow.
+
+If a brand-new MCP tool is genuinely missing from that allow list, prefer
+asking the user to add it once (via `update-config` skill) rather than
+prompting on every call within a single UAT pass.
+
+---
+
 ## Targets
 
 | Target           | URL / Command                                                            | Notes                                  |
@@ -32,11 +46,16 @@ quirks.
   then `preview_eval` / `preview_screenshot` / `preview_console_logs` /
   `preview_network` / `preview_resize`). The launch.json already maps the
   `dashboard` config to a static http-server on port 8765 serving `docs/`.
-  This is the **preferred** UAT path — it's faster than Chrome MCP and the
-  preview screenshot tool gives compressed JPEGs ready to inline.
+  This is the **preferred** UAT path — it's faster than Chrome MCP, the
+  preview screenshot tool gives compressed JPEGs ready to inline, and
+  `preview_resize` actually resizes the viewport (Chrome MCP `resize_window`
+  does not — see UAT-2026-05-05 finding below).
 - **Live URL** → use `mcp__Claude_in_Chrome__*` (`tabs_context_mcp` →
   `navigate` → `javascript_tool` / `find` / `read_console_messages` /
-  `read_network_requests`).
+  `read_network_requests`). **Always batch via `browser_batch`** — every
+  individual call is a CDP round-trip and the cumulative cost dominates
+  a 5-min budget. A typical round (navigate + wait + 2 evals + screenshot)
+  fits in one batch. `screenshot` results are JPEGs and inline directly.
 - Don't use `computer-use` for clicks here — markers are Canvas-rendered
   (no DOM nodes for individual sites), so pixel-clicking is fragile. Use
   `preview_eval` / `javascript_tool` to dispatch interactions directly
@@ -56,14 +75,22 @@ Cause: `epa-acres.json` (~10.8 MB decoded, ~1.6 MB gz) + `dod-fuds.json`
 `requestIdleCallback` chunks of 800.
 
 **Workaround:**
-- After `navigate`, **wait 3–5 s** before any DOM query. With chunked
-  hydration, `document.readyState` settles much faster than v1.2's
-  synchronous loop, but the marker layer still keeps lighting up.
+- After `navigate`, **wait at least 8 s on cold load** before asserting
+  detail-panel state from a `?site=<ID>` deep-link. 5 s is too short
+  when ALL four programs are streaming in (UAT-2026-05-05 closed UAT-010
+  as a tooling timing race rather than a code bug — the lazy-loads
+  were still settling). For lighter checks (KPI deck, header text) 3–5 s
+  is fine.
+- Always **assert `window.__APP_READY__ === true` first** before
+  declaring any deep-link/state failure. The page sets `__APP_READY__`
+  and dispatches `brownfield:ready` on `document` only after every
+  lazy-load (ACRES + FUDS + BRAC + Redev + docs + infra + ECHO + AI
+  summary) has settled. If `__APP_READY__` is `undefined`, you waited
+  too short — wait another 3 s and retry, don't log a bug.
 - Prefer `preview_eval` with a tiny expression (`window.__APP_READY__`)
-  over `find`. The page sets `window.__APP_READY__ = true` and dispatches
-  `brownfield:ready` on `document` after **all** lazy loads (ACRES +
-  FUDS + BRAC + Redev) settle.
-- If a tool errors out with the 45s timeout, don't retry immediately —
+  over `find`. `find` blocks on `document_idle` and can compound the
+  timeout.
+- If a tool errors out with the 45 s timeout, don't retry immediately —
   wait another 3 s.
 
 ### 2. Markers are Canvas, not DOM
@@ -154,6 +181,94 @@ A 4px top stripe colored by program. JS sets `--detail-stripe` as an
 inline CSS var on `#detail`; the `::before` pseudo reads it. After
 `closeDetail()` the marker tooltip is also closed (UAT-fixed in v1.8).
 
+### 10. Detail panel tab strip (v1.11)
+
+The panel is now split into two tabs under the title:
+- `#dtab-overview` — KV grid + FUDS/infra/docs/ECHO blocks (the original).
+- `#dtab-summary` — AI-generated narrative card (`#d-summary-body`).
+  Empty state lives in `#d-summary-empty` and reads "No AI summary on
+  file for this site yet…" — that's normal when `data/ai-summary.json`
+  hasn't been built or doesn't cover the site.
+
+`selectSite()` calls `resetDetailTabs()` so each new selection lands on
+Overview. To assert tab behaviour: `document.querySelector('#dtab-summary').click()`,
+then check `#d-summary-body[hidden]` and `#d-summary-empty[hidden]` to
+distinguish populated vs. empty.
+
+### 11. Selectors that the runbook needs (read once, save typing later)
+
+These are the actual element IDs / data attributes — the runbook used
+to silently no-op when they were guessed wrong.
+
+| Purpose                          | Selector                                                |
+| -------------------------------- | ------------------------------------------------------- |
+| Search input                     | `#search`                                               |
+| Search count text                | `#search-count`                                         |
+| Filters strip toggle (gear)      | `#filters-toggle`                                       |
+| Filters chip badge               | `#filters-chip`                                         |
+| Filters reset button             | `#filters-reset`                                        |
+| Program checkboxes               | `#f-program-superfund`, `#f-program-brownfield`, `#f-program-fuds`, `#f-program-brac` (NOT `[data-program]`) |
+| NPL Status checkboxes            | `input[data-status="F"]`, `…="P"`, `…="D"`, `…="N"`     |
+| State dropdown                   | `#f-state` (option values are postal codes)             |
+| Acreage slider                   | `#f-acreage` (log10 scale, 0–6)                         |
+| Map / Table tab buttons          | No clean ID — find by text: `Array.from(document.querySelectorAll('button')).find(b => /Table/i.test(b.textContent))?.click()` |
+| Theme toggle                     | `#theme-toggle` (no `data-theme` attr → light)          |
+| CSV export                       | `#export-csv`                                           |
+| Detail panel root                | `#detail` (also `aside[role=complementary]`)            |
+| Detail close button              | `#detail-close`                                         |
+| Detail tabs                      | `#dtab-overview`, `#dtab-summary`                       |
+| Toast (lazy-mounted)             | `#toast` (only exists after `showToast()` fires)        |
+| Footer / hero refresh date       | `#footer-refresh`, `#hero-refresh`                      |
+
+To select sites by id, the canonical hook is `window.__selectSite(id)`.
+Sites are also indexed in `window.__sites` (array) for randomized picks:
+```js
+const programs = ['superfund', 'brownfield', 'fuds', 'brac'];
+const pick = p => {
+  const pool = window.__sites.filter(s => s.program === p && s.name);
+  return pool[Math.floor(Math.random() * pool.length)];
+};
+```
+
+### 12. `resize_window` is a no-op in Chrome MCP (UAT-2026-05-05)
+
+`mcp__Claude_in_Chrome__resize_window` reports success but the page's
+`window.innerWidth` does **not** change below the host Chrome window's
+minimum width (~1389px on a 1512px-wide display). Mobile / tablet
+breakpoints can't be exercised this way. For responsive UAT, switch to
+the Preview MCP (`preview_resize`) — it actually shrinks the viewport.
+Or assert breakpoint behaviour by reading `getComputedStyle` on the
+elements you care about and comparing against the CSS rules; don't rely
+on visual screenshot diffs.
+
+### 13. Toast for `?site=<unknown>` fires ~5 s post-navigate (UAT-2026-05-05)
+
+`applyUrlSelection()` waits on every lazy-load promise before deciding
+the id is unknown. ACRES + FUDS settle around the 4–5 s mark on a warm
+cache. The toast (`#toast`) then mounts, fades in for ~250 ms, stays
+visible 4 s, fades out. Capture window: navigate → wait 5–6 s → check
+`document.getElementById('toast')?.classList.contains('visible')`. A
+4 s wait is too short and a 9+ s wait may miss it on the tail end.
+
+### 14. `[BLOCKED: Cookie/query string data]` in eval results (UAT-2026-05-05)
+
+Chrome's privacy heuristic occasionally redacts `javascript_tool` results
+that contain URL-like strings (anything with `?…=…&…=…`). When this
+happens the eval RAN successfully — only the result text was filtered.
+Workaround: in the eval, redact the URL parts you don't need, or read
+the same state from a screenshot. Don't retry — the result will be the
+same.
+
+### 15. v1.11 enrichment files may 404 in production (UAT-008, open)
+
+`data/epa-echo.json` and `data/ai-summary.json` are referenced
+unconditionally by `app.js` even when the connectors haven't been run.
+The frontend fails open (ECHO block stays hidden, Summary tab shows
+the empty-state copy), but **expect two 404s in the network panel on
+every cold load against production until those connectors land**.
+Don't flag this as a console error during UAT — log it once per session
+and move on.
+
 ---
 
 ## Standard UAT Flow (5-min run)
@@ -204,6 +319,84 @@ Run these in order. Stop and log to `issues.md` the moment a step fails.
 
 10. **DOM size** — `preview_eval document.querySelectorAll('*').length`.
     Must stay under 5000 (test guards this in CI).
+
+---
+
+## Randomized 5-min coverage flow (live URL, Chrome MCP)
+
+Tested 2026-05-05. Each step is one `browser_batch` call. Designed so a
+returning agent finishes in ~5 min wall-clock with full functional coverage
+and at least one randomized pick per dimension (program, state, filter,
+search query, sort column).
+
+**Round 1 — Cold load + smoke:**
+```
+[navigate live URL] → [resize 1440x900] → [wait 5 s]
+  → [eval window.__APP_READY__, sitesLoaded, sites.length, kpis, meta]
+  → [screenshot]
+```
+Expect: `sites.length === 46_759` (give or take), KPIs all non-`—`, meta text
+matches the per-program regex.
+
+**Round 2 — Random URL state, one per program + one invalid:**
+```
+[eval pick a random site per program from window.__sites]
+[navigate ?site=<superfund-pick> → wait 6 s → eval detail title/program/acreage → screenshot]
+[navigate ?site=<acres-pick>      → wait 6 s → eval … → screenshot]
+[navigate ?site=<fuds-pick>       → wait 6 s → eval … → screenshot]
+[navigate ?site=<brac-pick>       → wait 6 s → eval … → screenshot]
+[navigate ?site=DOES-NOT-EXIST    → wait 5 s → eval toast.classList.contains('visible')]
+```
+Notes: the toast fires ~5 s after navigate, not ~1 s — see quirk #13.
+BRAC sometimes fails on the first try; if `detailHidden:true`, try one
+re-navigate before logging a bug (see UAT-010).
+
+**Round 3 — Random search query:**
+```
+[eval set #search.value = pick(['harbor', 'fox', 'denver', 'lake', 'fort'])
+  → dispatch input event]
+[wait 1 s]
+[eval search-count, chip count, URL search]
+[screenshot]
+[eval clear search]
+```
+
+**Round 4 — Random filter combination:**
+```
+[eval pick random state from #f-state options → dispatch change]
+[eval uncheck a random subset of #f-program-{slug} → dispatch change]
+[eval check a random subset of input[data-status=*] → dispatch change]
+[eval set #f-acreage to a random value in [1, 4] (log10) → dispatch input + change]
+[wait 1 s]
+[eval search-count, chip count, URL search]
+[screenshot]
+[click #filters-reset]
+[eval verify all programs back, chip hidden, URL clean]
+```
+
+**Round 5 — Theme + table + row click:**
+```
+[click #theme-toggle → eval data-theme attr]
+[click "Table" tab button (find by text)]
+[wait 2 s]
+[click random thead th to re-sort]
+[wait 1 s]
+[click first tbody tr → wait 1 s → eval detail title, panel hidden=false]
+[screenshot]
+[click #detail-close]
+[click #theme-toggle to revert]
+```
+
+**Round 6 — Final sweep:**
+```
+[eval document.querySelectorAll('*').length (must be < 5000)]
+[read_console_messages onlyErrors:true (must be empty)]
+[read_network_requests (expect epa-echo.json + ai-summary.json may 404 — OK)]
+[screenshot]
+```
+
+For each round, prefer one `browser_batch` per round. Don't fan out into
+20 separate calls — the round-trip overhead alone burns the budget.
 
 ---
 
