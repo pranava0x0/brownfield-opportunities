@@ -6,7 +6,7 @@ No network calls.
 """
 from __future__ import annotations
 
-from connectors.dod_fuds import DodFuds
+from connectors.dod_fuds import DodFuds, _pretty_owner
 
 
 def _feature(attrs=None, geom=None):
@@ -51,7 +51,10 @@ def test_normalize_happy_path():
     assert rec["eligibility"] == "Eligible"
     assert rec["fuds_status"] == "Properties without projects"
     assert rec["has_projects"] == "no"
-    assert rec["current_owner"] == "LOCAL: City of Hattiesburg"
+    # The fixture's raw owner "LOCAL: City of Hattiesburg" runs through
+    # _pretty_owner — LOCAL prefix maps to the canonical "Local government"
+    # label and the detail tail is title-cased.
+    assert rec["current_owner"] == "Local government — City Of Hattiesburg"
     assert rec["congressional_district"] == "04"
     assert rec["profile_url"] == "https://fuds.example.com/A04MS0001"
     assert rec["npl_status"] == "Not on the NPL"
@@ -178,13 +181,98 @@ def test_record_shape_complete():
 def test_owner_source_set_when_owner_present():
     """v1.9: every FUDS record with an owner gets a citation label so the
     UI can show provenance."""
-    rec = DodFuds.normalize(_feature({"CURRENTOWNER": "PRIVATE: Acme LLC"}))
+    rec = DodFuds.normalize(_feature({"CURRENTOWNER": "PRIV: PRIVATE Acme LLC"}))
     assert rec["current_owner_source"] == "USACE FUDS"
 
 
 def test_owner_source_null_when_owner_missing():
     rec = DodFuds.normalize(_feature({"CURRENTOWNER": None}))
     assert rec["current_owner_source"] is None
+
+
+def test_owner_source_null_when_owner_collapses_to_empty():
+    """A blank or whitespace-only raw owner code prettifies to None — and
+    the citation source must follow it. Otherwise the UI shows
+    'Owner source: USACE FUDS' next to a missing owner."""
+    rec = DodFuds.normalize(_feature({"CURRENTOWNER": "   "}))
+    assert rec["current_owner"] is None
+    assert rec["current_owner_source"] is None
+
+
+# ----- _pretty_owner: USACE raw-code normalization (audit fix 2026-05-04) -----
+
+
+def test_pretty_owner_handles_none_and_empty():
+    assert _pretty_owner(None) is None
+    assert _pretty_owner("") is None
+    assert _pretty_owner("   ") is None
+
+
+def test_pretty_owner_priv_bare():
+    """The most common case: PRIV: PRIVATE with no detail."""
+    assert _pretty_owner("PRIV: PRIVATE   ") == "Private"
+
+
+def test_pretty_owner_priv_repeated_word_collapsed():
+    """Source occasionally repeats the tier word ('PRIV: PRIVATE PRIVATE');
+    the redundant prefix should be stripped greedily so we don't end up with
+    'Private — Private'."""
+    assert _pretty_owner("PRIV: PRIVATE PRIVATE") == "Private"
+
+
+def test_pretty_owner_priv_with_detail():
+    assert _pretty_owner("PRIV: PRIVATE RESIDENTIAL  ") == "Private — Residential"
+
+
+def test_pretty_owner_fed_with_component():
+    assert _pretty_owner("FED: FEDERAL AIR FORCE  ") == "Federal — Air Force"
+
+
+def test_pretty_owner_fed_repeated_word():
+    assert _pretty_owner("FED: FEDERAL FEDERAL") == "Federal"
+
+
+def test_pretty_owner_local_bare():
+    """Source uses LOCAL: CITY/COUNTY/TOWN — the redundant tier word LOCAL
+    is stripped, leaving the local-government subtype as detail."""
+    assert _pretty_owner("LOCAL: CITY   ") == "Local government — City"
+
+
+def test_pretty_owner_state_bare():
+    assert _pretty_owner("STATE: STATE   ") == "State"
+
+
+def test_pretty_owner_other_bare():
+    assert _pretty_owner("OTHER: OTHER   ") == "Other"
+
+
+def test_pretty_owner_tribe_bare():
+    assert _pretty_owner("TRIBE: TRIBAL   ") == "Tribal"
+
+
+def test_pretty_owner_multi_value_joined_with_slash():
+    """Multi-tier entries arrive semicolon-separated and should render as
+    cleanly-labeled segments joined by ' / '."""
+    assert _pretty_owner("LOCAL: CITY   ; PRIV: PRIVATE   ") \
+        == "Local government — City / Private"
+
+
+def test_pretty_owner_collapses_internal_whitespace():
+    assert _pretty_owner("FED: FEDERAL   AIR    FORCE") == "Federal — Air Force"
+
+
+def test_pretty_owner_unknown_tier_kept_as_titlecase():
+    """A tier we don't have a label for (e.g. PUBLIC, BLM, NPS — sometimes
+    appearing without a colon) shouldn't be dropped; just title-cased so it
+    reads cleanly in the UI."""
+    assert _pretty_owner("NPS") == "NPS"
+    assert _pretty_owner("BLM") == "BLM"
+
+
+def test_pretty_owner_acronyms_preserved():
+    """Federal — USFS / BLM / VA stay all-caps after title-casing."""
+    assert _pretty_owner("FED: FEDERAL USFS  ") == "Federal — USFS"
+    assert _pretty_owner("FED: FEDERAL BLM") == "Federal — BLM"
 
 
 # ----- layer-1 + layer-4 polygon join -----

@@ -6,6 +6,12 @@ No network calls.
 """
 from __future__ import annotations
 
+import argparse
+from pathlib import Path
+
+import pytest
+import requests
+
 from connectors.epa_superfund_docs import EpaSuperfundDocs, SF_SITE_ID_RE
 
 
@@ -144,3 +150,104 @@ def test_status_filter_empty_returns_none():
 
 def test_status_filter_strips_whitespace():
     assert EpaSuperfundDocs._parse_status_filter("F, D , ") == {"F", "D"}
+
+
+# ----- network resilience (audit fix 2026-05-04) -----
+
+
+def test_fetch_records_skips_site_on_pretty_page_connection_error(tmp_path, monkeypatch):
+    """A single network blip on cumulis.epa.gov used to abort the whole
+    --docs-limit 500 batch. Connection / timeout errors are now treated
+    as transient: log and continue on to the next site."""
+    # Two superfund sites; the first will trip a ConnectTimeout, the second
+    # will resolve normally so we verify the run continues, not aborts.
+    sites_payload = {
+        "sites": [
+            {
+                "id": "EPAID-A",
+                "epa_id": "EPAID-A",
+                "npl_status_code": "F",
+                "profile_url": "https://www.epa.gov/superfund/timeout-site",
+                "acreage": 100,
+                "name": "Timeout Site",
+            },
+            {
+                "id": "EPAID-B",
+                "epa_id": "EPAID-B",
+                "npl_status_code": "F",
+                "profile_url": "https://www.epa.gov/superfund/ok-site",
+                "acreage": 50,
+                "name": "OK Site",
+            },
+        ]
+    }
+
+    def fake_load(self):
+        return sites_payload["sites"]
+
+    monkeypatch.setattr(EpaSuperfundDocs, "_load_superfund_sites", fake_load)
+
+    def fake_resolve(self, pretty_url, use_cache):
+        if "timeout-site" in pretty_url:
+            raise requests.ConnectTimeout("cumulis is being cumulis")
+        return "1234567"
+
+    monkeypatch.setattr(EpaSuperfundDocs, "_resolve_sf_site_id", fake_resolve)
+
+    monkeypatch.setattr(
+        EpaSuperfundDocs, "_fetch_site_documents",
+        lambda self, sf_id, use_cache: [
+            {"doc_id": "X", "title": "T", "url": "https://semspub.epa.gov/x", "category": "Key Documents"}
+        ],
+    )
+
+    inst = EpaSuperfundDocs(cache_dir=tmp_path)
+    args = argparse.Namespace(
+        docs_limit=10, docs_skip=0, docs_per_site=8, docs_status="F", limit=None,
+    )
+    records = inst.fetch_records(args, use_cache=False)
+    # The OK site should have made it through; the timeout site is skipped.
+    ids = [r["id"] for r in records]
+    assert ids == ["EPAID-B"], f"expected only OK site, got {ids}"
+
+
+def test_fetch_records_skips_site_on_docdata_connection_error(tmp_path, monkeypatch):
+    """Same resilience guarantee for the second hop (cumulis docdata page)."""
+    monkeypatch.setattr(
+        EpaSuperfundDocs, "_load_superfund_sites",
+        lambda self: [
+            {
+                "id": "EPAID-A",
+                "epa_id": "EPAID-A",
+                "npl_status_code": "F",
+                "profile_url": "https://www.epa.gov/superfund/site-a",
+                "acreage": 100,
+            },
+            {
+                "id": "EPAID-B",
+                "epa_id": "EPAID-B",
+                "npl_status_code": "F",
+                "profile_url": "https://www.epa.gov/superfund/site-b",
+                "acreage": 50,
+            },
+        ],
+    )
+    monkeypatch.setattr(EpaSuperfundDocs, "_resolve_sf_site_id",
+                        lambda self, url, use_cache: "1234567")
+
+    def fake_fetch_docs(self, sf_id, use_cache):
+        # First call timeouts, subsequent ones succeed.
+        if not getattr(fake_fetch_docs, "called", False):
+            fake_fetch_docs.called = True
+            raise requests.ConnectionError("transient blip")
+        return [{"doc_id": "X", "title": "T", "url": "u", "category": "Key Documents"}]
+
+    monkeypatch.setattr(EpaSuperfundDocs, "_fetch_site_documents", fake_fetch_docs)
+
+    inst = EpaSuperfundDocs(cache_dir=tmp_path)
+    args = argparse.Namespace(
+        docs_limit=10, docs_skip=0, docs_per_site=8, docs_status="F", limit=None,
+    )
+    records = inst.fetch_records(args, use_cache=False)
+    assert len(records) == 1
+    assert records[0]["id"] == "EPAID-B"
