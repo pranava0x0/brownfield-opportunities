@@ -1001,6 +1001,104 @@ def test_enforcement_block_hidden_when_no_echo_data(page, base_url):
     assert page.locator("#d-echo-block").evaluate("el => el.hidden") is True
 
 
+def test_fuds_no_acreage_shows_boundary_note(page, base_url):
+    """v1.10 audit fix #4: FUDS records lacking polygon acreage (~66% of the
+    8,822 inventory) should surface a 'Boundary not digitized' inline note
+    next to the Acreage row, so users know the gap is a USACE-source
+    limitation rather than missing data on our end. The note must NOT show
+    on FUDS records with acreage, and must NOT show on non-FUDS programs
+    (ACRES brownfields all have null acreage but the gap has a different
+    cause)."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    fuds_no_acres = page.evaluate(
+        "(() => {"
+        "  for (const s of (window.__sites || [])) {"
+        "    if (s.program === 'fuds' && s.acreage == null) return s.id;"
+        "  }"
+        "  return null;"
+        "})()"
+    )
+    fuds_with_acres = page.evaluate(
+        "(() => {"
+        "  for (const s of (window.__sites || [])) {"
+        "    if (s.program === 'fuds' && s.acreage != null) return s.id;"
+        "  }"
+        "  return null;"
+        "})()"
+    )
+    acres_no_acres = page.evaluate(
+        "(() => {"
+        "  for (const s of (window.__sites || [])) {"
+        "    if (s.program === 'brownfield' && s.acreage == null) return s.id;"
+        "  }"
+        "  return null;"
+        "})()"
+    )
+    assert fuds_no_acres, "no FUDS record without acreage in loaded data"
+    assert fuds_with_acres, "no FUDS record with acreage in loaded data"
+
+    page.evaluate(f"window.__selectSite('{fuds_no_acres}')")
+    page.wait_for_selector("#detail:not([hidden])")
+    note = page.locator("#d-acreage-note")
+    assert note.evaluate("el => el.hidden") is False, (
+        "boundary note should be visible for FUDS sites missing acreage"
+    )
+    assert "Boundary not digitized" in note.text_content()
+    # The [hidden] CSS belt-and-suspenders rule must keep display:none when
+    # we toggle the note off — otherwise the inline-displayed span will
+    # render its (empty) text node and leak whitespace next to the value.
+    page.evaluate(f"window.__selectSite('{fuds_with_acres}')")
+    note_display = note.evaluate("el => getComputedStyle(el).display")
+    assert note.evaluate("el => el.hidden") is True
+    assert note_display == "none", (
+        f"acreage-note with hidden=true rendered as display:{note_display} — "
+        "the [hidden] trap is back. See CLAUDE.md."
+    )
+
+    # Non-FUDS records with null acreage should NOT trigger the FUDS-specific
+    # note — the audit's gap is layer-4 boundary digitization, not generic
+    # acreage absence.
+    if acres_no_acres:
+        page.evaluate(f"window.__selectSite('{acres_no_acres}')")
+        assert note.evaluate("el => el.hidden") is True
+
+
+def test_fuds_owner_label_normalized(page, base_url):
+    """v1.10 audit fix #5: USACE current-owner codes used to render raw
+    ('PRIV: PRIVATE   ', 'FED: FEDERAL AIR FORCE  ', etc.). The connector
+    now cleans these to 'Private', 'Federal — Air Force', etc. Guard
+    against accidental reintroduction of the raw prefix syntax in the
+    detail panel."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    site_id = page.evaluate(
+        "(() => {"
+        "  for (const s of (window.__sites || [])) {"
+        "    if (s.program === 'fuds' && s.current_owner) return s.id;"
+        "  }"
+        "  return null;"
+        "})()"
+    )
+    assert site_id, "no FUDS site with current_owner found in loaded data"
+    page.evaluate(f"window.__selectSite('{site_id}')")
+    page.wait_for_selector("#detail:not([hidden])")
+    owner_text = page.locator("#d-fed").text_content()
+    # Raw codes always contain a colon followed by the redundant tier word.
+    raw_signatures = [
+        "PRIV: PRIVATE",
+        "FED: FEDERAL",
+        "LOCAL: ",
+        "STATE: STATE",
+        "OTHER: OTHER",
+        "TRIBE: TRIBAL",
+    ]
+    for sig in raw_signatures:
+        assert sig not in owner_text, (
+            f"detail panel still shows raw USACE owner code {sig!r}: {owner_text!r}"
+        )
+
+
 def test_selectsite_resets_to_overview_tab(page, base_url):
     """Switching sites should reset the active tab back to Overview, so a
     user reading a Summary doesn't carry that pane state into the next site."""
