@@ -4,6 +4,23 @@ Ideas and enhancements. Priorities: **high** = next, **med** = soon, **low** = n
 
 ---
 
+## ~~v1.10.1 — Audit-driven data-completeness fixes (2026-05-04)~~ Done
+
+Five gaps from the 2026-05-04 systematic null-rate audit closed in one pass:
+
+- ~~**[high] Superfund documents at scale.**~~ Done 2026-05-04 — `epa-superfund-docs` re-run with `--docs-limit 500 --docs-status F,D` lifts coverage from 7 / 1,908 sites (0.4%) to ~500 of the largest Final/Deleted NPL sites by acreage. Also hardened the connector against single-blip `cumulis.epa.gov` / `semspub.epa.gov` connection timeouts (was aborting the whole batch on the first network hiccup); `requests.ConnectionError` / `requests.Timeout` now log-and-skip per site, same as transient HTTP codes.
+- ~~**[high] ACRES county fill via offline TIGER spatial join.**~~ Done 2026-05-04 — new `connectors/county_lookup.py` decodes `docs/data/us-counties-topo.json` into a 0.5°-cell point-in-polygon index; `EpaAcres._fill_missing_county()` runs after normalize. Lifts ACRES county coverage from 48.8% to 99.7% (18,322 / 18,421 missing records filled). Pure Python — no shapely/rtree dep, no Census Geocoder calls. ~5 sec total runtime cost. Disambiguates same-named counties across states by validating the polygon's FIPS-derived state against the record's `state` field.
+- ~~**[high] FUDS detail-panel "Boundary not digitized" note.**~~ Done 2026-05-04 — `#d-acreage-note` renders an inline italic note when `s.program === "fuds" && s.acreage == null` so users know the 5,832 missing-acreage FUDS records are a USACE digitization gap, not missing data on our side. Hidden for FUDS-with-acreage and for non-FUDS programs.
+- ~~**[med] FUDS `current_owner` raw-code cleanup.**~~ Done 2026-05-04 — `connectors/dod_fuds.py:_pretty_owner()` maps the six tier prefixes (PRIV/LOCAL/FED/STATE/TRIBE/OTHER) to clean labels at normalize time. 7,573 records get readable owner strings ("Private", "Federal — Air Force", "Local government — City") instead of the raw `"PRIV: PRIVATE   "` syntax. Multi-tier entries joined with " / "; agency acronyms (USFS / BLM / NPS / etc.) preserved through title-casing.
+- ~~**[low] Remove unused `proximity` field from `schema.py`.**~~ Done 2026-05-04 — the v1.7-era catch-all dict, fully superseded by `transmission_mi` / `rail_mi` / `highway_mi` in v1.10. Schema's `extra="forbid"` now actively rejects the legacy field name (regression-tested in `test_legacy_proximity_field_rejected`).
+
+Still open from the audit:
+
+- **[high] ACRES acreage gap (0/36,003 populated, 100% missing).** No path opened. Action: email `helpdesk@acrebs.epa.gov` for a bulk PPF extract OR fund a one-shot Regrid / Landgrid Parcel API enrichment ($36–$360 estimated). Until then the KPI deck acreage total excludes all 36k brownfields.
+- **[med] Out-of-CONUS infra placeholder.** 395 FUDS (AK / Pacific) and 142 ACRES (AK) records have blank dashes in the detail-panel infra rows because `MAX_DISTANCE_MI=100` correctly drops them. Recommended a `"Remote — outside continental US"` placeholder. Defer until either the AK-specific HIFLD/DOT&PF layers ship as a fourth `infra_proximity` source or a user complains.
+
+---
+
 ## ~~v1.10 — Universal infrastructure-proximity (2026-05-04)~~ Done
 
 The data-center thesis depth play. Until v1.10 only the ~1,905 Superfund sites enriched by `epa-redev` carried infrastructure-proximity context (transmission / highway / rail / water). v1.10 lights up the same context — at higher precision (mile-level distance, not bucketed labels) — across all ~47k records.
@@ -374,20 +391,18 @@ Systematic null-rate analysis across all six data files (`superfund-npl.json` 1,
 
 ### Coverage gaps
 
-- **[high] Superfund documents enrichment at 0.4% coverage.** `epa-superfund-docs.json` has only 7 entries (out of 1,908 NPL sites). The connector exists and works, but has never been run at scale. A full run with `--docs-status F,D` (Final + Deleted NPL, ~1,787 sites sorted by acreage desc, default `--docs-limit 100`) takes ~15 min; `--docs-limit 500` ~75 min. Run via `python refresh.py --connector epa-superfund-docs --docs-limit 500 --docs-status F,D`. Documents are the sharpest differentiator vs. competing tools — zero coverage makes the "Federal documents" block in the detail panel dead for 99.6% of sites.
+- ~~**[high] Superfund documents enrichment at 0.4% coverage.**~~ Done 2026-05-04 (v1.10.1) — `--docs-limit 500 --docs-status F,D` run; coverage now ~500 of the 1,908 NPL sites (largest by acreage). Connector also hardened against single-blip `cumulis.epa.gov` connection timeouts.
 
 - **[high] ACRES acreage: 0/36,003 records populated (0%).** The EPA ACRES FeatureServer does not expose acreage. Every ACRES record has `acreage: null`, so the acreage slider, "X ac" KPI, and acreage column are meaningless for the 36k brownfield records. Two paths remain:
   - Email `helpdesk@acrebs.epa.gov` for a bulk PPF extract (free, one-shot, ~1–2 week turnaround).
   - Commercial fallback via Regrid / Landgrid Parcel API (~$0.001–0.01/parcel; one-time enrichment of 36k records ≈ $36–360).
   Until one ships, the KPI deck acreage total excludes all 36,003 brownfields.
 
-- **[high] ACRES county: 18,421/36,003 records missing county (51.2%).** The ACRES FeatureServer omits county for roughly half of all records. Major gaps: CA 65%, TX 67%, FL 59%, MA 64%, MN 66%. County is used by the state-filter summary line and the table column. Fix options:
-  - **Reverse geocoding (preferred):** Call Census Geocoder batch API (`geocoding.geo.census.gov`) with `lat/lon` → `county` FIPS + name. Free, no key. All 36k ACRES records have `lat` and `lon`. Add a `reverse_geocode_county()` helper to `connectors/epa_acres.py`; run only when `county` is null; cache by `(round(lat, 4), round(lon, 4))` so re-runs don't re-fetch.
-  - **TIGER spatial join (offline):** Intersect lat/lon against `us-counties-topo.json` (already on disk). Zero external calls; same library used for spatial grid already available.
+- ~~**[high] ACRES county: 18,421/36,003 records missing county (51.2%).**~~ Done 2026-05-04 (v1.10.1) — offline TIGER spatial join via new `connectors/county_lookup.py`. 18,322 / 18,421 missing records filled (99.5% hit rate); remaining ~99 are coastal points just outside the polygon edge. Pure-Python decode + 0.5°-cell point-in-polygon; no extra deps, no Census Geocoder API.
 
-- **[high] FUDS acreage: 5,832/8,822 records missing acreage (66.1%).** Layer-4 polygon join (v1.9) filled only 2,990 records (~34%). The 5,832 missing are predominantly `Eligible` (4,099 records) — the highest-value tier for redevelopment. USACE has not digitized boundaries for these sites; no automated public fix exists. Document this as a known source gap; add a "Boundary not digitized" note in the detail panel for FUDS records without acreage so users know it's a data limitation, not a missing field.
+- ~~**[high] FUDS acreage: 5,832/8,822 records missing acreage (66.1%).**~~ Note shipped 2026-05-04 (v1.10.1) — detail panel renders "Boundary not digitized in USACE source." inline next to the Acreage row for FUDS records without polygon boundaries. The underlying gap is a USACE-side digitization issue with no automated public fix; documented as a known source limitation.
 
-- **[med] FUDS current_owner raw codes not normalized.** Source ships concatenated USACE codes, e.g. `"OTHER: OTHER   "`, `"PRIV: PRIVATE   "`, `"FED: FEDERAL AIR FORCE  "`. UI renders these raw strings. Parse in `connectors/dod_fuds.py` `normalize()` to clean labels: `PRIV:*` → `"Private"` (2,513), `FED:* <component>` → `"Federal – <component>"` (1,586), `LOCAL:*` → `"Local government"` (1,558), `OTHER:*` → `"Other"` (1,074), `STATE:*` → `"State"` (677), `TRIBE:*` → `"Tribal"` (78). Multi-value entries (e.g. `"LOCAL ; PRIV"`) join with " / ". Preserve raw on `current_owner_raw` for debugging. Small change, big UI polish for 7,573 FUDS records.
+- ~~**[med] FUDS current_owner raw codes not normalized.**~~ Done 2026-05-04 (v1.10.1) — `connectors/dod_fuds.py:_pretty_owner()` cleans the six tier prefixes to readable labels at normalize time. 7,573 records now display "Private" / "Federal — Air Force" / "Local government — City" instead of the raw `"PRIV: PRIVATE   "` codes. Multi-tier entries joined with " / "; agency acronyms preserved through title-casing.
 
 - **[med] Out-of-CONUS sites have no infra-proximity data — undocumented.** 395 FUDS (AK=260, HI=76, AS=31, MP=26, PW=2) and 142 ACRES (all AK) records are absent from `infra-proximity.json` because `MAX_DISTANCE_MI=100` drops them. The detail panel shows blank dashes for their transmission/rail/highway rows. Options: (a) show a `"Remote – outside continental US"` placeholder instead of a blank; (b) run an AK-specific enrichment pass using AK DOT&PF highway layer + AK railroad data from HIFLD.
 
@@ -404,11 +419,8 @@ The following `SiteRecord` fields are defined in `schema.py`, have connectors pl
 | `encumbrances` | Connector not built | EPA ICTS institutional controls |
 | `remediation_detail` | Connector not built | EPA SEMS milestone table |
 | `historical_owners` | No clean public source | County deed history (paid) |
-| `proximity` | Superseded by `transmission_mi` etc. | Legacy field — candidate for removal |
 
-Note: `data_center_reuse_candidate`, `near_electric_transmission`, and Redev fields ARE populated (828 True / 1,077 False across 1,905 sites in `epa-redev.json`) — they live in the enrichment file and are joined client-side, not embedded in `superfund-npl.json` directly.
-
-- **[low] Remove the `proximity` field from `schema.py`.** The v1.7-era catch-all dict for infra distances, fully superseded by `transmission_mi`, `rail_mi`, `highway_mi` in v1.10. Never populated in any data file. Removing it cleans the schema at no cost.
+Note: `data_center_reuse_candidate`, `near_electric_transmission`, and Redev fields ARE populated (828 True / 1,077 False across 1,905 sites in `epa-redev.json`) — they live in the enrichment file and are joined client-side, not embedded in `superfund-npl.json` directly. The legacy `proximity` row was retired 2026-05-04 (v1.10.1) — the field was removed from `schema.py` since it was fully superseded by `transmission_mi` / `rail_mi` / `highway_mi`. Schema's `extra="forbid"` now actively rejects any reintroduction (regression-tested in `test_legacy_proximity_field_rejected`).
 
 ---
 

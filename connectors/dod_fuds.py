@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+import re
 from typing import Any
 
 from connectors.base import Connector
@@ -61,6 +62,109 @@ POLYGON_OUTFIELDS = [
 ]
 
 DROP_RATIO_WARN_THRESHOLD = 0.5
+
+# USACE owner codes use a `<TIER>: <CATEGORY> [<DETAIL>]` format that ships in
+# raw form (e.g. "PRIV: PRIVATE   ", "FED: FEDERAL AIR FORCE  ",
+# "LOCAL: CITY   ; PRIV: PRIVATE   "). We normalize to clean labels at
+# ingest time so the dashboard doesn't render the raw codes — same approach
+# the place-name prettifier takes for ALL CAPS city/county strings.
+_OWNER_PREFIX_LABELS = {
+    "PRIV": "Private",
+    "LOCAL": "Local government",
+    "FED": "Federal",
+    "STATE": "State",
+    "TRIBE": "Tribal",
+    "OTHER": "Other",
+}
+_OWNER_TIER_RE = re.compile(r"^([A-Z]+)\s*:\s*(.*)$")
+# Per-tier "category" word that the source duplicates after the colon
+# (e.g. "PRIV: PRIVATE residential" → drop the leading PRIVATE). Some
+# records repeat the word multiple times ("PRIV: PRIVATE PRIVATE" or
+# "FED: FEDERAL FEDERAL"); the regex strips every leading occurrence so the
+# detail tail starts at the first non-redundant token.
+_OWNER_REDUNDANT_TAIL = {
+    "PRIV": re.compile(r"^(?:PRIVATE\b\s*)+", re.IGNORECASE),
+    "LOCAL": re.compile(r"^(?:LOCAL\b\s*)+", re.IGNORECASE),
+    "FED": re.compile(r"^(?:FEDERAL\b\s*)+", re.IGNORECASE),
+    "STATE": re.compile(r"^(?:STATE\b\s*)+", re.IGNORECASE),
+    "TRIBE": re.compile(r"^(?:TRIBAL\b\s*)+", re.IGNORECASE),
+    "OTHER": re.compile(r"^(?:OTHER\b\s*)+", re.IGNORECASE),
+}
+
+
+def _pretty_owner(raw: str | None) -> str | None:
+    """Normalize a USACE owner code to a clean label.
+
+    Examples:
+        "PRIV: PRIVATE   "                       → "Private"
+        "PRIV: PRIVATE RESIDENTIAL  "            → "Private — Residential"
+        "FED: FEDERAL AIR FORCE  "               → "Federal — Air Force"
+        "FED: FEDERAL FEDERAL"                   → "Federal"
+        "LOCAL: CITY   "                         → "Local government — City"
+        "STATE: STATE STATE OF HAWAII  "         → "State — State Of Hawaii"
+        "OTHER: OTHER   "                        → "Other"
+        "LOCAL: CITY ; PRIV: PRIVATE"            → "Local government — City / Private"
+        "NPS"                                    → "NPS"
+        None                                     → None
+    """
+    if raw is None:
+        return None
+    text = str(raw).strip()
+    if not text:
+        return None
+    pieces = [p.strip() for p in text.split(";") if p.strip()]
+    cleaned: list[str] = []
+    for piece in pieces:
+        # Collapse internal whitespace runs first.
+        piece = re.sub(r"\s+", " ", piece)
+        m = _OWNER_TIER_RE.match(piece)
+        if not m:
+            # No `TIER:` prefix — just title-case the free-text.
+            cleaned.append(_titlecase_owner(piece))
+            continue
+        tier = m.group(1).upper()
+        tail = m.group(2).strip()
+        label = _OWNER_PREFIX_LABELS.get(tier)
+        if not label:
+            # Unknown tier — keep the raw piece (rare; agency acronyms etc.).
+            cleaned.append(_titlecase_owner(piece))
+            continue
+        # Strip the tier's redundant category word (PRIV: PRIVATE → "").
+        redundant_re = _OWNER_REDUNDANT_TAIL.get(tier)
+        if redundant_re is not None:
+            tail = redundant_re.sub("", tail).strip()
+        if not tail:
+            cleaned.append(label)
+        else:
+            cleaned.append(f"{label} — {_titlecase_owner(tail)}")
+    if not cleaned:
+        return None
+    return " / ".join(cleaned)
+
+
+# Acronyms / proper nouns that should stay all-caps in the cleaned label.
+_OWNER_ACRONYMS = {
+    "USA", "USAF", "USMC", "USDA", "USFS", "USFWS", "BLM", "NPS", "DOD",
+    "VA", "GSA", "TVA", "DOE", "DOT", "EPA", "FAA", "FBI", "USPS", "AAFB",
+    "AFB", "USCG", "USN", "NASA", "NRDA", "PCB", "USDOE",
+    "I", "II", "III", "IV", "V",
+}
+
+
+def _titlecase_owner(s: str) -> str:
+    """Title-case a free-text owner string while preserving common acronyms."""
+    out: list[str] = []
+    for word in s.split():
+        if word.upper() in _OWNER_ACRONYMS:
+            out.append(word.upper())
+        else:
+            # Handle hyphenated tokens (e.g. "ST-LOUIS" → "St-Louis").
+            parts = word.split("-")
+            out.append("-".join(
+                p.upper() if p.upper() in _OWNER_ACRONYMS else p.capitalize()
+                for p in parts
+            ))
+    return " ".join(out)
 
 
 class DodFuds(Connector):
@@ -288,6 +392,7 @@ class DodFuds(Connector):
         profile_url = a.get("EMSMGMTACTIONPLANLINK") or None
 
         record_id = f"FUDS-{property_id}"
+        owner = _pretty_owner(a.get("CURRENTOWNER"))
         return {
             "id": record_id,
             "program": "fuds",
@@ -299,8 +404,8 @@ class DodFuds(Connector):
             "lat": round(lat_f, 6),
             "lon": round(lon_f, 6),
             "profile_url": profile_url,
-            "current_owner": a.get("CURRENTOWNER"),
-            "current_owner_source": "USACE FUDS" if a.get("CURRENTOWNER") else None,
+            "current_owner": owner,
+            "current_owner_source": "USACE FUDS" if owner else None,
             "eligibility": eligibility,
             "fuds_status": a.get("STATUS"),
             "has_projects": a.get("HAS_PROJECTS"),

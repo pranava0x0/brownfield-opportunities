@@ -789,6 +789,18 @@ main {
 .kv dt { color: var(--muted); font-size: 12px; padding-top: 1px; }
 .kv dd { margin: 0; word-wrap: break-word; color: var(--text-soft); }
 .kv dd.muted-cell { color: var(--muted); font-style: italic; }
+/* Inline acreage note for FUDS records lacking a digitized boundary. The
+   parent `<dd>` itself isn't muted (acreage may say "N/A" but we still want
+   regular weight); the note is. The `[hidden]` rule guards against the
+   "[hidden] trap" — see CLAUDE.md. */
+.acreage-note {
+  display: inline;
+  margin-left: 8px;
+  font-size: 12px;
+  color: var(--muted);
+  font-style: italic;
+}
+.acreage-note[hidden] { display: none; }
 .children-list {
   margin: 4px 0 0;
   padding-left: 18px;

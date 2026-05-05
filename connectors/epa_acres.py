@@ -10,11 +10,19 @@ from __future__ import annotations
 
 import argparse
 import logging
+from pathlib import Path
 from typing import Any
 
 from connectors.base import Connector
+from connectors.county_lookup import CountyIndex
 
 log = logging.getLogger("connector.epa_acres")
+
+# TIGER counties TopoJSON ships with the frontend; we re-use it for offline
+# reverse-geocoding. Lives in docs/data alongside the per-program JSON files.
+COUNTIES_TOPOJSON = (
+    Path(__file__).resolve().parent.parent / "docs" / "data" / "us-counties-topo.json"
+)
 
 # URL-encoded once because the service name has spaces.
 ACRES_FEATURE_SERVER = (
@@ -92,6 +100,13 @@ class EpaAcres(Connector):
                 dropped, total, 100 * dropped / total,
             )
 
+        # Fill missing county via TIGER spatial join. The ACRES FeatureServer
+        # omits COUNTY for ~51% of records (worst in CA/TX/FL/MA/MN); every
+        # record carries valid lat/lon so an offline point-in-polygon hit is
+        # almost always available. ~17ms per lookup on a warm index → ~few
+        # seconds for the full 36k pass.
+        self._fill_missing_county(records)
+
         # Stable sort: state, then name. Useful for diffability of the JSON.
         records.sort(key=lambda r: ((r.get("state") or "").upper(),
                                     (r.get("name") or "").lower()))
@@ -101,6 +116,36 @@ class EpaAcres(Connector):
 
         log.info("normalized %d records (dropped %d)", len(records), dropped)
         return records
+
+    @staticmethod
+    def _fill_missing_county(records: list[dict[str, Any]]) -> None:
+        """Reverse-geocode lat/lon → county for records missing the field.
+
+        Builds the TIGER index lazily so callers that don't need it (tests,
+        narrow runs) don't pay the decode cost. Mutates `records` in place.
+        """
+        needs_fill = [r for r in records if not r.get("county")]
+        if not needs_fill:
+            return
+        if not COUNTIES_TOPOJSON.exists():
+            log.warning("counties topojson missing at %s — skipping county fill",
+                        COUNTIES_TOPOJSON)
+            return
+        log.info("county fill: %d records missing county; loading TIGER index",
+                 len(needs_fill))
+        idx = CountyIndex.from_path(COUNTIES_TOPOJSON)
+        filled = 0
+        for r in needs_fill:
+            lat = r.get("lat")
+            lon = r.get("lon")
+            if lat is None or lon is None:
+                continue
+            name = idx.lookup(lat, lon, expected_state=r.get("state"))
+            if name:
+                r["county"] = name
+                filled += 1
+        log.info("county fill: filled %d/%d records (%.1f%% of missing)",
+                 filled, len(needs_fill), 100 * filled / len(needs_fill))
 
     # ----- fetch helpers -----
 
