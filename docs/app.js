@@ -398,7 +398,6 @@ fetch(PRIMARY_DATA_URL)
     wireFilters();
     wireExportCsv();
     wireThemeToggle();
-    applyUrlSelection();
     window.__sitesLoaded = true; // e2e hook
     // Expose data + a programmatic site-selector so e2e tests can target
     // an enriched record by id without depending on table sort order.
@@ -409,9 +408,11 @@ fetch(PRIMARY_DATA_URL)
       get: () => sites,
     });
     window.__selectSite = selectSite;
-    // Kick off lazy loads for enabled programs. Redev enrichment runs after
-    // Superfund first paint to annotate existing records with infrastructure
-    // proximity data and the data-center reuse candidate flag.
+    // Kick off lazy loads for enabled programs BEFORE applyUrlSelection()
+    // so the *LoadingPromise globals are populated — applyUrlSelection
+    // waits on them when the requested ?site= ID points at a record from
+    // a program that hasn't streamed in yet (e.g. ?site=FUDS-XXX during
+    // the FUDS lazy-load window).
     const lazyLoads = [];
     if (filterState.programs.has("brownfield")) lazyLoads.push(ensureAcresLoaded());
     if (filterState.programs.has("fuds")) lazyLoads.push(ensureFudsLoaded());
@@ -421,6 +422,7 @@ fetch(PRIMARY_DATA_URL)
     lazyLoads.push(ensureInfraLoaded());
     lazyLoads.push(ensureEchoLoaded());
     lazyLoads.push(ensureSummariesLoaded());
+    applyUrlSelection();
     if (lazyLoads.length === 0) {
       markAppReady();
     } else {
@@ -1961,10 +1963,16 @@ function applyUrlSelection() {
     selectSite(id);
     return;
   }
-  // ID provided but not loaded yet. Brownfields lazy-load, so wait once for
-  // ACRES to land before declaring the ID unknown.
-  if (filterState.programs.has("brownfield") && acresLoadingPromise) {
-    acresLoadingPromise.then(() => {
+  // ID provided but not loaded yet. ACRES, FUDS, and BRAC all lazy-load
+  // post-Superfund first paint — wait for any in-flight program-data
+  // fetch to settle before declaring the ID unknown. (Pre-fix: only
+  // ACRES was checked, so direct navigation to ?site=FUDS-XXX or
+  // ?site=BRAC-XXX showed a premature "not found" toast while those
+  // datasets were still streaming in.)
+  const pending = [acresLoadingPromise, fudsLoadingPromise, bracLoadingPromise]
+    .filter(Boolean);
+  if (pending.length) {
+    Promise.allSettled(pending).then(() => {
       if (sitesById.has(id)) selectSite(id);
       else showToast(`Site "${id}" not found — check the EPA ID.`);
     });

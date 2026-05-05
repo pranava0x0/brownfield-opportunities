@@ -360,6 +360,40 @@ def test_unknown_site_id_shows_toast(page, base_url):
     assert page.locator("#detail").is_hidden()
 
 
+def test_url_site_resolves_for_lazy_loaded_program(page, base_url):
+    """Regression: direct navigation to ?site=FUDS-XXX (or BRAC-XXX) used to
+    fire a "not found" toast immediately because applyUrlSelection() only
+    waited on the ACRES loading promise. After the fix, it waits on every
+    in-flight program-data fetch (ACRES / FUDS / BRAC), so a real FUDS ID
+    opens the detail panel once FUDS finishes streaming in."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    # Pick a real FUDS id from the loaded data so the assertion isn't
+    # coupled to a specific record. If the dataset has no FUDS records
+    # (e.g. running against a reduced fixture), fall back to BRAC.
+    target = page.evaluate(
+        "() => {"
+        "  const fuds = (window.__sites || []).find(s => s.program === 'fuds' && s.id);"
+        "  if (fuds) return fuds.id;"
+        "  const brac = (window.__sites || []).find(s => s.program === 'brac' && s.id);"
+        "  return brac ? brac.id : null;"
+        "}"
+    )
+    assert target, "expected at least one FUDS or BRAC record after lazy loads"
+    # Reload with the real lazy-program id; toast must not appear, panel must open.
+    page.goto(f"{base_url}/index.html?site={target}")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    page.wait_for_selector("#detail:not([hidden])", timeout=5000)
+    title = page.locator("#detail-title").text_content().strip()
+    assert title and title != "—", f"detail panel should be populated, got {title!r}"
+    # No toast should have fired for a valid id.
+    toast_visible = page.evaluate(
+        "() => { const t = document.getElementById('toast');"
+        " return t ? t.classList.contains('visible') : false; }"
+    )
+    assert not toast_visible, "no toast should fire when ?site= matches a real lazy-loaded record"
+
+
 def test_url_unwinds_on_filter_clear(page, base_url):
     """Bug per UAT: clearing search left `?q=` in the URL. `min_ac=0` left
     `?min_ac=` in the URL. Verify the URL writer drops keys at default."""
