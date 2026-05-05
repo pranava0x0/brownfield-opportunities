@@ -1,0 +1,222 @@
+"""Pure-Python spatial index for nearest-segment-distance lookups.
+
+Used by the infrastructure-proximity enrichment connector to answer "what is
+the distance from this site to the nearest HIFLD transmission line / TIGER
+interstate / TIGER rail segment?" across all 47k records without pulling in
+shapely/rtree.
+
+The trick: bucket every polyline segment by its bounding-box cells in a
+uniform lat/lon grid. A query at (lat, lon) checks the 9 cells around it,
+expanding outward until the candidate segments' min-distance is provably a
+lower bound on anything outside the searched ring. For typical CONUS infra
+densities a 0.25° cell (≈17 mi) finds the nearest hit in 1–3 rings.
+
+Distance math is local-projection: convert each lat/lon delta to meters via
+cos(latitude) at the query point, then planar point-to-segment. Good to
+better than 1% in CONUS — far below the precision the dashboard cares about
+(distances rounded to 0.1 mi).
+"""
+from __future__ import annotations
+
+import math
+from collections import defaultdict
+from typing import Iterable
+
+# Earth radius for haversine. Used only as an outer-bound sanity check —
+# the per-cell math uses local projection.
+EARTH_RADIUS_MI = 3958.7613
+
+# Default grid cell size in degrees. 0.25° ≈ 17 mi at the equator, ≈ 12 mi
+# at 45°N. Sized so that the average CONUS query finds hits in the first
+# ring of cells.
+DEFAULT_CELL_DEG = 0.25
+
+# Hard cap on rings we'll expand before giving up. 8 rings × 0.25° ≈ 140 mi
+# search radius — past that, "nearest infra" stops being a useful signal
+# anyway (Alaskan FUDS sites, etc).
+MAX_RINGS = 8
+
+
+def haversine_mi(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """Great-circle distance in miles between two (lat, lon) pairs."""
+    phi1 = math.radians(lat1)
+    phi2 = math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dlam = math.radians(lon2 - lon1)
+    a = (math.sin(dphi / 2) ** 2
+         + math.cos(phi1) * math.cos(phi2) * math.sin(dlam / 2) ** 2)
+    c = 2 * math.asin(min(1.0, math.sqrt(a)))
+    return EARTH_RADIUS_MI * c
+
+
+def _project_meters(lat: float, lon: float, ref_lat: float) -> tuple[float, float]:
+    """Local equirectangular projection. Returns (x_m, y_m) relative to (0, 0)
+    origin at lat=0, lon=0, scaled by cos(ref_lat) for longitude.
+
+    `ref_lat` is the latitude of the query point — using a single reference
+    keeps the projection consistent within one nearest-segment query.
+    """
+    cos_lat = math.cos(math.radians(ref_lat))
+    x = lon * 111_320.0 * cos_lat
+    y = lat * 110_540.0
+    return x, y
+
+
+def _segment_distance_m(
+    px: float, py: float,
+    ax: float, ay: float, bx: float, by: float,
+) -> float:
+    """Planar point-to-segment distance in the same units as the inputs.
+
+    Standard projection-and-clamp formula. Returns 0 for a degenerate
+    (zero-length) segment.
+    """
+    dx = bx - ax
+    dy = by - ay
+    seg_len_sq = dx * dx + dy * dy
+    if seg_len_sq <= 0:
+        return math.hypot(px - ax, py - ay)
+    t = ((px - ax) * dx + (py - ay) * dy) / seg_len_sq
+    if t < 0.0:
+        t = 0.0
+    elif t > 1.0:
+        t = 1.0
+    cx = ax + t * dx
+    cy = ay + t * dy
+    return math.hypot(px - cx, py - cy)
+
+
+def _cell_for(lat: float, lon: float, cell_deg: float) -> tuple[int, int]:
+    return int(math.floor(lat / cell_deg)), int(math.floor(lon / cell_deg))
+
+
+def _cells_in_ring(cy: int, cx: int, ring: int) -> Iterable[tuple[int, int]]:
+    """Yield grid cells exactly `ring` steps from (cy, cx) in Chebyshev distance."""
+    if ring == 0:
+        yield (cy, cx)
+        return
+    for dy in range(-ring, ring + 1):
+        for dx in range(-ring, ring + 1):
+            if max(abs(dy), abs(dx)) == ring:
+                yield (cy + dy, cx + dx)
+
+
+class SegmentIndex:
+    """Spatial grid over polyline segments.
+
+    Build by calling `add_polyline(coords)` for each polyline (a list of
+    `[lon, lat]` vertices). Then `nearest_distance_mi(lat, lon)` returns
+    the minimum great-circle distance to any segment, capped at `max_rings
+    * cell_deg`-degrees of search radius (returns None past that).
+    """
+
+    def __init__(self, cell_deg: float = DEFAULT_CELL_DEG):
+        if cell_deg <= 0:
+            raise ValueError("cell_deg must be positive")
+        self.cell_deg = cell_deg
+        # cell -> list of segment indices (into self._segments)
+        self._cells: dict[tuple[int, int], list[int]] = defaultdict(list)
+        # parallel arrays to avoid object overhead at 47k+ scale.
+        # Each segment is stored as (a_lat, a_lon, b_lat, b_lon).
+        self._segments: list[tuple[float, float, float, float]] = []
+        self._segment_count = 0
+
+    @property
+    def segment_count(self) -> int:
+        return self._segment_count
+
+    def add_polyline(self, coords: list[list[float]]) -> int:
+        """Add one polyline's segments. `coords` is a list of `[lon, lat]` pairs.
+
+        Returns the number of segments added. Polylines with <2 points are
+        skipped (degenerate). Points at exactly (0, 0) are also skipped —
+        they're the typical sentinel for missing geometry from ESRI sources.
+        """
+        added = 0
+        last_lon: float | None = None
+        last_lat: float | None = None
+        for pt in coords:
+            if not pt or len(pt) < 2:
+                last_lon = last_lat = None
+                continue
+            try:
+                lon = float(pt[0])
+                lat = float(pt[1])
+            except (TypeError, ValueError):
+                last_lon = last_lat = None
+                continue
+            # Drop null-island sentinels and out-of-range coords.
+            if abs(lon) < 0.5 and abs(lat) < 0.5:
+                last_lon = last_lat = None
+                continue
+            if not (-90 <= lat <= 90) or not (-180 <= lon <= 180):
+                last_lon = last_lat = None
+                continue
+            if last_lat is not None and last_lon is not None:
+                idx = len(self._segments)
+                self._segments.append((last_lat, last_lon, lat, lon))
+                self._segment_count += 1
+                added += 1
+                # Bucket by every cell the segment's bbox touches.
+                lat_lo = min(last_lat, lat)
+                lat_hi = max(last_lat, lat)
+                lon_lo = min(last_lon, lon)
+                lon_hi = max(last_lon, lon)
+                cy_lo, cx_lo = _cell_for(lat_lo, lon_lo, self.cell_deg)
+                cy_hi, cx_hi = _cell_for(lat_hi, lon_hi, self.cell_deg)
+                for cy in range(cy_lo, cy_hi + 1):
+                    for cx in range(cx_lo, cx_hi + 1):
+                        self._cells[(cy, cx)].append(idx)
+            last_lat = lat
+            last_lon = lon
+        return added
+
+    def nearest_distance_mi(
+        self,
+        lat: float,
+        lon: float,
+        max_rings: int = MAX_RINGS,
+    ) -> float | None:
+        """Return min distance in miles from (lat, lon) to any segment.
+
+        Returns None if no segment is found within `max_rings` of cells.
+        Caller decides whether to interpret None as "out of CONUS" or
+        "no infra in usable range."
+        """
+        if not self._segments:
+            return None
+        cy, cx = _cell_for(lat, lon, self.cell_deg)
+        best_m: float | None = None
+        # Project the query once; reuse for every candidate segment.
+        cos_lat = math.cos(math.radians(lat))
+        m_per_deg_lon = 111_320.0 * cos_lat
+        m_per_deg_lat = 110_540.0
+        px = lon * m_per_deg_lon
+        py = lat * m_per_deg_lat
+        seen: set[int] = set()
+        for ring in range(max_rings + 1):
+            for cell in _cells_in_ring(cy, cx, ring):
+                for idx in self._cells.get(cell, ()):
+                    if idx in seen:
+                        continue
+                    seen.add(idx)
+                    a_lat, a_lon, b_lat, b_lon = self._segments[idx]
+                    ax = a_lon * m_per_deg_lon
+                    ay = a_lat * m_per_deg_lat
+                    bx = b_lon * m_per_deg_lon
+                    by = b_lat * m_per_deg_lat
+                    d = _segment_distance_m(px, py, ax, ay, bx, by)
+                    if best_m is None or d < best_m:
+                        best_m = d
+            # Early exit: if we've found a hit closer than the inner edge
+            # of the next ring, no segment outside that ring can beat it.
+            if best_m is not None:
+                # Inner edge of ring (ring + 1) is `ring * cell_deg` degrees
+                # away in Chebyshev distance — convert to meters by the
+                # smaller of (lon, lat) scale factors.
+                next_inner_m = ring * self.cell_deg * min(m_per_deg_lat, m_per_deg_lon)
+                if best_m <= next_inner_m:
+                    break
+        if best_m is None:
+            return None
+        return best_m / 1609.344  # meters → miles

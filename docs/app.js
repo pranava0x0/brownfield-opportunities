@@ -10,6 +10,7 @@ const FUDS_DATA_URL = "data/dod-fuds.json";
 const BRAC_DATA_URL = "data/dod-brac.json";
 const REDEV_DATA_URL = "data/epa-redev.json";
 const SUPERFUND_DOCS_URL = "data/epa-superfund-docs.json";
+const INFRA_DATA_URL = "data/infra-proximity.json";
 // Vector basemap: US states (always) + US counties (lazy at zoom ≥ COUNTY_MIN_ZOOM).
 // No tiles — Canada/Mexico literally don't exist on the map. Choropleth-style
 // look (think CNN election tracker / datacenterbans.com) with bold state borders
@@ -155,6 +156,14 @@ const fmt = {
     return d.toISOString().slice(0, 10);
   },
   text: (s) => (s == null || s === "" ? "—" : String(s)),
+  // Distance in miles, null → "Not available". Sub-mile precision rounded
+  // to 0.1 — matches the connector's emit precision.
+  miles: (n) => {
+    if (n == null) return "Not available";
+    const rounded = Math.round(n * 10) / 10;
+    if (rounded < 0.1) return "<0.1 mi";
+    return rounded.toLocaleString(undefined, { maximumFractionDigits: 1 }) + " mi";
+  },
   // Compact numeric formatter for KPI deck: 47k / 3.2M / 1.9B style.
   // Falls back to comma-grouped for browsers without compact notation.
   compact: (n) => {
@@ -235,6 +244,7 @@ let fudsLoadingPromise = null;
 let bracLoadingPromise = null;
 let redevLoadingPromise = null;
 let superfundDocsLoadingPromise = null;
+let infraLoadingPromise = null;
 
 // Programmatic ready signal so UAT / Playwright / agent automation can wait
 // on a stable event instead of polling network responses. Fires once after
@@ -404,6 +414,7 @@ fetch(PRIMARY_DATA_URL)
     if (filterState.programs.has("brac")) lazyLoads.push(ensureBracLoaded());
     lazyLoads.push(ensureRedevLoaded());
     lazyLoads.push(ensureSuperfundDocsLoaded());
+    lazyLoads.push(ensureInfraLoaded());
     if (lazyLoads.length === 0) {
       markAppReady();
     } else {
@@ -589,6 +600,35 @@ function ensureSuperfundDocsLoaded() {
       superfundDocsLoadingPromise = null;
     });
   return superfundDocsLoadingPromise;
+}
+
+// Universal infrastructure-proximity enrichment. Joins onto every program
+// (Superfund, ACRES, FUDS, BRAC) by `id` to add `transmission_mi`,
+// `rail_mi`, `highway_mi`. Computed at refresh time from HIFLD + Census
+// TIGER by the `infra-proximity` connector. Distances >100 mi are absent
+// (treated as out-of-range / out-of-CONUS).
+function ensureInfraLoaded() {
+  if (infraLoadingPromise) return infraLoadingPromise;
+  infraLoadingPromise = fetch(INFRA_DATA_URL)
+    .then((r) => {
+      if (r.status === 404) return { sites: [] };
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then((payload) => {
+      for (const rec of payload.sites || []) {
+        const existing = sitesById.get(rec.id);
+        if (!existing) continue;
+        if (rec.transmission_mi != null) existing.transmission_mi = rec.transmission_mi;
+        if (rec.rail_mi != null) existing.rail_mi = rec.rail_mi;
+        if (rec.highway_mi != null) existing.highway_mi = rec.highway_mi;
+      }
+    })
+    .catch((err) => {
+      console.error("Infra-proximity enrichment load failed:", err);
+      infraLoadingPromise = null;
+    });
+  return infraLoadingPromise;
 }
 
 // ----- Map -----
@@ -1452,7 +1492,13 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
     }
   }
 
-  // Infrastructure proximity (from Redev enrichment)
+  // Universal infrastructure-proximity (from infra-proximity enrichment —
+  // computed for every program against HIFLD + Census TIGER).
+  setMileCell("d-transmission-mi", s.transmission_mi);
+  setMileCell("d-rail-mi", s.rail_mi);
+  setMileCell("d-highway-mi", s.highway_mi);
+  // EPA RE-Powering qualitative indicators (Superfund-only — only present
+  // for the ~1.9k sites the EPA Redevelopment mapper covers).
   el("d-near-elec").textContent = fmt.text(s.near_electric_transmission);
   el("d-near-hwy").textContent = fmt.text(s.near_highway);
   el("d-near-rr").textContent = fmt.text(s.near_railroad);
@@ -1735,3 +1781,17 @@ function escapeHtml(s) {
     .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 function escapeAttr(s) { return escapeHtml(s); }
+
+// Render a distance-in-miles cell, swapping the muted-cell class so populated
+// values look like real data instead of "Not available" placeholder text.
+function setMileCell(id, value) {
+  const node = el(id);
+  if (!node) return;
+  if (value == null) {
+    node.textContent = "Not available";
+    node.classList.add("muted-cell");
+  } else {
+    node.textContent = fmt.miles(value);
+    node.classList.remove("muted-cell");
+  }
+}

@@ -788,6 +788,49 @@ def test_reset_restores_all_four_programs(page, base_url):
         assert label in meta, f"meta missing {label!r}: {meta!r}"
 
 
+def test_infra_proximity_renders_for_enriched_site(page, base_url):
+    """v1.10: detail panel renders cross-program infrastructure-proximity
+    distances (transmission_mi, rail_mi, highway_mi) when the
+    infra-proximity enrichment has covered the site.
+
+    Picks any enriched site from any program (Superfund, ACRES, FUDS,
+    BRAC) — the whole point of this enrichment is that it works
+    universally, not just for the ~1.9k sites EPA RE-Powering covers.
+    Skips silently if no records have been enriched yet."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    enriched_id = page.evaluate(
+        "(() => {"
+        "  for (const s of (window.__sites || [])) {"
+        "    if (s.transmission_mi != null || s.rail_mi != null || s.highway_mi != null) return s.id;"
+        "  }"
+        "  return null;"
+        "})()"
+    )
+    if not enriched_id:
+        import pytest
+        pytest.skip("no infra-enriched sites in current dataset — re-run infra-proximity")
+    page.evaluate(f"window.__selectSite('{enriched_id}')")
+    page.wait_for_selector("#detail:not([hidden])")
+    # At least one of the three distance cells should show "X.X mi" rather
+    # than the placeholder text.
+    cells = ["#d-transmission-mi", "#d-rail-mi", "#d-highway-mi"]
+    populated = []
+    for sel in cells:
+        text = page.locator(sel).text_content() or ""
+        if "mi" in text and "Not available" not in text:
+            populated.append(sel)
+    assert populated, (
+        f"no infra distance cells populated for site {enriched_id}: "
+        + ", ".join(f"{c}={page.locator(c).text_content()!r}" for c in cells)
+    )
+    # Verify the populated cell dropped the muted-cell class so it visually
+    # reads as real data rather than placeholder.
+    for sel in populated:
+        cls = page.locator(sel).get_attribute("class") or ""
+        assert "muted-cell" not in cls, f"{sel} still has muted-cell class"
+
+
 def test_reset_clears_filter_chip(page, base_url):
     """Companion to test_reset_restores_all_four_programs: regardless of
     which filter is active (state, status, acreage, search, program),
