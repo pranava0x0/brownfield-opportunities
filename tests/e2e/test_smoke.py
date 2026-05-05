@@ -1148,3 +1148,78 @@ def test_selectsite_resets_to_overview_tab(page, base_url):
     rows.nth(1).click()
     assert page.locator("#dtab-overview").get_attribute("aria-selected") == "true"
     assert page.locator("#dpane-overview").evaluate("el => el.hidden") is False
+
+
+def test_site_name_titlecased_with_acronyms_preserved(page, base_url):
+    """Site names ship ALL CAPS in ~94% of records. `prettyName()` title-cases
+    them at ingest while preserving federal/military acronyms (NRDA, PCB,
+    USDOE, AFB, NIKE, NAS, …). Spot-check a handful of well-known names to
+    catch acronym-list drift; broad scan asserts the table cell is not pure
+    upper-case for the first page of rendered rows."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    fn = page.evaluate
+    # prettyName is exposed on window for direct exercise.
+    assert fn("window.__prettyName('FOX RIVER NRDA/PCB RELEASES')") == "Fox River NRDA/PCB Releases"
+    assert fn("window.__prettyName('IDAHO NATIONAL ENGINEERING LABORATORY (USDOE)')") == \
+        "Idaho National Engineering Laboratory (USDOE)"
+    assert fn("window.__prettyName('FORT WAINWRIGHT')") == "Fort Wainwright"
+    assert fn("window.__prettyName('CAMP STANLEY AFB')") == "Camp Stanley AFB"
+    assert fn("window.__prettyName('CAPE CANAVERAL AFS')") == "Cape Canaveral AFS"
+    # Already-mixed-case names pass through unchanged.
+    assert fn("window.__prettyName('GE / Housatonic River')") == "GE / Housatonic River"
+    # Table cell sanity: very few first-page rows should be pure ALL CAPS.
+    page.locator("#tab-table").click()
+    page.wait_for_selector("#sites-table tbody tr")
+    all_caps_in_table = page.evaluate(
+        "() => Array.from(document.querySelectorAll('#sites-table tbody tr td:first-child'))"
+        ".filter(td => {"
+        "  const t = td.textContent.trim();"
+        "  if (!t || t === '—') return false;"
+        "  if (t !== t.toUpperCase()) return false;"
+        "  return /[A-Z]{4,}/.test(t);"  # ignore short tokens like "NIKE 04"
+        "})"
+        ".slice(0, 5)"
+        ".map(td => td.textContent)"
+    )
+    assert len(all_caps_in_table) == 0, (
+        f"first-page table rows still ALL CAPS: {all_caps_in_table!r}"
+    )
+
+
+def test_csv_export_includes_enrichment_columns(page, base_url):
+    """Pre-fix CSV export was 12 columns and silently dropped every
+    enrichment field (transmission distances, ECHO enforcement counters,
+    FUDS owner labels, etc.). The curated wide schema now mirrors the
+    detail panel — assert the headline enrichment column labels are
+    present and a sample populated row carries enrichment data."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    csv = page.evaluate("window.__buildCsv()")
+    assert csv, "CSV builder produced empty output"
+    lines = csv.split("\n")
+    header = lines[0].split(",")
+    # Headline enrichment columns that were missing pre-fix.
+    expected_in_header = {
+        "transmission_mi", "rail_mi", "highway_mi",
+        "dc_reuse_candidate",
+        "current_owner", "current_owner_source",
+        "echo_formal_actions_5yr", "echo_penalties_5yr_usd",
+        "fuds_eligibility", "fuds_status",
+        "brac_component",
+        "doc_count",
+    }
+    missing = expected_in_header - set(header)
+    assert not missing, f"CSV header missing enrichment columns: {missing}"
+    # Find a row where transmission_mi is populated (any of the ~46k records
+    # within the CONUS infra coverage). Confirms the dotted-path picker works.
+    transmission_idx = header.index("transmission_mi")
+    sample = next(
+        (line.split(",") for line in lines[1:1000]
+         if len(line.split(",")) > transmission_idx
+         and line.split(",")[transmission_idx]),
+        None,
+    )
+    assert sample is not None, (
+        "expected at least one row with a populated transmission_mi value"
+    )
