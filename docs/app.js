@@ -221,6 +221,74 @@ function prettyPlace(s) {
   }).join("");
 }
 
+// ----- Site-name prettifier (display-time fix for ALL CAPS source data) -----
+//
+// EPA Superfund / USACE FUDS / DOD BRAC ship site names ALL CAPS in ~94% of
+// records. Title-casing them is more delicate than place names because EPA
+// names embed federal acronyms (USDOE, NRDA, PCB, AAP, AFB, …) that simple
+// title-casing would mangle ("Usdoe", "Nrda"). The acronym whitelist below
+// is seeded from a frequency scan of the actual dataset (10k+ ALL-CAPS
+// names across the three programs). When a new acronym shows up that the
+// list doesn't catch, add it here — it will Just Work for every record on
+// next ingest.
+//
+// Like prettyPlace(), this runs in ingestSites() and the original source
+// is preserved on `s.name_raw` so future per-source connector-side fixes
+// can compare against the raw value.
+const NAME_KEEP_UPPER = new Set([
+  // Military / DOD
+  "AFB", "AAF", "AAFB", "AFS", "AFR", "USARC", "USAF", "USAFR",
+  "USMC", "USMCR", "USCG", "USCGA", "USN", "USNR", "USA", "USS",
+  "NAS", "NAVSTA", "NAVFAC", "NAVMAR", "DOD", "ANG", "NG", "NIKE",
+  "AAA", "OLF", "POW", "ROTC", "USACE", "AFRC", "NORAD", "STRATCOM",
+  // Federal civilian
+  "EPA", "USEPA", "USDOE", "DOE", "DOT", "DOJ", "DOI", "DOC", "DOL",
+  "USDA", "USFS", "USFWS", "USGS", "USPS", "GSA", "TVA", "VA", "FAA",
+  "FBI", "NASA", "BLM", "NPS", "NRC", "FERC", "FRS",
+  // Chemical / contamination
+  "PCB", "PCBS", "PFAS", "PFOS", "PFOA", "TCE", "PCE", "VOC", "VOCS",
+  "NRDA", "AAP", "MEW", "RCRA", "CERCLA", "NPL", "ROD", "ESD",
+  // Geographic / political
+  "US", "USVI", "DC", "PR", "USA",
+  // Compass
+  "NE", "NW", "SE", "SW", "NNE", "NNW", "SSE", "SSW",
+  // Roman numerals 1–10 (II..X — single "I" is too risky as a one-letter token)
+  "II", "III", "IV", "VI", "VII", "VIII", "IX",
+  // Range / nominal-number prefixes
+  "NO",
+]);
+// Words that should drop to lowercase when they aren't the leading token.
+const NAME_KEEP_LOWER = new Set([
+  "of", "and", "the", "in", "on", "at", "by", "for", "to", "or",
+  "vs", "an", "a",
+]);
+
+function prettyName(s) {
+  if (s == null) return "";
+  const trimmed = String(s).trim();
+  if (!trimmed) return "";
+  // Already mixed case → trust the source. EPA / DOD ship names ALL CAPS;
+  // a record that's mixed-case has already been normalized somewhere
+  // upstream and we shouldn't undo that.
+  if (trimmed !== trimmed.toUpperCase()) return trimmed;
+  return trimmed.split(/(\s+|[/\-(),])/g).map((tok, i) => {
+    if (/^\s+$/.test(tok) || /^[/\-(),]$/.test(tok)) return tok;
+    const upper = tok.toUpperCase();
+    if (NAME_KEEP_UPPER.has(upper)) return upper;
+    const lower = tok.toLowerCase();
+    if (i > 0 && NAME_KEEP_LOWER.has(lower)) return lower;
+    if (lower.startsWith("mc") && lower.length > 2) {
+      return "Mc" + lower.charAt(2).toUpperCase() + lower.slice(3);
+    }
+    if (lower.includes("'")) {
+      return lower.split("'").map((p) =>
+        p.length ? p.charAt(0).toUpperCase() + p.slice(1) : p
+      ).join("'");
+    }
+    return lower.charAt(0).toUpperCase() + lower.slice(1);
+  }).join("");
+}
+
 // ----- State -----
 let sites = [];
 let map, markerLayer;
@@ -408,6 +476,18 @@ fetch(PRIMARY_DATA_URL)
       get: () => sites,
     });
     window.__selectSite = selectSite;
+    // Expose the prettifiers + CSV schema so e2e tests can exercise the
+    // curated column set without intercepting a download.
+    window.__prettyName = prettyName;
+    window.__csvColumns = CSV_COLUMNS;
+    window.__buildCsv = () => {
+      const rows = [CSV_COLUMNS.map((c) => c.label)];
+      for (const s of sites) {
+        if (!siteMatchesFilters(s)) continue;
+        rows.push(CSV_COLUMNS.map((c) => csvCell(s, c)));
+      }
+      return rows.map(csvRow).join("\n");
+    };
     // Kick off lazy loads for enabled programs BEFORE applyUrlSelection()
     // so the *LoadingPromise globals are populated — applyUrlSelection
     // waits on them when the requested ?site= ID points at a record from
@@ -437,9 +517,13 @@ fetch(PRIMARY_DATA_URL)
 function ingestSites(records) {
   for (const s of records) {
     if (sitesById.has(s.id)) continue;
-    // Title-case ALL CAPS city/county at ingest time so search, filter, table,
-    // detail panel, and CSV export all see the prettified form. Source data
-    // is preserved on `*_raw` for debugging.
+    // Title-case ALL CAPS city/county/address/name at ingest time so search,
+    // filter, table, detail panel, marker tooltip, and CSV export all see
+    // the prettified form. Source data is preserved on `*_raw` for debugging.
+    if (s.name) {
+      const pretty = prettyName(s.name);
+      if (pretty && pretty !== s.name) { s.name_raw = s.name; s.name = pretty; }
+    }
     if (s.city) {
       const pretty = prettyPlace(s.city);
       if (pretty && pretty !== s.city) { s.city_raw = s.city; s.city = pretty; }
@@ -1858,20 +1942,100 @@ function closeDetail() {
 }
 
 // ----- CSV export -----
+//
+// Curated wide schema. The pre-v1.11.1 export was 12 columns (id, program,
+// name, state, city, county, acreage, npl_status_code, npl_status, lat, lon,
+// profile_url) which silently dropped every enrichment field — users
+// downloading the filtered set lost the FUDS owner labels, the universal
+// infra distances, the data-center reuse flag, and the entire ECHO
+// enforcement summary. Today's schema mirrors what the detail panel surfaces.
+//
+// `key` supports dotted paths (`enforcement.formal_actions_5yr`) and a
+// `.length` shortcut for array sizes (`documents.length`). Empty fields stay
+// empty so spreadsheet column widths stay stable across exports.
+const CSV_COLUMNS = [
+  // Identity
+  { key: "id", label: "id" },
+  { key: "program", label: "program" },
+  { key: "name", label: "name" },
+  // Location
+  { key: "address", label: "address" },
+  { key: "city", label: "city" },
+  { key: "county", label: "county" },
+  { key: "state", label: "state" },
+  { key: "zip", label: "zip" },
+  { key: "lat_real", label: "lat", fallback: "lat" },
+  { key: "lon_real", label: "lon", fallback: "lon" },
+  // Scale + status
+  { key: "acreage", label: "acreage" },
+  { key: "epa_id", label: "epa_id" },
+  { key: "npl_status_code", label: "npl_status_code" },
+  { key: "npl_status", label: "npl_status" },
+  { key: "federal_facility", label: "federal_facility" },
+  { key: "region", label: "epa_region" },
+  // FUDS-specific
+  { key: "eligibility", label: "fuds_eligibility" },
+  { key: "fuds_status", label: "fuds_status" },
+  { key: "has_projects", label: "fuds_has_projects" },
+  { key: "congressional_district", label: "congressional_district" },
+  // BRAC-specific
+  { key: "component", label: "brac_component" },
+  // Owner provenance
+  { key: "current_owner", label: "current_owner" },
+  { key: "current_owner_source", label: "current_owner_source" },
+  // Universal infra-proximity (v1.10)
+  { key: "transmission_mi", label: "transmission_mi" },
+  { key: "rail_mi", label: "rail_mi" },
+  { key: "highway_mi", label: "highway_mi" },
+  // EPA RE-Powering qualitative (Superfund-only, v1.7)
+  { key: "near_electric_transmission", label: "near_electric_transmission" },
+  { key: "near_water_supply", label: "near_water_supply" },
+  { key: "near_wastewater", label: "near_wastewater" },
+  { key: "pop_density", label: "pop_density" },
+  { key: "data_center_reuse_candidate", label: "dc_reuse_candidate" },
+  // ECHO enforcement (v1.11)
+  { key: "enforcement.inspections_5yr", label: "echo_inspections_5yr" },
+  { key: "enforcement.formal_actions_5yr", label: "echo_formal_actions_5yr" },
+  { key: "enforcement.informal_actions_5yr", label: "echo_informal_actions_5yr" },
+  { key: "enforcement.penalties_5yr_usd", label: "echo_penalties_5yr_usd" },
+  { key: "enforcement.current_compliance", label: "echo_compliance" },
+  { key: "enforcement.last_violation_date", label: "echo_last_violation_date" },
+  { key: "enforcement.last_inspection_date", label: "echo_last_inspection_date" },
+  // Documents enrichment (v1.9)
+  { key: "documents.length", label: "doc_count" },
+  // Source link
+  { key: "profile_url", label: "profile_url" },
+];
+
+function pickCsvField(obj, key) {
+  // ".length" shortcut → length of the array at the dotted path.
+  if (key.endsWith(".length")) {
+    const v = pickCsvField(obj, key.slice(0, -".length".length));
+    return Array.isArray(v) ? v.length : 0;
+  }
+  if (!key.includes(".")) return obj == null ? null : obj[key];
+  let cur = obj;
+  for (const part of key.split(".")) {
+    if (cur == null) return null;
+    cur = cur[part];
+  }
+  return cur;
+}
+
+function csvCell(s, col) {
+  let v = pickCsvField(s, col.key);
+  if ((v == null || v === "") && col.fallback) v = pickCsvField(s, col.fallback);
+  if (v == null) return "";
+  if (typeof v === "boolean") return v ? "true" : "false";
+  return v;
+}
+
 function wireExportCsv() {
   el("export-csv").addEventListener("click", () => {
-    const rows = [];
-    rows.push([
-      "id", "program", "name", "state", "city", "county", "acreage",
-      "npl_status_code", "npl_status", "lat", "lon", "profile_url",
-    ]);
+    const rows = [CSV_COLUMNS.map((c) => c.label)];
     for (const s of sites) {
       if (!siteMatchesFilters(s)) continue;
-      rows.push([
-        s.id, s.program, s.name || "", s.state || "", s.city || "", s.county || "",
-        s.acreage ?? "", s.npl_status_code || "", s.npl_status || "",
-        (s.lat_real ?? s.lat) ?? "", (s.lon_real ?? s.lon) ?? "", s.profile_url || "",
-      ]);
+      rows.push(CSV_COLUMNS.map((c) => csvCell(s, c)));
     }
     const csv = rows.map(csvRow).join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
