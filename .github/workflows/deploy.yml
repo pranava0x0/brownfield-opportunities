@@ -1,7 +1,17 @@
 name: Deploy docs/ to GitHub Pages
 
+# Gate Pages deploys on the Tests workflow passing first. Without this,
+# `push: [main]` and the Tests workflow run in parallel — Pages can publish
+# a green build that turns out to fail tests minutes later.
+#
+# `workflow_run` fires when Tests completes (any conclusion); the inner
+# `if:` short-circuits anything that wasn't a successful main-branch push.
+# `workflow_dispatch` keeps the manual-redeploy path available even when
+# CI is red (for emergencies / data-only refreshes that bypass tests).
 on:
-  push:
+  workflow_run:
+    workflows: ["Tests"]
+    types: [completed]
     branches: [main]
   workflow_dispatch:
 
@@ -17,11 +27,20 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'main')
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          # workflow_run runs against the default branch HEAD; pin to the
+          # commit Tests actually validated so a race-y main fast-forward
+          # doesn't ship an unverified later commit.
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
