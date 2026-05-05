@@ -101,8 +101,16 @@ def test_exclude_none_drops_placeholders():
     assert "current_owner" not in js
     assert "encumbrances" not in js
     assert "remediation_detail" not in js
-    assert "proximity" not in js
     assert "children" not in js
+
+
+def test_legacy_proximity_field_rejected():
+    """The v1.7 catch-all `proximity` dict was superseded by transmission_mi /
+    rail_mi / highway_mi in v1.10 and removed from the schema. Any connector
+    that emits it must fail loud rather than silently writing dead data."""
+    with pytest.raises(ValidationError):
+        SiteRecord(id="X", program="superfund", lat=0, lon=0,
+                   proximity={"transmission_mi": 1.0})
 
 
 def test_combined_payload_with_programs():

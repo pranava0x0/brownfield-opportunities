@@ -84,3 +84,58 @@ def test_id_namespace_unique():
     """ACRES IDs must not collide with EPA_IDs (which look like 'XYZ12345678')."""
     rec = EpaAcres.normalize(_feature())
     assert rec["id"].startswith("ACRES-")
+
+
+# ----- offline TIGER county fill -----
+
+
+def test_fill_missing_county_uses_tiger_lookup(monkeypatch):
+    """The post-normalize step should reverse-geocode lat/lon → county for
+    records the source omits, leaving already-populated rows untouched.
+
+    Stubs the TIGER index so the test stays hermetic — `test_county_lookup.py`
+    covers the real-file decode path.
+    """
+    from connectors import epa_acres
+
+    class FakeIndex:
+        def lookup(self, lat, lon, expected_state=None):
+            # Map a single test coordinate to a known county.
+            if abs(lat - 44.10) < 0.1 and abs(lon - -70.22) < 0.1:
+                return "Androscoggin"
+            return None
+
+    monkeypatch.setattr(epa_acres.CountyIndex, "from_path",
+                        classmethod(lambda cls, p: FakeIndex()))
+
+    records = [
+        {"id": "ACRES-1", "state": "ME", "lat": 44.10, "lon": -70.22, "county": None},
+        # Pre-populated county must not be overwritten.
+        {"id": "ACRES-2", "state": "ME", "lat": 44.10, "lon": -70.22,
+         "county": "Original"},
+        # Point with no TIGER match (ocean) stays None.
+        {"id": "ACRES-3", "state": "MA", "lat": 40.0, "lon": -65.0, "county": None},
+    ]
+    EpaAcres._fill_missing_county(records)
+    assert records[0]["county"] == "Androscoggin"
+    assert records[1]["county"] == "Original"
+    assert records[2].get("county") is None
+
+
+def test_fill_missing_county_skips_when_no_records_need_fill(monkeypatch):
+    """Avoid building the index when every record already has county —
+    saves the ~100ms decode cost on a fully-populated source."""
+    from connectors import epa_acres
+
+    calls: list[str] = []
+
+    def fake_from_path(cls, p):
+        calls.append("loaded")
+        raise AssertionError("should not load index when nothing needs filling")
+
+    monkeypatch.setattr(epa_acres.CountyIndex, "from_path",
+                        classmethod(fake_from_path))
+
+    records = [{"id": "ACRES-1", "state": "ME", "lat": 1, "lon": 2, "county": "X"}]
+    EpaAcres._fill_missing_county(records)
+    assert calls == []
