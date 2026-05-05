@@ -4,6 +4,30 @@ Ideas and enhancements. Priorities: **high** = next, **med** = soon, **low** = n
 
 ---
 
+## Static summary quality pass (audited 2026-05-05)
+
+Systematic review of all 1,787 generated static summaries found 9 recurring issues. Grouped by impact — fix the HIGH items before re-running at scale.
+
+**[high] Apostrophe title-case bug — 20 sites.** `str.title()` treats `'` as a word boundary, producing `Beck'S Lake`, `Sigmon'S Septic Tank Service`. Replace `w.title()` in `_pretty_text()` with a regex-based variant: split on word-start boundaries only (e.g. `re.sub(r"(?<!['\w])(\w)", lambda m: m.group().upper(), text.lower())`), or use `string.capwords(w)` per word which handles apostrophes correctly.
+
+**[high] Prepositions kept uppercase — 87 sites.** The `len(core) <= 2 and core.isupper()` rule in `_pretty_text()` is too broad: it preserves `OF`, `IN`, `AT`, `AN`, `BY`, `TO` (prepositions) the same way it preserves state codes and acronyms, producing `University OF Minnesota`, `Kokomo, IN (Currently on the Final NPL)` mid-sentence, `Town OF Bedford`. Fix: add an explicit `STOP_WORDS = {"of", "in", "at", "an", "by", "to", "for", "the", "and", "or"}` set and lowercase those unconditionally _before_ the acronym/length check. State codes (2-char) should go in `_NAME_KEEP_UPPER` explicitly so the ≤2-char catch-all can be removed.
+
+**[high] "CO." kept uppercase — 179 sites.** "Company" abbreviation `CO.` strips to core `CO` which hits the ≤2-char rule and stays as `CO.` rather than becoming `Co.` — looks like the state abbreviation for Colorado. Fix is the same as above: kill the ≤2-char catch-all and whitelist state postal codes explicitly. `CO.` would then fall through to `w.title()` → `Co.` correctly.
+
+**[high] "No Violation Identified" noise in enforcement block — 80 sites.** When the only ECHO signal is `current_compliance: "No Violation Identified"` with zero formal actions, zero penalties, and no violation date, the enforcement sentence reads `ECHO enforcement: compliance: No Violation Identified.` — a clean record surfaced as if it were a risk. Fix in `build_static_summary()`: suppress the enforcement block entirely when `formal_actions_5yr == 0` and `penalties_5yr_usd == 0` and `last_violation_date` is null. A clean compliance status is better shown as a brief inline positive note only if ECHO data exists at all (e.g. "No enforcement actions on record (ECHO).").
+
+**[high] Grammar: "is a EPA" — 11 sites.** The lead sentence uses `"a"` before `program_label`, but labels starting with a vowel sound ("EPA Superfund", "ARNG", "USCG") need `"an"`. Fix: check `program_label[0].lower() in "aeiou"` in `build_static_summary()` and swap to `"an"` accordingly.
+
+**[med] 0-acre anomaly — 70 sites.** Sites where the source acreage field is literally `0` or rounds to zero produce `a 0-acre EPA Superfund` which looks like a data error. Fix: treat `acreage == 0` the same as `acreage is None` — omit the acreage token entirely and let the sentence read `Genzale Plating Co. is an EPA Superfund (NPL) in Franklin Square, NY (Final NPL).`
+
+**[med] "0.0 mi" for adjacent infrastructure — 213 sites.** When a rail line, highway, or transmission line passes through or borders the site itself, the computed distance rounds to `0.0 mi`, producing `rail 0.0 mi` which looks like a display bug. Fix in `build_static_summary()`: format as `"adjacent"` when the value is `< 0.05` (i.e. rounds to 0.0), otherwise use `f"{v:.1f} mi"`.
+
+**[med] DC reuse parenthetical repeated verbatim on 776 sites.** `"Flagged as data-center reuse candidate (≥50 ac + power + water)."` works as a one-off callout but reads as boilerplate at scale since the criteria never change. Trim to `"Flagged as a data-center reuse candidate."` — users who want the criteria can see them in the legend and detail panel.
+
+**[low] Status phrasing is verbose — all 1,787 sites.** `"(Currently on the Final NPL)"` is 26 chars; `"(Deleted from the Final NPL)"` is 28 chars. Shorter: `"(Final NPL)"` / `"(Deleted from NPL)"`. Reduces avg summary length ~10 chars with no information loss. Low priority since the text is still correct and readable.
+
+---
+
 ## v1.11.2 — Continue ECHO + docs coverage (2026-05-05+)
 
 The v1.11.2 commit fixed the ECHO connector and shipped 380 of 1,787 Final/Deleted Superfund sites with enforcement data (vs the broken 0 records in v1.11). Continued coverage is gated by upstream API throttling, so this is staged work, not a single sprint:
