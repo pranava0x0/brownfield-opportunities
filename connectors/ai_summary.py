@@ -38,6 +38,7 @@ import hashlib
 import json
 import logging
 import os
+import re as _re
 import time
 from pathlib import Path
 from typing import Any
@@ -62,23 +63,75 @@ _NAME_KEEP_UPPER = {
     "VII", "VIII", "IX", "XI", "EPA", "DOD", "DOE", "NASA", "FBI", "CIA",
     "MCB", "MCF", "MCAS", "NAAS", "NAAF", "NAES", "NAF", "NAP", "NARS",
     "NWS", "ANGB", "ANG", "ARB", "ARFF", "ARG", "ARNG", "USCG", "VA",
+    # US state postal codes — kept uppercase explicitly so we can drop the
+    # blanket <=2-char rule that was also preserving prepositions like OF/IN.
+    "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI",
+    "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI",
+    "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC",
+    "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT",
+    "VT", "VA", "WA", "WV", "WI", "WY", "DC", "PR", "GU", "VI", "MP", "AS",
 }
-_SENTINEL_RE = None  # lazy-compiled
+
+# Prepositions / articles that should always be lowercased even when ALL-CAPS.
+_STOP_WORDS = {"of", "in", "at", "an", "by", "to", "for", "the", "and", "or"}
+
+
+def _title_word(w: str) -> str:
+    """Capitalize the first alphabetic character; lowercase the rest.
+
+    Uses a regex-based approach rather than str.capitalize() / str.title() to
+    correctly handle two edge cases:
+      - Leading punctuation: "(ROSEMOUNT" → "(Rosemount" (capitalize() lowercases
+        the 'R' because '(' is the first char).
+      - Possessives: "BECK'S" → "Beck's" (title() sees "'" as a word boundary
+        and produces "Beck'S").
+    """
+    # Lowercase everything, then uppercase every alpha char that starts a new
+    # word segment — i.e. not preceded by another alpha or an apostrophe.
+    # Excluding apostrophe from the lookbehind keeps 's / 't / 'd lowercase
+    # (Beck's not Beck'S). No count limit so "(Jobstown)" inside a token like
+    # "Twp(Jobstown)" also gets capitalized correctly.
+    return _re.sub(r"(?<![a-zA-Z'])([a-zA-Z])", lambda m: m.group(1).upper(), w.lower())
 
 
 def _pretty_text(text: str) -> str:
-    """Title-case a raw ALL-CAPS string, preserving known acronyms."""
+    """Title-case a raw ALL-CAPS string, preserving known acronyms.
+
+    Fixes vs. the original:
+    - Drops the <=2-char blanket keep-upper rule (preserved OF, IN as uppercase).
+    - Explicitly whitelists US state postal codes instead.
+    - Lowercases stop words (prepositions / articles) unconditionally.
+    - Uses _title_word() to avoid str.title()'s apostrophe bug (Beck'S).
+    """
     if not text or text == text.lower():
         return text
     words = text.split()
     out = []
     for w in words:
-        core = w.strip("(),-./")
-        if core in _NAME_KEEP_UPPER or (len(core) <= 2 and core.isupper()):
+        # Handle slash-separated sub-tokens (e.g., "INC./PORTAGE" → "Inc./Portage").
+        if "/" in w:
+            sub = w.split("/")
+            w = "/".join(_pretty_token(p) for p in sub)
             out.append(w)
-        else:
-            out.append(w.title())
+            continue
+        out.append(_pretty_token(w))
     return " ".join(out)
+
+
+def _pretty_token(w: str) -> str:
+    """Apply per-word title-case rules to a single space-free token."""
+    core = w.strip("(),-./&")
+    core_lower = core.lower()
+    # Acronym check: only match when the word has no period immediately after
+    # the core letters. "CO." / "CO.," are Company abbreviations; "CO" or
+    # "CO," (city/state context) are the Colorado state code.
+    # Strip trailing non-period punctuation to reveal whether a period follows.
+    w_rstripped = w.rstrip("(),-&")
+    if core in _NAME_KEEP_UPPER and not w_rstripped.endswith("."):
+        return w
+    if core_lower in _STOP_WORDS:
+        return w.lower()
+    return _title_word(w)
 
 
 def build_static_summary(site: dict[str, Any]) -> str:
@@ -101,14 +154,33 @@ def build_static_summary(site: dict[str, Any]) -> str:
     loc = ", ".join(loc_parts) if loc_parts else "location unspecified"
 
     acreage = site.get("acreage")
+    # Treat sub-1-acre values as null — they format as "0" with :.0f and look
+    # like a data error. These are point-feature sites; omit acreage entirely.
+    if acreage is not None and acreage < 1.0:
+        acreage = None
+
     status = (
         site.get("npl_status")
         or site.get("eligibility")
         or site.get("component")
         or ""
     )
+    # Shorten verbose NPL status strings.
+    status = (
+        status
+        .replace("Currently on the Final NPL", "Final NPL")
+        .replace("Deleted from the Final NPL", "Deleted from NPL")
+    )
 
-    lead = f"{name} is a"
+    # "a" vs "an": if acreage is present, article governs the number's spoken
+    # form (only leading digit "8" → "an eight-hundred…"); otherwise governs the
+    # program label's first letter.
+    if acreage is not None:
+        article = "an" if f"{acreage:,.0f}"[0] == "8" else "a"
+    else:
+        article = "an" if program and program[0].lower() in "aeiou" else "a"
+
+    lead = f"{name} is {article}"
     if acreage is not None:
         lead += f" {acreage:,.0f}-acre"
     lead += f" {program} in {loc}"
@@ -118,18 +190,21 @@ def build_static_summary(site: dict[str, Any]) -> str:
 
     sentences = [lead]
 
-    # Infrastructure
+    # Infrastructure — show "adjacent" for values that round to 0.0.
+    def _fmt_mi(v: float) -> str:
+        return "adjacent" if v < 0.05 else f"{v:.1f} mi"
+
     infra = []
     if site.get("transmission_mi") is not None:
-        infra.append(f"transmission {site['transmission_mi']:.1f} mi")
+        infra.append(f"transmission {_fmt_mi(site['transmission_mi'])}")
     if site.get("rail_mi") is not None:
-        infra.append(f"rail {site['rail_mi']:.1f} mi")
+        infra.append(f"rail {_fmt_mi(site['rail_mi'])}")
     if site.get("highway_mi") is not None:
-        infra.append(f"highway {site['highway_mi']:.1f} mi")
+        infra.append(f"highway {_fmt_mi(site['highway_mi'])}")
     if infra:
         sentences.append(f"Nearest infrastructure: {', '.join(infra)}.")
     if site.get("data_center_reuse_candidate"):
-        sentences.append("Flagged as data-center reuse candidate (≥50 ac + power + water).")
+        sentences.append("Flagged as a data-center reuse candidate.")
 
     # Documents
     docs = site.get("documents") or []
@@ -138,17 +213,19 @@ def build_static_summary(site: dict[str, Any]) -> str:
         cat_str = ", ".join(cats[:3]) if cats else "mixed"
         sentences.append(f"{len(docs)} federal documents on file ({cat_str}).")
 
-    # Enforcement
+    # Enforcement — only show block when there are real actions or penalties.
+    # A clean "No Violation Identified" compliance status is not a risk signal.
     enf = site.get("enforcement") or {}
+    fa = enf.get("formal_actions_5yr") or 0
+    penalties = enf.get("penalties_5yr_usd") or 0
+    last_viol = enf.get("last_violation_date")
     enf_bits = []
-    fa = enf.get("formal_actions_5yr")
-    penalties = enf.get("penalties_5yr_usd")
     if fa:
         enf_bits.append(f"{fa} formal action{'s' if fa != 1 else ''} (5yr)")
     if penalties:
         enf_bits.append(f"${penalties:,.0f} in penalties (5yr)")
-    if enf.get("current_compliance") and enf["current_compliance"].lower() not in ("", "in compliance"):
-        enf_bits.append(f"compliance: {enf['current_compliance']}")
+    if last_viol:
+        enf_bits.append(f"last violation {last_viol}")
     if enf_bits:
         sentences.append(f"ECHO enforcement: {'; '.join(enf_bits)}.")
 
