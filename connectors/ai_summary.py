@@ -56,6 +56,108 @@ DEFAULT_MAX_TOKENS = 600
 
 # Sites that don't carry the inputs we need for a meaningful summary aren't
 # worth a paid call. We require at least a name and (program OR state).
+_NAME_KEEP_UPPER = {
+    "NIKE", "AFB", "AAF", "AFS", "NAS", "NRDA", "PCB", "USDOE", "USACE",
+    "USDA", "USFS", "BLM", "NPS", "USA", "US", "II", "III", "IV", "VI",
+    "VII", "VIII", "IX", "XI", "EPA", "DOD", "DOE", "NASA", "FBI", "CIA",
+    "MCB", "MCF", "MCAS", "NAAS", "NAAF", "NAES", "NAF", "NAP", "NARS",
+    "NWS", "ANGB", "ANG", "ARB", "ARFF", "ARG", "ARNG", "USCG", "VA",
+}
+_SENTINEL_RE = None  # lazy-compiled
+
+
+def _pretty_text(text: str) -> str:
+    """Title-case a raw ALL-CAPS string, preserving known acronyms."""
+    if not text or text == text.lower():
+        return text
+    words = text.split()
+    out = []
+    for w in words:
+        core = w.strip("(),-./")
+        if core in _NAME_KEEP_UPPER or (len(core) <= 2 and core.isupper()):
+            out.append(w)
+        else:
+            out.append(w.title())
+    return " ".join(out)
+
+
+def build_static_summary(site: dict[str, Any]) -> str:
+    """One-paragraph static summary derived entirely from structured fields.
+
+    No API call — deterministic from the site dict. Used by --ai-static.
+    Produces a concise sentence cluster: what it is → infra → docs/enforcement.
+    """
+    name = _pretty_text(site.get("name") or "") or "This site"
+    program_labels = {
+        "superfund": "EPA Superfund (NPL)",
+        "brownfield": "EPA Brownfield (ACRES)",
+        "fuds": "DOD Formerly Used Defense Site",
+        "brac": "DOD BRAC installation",
+    }
+    program = program_labels.get(site.get("program"), "federal contaminated site")
+
+    city = _pretty_text(site.get("city") or "")
+    loc_parts = [p for p in (city, site.get("state")) if p]
+    loc = ", ".join(loc_parts) if loc_parts else "location unspecified"
+
+    acreage = site.get("acreage")
+    status = (
+        site.get("npl_status")
+        or site.get("eligibility")
+        or site.get("component")
+        or ""
+    )
+
+    lead = f"{name} is a"
+    if acreage is not None:
+        lead += f" {acreage:,.0f}-acre"
+    lead += f" {program} in {loc}"
+    if status:
+        lead += f" ({status})"
+    lead += "."
+
+    sentences = [lead]
+
+    # Infrastructure
+    infra = []
+    if site.get("transmission_mi") is not None:
+        infra.append(f"transmission {site['transmission_mi']:.1f} mi")
+    if site.get("rail_mi") is not None:
+        infra.append(f"rail {site['rail_mi']:.1f} mi")
+    if site.get("highway_mi") is not None:
+        infra.append(f"highway {site['highway_mi']:.1f} mi")
+    if infra:
+        sentences.append(f"Nearest infrastructure: {', '.join(infra)}.")
+    if site.get("data_center_reuse_candidate"):
+        sentences.append("Flagged as data-center reuse candidate (≥50 ac + power + water).")
+
+    # Documents
+    docs = site.get("documents") or []
+    if docs:
+        cats = sorted({d.get("category") for d in docs if d.get("category")})
+        cat_str = ", ".join(cats[:3]) if cats else "mixed"
+        sentences.append(f"{len(docs)} federal documents on file ({cat_str}).")
+
+    # Enforcement
+    enf = site.get("enforcement") or {}
+    enf_bits = []
+    fa = enf.get("formal_actions_5yr")
+    penalties = enf.get("penalties_5yr_usd")
+    if fa:
+        enf_bits.append(f"{fa} formal action{'s' if fa != 1 else ''} (5yr)")
+    if penalties:
+        enf_bits.append(f"${penalties:,.0f} in penalties (5yr)")
+    if enf.get("current_compliance") and enf["current_compliance"].lower() not in ("", "in compliance"):
+        enf_bits.append(f"compliance: {enf['current_compliance']}")
+    if enf_bits:
+        sentences.append(f"ECHO enforcement: {'; '.join(enf_bits)}.")
+
+    if not infra and not docs and not enf_bits:
+        sentences.append("No infrastructure proximity, document, or enforcement data available in federal records.")
+
+    return " ".join(sentences)
+
+
 SYSTEM_PROMPT = """You are a brownfield real-estate analyst writing for property buyers and developers evaluating contaminated-land opportunities.
 
 Given the structured fields for a single federal contaminated site, write exactly three short paragraphs (40–70 words each) in plain English:
@@ -254,6 +356,12 @@ class AiSummary(Connector):
             default=DEFAULT_MAX_TOKENS,
             help=f"Per-summary max output tokens (default: {DEFAULT_MAX_TOKENS}).",
         )
+        p.add_argument(
+            "--ai-static",
+            action="store_true",
+            default=False,
+            help="Generate summaries from structured fields only — no API call, no key required.",
+        )
 
     def fetch_records(
         self, args: argparse.Namespace, use_cache: bool
@@ -284,6 +392,32 @@ class AiSummary(Connector):
         log.info("summarizing %d sites (skip=%d, take=%d)",
                  len(target_sites), skip, take or -1)
 
+        use_static = getattr(args, "ai_static", False)
+
+        if use_static:
+            # Static mode: generate from structured fields, no API key needed.
+            records = []
+            generated_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+            for site in target_sites:
+                sid = site.get("id")
+                if not sid or not site.get("name"):
+                    continue
+                summary_text = build_static_summary(site)
+                records.append({
+                    "id": sid,
+                    "program": site.get("program") or "superfund",
+                    "summary": summary_text,
+                    "summary_meta": {
+                        "model": "static",
+                        "hash": _fingerprint(site),
+                        "generated_at": generated_at,
+                    },
+                })
+            log.info("static mode: generated %d summaries", len(records))
+            if getattr(args, "limit", None):
+                records = records[: args.limit]
+            return records
+
         api_key = os.environ.get("ANTHROPIC_API_KEY")
         # `--dry-run` / `--fetch-only` should work without an API key — they
         # only consume cached responses or skip the write entirely.
@@ -291,7 +425,7 @@ class AiSummary(Connector):
         if not api_key and not is_no_network:
             log.error(
                 "ANTHROPIC_API_KEY not set — required for ai-summary "
-                "(use --dry-run for cache-only re-builds)"
+                "(use --dry-run for cache-only re-builds, --ai-static for no-API mode)"
             )
             return []
 
