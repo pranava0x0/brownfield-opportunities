@@ -221,7 +221,13 @@ def main() -> int:
         # users who want everything in a single fetch.
         rc = 0
         results: dict[str, tuple[list[dict[str, Any]], str, str]] = {}
-        for slug in connectors.names():
+        # Sort by run_order so enrichment connectors (which read other
+        # connectors' per-source JSONs) run after their producers.
+        ordered_slugs = sorted(
+            connectors.names(),
+            key=lambda s: (connectors.get(s).run_order, s),
+        )
+        for slug in ordered_slugs:
             cls = connectors.get(slug)
             per_source_path = OUTPUT_DIR / f"{slug}.json"
             sub_rc, records, label = _run_one(

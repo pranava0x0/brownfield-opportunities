@@ -32,6 +32,11 @@ class Connector(ABC):
     source_label: str = ""
     #: URL describing the upstream source (about page / docs).
     source_url: str = ""
+    #: Lower runs first in `--all` mode. Producer connectors stay at the
+    #: default 100; enrichment connectors that read another connector's
+    #: per-program JSON file (e.g. infra_proximity) override to 200/300 so
+    #: they run after the files they depend on are written.
+    run_order: int = 100
 
     def __init__(self, cache_dir: Path):
         self.cache_dir = cache_dir
