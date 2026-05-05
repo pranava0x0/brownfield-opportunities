@@ -134,11 +134,26 @@ def _pretty_token(w: str) -> str:
     return _title_word(w)
 
 
-def build_static_summary(site: dict[str, Any]) -> str:
-    """One-paragraph static summary derived entirely from structured fields.
+def _fmt_distance(v: float) -> str:
+    """Format an infrastructure distance in plain English."""
+    return "on-site" if v < 0.05 else f"{v:.1f} miles"
 
-    No API call — deterministic from the site dict. Used by --ai-static.
-    Produces a concise sentence cluster: what it is → infra → docs/enforcement.
+
+def _join_list(items: list[str]) -> str:
+    """Oxford-comma join for 1, 2, or 3+ items."""
+    if len(items) == 1:
+        return items[0]
+    if len(items) == 2:
+        return f"{items[0]} and {items[1]}"
+    return f"{', '.join(items[:-1])}, and {items[-1]}"
+
+
+def build_static_summary(site: dict[str, Any]) -> str:
+    """One-paragraph summary written from structured fields — no API call.
+
+    Produces natural flowing prose rather than a raw field dump:
+      lead (what it is, where, status) → infrastructure → reuse signals
+      → documents → enforcement → AI-generated disclaimer.
     """
     name = _pretty_text(site.get("name") or "") or "This site"
     program_labels = {
@@ -154,83 +169,114 @@ def build_static_summary(site: dict[str, Any]) -> str:
     loc = ", ".join(loc_parts) if loc_parts else "location unspecified"
 
     acreage = site.get("acreage")
-    # Treat sub-1-acre values as null — they format as "0" with :.0f and look
-    # like a data error. These are point-feature sites; omit acreage entirely.
     if acreage is not None and acreage < 1.0:
-        acreage = None
+        acreage = None  # sub-1-acre formats as "0" — omit rather than mislead
 
-    status = (
-        site.get("npl_status")
-        or site.get("eligibility")
-        or site.get("component")
-        or ""
+    # Status phrasing
+    raw_status = (
+        site.get("npl_status") or site.get("eligibility")
+        or site.get("component") or ""
     )
-    # Shorten verbose NPL status strings.
-    status = (
-        status
-        .replace("Currently on the Final NPL", "Final NPL")
-        .replace("Deleted from the Final NPL", "Deleted from NPL")
-    )
+    if "Final" in raw_status or "currently" in raw_status.lower():
+        status_clause = ", currently on the Final NPL"
+    elif "Deleted" in raw_status or "deleted" in raw_status.lower():
+        status_clause = ", deleted from the Final NPL"
+    elif raw_status:
+        status_clause = f" ({raw_status})"
+    else:
+        status_clause = ""
 
-    # "a" vs "an": if acreage is present, article governs the number's spoken
-    # form (only leading digit "8" → "an eight-hundred…"); otherwise governs the
-    # program label's first letter.
+    # Article: "a" vs "an" based on leading sound of what follows.
     if acreage is not None:
         article = "an" if f"{acreage:,.0f}"[0] == "8" else "a"
     else:
         article = "an" if program and program[0].lower() in "aeiou" else "a"
 
+    # ── Lead sentence ────────────────────────────────────────────────────────
     lead = f"{name} is {article}"
     if acreage is not None:
         lead += f" {acreage:,.0f}-acre"
-    lead += f" {program} in {loc}"
-    if status:
-        lead += f" ({status})"
-    lead += "."
-
+    lead += f" {program} in {loc}{status_clause}."
     sentences = [lead]
 
-    # Infrastructure — show "adjacent" for values that round to 0.0.
-    def _fmt_mi(v: float) -> str:
-        return "adjacent" if v < 0.05 else f"{v:.1f} mi"
-
-    infra = []
+    # ── Infrastructure ───────────────────────────────────────────────────────
+    infra_clauses = []
     if site.get("transmission_mi") is not None:
-        infra.append(f"transmission {_fmt_mi(site['transmission_mi'])}")
+        infra_clauses.append(
+            f"transmission lines {_fmt_distance(site['transmission_mi'])} from the boundary"
+        )
     if site.get("rail_mi") is not None:
-        infra.append(f"rail {_fmt_mi(site['rail_mi'])}")
+        v = site["rail_mi"]
+        infra_clauses.append(
+            "rail access on-site" if v < 0.05 else f"rail {_fmt_distance(v)}"
+        )
     if site.get("highway_mi") is not None:
-        infra.append(f"highway {_fmt_mi(site['highway_mi'])}")
-    if infra:
-        sentences.append(f"Nearest infrastructure: {', '.join(infra)}.")
-    if site.get("data_center_reuse_candidate"):
-        sentences.append("Flagged as a data-center reuse candidate.")
+        v = site["highway_mi"]
+        infra_clauses.append(
+            "highway access on-site" if v < 0.05 else f"highway {_fmt_distance(v)}"
+        )
+    if infra_clauses:
+        sentences.append(
+            f"Infrastructure proximity: {_join_list(infra_clauses)}."
+        )
 
-    # Documents
+    # ── Reuse signals ────────────────────────────────────────────────────────
+    if site.get("data_center_reuse_candidate"):
+        sentences.append(
+            "The site meets EPA RE-Powering criteria as a data-center reuse candidate "
+            "(≥50 acres with electric transmission and water service access)."
+        )
+    elif site.get("near_electric_transmission") or site.get("near_water_supply"):
+        qual_bits = []
+        if site.get("near_electric_transmission"):
+            qual_bits.append(f"power: {site['near_electric_transmission']}")
+        if site.get("near_water_supply"):
+            qual_bits.append(f"water: {site['near_water_supply']}")
+        if qual_bits:
+            sentences.append(
+                f"EPA RE-Powering profile — {'; '.join(qual_bits)}."
+            )
+
+    if site.get("current_owner"):
+        src = site.get("current_owner_source") or "federal records"
+        sentences.append(f"Current owner: {site['current_owner']} (per {src}).")
+
+    # ── Federal documents ────────────────────────────────────────────────────
     docs = site.get("documents") or []
     if docs:
         cats = sorted({d.get("category") for d in docs if d.get("category")})
-        cat_str = ", ".join(cats[:3]) if cats else "mixed"
-        sentences.append(f"{len(docs)} federal documents on file ({cat_str}).")
+        cat_str = _join_list(cats[:3]) if cats else "mixed categories"
+        n = len(docs)
+        sentences.append(
+            f"{n} federal document{'s' if n != 1 else ''} on file ({cat_str})."
+        )
 
-    # Enforcement — only show block when there are real actions or penalties.
-    # A clean "No Violation Identified" compliance status is not a risk signal.
+    # ── Enforcement (only real actions / penalties, not clean-bill noise) ────
     enf = site.get("enforcement") or {}
     fa = enf.get("formal_actions_5yr") or 0
     penalties = enf.get("penalties_5yr_usd") or 0
     last_viol = enf.get("last_violation_date")
-    enf_bits = []
-    if fa:
-        enf_bits.append(f"{fa} formal action{'s' if fa != 1 else ''} (5yr)")
-    if penalties:
-        enf_bits.append(f"${penalties:,.0f} in penalties (5yr)")
+    if fa or penalties:
+        enf_parts = []
+        if fa:
+            enf_parts.append(
+                f"{fa} formal enforcement action{'s' if fa != 1 else ''} in the past 5 years"
+            )
+        if penalties:
+            enf_parts.append(f"${penalties:,.0f} in penalties")
+        enf_str = _join_list(enf_parts)
+        sentences.append(f"EPA ECHO records show {enf_str}.")
     if last_viol:
-        enf_bits.append(f"last violation {last_viol}")
-    if enf_bits:
-        sentences.append(f"ECHO enforcement: {'; '.join(enf_bits)}.")
+        sentences.append(f"Most recent violation date on record: {last_viol}.")
 
-    if not infra and not docs and not enf_bits:
-        sentences.append("No infrastructure proximity, document, or enforcement data available in federal records.")
+    if not infra_clauses and not docs and not fa and not penalties and not last_viol:
+        sentences.append(
+            "No infrastructure proximity, document, or enforcement data is available "
+            "in federal records for this site."
+        )
+
+    # ── Disclaimer ───────────────────────────────────────────────────────────
+    sentences.append("AI-generated summary from federal records.")
 
     return " ".join(sentences)
 
