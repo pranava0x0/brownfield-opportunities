@@ -132,13 +132,104 @@ Phase 2 (other federal-land contamination universes):
 - **[med] Remediation detail.** Current site only carries NPL status code. Add: Record of Decision (ROD) summary, current cleanup phase, remedy type, lead party (PRP/EPA/state), Five-Year Review status. EPA SEMS has these in adjacent tables.
 - **[low] Site-specific contamination profile.** Contaminants of concern, media affected (groundwater/soil/sediment), exposure pathways. SEMS has it.
 
+## Development Readiness — identifying sites available for development (researched 2026-05-04)
+
+The core question for any acquirer: **which sites can actually be developed, and on what timeline?** A site that's been cleaned up and transferred to a private owner is a fundamentally different opportunity than one still mid-remediation or locked in federal title. Today the dashboard has no way to answer this — NPL status "D" (Deleted) is the closest proxy but it's Superfund-only, not surfaced as a badge, and doesn't capture the other 40k+ non-Superfund records. This section maps every public signal for development readiness and proposes a phased connector + UI build-out.
+
+### Signal taxonomy (strongest → weakest)
+
+**Tier 1 — "Available now": cleanup complete, land transactable**
+
+- **NPL Deletion (status "D")** — already in our data (`s.status === "D"`). ~300 of 1,908 NPL sites are Deleted = EPA formally certifies cleanup meets health/environmental standards. Strongest Superfund signal. Zero new fetches required — just a badge and filter.
+- **ACRES cleanup completion** — `ACRES_cleanups_*` FeatureServer layer (same endpoint as the existing ACRES connector) carries `CA_Status = "Completed"` + `Cleanup_Completion_Date`. Not yet fetched. Applies to some fraction of the 36,003 ACRES records.
+- **FUDS transferred out of federal title** — `current_owner` already partially populated. FUDS records where `current_owner` is `PRIV:*` / `STATE:*` / `LOCAL:*` and USACE has formally conveyed title have completed the remediation → disposition pipeline. These are in private-developer territory. Cross-reference `fuds_status = "Eligible"` + non-federal owner as the proxy; no new fetch needed for an initial filter.
+- **BRAC conveyance complete (quitclaim deed)** — no structured feed exists; still in PDF territory (see `bracpmo.navy.mil` per-base pages). All 27 BRAC sites have partial or full deed transfers underway; some are 100% transferred (e.g., former El Toro MCAS → Great Park Irvine). Defer to the BRAC parcel-level scrape already in backlog.
+
+**Tier 2 — "Coming soon": cleanup nearly done, land coming onto market**
+
+- **"Construction Complete" (CC) milestone** — SEMS milestone date: cleanup work is physically done, deletion paperwork underway. Typically 1–5 years before formal NPL Deletion. Source: EPA SEMS REST API — investigate `https://sems.epa.gov/rest/sites/{EPA_ID}` for milestone table. New `epa_sems_readiness.py` enrichment connector; set `run_order = 250`.
+- **"Ready for Anticipated Use" (RAU)** — EPA's per-Operable-Unit formal determination that the site can support its planned future use. A site can be RAU while still on the NPL (e.g., if cleanup continues in one corner but the main parcel is cleared). RAU date published in SEMS and in the EPA site-profile Redevelopment tab. More granular than NPL Deletion — distinguishes partial vs. whole-site readiness.
+- **BRAC LIFOC (Lease in Furtherance of Conveyance)** — federal government leases land to a developer while cleanup finishes; deed transfer on completion. Developer can start site planning and sometimes vertical construction. Lease start date = actionable now for sophisticated acquirers. Source: same per-Service PDF scrape as the full BRAC item.
+- **ACRES assessment complete, cleanup not started** — brownfields where environmental assessment is done (contamination scope known, cost estimate in hand) but cleanup hasn't started. These are "developer-fundable cleanups" — the acquirer funds remediation as part of the deal. `ACRES_assessments_*` layer `Assessment_Completion_Date` populated + no `Cleanup_Completion_Date` = this tier.
+
+**Tier 3 — "Long pipeline": cleanup ongoing or not yet scoped**
+
+- **FUDS "Eligible" + `has_projects = true`** — USACE is actively investigating or cleaning. Timeline unclear but progressing. At 8,822 FUDS records with 2,874 having active projects, this is a large pipeline pool.
+- **NPL status "F" (Final, active)** — on the NPL, cleanup underway. Wide range from years-to-completion to decades.
+- **NPL status "P" (Proposed)** — newly proposed, cleanup not yet started.
+
+### Anticipated future land use — what the site will be used for when ready
+
+- **EPA SEMS AFL (Anticipated Future Land Use) code** — per-site code set by EPA project manager: `Industrial/Commercial`, `Recreational/Open Space`, `Residential`, `Unknown`. Available via SEMS REST API (same endpoint as milestone data above). Cross-program Superfund sites only; bake into `epa_sems_readiness.py`.
+- **EPA site profile Redevelopment tab** — scrape per-site at `https://www.epa.gov/superfund/[slug]` (same `http_get_text` + regex pattern as `epa_superfund_docs`). The Redevelopment tab exposes:
+  - Anticipated Future Land Use description (more human-readable than the code)
+  - **Site Reuse Accomplishments**: named reuse projects (e.g. "Solar farm installed 2019", "Mixed-use development – 450 units, 2022"), completion date, reuse type (industrial, residential, greenspace, renewable energy)
+  - **RAU date per Operable Unit** (sometimes not in SEMS REST — the HTML page is the authoritative surface)
+  - Links to redevelopment fact sheets (EPA publishes one-pagers on major reuse successes)
+  - Active Institutional Controls listed (deed restriction text; link to IC instrument)
+  - Five-Year Review status (passing/failing protectiveness determination)
+  This is the single richest public source for Superfund readiness data. No structured API — HTML scrape only. Same rate-limit / cache / `http_get_text` pattern as `epa_superfund_docs`; target ~1,400 Final + Deleted NPL sites with known `profile_url` fields. At 1.5s/request + ~2–3 HTTP hops per site, full run ≈ 1–2 hours.
+- **ACRES `Reuse_Type` field** — if present in `ACRES_cleanups_*` or `ACRES_assessments_*` layers (needs investigation). ACRES grant awards are tied to specific end-use categories (affordable housing, commercial, industrial, greenspace, recreation).
+- **BRAC Local Redevelopment Authority (LRA) reuse plan** — each BRAC installation has a named LRA that filed a legally binding Reuse Plan with the DoD. Plans are public record. Too diverse in format for automated scraping; would need to be manually curated for the 27 BRAC sites (feasible one-time effort given the small count).
+
+### Data sources — what needs to be built
+
+- **[high] ACRES cleanups layer join for readiness tier.** Elevating the existing "[med] ACRES enrichment from `ACRES_cleanups_*` layers" item to high priority given its direct bearing on development readiness. Endpoint: same ACRES FeatureServer, different layer ID. Fields to harvest: `CA_Status` (Completed / In Progress / Not Started), `Cleanup_Completion_Date`, `Cleanup_Type`. Join to existing ACRES records by `PROPERTY_ID`. New `epa_acres_cleanup.py` enrichment connector; `run_order = 200` (after `epa-acres`). Lights up readiness tier for up to 36k brownfields at no additional data cost.
+
+- **[high] SEMS REST API for Superfund milestones + AFL code.** Investigate `https://sems.epa.gov/rest/` for Construction Complete date, RAU date (per OU), and AFL code across all 1,908 NPL sites. If the endpoint is clean and unauthenticated, new `epa_sems_readiness.py` enrichment connector (`run_order = 250`, reads `superfund-npl.json`). Emits `docs/data/sems-readiness.json` with `[{epa_id, construction_complete_date, rau_date, rau_ou_id, anticipated_land_use, reuse_projects: [...]}]`. Join client-side in `ensureSemsReadinessLoaded()`. If SEMS REST proves unreliable, fall back to the site profile Redevelopment tab scrape for the same data.
+
+- **[high] EPA site profile Redevelopment tab scrape.** New enrichment pass inside `epa_superfund_docs.py` (or a separate `epa_superfund_redev.py` connector, `run_order = 210`). For each NPL site with a `profile_url`, fetch the Redevelopment tab HTML and regex-extract: AFL description, RAU date + OU scope, reuse accomplishment name/type/date/developer name if available, and IC summary. Cache by `(epa_id, "redev_tab")` using the existing `http_get_text` disk-cache pattern. Output joins into `sems-readiness.json` or a separate `docs/data/epa-redev-tab.json`. Prioritize Final + Deleted NPL sites first (`--redev-status F,D`); Proposed sites are low-signal.
+
+- **[med] FUDS current_owner normalization to readiness proxy.** The `current_owner` raw-code normalization already in backlog ("`PRIV:*` → `"Private"`") is a prerequisite. Once normalized, a FUDS record with a non-federal owner + `fuds_status = "Eligible"` (meaning remediation obligations met) maps cleanly to Tier 1. No new fetches — just use existing `current_owner` once the normalization ships.
+
+- **[low] BRAC LRA reuse plan manual curation.** 27 BRAC sites is small enough to hand-curate: for each site, look up the LRA name, reuse plan headline (e.g., "Great Park Irvine — mixed-use / recreation"), and percent acreage transferred (from `bracpmo.navy.mil`). Store as a static lookup in `connectors/dod_brac.py` (similar to how `NPL_STATUS_LABELS` works for Superfund). Zero ongoing maintenance needed — BRAC is a closed list.
+
+### Schema additions (all optional / nullable)
+
+Add to `SiteRecord` in `schema.py`:
+```
+readiness_tier: Literal["available", "construction_complete", "lifoc", "assessment_complete", "cleanup_in_progress", "no_data"] | None
+construction_complete_date: str | None   # YYYY-MM-DD; Superfund CC milestone
+rau_date: str | None                     # YYYY-MM-DD; earliest OU RAU date
+anticipated_land_use: str | None         # Superfund AFL label, e.g. "Industrial/Commercial"
+cleanup_complete_date: str | None        # YYYY-MM-DD; ACRES CA_Status=Completed date
+reuse_projects: list[dict] | None        # [{name, type, date, developer}] — scraped
+transfer_complete: bool | None           # FUDS/BRAC: title passed to non-federal entity
+```
+`readiness_tier` is derived, not source-supplied — set by a `compute_readiness_tier()` function in `refresh.py` after all enrichments run.
+
+### UI changes
+
+- **[high] "Cleanup Complete" badge in detail panel.** Zero new data required. For `s.status === "D"` (NPL Deletion), render a green "Cleanup Complete" pill alongside the NPL status pill. One CSS rule + two lines of JS in `selectSite()`. Quick win that makes the most actionable Superfund sites immediately legible.
+
+- **[high] Development Readiness filter.** New collapsible filter section in the filters strip (below program/status checkboxes). Checkboxes: `☐ Cleanup Complete / Transferred` · `☐ Construction Complete (near-term)` · `☐ Assessment Complete` · `☐ Active Reuse Underway`. Drives `filterState.readinessTiers[]`; checked state persisted in URL as `?readiness=available,cc`. Default: all unchecked (no filter applied). Enumerate from a `READINESS_LEGEND` constant (same pattern as `PROGRAM_LEGEND` and `STATUS_LEGEND`) so the filter doesn't need updating when new tiers are added.
+
+- **[high] Detail panel "Redevelopment Status" section.** New `#d-redev-block` in the detail panel (above infrastructure rows; below the FUDS block). Fields: readiness tier badge, Anticipated Future Land Use, RAU date, Construction Complete date, Reuse Projects list (name + type + year), Institutional Controls summary link. Hidden when no readiness data is available for the record. Show for all programs — ACRES cleanup status and FUDS transfer status deserve the same panel treatment as Superfund RAU.
+
+- **[med] KPI deck: "Available Sites" count.** New KPI cell `#kpi-available` showing the count of records in Tier 1 readiness (cleanup complete / transferred) across all programs. Computed from the in-memory `sites` array after all lazy-loads complete. Gives users an immediate sense of the investable universe size.
+
+- **[med] Map: readiness marker variant.** Optionally render Tier 1 sites with a distinct marker style (e.g., filled vs. ring, or a small checkmark overlay) so they're visually distinct from cleanup-in-progress sites. Implement only after filter + detail panel land — don't add visual complexity before the data is stable.
+
+### Suggested phasing
+
+1. **Immediate (zero new fetches):** Add "Cleanup Complete" green badge in detail panel for NPL `status = "D"` sites + FUDS sites with non-federal `current_owner` (after normalization). Add the Readiness filter checkbox skeleton, enabled only for those two signals initially. Ship as a point release.
+2. **Short-term:** ACRES cleanups layer join (`epa_acres_cleanup.py`) — same connector pattern, one endpoint, lights up `readiness_tier` for the 36k ACRES records. SEMS REST API investigation — if endpoint is clean, ship `epa_sems_readiness.py` for Superfund CC + AFL. Ship both in one enrichment release.
+3. **Medium-term:** EPA site profile Redevelopment tab scrape for RAU dates + reuse accomplishments. Builds on the `epa_superfund_docs` scrape pattern; run incrementally with `--redev-limit N`. Ship detail panel `#d-redev-block` at the same time so scraped data is immediately visible.
+4. **Defer:** BRAC parcel-level LIFOC/deed scrape (per-Service PDF, multi-week); FUDS USACE CEFMS (FOIA-only). BRAC LRA curation is low-effort and can be done manually at any point.
+
 ## Infrastructure proximity (the data-center thesis)
 
 Compute at refresh time, bake into JSON. Transmission, rail, and primary roads landed in v1.10 (see top-of-file). Remaining gaps:
 
 - ~~**[high] Transmission lines.**~~ Done 2026-05-04 (v1.10) — HIFLD `Electric_Power_Transmission_Lines` (~52k polylines), nearest-segment via pure-Python `connectors/spatial.py`. Field: `transmission_mi`.
-- **[high] Substations.** Outstanding — see v1.10 demoted-items note. National HIFLD substations endpoint not yet identified; OpenInfraMap (OSM) extracts are the working fallback. When added, set field `substation_mi` on the same `infra-proximity.json` schema.
-- **[high] Available transmission capacity.** Going beyond "is there a wire nearby" — **FERC Form 715 / OASIS / regional ISO interconnection queue position**. This is the actual gating factor for data-center siting; hyperscalers care about MW available, not line count.
+- **[high] Substations via OSM / OpenInfraMap.** HIFLD substations have been auth-walled since 2022 (DHS/CEII restriction — not a viable path). Two free alternatives:
+  - **Audubon ArcGIS Hub** (`data-library-audubon.hub.arcgis.com`) publishes an OSM-derived substations FeatureServer layer — same connector pattern as existing HIFLD/TIGER layers, no Overpass setup needed. Preferred path.
+  - **OSM Overpass API** (`overpass-api.de`) — query `way["power"="substation"]["voltage"~"^(69|115|138|161|230|345|500|765)"]` to filter HV-only. Free, no key, returns GeoJSON. Fallback if Audubon layer coverage proves incomplete.
+  Filter to `voltage ≥ 69kV` (transmission-level) to exclude neighborhood distribution substations, which are irrelevant for data-center siting. OSM coverage of HV substations in CONUS is good; distribution-level is spottier. Add `substation_mi` to the existing `infra-proximity.json` schema — same `SegmentIndex` lookup pattern as transmission lines but point-to-point distance (substations are points, not polylines).
+- **[high] Available transmission capacity (LBNL + gridstatus).** Going beyond "is there a wire nearby" — MW queued and available is the actual gating factor for data-center siting. Two free paths:
+  - **LBNL "Queued Up" annual Excel** (`emp.lbl.gov/queues`) — free download, no auth, covers 97% of US installed capacity. Project-level fields include county FIPS, MW capacity, fuel type, queue status, entry/study dates. Roll up to `queued_mw_50mi` per site at refresh time. Annual cadence is fine for county-level aggregation. This is the same underlying data that interconnection.fyi surfaces — their API adds no value if you consume LBNL directly.
+  - **`gridstatus` open-source library** (`pip install gridstatus`, Apache 2.0) — unified `get_interconnection_queue()` across all 7 ISOs (PJM, MISO, CAISO, ERCOT, SPP, NYISO, ISO-NE), returns a pandas DataFrame with lat/lon when the ISO provides it. More current than LBNL annual snapshots; useful for sites near ISO borders where county-level rollup is imprecise. Requires geocoding queue projects that lack coordinates.
+  **Note:** FERC OASIS (real-time ATC) is fragmented across per-provider portals with no central bulk API. FERC Form 715 is CEII-restricted. Both are dead ends. interconnection.fyi paid API has no advantage over LBNL + gridstatus at zero cost.
 - ~~**[high] Major roads + interstate access.**~~ Done 2026-05-04 (v1.10) — Census TIGERweb Primary Roads (`MTFCC='S1100'`, ~17.6k features). Field: `highway_mi`. Drive-time from nearest interstate exit deferred — would need OSRM / Mapbox, much heavier integration.
 - ~~**[high] Rail.**~~ Done 2026-05-04 (v1.10) — Census TIGERweb Railroads layer 9 (~111k features). Field: `rail_mi`. Class I/II/III classification deferred — TIGER doesn't carry it; the HIFLD NTAD layer does (in `RROWNER1` field) but the join would double the layer-fetch cost.
 - **[med] Water.** USGS NHD HighRes + waterbodies. Compute distance to: nearest surface water (cooling), nearest municipal water service area.
@@ -238,7 +329,7 @@ Researched: EPA Cleanups in My Community, EPA ACRES portal, EPA ECHO, EPA EJSCRE
 
 ### Data sources not yet in our tracker
 
-- **[med] ECHO enforcement & compliance history.** EPA ECHO (echo.epa.gov) has per-facility inspection records, enforcement actions, and violation history across CAA, CWA, RCRA, and Superfund programs. For transaction due diligence this is high-signal: a site with active enforcement or open litigation is a fundamentally different risk profile than one with settled costs. Connector would hit `echo.epa.gov/echo/facility_search.service` by EPA ID → join onto Superfund records. Show in detail panel as a "Compliance history" expandable section.
+- ~~**[med] ECHO enforcement & compliance history.**~~ Done 2026-05-04 (v1.11) — `connectors/epa_echo.py`. One HTTP call per Superfund site to `echodata.epa.gov/echo/echo_rest_services.get_facilities?p_si=<EPA_ID>` returns the headline ECHO summary (5yr inspections, formal/informal actions, penalties, last violation date, current compliance, active programs). Detail-panel "Enforcement & compliance" block highlights nonzero formal actions and nonzero penalties via the `.violation` class. Resumable batched coverage via `--echo-limit N --echo-skip M`. Deep-link to canonical DFR on echo.epa.gov for full report. Currently Superfund-only; ACRES/FUDS/BRAC could pivot via name+state lookup in a future pass.
 - **[med] RCRA Corrective Action.** Already in backlog — naming it here again because ECHO and EnviroAtlas both expose it and it's one of the bigger universe-expansion opportunities (tens of thousands of sites not in EPA NPL or ACRES).
 - **[med] UST (Underground Storage Tanks) database.** State UST databases track former/current petroleum storage — the single largest category of brownfield sites. Most are former gas stations with moderate (sub-$1M) cleanup costs and attractive urban infill locations. EPA's LUST/UST program aggregates state data. Distinct program = new connector + `program: "ust"`. Start with the LUST Trust Fund tracking data (EPA OUST).
 - **[med] State VCP (Voluntary Cleanup Programs).** Each of the ~40 active state VCPs has thousands of sites not in federal data — NY DEC State Superfund, CA DTSC EnviroStor, TX TCEQ VCP, NJ DEP Hazardous Discharge Site Remediation Fund (HDSRF). These are often *closer to shovel-ready* than federal sites because voluntary cleanups are developer-initiated. Suggested connectors by state: CA EnviroStor ArcGIS REST → `program: "ca-vcp"`, NY DEP ESD search → `program: "ny-vcp"`. One connector per state; add when a state publishes a machine-readable endpoint.
@@ -247,7 +338,7 @@ Researched: EPA Cleanups in My Community, EPA ACRES portal, EPA ECHO, EPA EJSCRE
 
 ### Site-depth gaps vs. competitors
 
-- **[high] AI-generated site summary card.** None of the competing tools synthesize the raw data into plain English. EnviroAtlas is the closest ("no GIS skills required") but still dumps data tables. Opportunity: use Claude Haiku to generate a 3-paragraph summary per site from `name`, `status`, `acreage`, `documents[]`, `remediation_status`, `infrastructure fields`. Cache by content-hash so identical data never re-calls the API. Surface in detail panel as a "Summary" tab above the KV fields. Differentiator that no federal or state tool has.
+- ~~**[high] AI-generated site summary card.**~~ Done 2026-05-04 (v1.11) — `connectors/ai_summary.py` calls Claude Haiku (`claude-haiku-4-5-20251001`) to synthesize a 3-paragraph plain-English narrative per site (what it is / reuse signals / material risks). **Cached by content-hash** of the relevant fields so re-runs only re-bill when underlying data actually changes. Surfaced as a "Summary" tab in the detail panel with an accent left-border to distinguish AI-generated prose from primary-source data. `--dry-run` works without an API key (cache-only re-build). Default `--ai-limit 100 --ai-status F,D` keeps a single run cheap; cost ≈ $0.001/summary at current Haiku pricing.
 - **[med] Remediation timeline visualization.** ECHO and SEMS both expose milestone dates (SI, PA, RI/FS, ROD, RD/RA, Construction Complete, Deleted). We carry `npl_status` but no milestone dates. Adding a horizontal timeline strip to the detail panel ("Listed 1983 → ROD 1991 → Construction Complete 2006 → Deleted 2012") would match the most useful pattern in CERCLIS-era tools and is unique among public-facing UIs.
 - **[med] Five-Year Review (5YR) status.** EPA requires 5YRs at NPL sites to verify ongoing protectiveness. A site with a failing 5YR is a very different acquisition risk than one that passed. EPA SEMS 5YR table is in the same SEMS API used by the existing connector — one extra endpoint to pull.
 - **[med] ACRES grant history.** ACRES tracks EPA brownfield grants: grantee, award amount, award date, assessment/cleanup/RLF type. A site that received $500k in cleanup funding 3 years ago is much closer to ready than one without grants. ACRES REST endpoint exposes this under `BF_GRANT_AWARD` and `BF_GRANT_RECIPIENT` views. Show in detail panel as a "Federal funding" section.
@@ -276,6 +367,50 @@ Researched: EPA Cleanups in My Community, EPA ACRES portal, EPA ECHO, EPA EJSCRE
 - ~~**[med] Schema validation.**~~ Done 2026-04-27 — Pydantic `Payload`/`SiteRecord` in `schema.py` with `extra="forbid"`. `refresh.py` validates before write.
 - ~~**[med] Diff log.**~~ Done 2026-04-27 — `diff.py` writes `data/changes.md`; `refresh.yml` parses summary into commit message.
 - ~~**[med] Defensive over-fetch guard.**~~ Done 2026-04-27 — connector logs a warning if >50% of fetched features drop during normalize.
+
+## Data audit — gaps found 2026-05-04
+
+Systematic null-rate analysis across all six data files (`superfund-npl.json` 1,908 records · `epa-acres.json` 36,003 · `dod-fuds.json` 8,822 · `dod-brac.json` 27 · `infra-proximity.json` 46,218 · `epa-superfund-docs.json` 7).
+
+### Coverage gaps
+
+- **[high] Superfund documents enrichment at 0.4% coverage.** `epa-superfund-docs.json` has only 7 entries (out of 1,908 NPL sites). The connector exists and works, but has never been run at scale. A full run with `--docs-status F,D` (Final + Deleted NPL, ~1,787 sites sorted by acreage desc, default `--docs-limit 100`) takes ~15 min; `--docs-limit 500` ~75 min. Run via `python refresh.py --connector epa-superfund-docs --docs-limit 500 --docs-status F,D`. Documents are the sharpest differentiator vs. competing tools — zero coverage makes the "Federal documents" block in the detail panel dead for 99.6% of sites.
+
+- **[high] ACRES acreage: 0/36,003 records populated (0%).** The EPA ACRES FeatureServer does not expose acreage. Every ACRES record has `acreage: null`, so the acreage slider, "X ac" KPI, and acreage column are meaningless for the 36k brownfield records. Two paths remain:
+  - Email `helpdesk@acrebs.epa.gov` for a bulk PPF extract (free, one-shot, ~1–2 week turnaround).
+  - Commercial fallback via Regrid / Landgrid Parcel API (~$0.001–0.01/parcel; one-time enrichment of 36k records ≈ $36–360).
+  Until one ships, the KPI deck acreage total excludes all 36,003 brownfields.
+
+- **[high] ACRES county: 18,421/36,003 records missing county (51.2%).** The ACRES FeatureServer omits county for roughly half of all records. Major gaps: CA 65%, TX 67%, FL 59%, MA 64%, MN 66%. County is used by the state-filter summary line and the table column. Fix options:
+  - **Reverse geocoding (preferred):** Call Census Geocoder batch API (`geocoding.geo.census.gov`) with `lat/lon` → `county` FIPS + name. Free, no key. All 36k ACRES records have `lat` and `lon`. Add a `reverse_geocode_county()` helper to `connectors/epa_acres.py`; run only when `county` is null; cache by `(round(lat, 4), round(lon, 4))` so re-runs don't re-fetch.
+  - **TIGER spatial join (offline):** Intersect lat/lon against `us-counties-topo.json` (already on disk). Zero external calls; same library used for spatial grid already available.
+
+- **[high] FUDS acreage: 5,832/8,822 records missing acreage (66.1%).** Layer-4 polygon join (v1.9) filled only 2,990 records (~34%). The 5,832 missing are predominantly `Eligible` (4,099 records) — the highest-value tier for redevelopment. USACE has not digitized boundaries for these sites; no automated public fix exists. Document this as a known source gap; add a "Boundary not digitized" note in the detail panel for FUDS records without acreage so users know it's a data limitation, not a missing field.
+
+- **[med] FUDS current_owner raw codes not normalized.** Source ships concatenated USACE codes, e.g. `"OTHER: OTHER   "`, `"PRIV: PRIVATE   "`, `"FED: FEDERAL AIR FORCE  "`. UI renders these raw strings. Parse in `connectors/dod_fuds.py` `normalize()` to clean labels: `PRIV:*` → `"Private"` (2,513), `FED:* <component>` → `"Federal – <component>"` (1,586), `LOCAL:*` → `"Local government"` (1,558), `OTHER:*` → `"Other"` (1,074), `STATE:*` → `"State"` (677), `TRIBE:*` → `"Tribal"` (78). Multi-value entries (e.g. `"LOCAL ; PRIV"`) join with " / ". Preserve raw on `current_owner_raw` for debugging. Small change, big UI polish for 7,573 FUDS records.
+
+- **[med] Out-of-CONUS sites have no infra-proximity data — undocumented.** 395 FUDS (AK=260, HI=76, AS=31, MP=26, PW=2) and 142 ACRES (all AK) records are absent from `infra-proximity.json` because `MAX_DISTANCE_MI=100` drops them. The detail panel shows blank dashes for their transmission/rail/highway rows. Options: (a) show a `"Remote – outside continental US"` placeholder instead of a blank; (b) run an AK-specific enrichment pass using AK DOT&PF highway layer + AK railroad data from HIFLD.
+
+- **[low] FUDS has_projects field exposes no project-level detail.** 2,874 FUDS records flag `has_projects: "yes"` with no further breakdown. USACE FUDS FeatureServer layers 2 (Projects) and 3 (Investigations) are at the same endpoint and joinable by `DODFUDSPROPERTYIDPK`. A join would surface project count, current phase, and investigation type in the detail panel. Similar pattern to the existing layer-4 acreage join.
+
+### Schema fields with 0 records populated (gap register, verified 2026-05-04)
+
+The following `SiteRecord` fields are defined in `schema.py`, have connectors planned, but currently have zero data in any output file:
+
+| Field | Status | Source |
+|-------|--------|--------|
+| `enforcement` | Connector built (v1.11) — populated incrementally as `epa-echo --echo-limit N` runs land more sites | EPA ECHO `get_facilities` |
+| `summary` / `summary_meta` | Connector built (v1.11) — populated incrementally as `ai-summary --ai-limit N` runs land more sites; requires `ANTHROPIC_API_KEY` | Claude Haiku |
+| `encumbrances` | Connector not built | EPA ICTS institutional controls |
+| `remediation_detail` | Connector not built | EPA SEMS milestone table |
+| `historical_owners` | No clean public source | County deed history (paid) |
+| `proximity` | Superseded by `transmission_mi` etc. | Legacy field — candidate for removal |
+
+Note: `data_center_reuse_candidate`, `near_electric_transmission`, and Redev fields ARE populated (828 True / 1,077 False across 1,905 sites in `epa-redev.json`) — they live in the enrichment file and are joined client-side, not embedded in `superfund-npl.json` directly.
+
+- **[low] Remove the `proximity` field from `schema.py`.** The v1.7-era catch-all dict for infra distances, fully superseded by `transmission_mi`, `rail_mi`, `highway_mi` in v1.10. Never populated in any data file. Removing it cleans the schema at no cost.
+
+---
 
 ## Data quality (deferred normalizations)
 
