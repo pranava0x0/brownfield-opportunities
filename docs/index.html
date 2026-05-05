@@ -48,7 +48,7 @@
   <div class="hero-inner">
     <div class="hero-copy">
       <p class="hero-eyebrow">
-        <span>US Brownfield Atlas</span><span class="dot">·</span><span id="hero-version">v1.8</span><span class="dot">·</span><span id="hero-refresh">Updated —</span>
+        <span>US Brownfield Atlas</span><span class="dot">·</span><span id="hero-version">v1.11</span><span class="dot">·</span><span id="hero-refresh">Updated —</span>
       </p>
       <h2>Every federally-tracked contaminated site in America, mapped.</h2>
       <p>~47,000 EPA Superfund, ACRES brownfield, DOD FUDS, and BRAC properties. Filter by state, acreage, and program — and see which sites have the power, water, and rail proximity to support reuse.</p>
@@ -145,6 +145,20 @@
   <h2 id="detail-title">—</h2>
   <p id="detail-loc" class="muted"></p>
 
+  <div class="detail-tabs" role="tablist" aria-label="Site detail view">
+    <button id="dtab-overview" class="detail-tab active" role="tab" aria-selected="true" aria-controls="dpane-overview">Overview</button>
+    <button id="dtab-summary" class="detail-tab" role="tab" aria-selected="false" aria-controls="dpane-summary">Summary</button>
+  </div>
+
+  <section id="dpane-summary" class="dpane" role="tabpanel" aria-labelledby="dtab-summary" hidden>
+    <div id="d-summary-block" class="summary-card">
+      <p id="d-summary-empty" class="summary-empty muted">No AI summary on file for this site yet — coverage grows as the <code>ai-summary</code> connector backfills more sites.</p>
+      <div id="d-summary-body" hidden></div>
+      <p id="d-summary-meta" class="summary-meta muted-cell" hidden></p>
+    </div>
+  </section>
+
+  <section id="dpane-overview" class="dpane" role="tabpanel" aria-labelledby="dtab-overview">
   <dl class="kv">
     <dt>Program</dt><dd id="d-program">—</dd>
     <dt>Acreage</dt><dd id="d-acreage">—</dd>
@@ -200,7 +214,23 @@
     <dt>Data center candidate</dt><dd id="d-dc-candidate" class="muted-cell">Not available</dd>
   </dl>
 
+  <div id="d-echo-block" hidden>
+    <h3>Enforcement &amp; compliance <span class="docs-count" id="d-echo-source" aria-hidden="true">EPA ECHO</span></h3>
+    <dl class="kv">
+      <dt>Current compliance</dt><dd id="d-echo-compliance" class="muted-cell">Not available</dd>
+      <dt>Inspections (5yr)</dt><dd id="d-echo-insp" class="muted-cell">Not available</dd>
+      <dt>Formal actions (5yr)</dt><dd id="d-echo-formal" class="muted-cell">Not available</dd>
+      <dt>Informal actions (5yr)</dt><dd id="d-echo-informal" class="muted-cell">Not available</dd>
+      <dt>Penalties (5yr)</dt><dd id="d-echo-penalties" class="muted-cell">Not available</dd>
+      <dt>Last violation</dt><dd id="d-echo-last-viol" class="muted-cell">Not available</dd>
+      <dt>Last inspection</dt><dd id="d-echo-last-insp" class="muted-cell">Not available</dd>
+      <dt>Active programs</dt><dd id="d-echo-programs" class="muted-cell">Not available</dd>
+    </dl>
+    <p class="docs-source-line"><a id="d-echo-dfr" href="#" target="_blank" rel="noopener">Full Detailed Facility Report on EPA ECHO →</a></p>
+  </div>
+
   <p class="source"><a id="d-profile" href="#" target="_blank" rel="noopener">Source profile</a></p>
+  </section>
 </aside>
 
 <footer class="site-footer" role="contentinfo">
