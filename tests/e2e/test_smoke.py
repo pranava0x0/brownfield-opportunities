@@ -329,10 +329,12 @@ def test_detail_panel_truly_hides_on_close(page, base_url):
     assert aria_hidden == "true"
 
     # visibility transition is 180ms — wait it out and verify the panel is
-    # truly off-screen (no stale-content sliver on the right edge).
+    # truly off-screen (no stale-content sliver on the right edge). The 5s
+    # timeout (vs. the 180ms animation) absorbs CI runner jitter; locally
+    # the wait resolves in <250ms.
     page.wait_for_function(
         "getComputedStyle(document.getElementById('detail')).visibility === 'hidden'",
-        timeout=2000,
+        timeout=5000,
     )
     rect = page.evaluate(
         "() => { const r = document.getElementById('detail').getBoundingClientRect();"
@@ -350,7 +352,9 @@ def test_unknown_site_id_shows_toast(page, base_url):
     # Wait long enough for ACRES lazy-load to either land or fail before the
     # "not found" toast fires (the click path also waits on acresLoadingPromise).
     page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
-    page.wait_for_selector("#toast.visible", timeout=2000)
+    # 5s (vs. the toast fade-in's ~50ms) absorbs CI runner jitter; the
+    # toast fires synchronously after acresLoadingPromise resolves.
+    page.wait_for_selector("#toast.visible", timeout=5000)
     text = page.locator("#toast").text_content()
     assert "not found" in text.lower()
     assert page.locator("#detail").is_hidden()
