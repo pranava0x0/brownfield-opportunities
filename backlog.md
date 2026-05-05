@@ -4,6 +4,17 @@ Ideas and enhancements. Priorities: **high** = next, **med** = soon, **low** = n
 
 ---
 
+## v1.11.2 — Continue ECHO + docs coverage (2026-05-05+)
+
+The v1.11.2 commit fixed the ECHO connector and shipped 380 of 1,787 Final/Deleted Superfund sites with enforcement data (vs the broken 0 records in v1.11). Continued coverage is gated by upstream API throttling, so this is staged work, not a single sprint:
+
+- **[high] Finish the ECHO F/D backfill (1,407 sites remaining).** ECHO bot-detection trips after sustained 1.5 s/call cadence — the connector now backs off correctly via the `_EchoBotBlocked` retry path, but the wall-clock cost compounds (16 bot-blocks × 30 s = 8 min of pure backoff in the first 380 sites). Future runs should either (a) raise the per-call delay specifically for ECHO to ~3 s, halving the bot-block rate, or (b) split into nightly cron batches of `--echo-limit 200 --echo-skip <prev>` to stay under the threshold.
+- **[high] Finish the EPA superfund-docs backfill (~1,700 sites remaining).** `cumulis.epa.gov` was hitting the 60 s `REQUEST_TIMEOUT_S` on roughly every other request during the 2026-05-05 batch — net 10 new records over 30 min of wall clock. Same staging strategy: nightly cron batches with `--docs-limit 100 --docs-skip <prev>`, or run during off-peak hours when EPA's app servers are less loaded.
+- **[high] Run the ai-summary connector once `epa-echo` + `epa-superfund-docs` are both >50% covered.** The summary prompt MERGES every enrichment file we have on disk into the model's context — running ai-summary today against 21% ECHO coverage would generate ~1,400 summaries that don't mention enforcement. Better to wait until the upstream coverage is meaningful, then run with `--ai-limit 0` (cache-aware so re-runs are free for unchanged inputs).
+- **[low] ECHO non-Superfund coverage.** The connector currently only enriches Superfund records (`run_order = 250` reads `superfund-npl.json`). FUDS / ACRES / BRAC sites don't have an EPA_ID equivalent for ECHO's `p_pid` filter — would need a name + state fuzzy match (`p_fn` + `p_st`) which is unreliable. Defer until an actual user asks for non-Superfund enforcement data.
+
+---
+
 ## ~~v1.11.1 — Bug-fix pass + UX polish (2026-05-05)~~ Done
 
 Three defects closed:
@@ -334,6 +345,28 @@ Turn this into a "Where can I site a hyperscale data center on a remediated brow
 - **[med] Mobile filter UX.** The collapsible filters strip works on phones but it's wide; consider a bottom-sheet filter panel that mirrors the detail-panel pattern.
 
 ## Performance / hosting
+
+### Frontend JS — code-level hot paths (audited 2026-05-05)
+
+- **[high] Pre-build search index at ingest time.** `siteMatchesQuery()` joins `[name, city, county, state]` into a temporary string on every call. With 47k sites, every keystroke triggers 47k string concatenations + 47k `includes()` tests. Fix: at `ingestSites()` time, write `s._searchKey = [s.name, s.city, s.county, s.state].join(" ").toLowerCase()` once per record, then `siteMatchesQuery()` reads `s._searchKey.includes(q)`. Zero behavior change; eliminates per-keystroke allocations entirely.
+
+- **[high] Cache `refitMapToFilters()` bbox — eliminate O(n) min/max scan.** After every filter change `refitMapToFilters()` collects all visible lat/lons into two arrays, then calls `Math.min`/`Math.max`. That's two full 47k-element sweeps per filter toggle. Fix: maintain a `visibleBBox = {minLat, maxLat, minLon, maxLon}` object updated at the same time `tableState.filtered` is rebuilt in `refreshTableForFilter()`. Pass it directly to `refitMapToFilters()` so the function never needs to re-scan.
+
+- **[med] Replace `sites.some(s => s.program === X)` with a `loadedPrograms` Set.** Each lazy loader calls `sites.some(...)` to check whether the program already loaded, scanning up to 47k entries. Fix: maintain a module-level `const loadedPrograms = new Set()` and update it in `ingestSites()`. Each loader checks `loadedPrograms.has("brownfield")` — O(1). Same pattern as `sitesById`.
+
+- **[med] Move `decimateKeep(zoom)` outside the marker-visibility loop.** `applyMarkerVisibility()` calls `decimateKeep(zoom)` once per marker (47k+ calls), but `zoom` doesn't change inside the loop. Fix: call it once before the loop — `const keepEvery = decimateKeep(zoom)` — then pass it to `shouldDecimateOut()`. No behavior change.
+
+- **[med] Batch enrichment property assignment.** The five enrichment merge loops (`ensureRedevLoaded`, `ensureEchoLoaded`, `ensureInfraLoaded`, `ensureInfraLoaded`, `ensureSuperfundDocsLoaded`) each assign properties one-by-one inside an `if`-chain. Replacing with `Object.assign(existing, { field1: rec.field1, ... })` reduces the number of property descriptor lookups and makes the merge logic easier to scan.
+
+- **[med] Cache `updateCountText()` inputs from `refreshTableForFilter()`.** `updateCountText()` iterates all filtered sites to count visible entries and sum acreage. It's called on every filter change immediately after `refreshTableForFilter()` has already built `tableState.filtered`. Fix: compute `filteredCount` and `filteredAcreageSum` once inside `refreshTableForFilter()` and pass them in, avoiding a second full-array scan.
+
+- **[low] Event delegation for table header sort clicks.** Each `<th>` gets its own click listener on page load via `forEach`. Fix: single `addEventListener("click", ...)` on `#sites-table thead` that checks `event.target.closest("[data-sort]")`. Reduces listener count from N-columns to 1 and survives future column additions automatically.
+
+- **[low] Cache `querySelectorAll` in `updateSortIndicators()`.** The function calls `document.querySelectorAll("#sites-table thead th")` inside a `forEach` loop, re-querying the DOM on every iteration. Fix: call it once before the loop and cache the result. One-liner.
+
+- **[low] Pre-compile `prettyPlace`/`prettyName` regexes as module constants.** Both functions define their split regexes inline (re-parsed each call at startup). Move them to `const PLACE_SPLIT_RE = /(\s+|[-/])/g` at module scope. V8 likely caches them already, but explicit constants make the intent clearer.
+
+- **[low] Single-pass KPI deck computation.** `updateKpiDeck()` loops `sites` once per metric (total, acres, DC candidates, state set). Merge into one `sites.reduce()` call that accumulates all four in parallel. Reduces 4 passes to 1.
 
 ### UAT 2026-04-29 #2 (high priority)
 

@@ -1150,6 +1150,60 @@ def test_selectsite_resets_to_overview_tab(page, base_url):
     assert page.locator("#dpane-overview").evaluate("el => el.hidden") is False
 
 
+def test_table_status_column_no_program_duplication(page, base_url):
+    """UAT-009: STATUS column previously fell back to a `data-program` pill
+    when `npl_status_code` was null, which made the column visually identical
+    to the PROGRAM column for every FUDS / BRAC / ACRES row. Fixed: render
+    `eligibility` for FUDS, an em-dash otherwise."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    page.locator("#tab-table").click()
+    page.wait_for_selector("#sites-table tbody tr")
+    # Sort by STATE asc so rows are deterministic; AK has rows from multiple
+    # programs (Superfund, FUDS, BRAC) within the first page so we can spot-
+    # check each program's STATUS-cell rendering.
+    state_th = page.locator("#sites-table thead th[data-sort='state']")
+    state_th.click()
+    page.wait_for_function(
+        "document.querySelector(\"#sites-table thead th[data-sort='state']\")?.getAttribute('data-sort-glyph') === '▲'"
+    )
+    duplicates = page.evaluate(
+        "() => {"
+        "  const rows = Array.from(document.querySelectorAll('#sites-table tbody tr'));"
+        "  const out = [];"
+        "  for (const tr of rows) {"
+        "    const tds = tr.querySelectorAll('td');"
+        "    if (tds.length < 5) continue;"
+        "    const program = tds[1].textContent.trim();"
+        "    const status = tds[4].textContent.trim();"
+        "    if (program && program === status) {"
+        "      out.push({ name: tds[0].textContent.trim(), program, status });"
+        "    }"
+        "  }"
+        "  return out.slice(0, 5);"
+        "}"
+    )
+    assert duplicates == [], (
+        f"STATUS column still duplicates PROGRAM column for these rows: {duplicates!r}. "
+        "Fix `makeRow()` in app.js so non-Superfund records render eligibility "
+        "(FUDS) or an em-dash, not the program pill."
+    )
+    # Spot-check: at least one BRAC row should render '—' in STATUS.
+    brac_status_dashes = page.evaluate(
+        "() => {"
+        "  const rows = Array.from(document.querySelectorAll('#sites-table tbody tr'));"
+        "  return rows.filter(tr => {"
+        "    const pillProg = tr.querySelector('td:nth-child(2) .pill[data-program]');"
+        "    return pillProg && pillProg.dataset.program === 'brac';"
+        "  }).map(tr => tr.querySelector('td:nth-child(5)').textContent.trim());"
+        "}"
+    )
+    if brac_status_dashes:
+        assert all(s == "—" for s in brac_status_dashes), (
+            f"BRAC rows should render em-dash in STATUS, got: {brac_status_dashes!r}"
+        )
+
+
 def test_site_name_titlecased_with_acronyms_preserved(page, base_url):
     """Site names ship ALL CAPS in ~94% of records. `prettyName()` title-cases
     them at ingest while preserving federal/military acronyms (NRDA, PCB,

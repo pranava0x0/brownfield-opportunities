@@ -789,6 +789,9 @@ main {
 .kv dt { color: var(--muted); font-size: 12px; padding-top: 1px; }
 .kv dd { margin: 0; word-wrap: break-word; color: var(--text-soft); }
 .kv dd.muted-cell { color: var(--muted); font-style: italic; }
+/* Same muted treatment for table cells when a column doesn't apply to the
+   record's program — e.g. STATUS column for ACRES/BRAC (UAT-009). */
+#sites-table td .muted-cell { color: var(--muted); font-style: italic; }
 /* Inline acreage note for FUDS records lacking a digitized boundary. The
    parent `<dd>` itself isn't muted (acreage may say "N/A" but we still want
    regular weight); the note is. The `[hidden]` rule guards against the
