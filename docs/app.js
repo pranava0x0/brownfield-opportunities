@@ -1530,7 +1530,23 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
     ? ` <span class="pill dc-pill" title="Power, ≥50 acres, water service area">DC candidate</span>`
     : "";
   el("d-program").innerHTML = programPill + dcPill;
-  el("d-acreage").textContent = fmt.acres(s.acreage);
+  // The acreage `<dd>` carries an inline note `<span>` for FUDS records
+  // missing acreage. Replace only the text node so the note span isn't
+  // clobbered, then toggle the note for the FUDS-no-boundary case.
+  const acreageEl = el("d-acreage");
+  const acreageNote = el("d-acreage-note");
+  acreageEl.firstChild && acreageEl.firstChild.nodeType === Node.TEXT_NODE
+    ? (acreageEl.firstChild.nodeValue = fmt.acres(s.acreage))
+    : acreageEl.insertBefore(document.createTextNode(fmt.acres(s.acreage)), acreageNote || null);
+  if (acreageNote) {
+    if (s.program === "fuds" && s.acreage == null) {
+      acreageNote.textContent = "Boundary not digitized in USACE source.";
+      acreageNote.hidden = false;
+    } else {
+      acreageNote.textContent = "";
+      acreageNote.hidden = true;
+    }
+  }
 
   // Status / ID labels vary by program.
   const statusEl = el("d-status");

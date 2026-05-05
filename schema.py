@@ -137,7 +137,6 @@ class SiteRecord(BaseModel):
     historical_owners: Optional[list[str]] = None
     encumbrances: Optional[list[str]] = None
     remediation_detail: Optional[dict] = None
-    proximity: Optional[dict] = None
 
     # Related federal documents per site (RODs, ESDs, Five Year Reviews,
     # fact sheets, technical reports). Populated by enrichment connectors

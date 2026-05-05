@@ -187,6 +187,12 @@ class EpaSuperfundDocs(Connector):
                     log.warning("[%s] pretty-page HTTP %s — skipping", epa_id, code)
                     continue
                 raise
+            except (requests.ConnectionError, requests.Timeout) as e:
+                # cumulis.epa.gov is flaky during long runs — a single
+                # network timeout shouldn't abort the whole 500-site batch.
+                log.warning("[%s] pretty-page network error: %s — skipping",
+                            epa_id, type(e).__name__)
+                continue
             if not sf_site_id:
                 skipped_no_sf_id += 1
                 log.info("[%s] no SF_SITE_ID in %s", epa_id, pretty_url)
@@ -199,6 +205,10 @@ class EpaSuperfundDocs(Connector):
                     log.warning("[%s] docdata HTTP %s — skipping", epa_id, code)
                     continue
                 raise
+            except (requests.ConnectionError, requests.Timeout) as e:
+                log.warning("[%s] docdata network error: %s — skipping",
+                            epa_id, type(e).__name__)
+                continue
             if not docs:
                 log.info("[%s] no documents found (SF_SITE_ID=%s)", epa_id, sf_site_id)
                 continue
@@ -283,6 +293,12 @@ class EpaSuperfundDocs(Connector):
                                 col["colid"], code)
                     continue
                 raise
+            except (requests.ConnectionError, requests.Timeout) as e:
+                # Same flakiness applies to semspub.epa.gov — never let one
+                # collection's network blip take down the whole site's run.
+                log.warning("collection %s network error: %s — skipping",
+                            col["colid"], type(e).__name__)
+                continue
             for entry in col_data.get("data") or []:
                 doc = self._normalize_document(entry, col)
                 if doc is not None:
