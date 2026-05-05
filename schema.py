@@ -109,6 +109,23 @@ class SiteRecord(BaseModel):
         description="Computed: meets EPA data-center siting criteria (power, water, acreage).",
     )
 
+    # Universal infrastructure-proximity distances in miles, computed from
+    # HIFLD + Census TIGER at refresh time by the `infra-proximity`
+    # enrichment connector. Available across all programs (Superfund,
+    # ACRES, FUDS, BRAC). Distances >100 mi are dropped (out-of-CONUS).
+    transmission_mi: Optional[float] = Field(
+        default=None,
+        description="Miles to nearest HIFLD electric power transmission line.",
+    )
+    rail_mi: Optional[float] = Field(
+        default=None,
+        description="Miles to nearest Census TIGER rail line.",
+    )
+    highway_mi: Optional[float] = Field(
+        default=None,
+        description="Miles to nearest Census TIGER primary road (Interstate / major US/state).",
+    )
+
     # Ownership / transfer / history. Most are still None for most programs;
     # FUDS populates `current_owner` directly from the source.
     current_owner: Optional[str] = None

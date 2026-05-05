@@ -94,6 +94,10 @@ class EpaSuperfundDocs(Connector):
     source_label = "EPA Superfund Documents (SEMS)"
     source_url = "https://semspub.epa.gov/"
 
+    # Reads docs/data/superfund-npl.json — must run after the Superfund
+    # producer in --all mode, otherwise on cold runs it sees no sites.
+    run_order = 200
+
     @classmethod
     def add_cli_args(cls, p: argparse.ArgumentParser) -> None:
         existing = {a.dest for a in p._actions}
