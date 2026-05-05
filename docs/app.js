@@ -11,6 +11,8 @@ const BRAC_DATA_URL = "data/dod-brac.json";
 const REDEV_DATA_URL = "data/epa-redev.json";
 const SUPERFUND_DOCS_URL = "data/epa-superfund-docs.json";
 const INFRA_DATA_URL = "data/infra-proximity.json";
+const ECHO_DATA_URL = "data/epa-echo.json";
+const AI_SUMMARY_URL = "data/ai-summary.json";
 // Vector basemap: US states (always) + US counties (lazy at zoom ≥ COUNTY_MIN_ZOOM).
 // No tiles — Canada/Mexico literally don't exist on the map. Choropleth-style
 // look (think CNN election tracker / datacenterbans.com) with bold state borders
@@ -245,6 +247,8 @@ let bracLoadingPromise = null;
 let redevLoadingPromise = null;
 let superfundDocsLoadingPromise = null;
 let infraLoadingPromise = null;
+let echoLoadingPromise = null;
+let summariesLoadingPromise = null;
 
 // Programmatic ready signal so UAT / Playwright / agent automation can wait
 // on a stable event instead of polling network responses. Fires once after
@@ -415,6 +419,8 @@ fetch(PRIMARY_DATA_URL)
     lazyLoads.push(ensureRedevLoaded());
     lazyLoads.push(ensureSuperfundDocsLoaded());
     lazyLoads.push(ensureInfraLoaded());
+    lazyLoads.push(ensureEchoLoaded());
+    lazyLoads.push(ensureSummariesLoaded());
     if (lazyLoads.length === 0) {
       markAppReady();
     } else {
@@ -600,6 +606,64 @@ function ensureSuperfundDocsLoaded() {
       superfundDocsLoadingPromise = null;
     });
   return superfundDocsLoadingPromise;
+}
+
+// EPA ECHO enforcement enrichment. Per-site enforcement summary (5yr
+// inspections, formal/informal actions, penalties, current compliance,
+// last violation date) pulled from the public ECHO REST service by the
+// `epa-echo` connector. Open enforcement is a transactability red flag.
+function ensureEchoLoaded() {
+  if (echoLoadingPromise) return echoLoadingPromise;
+  echoLoadingPromise = fetch(ECHO_DATA_URL)
+    .then((r) => {
+      if (r.status === 404) return { sites: [] };
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then((payload) => {
+      for (const rec of payload.sites || []) {
+        const existing = sitesById.get(rec.id || rec.epa_id);
+        if (!existing) continue;
+        if (rec.enforcement && typeof rec.enforcement === "object") {
+          existing.enforcement = rec.enforcement;
+        }
+      }
+    })
+    .catch((err) => {
+      console.error("ECHO enrichment load failed:", err);
+      echoLoadingPromise = null;
+    });
+  return echoLoadingPromise;
+}
+
+// AI-generated site summaries (Claude Haiku output). Per-site 3-paragraph
+// plain-English narrative, content-hash-cached at refresh time. Coverage
+// grows as `--source ai-summary --ai-limit N` re-runs land more sites.
+function ensureSummariesLoaded() {
+  if (summariesLoadingPromise) return summariesLoadingPromise;
+  summariesLoadingPromise = fetch(AI_SUMMARY_URL)
+    .then((r) => {
+      if (r.status === 404) return { sites: [] };
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then((payload) => {
+      for (const rec of payload.sites || []) {
+        const existing = sitesById.get(rec.id);
+        if (!existing) continue;
+        if (rec.summary) existing.summary = rec.summary;
+        if (rec.summary_meta) existing.summary_meta = rec.summary_meta;
+      }
+      if (selectedId) {
+        const sel = sitesById.get(selectedId);
+        if (sel) renderSummary(sel);
+      }
+    })
+    .catch((err) => {
+      console.error("AI summary load failed:", err);
+      summariesLoadingPromise = null;
+    });
+  return summariesLoadingPromise;
 }
 
 // Universal infrastructure-proximity enrichment. Joins onto every program
@@ -1411,6 +1475,37 @@ function wireDetailPanel() {
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") closeDetail();
   });
+  wireDetailTabs();
+}
+
+// Tabs inside the detail panel: Overview (default) vs Summary (AI card).
+// Default-back-to-Overview every time selectSite() opens a new site so
+// the user always lands on the structured-fields view first.
+function wireDetailTabs() {
+  const tabs = [
+    { btn: el("dtab-overview"), pane: el("dpane-overview") },
+    { btn: el("dtab-summary"), pane: el("dpane-summary") },
+  ];
+  for (const t of tabs) {
+    if (!t.btn || !t.pane) continue;
+    t.btn.addEventListener("click", () => {
+      for (const other of tabs) {
+        const isMe = other === t;
+        other.btn.classList.toggle("active", isMe);
+        other.btn.setAttribute("aria-selected", String(isMe));
+        other.pane.hidden = !isMe;
+      }
+    });
+  }
+}
+
+function resetDetailTabs() {
+  const ov = el("dtab-overview"), sm = el("dtab-summary");
+  const ovp = el("dpane-overview"), smp = el("dpane-summary");
+  if (ov) { ov.classList.add("active"); ov.setAttribute("aria-selected", "true"); }
+  if (sm) { sm.classList.remove("active"); sm.setAttribute("aria-selected", "false"); }
+  if (ovp) ovp.hidden = false;
+  if (smp) smp.hidden = true;
 }
 
 function selectSite(id, { fromMap = false, fromTable = false } = {}) {
@@ -1549,6 +1644,9 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
   }
 
   renderDocuments(s);
+  renderEnforcement(s);
+  renderSummary(s);
+  resetDetailTabs();
 
   const profile = el("d-profile");
   if (s.profile_url) {
@@ -1615,6 +1713,115 @@ function renderDocuments(s) {
     moreLink.style.display = "";
   } else {
     moreLink.style.display = "none";
+  }
+}
+
+// Render the EPA ECHO enforcement block. Hidden when the site has no
+// `enforcement` enrichment on file. Coverage grows as the epa-echo
+// connector backfills more sites in batches.
+function renderEnforcement(s) {
+  const block = el("d-echo-block");
+  if (!block) return;
+  const enf = s.enforcement;
+  if (!enf || typeof enf !== "object") {
+    block.hidden = true;
+    return;
+  }
+  block.hidden = false;
+  const setCell = (id, value, { violation = false } = {}) => {
+    const node = el(id);
+    if (!node) return;
+    if (value == null || value === "") {
+      node.textContent = "Not available";
+      node.classList.add("muted-cell");
+      node.classList.remove("violation");
+    } else {
+      node.textContent = value;
+      node.classList.remove("muted-cell");
+      node.classList.toggle("violation", !!violation);
+    }
+  };
+  setCell("d-echo-compliance", enf.current_compliance);
+  setCell(
+    "d-echo-insp",
+    enf.inspections_5yr != null ? enf.inspections_5yr.toLocaleString() : null,
+  );
+  // Formal enforcement actions render as a violation when nonzero — the
+  // single highest-signal due-diligence flag we surface.
+  const formal = enf.formal_actions_5yr;
+  setCell(
+    "d-echo-formal",
+    formal != null ? formal.toLocaleString() : null,
+    { violation: typeof formal === "number" && formal > 0 },
+  );
+  setCell(
+    "d-echo-informal",
+    enf.informal_actions_5yr != null ? enf.informal_actions_5yr.toLocaleString() : null,
+  );
+  const pen = enf.penalties_5yr_usd;
+  setCell(
+    "d-echo-penalties",
+    pen != null
+      ? "$" + Math.round(pen).toLocaleString()
+      : null,
+    { violation: typeof pen === "number" && pen > 0 },
+  );
+  setCell("d-echo-last-viol", enf.last_violation_date);
+  setCell("d-echo-last-insp", enf.last_inspection_date);
+  setCell(
+    "d-echo-programs",
+    Array.isArray(enf.programs) && enf.programs.length ? enf.programs.join(", ") : null,
+  );
+  const dfr = el("d-echo-dfr");
+  if (dfr) {
+    if (enf.dfr_url) {
+      dfr.href = enf.dfr_url;
+      dfr.style.display = "";
+    } else if (enf.registry_id) {
+      dfr.href = `https://echo.epa.gov/detailed-facility-report?fid=${encodeURIComponent(enf.registry_id)}`;
+      dfr.style.display = "";
+    } else {
+      dfr.style.display = "none";
+    }
+  }
+}
+
+// Render the AI-generated summary card. Splits the model output into
+// paragraphs and renders each as a <p> so styling can target them. Shows
+// the empty-state message when the site hasn't been summarized yet.
+function renderSummary(s) {
+  const empty = el("d-summary-empty");
+  const body = el("d-summary-body");
+  const meta = el("d-summary-meta");
+  if (!body || !empty || !meta) return;
+  if (!s.summary) {
+    empty.hidden = false;
+    body.hidden = true;
+    body.innerHTML = "";
+    meta.hidden = true;
+    meta.textContent = "";
+    return;
+  }
+  empty.hidden = true;
+  body.hidden = false;
+  // Model output: paragraphs separated by blank lines. Defensive fallback
+  // to a single paragraph if the model emitted no double newlines.
+  const paragraphs = String(s.summary)
+    .split(/\n{2,}/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+  body.innerHTML = (paragraphs.length ? paragraphs : [s.summary])
+    .map((p) => `<p>${escapeHtml(p)}</p>`)
+    .join("");
+  if (s.summary_meta && (s.summary_meta.model || s.summary_meta.generated_at)) {
+    const bits = [];
+    if (s.summary_meta.model) bits.push(s.summary_meta.model);
+    if (s.summary_meta.generated_at) bits.push(`generated ${s.summary_meta.generated_at.slice(0, 10)}`);
+    meta.textContent = "AI-generated · " + bits.join(" · ");
+    meta.hidden = false;
+  } else {
+    meta.textContent = "";
+    meta.hidden = true;
   }
 }
 

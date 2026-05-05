@@ -838,6 +838,66 @@ main {
 .source { margin-top: 22px; font-size: 12px; }
 
 /* ============================================================
+   Detail-panel tab strip + panes (Overview vs Summary)
+   ============================================================ */
+.detail-tabs {
+  display: flex;
+  gap: 2px;
+  margin: 14px 0 16px;
+  padding: 3px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.detail-tab {
+  flex: 1;
+  background: transparent;
+  color: var(--muted);
+  border: none;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 120ms, color 120ms, box-shadow 120ms;
+}
+.detail-tab.active {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-soft);
+}
+.detail-tab:hover:not(.active) { color: var(--text); }
+.dpane[hidden] { display: none; }
+
+/* AI summary card (Claude Haiku output) */
+.summary-card {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+  padding: 14px 16px 12px;
+}
+.summary-empty { font-size: 13px; margin: 0; }
+#d-summary-body { font-size: 14px; color: var(--text-soft); line-height: 1.55; }
+#d-summary-body p { margin: 0 0 10px; }
+#d-summary-body p:last-child { margin-bottom: 0; }
+.summary-meta {
+  margin: 10px 0 0;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+}
+.summary-meta[hidden] { display: none; }
+#d-summary-empty[hidden], #d-summary-body[hidden] { display: none; }
+
+/* ECHO enforcement block in detail panel */
+#d-echo-block { margin-top: 16px; }
+#d-echo-block h3 { display: flex; align-items: baseline; gap: 8px; margin: 14px 0 6px; }
+#d-echo-block dd.violation { color: var(--status-final); font-weight: 500; }
+#d-echo-block[hidden] { display: none; }
+
+/* ============================================================
    Toast (non-blocking status messages)
    ============================================================ */
 .toast {

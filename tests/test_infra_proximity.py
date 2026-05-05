@@ -57,13 +57,18 @@ def _make_args(**overrides):
 
 # --- run_order / wiring ---
 
-def test_run_order_last_in_all():
-    """Connector runs after all producer connectors in --all mode."""
-    ordered = sorted(
-        connectors_pkg.names(),
-        key=lambda s: (connectors_pkg.get(s).run_order, s),
-    )
-    assert ordered[-1] == "infra-proximity"
+def test_run_order_after_all_producers():
+    """Connector runs after every producer connector in --all mode.
+
+    Producers stay at the default run_order=100; enrichment connectors
+    bump higher so they see the per-program JSON files. infra-proximity
+    must sort strictly after every default-100 producer.
+    """
+    infra_order = connectors_pkg.get("infra-proximity").run_order
+    for slug in connectors_pkg.names():
+        cls = connectors_pkg.get(slug)
+        if cls.run_order == 100:  # producer tier
+            assert infra_order > cls.run_order, f"infra-proximity must run after producer {slug}"
 
 
 def test_run_order_after_superfund_npl():

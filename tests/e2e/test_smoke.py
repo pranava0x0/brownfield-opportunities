@@ -859,3 +859,160 @@ def test_reset_clears_filter_chip(page, base_url):
         "getComputedStyle(document.getElementById('filters-chip')).display === 'none'",
         timeout=3000,
     )
+
+
+def test_detail_panel_has_overview_and_summary_tabs(page, base_url):
+    """v1.11: detail panel exposes an Overview/Summary tab strip. Default
+    pane is Overview; clicking Summary swaps to the AI-summary card."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    page.locator("#tab-table").click()
+    page.locator("#sites-table tbody tr").first.click()
+    page.wait_for_selector("#detail:not([hidden])")
+
+    # Overview is default-active.
+    assert page.locator("#dtab-overview").get_attribute("aria-selected") == "true"
+    assert page.locator("#dtab-summary").get_attribute("aria-selected") == "false"
+    assert page.locator("#dpane-overview").evaluate("el => el.hidden") is False
+    assert page.locator("#dpane-summary").evaluate("el => el.hidden") is True
+
+    # Click Summary → panes swap.
+    page.locator("#dtab-summary").click()
+    assert page.locator("#dtab-summary").get_attribute("aria-selected") == "true"
+    assert page.locator("#dtab-overview").get_attribute("aria-selected") == "false"
+    assert page.locator("#dpane-summary").evaluate("el => el.hidden") is False
+    assert page.locator("#dpane-overview").evaluate("el => el.hidden") is True
+
+
+def test_summary_pane_shows_empty_state_when_unenriched(page, base_url):
+    """A site with no AI summary on file should show the empty-state message
+    in the Summary pane — not a blank card."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    # Pick any site; the bundled dataset has no ai-summary enrichment yet.
+    unenriched_id = page.evaluate(
+        "(() => {"
+        "  for (const s of (window.__sites || [])) {"
+        "    if (!s.summary) return s.id;"
+        "  }"
+        "  return null;"
+        "})()"
+    )
+    if not unenriched_id:
+        import pytest
+        pytest.skip("every loaded site already has an AI summary")
+    page.evaluate(f"window.__selectSite('{unenriched_id}')")
+    page.wait_for_selector("#detail:not([hidden])")
+    page.locator("#dtab-summary").click()
+    empty = page.locator("#d-summary-empty")
+    assert empty.evaluate("el => el.hidden") is False
+    assert "No AI summary" in (empty.text_content() or "")
+
+
+def test_summary_pane_renders_paragraphs_when_enriched(page, base_url):
+    """When `summary` is present on the in-memory record (which would
+    happen once ai-summary.json ships), the body splits on blank lines
+    into <p> tags so paragraph styling lands."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    # Inject a summary onto the first site so we don't depend on the
+    # ai-summary connector having actually run yet (it's API-key gated).
+    target_id = page.evaluate(
+        "(() => {"
+        "  const s = (window.__sites || [])[0];"
+        "  if (!s) return null;"
+        "  s.summary = 'Paragraph one.\\n\\nParagraph two.\\n\\nParagraph three.';"
+        "  s.summary_meta = { model: 'claude-haiku-4-5-20251001', generated_at: '2026-05-04T00:00:00Z', hash: 'test' };"
+        "  return s.id;"
+        "})()"
+    )
+    assert target_id
+    page.evaluate(f"window.__selectSite('{target_id}')")
+    page.wait_for_selector("#detail:not([hidden])")
+    page.locator("#dtab-summary").click()
+    # Three paragraphs should render in the body.
+    paragraphs = page.locator("#d-summary-body p")
+    assert paragraphs.count() == 3
+    assert "Paragraph one." in (paragraphs.nth(0).text_content() or "")
+    # Meta line cites the model.
+    meta = page.locator("#d-summary-meta")
+    assert meta.evaluate("el => el.hidden") is False
+    assert "claude-haiku-4-5" in (meta.text_content() or "")
+
+
+def test_enforcement_block_renders_when_echo_enriched(page, base_url):
+    """ECHO enforcement block renders inline in the Overview pane when
+    the site carries `enforcement` data. Defaults to hidden so unenriched
+    sites don't show empty placeholders."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    target_id = page.evaluate(
+        "(() => {"
+        "  const s = (window.__sites || [])[0];"
+        "  if (!s) return null;"
+        "  s.enforcement = {"
+        "    registry_id: '110000999999',"
+        "    dfr_url: 'https://echo.epa.gov/detailed-facility-report?fid=110000999999',"
+        "    inspections_5yr: 4,"
+        "    formal_actions_5yr: 2,"
+        "    informal_actions_5yr: 1,"
+        "    penalties_5yr_usd: 25000,"
+        "    current_compliance: 'Significant Violation',"
+        "    last_violation_date: '2024-08-15',"
+        "    programs: ['CWA', 'RCRA']"
+        "  };"
+        "  return s.id;"
+        "})()"
+    )
+    assert target_id
+    page.evaluate(f"window.__selectSite('{target_id}')")
+    page.wait_for_selector("#detail:not([hidden])")
+    block = page.locator("#d-echo-block")
+    assert block.evaluate("el => el.hidden") is False
+    assert page.locator("#d-echo-compliance").text_content() == "Significant Violation"
+    assert page.locator("#d-echo-formal").text_content() == "2"
+    assert page.locator("#d-echo-penalties").text_content() == "$25,000"
+    # Formal actions > 0 → highlighted as a violation.
+    formal_cls = page.locator("#d-echo-formal").get_attribute("class") or ""
+    assert "violation" in formal_cls
+    # DFR deep-link points at echo.epa.gov.
+    dfr_href = page.locator("#d-echo-dfr").get_attribute("href")
+    assert dfr_href and dfr_href.startswith("https://echo.epa.gov")
+
+
+def test_enforcement_block_hidden_when_no_echo_data(page, base_url):
+    """A site without `enforcement` enrichment must not render the block —
+    we don't want empty 'Not available' rows cluttering the panel."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    target_id = page.evaluate(
+        "(() => {"
+        "  for (const s of (window.__sites || [])) {"
+        "    if (!s.enforcement) return s.id;"
+        "  }"
+        "  return null;"
+        "})()"
+    )
+    if not target_id:
+        import pytest
+        pytest.skip("every loaded site already has ECHO data")
+    page.evaluate(f"window.__selectSite('{target_id}')")
+    page.wait_for_selector("#detail:not([hidden])")
+    assert page.locator("#d-echo-block").evaluate("el => el.hidden") is True
+
+
+def test_selectsite_resets_to_overview_tab(page, base_url):
+    """Switching sites should reset the active tab back to Overview, so a
+    user reading a Summary doesn't carry that pane state into the next site."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    page.locator("#tab-table").click()
+    rows = page.locator("#sites-table tbody tr")
+    rows.nth(0).click()
+    page.wait_for_selector("#detail:not([hidden])")
+    page.locator("#dtab-summary").click()
+    assert page.locator("#dtab-summary").get_attribute("aria-selected") == "true"
+    # Pick a different site → tab should snap back.
+    rows.nth(1).click()
+    assert page.locator("#dtab-overview").get_attribute("aria-selected") == "true"
+    assert page.locator("#dpane-overview").evaluate("el => el.hidden") is False
