@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from connectors.epa_echo import (
     EpaEcho,
+    _safe_date,
     _safe_float,
     _safe_int,
     _safe_str,
@@ -44,6 +45,20 @@ def test_safe_str_trims_and_drops_dashes():
     assert _safe_str(None) is None
 
 
+def test_safe_date_normalizes_mmddyyyy_from_get_qid():
+    """ECHO `get_qid` ships dates as MM/DD/YYYY; the connector must
+    re-emit them as ISO so the frontend renders consistently across
+    enrichment-source mixes."""
+    assert _safe_date("12/20/2025") == "2025-12-20"
+    assert _safe_date("9/3/2024") == "2024-09-03"
+
+
+def test_safe_date_passthrough_for_iso_and_unknown():
+    assert _safe_date("2025-01-15") == "2025-01-15"
+    assert _safe_date(None) is None
+    assert _safe_date("--") is None
+
+
 # ---- envelope extractor ----
 
 def test_extract_results_finds_facilities_list():
@@ -62,6 +77,44 @@ def test_extract_results_handles_alternate_shape():
 def test_extract_results_empty_envelope_returns_empty_list():
     assert EpaEcho._extract_results({}) == []
     assert EpaEcho._extract_results({"Results": {}}) == []
+
+
+# ---- bot-block detection ----
+
+def test_detect_bot_block_top_level_error():
+    """ECHO's robotic-query rejection ships at top-level Error on
+    `get_facilities`. Detector must catch that shape, not just the
+    nested `Results.Error` shape."""
+    data = {"Error": {"ErrorMessage": (
+        "Your query has been identified as a robotic or programmed query, "
+        "and has been blocked. ECHO is not designed to support large scale "
+        "data transfers or robotic queries."
+    )}}
+    msg = EpaEcho._detect_bot_block(data)
+    assert msg is not None
+    assert "robotic" in msg.lower()
+
+
+def test_detect_bot_block_nested_in_results():
+    """And catch the nested shape returned by `get_qid`."""
+    data = {"Results": {"Error": {"ErrorMessage": "Robotic query blocked."}}}
+    msg = EpaEcho._detect_bot_block(data)
+    assert msg is not None
+
+
+def test_detect_bot_block_ignores_unrelated_errors():
+    """Real ECHO errors (e.g. queryset limit) must not be misclassified
+    as bot-blocks — they have their own legit handling path."""
+    data = {"Results": {"Error": {"ErrorMessage":
+        "Rows Returned would be 5619057. Queryset Limit would be exceeded."
+    }}}
+    assert EpaEcho._detect_bot_block(data) is None
+
+
+def test_detect_bot_block_handles_clean_response():
+    """A normal success response must not flag as bot-blocked."""
+    assert EpaEcho._detect_bot_block({"Results": {"QueryID": "1", "Facilities": []}}) is None
+    assert EpaEcho._detect_bot_block({}) is None
 
 
 # ---- status filter ----
@@ -131,6 +184,37 @@ def test_normalize_enforcement_handles_alternate_field_names():
     assert enf["informal_actions_5yr"] == 1
     assert enf["penalties_5yr_usd"] == 100.0
     assert enf["last_inspection_date"] == "2025-01-01"
+
+
+def test_normalize_enforcement_handles_get_qid_object_names():
+    """`get_qid` is the canonical row-data endpoint and ships ObjectName
+    keys (`FacInspectionCount`, `FacComplianceStatus`, ...). Ensure those
+    map through correctly and that MM/DD/YYYY dates get ISO-normalized."""
+    facility = {
+        "RegistryID": "110071102523",
+        "FacName": "NAVAL REACTORS FACILITY",
+        "FacState": "ID",
+        "FacComplianceStatus": "No Violation Identified",
+        "FacInspectionCount": "9",
+        "FacInformalCount": "6",
+        "FacFormalActionCount": "3",
+        "FacTotalPenalties": "$466,600",
+        "FacDateLastInspection": "12/20/2025",
+        "FacDateLastFormalAction": "9/13/2024",
+        "FacPenaltyCount": "1",
+        "FacDateLastPenalty": "8/1/2024",
+    }
+    enf = EpaEcho.normalize_enforcement(facility)
+    assert enf is not None
+    assert enf["registry_id"] == "110071102523"
+    assert enf["inspections_5yr"] == 9
+    assert enf["informal_actions_5yr"] == 6
+    assert enf["formal_actions_5yr"] == 3
+    assert enf["penalties_5yr_usd"] == 466600.0
+    assert enf["current_compliance"] == "No Violation Identified"
+    # MM/DD/YYYY → ISO (frontend joins these to other ISO date fields).
+    assert enf["last_inspection_date"] == "2025-12-20"
+    assert enf["last_formal_action_date"] == "2024-09-13"
 
 
 def test_normalize_enforcement_drops_empty_dashes():

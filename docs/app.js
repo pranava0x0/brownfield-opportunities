@@ -1414,9 +1414,19 @@ function makeRow(s) {
   const tr = document.createElement("tr");
   tr.dataset.id = s.id;
   const programLabel = PROGRAM_LABEL[s.program] || s.program || "—";
-  const statusHtml = s.npl_status_code
-    ? `<span class="pill" data-status="${escapeAttr(s.npl_status_code)}">${escapeHtml(s.npl_status || "Unknown")}</span>`
-    : `<span class="pill" data-program="${escapeAttr(s.program)}">${escapeHtml(programLabel)}</span>`;
+  // STATUS column is NPL-specific. For Superfund, show the NPL pill.
+  // For FUDS, surface eligibility (the most actionable cleanup-status
+  // signal — Eligible / Ineligible / No Further Action / Categorical
+  // Exclusion). ACRES + BRAC have no comparable status field, so render
+  // an em-dash rather than duplicating the PROGRAM pill (UAT-009).
+  let statusHtml;
+  if (s.npl_status_code) {
+    statusHtml = `<span class="pill" data-status="${escapeAttr(s.npl_status_code)}">${escapeHtml(s.npl_status || "Unknown")}</span>`;
+  } else if (s.program === "fuds" && s.eligibility) {
+    statusHtml = escapeHtml(s.eligibility);
+  } else {
+    statusHtml = '<span class="muted-cell">—</span>';
+  }
   tr.innerHTML = `
     <td>${escapeHtml(s.name || "—")}</td>
     <td><span class="pill" data-program="${escapeAttr(s.program)}">${escapeHtml(programLabel)}</span></td>
@@ -1870,6 +1880,7 @@ function renderEnforcement(s) {
   );
   setCell("d-echo-last-viol", enf.last_violation_date);
   setCell("d-echo-last-insp", enf.last_inspection_date);
+  setCell("d-echo-last-formal", enf.last_formal_action_date);
   setCell(
     "d-echo-programs",
     Array.isArray(enf.programs) && enf.programs.length ? enf.programs.join(", ") : null,
@@ -2001,6 +2012,7 @@ const CSV_COLUMNS = [
   { key: "enforcement.current_compliance", label: "echo_compliance" },
   { key: "enforcement.last_violation_date", label: "echo_last_violation_date" },
   { key: "enforcement.last_inspection_date", label: "echo_last_inspection_date" },
+  { key: "enforcement.last_formal_action_date", label: "echo_last_formal_action_date" },
   // Documents enrichment (v1.9)
   { key: "documents.length", label: "doc_count" },
   // Source link
