@@ -25,6 +25,11 @@
   --status-proposed: #b8821a;
   --status-other: #3f7a3f;
   --status-acres: #1c5e9e;
+  /* "Site is transactable today" green — drives the Cleanup Complete and
+     Active Reuse pills in the detail panel. Distinct from --status-other
+     (which colors NPL "Not on NPL" pills) so the readiness signal isn't
+     conflated with an NPL-status shade. */
+  --readiness-ready: #2f7a4d;
   /* Map markers and legend are colored by program (one dot per program). */
   --program-superfund: #b8332f;
   --program-brownfield: #1c5e9e;
@@ -70,6 +75,7 @@
   --status-proposed: #d4a93f;
   --status-other: #5fa45f;
   --status-acres: #7eb6e8;
+  --readiness-ready: #6cc18a;
   --program-superfund: #ef5050;
   --program-brownfield: #7eb6e8;
   --program-fuds: #b47ad8;
@@ -965,6 +971,22 @@ main {
   background: transparent;
   color: var(--accent);
   border: 1px solid var(--accent);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 9.5px;
+  padding: 0 6px;
+}
+/* "Cleanup Complete" (NPL Deleted) + "Active Reuse" (RedevelopmentApp
+   In_Reuse=Yes) — green outline pills, same shape as .dc-pill. Color
+   comes from `--readiness-ready` so future readiness-tier badges share
+   the token. Both pills sit in the detail panel's Program cell next to
+   the program + DC-candidate pills. */
+.pill.cleanup-pill,
+.pill.reuse-pill {
+  background: transparent;
+  color: var(--readiness-ready);
+  border: 1px solid var(--readiness-ready);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
