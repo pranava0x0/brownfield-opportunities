@@ -1277,3 +1277,205 @@ def test_csv_export_includes_enrichment_columns(page, base_url):
     assert sample is not None, (
         "expected at least one row with a populated transmission_mi value"
     )
+
+
+# ----- v1.11.3: readiness pills + perf hot-path quick wins -----
+
+
+def test_cleanup_complete_pill_for_npl_deleted(page, base_url):
+    """v1.11.3: NPL Deleted Superfund sites (`npl_status_code === "D"`)
+    render a green "Cleanup Complete" pill alongside the program pill in
+    the detail panel — the strongest "site is transactable today" signal
+    in the dataset, derived from existing fields with zero new fetches."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    deleted_id = page.evaluate(
+        "(() => {"
+        "  for (const s of (window.__sites || [])) {"
+        "    if (s.program === 'superfund' && s.npl_status_code === 'D') return s.id;"
+        "  }"
+        "  return null;"
+        "})()"
+    )
+    assert deleted_id, "no NPL-Deleted Superfund site found in loaded data"
+    page.evaluate(f"window.__selectSite('{deleted_id}')")
+    page.wait_for_selector("#detail:not([hidden])")
+    pill = page.locator("#d-program .cleanup-pill")
+    assert pill.count() == 1, "expected exactly one cleanup-pill on a Deleted site"
+    assert "Cleanup Complete" in (pill.text_content() or "")
+
+
+def test_no_cleanup_pill_for_active_npl_site(page, base_url):
+    """Inverse: NPL Final/Proposed sites must NOT render the green
+    Cleanup Complete pill. Guards against the pill leaking onto sites
+    that aren't actually post-remediation."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    final_id = page.evaluate(
+        "(() => {"
+        "  for (const s of (window.__sites || [])) {"
+        "    if (s.program === 'superfund' && s.npl_status_code === 'F') return s.id;"
+        "  }"
+        "  return null;"
+        "})()"
+    )
+    assert final_id, "no NPL-Final Superfund site found in loaded data"
+    page.evaluate(f"window.__selectSite('{final_id}')")
+    page.wait_for_selector("#detail:not([hidden])")
+    assert page.locator("#d-program .cleanup-pill").count() == 0
+
+
+def test_active_reuse_pill_for_in_reuse_site(page, base_url):
+    """v1.11.3: sites whose `in_reuse` field starts with "Yes"
+    (RedevelopmentAppSitePoints flag) render a green "Active Reuse" pill.
+    Skips silently if the redev enrichment hasn't loaded yet — that's
+    expected on a cold dataset before `epa-redev.json` lands."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    reuse_id = page.evaluate(
+        "(() => {"
+        "  for (const s of (window.__sites || [])) {"
+        "    if (typeof s.in_reuse === 'string' && /^yes/i.test(s.in_reuse)) return s.id;"
+        "  }"
+        "  return null;"
+        "})()"
+    )
+    if not reuse_id:
+        import pytest
+        pytest.skip("no in_reuse=Yes sites in current dataset — re-run epa-redev")
+    page.evaluate(f"window.__selectSite('{reuse_id}')")
+    page.wait_for_selector("#detail:not([hidden])")
+    pill = page.locator("#d-program .reuse-pill")
+    assert pill.count() == 1, "expected exactly one reuse-pill on an In_Reuse site"
+    assert "Active Reuse" in (pill.text_content() or "")
+
+
+def test_no_reuse_pill_when_in_reuse_no(page, base_url):
+    """`in_reuse: "No"` must NOT render the Active Reuse pill — only "Yes"
+    values qualify. Guards against the regex (`/^yes/i`) accidentally
+    matching the trailing "no" in a longer string."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    no_id = page.evaluate(
+        "(() => {"
+        "  for (const s of (window.__sites || [])) {"
+        "    if (typeof s.in_reuse === 'string' && /^no/i.test(s.in_reuse)) return s.id;"
+        "  }"
+        "  return null;"
+        "})()"
+    )
+    if not no_id:
+        import pytest
+        pytest.skip("no in_reuse=No sites in current dataset")
+    page.evaluate(f"window.__selectSite('{no_id}')")
+    page.wait_for_selector("#detail:not([hidden])")
+    assert page.locator("#d-program .reuse-pill").count() == 0
+
+
+def test_search_index_built_at_ingest(page, base_url):
+    """v1.11.3 perf: `siteMatchesQuery()` reads from the pre-built
+    `_searchKey` field on every record. Rebuild on ingest — every record
+    must carry a non-empty lowercased index containing name + city +
+    county + state. Guards against a regression where _searchKey gets
+    dropped (e.g., after a new ingest path lands)."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    stats = page.evaluate(
+        "(() => {"
+        "  const sites = window.__sites || [];"
+        "  let withKey = 0, withoutKey = 0, sample = null, withName = 0;"
+        "  for (const s of sites) {"
+        "    if (s.name) withName++;"
+        "    if (typeof s._searchKey === 'string' && s._searchKey.length) {"
+        "      withKey++;"
+        "      if (!sample && s.name && s.state) sample = {"
+        "        id: s.id, key: s._searchKey, name: s.name, state: s.state,"
+        "      };"
+        "    } else withoutKey++;"
+        "  }"
+        "  return { total: sites.length, withName, withKey, withoutKey, sample };"
+        "})()"
+    )
+    # Every site that has a name should have a non-empty _searchKey.
+    assert stats["total"] > 0
+    assert stats["withoutKey"] == 0, (
+        f"{stats['withoutKey']} sites missing _searchKey out of {stats['total']}"
+    )
+    # Sample key must be lowercased and contain both the name and state.
+    sample = stats["sample"]
+    assert sample, "no sample site with both name and state was found"
+    key = sample["key"]
+    assert key == key.lower(), "_searchKey must be lowercased"
+    assert sample["name"].lower().split()[0] in key
+    assert sample["state"].lower() in key
+
+
+def test_search_filter_uses_prebuilt_index(page, base_url):
+    """End-to-end smoke: typing in the search box still filters the table
+    after the perf rewrite. The behavior shouldn't change — the speedup
+    is internal — so this just sanity-checks that the index path produces
+    the same matches the prior join-on-every-call path did."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    page.locator("#tab-table").click()
+    # Pick a real site name's first word as the query so we know it matches.
+    query = page.evaluate(
+        "(() => {"
+        "  const sites = window.__sites || [];"
+        "  for (const s of sites) {"
+        "    if (s.name && s.name.length > 4) {"
+        "      const word = s.name.split(/\\s+/)[0];"
+        "      if (word.length >= 4) return word.toLowerCase();"
+        "    }"
+        "  }"
+        "  return null;"
+        "})()"
+    )
+    assert query, "could not find a sample site name to query"
+    page.locator("#search").fill(query)
+    page.wait_for_function(
+        f"document.getElementById('search-count').textContent.length > 0",
+        timeout=2000,
+    )
+    count_text = page.locator("#search-count").text_content() or ""
+    # Format is "N of M ..." — the visible count must be > 0 since `query`
+    # is drawn from a real site's name.
+    assert count_text and count_text[0].isdigit(), f"unexpected count: {count_text!r}"
+    visible = int(count_text.split()[0].replace(",", ""))
+    assert visible >= 1, f"search for {query!r} produced no matches"
+
+
+def test_visible_bbox_cached_on_filter(page, base_url):
+    """v1.11.3 perf: `tableState.visibleBBox` is updated by
+    `refreshTableForFilter()` so `refitMapToFilters()` doesn't sweep all
+    47k records again. After a filter narrows the visible set, the bbox
+    must be present, finite, and reflect the filtered records — not the
+    full dataset."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    # Apply a state filter — narrows the visible set significantly.
+    page.locator("#filters-toggle").click()
+    page.locator("#f-state").select_option("CA")
+    # applyFilter runs synchronously off the change event; bbox is cached.
+    bbox = page.evaluate(
+        "(() => {"
+        "  const ts = window.__tableState;"
+        "  if (!ts || !ts.visibleBBox) return null;"
+        "  const bb = ts.visibleBBox;"
+        "  return {"
+        "    count: bb.count,"
+        "    minLat: bb.minLat, maxLat: bb.maxLat,"
+        "    minLon: bb.minLon, maxLon: bb.maxLon,"
+        "  };"
+        "})()"
+    )
+    assert bbox, "tableState.visibleBBox not exposed or null after filter"
+    # CA sites span ~32–42°N and ~-124 to -114°W.
+    assert bbox["count"] > 0
+    assert 30 < bbox["minLat"] < 45, f"unexpected minLat: {bbox['minLat']}"
+    assert 30 < bbox["maxLat"] < 45, f"unexpected maxLat: {bbox['maxLat']}"
+    assert -130 < bbox["minLon"] < -110, f"unexpected minLon: {bbox['minLon']}"
+    assert -130 < bbox["maxLon"] < -110, f"unexpected maxLon: {bbox['maxLon']}"
+    # Height/width are nonzero (filtered set has multiple sites).
+    assert bbox["maxLat"] >= bbox["minLat"]
+    assert bbox["maxLon"] >= bbox["minLon"]
