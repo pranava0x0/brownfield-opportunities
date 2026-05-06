@@ -28,13 +28,29 @@ Systematic review of all 1,787 generated static summaries found 9 recurring issu
 
 ---
 
-## v1.11.2 — Continue ECHO + docs coverage (2026-05-05+)
+## ~~Static summary prose rewrite (2026-05-05)~~ Done
 
-The v1.11.2 commit fixed the ECHO connector and shipped 380 of 1,787 Final/Deleted Superfund sites with enforcement data (vs the broken 0 records in v1.11). Continued coverage is gated by upstream API throttling, so this is staged work, not a single sprint:
+After the 9-issue quality pass, `build_static_summary()` was rewritten from a colon-separated field dump to natural flowing sentences:
 
-- **[high] Finish the ECHO F/D backfill (1,407 sites remaining).** ECHO bot-detection trips after sustained 1.5 s/call cadence — the connector now backs off correctly via the `_EchoBotBlocked` retry path, but the wall-clock cost compounds (16 bot-blocks × 30 s = 8 min of pure backoff in the first 380 sites). Future runs should either (a) raise the per-call delay specifically for ECHO to ~3 s, halving the bot-block rate, or (b) split into nightly cron batches of `--echo-limit 200 --echo-skip <prev>` to stay under the threshold.
-- **[high] Finish the EPA superfund-docs backfill (~1,700 sites remaining).** `cumulis.epa.gov` was hitting the 60 s `REQUEST_TIMEOUT_S` on roughly every other request during the 2026-05-05 batch — net 10 new records over 30 min of wall clock. Same staging strategy: nightly cron batches with `--docs-limit 100 --docs-skip <prev>`, or run during off-peak hours when EPA's app servers are less loaded.
-- **[high] Run the ai-summary connector once `epa-echo` + `epa-superfund-docs` are both >50% covered.** The summary prompt MERGES every enrichment file we have on disk into the model's context — running ai-summary today against 21% ECHO coverage would generate ~1,400 summaries that don't mention enforcement. Better to wait until the upstream coverage is meaningful, then run with `--ai-limit 0` (cache-aware so re-runs are free for unchanged inputs).
+- ~~**Lead sentence**~~ Done — "X is a Y-acre Program in City, ST, currently on the Final NPL." (acreage omitted when null or 0; article "a"/"an" correct; NPL status shortened to "Final NPL" / "Deleted from NPL").
+- ~~**Infrastructure**~~ Done — "Infrastructure proximity: transmission lines 0.8 miles from the boundary, rail 7.0 miles, and highway 31.9 miles." Oxford-comma-joined via `_join_list()`; "on-site" when `< 0.05 mi` via `_fmt_distance()` (avoids "0.0 miles" display bug). Only infra types with data are listed.
+- ~~**DC reuse**~~ Done — "The site meets EPA RE-Powering criteria as a data-center reuse candidate." (parenthetical "(≥50 ac + power + water)" trimmed — criteria visible in legend/panel).
+- ~~**Owner**~~ Done — "Current owner: X (per USACE FUDS)." when source provides it.
+- ~~**Documents**~~ Done — "N federal documents on file (Category A, Category B, and Category C)." Correct singular/plural; Oxford-comma list.
+- ~~**Enforcement**~~ Done — "EPA ECHO records show N formal enforcement actions in the past 5 years and $X in penalties." Block suppressed entirely for clean records (zero formal actions + zero penalties).
+- ~~**Disclaimer**~~ Done — All summaries end with "AI-generated summary from federal records." so the generated nature is always attributed.
+- ~~**Sparse fallback**~~ Done — When no infra/docs/enforcement data is available, a natural sentence "No infrastructure proximity, document, or enforcement data is available…" replaces an empty block.
+All 1,787 F+D summaries regenerated (964 KB). Helpers extracted: `_fmt_distance(v)`, `_join_list(items)`.
+
+---
+
+## Continue ECHO + docs coverage (2026-05-05+)
+
+The v1.11.2 commit fixed the ECHO connector and shipped 380 of 1,787 Final/Deleted Superfund sites with enforcement data. A second batch run (2026-05-05) added 200 more via `--echo-skip 380 --echo-limit 200`, bringing ECHO coverage to **580/1,787 (32.5%)**. A parallel docs batch (2026-05-05) added ~22 cached sites + ~few live fetches, bringing docs to **~110/1,787 (~6.2%)**. Continued coverage is gated by upstream API throttling, so this is staged work, not a single sprint:
+
+- **[high] Continue ECHO backfill (1,207 sites remaining).** Next run: `--echo-skip 580 --echo-limit 200`. ECHO bot-detection backs off correctly but adds ~2 min overhead per 200 sites. At 200 sites/day, full coverage takes ~6 more batches (~6 days). Bot-block rate can be halved by raising the per-call delay to ~3 s in the connector.
+- **[high] Continue docs backfill (~1,677 sites remaining).** `cumulis.epa.gov` and `semspub.epa.gov` were hitting the 60 s `REQUEST_TIMEOUT_S` on every non-cached request — ~3 min per uncached site × 78 remaining sites = ~4 hrs per 100-site batch. **Next step: run during off-peak hours (1–5 am ET) when EPA app servers are less loaded.** Next run: `--docs-skip 110 --docs-limit 100`. Long-term, consider bumping `REQUEST_TIMEOUT_S` from 60 s → 90 s to reduce empty-response retries.
+- **[med] Regenerate ai-summary after each ECHO/docs batch.** Static summaries are cache-aware (`_fingerprint()` hashes the enrichment fields). Run `python3 refresh.py --source ai-summary --ai-static --ai-status F,D --ai-limit 0` after each batch; only sites whose ECHO/docs data changed will be regenerated (~200 per ECHO batch, ~3–5 s total). Already running: 580 sites now include enforcement context in their summaries.
 - **[low] ECHO non-Superfund coverage.** The connector currently only enriches Superfund records (`run_order = 250` reads `superfund-npl.json`). FUDS / ACRES / BRAC sites don't have an EPA_ID equivalent for ECHO's `p_pid` filter — would need a name + state fuzzy match (`p_fn` + `p_st`) which is unreliable. Defer until an actual user asks for non-Superfund enforcement data.
 
 ---
