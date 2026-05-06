@@ -810,6 +810,18 @@ main {
   font-style: italic;
 }
 .acreage-note[hidden] { display: none; }
+/* Sub-line under a `<dd>` value that surfaces qualifying criteria — used by
+   the data-center reuse cell to expose the EPA RE-Powering rule
+   ("≥50 acres · electric transmission · water service area") so the boolean
+   isn't opaque. Same `[hidden]` belt-and-suspenders rule as `.acreage-note`. */
+.dd-criteria {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--muted);
+  font-style: italic;
+}
+.dd-criteria[hidden] { display: none; }
 .children-list {
   margin: 4px 0 0;
   padding-left: 18px;
