@@ -154,16 +154,20 @@ the ~5k-node DOM cap — the test_dom_size_under_5k_nodes test guards.
 KPI numbers are derived from the in-memory `sites` array — call
 `updateKpiDeck()` after any data load.
 
-### 7. Place-name prettifier (v1.8)
+### 7. Place-name + site-name prettifiers (v1.8 / v1.11.1)
 
 Cities, counties, and street addresses arrive ALL CAPS from EPA / USACE.
 `prettyPlace()` runs at ingest time and overwrites `s.city`, `s.county`,
-`s.address`. The raw source is preserved on `s.{city,county,address}_raw`.
+`s.address`. Raw source preserved on `s.{city,county,address}_raw`.
 
-If a UAT step asserts a specific city string, expect title case (e.g.
-"Green Bay" not "GREEN BAY"). Site `name` is **not** prettified — many
-EPA names contain technical acronyms (NRDA, PCB, USDOE) and would be
-mangled by simple title casing.
+**Site names are also prettified as of v1.11.1.** `prettyName()` title-cases
+`s.name` at ingest (raw preserved on `s.name_raw`) using an acronym whitelist
+(NIKE, AFB, NRDA, PCB, USDOE, USACE, USFS, BLM, NPS, …) so agency
+abbreviations stay all-caps. Expect "Fox River NRDA/PCB Releases", not
+"FOX RIVER NRDA/PCB RELEASES". If a new acronym shows up mangled, add it
+to `NAME_KEEP_UPPER` in `app.js`.
+
+If a UAT step asserts city/name strings, expect title case throughout.
 
 ### 8. Filter chip + meta text (v1.8)
 
@@ -215,6 +219,7 @@ to silently no-op when they were guessed wrong.
 | Theme toggle                     | `#theme-toggle` (no `data-theme` attr → light)          |
 | CSV export                       | `#export-csv`                                           |
 | Detail panel root                | `#detail` (also `aside[role=complementary]`)            |
+| Detail panel title               | `#detail h2` or `#detail h3` — there is **no** `#d-name` |
 | Detail close button              | `#detail-close`                                         |
 | Detail tabs                      | `#dtab-overview`, `#dtab-summary`                       |
 | Toast (lazy-mounted)             | `#toast` (only exists after `showToast()` fires)        |
@@ -259,15 +264,11 @@ Workaround: in the eval, redact the URL parts you don't need, or read
 the same state from a screenshot. Don't retry — the result will be the
 same.
 
-### 15. v1.11 enrichment files may 404 in production (UAT-008, open)
+### 15. Enrichment files are all 200 in production (UAT-008, fixed 2026-05-05)
 
-`data/epa-echo.json` and `data/ai-summary.json` are referenced
-unconditionally by `app.js` even when the connectors haven't been run.
-The frontend fails open (ECHO block stays hidden, Summary tab shows
-the empty-state copy), but **expect two 404s in the network panel on
-every cold load against production until those connectors land**.
-Don't flag this as a console error during UAT — log it once per session
-and move on.
+`data/epa-echo.json` and `data/ai-summary.json` both return HTTP 200 in
+production as of v1.11.2. The previous guidance to expect 404s is obsolete.
+If they ever 404 again, that's a deploy regression — log it in `issues.md`.
 
 ---
 
@@ -304,8 +305,11 @@ Run these in order. Stop and log to `issues.md` the moment a step fails.
    basemap, inset boxes, and KPI deck colors should all repaint.
    localStorage persists across reload.
 
-6. **URL state round-trip** — open `?site=<EPA_ID>` (e.g. NJ-Picillo Farm).
-   Detail panel opens, program-color stripe matches the program.
+6. **URL state round-trip** — open `?site=<EPA_ID>` (e.g. `AZD980737530`
+   for Tucson International Airport Area, a Final NPL Superfund site confirmed
+   in the dataset). Detail panel opens, program-color stripe matches the program.
+   Use `window.__sites.find(s => s.program === 'superfund')?.id` to pick any
+   valid ID rather than hard-coding one that may not be in the dataset.
 
 7. **Tab switch** — click "Table". Rows render with NPL status pills.
    Sort indicator (▲/▼) appears in the active column header.
@@ -341,15 +345,20 @@ matches the per-program regex.
 **Round 2 — Random URL state, one per program + one invalid:**
 ```
 [eval pick a random site per program from window.__sites]
-[navigate ?site=<superfund-pick> → wait 6 s → eval detail title/program/acreage → screenshot]
-[navigate ?site=<acres-pick>      → wait 6 s → eval … → screenshot]
-[navigate ?site=<fuds-pick>       → wait 6 s → eval … → screenshot]
-[navigate ?site=<brac-pick>       → wait 6 s → eval … → screenshot]
-[navigate ?site=DOES-NOT-EXIST    → wait 5 s → eval toast.classList.contains('visible')]
+[navigate ?site=<superfund-pick> → wait 8 s  → eval detail title/program/acreage → screenshot]
+[navigate ?site=<acres-pick>     → wait 10 s → eval … → screenshot]
+[navigate ?site=<fuds-pick>      → wait 8 s  → eval … → screenshot]
+[navigate ?site=<brac-pick>      → wait 8 s  → eval … → screenshot]
+[navigate ?site=DOES-NOT-EXIST   → wait 5 s  → eval toast.classList.contains('visible')]
 ```
-Notes: the toast fires ~5 s after navigate, not ~1 s — see quirk #13.
-BRAC sometimes fails on the first try; if `detailHidden:true`, try one
-re-navigate before logging a bug (see UAT-010).
+Notes:
+- ACRES deep-link needs **10 s** on a cold cache — the file is ~1.6 MB gz and
+  `applyUrlSelection()` waits for the full parse + `sitesById` population.
+  If `detailHidden:true` at 10 s AND `__APP_READY__` is true, that's a bug.
+  If `__APP_READY__` is still false, wait another 3 s and retry.
+- The toast fires ~5 s after navigate, not ~1 s — see quirk #13.
+- BRAC/ACRES/FUDS can all fail on the first try mid-`Promise.allSettled`; one
+  re-navigate before logging is fine (see UAT-010).
 
 **Round 3 — Random search query:**
 ```
@@ -391,7 +400,7 @@ re-navigate before logging a bug (see UAT-010).
 ```
 [eval document.querySelectorAll('*').length (must be < 5000)]
 [read_console_messages onlyErrors:true (must be empty)]
-[read_network_requests (expect epa-echo.json + ai-summary.json may 404 — OK)]
+[read_network_requests (all 10 JSON files should be 200 — including epa-echo.json + ai-summary.json)]
 [screenshot]
 ```
 
@@ -440,17 +449,19 @@ For each round, prefer one `browser_batch` per round. Don't fan out into
 
 ---
 
-## Quick Reference: Known State (as of v1.8, 2026-04-30)
+## Quick Reference: Known State (as of v1.11.2, 2026-05-05)
 
 | Item                      | Value                                                         |
 | ------------------------- | ------------------------------------------------------------- |
 | First-paint payload (gz)  | ~170 KB sites.json + ~1.6 MB acres + ~600 KB FUDS/BRAC/redev |
 | Total markers             | ~46,759 (1,908 Superfund + 36,003 ACRES + 8,821 FUDS + 27 BRAC) |
-| DC reuse candidates       | ~821 (Superfund w/ power + ≥50 ac + water service)            |
+| DC reuse candidates       | 821 (Superfund w/ power + ≥50 ac + water service)             |
 | Marker decimation         | zoom ≤4 → 1/8, ≤5 → 1/4, ≤6 → 1/2, ≥7 → all                 |
 | Cold-load DOMContentLoaded| ~60 ms (chunked hydration keeps main thread responsive)       |
-| Total DOM nodes after ready | ~2,800 (regression test caps at 5,000)                      |
+| Total DOM nodes after ready | ~2,685 (measured 2026-05-05; regression test caps at 5,000) |
 | County zoom threshold     | `COUNTY_MIN_ZOOM = 7` (lazy-loaded TopoJSON)                  |
 | KPI deck IDs              | `#kpi-total`, `#kpi-acres`, `#kpi-dc`, `#kpi-states`          |
 | Hero refresh ID           | `#hero-refresh` (also `#footer-refresh` mirrors it)           |
 | Filter chip ID            | `#filters-chip` (badge on `#filters-toggle`)                  |
+| Detail title selector     | `#detail h2` (no `#d-name` — that ID doesn't exist)           |
+| Valid example Superfund ID | `AZD980737530` (Tucson International Airport Area)            |
