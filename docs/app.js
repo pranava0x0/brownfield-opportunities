@@ -159,11 +159,13 @@ const fmt = {
   },
   text: (s) => (s == null || s === "" ? "—" : String(s)),
   // Distance in miles, null → "Not available". Sub-mile precision rounded
-  // to 0.1 — matches the connector's emit precision.
+  // to 0.1 — matches the connector's emit precision. Values < 0.05 round to
+  // 0.0 in the source data; render as "Adjacent" instead of "0.0 mi" / "<0.1 mi"
+  // so passing-through-the-boundary cases read as a feature, not a bug.
   miles: (n) => {
     if (n == null) return "Not available";
+    if (n < 0.05) return "Adjacent";
     const rounded = Math.round(n * 10) / 10;
-    if (rounded < 0.1) return "<0.1 mi";
     return rounded.toLocaleString(undefined, { maximumFractionDigits: 1 }) + " mi";
   },
   // Compact numeric formatter for KPI deck: 47k / 3.2M / 1.9B style.
@@ -1749,7 +1751,27 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
   el("d-near-water").textContent = fmt.text(s.near_water_supply);
   el("d-near-ww").textContent = fmt.text(s.near_wastewater);
   el("d-pop-density").textContent = fmt.text(s.pop_density);
-  el("d-dc-candidate").textContent = s.data_center_reuse_candidate === true ? "Yes" : s.data_center_reuse_candidate === false ? "No" : "—";
+  // The DC candidate `<dd>` carries an inline criteria `<span>` that surfaces
+  // the EPA RE-Powering reasoning when the boolean is true. Same text-node
+  // pattern as the FUDS acreage note — rewrite firstChild only so the span
+  // survives subsequent renders.
+  const dcEl = el("d-dc-candidate");
+  const dcCriteria = el("d-dc-criteria");
+  const dcText = s.data_center_reuse_candidate === true ? "Yes"
+    : s.data_center_reuse_candidate === false ? "No"
+    : "—";
+  dcEl.firstChild && dcEl.firstChild.nodeType === Node.TEXT_NODE
+    ? (dcEl.firstChild.nodeValue = dcText)
+    : dcEl.insertBefore(document.createTextNode(dcText), dcCriteria || null);
+  if (dcCriteria) {
+    if (s.data_center_reuse_candidate === true) {
+      dcCriteria.textContent = "≥50 acres · electric transmission · water service area";
+      dcCriteria.hidden = false;
+    } else {
+      dcCriteria.textContent = "";
+      dcCriteria.hidden = true;
+    }
+  }
 
   el("d-region").textContent = s.region != null ? `Region ${s.region}` : "—";
   el("d-addr").textContent = [s.address, s.city, s.state, s.zip].filter(Boolean).join(", ") || "—";

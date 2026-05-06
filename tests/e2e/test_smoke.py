@@ -1479,3 +1479,74 @@ def test_visible_bbox_cached_on_filter(page, base_url):
     # Height/width are nonzero (filtered set has multiple sites).
     assert bbox["maxLat"] >= bbox["minLat"]
     assert bbox["maxLon"] >= bbox["minLon"]
+
+
+def test_infra_distance_renders_adjacent_below_threshold(page, base_url):
+    """v1.11.4: distances < 0.05 mi (rounded to 0.0 in the source data)
+    must render as "Adjacent" instead of "<0.1 mi" / "0.0 mi". Cover all
+    three cells in one shot so a future regression on any of them is loud."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    target_id = page.evaluate(
+        "(() => {"
+        "  const s = (window.__sites || [])[0];"
+        "  if (!s) return null;"
+        "  s.transmission_mi = 0.0;"
+        "  s.rail_mi = 0.04;"
+        "  s.highway_mi = 5.2;"
+        "  return s.id;"
+        "})()"
+    )
+    assert target_id
+    page.evaluate(f"window.__selectSite('{target_id}')")
+    page.wait_for_selector("#detail:not([hidden])")
+    assert (page.locator("#d-transmission-mi").text_content() or "").strip() == "Adjacent"
+    assert (page.locator("#d-rail-mi").text_content() or "").strip() == "Adjacent"
+    assert (page.locator("#d-highway-mi").text_content() or "").strip() == "5.2 mi"
+    # The "Adjacent" cells should NOT carry the muted-cell class — they're
+    # real data, not placeholder text.
+    for sel in ("#d-transmission-mi", "#d-rail-mi"):
+        cls = page.locator(sel).get_attribute("class") or ""
+        assert "muted-cell" not in cls, f"{sel} kept muted-cell class for adjacent value"
+
+
+def test_dc_candidate_surfaces_criteria_in_detail_panel(page, base_url):
+    """v1.11.4: when `data_center_reuse_candidate` is true the detail panel
+    surfaces the EPA RE-Powering criteria as a sub-line so the boolean isn't
+    opaque. When false / null, the criteria stay hidden."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    sid = page.evaluate(
+        "(() => {"
+        "  const s = (window.__sites || [])[0];"
+        "  if (!s) return null;"
+        "  s.data_center_reuse_candidate = true;"
+        "  return s.id;"
+        "})()"
+    )
+    assert sid
+    page.evaluate(f"window.__selectSite('{sid}')")
+    page.wait_for_selector("#detail:not([hidden])")
+    crit = page.locator("#d-dc-criteria")
+    assert crit.evaluate("el => el.hidden") is False
+    text = (crit.text_content() or "").strip()
+    assert "≥50 acres" in text
+    assert "electric transmission" in text
+    assert "water service area" in text
+    # Parent dd carries "Yes" as its leading text node.
+    dd_lead = page.evaluate(
+        "() => document.getElementById('d-dc-candidate').firstChild.nodeValue.trim()"
+    )
+    assert dd_lead == "Yes"
+
+    # Flip to False → criteria hidden, lead reads "No".
+    page.evaluate(
+        f"(() => {{ const s = window.__sites.find(x => x.id === '{sid}');"
+        "  s.data_center_reuse_candidate = false;"
+        f" window.__selectSite('{sid}'); }})()"
+    )
+    assert crit.evaluate("el => el.hidden") is True
+    dd_lead = page.evaluate(
+        "() => document.getElementById('d-dc-candidate').firstChild.nodeValue.trim()"
+    )
+    assert dd_lead == "No"
