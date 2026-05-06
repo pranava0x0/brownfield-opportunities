@@ -476,6 +476,8 @@ fetch(PRIMARY_DATA_URL)
       get: () => sites,
     });
     window.__selectSite = selectSite;
+    // Expose tableState so e2e can verify the cached visible bbox.
+    window.__tableState = tableState;
     // Expose the prettifiers + CSV schema so e2e tests can exercise the
     // curated column set without intercepting a download.
     window.__prettyName = prettyName;
@@ -540,6 +542,13 @@ function ingestSites(records) {
       else if (!pretty) s.address = null;
     }
     applyInsetRemap(s);
+    // Pre-build a lowercased search index once at ingest time. `siteMatchesQuery`
+    // does an `includes` against this — every keystroke would otherwise rebuild
+    // the same string for all 47k sites and re-allocate.
+    s._searchKey = [s.name, s.city, s.county, s.state]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
     sitesById.set(s.id, s);
   }
   sites = Array.from(sitesById.values());
@@ -1074,8 +1083,10 @@ function shouldDecimateOut(id, keepEvery) {
 // ----- Filters -----
 function siteMatchesQuery(s, q) {
   if (!q) return true;
-  const hay = [s.name, s.city, s.county, s.state].filter(Boolean).join("|").toLowerCase();
-  return hay.includes(q);
+  // `_searchKey` is built once at ingest time (see `ingestSites`). Falling
+  // back to a fresh join here would defeat the optimization, so just bail
+  // if a record was added through some other path that skipped the index.
+  return (s._searchKey || "").includes(q);
 }
 
 function siteMatchesFilters(s, opts = {}) {
@@ -1158,22 +1169,18 @@ function applyFilter() {
 //     geographic spread (e.g. "Final NPL only" still spans the whole US).
 function refitMapToFilters() {
   if (!map) return;
-  const lats = [];
-  const lons = [];
-  for (const s of sites) {
-    if (s.lat == null || s.lon == null) continue;
-    if (!siteMatchesFilters(s)) continue;
-    lats.push(s.lat);
-    lons.push(s.lon);
-  }
-  if (lats.length === 0 || lats.length > 5000) return;
-  if (lats.length === 1) {
-    map.setView([lats[0], lons[0]], 12, { animate: true });
+  // Read the cached bbox built by `refreshTableForFilter()` rather than
+  // rescanning all sites — every event handler that calls this also calls
+  // `applyFilter()` first, so the bbox is always fresh.
+  const bb = tableState.visibleBBox;
+  if (!bb || bb.count === 0 || bb.count > 5000) return;
+  if (bb.count === 1) {
+    map.setView([bb.minLat, bb.minLon], 12, { animate: true });
     return;
   }
   const bbox = L.latLngBounds(
-    [Math.min(...lats), Math.min(...lons)],
-    [Math.max(...lats), Math.max(...lons)]
+    [bb.minLat, bb.minLon],
+    [bb.maxLat, bb.maxLon]
   );
   const cur = map.getBounds();
   const curArea =
@@ -1406,6 +1413,10 @@ const tableState = {
   sorted: [],   // all sites, sorted by current key
   filtered: [], // sorted ∩ current filter
   rendered: 0,  // count of rows actually in DOM
+  // Bounding box of the visible (filtered) set, recomputed by
+  // `refreshTableForFilter()` so `refitMapToFilters()` doesn't have to
+  // re-scan all 47k records on every filter toggle.
+  visibleBBox: null, // { minLat, maxLat, minLon, maxLon, count } | null
 };
 let _tableSentinel = null;
 let _tableObserver = null;
@@ -1451,6 +1462,21 @@ function rebuildTable() {
 // Re-evaluate the filter, reset to page 1, render. Use after filter changes.
 function refreshTableForFilter() {
   tableState.filtered = tableState.sorted.filter((s) => siteMatchesFilters(s));
+  // Same pass: capture the bbox of the visible set so `refitMapToFilters`
+  // doesn't sweep all 47k records again on every filter toggle.
+  let minLat = Infinity, maxLat = -Infinity, minLon = Infinity, maxLon = -Infinity;
+  let count = 0;
+  for (const s of tableState.filtered) {
+    if (s.lat == null || s.lon == null) continue;
+    if (s.lat < minLat) minLat = s.lat;
+    if (s.lat > maxLat) maxLat = s.lat;
+    if (s.lon < minLon) minLon = s.lon;
+    if (s.lon > maxLon) maxLon = s.lon;
+    count++;
+  }
+  tableState.visibleBBox = count > 0
+    ? { minLat, maxLat, minLon, maxLon, count }
+    : null;
   const tbody = document.querySelector("#sites-table tbody");
   tbody.innerHTML = "";
   tableRowsById.clear();
@@ -1619,13 +1645,24 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
   el("detail-title").textContent = s.name || "—";
   const locParts = [s.city, s.state].filter(Boolean).join(", ");
   el("detail-loc").textContent = locParts || "Location unknown";
-  // Program pill, plus a small "DC candidate" badge when the redev enrichment
-  // flagged this site as data-center reuse-suitable.
+  // Program pill, plus three optional badges:
+  //   - "DC candidate" when the redev enrichment flagged this site as
+  //     data-center reuse-suitable (power + ≥50 ac + water service area).
+  //   - "Cleanup Complete" for NPL Deleted Superfund sites — the strongest
+  //     "site is transactable today" signal in the dataset (zero new fetch).
+  //   - "Active Reuse" when EPA's RedevelopmentAppSitePoints `In_Reuse`
+  //     field is "Yes" — the site is already being put to productive use.
   const programPill = `<span class="pill" data-program="${escapeAttr(s.program)}">${escapeHtml(PROGRAM_LABEL[s.program] || s.program || "—")}</span>`;
   const dcPill = s.data_center_reuse_candidate === true
     ? ` <span class="pill dc-pill" title="Power, ≥50 acres, water service area">DC candidate</span>`
     : "";
-  el("d-program").innerHTML = programPill + dcPill;
+  const cleanupPill = (s.program === "superfund" && s.npl_status_code === "D")
+    ? ` <span class="pill cleanup-pill" title="Site has been deleted from the National Priorities List — cleanup complete">Cleanup Complete</span>`
+    : "";
+  const reusePill = (typeof s.in_reuse === "string" && /^yes/i.test(s.in_reuse))
+    ? ` <span class="pill reuse-pill" title="Site is currently in active reuse (EPA Superfund Redevelopment mapper)">Active Reuse</span>`
+    : "";
+  el("d-program").innerHTML = programPill + cleanupPill + reusePill + dcPill;
   // The acreage `<dd>` carries an inline note `<span>` for FUDS records
   // missing acreage. Replace only the text node so the note span isn't
   // clobbered, then toggle the note for the FUDS-no-boundary case.
