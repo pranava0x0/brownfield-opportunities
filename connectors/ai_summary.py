@@ -135,8 +135,13 @@ def _pretty_token(w: str) -> str:
 
 
 def _fmt_distance(v: float) -> str:
-    """Format an infrastructure distance in plain English."""
-    return "on-site" if v < 0.05 else f"{v:.1f} miles"
+    """Format an infrastructure distance in plain English.
+
+    Distances under 0.05 mi round to 0.0 in the source data — render as
+    "adjacent" rather than "0.0 miles" so passing-through-the-boundary cases
+    read as a feature, not a display bug.
+    """
+    return "adjacent" if v < 0.05 else f"{v:.1f} miles away"
 
 
 def _join_list(items: list[str]) -> str:
@@ -200,32 +205,31 @@ def build_static_summary(site: dict[str, Any]) -> str:
     sentences = [lead]
 
     # ── Infrastructure ───────────────────────────────────────────────────────
+    # All three clauses share the same `_fmt_distance` shape now ("adjacent"
+    # vs "N.N miles away") so the prose stays uniform whether the line passes
+    # through the property, borders it, or sits miles away.
     infra_clauses = []
     if site.get("transmission_mi") is not None:
         infra_clauses.append(
-            f"transmission lines {_fmt_distance(site['transmission_mi'])} from the boundary"
+            f"transmission lines {_fmt_distance(site['transmission_mi'])}"
         )
     if site.get("rail_mi") is not None:
-        v = site["rail_mi"]
-        infra_clauses.append(
-            "rail access on-site" if v < 0.05 else f"rail {_fmt_distance(v)}"
-        )
+        infra_clauses.append(f"rail {_fmt_distance(site['rail_mi'])}")
     if site.get("highway_mi") is not None:
-        v = site["highway_mi"]
-        infra_clauses.append(
-            "highway access on-site" if v < 0.05 else f"highway {_fmt_distance(v)}"
-        )
+        infra_clauses.append(f"highway {_fmt_distance(site['highway_mi'])}")
     if infra_clauses:
         sentences.append(
             f"Infrastructure proximity: {_join_list(infra_clauses)}."
         )
 
     # ── Reuse signals ────────────────────────────────────────────────────────
+    # Trimmed parenthetical (was "(≥50 acres with electric transmission and
+    # water service access)") — the criteria are always identical, so they
+    # read as boilerplate at scale. The KPI-deck subtext, the legend pill
+    # tooltip, and the detail-panel `.dd-criteria` line all surface the rule
+    # for users who want it.
     if site.get("data_center_reuse_candidate"):
-        sentences.append(
-            "The site meets EPA RE-Powering criteria as a data-center reuse candidate "
-            "(≥50 acres with electric transmission and water service access)."
-        )
+        sentences.append("Flagged as a data-center reuse candidate.")
     elif site.get("near_electric_transmission") or site.get("near_water_supply"):
         qual_bits = []
         if site.get("near_electric_transmission"):
