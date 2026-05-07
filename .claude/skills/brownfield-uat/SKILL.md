@@ -270,14 +270,49 @@ same.
 production as of v1.11.2. The previous guidance to expect 404s is obsolete.
 If they ever 404 again, that's a deploy regression — log it in `issues.md`.
 
+### 16. Preview MCP boots with a 0×0 viewport — resize BEFORE first navigate (UAT-011, fixed 2026-05-06)
+
+`mcp__Claude_Preview__preview_start` returns a server but the page's
+`window.innerWidth` / `innerHeight` are **both `0`** until the first
+explicit `preview_resize` lands. Two consequences:
+
+- **Always call `preview_resize` with explicit `width` + `height` BEFORE
+  navigating.** `{ width: 1440, height: 900 }` is the canonical desktop;
+  `{ width: 375, height: 812 }` mobile; `{ width: 768, height: 1024 }`
+  tablet. Calling `{ preset: "desktop" }` alone returns `"Viewport reset
+  to native size (desktop)"` and leaves the viewport at 0×0 — the preset
+  path only works AFTER an explicit width/height has been applied at
+  least once. Quirk of the tool, not the page.
+- **The page is now resilient to a 0×0 boot** thanks to UAT-011's fix:
+  `initMap()` creates `markerLayer` before any `fitBounds` attempt, and
+  `fitUsBoundsSafely()` registers a `ResizeObserver` that retries on the
+  first non-zero resize tick. So if you forget to resize first, the map
+  paints into 0×0 silently and recovers when you eventually call
+  `preview_resize`. **But** during the deferred window, `__APP_READY__`
+  may still flip true (the lazy loads complete) while the map shows
+  nothing — confusing for screenshot-based assertions. Best practice
+  remains: **resize first, navigate second.**
+
+How to spot the bug if you DO hit it:
+- Console shows `fitBounds deferred (zero-size container)` warnings.
+- `document.getElementById('map').getBoundingClientRect()` is `{w:0,h:0}`.
+- `window.__map.getCenter()` returns `{lat: NaN, lng: NaN}`.
+
+Recovery: `preview_resize { width: 1440, height: 900 }`. The
+ResizeObserver fires, fitBounds succeeds, `invalidateSize()` repaints.
+No reload needed.
+
+Regression tests in `tests/e2e/test_smoke.py`:
+`test_init_map_survives_zero_size_container` reproduces the boot via
+`page.add_init_script` injecting `#map { width:0; height:0 }`.
+
 ---
 
 ## Standard UAT Flow (5-min run)
 
 Run these in order. Stop and log to `issues.md` the moment a step fails.
 
-1. **Cold load** — `preview_start dashboard`, then `preview_eval window.location.href = 'http://localhost:8765/index.html'`,
-   wait 3 s, screenshot.
+1. **Cold load** — `preview_start dashboard`, then **`preview_resize { width: 1440, height: 900 }`** (see Quirk #16 — explicit width/height is required; `{ preset: "desktop" }` alone leaves the viewport at 0×0), then `preview_eval window.location.href = 'http://localhost:8765/index.html'`, wait 8 s, screenshot. Use `preview_eval` to check `window.__APP_READY__ === true` rather than waiting on a fixed timeout — cold load varies from ~4 s warm cache to ~12 s cold.
    - Header subtitle should match `/^[\d,]+ sites \(.+ Superfund \+ .+ brownfields( \+ .+ FUDS)?( \+ .+ BRAC)?\) · refreshed \d{4}-\d{2}-\d{2}$/`.
    - Network: `sites.json`, `us-states.json`, `epa-acres.json`,
      `dod-fuds.json`, `dod-brac.json`, `epa-redev.json` all 200.
@@ -286,8 +321,7 @@ Run these in order. Stop and log to `issues.md` the moment a step fails.
    - KPI deck shows non-`—` numbers in all four cells.
    - Hero refresh + footer refresh strings show the same date.
 
-2. **Visual sanity** — `preview_resize` to desktop (1440), tablet (768),
-   mobile (375). On mobile:
+2. **Visual sanity** — `preview_resize` to desktop (`width:1440 height:900`), tablet (`width:768 height:1024`), mobile (`width:375 height:812`). Always pass explicit `width` + `height` — `{ preset: ... }` alone is a no-op until an explicit size has been set at least once (Quirk #16). On mobile:
    - Hero copy is hidden, KPI deck becomes a horizontal scroll-snap carousel.
    - Detail panel becomes a bottom sheet with a drag handle.
    - Map dominates the viewport.
@@ -449,7 +483,7 @@ For each round, prefer one `browser_batch` per round. Don't fan out into
 
 ---
 
-## Quick Reference: Known State (as of v1.11.2, 2026-05-05)
+## Quick Reference: Known State (as of v1.11.5, 2026-05-06)
 
 | Item                      | Value                                                         |
 | ------------------------- | ------------------------------------------------------------- |
@@ -458,10 +492,13 @@ For each round, prefer one `browser_batch` per round. Don't fan out into
 | DC reuse candidates       | 821 (Superfund w/ power + ≥50 ac + water service)             |
 | Marker decimation         | zoom ≤4 → 1/8, ≤5 → 1/4, ≤6 → 1/2, ≥7 → all                 |
 | Cold-load DOMContentLoaded| ~60 ms (chunked hydration keeps main thread responsive)       |
-| Total DOM nodes after ready | ~2,685 (measured 2026-05-05; regression test caps at 5,000) |
+| Total DOM nodes after ready | ~2,713 (measured 2026-05-06; regression test caps at 5,000) |
 | County zoom threshold     | `COUNTY_MIN_ZOOM = 7` (lazy-loaded TopoJSON)                  |
 | KPI deck IDs              | `#kpi-total`, `#kpi-acres`, `#kpi-dc`, `#kpi-states`          |
 | Hero refresh ID           | `#hero-refresh` (also `#footer-refresh` mirrors it)           |
 | Filter chip ID            | `#filters-chip` (badge on `#filters-toggle`)                  |
+| Readiness pills           | `.cleanup-pill` (NPL Deleted) · `.reuse-pill` (`In_Reuse=Yes`) · `.dc-pill` (`data_center_reuse_candidate`) — all three can co-render in `#d-program` |
+| 0×0-boot recovery         | `fitUsBoundsSafely()` + `ResizeObserver` (UAT-011, 2026-05-06)|
 | Detail title selector     | `#detail h2` (no `#d-name` — that ID doesn't exist)           |
 | Valid example Superfund ID | `AZD980737530` (Tucson International Airport Area)            |
+| Test count                | 330 (266 unit + 64 e2e — ran clean 2026-05-06)                |
