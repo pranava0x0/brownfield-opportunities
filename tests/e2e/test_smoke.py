@@ -1550,3 +1550,89 @@ def test_dc_candidate_surfaces_criteria_in_detail_panel(page, base_url):
         "() => document.getElementById('d-dc-candidate').firstChild.nodeValue.trim()"
     )
     assert dd_lead == "No"
+
+
+# ----- UAT-011 (2026-05-06): initMap() must not strand markerLayer when the
+# map container is 0x0 at first paint. Headless preview, hidden tabs, and
+# zero-size embeds all hit this path. Before the fix, Leaflet's fitBounds()
+# threw "Invalid LatLng object: (NaN, NaN)" BEFORE markerLayer was created,
+# so every subsequent BRAC/FUDS/ACRES lazy-load crashed in addOneMarker. The
+# fix moves markerLayer creation ahead of fitBounds and defers fitBounds via
+# a ResizeObserver when the container has no dimensions.
+
+def test_init_map_survives_zero_size_container(page, base_url):
+    """Boot the page with #map forced to 0x0. markerLayer must still exist
+    so the lazy-load chain doesn't crash. Then restore dimensions and verify
+    the deferred fitBounds completes via the ResizeObserver retry."""
+    # Inject the zero-size CSS BEFORE the page's stylesheet/scripts load so
+    # initMap() runs against a real 0x0 container. add_init_script runs in
+    # every new document, so it lands ahead of app.js.
+    page.add_init_script(
+        """
+        document.addEventListener('DOMContentLoaded', () => {
+          const style = document.createElement('style');
+          style.id = '__zerosize-test';
+          style.textContent = '#map { width: 0 !important; height: 0 !important; }';
+          document.head.appendChild(style);
+        }, { once: true });
+        """
+    )
+    page.goto(f"{base_url}/index.html")
+
+    # Wait for the Superfund payload to settle; __sitesLoaded fires after
+    # ingestSites() but BEFORE __APP_READY__ (which waits on every program
+    # lazy-load). At this checkpoint, markerLayer must exist even if
+    # fitBounds was deferred.
+    page.wait_for_function("window.__sitesLoaded === true", timeout=20000)
+
+    # The critical invariant: markerLayer is wired up regardless of the
+    # zero-size fitBounds throw. This is what the original UAT-011 bug broke.
+    assert page.evaluate("typeof window.__markerLayer !== 'undefined'"), (
+        "markerLayer should be created before fitBounds — zero-size container "
+        "must not strand later marker-adders with `undefined`"
+    )
+    assert page.evaluate("typeof window.__map !== 'undefined'"), (
+        "map should be created before fitBounds defers"
+    )
+
+    # Sanity: no BRAC/FUDS/ACRES lazy-load crashed with the addLayer TypeError
+    # that UAT-011 produced. We can't easily snapshot console.error from
+    # Playwright after the fact, so we verify the positive path: at least
+    # one program's records have been ingested into sitesById.
+    sites_count = page.evaluate("(window.__sites || []).length")
+    assert sites_count > 0, "Superfund payload should ingest even with zero-size map"
+
+    # Now restore real dimensions. The ResizeObserver in fitUsBoundsSafely()
+    # should pick this up, retry fitBounds, succeed, and call invalidateSize().
+    # __APP_READY__ flips true once every lazy-load resolves, so we use it as
+    # the post-recovery sentinel.
+    page.evaluate("document.getElementById('__zerosize-test').remove()")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=20000)
+
+    # Map should now report a real (non-NaN) center. Before the fix, the
+    # internal Leaflet state stayed corrupted; here we assert recovery.
+    center = page.evaluate(
+        "(() => { const c = window.__map.getCenter(); return { lat: c.lat, lng: c.lng }; })()"
+    )
+    import math
+    assert not math.isnan(center["lat"]), "map center lat should not be NaN after recovery"
+    assert not math.isnan(center["lng"]), "map center lng should not be NaN after recovery"
+    # CONUS centroid sanity — fitBounds(US_BOUNDS) should land near 35°N, -96°W.
+    assert 25 < center["lat"] < 45, f"recovered center lat {center['lat']} out of CONUS"
+    assert -110 < center["lng"] < -80, f"recovered center lng {center['lng']} out of CONUS"
+
+
+def test_marker_layer_created_before_fit_bounds(page, base_url):
+    """Lighter-weight regression for UAT-011: even on a normal-size container,
+    `__markerLayer` must be exposed before any user-visible action. This
+    guards against future refactors that re-introduce the original ordering
+    (markerLayer assignment AFTER fitBounds)."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__sitesLoaded === true", timeout=20000)
+    # Both globals must be live by the time __sitesLoaded fires — initMap
+    # has run at least once.
+    assert page.evaluate("!!window.__map")
+    assert page.evaluate("!!window.__markerLayer")
+    assert page.evaluate(
+        "typeof window.__markerLayer.addLayer === 'function'"
+    ), "markerLayer should be a Leaflet LayerGroup with .addLayer()"
