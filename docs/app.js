@@ -795,6 +795,14 @@ function ensureInfraLoaded() {
 // ----- Map -----
 function initMap() {
   const renderer = L.canvas({ padding: 0.5 });
+  // Don't chain `.fitBounds()` on the constructor. If the map container is
+  // 0×0 at first paint (headless preview, hidden tab, zero-size embed),
+  // Leaflet's `_limitCenter` divides by container size and produces NaN
+  // coordinates, which throws "Invalid LatLng object: (NaN, NaN)". Before
+  // 2026-05-06 that throw bubbled out of `initMap()` BEFORE `markerLayer`
+  // was created, leaving the layer `undefined` and crashing every
+  // subsequent `markerLayer.addLayer(...)` call (UAT-011). Create the map
+  // first; defer fitBounds to `fitUsBoundsSafely()` which retries on resize.
   map = L.map("map", {
     preferCanvas: true,
     renderer,
@@ -805,18 +813,24 @@ function initMap() {
     maxBoundsViscosity: 1.0,
     worldCopyJump: false,
     attributionControl: true,
-  }).fitBounds(US_BOUNDS, { padding: [10, 10], animate: false });
+  });
 
   map.attributionControl.setPrefix("").addAttribution(BASEMAP_ATTRIB);
   // The Leaflet container background is the "ocean" outside CONUS.
   document.getElementById("map").style.background = cssColor("--map-ocean");
 
-  drawBasemap();
-  drawInsetBoxes();
-
+  // markerLayer must exist before any caller tries to add markers — the
+  // BRAC / FUDS / ACRES lazy-loads run via `Promise.allSettled` and assume
+  // the layer is ready. Create it BEFORE `fitUsBoundsSafely()` so a deferred
+  // fitBounds (zero-size container) doesn't strand callers with `undefined`.
   markerLayer = L.layerGroup().addTo(map);
   window.__markerLayer = markerLayer;
   window.__map = map;
+
+  fitUsBoundsSafely();
+
+  drawBasemap();
+  drawInsetBoxes();
 
   addMarkersForRecords(sites);
   addLegend();
@@ -831,6 +845,39 @@ function initMap() {
   // zoomend hook because there's no zoom transition. Hook moveend so any view
   // change triggers the county lazy-load.
   map.on("moveend", updateCountyVisibility);
+}
+
+// Run `fitBounds(US_BOUNDS)` if the container has real dimensions; otherwise
+// defer to the first `ResizeObserver` tick that reports a non-zero size and
+// retry. The throw path on a 0×0 container is caught silently — Leaflet's
+// inner state isn't corrupted, only the bounds-fit math fails. After a
+// successful retry we call `invalidateSize()` so any cached zero-viewport
+// state is recomputed before tiles/markers paint.
+let _fitBoundsObserver = null;
+function fitUsBoundsSafely() {
+  const mapEl = document.getElementById("map");
+  const tryFit = () => {
+    try {
+      map.fitBounds(US_BOUNDS, { padding: [10, 10], animate: false });
+      return true;
+    } catch (e) {
+      // Expected when container is 0×0; we'll retry on resize. Log at
+      // warn level so the existing "non-fatal" outer catch isn't tripped.
+      console.warn("fitBounds deferred (zero-size container):", e?.message || e);
+      return false;
+    }
+  };
+  if (mapEl && mapEl.getBoundingClientRect().width > 0 && tryFit()) return;
+  if (_fitBoundsObserver || typeof ResizeObserver === "undefined") return;
+  _fitBoundsObserver = new ResizeObserver(() => {
+    if (!mapEl || mapEl.getBoundingClientRect().width === 0) return;
+    if (tryFit()) {
+      _fitBoundsObserver.disconnect();
+      _fitBoundsObserver = null;
+      map.invalidateSize();
+    }
+  });
+  _fitBoundsObserver.observe(mapEl);
 }
 
 // ----- Vector basemap -----
