@@ -91,9 +91,13 @@ function applyInsetRemap(record) {
 
 // Marker decimation: at low zoom levels with thousands of markers, drawing
 // every point is wasteful. Hash-based sampling keeps a stable subset visible.
+// Thresholds tightened 2026-05-07: with ~47k markers across all four programs,
+// the previous 1/8 at zoom ≤4 still left ~5,900 markers on the canvas and
+// pan latency was perceptibly degraded. 1/16 keeps ~3k visible, which still
+// reads as a continuous national density layer at zoom 4.
 const DECIMATION = [
-  { maxZoom: 4, keepEvery: 8 },
-  { maxZoom: 5, keepEvery: 4 },
+  { maxZoom: 4, keepEvery: 16 },
+  { maxZoom: 5, keepEvery: 8 },
   { maxZoom: 6, keepEvery: 2 },
   { maxZoom: Infinity, keepEvery: 1 },
 ];
@@ -297,6 +301,10 @@ let map, markerLayer;
 const markersById = new Map(); // id -> Leaflet marker
 const tableRowsById = new Map(); // id -> tr
 const sitesById = new Map();
+// O(1) program-loaded check. Each ensure*Loaded() bails early when its program
+// is already in this set; populated by ingestSites() so the existence check
+// doesn't require an O(n) sites.some() scan over up to 47k records.
+const loadedPrograms = new Set();
 let selectedId = null;
 let sortKey = "acreage";
 let sortDir = "desc";
@@ -552,6 +560,7 @@ function ingestSites(records) {
       .join(" ")
       .toLowerCase();
     sitesById.set(s.id, s);
+    if (s.program) loadedPrograms.add(s.program);
   }
   sites = Array.from(sitesById.values());
 }
@@ -559,7 +568,7 @@ function ingestSites(records) {
 // ----- Lazy ACRES load -----
 function ensureAcresLoaded() {
   if (acresLoadingPromise) return acresLoadingPromise;
-  if (sites.some((s) => s.program === "brownfield")) {
+  if (loadedPrograms.has("brownfield")) {
     return Promise.resolve();
   }
   updateMetaText({ loadingLabel: "brownfields" });
@@ -595,7 +604,7 @@ function ensureAcresLoaded() {
 
 function ensureFudsLoaded() {
   if (fudsLoadingPromise) return fudsLoadingPromise;
-  if (sites.some((s) => s.program === "fuds")) return Promise.resolve();
+  if (loadedPrograms.has("fuds")) return Promise.resolve();
   fudsLoadingPromise = fetch(FUDS_DATA_URL)
     .then((r) => {
       if (!r.ok) throw new Error("HTTP " + r.status);
@@ -621,7 +630,7 @@ function ensureFudsLoaded() {
 
 function ensureBracLoaded() {
   if (bracLoadingPromise) return bracLoadingPromise;
-  if (sites.some((s) => s.program === "brac")) return Promise.resolve();
+  if (loadedPrograms.has("brac")) return Promise.resolve();
   bracLoadingPromise = fetch(BRAC_DATA_URL)
     .then((r) => {
       if (!r.ok) throw new Error("HTTP " + r.status);
@@ -646,25 +655,25 @@ function ensureBracLoaded() {
 
 function ensureRedevLoaded() {
   if (redevLoadingPromise) return redevLoadingPromise;
-  redevLoadingPromise = fetch(REDEV_DATA_URL)
+  redevLoadingPromise = fetch(REDEV_DATA_URL, { priority: "low" })
     .then((r) => {
       if (!r.ok) throw new Error("HTTP " + r.status);
       return r.json();
     })
     .then((payload) => {
+      const truthyKeys = [
+        "near_electric_transmission", "near_highway", "near_railroad",
+        "near_water_supply", "near_wastewater", "pop_density",
+        "in_opp_zone", "in_reuse",
+      ];
       for (const rec of payload.sites || []) {
         const existing = sitesById.get(rec.id || rec.epa_id);
         if (!existing) continue;
-        if (rec.near_electric_transmission) existing.near_electric_transmission = rec.near_electric_transmission;
-        if (rec.near_highway) existing.near_highway = rec.near_highway;
-        if (rec.near_railroad) existing.near_railroad = rec.near_railroad;
-        if (rec.near_water_supply) existing.near_water_supply = rec.near_water_supply;
-        if (rec.near_wastewater) existing.near_wastewater = rec.near_wastewater;
-        if (rec.pop_density) existing.pop_density = rec.pop_density;
-        if (rec.in_opp_zone) existing.in_opp_zone = rec.in_opp_zone;
-        if (rec.in_reuse) existing.in_reuse = rec.in_reuse;
-        if (rec.data_center_reuse_candidate != null) existing.data_center_reuse_candidate = rec.data_center_reuse_candidate;
-        if (rec.acreage != null && existing.acreage == null) existing.acreage = rec.acreage;
+        const patch = {};
+        for (const k of truthyKeys) if (rec[k]) patch[k] = rec[k];
+        if (rec.data_center_reuse_candidate != null) patch.data_center_reuse_candidate = rec.data_center_reuse_candidate;
+        if (rec.acreage != null && existing.acreage == null) patch.acreage = rec.acreage;
+        Object.assign(existing, patch);
       }
       // DC candidate count + acreage totals can change after enrichment.
       updateKpiDeck();
@@ -683,7 +692,7 @@ function ensureRedevLoaded() {
 // as the connector's `--docs-limit` re-runs land more sites.
 function ensureSuperfundDocsLoaded() {
   if (superfundDocsLoadingPromise) return superfundDocsLoadingPromise;
-  superfundDocsLoadingPromise = fetch(SUPERFUND_DOCS_URL)
+  superfundDocsLoadingPromise = fetch(SUPERFUND_DOCS_URL, { priority: "low" })
     .then((r) => {
       if (r.status === 404) return { sites: [] };
       if (!r.ok) throw new Error("HTTP " + r.status);
@@ -696,6 +705,11 @@ function ensureSuperfundDocsLoaded() {
         if (Array.isArray(rec.documents) && rec.documents.length) {
           existing.documents = rec.documents;
         }
+      }
+      // If the user already opened a site, re-render its documents block.
+      if (selectedId) {
+        const sel = sitesById.get(selectedId);
+        if (sel) renderDocuments(sel);
       }
     })
     .catch((err) => {
@@ -711,7 +725,7 @@ function ensureSuperfundDocsLoaded() {
 // `epa-echo` connector. Open enforcement is a transactability red flag.
 function ensureEchoLoaded() {
   if (echoLoadingPromise) return echoLoadingPromise;
-  echoLoadingPromise = fetch(ECHO_DATA_URL)
+  echoLoadingPromise = fetch(ECHO_DATA_URL, { priority: "low" })
     .then((r) => {
       if (r.status === 404) return { sites: [] };
       if (!r.ok) throw new Error("HTTP " + r.status);
@@ -738,7 +752,7 @@ function ensureEchoLoaded() {
 // grows as `--source ai-summary --ai-limit N` re-runs land more sites.
 function ensureSummariesLoaded() {
   if (summariesLoadingPromise) return summariesLoadingPromise;
-  summariesLoadingPromise = fetch(AI_SUMMARY_URL)
+  summariesLoadingPromise = fetch(AI_SUMMARY_URL, { priority: "low" })
     .then((r) => {
       if (r.status === 404) return { sites: [] };
       if (!r.ok) throw new Error("HTTP " + r.status);
@@ -770,7 +784,7 @@ function ensureSummariesLoaded() {
 // (treated as out-of-range / out-of-CONUS).
 function ensureInfraLoaded() {
   if (infraLoadingPromise) return infraLoadingPromise;
-  infraLoadingPromise = fetch(INFRA_DATA_URL)
+  infraLoadingPromise = fetch(INFRA_DATA_URL, { priority: "low" })
     .then((r) => {
       if (r.status === 404) return { sites: [] };
       if (!r.ok) throw new Error("HTTP " + r.status);
@@ -780,9 +794,11 @@ function ensureInfraLoaded() {
       for (const rec of payload.sites || []) {
         const existing = sitesById.get(rec.id);
         if (!existing) continue;
-        if (rec.transmission_mi != null) existing.transmission_mi = rec.transmission_mi;
-        if (rec.rail_mi != null) existing.rail_mi = rec.rail_mi;
-        if (rec.highway_mi != null) existing.highway_mi = rec.highway_mi;
+        const patch = {};
+        if (rec.transmission_mi != null) patch.transmission_mi = rec.transmission_mi;
+        if (rec.rail_mi != null) patch.rail_mi = rec.rail_mi;
+        if (rec.highway_mi != null) patch.highway_mi = rec.highway_mi;
+        Object.assign(existing, patch);
       }
     })
     .catch((err) => {
@@ -1171,18 +1187,13 @@ function applyMarkerVisibility() {
 }
 
 function updateCountText() {
+  // Read from `tableState`, which was populated in `refreshTableForFilter()`
+  // — every caller of `updateCountText()` runs that first via `applyFilter()`,
+  // so the cache is always fresh and we avoid a second 47k-record scan.
   const q = filterState.q.trim().toLowerCase();
-  let visible = 0;
-  let acreSum = 0;
-  let acreSites = 0;
-  for (const s of sites) {
-    if (!siteMatchesFilters(s, { q })) continue;
-    visible++;
-    if (typeof s.acreage === "number") {
-      acreSum += s.acreage;
-      acreSites++;
-    }
-  }
+  const visible = tableState.filtered.length;
+  const acreSum = tableState.filteredAcreSum || 0;
+  const acreSites = tableState.filteredAcreSites || 0;
   const countEl = el("search-count");
   if (q || filtersActive()) {
     const acresLabel = acreSites
@@ -1511,11 +1522,15 @@ function rebuildTable() {
 // Re-evaluate the filter, reset to page 1, render. Use after filter changes.
 function refreshTableForFilter() {
   tableState.filtered = tableState.sorted.filter((s) => siteMatchesFilters(s));
-  // Same pass: capture the bbox of the visible set so `refitMapToFilters`
-  // doesn't sweep all 47k records again on every filter toggle.
+  // Same pass: capture the bbox of the visible set + counts/acreage totals
+  // so `refitMapToFilters` and `updateCountText` don't sweep all 47k records
+  // again on every filter toggle.
   let minLat = Infinity, maxLat = -Infinity, minLon = Infinity, maxLon = -Infinity;
   let count = 0;
+  let acreSum = 0;
+  let acreSites = 0;
   for (const s of tableState.filtered) {
+    if (typeof s.acreage === "number") { acreSum += s.acreage; acreSites++; }
     if (s.lat == null || s.lon == null) continue;
     if (s.lat < minLat) minLat = s.lat;
     if (s.lat > maxLat) maxLat = s.lat;
@@ -1526,6 +1541,8 @@ function refreshTableForFilter() {
   tableState.visibleBBox = count > 0
     ? { minLat, maxLat, minLon, maxLon, count }
     : null;
+  tableState.filteredAcreSum = acreSum;
+  tableState.filteredAcreSites = acreSites;
   const tbody = document.querySelector("#sites-table tbody");
   tbody.innerHTML = "";
   tableRowsById.clear();
@@ -1599,19 +1616,32 @@ function makeComparator(key, dir) {
   };
 }
 
+// Cached header NodeList — same set across the document's lifetime, so we
+// don't need to re-query it on every sort-indicator update.
+let _sortHeaders = null;
+function getSortHeaders() {
+  if (!_sortHeaders) _sortHeaders = document.querySelectorAll("#sites-table thead th");
+  return _sortHeaders;
+}
+
 function updateSortIndicators() {
-  document.querySelectorAll("#sites-table thead th").forEach((th) => {
+  for (const th of getSortHeaders()) {
     th.removeAttribute("aria-sort");
     th.removeAttribute("data-sort-glyph");
     if (th.dataset.sort === sortKey) {
       th.setAttribute("aria-sort", sortDir === "asc" ? "ascending" : "descending");
       th.setAttribute("data-sort-glyph", sortDir === "asc" ? "▲" : "▼");
     }
-  });
+  }
 }
 
-document.querySelectorAll("#sites-table thead th").forEach((th) => {
-  th.addEventListener("click", () => {
+// Single delegated listener on <thead> instead of one-per-column. Survives
+// future column additions without rebinding.
+const _sortThead = document.querySelector("#sites-table thead");
+if (_sortThead) {
+  _sortThead.addEventListener("click", (event) => {
+    const th = event.target.closest("th[data-sort]");
+    if (!th || !_sortThead.contains(th)) return;
     const key = th.dataset.sort;
     if (!key) return;
     if (key === sortKey) sortDir = sortDir === "asc" ? "desc" : "asc";
@@ -1619,7 +1649,7 @@ document.querySelectorAll("#sites-table thead th").forEach((th) => {
     rebuildTable();
     if (selectedId) tableRowsById.get(selectedId)?.classList.add("selected");
   });
-});
+}
 
 // ----- Tabs -----
 function wireTabs() {
@@ -1786,10 +1816,15 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
   }
 
   // Universal infrastructure-proximity (from infra-proximity enrichment —
-  // computed for every program against HIFLD + Census TIGER).
-  setMileCell("d-transmission-mi", s.transmission_mi);
-  setMileCell("d-rail-mi", s.rail_mi);
-  setMileCell("d-highway-mi", s.highway_mi);
+  // computed for every program against HIFLD + Census TIGER). Out-of-CONUS
+  // sites (AK / HI / PR / VI / Pacific) are intentionally absent from
+  // `infra-proximity.json` because the connector's MAX_DISTANCE_MI=100mi
+  // window doesn't extend that far — surface a placeholder so the rows
+  // don't read as missing/uncomputed data.
+  const offConus = !!s._inset;
+  setMileCell("d-transmission-mi", s.transmission_mi, { offConus });
+  setMileCell("d-rail-mi", s.rail_mi, { offConus });
+  setMileCell("d-highway-mi", s.highway_mi, { offConus });
   // EPA RE-Powering qualitative indicators (Superfund-only — only present
   // for the ~1.9k sites the EPA Redevelopment mapper covers).
   el("d-near-elec").textContent = fmt.text(s.near_electric_transmission);
@@ -2297,11 +2332,14 @@ function escapeAttr(s) { return escapeHtml(s); }
 
 // Render a distance-in-miles cell, swapping the muted-cell class so populated
 // values look like real data instead of "Not available" placeholder text.
-function setMileCell(id, value) {
+// `offConus` (set when `s._inset` is truthy) swaps the placeholder for an
+// explicit "Remote — outside continental US" so AK / HI / PR / Pacific sites
+// don't read as missing data.
+function setMileCell(id, value, opts = {}) {
   const node = el(id);
   if (!node) return;
   if (value == null) {
-    node.textContent = "Not available";
+    node.textContent = opts.offConus ? "Remote — outside continental US" : "Not available";
     node.classList.add("muted-cell");
   } else {
     node.textContent = fmt.miles(value);
