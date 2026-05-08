@@ -295,6 +295,142 @@ function prettyName(s) {
   }).join("");
 }
 
+// ----- Data-center scoring (Tier 0, v0) -----
+//
+// Concrete thresholds — see `backlog.md` "Data-center suitability scoring"
+// for the source citations (EPA Brownfields, Datacenters.com, EPA RE-Powering,
+// USPE Global, Equinix, ASHRAE 169). Each tier is the minimum bar a site must
+// meet to qualify; `compute_dc_score()` returns the highest tier matched.
+//
+// Ladder rungs (smallest → largest):
+//   - "edge"        ≥ 5 ac, transmission ≤1 mi (any voltage)
+//   - "colo"        ≥ 25 ac, transmission ≤1 mi at ≥138 kV
+//   - "hyperscale"  ≥ 100 ac (matches EPA), transmission ≤1 mi at ≥230 kV
+//   - "mega"        ≥ 500 ac, transmission ≤1 mi at ≥500 kV
+//
+// V0 of the rubric uses only fields already on disk (`acreage`,
+// `transmission_mi`, `transmission_kv`, `near_water_supply`); future Tier 1+
+// data sources will tighten the criteria (gas pipeline proximity, RTO region,
+// flood zone, SDC, etc.). Sites with null transmission_kv but populated
+// transmission_mi can only score up to "edge" — ≥138 kV is unverified.
+const DC_TIERS = [
+  { id: "mega",       label: "AI mega (500 MW+)", minAcres: 500, maxTxMi: 1.0, minKv: 500, color: "var(--readiness-ready)" },
+  { id: "hyperscale", label: "Hyperscale (100 MW+)", minAcres: 100, maxTxMi: 1.0, minKv: 230, color: "var(--readiness-ready)" },
+  { id: "colo",       label: "Colocation (general)", minAcres: 25, maxTxMi: 1.0, minKv: 138, color: "var(--accent)" },
+  { id: "edge",       label: "Edge / inference", minAcres: 5, maxTxMi: 1.0, minKv: 0, color: "var(--accent)" },
+];
+const DC_TIER_LABEL = Object.fromEntries(DC_TIERS.map((t) => [t.id, t.label]));
+// Persona presets surface the same ladder as one-tap filters in the strip.
+// `?dc_tier=hyperscale` round-trips through the URL; `Reset` clears it.
+const PERSONA_PRESETS = [...DC_TIERS].slice().reverse(); // edge → mega for UI
+
+function computeDcScore(s) {
+  if (!s || s.acreage == null) return null;
+  const acres = s.acreage;
+  const tx = s.transmission_mi;
+  const kv = s.transmission_kv;
+  if (tx == null || tx > 1.0) return null;
+  // Iterate from highest tier down; return the first that matches. Tiers are
+  // intentionally non-strict on `minKv: 0` (edge) so a transmission_mi-only
+  // record without a kV signal still qualifies for edge.
+  for (const tier of DC_TIERS) {
+    if (acres < tier.minAcres) continue;
+    if (tier.minKv > 0) {
+      if (kv == null) continue;
+      if (kv < tier.minKv) continue;
+    }
+    return tier.id;
+  }
+  return null;
+}
+
+// ----- State data-center tax incentives lookup (Tier 0, static) -----
+//
+// Researched 2026-05-07 — see `backlog.md` "Data-center suitability scoring"
+// for source citations (NCSL, Tax Foundation, NAIOP, MultiState, per-state
+// DOR / EDA pages). Tiers:
+//   1 = broad sales-tax exemption + active policy + competitive power
+//   2 = some incentives, reasonable cost
+//   3 = no/minimal incentive, high power, restrictive politics, or no income tax
+//
+// `status` values: "active" | "expanded" | "under_reform" | "restricted" |
+//                  "none" | "no_state_sales_tax" (DE, MT, NH, OR — neutral)
+// Sites in states marked `needs_verification` still surface the chip but
+// don't currently feed the scoring weight (Tier 0 keeps the tax signal as
+// a separate display chip; v1 scoring will weight it).
+const STATE_DC_INCENTIVES = {
+  // Tier 1 — most attractive
+  VA: { tier: 1, program: "Data Center Sales & Use Tax Exemption", min_investment_usd: 150_000_000, min_jobs: 50, sunset: 2035, status: "under_reform", url: "https://www.vedp.org/incentive/data-center-retail-sales-use-tax-exemption" },
+  TX: { tier: 1, program: "Qualified Data Center", min_investment_usd: 200_000_000, min_jobs: 20, sunset: null, status: "active", url: "https://comptroller.texas.gov/taxes/data-centers/" },
+  GA: { tier: 1, program: "Data Center Sales & Use Tax Exemption", min_investment_usd: 100_000_000, min_jobs: 20, sunset: 2033, status: "active", url: "https://www.georgia.org/data-center-sales-use-tax-exemption" },
+  IA: { tier: 1, program: "Data Center Sales & Use Tax Exemption", min_investment_usd: 1_000_000, min_jobs: null, sunset: null, status: "expanded", url: "https://revenue.iowa.gov/taxes/tax-guidance/sales-use-excise-tax/data-centers" },
+  OH: { tier: 1, program: "Data Center Tax Abatement", min_investment_usd: 100_000_000, min_jobs: null, sunset: null, status: "active", url: "https://development.ohio.gov/business/state-incentives/data-center-tax-abatement" },
+  AZ: { tier: 1, program: "Computer Data Center Program", min_investment_usd: 50_000_000, min_jobs: null, sunset: null, status: "active", url: "https://www.azcommerce.com/programs/computer-data-center-program/" },
+  NV: { tier: 1, program: "Data Center Abatement", min_investment_usd: 25_000_000, min_jobs: 10, sunset: null, status: "active", url: "https://goed.nv.gov/programs-incentives/data-center/" },
+  NC: { tier: 1, program: "Data Center Sales Tax Exemption", min_investment_usd: 150_000_000, min_jobs: null, sunset: null, status: "active", url: "https://edpnc.com/" },
+  TN: { tier: 1, program: "Qualified Data Center Sales Tax Exemption", min_investment_usd: 250_000_000, min_jobs: null, sunset: null, status: "active", url: "https://www.tn.gov/revenue/" },
+
+  // Tier 2 — moderate
+  IL: { tier: 2, program: "Data Center Investment Program", min_investment_usd: 250_000_000, min_jobs: 20, sunset: 2029, status: "active", url: "https://dceo.illinois.gov/expandrelocate/incentives/datacenter.html" },
+  MI: { tier: 2, program: "Enterprise DC Sales & Use Tax Exemption", min_investment_usd: 250_000_000, min_jobs: 30, sunset: 2050, status: "expanded", url: "https://www.michiganbusiness.org/services/data-center/" },
+  WI: { tier: 2, program: "Qualified DC Sales Tax Exemption", min_investment_usd: null, min_jobs: null, sunset: null, status: "active", url: "https://wedc.org/" },
+  IN: { tier: 2, program: "DC Gross Retail & Use Tax Exemption", min_investment_usd: null, min_jobs: null, sunset: null, status: "active", url: "https://www.in.gov/iedc/" },
+  OK: { tier: 2, program: "DC Equipment Sales Tax Exemption + Quality Jobs", min_investment_usd: 250_000_000, min_jobs: null, sunset: null, status: "active", url: "https://www.okcommerce.gov/" },
+  PA: { tier: 2, program: "Computer DC Equipment Sales & Use Tax Exemption", min_investment_usd: null, min_jobs: null, sunset: null, status: "under_reform", url: "https://dced.pa.gov/" },
+  MD: { tier: 2, program: "Data Center Maryland", min_investment_usd: 2_000_000, min_jobs: 5, sunset: null, status: "active", url: "https://commerce.maryland.gov/" },
+  SC: { tier: 2, program: "Certified DC Sales & Use Tax Exemption", min_investment_usd: 50_000_000, min_jobs: 25, sunset: null, status: "active", url: "https://sccommerce.com/" },
+  MS: { tier: 2, program: "DC Sales Tax Exemption", min_investment_usd: 50_000_000, min_jobs: 50, sunset: null, status: "active", url: "https://mississippi.org/" },
+  AL: { tier: 2, program: "DC Tax Abatement", min_investment_usd: 400_000_000, min_jobs: 20, sunset: null, status: "active", url: "https://www.madeinalabama.com/" },
+  LA: { tier: 2, program: "DC Sales & Use Tax Rebate (Act 730)", min_investment_usd: 200_000_000, min_jobs: 50, sunset: null, status: "active", url: "https://www.opportunitylouisiana.gov/" },
+  MN: { tier: 2, program: "Qualified DC Sales Tax Exemption", min_investment_usd: 30_000_000, min_jobs: null, sunset: null, status: "active", url: "https://mn.gov/deed/" },
+  MO: { tier: 2, program: "New / Existing DC Exemption", min_investment_usd: 25_000_000, min_jobs: 10, sunset: null, status: "active", url: "https://ded.mo.gov/" },
+  NE: { tier: 2, program: "ImagiNE Nebraska Sales & Use Tax Exemption", min_investment_usd: 50_000_000, min_jobs: null, sunset: null, status: "active", needs_verification: true, url: "https://opportunity.nebraska.gov/" },
+  KS: { tier: 2, program: "SB98 DC Sales & Use Tax Exemption", min_investment_usd: 250_000_000, min_jobs: 20, sunset: null, status: "active", url: "https://www.kansascommerce.gov/" },
+  KY: { tier: 2, program: "DC Sales & Use Tax Exemption", min_investment_usd: null, min_jobs: null, sunset: null, status: "expanded", url: "https://ced.ky.gov/" },
+  WV: { tier: 2, program: "DC Tax Incentives", min_investment_usd: null, min_jobs: null, sunset: null, status: "expanded", url: "https://westvirginia.gov/" },
+  AR: { tier: 2, program: "DC Sales Tax Exemption", min_investment_usd: null, min_jobs: null, sunset: null, status: "expanded", needs_verification: true, url: "https://www.arkansasedc.com/" },
+  WA: { tier: 2, program: "Rural DC Sales Tax Exemption", min_investment_usd: null, min_jobs: null, sunset: null, status: "active", url: "https://dor.wa.gov/" },
+  OR: { tier: 2, program: "Enterprise Zone Property Tax Abatement", min_investment_usd: null, min_jobs: null, sunset: null, status: "no_state_sales_tax", url: "https://www.oregon.gov/biz/" },
+  MT: { tier: 2, program: "Class 17 Property Tax Reduction", min_investment_usd: 50_000_000, min_jobs: null, sunset: null, status: "no_state_sales_tax", url: "https://mtrevenue.gov/" },
+  WY: { tier: 2, program: "DC Sales & Use Tax Exemption", min_investment_usd: 5_000_000, min_jobs: null, sunset: null, status: "under_reform", url: "https://wyomingbusiness.org/" },
+  ID: { tier: 2, program: "DC Sales Tax Exemption", min_investment_usd: null, min_jobs: null, sunset: null, status: "active", needs_verification: true, url: "https://commerce.idaho.gov/" },
+  MA: { tier: 2, program: "Qualified DC Sales & Use Tax Exemption", min_investment_usd: 50_000_000, min_jobs: 100, sunset: null, status: "active", url: "https://www.mass.gov/" },
+  CT: { tier: 2, program: "DC Tax Incentive Program", min_investment_usd: null, min_jobs: null, sunset: null, status: "active", url: "https://portal.ct.gov/decd" },
+  FL: { tier: 2, program: "DC Sales & Use Tax Exemption (100 MW+)", min_investment_usd: null, min_jobs: null, sunset: null, status: "restricted", url: "https://floridajobs.org/" },
+  ND: { tier: 2, program: "DC Sales Tax Exemption", min_investment_usd: null, min_jobs: null, sunset: null, status: "active", needs_verification: true, url: "https://www.commerce.nd.gov/" },
+
+  // Tier 3 — least attractive
+  CA: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "restrictive", url: "https://www.ncsl.org/fiscal/policy-snapshot-data-center-incentives" },
+  NY: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "none", url: "https://esd.ny.gov/" },
+  NJ: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "none", url: "https://www.njeda.com/" },
+  NM: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "none", url: "https://gonm.biz/" },
+  CO: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "none", url: "https://choosecolorado.com/" },
+  UT: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "none", url: "https://business.utah.gov/" },
+  DE: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "no_state_sales_tax", url: "https://choosedelaware.com/" },
+  SD: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "none", url: "https://sdgoed.com/" },
+  ME: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "none", url: "https://www.maine.gov/decd/" },
+  VT: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "none", url: "https://accd.vermont.gov/" },
+  NH: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "no_state_sales_tax", url: "https://www.nheconomy.com/" },
+  RI: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "none", url: "https://commerceri.com/" },
+  AK: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "none", url: "https://www.commerce.alaska.gov/" },
+  HI: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "none", url: "https://invest.hawaii.gov/" },
+  DC: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "none", url: "https://dmped.dc.gov/" },
+};
+const TAX_TIER_LABEL = {
+  1: "Tier 1 incentive (most attractive)",
+  2: "Tier 2 incentive",
+  3: "No DC tax incentive",
+};
+const TAX_STATUS_NOTE = {
+  active: "",
+  expanded: " · recently expanded",
+  under_reform: " · under legislative reform",
+  restricted: " · restricted (100 MW+)",
+  restrictive: " · restrictive policy",
+  none: "",
+  no_state_sales_tax: " · no state sales tax (neutral)",
+};
+
 // ----- State -----
 let sites = [];
 let map, markerLayer;
@@ -317,6 +453,11 @@ const filterState = {
   state: "",
   statuses: new Set(),
   minAcreage: 0, // log10 base; 0 means "show all" (incl. null acreage)
+  // Data-center suitability tier filter (Tier 0). One of:
+  //   "" (any) | "edge" | "colo" | "hyperscale" | "mega"
+  // Selecting "hyperscale" filters to sites scoring at hyperscale OR mega
+  // (mega is a strict superset). URL state: ?dc_tier=hyperscale.
+  dcTier: "",
 };
 
 let acresLoadingPromise = null; // de-dup parallel toggles
@@ -391,6 +532,7 @@ function updateKpiDeck() {
   let acreSum = 0;
   let acreCount = 0;
   let dcCount = 0;
+  let hyperCount = 0;
   const stateSet = new Set();
   const programSet = new Set();
   for (const s of sites) {
@@ -399,6 +541,8 @@ function updateKpiDeck() {
       acreCount++;
     }
     if (s.data_center_reuse_candidate === true) dcCount++;
+    const tier = computeDcScore(s);
+    if (tier === "hyperscale" || tier === "mega") hyperCount++;
     if (s.state) stateSet.add(s.state);
     if (s.program) programSet.add(s.program);
   }
@@ -411,6 +555,7 @@ function updateKpiDeck() {
   set("kpi-acres", fmt.compact(acreSum));
   set("kpi-acres-sub", `${fmt.compact(acreCount)} sites with reported area`);
   set("kpi-dc", fmt.compact(dcCount));
+  set("kpi-hyperscale", fmt.compact(hyperCount));
   set("kpi-states", String(stateSet.size));
 }
 
@@ -424,6 +569,7 @@ function updateFilterChip() {
   if (filterState.minAcreage > 0) count++;
   // Default is all four programs on; any deselection counts as a filter.
   if (filterState.programs.size && filterState.programs.size < PROGRAM_LEGEND.length) count++;
+  if (filterState.dcTier) count++;
   const chip = el("filters-chip");
   const btn = el("filters-toggle");
   if (chip) {
@@ -474,6 +620,7 @@ fetch(PRIMARY_DATA_URL)
     wireDetailPanel();
     wireSearch();
     wireFilters();
+    wirePersonaButtons();
     wireExportCsv();
     wireThemeToggle();
     window.__sitesLoaded = true; // e2e hook
@@ -796,9 +943,17 @@ function ensureInfraLoaded() {
         if (!existing) continue;
         const patch = {};
         if (rec.transmission_mi != null) patch.transmission_mi = rec.transmission_mi;
+        if (rec.transmission_kv != null) patch.transmission_kv = rec.transmission_kv;
         if (rec.rail_mi != null) patch.rail_mi = rec.rail_mi;
         if (rec.highway_mi != null) patch.highway_mi = rec.highway_mi;
         Object.assign(existing, patch);
+      }
+      // Re-run KPI deck (hyperscale-ready count depends on transmission_kv)
+      // and re-render an open detail panel so the new pill / chip lights up
+      // without requiring the user to reselect the site.
+      updateKpiDeck();
+      if (selectedId && sitesById.has(selectedId)) {
+        try { selectSite(selectedId); } catch {}
       }
     })
     .catch((err) => {
@@ -1154,6 +1309,12 @@ function siteMatchesQuery(s, q) {
   return (s._searchKey || "").includes(q);
 }
 
+// Tier ordering for the dcTier filter — higher rank = stricter tier.
+// "any matched tier ≥ rank(filterState.dcTier)" is the inclusion test, so
+// picking "colo" includes colo + hyperscale + mega; "hyperscale" includes
+// hyperscale + mega; "mega" is the strictest.
+const DC_TIER_RANK = { edge: 1, colo: 2, hyperscale: 3, mega: 4 };
+
 function siteMatchesFilters(s, opts = {}) {
   if (filterState.programs.size && !filterState.programs.has(s.program)) return false;
   if (filterState.state && s.state !== filterState.state) return false;
@@ -1162,6 +1323,13 @@ function siteMatchesFilters(s, opts = {}) {
   if (filterState.minAcreage > 0) {
     if (s.acreage == null) return false;
     if (s.acreage < Math.pow(10, filterState.minAcreage)) return false;
+  }
+  if (filterState.dcTier) {
+    const tier = computeDcScore(s);
+    if (!tier) return false;
+    const need = DC_TIER_RANK[filterState.dcTier] || 0;
+    const got = DC_TIER_RANK[tier] || 0;
+    if (got < need) return false;
   }
   if (!siteMatchesQuery(s, opts.q ?? filterState.q)) return false;
   return true;
@@ -1281,7 +1449,8 @@ function filtersActive() {
     filterState.state !== "" ||
     filterState.statuses.size > 0 ||
     filterState.minAcreage > 0 ||
-    filterState.programs.size !== PROGRAM_LEGEND.length
+    filterState.programs.size !== PROGRAM_LEGEND.length ||
+    filterState.dcTier !== ""
   );
 }
 
@@ -1392,7 +1561,9 @@ function wireFilters() {
     filterState.statuses = new Set();
     filterState.minAcreage = 0;
     filterState.q = "";
+    filterState.dcTier = "";
     el("search").value = "";
+    refreshPersonaButtons();
     for (const [program, box] of Object.entries(progBoxes)) {
       if (box) box.checked = filterState.programs.has(program);
     }
@@ -1407,6 +1578,46 @@ function wireFilters() {
     // Reset zooms back out to the lower-48 default.
     if (map) map.fitBounds(US_BOUNDS, { padding: [10, 10], animate: true });
   });
+}
+
+// Persona presets — single tap toggles a `dcTier` constraint that funnels
+// the visible set to "this minimum tier and stricter." Buttons act like
+// radio: tapping the active one clears it. Iterates `PERSONA_PRESETS` so
+// future tiers Just Work via the same drift-safe pattern as PROGRAM_LEGEND.
+function wirePersonaButtons() {
+  const wrap = el("f-personas");
+  if (!wrap) return;
+  wrap.innerHTML = PERSONA_PRESETS
+    .map((t) =>
+      `<button type="button" class="persona-btn" data-tier="${escapeAttr(t.id)}" aria-pressed="false">` +
+      `<span class="persona-label">${escapeHtml(t.label)}</span>` +
+      `<span class="persona-min">≥${t.minAcres.toLocaleString()} ac</span>` +
+      `</button>`
+    ).join("");
+  wrap.addEventListener("click", (ev) => {
+    const btn = ev.target.closest("button[data-tier]");
+    if (!btn) return;
+    const tier = btn.dataset.tier;
+    if (filterState.dcTier === tier) {
+      filterState.dcTier = "";  // toggle off
+    } else {
+      filterState.dcTier = tier;
+    }
+    refreshPersonaButtons();
+    applyFilter();
+    refitMapToFilters();
+  });
+  refreshPersonaButtons();
+}
+
+function refreshPersonaButtons() {
+  const wrap = el("f-personas");
+  if (!wrap) return;
+  for (const btn of wrap.querySelectorAll("button[data-tier]")) {
+    const active = btn.dataset.tier === filterState.dcTier;
+    btn.setAttribute("aria-pressed", String(active));
+    btn.classList.toggle("active", active);
+  }
 }
 
 function populateStateFilter() {
@@ -1741,7 +1952,21 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
   const reusePill = (typeof s.in_reuse === "string" && /^yes/i.test(s.in_reuse))
     ? ` <span class="pill reuse-pill" title="Site is currently in active reuse (EPA Superfund Redevelopment mapper)">Active Reuse</span>`
     : "";
-  el("d-program").innerHTML = programPill + cleanupPill + reusePill + dcPill;
+  // DC suitability tier (Tier 0 score) — earns a green "Hyperscale-ready"
+  // outline pill at hyperscale+, accent-colored at colo / edge. Title shows
+  // the threshold met so the buyer sees *why*.
+  const tier = computeDcScore(s);
+  let tierPill = "";
+  if (tier) {
+    const tierMeta = DC_TIERS.find((t) => t.id === tier);
+    const isReady = tier === "hyperscale" || tier === "mega";
+    const cls = isReady ? "dc-tier-pill ready" : "dc-tier-pill";
+    const titleParts = [`${tierMeta.minAcres.toLocaleString()}+ ac`];
+    if (tierMeta.minKv > 0) titleParts.push(`≥${tierMeta.minKv} kV transmission ≤1 mi`);
+    else titleParts.push("transmission ≤1 mi");
+    tierPill = ` <span class="pill ${cls}" title="${escapeAttr(titleParts.join(" · "))}">${escapeHtml(DC_TIER_LABEL[tier])}</span>`;
+  }
+  el("d-program").innerHTML = programPill + cleanupPill + reusePill + dcPill + tierPill;
   // The acreage `<dd>` carries an inline note `<span>` for FUDS records
   // missing acreage. Replace only the text node so the note span isn't
   // clobbered, then toggle the note for the FUDS-no-boundary case.
@@ -1823,8 +2048,15 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
   // don't read as missing/uncomputed data.
   const offConus = !!s._inset;
   setMileCell("d-transmission-mi", s.transmission_mi, { offConus });
+  // Append the line voltage when known so users can see whether the
+  // nearest line is hyperscale-grade (≥230 kV) at a glance. The kV chip
+  // is a child span so subsequent calls to setMileCell don't clobber it.
+  setKvSuffix("d-transmission-mi", s.transmission_kv);
   setMileCell("d-rail-mi", s.rail_mi, { offConus });
   setMileCell("d-highway-mi", s.highway_mi, { offConus });
+  // State data-center tax incentive chip (Tier 1/2/3) — uses the static
+  // STATE_DC_INCENTIVES lookup, no fetch.
+  renderStateIncentive(s);
   // EPA RE-Powering qualitative indicators (Superfund-only — only present
   // for the ~1.9k sites the EPA Redevelopment mapper covers).
   el("d-near-elec").textContent = fmt.text(s.near_electric_transmission);
@@ -2269,6 +2501,10 @@ function loadInitialFiltersFromUrl() {
     const v = parseFloat(p.get("min_ac") || "0");
     if (!isNaN(v) && v >= 0 && v <= 6) filterState.minAcreage = v;
   }
+  if (p.has("dc_tier")) {
+    const t = p.get("dc_tier") || "";
+    if (DC_TIER_RANK[t]) filterState.dcTier = t;
+  }
 }
 
 function applyUrlSelection() {
@@ -2313,6 +2549,7 @@ function syncUrl() {
       PROGRAM_LEGEND.every((p) => filterState.programs.has(p.program));
     if (!isDefaultProgram) p.set("program", Array.from(filterState.programs).join(","));
     if (filterState.minAcreage > 0) p.set("min_ac", String(filterState.minAcreage));
+    if (filterState.dcTier) p.set("dc_tier", filterState.dcTier);
     if (selectedId) p.set("site", selectedId);
     const qs = p.toString();
     const newUrl = qs ? `${location.pathname}?${qs}` : location.pathname;
@@ -2345,4 +2582,76 @@ function setMileCell(id, value, opts = {}) {
     node.textContent = fmt.miles(value);
     node.classList.remove("muted-cell");
   }
+}
+
+// Append (or remove) a "138 kV" / "230 kV" / "500 kV" voltage chip to the
+// end of a setMileCell-rendered <dd>. The chip is a span sibling so
+// setMileCell's subsequent textContent rewrite would clobber it — we
+// always re-append after setMileCell. ≥230 kV gets a "ready" green tint
+// to match the hyperscale-tier visual language.
+function setKvSuffix(id, kv) {
+  const node = el(id);
+  if (!node) return;
+  // Remove any prior kV span — setMileCell wiped textContent above so a
+  // residual span is unlikely, but be defensive in case render order
+  // changes later.
+  for (const old of node.querySelectorAll(".kv-chip")) old.remove();
+  if (kv == null) return;
+  const span = document.createElement("span");
+  span.className = "kv-chip" + (kv >= 230 ? " ready" : "");
+  span.textContent = `${Math.round(kv).toLocaleString()} kV`;
+  span.title = kv >= 500
+    ? "≥500 kV — AI mega-campus tier"
+    : kv >= 230
+    ? "≥230 kV — hyperscale tier"
+    : kv >= 138
+    ? "≥138 kV — colocation tier"
+    : "<138 kV — sub-transmission";
+  node.appendChild(document.createTextNode(" "));
+  node.appendChild(span);
+}
+
+// Render the State DC tax incentive chip in the detail panel. Looks up
+// `STATE_DC_INCENTIVES[s.state]` and surfaces tier + program name + status
+// note. Hidden when the state is unknown (territories, missing data).
+function renderStateIncentive(s) {
+  const node = el("d-tax-incentive");
+  if (!node) return;
+  const inc = s && s.state ? STATE_DC_INCENTIVES[s.state] : null;
+  if (!inc) {
+    node.hidden = true;
+    return;
+  }
+  node.hidden = false;
+  const tierClass = inc.tier === 1 ? "tax-tier-1"
+    : inc.tier === 2 ? "tax-tier-2"
+    : "tax-tier-3";
+  const stateName = STATE_NAMES[s.state] || s.state;
+  const tierText = TAX_TIER_LABEL[inc.tier] || "—";
+  const note = TAX_STATUS_NOTE[inc.status] || "";
+  // Build chip + meta line. Anchor the chip to the source URL so users can
+  // verify the program details upstream.
+  const chipHtml = `<a class="tax-chip ${tierClass}" href="${escapeAttr(inc.url || "#")}" target="_blank" rel="noopener" title="${escapeAttr(tierText + note)}">${escapeHtml(stateName)} · Tier ${inc.tier}</a>`;
+  let metaText;
+  if (inc.tier === 3) {
+    metaText = inc.status === "no_state_sales_tax"
+      ? "No state sales tax — neutral"
+      : inc.status === "restrictive"
+      ? "Restrictive policy or active anti-DC sentiment"
+      : "No dedicated data-center tax incentive";
+  } else if (inc.program) {
+    const parts = [inc.program];
+    if (inc.min_investment_usd) {
+      parts.push(`min $${(inc.min_investment_usd / 1_000_000).toLocaleString()}M`);
+    }
+    if (inc.sunset) parts.push(`sunset ${inc.sunset}`);
+    if (inc.status && inc.status !== "active") {
+      const noteTrim = (TAX_STATUS_NOTE[inc.status] || "").replace(/^\s*·\s*/, "");
+      if (noteTrim) parts.push(noteTrim);
+    }
+    metaText = parts.join(" · ");
+  } else {
+    metaText = "—";
+  }
+  node.innerHTML = `${chipHtml}<p class="tax-meta muted-cell">${escapeHtml(metaText)}</p>`;
 }
