@@ -52,45 +52,60 @@ def test_square_miles_converted(conn):
     assert rec["acreage"] == 1280.0  # 2 sq mi × 640 ac/sq mi
 
 
-def test_miles_unit_kept_as_no_acreage(conn):
-    """Linear features (Miles): kept with acreage=None when include_no_acreage=True."""
+def test_miles_unit_falls_back_to_polygon_area(conn):
+    """Linear features (Miles): GIS_AREA is a length, not an area, so we
+    compute acreage from the polygon rings instead. The default fixture rings
+    cover ~0.01° × 0.01° at lat 39.78 → ~234 acres."""
     rec = conn.normalize(
         _feature({"GIS_AREA": 5.0, "GIS_AREA_UNITS": "Miles"}),
         include_no_acreage=True,
     )
     assert rec is not None
-    assert rec["acreage"] is None
+    assert rec["acreage"] is not None
+    assert 200 < rec["acreage"] < 270
 
 
-def test_miles_unit_dropped_when_excluded(conn):
+def test_miles_unit_with_zero_area_polygon_dropped_when_excluded(conn):
+    """When polygon collapses to a line (zero area) and units aren't areal,
+    polygon_acreage returns None — same exclusion behavior as before."""
+    degenerate_rings = [[[0.0, 0.0], [1.0, 0.0], [0.0, 0.0]]]  # collinear, 0 area
     rec = conn.normalize(
-        _feature({"GIS_AREA": 5.0, "GIS_AREA_UNITS": "Miles"}),
+        _feature({"GIS_AREA": 5.0, "GIS_AREA_UNITS": "Miles"}, rings=degenerate_rings),
         include_no_acreage=False,
     )
     assert rec is None
 
 
-def test_null_units_kept_as_no_acreage(conn):
+def test_null_units_falls_back_to_polygon_area(conn):
+    """When EPA didn't tag the units at all but the geometry is present,
+    compute acreage from rings (don't lose the record's footprint)."""
     rec = conn.normalize(
         _feature({"GIS_AREA": 5.0, "GIS_AREA_UNITS": None}),
         include_no_acreage=True,
     )
     assert rec is not None
-    assert rec["acreage"] is None
+    assert rec["acreage"] is not None
+    assert 200 < rec["acreage"] < 270
 
 
-def test_null_gis_area_kept_as_no_acreage(conn):
+def test_null_gis_area_with_acres_units_falls_back_to_polygon_area(conn):
+    """Source said 'Acres' but didn't provide a value — compute from rings
+    rather than dropping. Same behavior as the units-None branch."""
     rec = conn.normalize(
         _feature({"GIS_AREA": None, "GIS_AREA_UNITS": "Acres"}),
         include_no_acreage=True,
     )
     assert rec is not None
-    assert rec["acreage"] is None
+    assert rec["acreage"] is not None
+    assert 200 < rec["acreage"] < 270
 
 
-def test_null_gis_area_dropped_when_excluded(conn):
+def test_null_gis_area_dropped_when_excluded_and_polygon_zero(conn):
+    """include_no_acreage=False still drops records where polygon_acreage
+    returns None (degenerate / collapsed geometry)."""
+    degenerate_rings = [[[0.0, 0.0], [1.0, 0.0], [0.0, 0.0]]]  # 0 area
     rec = conn.normalize(
-        _feature({"GIS_AREA": None, "GIS_AREA_UNITS": "Acres"}),
+        _feature({"GIS_AREA": None, "GIS_AREA_UNITS": "Acres"}, rings=degenerate_rings),
         include_no_acreage=False,
     )
     assert rec is None
