@@ -389,6 +389,122 @@ def test_schema_accepts_distance_fields():
     assert rec.highway_mi == 0.5
 
 
+def test_schema_accepts_transmission_kv():
+    """`transmission_kv` joined alongside the distance — drives the DC
+    scoring tiers (≥230 kV for hyperscale)."""
+    rec = SiteRecord(
+        id="S1",
+        program="superfund",
+        transmission_mi=0.4,
+        transmission_kv=230.0,
+    )
+    assert rec.transmission_kv == 230.0
+
+
+def test_extract_attr_voltage_field_takes_precedence():
+    """When VOLTAGE is populated, return it directly."""
+    from connectors.infra_proximity import InfraProximity
+    kv = InfraProximity._extract_attr("transmission", {"VOLTAGE": 230.0, "VOLT_CLASS": "100-161"})
+    assert kv == 230.0
+
+
+def test_extract_attr_falls_back_to_volt_class():
+    """When VOLTAGE is HIFLD's null sentinel, map VOLT_CLASS to a kV
+    floor so the ≥230 kV filter is conservatively strict."""
+    from connectors.infra_proximity import InfraProximity
+    kv = InfraProximity._extract_attr("transmission", {"VOLTAGE": -999999, "VOLT_CLASS": "345"})
+    assert kv == 345.0
+
+
+def test_extract_attr_returns_none_when_both_missing():
+    from connectors.infra_proximity import InfraProximity
+    assert InfraProximity._extract_attr("transmission", {}) is None
+    # Unknown VOLT_CLASS string also returns None — don't make up a kV.
+    assert InfraProximity._extract_attr("transmission", {"VOLT_CLASS": "MYSTERY"}) is None
+
+
+def test_extract_attr_returns_none_for_non_transmission_layers():
+    """Rail and highway layers don't carry kV — return None unconditionally
+    so we don't accidentally write a `transmission_kv` for them."""
+    from connectors.infra_proximity import InfraProximity
+    assert InfraProximity._extract_attr("rail", {"VOLTAGE": 230}) is None
+    assert InfraProximity._extract_attr("highway", {"VOLTAGE": 230}) is None
+
+
+def test_fetch_records_emits_transmission_kv(tmp_path, monkeypatch):
+    """End-to-end: a transmission feature with VOLTAGE=230 attaches that
+    voltage to its segments; the nearest-segment query returns it as
+    `transmission_kv` on the enriched record."""
+    monkeypatch.setattr(InfraProximity, "_data_dir", staticmethod(lambda: tmp_path))
+    _write_program_file(tmp_path, "superfund-npl.json", [
+        {"id": "S1", "program": "superfund", "lat": 40.0, "lon": -74.0},
+    ])
+    feat = {
+        "attributes": {"VOLTAGE": 230.0, "VOLT_CLASS": "220-287"},
+        "geometry": {"paths": [[[-74.0, 40.0], [-74.01, 40.01]]]},
+    }
+    pages = [{"features": [feat]}, {"features": []}]
+    call_count = {"n": 0}
+    def fake_get(url, params, use_cache, cache_key=None):
+        if (cache_key or {}).get("layer") != "transmission":
+            return {"features": []}
+        result = pages[call_count["n"]]
+        call_count["n"] += 1
+        return result
+
+    inst = InfraProximity(cache_dir=tmp_path / "cache")
+    args = _make_args(infra_skip_highway=True, infra_skip_rail=True)
+    with patch.object(inst, "http_get_json", side_effect=fake_get):
+        records = inst.fetch_records(args, use_cache=True)
+    assert len(records) == 1
+    rec = records[0]
+    assert rec["id"] == "S1"
+    assert "transmission_kv" in rec
+    assert rec["transmission_kv"] == 230.0
+
+
+def test_fetch_records_omits_transmission_kv_when_voltage_null(tmp_path, monkeypatch):
+    """A line with no VOLTAGE / no VOLT_CLASS still produces a distance
+    field but `transmission_kv` is absent — the frontend treats it as
+    "voltage unknown, scoring caps at edge tier."""
+    monkeypatch.setattr(InfraProximity, "_data_dir", staticmethod(lambda: tmp_path))
+    _write_program_file(tmp_path, "superfund-npl.json", [
+        {"id": "S1", "program": "superfund", "lat": 40.0, "lon": -74.0},
+    ])
+    feat = {
+        "attributes": {"VOLTAGE": -999999, "VOLT_CLASS": ""},
+        "geometry": {"paths": [[[-74.0, 40.0], [-74.01, 40.01]]]},
+    }
+    pages = [{"features": [feat]}, {"features": []}]
+    call_count = {"n": 0}
+    def fake_get(url, params, use_cache, cache_key=None):
+        if (cache_key or {}).get("layer") != "transmission":
+            return {"features": []}
+        result = pages[call_count["n"]]
+        call_count["n"] += 1
+        return result
+
+    inst = InfraProximity(cache_dir=tmp_path / "cache")
+    args = _make_args(infra_skip_highway=True, infra_skip_rail=True)
+    with patch.object(inst, "http_get_json", side_effect=fake_get):
+        records = inst.fetch_records(args, use_cache=True)
+    assert len(records) == 1
+    rec = records[0]
+    assert "transmission_mi" in rec
+    assert "transmission_kv" not in rec
+
+
+def test_cache_key_includes_out_fields():
+    """Bumping `out_fields` invalidates the v1.10 transmission cache so
+    we re-fetch with VOLTAGE / VOLT_CLASS instead of silently shadowing
+    with a geometry-only response."""
+    from connectors.infra_proximity import LAYERS
+    assert LAYERS["transmission"]["out_fields"] == "VOLTAGE,VOLT_CLASS"
+    # Rail and highway intentionally stay attribute-free.
+    assert LAYERS["rail"]["out_fields"] == ""
+    assert LAYERS["highway"]["out_fields"] == ""
+
+
 def test_schema_distance_fields_excluded_when_none():
     rec = SiteRecord(id="S1", program="superfund")
     dumped = rec.model_dump(exclude_none=True)

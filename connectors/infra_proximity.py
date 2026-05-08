@@ -74,25 +74,50 @@ RAIL_QUERY_URL = (
 # maxRecordCount=100000, but the actual response-payload limit with geometry
 # kicks in well before that (10k pages return HTTP 500). 1000 is the largest
 # safe page for TIGER polylines.
+#
+# Per-layer `out_fields`: HIFLD's transmission layer carries `VOLTAGE`
+# (Double, kV) and `VOLT_CLASS` (String, e.g. "230"). Capturing these lets
+# the `transmission_kv` enrichment field flow through to the frontend so
+# the data-center scorer can apply the ≥230 kV hyperscale rule. Rail and
+# highway don't need attributes — geometry-only.
 LAYERS: dict[str, dict[str, Any]] = {
     "transmission": {
         "url": TRANSMISSION_QUERY_URL,
         "page_size": 2000,
         "where": "1=1",
+        "out_fields": "VOLTAGE,VOLT_CLASS",
         "label": "HIFLD Electric Power Transmission Lines",
     },
     "highway": {
         "url": HIGHWAY_QUERY_URL,
         "page_size": 1000,
         "where": "MTFCC='S1100'",
+        "out_fields": "",
         "label": "US Census TIGERweb Primary Roads (Interstates + Major US/State)",
     },
     "rail": {
         "url": RAIL_QUERY_URL,
         "page_size": 1000,
         "where": "1=1",
+        "out_fields": "",
         "label": "US Census TIGERweb Railroads",
     },
+}
+
+# HIFLD null sentinel for missing voltage; ~12% of segments. Treat as null
+# so downstream consumers don't see "−999999 kV" anywhere.
+TRANSMISSION_NULL_KV = -999999.0
+# Map of HIFLD `VOLT_CLASS` strings to representative kV for the cases
+# where `VOLTAGE` is null but `VOLT_CLASS` is populated. Conservative —
+# we pick the lower bound of each class so the ≥230kV filter is strict.
+VOLT_CLASS_TO_KV: dict[str, float] = {
+    "UNDER 100": 69.0,
+    "100-161": 100.0,
+    "220-287": 220.0,
+    "345": 345.0,
+    "500": 500.0,
+    "735 AND ABOVE": 735.0,
+    "DC": 500.0,  # HVDC ties — typically ≥500kV; conservative.
 }
 
 # Sites whose JSON we'll enrich. Order doesn't matter — each record carries
@@ -196,11 +221,30 @@ class InfraProximity(Connector):
                 continue
             rec: dict[str, Any] = {"id": sid, "program": program}
             for layer, idx in indexes.items():
-                d = idx.nearest_distance_mi(lat_f, lon_f)
-                if d is None or d > MAX_DISTANCE_MI:
-                    out_of_range[layer] += 1
-                    continue
-                rec[DISTANCE_FIELD[layer]] = round(d, 1)
+                # Transmission carries a per-segment kV attribute; rail and
+                # highway are geometry-only. Branch so we don't pay the
+                # tuple-allocation cost on layers that don't need it.
+                if layer == "transmission":
+                    hit = idx.nearest_with_attr(lat_f, lon_f)
+                    if hit is None:
+                        out_of_range[layer] += 1
+                        continue
+                    d, kv = hit
+                    if d > MAX_DISTANCE_MI:
+                        out_of_range[layer] += 1
+                        continue
+                    rec[DISTANCE_FIELD[layer]] = round(d, 1)
+                    if kv is not None:
+                        # Round to 1 kV so 138.0 / 230.0 / 345.0 read clean
+                        # in the JSON. HIFLD reports many lines as integer
+                        # kV but a handful are floats (e.g. 138.5).
+                        rec["transmission_kv"] = round(float(kv), 1)
+                else:
+                    d = idx.nearest_distance_mi(lat_f, lon_f)
+                    if d is None or d > MAX_DISTANCE_MI:
+                        out_of_range[layer] += 1
+                        continue
+                    rec[DISTANCE_FIELD[layer]] = round(d, 1)
             # Always emit the record — even when every layer is out-of-range —
             # so the file's `id` set is the cross-program join key, and the
             # frontend can distinguish "this site has no infra within reach"
@@ -260,10 +304,12 @@ class InfraProximity(Connector):
         polylines_added = 0
         offset = 0
         page_size = cfg["page_size"]
+        out_fields = cfg.get("out_fields", "") or ""
+        kv_features = 0  # telemetry: how many transmission features carry kV
         while True:
             params = {
                 "where": cfg["where"],
-                "outFields": "",
+                "outFields": out_fields,
                 "returnGeometry": "true",
                 "outSR": "4326",
                 "geometryPrecision": "5",
@@ -274,7 +320,15 @@ class InfraProximity(Connector):
             data = self.http_get_json(
                 cfg["url"], params,
                 use_cache=use_cache,
-                cache_key={"layer": layer, "offset": offset, "where": cfg["where"]},
+                # Include `out_fields` in the cache key so the v1.10 cache
+                # (which fetched no attributes) doesn't shadow the v1.12
+                # transmission fetch that needs VOLTAGE / VOLT_CLASS.
+                cache_key={
+                    "layer": layer,
+                    "offset": offset,
+                    "where": cfg["where"],
+                    "out_fields": out_fields,
+                },
             )
             features = data.get("features") or []
             log.info("[%s] page offset=%d got=%d", layer, offset, len(features))
@@ -284,13 +338,46 @@ class InfraProximity(Connector):
                 geom = feat.get("geometry") or {}
                 # ESRI polyline: { "paths": [[[lon, lat], ...], ...] }
                 paths = geom.get("paths") or []
+                attr = self._extract_attr(layer, feat.get("attributes") or {})
+                if layer == "transmission" and attr is not None:
+                    kv_features += 1
                 for path in paths:
-                    added = idx.add_polyline(path)
+                    added = idx.add_polyline(path, attr=attr)
                     if added > 0:
                         polylines_added += 1
             if len(features) < page_size:
                 break
             offset += page_size
+        if layer == "transmission":
+            log.info("[transmission] %d / %d polylines carry kV",
+                     kv_features, polylines_added)
         log.info("[%s] indexed %d polylines / %d segments",
                  layer, polylines_added, idx.segment_count)
         return idx
+
+    @staticmethod
+    def _extract_attr(layer: str, attrs: dict[str, Any]) -> float | None:
+        """Pull the per-feature attribute we want carried on the segment.
+
+        For transmission: prefer `VOLTAGE` (Double, kV); fall back to
+        `VOLT_CLASS` mapped via `VOLT_CLASS_TO_KV`. Sentinel value
+        `-999999` (HIFLD's null marker) collapses to None.
+
+        Returns None for layers that don't carry attributes.
+        """
+        if layer != "transmission":
+            return None
+        v = attrs.get("VOLTAGE")
+        if v is not None:
+            try:
+                vf = float(v)
+                if vf > 0 and vf != TRANSMISSION_NULL_KV:
+                    return vf
+            except (TypeError, ValueError):
+                pass
+        vclass = attrs.get("VOLT_CLASS")
+        if isinstance(vclass, str):
+            mapped = VOLT_CLASS_TO_KV.get(vclass.strip().upper())
+            if mapped is not None:
+                return mapped
+        return None
