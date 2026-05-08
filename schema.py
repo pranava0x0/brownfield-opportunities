@@ -133,6 +133,12 @@ class SiteRecord(BaseModel):
         default=None,
         description="Miles to nearest Census TIGER primary road (Interstate / major US/state).",
     )
+    gas_pipeline_mi: Optional[float] = Field(
+        default=None,
+        description="Miles to nearest HIFLD natural-gas pipeline (interstate + "
+                    "intrastate + gathering, EIA-sourced). <2 mi enables "
+                    "behind-the-meter gas-turbine viability for hyperscale DCs.",
+    )
 
     # Ownership / transfer / history. Most are still None for most programs;
     # FUDS populates `current_owner` directly from the source.

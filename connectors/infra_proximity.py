@@ -1,10 +1,11 @@
 """Universal infrastructure-proximity enrichment.
 
-Computes nearest-distance to electric transmission, freight rail, and major
-highway from every site we already know about (Superfund, ACRES, FUDS, BRAC),
-so the data-center thesis ("post-remediation industrial land + grid + rail
-+ road = AI siting target") works for ~47k records, not just the ~1.9k that
-EPA's Redevelopment mapper covers today.
+Computes nearest-distance to electric transmission, freight rail, major
+highway, and natural-gas pipeline from every site we already know about
+(Superfund, ACRES, FUDS, BRAC), so the data-center thesis ("post-remediation
+industrial land + grid + rail + road + behind-the-meter gas = AI siting
+target") works for ~47k records, not just the ~1.9k that EPA's Redevelopment
+mapper covers today.
 
 Sources (all public, no auth):
 - **Transmission lines**: HIFLD `Electric_Power_Transmission_Lines`
@@ -14,6 +15,12 @@ Sources (all public, no auth):
   but for proximity-only we don't need the metadata.
 - **Highways**: US Census TIGERweb Primary Roads (~17k features, MTFCC=S1100,
   i.e. Interstates + US/state routes that meet primary-road criteria).
+- **Natural gas pipelines**: HIFLD `Natural Gas Interstate and Intrastate
+  Pipelines (EIA)` — ~33k polylines spanning interstate + intrastate +
+  gathering. <2 mi to a major line is the threshold for behind-the-meter
+  gas-turbine viability (Stargate Texas pattern: VoltaGrid 2.3 GW BTM gas
+  + GE Vernova 29 turbines). NGL (natural-gas-liquids) layer intentionally
+  excluded — DCs care about methane, not propane.
 
 This is an *enrichment-only* connector — it doesn't add new sites. It reads
 the per-program JSON files written by the producer connectors, computes
@@ -70,6 +77,17 @@ RAIL_QUERY_URL = (
     "Transportation/MapServer/9/query"
 )
 
+# HIFLD natural-gas interstate + intrastate + gathering pipelines, EIA-sourced.
+# ~32.9k polylines. The legacy `gii.dhs.gov/HIFLD` portal shut down 2025-08-26;
+# the canonical service moved to `services2.arcgis.com/FiaPA4ga0iQKduv3`.
+# Distinct from "Natural Gas Liquid Pipelines" which carries NGLs (propane,
+# ethane), not methane — DC siting cares about methane for behind-the-meter
+# turbines (Stargate Texas pattern), so we only ingest the methane layer.
+GAS_PIPELINE_QUERY_URL = (
+    "https://services2.arcgis.com/FiaPA4ga0iQKduv3/arcgis/rest/services/"
+    "Natural_Gas_Interstate_and_Intrastate_Pipelines_1/FeatureServer/0/query"
+)
+
 # Layer-specific page size. HIFLD caps at 2000. TIGERweb advertises
 # maxRecordCount=100000, but the actual response-payload limit with geometry
 # kicks in well before that (10k pages return HTTP 500). 1000 is the largest
@@ -78,8 +96,10 @@ RAIL_QUERY_URL = (
 # Per-layer `out_fields`: HIFLD's transmission layer carries `VOLTAGE`
 # (Double, kV) and `VOLT_CLASS` (String, e.g. "230"). Capturing these lets
 # the `transmission_kv` enrichment field flow through to the frontend so
-# the data-center scorer can apply the ≥230 kV hyperscale rule. Rail and
-# highway don't need attributes — geometry-only.
+# the data-center scorer can apply the ≥230 kV hyperscale rule. Rail,
+# highway, and gas pipelines don't need attributes — geometry-only for v0.
+# (Future iteration could carry `TYPEPIPE` to distinguish interstate vs
+# gathering, but the distance-only signal is already actionable.)
 LAYERS: dict[str, dict[str, Any]] = {
     "transmission": {
         "url": TRANSMISSION_QUERY_URL,
@@ -101,6 +121,13 @@ LAYERS: dict[str, dict[str, Any]] = {
         "where": "1=1",
         "out_fields": "",
         "label": "US Census TIGERweb Railroads",
+    },
+    "gas_pipeline": {
+        "url": GAS_PIPELINE_QUERY_URL,
+        "page_size": 2000,
+        "where": "1=1",
+        "out_fields": "",
+        "label": "HIFLD Natural Gas Interstate + Intrastate Pipelines (EIA)",
     },
 }
 
@@ -134,12 +161,13 @@ DISTANCE_FIELD: dict[str, str] = {
     "transmission": "transmission_mi",
     "highway": "highway_mi",
     "rail": "rail_mi",
+    "gas_pipeline": "gas_pipeline_mi",
 }
 
 
 class InfraProximity(Connector):
     slug = "infra-proximity"
-    source_label = "HIFLD + Census TIGER (transmission, rail, highways)"
+    source_label = "HIFLD + Census TIGER (transmission, rail, highways, gas pipelines)"
     source_url = "https://hifld-geoplatform.opendata.arcgis.com/"
 
     # Run AFTER all producer connectors have written their per-source JSON.
