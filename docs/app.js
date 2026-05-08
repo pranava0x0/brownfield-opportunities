@@ -346,75 +346,97 @@ function computeDcScore(s) {
 
 // ----- State data-center tax incentives lookup (Tier 0, static) -----
 //
-// Researched 2026-05-07 — see `backlog.md` "Data-center suitability scoring"
-// for source citations (NCSL, Tax Foundation, NAIOP, MultiState, per-state
-// DOR / EDA pages). Tiers:
+// Audit history:
+//   2026-05-07 — initial table compiled from NCSL / Tax Foundation / NAIOP
+//                aggregator round-ups. URLs pointed at top-level state EDA /
+//                DOR landing pages (not citation-grade).
+//   2026-05-08 — accuracy audit. ~18% of rows had material factual errors;
+//                ~16% had stale status flags driven by 2025-2026 reform
+//                activity. Corrections applied: NC ($150M→$75M, two-program
+//                conflation), OH (added $1.5M/yr payroll floor), CT (added
+//                $50M EZ / $200M general thresholds), FL (restricted →
+//                under_reform; HB 7031 raised threshold 15→100 MW Aug 2025),
+//                IA (expanded → under_reform; 2025 rollback w/ 10-15yr cap),
+//                MN (Tier 2 → Tier 3; electricity exemption repealed 2025),
+//                UT (Tier 3 → Tier 2; ≥150k sq ft exemption since 2020),
+//                OK (active → under_reform; 2021 excluded new DCs from
+//                property tax exemption), TX (per-cert 10-15yr term noted),
+//                AR (threshold $500M→$100M per Act 548), CO (added
+//                pending_legislation flag for HB 26-1030). NE/AR/ID/ND
+//                `needs_verification` flags removed — all confirmed real.
+//
+// `verified_at` field on each row tracks freshness:
+//   - "YYYY-MM-DD"  = audited against a primary source (statute, DOR page,
+//                     state EDC, or NCSL snapshot row) on that date
+//   - null          = inherited from the 2026-05-07 aggregator pass; not
+//                     re-verified. Treat the values as indicative, not
+//                     citation-grade. Future audits should prioritize these.
+//
+// Tiers:
 //   1 = broad sales-tax exemption + active policy + competitive power
 //   2 = some incentives, reasonable cost
 //   3 = no/minimal incentive, high power, restrictive politics, or no income tax
 //
 // `status` values: "active" | "expanded" | "under_reform" | "restricted" |
-//                  "none" | "no_state_sales_tax" (DE, MT, NH, OR — neutral)
-// Sites in states marked `needs_verification` still surface the chip but
-// don't currently feed the scoring weight (Tier 0 keeps the tax signal as
-// a separate display chip; v1 scoring will weight it).
+//                  "restrictive" | "none" | "no_state_sales_tax" |
+//                  "partially_repealed" | "pending_legislation"
 const STATE_DC_INCENTIVES = {
   // Tier 1 — most attractive
-  VA: { tier: 1, program: "Data Center Sales & Use Tax Exemption", min_investment_usd: 150_000_000, min_jobs: 50, sunset: 2035, status: "under_reform", url: "https://www.vedp.org/incentive/data-center-retail-sales-use-tax-exemption" },
-  TX: { tier: 1, program: "Qualified Data Center", min_investment_usd: 200_000_000, min_jobs: 20, sunset: null, status: "active", url: "https://comptroller.texas.gov/taxes/data-centers/" },
-  GA: { tier: 1, program: "Data Center Sales & Use Tax Exemption", min_investment_usd: 100_000_000, min_jobs: 20, sunset: 2033, status: "active", url: "https://www.georgia.org/data-center-sales-use-tax-exemption" },
-  IA: { tier: 1, program: "Data Center Sales & Use Tax Exemption", min_investment_usd: 1_000_000, min_jobs: null, sunset: null, status: "expanded", url: "https://revenue.iowa.gov/taxes/tax-guidance/sales-use-excise-tax/data-centers" },
-  OH: { tier: 1, program: "Data Center Tax Abatement", min_investment_usd: 100_000_000, min_jobs: null, sunset: null, status: "active", url: "https://development.ohio.gov/business/state-incentives/data-center-tax-abatement" },
-  AZ: { tier: 1, program: "Computer Data Center Program", min_investment_usd: 50_000_000, min_jobs: null, sunset: null, status: "active", url: "https://www.azcommerce.com/programs/computer-data-center-program/" },
-  NV: { tier: 1, program: "Data Center Abatement", min_investment_usd: 25_000_000, min_jobs: 10, sunset: null, status: "active", url: "https://goed.nv.gov/programs-incentives/data-center/" },
-  NC: { tier: 1, program: "Data Center Sales Tax Exemption", min_investment_usd: 150_000_000, min_jobs: null, sunset: null, status: "active", url: "https://edpnc.com/" },
-  TN: { tier: 1, program: "Qualified Data Center Sales Tax Exemption", min_investment_usd: 250_000_000, min_jobs: null, sunset: null, status: "active", url: "https://www.tn.gov/revenue/" },
+  VA: { tier: 1, program: "Data Center Sales & Use Tax Exemption", min_investment_usd: 150_000_000, min_jobs: 50, sunset: 2035, status: "under_reform", verified_at: "2026-05-08", url: "https://www.vedp.org/incentive/data-center-retail-sales-use-tax-exemption" },
+  TX: { tier: 1, program: "Qualified Data Center (10-15yr per cert)", min_investment_usd: 200_000_000, min_jobs: 20, sunset: null, status: "active", verified_at: "2026-05-08", url: "https://comptroller.texas.gov/taxes/data-centers/" },
+  GA: { tier: 1, program: "Data Center Sales & Use Tax Exemption", min_investment_usd: 100_000_000, min_jobs: 20, sunset: 2033, status: "active", verified_at: "2026-05-08", url: "https://dor.georgia.gov/data-centers-sales-use-tax-exemption-aggregate-expenditures-county" },
+  IA: { tier: 1, program: "Data Center Sales & Use Tax Exemption", min_investment_usd: 1_000_000, min_jobs: null, sunset: null, status: "under_reform", verified_at: "2026-05-08", url: "https://www.ncsl.org/fiscal/policy-snapshot-data-center-incentives" },
+  OH: { tier: 1, program: "Data Center Tax Abatement ($1.5M/yr payroll required)", min_investment_usd: 100_000_000, min_jobs: null, sunset: null, status: "active", verified_at: "2026-05-08", url: "https://codes.ohio.gov/ohio-revised-code/section-122.175" },
+  AZ: { tier: 1, program: "Computer Data Center Program", min_investment_usd: 50_000_000, min_jobs: null, sunset: null, status: "active", verified_at: null, url: "https://www.azcommerce.com/programs/computer-data-center-program/" },
+  NV: { tier: 1, program: "Data Center Abatement", min_investment_usd: 25_000_000, min_jobs: 10, sunset: null, status: "active", verified_at: null, url: "https://goed.nv.gov/programs-incentives/data-center/" },
+  NC: { tier: 1, program: "Qualifying Data Center Sales Tax Exemption", min_investment_usd: 75_000_000, min_jobs: null, sunset: null, status: "active", verified_at: "2026-05-08", url: "https://edpnc.com/incentives/data-centers-sales-use-tax-exemptions/" },
+  TN: { tier: 1, program: "Qualified Data Center Sales Tax Exemption", min_investment_usd: 250_000_000, min_jobs: null, sunset: null, status: "active", verified_at: null, url: "https://www.tn.gov/revenue/" },
 
   // Tier 2 — moderate
-  IL: { tier: 2, program: "Data Center Investment Program", min_investment_usd: 250_000_000, min_jobs: 20, sunset: 2029, status: "active", url: "https://dceo.illinois.gov/expandrelocate/incentives/datacenter.html" },
-  MI: { tier: 2, program: "Enterprise DC Sales & Use Tax Exemption", min_investment_usd: 250_000_000, min_jobs: 30, sunset: 2050, status: "expanded", url: "https://www.michiganbusiness.org/services/data-center/" },
-  WI: { tier: 2, program: "Qualified DC Sales Tax Exemption", min_investment_usd: null, min_jobs: null, sunset: null, status: "active", url: "https://wedc.org/" },
-  IN: { tier: 2, program: "DC Gross Retail & Use Tax Exemption", min_investment_usd: null, min_jobs: null, sunset: null, status: "active", url: "https://www.in.gov/iedc/" },
-  OK: { tier: 2, program: "DC Equipment Sales Tax Exemption + Quality Jobs", min_investment_usd: 250_000_000, min_jobs: null, sunset: null, status: "active", url: "https://www.okcommerce.gov/" },
-  PA: { tier: 2, program: "Computer DC Equipment Sales & Use Tax Exemption", min_investment_usd: null, min_jobs: null, sunset: null, status: "under_reform", url: "https://dced.pa.gov/" },
-  MD: { tier: 2, program: "Data Center Maryland", min_investment_usd: 2_000_000, min_jobs: 5, sunset: null, status: "active", url: "https://commerce.maryland.gov/" },
-  SC: { tier: 2, program: "Certified DC Sales & Use Tax Exemption", min_investment_usd: 50_000_000, min_jobs: 25, sunset: null, status: "active", url: "https://sccommerce.com/" },
-  MS: { tier: 2, program: "DC Sales Tax Exemption", min_investment_usd: 50_000_000, min_jobs: 50, sunset: null, status: "active", url: "https://mississippi.org/" },
-  AL: { tier: 2, program: "DC Tax Abatement", min_investment_usd: 400_000_000, min_jobs: 20, sunset: null, status: "active", url: "https://www.madeinalabama.com/" },
-  LA: { tier: 2, program: "DC Sales & Use Tax Rebate (Act 730)", min_investment_usd: 200_000_000, min_jobs: 50, sunset: null, status: "active", url: "https://www.opportunitylouisiana.gov/" },
-  MN: { tier: 2, program: "Qualified DC Sales Tax Exemption", min_investment_usd: 30_000_000, min_jobs: null, sunset: null, status: "active", url: "https://mn.gov/deed/" },
-  MO: { tier: 2, program: "New / Existing DC Exemption", min_investment_usd: 25_000_000, min_jobs: 10, sunset: null, status: "active", url: "https://ded.mo.gov/" },
-  NE: { tier: 2, program: "ImagiNE Nebraska Sales & Use Tax Exemption", min_investment_usd: 50_000_000, min_jobs: null, sunset: null, status: "active", needs_verification: true, url: "https://opportunity.nebraska.gov/" },
-  KS: { tier: 2, program: "SB98 DC Sales & Use Tax Exemption", min_investment_usd: 250_000_000, min_jobs: 20, sunset: null, status: "active", url: "https://www.kansascommerce.gov/" },
-  KY: { tier: 2, program: "DC Sales & Use Tax Exemption", min_investment_usd: null, min_jobs: null, sunset: null, status: "expanded", url: "https://ced.ky.gov/" },
-  WV: { tier: 2, program: "DC Tax Incentives", min_investment_usd: null, min_jobs: null, sunset: null, status: "expanded", url: "https://westvirginia.gov/" },
-  AR: { tier: 2, program: "DC Sales Tax Exemption", min_investment_usd: null, min_jobs: null, sunset: null, status: "expanded", needs_verification: true, url: "https://www.arkansasedc.com/" },
-  WA: { tier: 2, program: "Rural DC Sales Tax Exemption", min_investment_usd: null, min_jobs: null, sunset: null, status: "active", url: "https://dor.wa.gov/" },
-  OR: { tier: 2, program: "Enterprise Zone Property Tax Abatement", min_investment_usd: null, min_jobs: null, sunset: null, status: "no_state_sales_tax", url: "https://www.oregon.gov/biz/" },
-  MT: { tier: 2, program: "Class 17 Property Tax Reduction", min_investment_usd: 50_000_000, min_jobs: null, sunset: null, status: "no_state_sales_tax", url: "https://mtrevenue.gov/" },
-  WY: { tier: 2, program: "DC Sales & Use Tax Exemption", min_investment_usd: 5_000_000, min_jobs: null, sunset: null, status: "under_reform", url: "https://wyomingbusiness.org/" },
-  ID: { tier: 2, program: "DC Sales Tax Exemption", min_investment_usd: null, min_jobs: null, sunset: null, status: "active", needs_verification: true, url: "https://commerce.idaho.gov/" },
-  MA: { tier: 2, program: "Qualified DC Sales & Use Tax Exemption", min_investment_usd: 50_000_000, min_jobs: 100, sunset: null, status: "active", url: "https://www.mass.gov/" },
-  CT: { tier: 2, program: "DC Tax Incentive Program", min_investment_usd: null, min_jobs: null, sunset: null, status: "active", url: "https://portal.ct.gov/decd" },
-  FL: { tier: 2, program: "DC Sales & Use Tax Exemption (100 MW+)", min_investment_usd: null, min_jobs: null, sunset: null, status: "restricted", url: "https://floridajobs.org/" },
-  ND: { tier: 2, program: "DC Sales Tax Exemption", min_investment_usd: null, min_jobs: null, sunset: null, status: "active", needs_verification: true, url: "https://www.commerce.nd.gov/" },
+  IL: { tier: 2, program: "Data Center Investment Program", min_investment_usd: 250_000_000, min_jobs: 20, sunset: 2029, status: "active", verified_at: null, url: "https://dceo.illinois.gov/expandrelocate/incentives/datacenter.html" },
+  MI: { tier: 2, program: "Enterprise DC Sales & Use Tax Exemption", min_investment_usd: 250_000_000, min_jobs: 30, sunset: 2050, status: "expanded", verified_at: null, url: "https://www.michiganbusiness.org/services/data-center/" },
+  WI: { tier: 2, program: "Qualified DC Sales Tax Exemption", min_investment_usd: null, min_jobs: null, sunset: null, status: "active", verified_at: null, url: "https://wedc.org/" },
+  IN: { tier: 2, program: "DC Gross Retail & Use Tax Exemption", min_investment_usd: null, min_jobs: null, sunset: null, status: "active", verified_at: null, url: "https://www.in.gov/iedc/" },
+  OK: { tier: 2, program: "DC Equipment Sales Tax Exemption (out-of-state revenue gated)", min_investment_usd: null, min_jobs: null, sunset: null, status: "under_reform", verified_at: "2026-05-08", url: "https://stateline.org/2026/02/24/data-center-tax-breaks-are-on-the-chopping-block-in-some-states/" },
+  PA: { tier: 2, program: "Computer DC Equipment Sales & Use Tax Exemption", min_investment_usd: null, min_jobs: null, sunset: null, status: "under_reform", verified_at: null, url: "https://dced.pa.gov/" },
+  MD: { tier: 2, program: "Data Center Maryland", min_investment_usd: 2_000_000, min_jobs: 5, sunset: null, status: "active", verified_at: null, url: "https://commerce.maryland.gov/" },
+  SC: { tier: 2, program: "Certified DC Sales & Use Tax Exemption", min_investment_usd: 50_000_000, min_jobs: 25, sunset: null, status: "active", verified_at: null, url: "https://sccommerce.com/" },
+  MS: { tier: 2, program: "DC Sales Tax Exemption", min_investment_usd: 50_000_000, min_jobs: 50, sunset: null, status: "active", verified_at: null, url: "https://mississippi.org/" },
+  AL: { tier: 2, program: "DC Tax Abatement", min_investment_usd: 400_000_000, min_jobs: 20, sunset: null, status: "active", verified_at: null, url: "https://www.madeinalabama.com/" },
+  LA: { tier: 2, program: "DC Sales & Use Tax Rebate (Act 730)", min_investment_usd: 200_000_000, min_jobs: 50, sunset: null, status: "active", verified_at: null, url: "https://www.opportunitylouisiana.gov/" },
+  MO: { tier: 2, program: "New / Existing DC Exemption", min_investment_usd: 25_000_000, min_jobs: 10, sunset: null, status: "active", verified_at: null, url: "https://ded.mo.gov/" },
+  NE: { tier: 2, program: "ImagiNE Nebraska (DC tier: $25M / 10 jobs entry → $400M premium)", min_investment_usd: 25_000_000, min_jobs: 10, sunset: null, status: "active", verified_at: "2026-05-08", url: "https://revenue.nebraska.gov/sites/default/files/doc/incentives/annual_report/ImagiNE_Key_Employer_FYE_6-30-25_Final_Copy.pdf" },
+  KS: { tier: 2, program: "SB98 DC Sales & Use Tax Exemption", min_investment_usd: 250_000_000, min_jobs: 20, sunset: null, status: "active", verified_at: null, url: "https://www.kansascommerce.gov/" },
+  KY: { tier: 2, program: "DC Sales & Use Tax Exemption", min_investment_usd: null, min_jobs: null, sunset: null, status: "expanded", verified_at: null, url: "https://ced.ky.gov/" },
+  WV: { tier: 2, program: "DC Tax Incentives", min_investment_usd: null, min_jobs: null, sunset: null, status: "expanded", verified_at: null, url: "https://westvirginia.gov/" },
+  AR: { tier: 2, program: "Qualified DC Sales Tax Exemption (Act 548 of 2025)", min_investment_usd: 100_000_000, min_jobs: null, sunset: null, status: "expanded", verified_at: "2026-05-08", url: "https://www.salestaxinstitute.com/resources/arkansas-data-center-tax-exemption-expansion-2025" },
+  WA: { tier: 2, program: "Rural DC Sales Tax Exemption", min_investment_usd: null, min_jobs: null, sunset: null, status: "active", verified_at: null, url: "https://dor.wa.gov/" },
+  OR: { tier: 2, program: "Enterprise Zone Property Tax Abatement", min_investment_usd: null, min_jobs: null, sunset: null, status: "no_state_sales_tax", verified_at: null, url: "https://www.oregon.gov/biz/" },
+  MT: { tier: 2, program: "Class 17 Property Tax Reduction", min_investment_usd: 50_000_000, min_jobs: null, sunset: null, status: "no_state_sales_tax", verified_at: null, url: "https://mtrevenue.gov/" },
+  WY: { tier: 2, program: "DC Sales & Use Tax Exemption", min_investment_usd: 5_000_000, min_jobs: null, sunset: null, status: "under_reform", verified_at: null, url: "https://wyomingbusiness.org/" },
+  ID: { tier: 2, program: "Data Center Sales Tax Exemption (HB 521 / 2024 refinements)", min_investment_usd: null, min_jobs: null, sunset: null, status: "active", verified_at: "2026-05-08", url: "https://commerce.idaho.gov/incentives/data-center-sales-tax-exemption/" },
+  MA: { tier: 2, program: "Qualified DC Sales & Use Tax Exemption", min_investment_usd: 50_000_000, min_jobs: 100, sunset: null, status: "active", verified_at: null, url: "https://www.mass.gov/" },
+  CT: { tier: 2, program: "Data Infrastructure Tax Incentive (≥$50M EZ / $200M general)", min_investment_usd: 200_000_000, min_jobs: null, sunset: null, status: "active", verified_at: "2026-05-08", url: "https://portal.ct.gov/decd/content/business-development/data-infrastructure-administration-and-security/" },
+  FL: { tier: 2, program: "DC Sales & Use Tax Exemption (≥100 MW per HB 7031)", min_investment_usd: null, min_jobs: null, sunset: null, status: "under_reform", verified_at: "2026-05-08", url: "https://ryan.com/about-ryan/news-and-insights/2025/florida-hb7031-data-center-tax/" },
+  ND: { tier: 2, program: "DC Sales Tax Exemption (≥16,000 sq ft post-2020)", min_investment_usd: null, min_jobs: null, sunset: null, status: "active", verified_at: "2026-05-08", url: "https://www.ncsl.org/fiscal/policy-snapshot-data-center-incentives" },
+  UT: { tier: 2, program: "DC Sales & Use Tax Exemption (≥150,000 sq ft, since 2020)", min_investment_usd: null, min_jobs: null, sunset: null, status: "active", verified_at: "2026-05-08", url: "https://www.edcutah.org/recent-news/utah-levels-the-playing-field-for-data-centers-five-questions-for-thomas-wadsworth-of-goed" },
 
   // Tier 3 — least attractive
-  CA: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "restrictive", url: "https://www.ncsl.org/fiscal/policy-snapshot-data-center-incentives" },
-  NY: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "none", url: "https://esd.ny.gov/" },
-  NJ: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "none", url: "https://www.njeda.com/" },
-  NM: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "none", url: "https://gonm.biz/" },
-  CO: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "none", url: "https://choosecolorado.com/" },
-  UT: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "none", url: "https://business.utah.gov/" },
-  DE: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "no_state_sales_tax", url: "https://choosedelaware.com/" },
-  SD: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "none", url: "https://sdgoed.com/" },
-  ME: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "none", url: "https://www.maine.gov/decd/" },
-  VT: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "none", url: "https://accd.vermont.gov/" },
-  NH: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "no_state_sales_tax", url: "https://www.nheconomy.com/" },
-  RI: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "none", url: "https://commerceri.com/" },
-  AK: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "none", url: "https://www.commerce.alaska.gov/" },
-  HI: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "none", url: "https://invest.hawaii.gov/" },
-  DC: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "none", url: "https://dmped.dc.gov/" },
+  CA: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "restrictive", verified_at: null, url: "https://www.ncsl.org/fiscal/policy-snapshot-data-center-incentives" },
+  NY: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "none", verified_at: null, url: "https://esd.ny.gov/" },
+  NJ: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "none", verified_at: null, url: "https://www.njeda.com/" },
+  NM: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "none", verified_at: null, url: "https://gonm.biz/" },
+  CO: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "pending_legislation", verified_at: "2026-05-08", url: "https://coloradonewsline.com/2026/01/21/tax-breaks-for-data-centers-colorado/" },
+  MN: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "partially_repealed", verified_at: "2026-05-08", url: "https://www.ncsl.org/fiscal/policy-snapshot-data-center-incentives" },
+  DE: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "no_state_sales_tax", verified_at: null, url: "https://choosedelaware.com/" },
+  SD: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "none", verified_at: null, url: "https://sdgoed.com/" },
+  ME: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "none", verified_at: null, url: "https://www.maine.gov/decd/" },
+  VT: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "none", verified_at: null, url: "https://accd.vermont.gov/" },
+  NH: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "no_state_sales_tax", verified_at: null, url: "https://www.nheconomy.com/" },
+  RI: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "none", verified_at: null, url: "https://commerceri.com/" },
+  AK: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "none", verified_at: null, url: "https://www.commerce.alaska.gov/" },
+  HI: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "none", verified_at: null, url: "https://invest.hawaii.gov/" },
+  DC: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "none", verified_at: null, url: "https://dmped.dc.gov/" },
 };
 const TAX_TIER_LABEL = {
   1: "Tier 1 incentive (most attractive)",
@@ -427,6 +449,8 @@ const TAX_STATUS_NOTE = {
   under_reform: " · under legislative reform",
   restricted: " · restricted (100 MW+)",
   restrictive: " · restrictive policy",
+  partially_repealed: " · partially repealed (2025)",
+  pending_legislation: " · DC bill pending",
   none: "",
   no_state_sales_tax: " · no state sales tax (neutral)",
 };
@@ -2638,6 +2662,10 @@ function renderStateIncentive(s) {
       ? "No state sales tax — neutral"
       : inc.status === "restrictive"
       ? "Restrictive policy or active anti-DC sentiment"
+      : inc.status === "partially_repealed"
+      ? "Electricity sales-tax exemption repealed (2025)"
+      : inc.status === "pending_legislation"
+      ? "DC tax incentive bill pending in legislature"
       : "No dedicated data-center tax incentive";
   } else if (inc.program) {
     const parts = [inc.program];
