@@ -4,6 +4,169 @@ Ideas and enhancements. Priorities: **high** = next, **med** = soon, **low** = n
 
 ---
 
+## Data-center suitability scoring (tiered plan, researched 2026-05-07)
+
+**Goal.** Move the dashboard from "is this site a brownfield?" to "is this site a viable data-center site?" — a scored, persona-filterable view across all ~47k records. Today we have a single Boolean `data_center_reuse_candidate` flag (EPA RE-Powering, ≥50 ac + power + water, ~776 Superfund sites) plus universal `transmission_mi` / `rail_mi` / `highway_mi` distances. The thesis is that post-remediation industrial land with grid + water + fiber + favorable state tax is gold for AI buildouts; this section turns it into an actionable rubric.
+
+**Supersedes** the older "Data Center Opportunity Dashboard (pivot)" section further down. Items marked with **[exists]** are already in this backlog elsewhere — recording them here too so the tier ordering is complete.
+
+### Industry-standard thresholds (anchor for every filter / score)
+
+Sourced from Datacenters.com, LightBox, EPA Brownfields, USPE Global, Equinix, Introl, ASHRAE 169, FEMA P-2192, S&P Global, Ramboll (cited inline in research notes). Encode these as `DC_TIERS` constants:
+
+| Tier | Acreage | Power (HV transmission within) | Voltage class | Water | Climate / risk excludes |
+|---|---|---|---|---|---|
+| **Edge / inference** | ≥5 ac | ≤1 mi | ≥69 kV | optional (closed-loop OK) | FEMA Zone V; SDC E/F |
+| **Colocation / general** | ≥25 ac | ≤1 mi | ≥138 kV | desirable; ≤2 mi to municipal | FEMA Zone A/AE/V; WHP Very High |
+| **Hyperscale (100 MW+)** | ≥100 ac (matches EPA threshold) | ≤1 mi | ≥230 kV | required for evap; ≤1 mi or in PWS service area | + WRI Aqueduct BWS ≥3 (high-stress) |
+| **AI mega-campus (500 MW+)** | ≥500 ac | ≤1 mi | ≥500 kV OR gas pipeline ≤2 mi (BTM viability) | flexible (closed-loop trend, e.g. Microsoft 2025+) | + non-attainment counties (NAAQS) for backup-gen permitting |
+
+Reference figures: WUE industry avg = 1.8 L/kWh ≈ 276,000 gal/day per MW evap-cooled; rack power 100kW (NVIDIA GB200) → 600 kW (Vera Rubin 2026); typical interconnection-queue wait 5 yr (CAISO 9 yr); buildable share of acreage is 30–40% after buffers.
+
+### Tier 0 — Quick wins (zero new fetches, hours not days)
+
+- **[high] Voltage class on the existing transmission proximity result.** HIFLD `Electric_Power_Transmission_Lines` already has `VOLTAGE` (Double, kV) and `VOLT_CLASS` (String) fields — `connectors/infra_proximity.py` discards them today and only carries the distance. Modify the transmission `SegmentIndex` query to keep the voltage attribute on each segment, return `(distance_mi, kv)` from the lookup, and write `transmission_kv` to `infra-proximity.json`. ~12% of features have `VOLTAGE = -999999` (null sentinel) — fall through to `VOLT_CLASS` then to `null`. Three lines in normalize, one schema field. Lights up the Tier 1/2 voltage-class filter (≥230 kV for hyperscale) for all ~47k sites at zero fetch cost.
+
+- **[high] DC suitability score v0 from existing fields.** Encode `compute_dc_score(s)` in `app.js` (frontend-only — no new connector) using the four signals already on disk: `acreage`, `transmission_mi`, `transmission_kv` (after Tier 0 first item), `near_water_supply` (Superfund-only via Redev). Return one of `none | edge | colo | hyperscale | mega` per site. Render as a new pill in the detail panel's program cell, alongside the existing `Cleanup Complete` / `Active Reuse` / `DC candidate` pills. The existing `data_center_reuse_candidate` boolean stays as the EPA-defined flag; the new tier is our extension.
+
+- **[high] Static state DC tax incentive lookup table.** Add `STATE_DC_INCENTIVES = {...}` to `app.js` constants — one entry per state + DC, populated from the 2026-05-07 research pass. Fields: `tier` (1/2/3), `program` name, `min_investment_usd`, `min_jobs`, `sunset` (year or null), `status` (`active|expanded|under_reform|restricted|none`), `url` to source. Tier 1 (broad sales-tax exemption + active policy): VA, TX, GA, IA, OH, AZ, NV, NC, TN. Tier 2 (moderate): IL, MI, WI, IN, OK, PA, MD, SC, MS, AL, LA, MN, MO, NE, KS, KY, WV, AR, WA, OR, MT, WY, ID, MA, CT, FL. Tier 3 (none / restrictive): CA, NY, NJ, NM, CO, UT, DE, ND, SD, ME, VT, NH, RI, AK, HI. Surface as a chip in the detail panel and as a filter facet ("Tier 1 incentive states only"). Mark VA `status="under_reform_2026"` and FL `status="restricted_to_100mw+"` so users see active reform risk. Verification flags: ID, ND, NE post-Advantage successor — set `needs_verification: true` and exclude from scoring weight until confirmed.
+
+- **[high] Persona filter presets in the filter UI.** Four buttons in the filters strip: `Edge (≥5 ac)` · `Colo (≥25 ac)` · `Hyperscale (≥100 ac)` · `AI mega (≥500 ac)`. Each sets `filterState.minAcreage` to the log10-equivalent threshold and adds a `filterState.dcTier` constraint that re-filters by computed score. Drives URL state as `?dc_tier=hyperscale`. Same `READINESS_LEGEND` enumeration pattern that the Reset handler iterates (UAT-007 lesson) so future tiers just drop in.
+
+- **[high] KPI cell: hyperscale-ready count.** New `#kpi-hyperscale` showing the count of records meeting the Tier 3 (Hyperscale) threshold across all programs. Computed from in-memory `sites` after all lazy-loads complete. Sits next to the existing `#kpi-dc` cell. Subtext: "≥100 ac · 230 kV transmission · water service area".
+
+### Tier 1 — High-signal new layers (1–2 days each)
+
+Each adds one connector or extends `infra-proximity`. All free, no auth (or instant free-tier signup).
+
+- **[high] HIFLD natural-gas pipelines → `gas_pipeline_mi`.** Source: `https://hifld-geoplatform.hub.arcgis.com/datasets/geoplatform::natural-gas-interstate-and-intrastate-pipelines/about`. Polylines, EIA-sourced, free, no auth. Reuse `connectors/spatial.py:SegmentIndex` exactly like transmission. Threshold: `<2 mi` enables behind-the-meter gas turbines (Stargate Texas pattern: VoltaGrid 2.3 GW BTM gas + GE Vernova 29 turbines). Adds one field to `infra-proximity.json`. Use the `hifld-geoplatform.hub.arcgis.com` ArcGIS Hub path — the legacy `gii.dhs.gov/HIFLD` portal shut down 2025-08-26, **don't use those URLs**.
+
+- **[high] EIA Atlas → `iso_rto` region attribution.** Source: `https://atlas.eia.gov/datasets/eia::rto-regions/explore` — GeoJSON of PJM / MISO / ERCOT / CAISO / SPP / NYISO / ISO-NE polygons + non-RTO areas. Point-in-polygon assign each site a string `iso_rto`. Surface in the detail panel and as a filter facet. CAISO interconnection queue is now **9 yr** average vs. 5 yr nationally — non-CAISO is a meaningful filter for "speed-to-power".
+
+- **[high] FEMA National Risk Index (NRI) → composite climate-risk fields.** Source: `https://www.fema.gov/about/openfema/data-sets/national-risk-index-data` — bulk CSV at census-tract resolution, ~150 MB, all 50 states. **One layer covers hurricane / tornado / wildfire / drought / earthquake / hail.** Per-hazard `*_EALT` fields (annualized expected loss) — carry these unaggregated so the frontend can re-weight for DC sensitivities (downweight hail/winter weather, upweight wildfire/drought/heat). Tract-level join via `connectors/county_lookup.py` extension to tract-level TIGER polygons (or pip-install `pygris` for the lookup). New `connectors/fema_nri.py`, `run_order=300`. **This is the single highest-value-per-dev-hour layer** — replaces ~5 separate hazard layers we'd otherwise build.
+
+- **[high] USGS seismic API → `sdc` (A–F).** Source: `https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=...&longitude=...&riskCategory=III&siteClass=D`. Returns SDS, SD1, and the derived SDC. Per-site live REST, ~1 s/call, no key. 47 k sites × 1.5 s = ~20 hr — overnight enrichment connector. Use Risk Category III (DCs are "substantial hazard to life on failure"), Site Class D default. Threshold: SDC ≥ D = significant structural cost premium; SDC ≥ E = often disqualifying. New `connectors/usgs_seismic.py`, `run_order=320`.
+
+- **[high] ASHRAE climate zone → `climate_zone`.** Source: Building America / IECC Climate Zones by U.S. County, ~3,200 rows ArcGIS Hub CSV. Trivial join via existing `connectors/county_lookup.py:CountyIndex`. ~50 KB lookup table baked in. Fields: zone (1–8) + suffix (A humid / B dry / C marine). Industry sweet spot: 3B / 4B / 5B / 6B (dry climates → free-cooling-friendly).
+
+### Tier 2 — Medium-signal new layers (3–5 days each)
+
+- **[high] Audubon OSM substations → `substation_mi`.** HIFLD substations have been auth-walled since 2022 (DHS/CEII) and the HIFLD Open portal shut down 2025-08-26. Free alternative: Audubon ArcGIS Hub publishes an OSM-derived substations FeatureServer at `https://data-library-audubon.hub.arcgis.com/content/7ddd8bf991eb483d8f172fda75903b1b`. Filter to `voltage ≥ 69000` (HV-only). Coverage ~70–80% of US HV substations (vs. legacy HIFLD's ~99%) — document as a known gap. Backup: OSM Overpass API direct query, rate-limited, tile by state. Add to `infra-proximity.json` as a fourth `SegmentIndex` (point-to-point, not polyline).
+
+- **[high] LBNL Queued Up + `gridstatus` → queued MW within 50 mi.** Source (a) LBNL Queued Up 2025 Edition annual Excel at `https://emp.lbl.gov/queues` — project-level rows from 7 ISO/RTOs + 49 non-ISO BAs (~97% US capacity), county/state-level. Source (b) `gridstatus` Python lib (Apache 2.0, `pip install gridstatus`) — live `iso.get_interconnection_queue()` for CAISO / MISO / ERCOT / NYISO / PJM / ISO-NE / SPP. NYISO/PJM/MISO ship lat-lon; CAISO/ERCOT/SPP are county-only. Aggregate to `queued_mw_50mi` per site. Use LBNL for non-ISO regions, gridstatus for ISO regions. New `connectors/queue_capacity.py`, `run_order=310`. **MW available is the actual gating factor for DC siting** — stronger signal than "is there a wire nearby."
+
+- **[high] EIA Form 861 + HIFLD service territory → `electricity_rate_cents_kwh`.** Two-step: (a) HIFLD `Electric_Retail_Service_Territories` (NASA mirror at `https://maps.nccs.nasa.gov/mapping/rest/services/hifld_open/energy/FeatureServer/26` — the most reliable post-HIFLD-shutdown endpoint). Polygons keyed by `ID` (matches EIA `Utility_Number`). (b) EIA Open Data API `electricity/retail-sales` — `https://api.eia.gov/v2/electricity/retail-sales/data?api_key=<KEY>` with free key (instant signup). Cross-walk: site lat/lon → service-territory polygon → `Utility_Number` → EIA industrial-sector rate. Fall back to state-average industrial rate when polygon coverage misses. New `connectors/utility_rates.py`, `run_order=330`. Industrial rates are the right sector — not residential.
+
+- **[med] NOAA NCEI 1991-2020 climate normals → `cdd65` / `hdd65`.** Bulk CSV download at `https://www.ncei.noaa.gov/data/normals-annualseasonal/1991-2020/` — ~7,300 stations with `ANN-CLDD-BASE65` field. IDW point-sample to site lat/lon using 5 nearest stations. Tiers: CDD<2,000 = excellent (Pacific NW, Upper Midwest); 2,000–3,500 = moderate; >3,500 = poor (Sun Belt). New `connectors/noaa_normals.py`, `run_order=340`. ~10 MB compressed cache. HDD comes free in the same product.
+
+- **[med] FEMA NFHL flood zones → `flood_zone`.** Source: `https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer` layer 28 (Flood Hazard Zones). Per-site `intersects` query returns `FLD_ZONE` (`A`/`AE`/`AH`/`AO`/`A99`/`V`/`VE`/`X`/`D`). Excludes A/AE/AH/AO/V/VE for hyperscale (1% annual chance — Special Flood Hazard Area). ~25% of CONUS isn't NFHL-mapped → null is informative ("unmapped"), not a clear pass. Per-site live REST, overnight enrichment job for 47 k records. Apply the **TIGERweb page-size quirk** rule: `page_size=1000` with geometry. New `connectors/fema_flood.py`, `run_order=350`.
+
+- **[med] USFS Wildfire Hazard Potential 2023 raster → `wildfire_class`.** Source: `https://research.fs.usda.gov/firelab/products/dataandtools/wildfire-hazard-potential` — 270 m raster, 5 classes (Very Low → Very High). Bulk GeoTIFF (~1 GB) + `rasterio.sample()` is faster than per-site REST `identify` (which would be 47 k × 1.5 s = 20 hr). Use the GeoTIFF path. Threshold: exclude class 5 (Very High); flag class 4 (High) for hardened design. ~8% of CONUS land in classes 4–5. Will need to add `rasterio` to `requirements.txt` — first non-pure-Python dep; flag for review. CONUS-only (skip AK/HI).
+
+- **[med] WRI Aqueduct 4.0 baseline water stress → `water_stress_score`.** Source: `https://www.wri.org/data/aqueduct-water-risk-atlas` — HydroBASINS sub-basin polygon shapefile, ~80 MB. Field `bws_score` (0–5 categorical). Threshold: `≥3` (>40% withdrawal/supply ratio) = high-stress flag, exclude or require closed-loop cooling. Carry 2030/2040 projections too — they're free with the baseline pull. Reuse `connectors/spatial.py` polygon point-in-polygon pattern. **Crucial for the AI mega-campus tier** since they're ~1–5 M gal/day each. New `connectors/wri_aqueduct.py`, `run_order=325`.
+
+- **[med] EPA AQS PM2.5 county aggregate → `pm25_ugm3`.** Source: `https://aqs.epa.gov/aqsweb/airdata/download_files.html` — pre-aggregated `annual_conc_by_monitor` CSV per year, ~20 MB. Aggregate by county, average over last 3–5 years. Threshold: EPA NAAQS annual standard 9 µg/m³ (lowered 2024). Flag counties >12 µg/m³ as "outside-air economizer needs significant filtration." For unmonitored counties, use nearest-monitor IDW or flag as "unmonitored." New `connectors/epa_aqs.py`, `run_order=345`. Same county-FIPS join pattern as ASHRAE zone.
+
+- **[med] EPA Green Book NAAQS attainment → `attainment_status`.** Source: `https://www.epa.gov/green-book/green-book-gis-download` — per-pollutant zipped Shapefiles + PHISTORY CSV. Per-county nonattainment status by pollutant. **Crucial for backup-generator permitting** (non-attainment counties trigger NSR for new generator stacks → multi-month permit drag). New `connectors/epa_greenbook.py`, `run_order=345`. Tiny dataset; trivial county join.
+
+### Tier 3 — Composite scoring + UI rebuild (after Tier 1+2 lands)
+
+- **[high] `compute_dc_score(s)` v1 — weighted multi-criteria score.** Replace the v0 frontend score with a weighted rubric. Per-persona weight tables — what matters for AI mega-campus (power capacity, gas pipeline, water stress) is different from edge inference (latency, fiber, smaller acreage). Output: `dc_score: 0–100` per site, plus `dc_score_breakdown: {power: 0–25, water: 0–15, climate: 0–15, ...}` so the detail panel can show *why*. Keep it pure-functional / deterministic — buyers must be able to reason about scoring. **Persona presets**: `hyperscale_default`, `ai_mega_campus`, `edge_inference`, `crypto_hpc`. Each is a static weight dict in `app.js` — no ML.
+
+- **[high] Detail panel "Data Center Suitability" section.** New `#d-dc-block` between the existing `#d-infra-block` (universal infrastructure distances) and the documents block. Shows: (a) tier badge (Edge/Colo/Hyperscale/Mega/None) with the matched threshold inline, (b) score breakdown by category as a 4–6 row mini-table, (c) state tax incentive chip + URL, (d) ISO/RTO + interconnection queue MW, (e) climate-risk row aggregated from FEMA NRI fields, (f) deal-blockers (flood zone, SDC ≥ E, WHP class 5, non-attainment) listed as red flags. Hidden when the site doesn't meet even Edge tier or when no DC data is available. **Don't** dump every field — synthesize like the AI summary block does. Use the v1.11 tab strip pattern (Overview / Summary tabs); add a third "DC Score" tab if it gets long enough to warrant.
+
+- **[high] Persona filter UI.** Above the persona-tier buttons from Tier 0, add a "Profile" dropdown: `Hyperscale (default)` · `AI mega-campus` · `Edge / inference` · `Crypto / HPC`. Switching the profile recomputes scores for all sites and re-renders the table sort. URL state: `?profile=ai_mega`. Default profile from `localStorage` so a returning user keeps their persona.
+
+- **[med] Map: filled markers for top-quartile DC scores.** Tier 1 hyperscale-ready sites get a filled circle with a halo; sub-tier sites stay as the existing dot. Don't add a new color — use the existing program color but add a 2px outer stroke. Drives "where in the US is the dense set of viable sites" at a glance. Implement only after Tier 1+2 layers land.
+
+- **[med] KPI deck: 4-cell DC view.** Replace one of the existing KPI cells (probably `#kpi-states`) with `#kpi-power-ready` (count of sites within 1 mi of ≥230 kV transmission), `#kpi-water-ready` (count near a water source for evap or in PWS service area), `#kpi-tax-tier1` (count in Tier 1 incentive states). Hyperscale-ready remains as `#kpi-hyperscale` (Tier 0).
+
+### Tier 4 — Nice-to-have / advanced (defer until users request)
+
+- **[low] USGS NHD water bodies → `water_body_mi`.** For evap-cooling proximity (vs. PWS service area). NHD HighRes is enormous; the right cut is `NHDWaterbody` filtered to `FType=390` (LakePond) AND `AreaSqKm > 1.0`, plus `NHDFlowline` filtered to perennial streams (`FCode IN (46006, 55800)`). Bulk download by HUC-4. NHD itself was retired 2023-10-01 — data still available, future updates flow through 3DHP. Useful for the AI mega-campus tier but also genuine source-of-truth complexity (millions of features). Defer until evap-cooling proximity becomes a binding filter.
+
+- **[low] EPA Community Water System Service Area Boundaries → `pws_service_id`.** Source: `https://www.epa.gov/ground-water-and-drinking-water/community-water-system-service-area-boundaries` — EPA released a national modeled dataset in 2024 covering ~44 k CWS systems (~99% of CWS-served population). Polygon shapefile keyed by federal `PWSID`. Stronger signal than "near a water main" because PWSID also lets us cross-walk SDWIS for capacity / violation data. The existing `near_water_supply` Redev field is a Superfund-only buckets ("Yes — 1 mile") proxy; this would be a precise replacement for all programs.
+
+- **[low] FAA airports → `airport_dist_mi`.** Source: `https://adds-faa.opendata.arcgis.com/` — Airports + Runways layers, free, no auth. Filter `Runways.LENGTH > 3200` ft; flag sites <3 mi from a qualifying runway endpoint (FAA Part 77 imaginary-surface conflict — cooling tower / gen-set exhaust triggers Form 7460-1 review). Low priority because most contaminated industrial sites are already away from active airports; mostly a flag-not-exclude field.
+
+- **[low] NREL NSRDB → `solar_ghi_kwh_m2_day`.** Source: `https://developer.nrel.gov/docs/solar/nsrdb/nsrdb_data_query/` — free API key, ~1000 calls/hr. Threshold `>5 kWh/m²/day` annual GHI = solar-attractive. Only matters if the dashboard claims behind-the-meter PPA viability. Defer.
+
+- **[low] NREL Wind Toolkit → `wind_cf_pct`.** Source: `https://developer.nrel.gov/docs/wind/wind-toolkit/` — same key. Threshold `>35%` 100 m hub-height capacity factor = wind-attractive (Great Plains corridor IA→TX). Defer with NSRDB.
+
+- **[low] PeeringDB IXP locations → `ixp_dist_mi` (fiber proxy).** Source: `https://www.peeringdb.com/api/ix` — free anonymous read, ~120 US IXPs with `latitude`/`longitude` on linked `fac` endpoint. Proxy for "fiber-rich metro" since IXPs sit at major carrier hotels. Not a real long-haul fiber map but the best free proxy — the cleanest public layer doesn't exist (GeoTel / FiberLocator are paid-only, ~$5–25 k/yr). Pair with FCC BDC fiber-served address density per H3 cell for a second proxy.
+
+### Tier 5 — Defer / no clean public source
+
+- **Long-haul fiber routes.** No clean public layer. GeoTel / FiberLocator / NA Fiber Map are paid. Best free proxies are PeeringDB IXP + FCC BDC last-mile (above). Don't promise fiber proximity until at least one paid source is funded.
+- **Real-time available transmission capacity (FERC OASIS).** Fragmented across per-provider portals with no central bulk API. FERC Form 715 is CEII-restricted. Both are dead ends. Use queued-MW proxy via LBNL + gridstatus (Tier 2) instead.
+- **Water rights (Western US).** State-by-state, no machine-readable national source. Defer until a single-state customer pilot funds the per-state work.
+- **Local zoning / land use.** Most counties don't publish machine-readable zoning. The "manual-check-needed" item already in the older "Data Center Opportunity Dashboard (pivot)" section stays accurate.
+- **Anticipated Future Land Use (AFL) codes.** Already confirmed dead end 2026-05-05 — SEMS-internal field, FOIA-only.
+
+### Suggested implementation order
+
+A two-week MVP path that turns this into a usable scoring view:
+
+1. **Week 1 — Tier 0 + start Tier 1.** Voltage-class extension, frontend score v0, state-incentive lookup table, persona filter buttons, hyperscale KPI cell. Then `gas_pipeline_mi` (HIFLD reuse), `iso_rto` (EIA Atlas point-in-polygon), ASHRAE zone (county-FIPS lookup). All zero-paid-deps; the FEMA NRI bulk pull starts overnight.
+2. **Week 2 — Finish Tier 1.** USGS seismic API enrichment (overnight job), FEMA NRI tract-level fields, detail panel `#d-dc-block` v1 surfacing everything that landed. Stop here for a release; ship the scoring as v1.12.
+3. **Following sprint — Tier 2.** Audubon substations, LBNL queue capacity, EIA utility rates, climate normals. Add `compute_dc_score` v1 with weighted rubric and persona presets.
+4. **Defer Tier 3 UI rebuild** until Tier 2 lands — designing the detail-panel section before the full data is on disk would force rework.
+
+### Schema additions
+
+Add to `SiteRecord` in `schema.py` (all optional / nullable — `extra="forbid"` keeps drift loud):
+
+```python
+# Tier 0 — voltage class on existing transmission proximity
+transmission_kv: float | None  # nominal kV of nearest HIFLD line; null when source is null
+
+# Tier 1 — high-signal layers
+gas_pipeline_mi: float | None        # miles to nearest HIFLD natural-gas pipeline
+iso_rto: str | None                  # PJM | MISO | ERCOT | CAISO | SPP | NYISO | ISO-NE | non-RTO
+sdc: Literal["A", "B", "C", "D", "E", "F"] | None  # USGS ASCE 7-22 Seismic Design Category
+climate_zone: str | None             # ASHRAE 169 zone, e.g. "5B" / "3A"
+
+# FEMA NRI — composite climate-risk per hazard (annualized expected loss in USD)
+nri: dict | None                     # {hurricane_ealt, tornado_ealt, wildfire_ealt, drought_ealt,
+                                     #  earthquake_ealt, hail_ealt, ...} — frontend re-weights for DC
+
+# Tier 2 — medium-signal layers
+substation_mi: float | None          # miles to nearest HV (≥69 kV) substation (OSM/Audubon)
+queued_mw_50mi: float | None         # MW queued for interconnection within 50 mi (LBNL + gridstatus)
+electricity_rate_cents_kwh: float | None  # EIA Form 861 industrial-sector rate
+cdd65: int | None                    # annual cooling-degree-days base 65°F (NOAA normals)
+hdd65: int | None                    # annual heating-degree-days base 65°F
+flood_zone: str | None               # FEMA NFHL FLD_ZONE; null = unmapped (informative)
+wildfire_class: int | None           # USFS WHP 2023 class 1–5
+water_stress_score: int | None       # WRI Aqueduct BWS 0–5
+pm25_ugm3: float | None              # 5-yr average PM2.5 from EPA AQS
+attainment_status: dict | None       # per-pollutant: {ozone: "attainment", pm25: "nonattainment", ...}
+
+# Tier 3 — derived / score
+dc_score: int | None                 # 0–100, computed at runtime from the above
+dc_tier: Literal["edge", "colo", "hyperscale", "mega"] | None  # derived bucket
+```
+
+### Frontend constants to add (single source of truth)
+
+In `app.js`:
+- `DC_TIERS` — the threshold table from the top of this section.
+- `STATE_DC_INCENTIVES` — full 50-state + DC lookup.
+- `PERSONA_WEIGHTS` — per-persona weight dict for `compute_dc_score`.
+- `ISO_RTO_LABELS` — display labels for `iso_rto` values.
+
+All are static; no fetches. `READINESS_LEGEND` pattern (Reset handler iterates the legend, UAT-007) applies — when a new persona ships, `Reset` and `populateProfileFilter` pick it up for free.
+
+### Cost summary
+
+Everything in Tier 0–2 is **free, no auth or one-time free signup**. Two paid fallbacks flagged for later:
+- Regrid / Landgrid Parcel API (~$0.001–0.01 / parcel) for owner data — already in backlog.
+- GeoTel / FiberLocator (~$5–25 k/yr) for true long-haul fiber routes — only if a paying customer cites fiber as a binding filter.
+
+The single new dep introduced: **`rasterio`** (for USFS WHP raster sampling, Tier 2). First non-pure-Python connector dep — flag for review when the PR lands. WRI Aqueduct, FEMA NRI, NHD all stay in the existing `connectors/spatial.py` polygon pattern with no new C extensions.
+
+---
+
 ## ~~Static summary quality pass (audited 2026-05-05)~~ Fixed 2026-05-05
 
 Systematic review of all 1,787 generated static summaries found 9 recurring issues. Grouped by impact — fix the HIGH items before re-running at scale.

@@ -69,6 +69,11 @@
         <span class="kpi-num" id="kpi-dc">—</span>
         <span class="kpi-sub kpi-sub-strong" id="kpi-dc-sub">≥50 ac · power · water</span>
       </div>
+      <div class="kpi" data-kpi="hyperscale">
+        <span class="kpi-label">Hyperscale-ready</span>
+        <span class="kpi-num" id="kpi-hyperscale">—</span>
+        <span class="kpi-sub kpi-sub-strong" id="kpi-hyperscale-sub">≥100 ac · ≥230 kV · ≤1 mi</span>
+      </div>
       <div class="kpi" data-kpi="states">
         <span class="kpi-label">States covered</span>
         <span class="kpi-num" id="kpi-states">—</span>
@@ -112,6 +117,10 @@
       <span>1</span><span>10</span><span>100</span><span>1k</span><span>10k</span><span>100k</span><span>1M</span>
     </span>
   </label>
+  <fieldset class="filter filter-personas" aria-label="Data-center suitability">
+    <legend>Data-center tier</legend>
+    <div id="f-personas" class="persona-row" role="group" aria-label="Data-center suitability tier"></div>
+  </fieldset>
   <button id="filters-reset" class="text-btn">Reset</button>
 </section>
 
@@ -199,6 +208,8 @@
       <dt>Has projects</dt><dd id="d-has-projects">—</dd>
     </dl>
   </div>
+
+  <div id="d-tax-incentive" class="tax-incentive-block" hidden></div>
 
   <h3>Infrastructure proximity</h3>
   <dl class="kv" id="d-infra-block">
