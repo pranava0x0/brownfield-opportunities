@@ -1493,7 +1493,12 @@ def test_visible_bbox_cached_on_filter(page, base_url):
 def test_infra_distance_renders_adjacent_below_threshold(page, base_url):
     """v1.11.4: distances < 0.05 mi (rounded to 0.0 in the source data)
     must render as "Adjacent" instead of "<0.1 mi" / "0.0 mi". Cover all
-    three cells in one shot so a future regression on any of them is loud."""
+    three cells in one shot so a future regression on any of them is loud.
+
+    v1.12: the transmission cell may carry a sibling `.kv-chip` span when
+    `transmission_kv` is populated. Read the first text node only so the
+    distance assertion is unaffected by the kV chip.
+    """
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
     target_id = page.evaluate(
@@ -1509,14 +1514,155 @@ def test_infra_distance_renders_adjacent_below_threshold(page, base_url):
     assert target_id
     page.evaluate(f"window.__selectSite('{target_id}')")
     page.wait_for_selector("#detail:not([hidden])")
-    assert (page.locator("#d-transmission-mi").text_content() or "").strip() == "Adjacent"
-    assert (page.locator("#d-rail-mi").text_content() or "").strip() == "Adjacent"
-    assert (page.locator("#d-highway-mi").text_content() or "").strip() == "5.2 mi"
+
+    def leading_text(sel):
+        # The kV chip (transmission_kv) is a `.kv-chip` span appended after
+        # a literal-space text node by `setKvSuffix()`; the distance lives
+        # in the first text node. Reading firstChild keeps this test focused
+        # on the distance-formatting contract.
+        return page.evaluate(
+            f"""
+            (() => {{
+              const n = document.querySelector('{sel}');
+              if (!n) return '';
+              const t = n.firstChild;
+              return (t && t.nodeType === Node.TEXT_NODE) ? t.nodeValue.trim() : '';
+            }})()
+            """
+        )
+
+    assert leading_text("#d-transmission-mi") == "Adjacent"
+    assert leading_text("#d-rail-mi") == "Adjacent"
+    assert leading_text("#d-highway-mi") == "5.2 mi"
     # The "Adjacent" cells should NOT carry the muted-cell class — they're
     # real data, not placeholder text.
     for sel in ("#d-transmission-mi", "#d-rail-mi"):
         cls = page.locator(sel).get_attribute("class") or ""
         assert "muted-cell" not in cls, f"{sel} kept muted-cell class for adjacent value"
+
+
+def test_transmission_kv_chip_renders_when_kv_known(page, base_url):
+    """v1.12 Tier 0: when `transmission_kv` is populated, a `.kv-chip`
+    span is appended to the transmission cell. ≥230 kV gets the green
+    `.ready` variant (hyperscale tier); below that stays muted."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    sid = page.evaluate(
+        "(() => {"
+        "  const s = (window.__sites || [])[0];"
+        "  if (!s) return null;"
+        "  s.transmission_mi = 0.4;"
+        "  s.transmission_kv = 345;"
+        "  return s.id;"
+        "})()"
+    )
+    assert sid
+    page.evaluate(f"window.__selectSite('{sid}')")
+    page.wait_for_selector("#detail:not([hidden])")
+    chip = page.locator("#d-transmission-mi .kv-chip")
+    assert chip.count() == 1, "kV chip not rendered"
+    assert (chip.text_content() or "").strip() == "345 kV"
+    cls = chip.get_attribute("class") or ""
+    assert "ready" in cls, "≥230 kV chip should carry the .ready (green) variant"
+
+
+def test_dc_tier_pill_renders_for_qualifying_site(page, base_url):
+    """v1.12 Tier 0: a site with acreage ≥100 ac, transmission ≤1 mi,
+    and ≥230 kV scores at hyperscale tier and gets the green `.ready`
+    DC tier pill. Below 138 kV the pill drops to "Edge / inference"."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    sid = page.evaluate(
+        "(() => {"
+        "  const s = (window.__sites || [])[0];"
+        "  if (!s) return null;"
+        "  s.acreage = 250;"
+        "  s.transmission_mi = 0.5;"
+        "  s.transmission_kv = 345;"
+        "  return s.id;"
+        "})()"
+    )
+    assert sid
+    page.evaluate(f"window.__selectSite('{sid}')")
+    page.wait_for_selector("#detail:not([hidden])")
+    pill = page.locator("#d-program .dc-tier-pill")
+    assert pill.count() == 1, "DC tier pill missing"
+    assert "Hyperscale" in (pill.text_content() or "")
+    cls = pill.get_attribute("class") or ""
+    assert "ready" in cls, "hyperscale-tier pill should carry the .ready variant"
+
+
+def test_persona_filter_narrows_visible_set(page, base_url):
+    """v1.12 Tier 0: clicking a persona button writes filterState.dcTier,
+    syncs ?dc_tier= to the URL, narrows the table count, and lights up
+    the filter chip. Toggling off clears all of the above."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    # Open filter strip so the persona buttons are visible.
+    page.evaluate(
+        """
+        (() => {
+          const f = document.getElementById('filters');
+          if (f) f.hidden = false;
+        })()
+        """
+    )
+    page.locator("button[data-tier='edge']").click()
+    page.wait_for_function(
+        "() => location.search.indexOf('dc_tier=edge') !== -1",
+        timeout=2000,
+    )
+    # Filter chip lights up, button is active.
+    chip_hidden = page.locator("#filters-chip").evaluate("el => el.hidden")
+    assert chip_hidden is False
+    btn_active = page.locator("button[data-tier='edge']").get_attribute("class") or ""
+    assert "active" in btn_active
+
+    # Toggle off — URL clears, button inactive.
+    page.locator("button[data-tier='edge']").click()
+    page.wait_for_function(
+        "() => location.search.indexOf('dc_tier=') === -1",
+        timeout=2000,
+    )
+    btn_active = page.locator("button[data-tier='edge']").get_attribute("class") or ""
+    assert "active" not in btn_active
+
+
+def test_state_dc_incentive_chip_renders(page, base_url):
+    """v1.12 Tier 0: the detail panel surfaces a state DC tax incentive
+    chip from the static STATE_DC_INCENTIVES lookup. Tier 1/2/3 colors
+    the chip; the meta line carries program + threshold + status note."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    # Pick a site in a Tier-1 state so we exercise the most-vivid chip.
+    sid = page.evaluate(
+        "(() => {"
+        "  const s = (window.__sites || []).find(s => s.state === 'TX' || s.state === 'VA' || s.state === 'GA');"
+        "  return s ? s.id : null;"
+        "})()"
+    )
+    assert sid, "no Tier-1 state site found in dataset"
+    page.evaluate(f"window.__selectSite('{sid}')")
+    page.wait_for_selector("#detail:not([hidden])")
+    block = page.locator("#d-tax-incentive")
+    hidden = block.evaluate("el => el.hidden")
+    assert hidden is False, "tax incentive block hidden for Tier-1 state"
+    chip = block.locator(".tax-chip")
+    assert chip.count() == 1
+    cls = chip.get_attribute("class") or ""
+    assert "tax-tier-1" in cls, f"expected tier-1 chip, got class={cls}"
+
+
+def test_hyperscale_kpi_cell_populates(page, base_url):
+    """v1.12 Tier 0: the new #kpi-hyperscale cell counts sites scoring
+    at hyperscale-or-better tier. Once the infra-proximity enrichment
+    lands, the count must be > 0 for the live dataset."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    text = (page.locator("#kpi-hyperscale").text_content() or "").strip()
+    assert text not in ("", "—"), f"hyperscale KPI not populated, got {text!r}"
+    sub = (page.locator("#kpi-hyperscale-sub").text_content() or "").strip()
+    assert "230 kV" in sub, f"subtext should cite the kV threshold, got {sub!r}"
 
 
 def test_dc_candidate_surfaces_criteria_in_detail_panel(page, base_url):

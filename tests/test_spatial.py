@@ -197,3 +197,62 @@ def test_index_early_exit_finds_correct_minimum():
     assert d is not None
     # 0.05° lon at 40°N ≈ 2.6 mi
     assert d < 5
+
+
+# --- per-segment attribute carryover (transmission kV use case) ---
+
+def test_nearest_with_attr_returns_polyline_attribute():
+    idx = SegmentIndex(cell_deg=0.25)
+    idx.add_polyline([[-100.0, 40.0], [-99.9, 40.0]], attr=230.0)
+    hit = idx.nearest_with_attr(40.0, -99.95)
+    assert hit is not None
+    d, kv = hit
+    assert d < 5  # close
+    assert kv == 230.0
+
+
+def test_nearest_with_attr_resolves_correct_segment_when_multiple_polylines():
+    idx = SegmentIndex(cell_deg=0.25)
+    idx.add_polyline([[-100.0, 40.0], [-99.9, 40.0]], attr=138.0)
+    idx.add_polyline([[-100.0, 41.0], [-99.9, 41.0]], attr=500.0)
+    # Query near the 500 kV line.
+    hit = idx.nearest_with_attr(41.0, -99.95)
+    assert hit is not None
+    _, kv = hit
+    assert kv == 500.0
+
+
+def test_nearest_with_attr_returns_none_attr_when_polyline_has_none():
+    """Polylines added without an attr return None for the attr slot
+    (rail / highway never call add_polyline with attr)."""
+    idx = SegmentIndex(cell_deg=0.25)
+    idx.add_polyline([[-100.0, 40.0], [-99.9, 40.0]])
+    hit = idx.nearest_with_attr(40.0, -99.95)
+    assert hit is not None
+    _, kv = hit
+    assert kv is None
+
+
+def test_nearest_with_attr_lazy_allocation_backfills_prior_segments():
+    """Adding an attr-less polyline first then an attr-bearing one must
+    not corrupt the parallel array — prior segments backfill to None."""
+    idx = SegmentIndex(cell_deg=0.25)
+    idx.add_polyline([[-100.0, 40.0], [-99.9, 40.0]])  # no attr
+    idx.add_polyline([[-100.0, 41.0], [-99.9, 41.0]], attr=345.0)
+    # First polyline still queryable, returns None for attr.
+    h1 = idx.nearest_with_attr(40.0, -99.95)
+    assert h1 is not None and h1[1] is None
+    # Second polyline returns its kV.
+    h2 = idx.nearest_with_attr(41.0, -99.95)
+    assert h2 is not None and h2[1] == 345.0
+
+
+def test_nearest_distance_mi_unaffected_by_attr_path():
+    """Adding `attr=...` doesn't change the no-attr API result."""
+    idx_a = SegmentIndex(cell_deg=0.25)
+    idx_a.add_polyline([[-100.0, 40.0], [-99.9, 40.0]])
+    idx_b = SegmentIndex(cell_deg=0.25)
+    idx_b.add_polyline([[-100.0, 40.0], [-99.9, 40.0]], attr=230.0)
+    da = idx_a.nearest_distance_mi(40.0, -99.95)
+    db = idx_b.nearest_distance_mi(40.0, -99.95)
+    assert da == pytest.approx(db, rel=1e-6)
