@@ -194,13 +194,14 @@ def test_fetch_records_emits_distance_per_layer(tmp_path, monkeypatch):
     _write_program_file(tmp_path, "epa-acres.json", [
         {"id": "ACRES-1", "program": "brownfield", "lat": 40.5, "lon": -74.5},
     ])
-    # Fake transmission line ~0.01° east of S1 → very close.
+    # Fake polyline ~0.01° east of S1 → very close (≤1 mi).
     pages_by_layer = {
         "transmission": [{"features": [_polyline_feature([[-74.0, 40.0], [-74.01, 40.01]])]}, {"features": []}],
         "highway":      [{"features": [_polyline_feature([[-74.0, 40.5], [-74.01, 40.51]])]}, {"features": []}],
         "rail":         [{"features": [_polyline_feature([[-74.5, 40.5], [-74.51, 40.51]])]}, {"features": []}],
+        "gas_pipeline": [{"features": [_polyline_feature([[-74.0, 40.0], [-74.01, 40.01]])]}, {"features": []}],
     }
-    call_count = {"transmission": 0, "highway": 0, "rail": 0}
+    call_count = {"transmission": 0, "highway": 0, "rail": 0, "gas_pipeline": 0}
     def fake_get(url, params, use_cache, cache_key=None):
         layer = (cache_key or {}).get("layer")
         result = pages_by_layer[layer][call_count[layer]]
@@ -214,10 +215,11 @@ def test_fetch_records_emits_distance_per_layer(tmp_path, monkeypatch):
     by_id = {r["id"]: r for r in records}
     assert "S1" in by_id
     assert by_id["S1"]["program"] == "superfund"
-    # All three distance fields present (close to all three test layers).
+    # All four distance fields present (close to all four test layers).
     assert "transmission_mi" in by_id["S1"]
     assert "highway_mi" in by_id["S1"]
     assert "rail_mi" in by_id["S1"]
+    assert "gas_pipeline_mi" in by_id["S1"]
 
 
 def test_fetch_records_skips_sites_with_bad_coords(tmp_path, monkeypatch):
@@ -237,7 +239,7 @@ def test_fetch_records_skips_sites_with_bad_coords(tmp_path, monkeypatch):
         return result
 
     inst = InfraProximity(cache_dir=tmp_path / "cache")
-    args = _make_args(infra_skip_highway=True, infra_skip_rail=True)
+    args = _make_args(infra_skip_highway=True, infra_skip_rail=True, infra_skip_gas_pipeline=True)
     with patch.object(inst, "http_get_json", side_effect=fake_get):
         records = inst.fetch_records(args, use_cache=True)
     ids = {r["id"] for r in records}
@@ -266,7 +268,7 @@ def test_fetch_records_emits_tombstone_when_no_layer_hit(tmp_path, monkeypatch):
         return result
 
     inst = InfraProximity(cache_dir=tmp_path / "cache")
-    args = _make_args(infra_skip_highway=True, infra_skip_rail=True)
+    args = _make_args(infra_skip_highway=True, infra_skip_rail=True, infra_skip_gas_pipeline=True)
     with patch.object(inst, "http_get_json", side_effect=fake_get):
         records = inst.fetch_records(args, use_cache=True)
     assert len(records) == 1
@@ -305,7 +307,7 @@ def test_fetch_records_skip_layer_flags_honored(tmp_path, monkeypatch):
         return result
 
     inst = InfraProximity(cache_dir=tmp_path / "cache")
-    args = _make_args(infra_skip_highway=True, infra_skip_rail=True)
+    args = _make_args(infra_skip_highway=True, infra_skip_rail=True, infra_skip_gas_pipeline=True)
     with patch.object(inst, "http_get_json", side_effect=fake_get):
         records = inst.fetch_records(args, use_cache=True)
     assert len(records) == 1
@@ -333,7 +335,7 @@ def test_fetch_records_drops_distance_over_max(tmp_path, monkeypatch):
         return result
 
     inst = InfraProximity(cache_dir=tmp_path / "cache")
-    args = _make_args(infra_skip_highway=True, infra_skip_rail=True)
+    args = _make_args(infra_skip_highway=True, infra_skip_rail=True, infra_skip_gas_pipeline=True)
     with patch.object(inst, "http_get_json", side_effect=fake_get):
         records = inst.fetch_records(args, use_cache=True)
     # Distance > MAX_DISTANCE_MI → field absent, but tombstone record present.
@@ -351,13 +353,14 @@ def test_fetch_records_emits_partial_when_some_layers_in_range(tmp_path, monkeyp
     _write_program_file(tmp_path, "superfund-npl.json", [
         {"id": "S1", "program": "superfund", "lat": 40.0, "lon": -74.0},
     ])
-    # Transmission close, highway + rail far away.
+    # Transmission close, highway + rail + gas all far away.
     pages_by_layer = {
         "transmission": [{"features": [_polyline_feature([[-74.0, 40.0], [-74.01, 40.01]])]}, {"features": []}],
         "highway":      [{"features": [_polyline_feature([[-74.0, 42.0], [-74.0, 42.1]])]}, {"features": []}],
         "rail":         [{"features": [_polyline_feature([[-74.0, 42.0], [-74.0, 42.1]])]}, {"features": []}],
+        "gas_pipeline": [{"features": [_polyline_feature([[-74.0, 42.0], [-74.0, 42.1]])]}, {"features": []}],
     }
-    call_count = {"transmission": 0, "highway": 0, "rail": 0}
+    call_count = {"transmission": 0, "highway": 0, "rail": 0, "gas_pipeline": 0}
     def fake_get(url, params, use_cache, cache_key=None):
         layer = (cache_key or {}).get("layer")
         result = pages_by_layer[layer][call_count[layer]]
@@ -372,6 +375,7 @@ def test_fetch_records_emits_partial_when_some_layers_in_range(tmp_path, monkeyp
     assert "transmission_mi" in rec
     assert "highway_mi" not in rec
     assert "rail_mi" not in rec
+    assert "gas_pipeline_mi" not in rec
 
 
 # --- schema integration ---
@@ -383,10 +387,64 @@ def test_schema_accepts_distance_fields():
         transmission_mi=2.3,
         rail_mi=1.1,
         highway_mi=0.5,
+        gas_pipeline_mi=1.7,
     )
     assert rec.transmission_mi == 2.3
     assert rec.rail_mi == 1.1
     assert rec.highway_mi == 0.5
+    assert rec.gas_pipeline_mi == 1.7
+
+
+def test_gas_pipeline_layer_emits_distance(tmp_path, monkeypatch):
+    """v1.13 Tier 1: gas pipeline layer emits gas_pipeline_mi when within
+    range, alongside the existing three layers. Same SegmentIndex pattern
+    as transmission/rail/highway — separate test guards against future
+    refactors that might forget to wire a new layer through `LAYERS`."""
+    monkeypatch.setattr(InfraProximity, "_data_dir", staticmethod(lambda: tmp_path))
+    _write_program_file(tmp_path, "superfund-npl.json", [
+        {"id": "S1", "program": "superfund", "lat": 40.0, "lon": -74.0},
+    ])
+    pages = [{"features": [_polyline_feature([[-74.0, 40.0], [-74.01, 40.01]])]}, {"features": []}]
+    call_count = {"n": 0}
+    def fake_get(url, params, use_cache, cache_key=None):
+        if (cache_key or {}).get("layer") != "gas_pipeline":
+            pytest.fail("non-gas-pipeline layer was queried")
+        result = pages[call_count["n"]]
+        call_count["n"] += 1
+        return result
+
+    inst = InfraProximity(cache_dir=tmp_path / "cache")
+    args = _make_args(infra_skip_transmission=True, infra_skip_highway=True, infra_skip_rail=True)
+    with patch.object(inst, "http_get_json", side_effect=fake_get):
+        records = inst.fetch_records(args, use_cache=True)
+    assert len(records) == 1
+    rec = records[0]
+    assert "gas_pipeline_mi" in rec
+    assert rec["gas_pipeline_mi"] >= 0
+
+
+def test_gas_pipeline_skip_flag_honored(tmp_path, monkeypatch):
+    """`--infra-skip-gas-pipeline` skips the layer cleanly."""
+    monkeypatch.setattr(InfraProximity, "_data_dir", staticmethod(lambda: tmp_path))
+    _write_program_file(tmp_path, "superfund-npl.json", [
+        {"id": "S1", "program": "superfund", "lat": 40.0, "lon": -74.0},
+    ])
+    def fake_get(url, params, use_cache, cache_key=None):
+        if (cache_key or {}).get("layer") == "gas_pipeline":
+            pytest.fail("gas_pipeline was queried despite --infra-skip-gas-pipeline")
+        return {"features": []}
+
+    inst = InfraProximity(cache_dir=tmp_path / "cache")
+    args = _make_args(
+        infra_skip_transmission=True,
+        infra_skip_highway=True,
+        infra_skip_rail=True,
+        infra_skip_gas_pipeline=True,
+    )
+    with patch.object(inst, "http_get_json", side_effect=fake_get):
+        records = inst.fetch_records(args, use_cache=True)
+    # All four layers skipped → no enrichment built → empty result.
+    assert records == []
 
 
 def test_schema_accepts_transmission_kv():
@@ -453,7 +511,7 @@ def test_fetch_records_emits_transmission_kv(tmp_path, monkeypatch):
         return result
 
     inst = InfraProximity(cache_dir=tmp_path / "cache")
-    args = _make_args(infra_skip_highway=True, infra_skip_rail=True)
+    args = _make_args(infra_skip_highway=True, infra_skip_rail=True, infra_skip_gas_pipeline=True)
     with patch.object(inst, "http_get_json", side_effect=fake_get):
         records = inst.fetch_records(args, use_cache=True)
     assert len(records) == 1
@@ -485,7 +543,7 @@ def test_fetch_records_omits_transmission_kv_when_voltage_null(tmp_path, monkeyp
         return result
 
     inst = InfraProximity(cache_dir=tmp_path / "cache")
-    args = _make_args(infra_skip_highway=True, infra_skip_rail=True)
+    args = _make_args(infra_skip_highway=True, infra_skip_rail=True, infra_skip_gas_pipeline=True)
     with patch.object(inst, "http_get_json", side_effect=fake_get):
         records = inst.fetch_records(args, use_cache=True)
     assert len(records) == 1
