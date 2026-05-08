@@ -108,6 +108,12 @@ class SegmentIndex:
     `[lon, lat]` vertices). Then `nearest_distance_mi(lat, lon)` returns
     the minimum great-circle distance to any segment, capped at `max_rings
     * cell_deg`-degrees of search radius (returns None past that).
+
+    Optional per-polyline attribute carryover: pass an `attr` to
+    `add_polyline()` (any hashable Python value — typically a kV float for
+    transmission lines) and call `nearest_with_attr()` instead of
+    `nearest_distance_mi()` to receive `(distance_mi, attr)` for the
+    nearest segment. Adds ~5 bytes per segment when used.
     """
 
     def __init__(self, cell_deg: float = DEFAULT_CELL_DEG):
@@ -119,22 +125,41 @@ class SegmentIndex:
         # parallel arrays to avoid object overhead at 47k+ scale.
         # Each segment is stored as (a_lat, a_lon, b_lat, b_lon).
         self._segments: list[tuple[float, float, float, float]] = []
+        # Optional per-segment attributes. Lazily allocated — stays at None
+        # for layers that never call `add_polyline(..., attr=...)` so the
+        # rail / highway path keeps zero memory overhead.
+        self._attrs: list | None = None
         self._segment_count = 0
 
     @property
     def segment_count(self) -> int:
         return self._segment_count
 
-    def add_polyline(self, coords: list[list[float]]) -> int:
+    def add_polyline(
+        self,
+        coords: list[list[float]],
+        attr: object = None,
+    ) -> int:
         """Add one polyline's segments. `coords` is a list of `[lon, lat]` pairs.
 
         Returns the number of segments added. Polylines with <2 points are
         skipped (degenerate). Points at exactly (0, 0) are also skipped —
         they're the typical sentinel for missing geometry from ESRI sources.
+
+        `attr` is an optional value carried for every segment of this
+        polyline — retrieve via `nearest_with_attr()`. Pass `None` (the
+        default) to skip; the index stays attribute-free until the first
+        non-None attr lands, after which all subsequent segments get an
+        entry (attr=None for the ones added without one).
         """
         added = 0
         last_lon: float | None = None
         last_lat: float | None = None
+        # Allocate the attrs list lazily on first non-None attr. Backfill
+        # any prior segments with None so the parallel-array invariant
+        # (len(_attrs) == len(_segments)) holds.
+        if attr is not None and self._attrs is None:
+            self._attrs = [None] * len(self._segments)
         for pt in coords:
             if not pt or len(pt) < 2:
                 last_lon = last_lat = None
@@ -155,6 +180,8 @@ class SegmentIndex:
             if last_lat is not None and last_lon is not None:
                 idx = len(self._segments)
                 self._segments.append((last_lat, last_lon, lat, lon))
+                if self._attrs is not None:
+                    self._attrs.append(attr)
                 self._segment_count += 1
                 added += 1
                 # Bucket by every cell the segment's bbox touches.
@@ -183,10 +210,42 @@ class SegmentIndex:
         Caller decides whether to interpret None as "out of CONUS" or
         "no infra in usable range."
         """
+        result = self._nearest(lat, lon, max_rings, return_idx=False)
+        return None if result is None else result[0]
+
+    def nearest_with_attr(
+        self,
+        lat: float,
+        lon: float,
+        max_rings: int = MAX_RINGS,
+    ) -> tuple[float, object] | None:
+        """Return (distance_mi, attr) for the nearest segment.
+
+        `attr` is the value passed to `add_polyline()` for the polyline that
+        owns the matched segment, or None if no attr was attached.
+        Returns None if no segment is found within `max_rings`.
+        """
+        result = self._nearest(lat, lon, max_rings, return_idx=True)
+        if result is None:
+            return None
+        d_mi, idx = result
+        attr = None
+        if self._attrs is not None and 0 <= idx < len(self._attrs):
+            attr = self._attrs[idx]
+        return (d_mi, attr)
+
+    def _nearest(
+        self,
+        lat: float,
+        lon: float,
+        max_rings: int,
+        return_idx: bool,
+    ) -> tuple[float, int] | tuple[float] | None:
         if not self._segments:
             return None
         cy, cx = _cell_for(lat, lon, self.cell_deg)
         best_m: float | None = None
+        best_idx: int = -1
         # Project the query once; reuse for every candidate segment.
         cos_lat = math.cos(math.radians(lat))
         m_per_deg_lon = 111_320.0 * cos_lat
@@ -208,6 +267,7 @@ class SegmentIndex:
                     d = _segment_distance_m(px, py, ax, ay, bx, by)
                     if best_m is None or d < best_m:
                         best_m = d
+                        best_idx = idx
             # Early exit: if we've found a hit closer than the inner edge
             # of the next ring, no segment outside that ring can beat it.
             if best_m is not None:
@@ -219,4 +279,7 @@ class SegmentIndex:
                     break
         if best_m is None:
             return None
-        return best_m / 1609.344  # meters → miles
+        d_mi = best_m / 1609.344  # meters → miles
+        if return_idx:
+            return (d_mi, best_idx)
+        return (d_mi,)

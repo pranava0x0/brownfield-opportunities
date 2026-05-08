@@ -1006,6 +1006,127 @@ main {
   padding: 0 6px;
 }
 
+/* DC suitability tier pill (Tier 0 score). Outline-only — accent-colored
+   for sub-hyperscale (edge / colo) and green-tinted (`.ready`) for
+   hyperscale / mega so the strongest signal pops without color clash. */
+.pill.dc-tier-pill {
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 9.5px;
+  padding: 0 6px;
+}
+.pill.dc-tier-pill.ready {
+  color: var(--readiness-ready);
+  border-color: var(--readiness-ready);
+}
+
+/* Voltage chip rendered next to the transmission distance in the detail
+   panel ("0.4 mi  ·  230 kV"). Same outline-pill shape as the DC tier
+   chip but slightly smaller, sits inline. */
+.kv-chip {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 0 5px;
+  margin-left: 4px;
+  border: 1px solid var(--border-strong, var(--border));
+  border-radius: 9px;
+  color: var(--muted);
+  background: var(--surface);
+  vertical-align: 1px;
+  font-variant-numeric: tabular-nums;
+}
+.kv-chip.ready {
+  color: var(--readiness-ready);
+  border-color: var(--readiness-ready);
+}
+
+/* Persona presets in the filter strip — one button per ladder rung.
+   Active state matches the program-checkbox emphasis: filled bg, accent
+   border. Each button has a label + small acreage threshold. */
+.filter-personas legend { font-weight: 600; font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+.persona-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.persona-btn {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  line-height: 1.15;
+  min-width: 110px;
+  transition: border-color 120ms ease, background-color 120ms ease, color 120ms ease;
+}
+.persona-btn:hover { border-color: var(--accent); }
+.persona-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.persona-btn.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.persona-btn.active .persona-min { color: rgba(255,255,255,0.78); }
+.persona-label { font-weight: 600; font-size: 12px; }
+.persona-min { font-size: 10.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* State data-center tax incentive block in the detail panel. The chip
+   anchors to the source URL so the user can verify the program; meta line
+   below carries program + investment threshold + sunset / status. */
+.tax-incentive-block {
+  margin: 12px 0 4px;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 4px;
+}
+.tax-chip {
+  display: inline-block;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-size: 10.5px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-decoration: none;
+  border: 1px solid var(--border);
+}
+.tax-chip.tax-tier-1 {
+  color: #fff;
+  background: var(--readiness-ready);
+  border-color: var(--readiness-ready);
+}
+.tax-chip.tax-tier-2 {
+  color: var(--accent);
+  background: transparent;
+  border-color: var(--accent);
+}
+.tax-chip.tax-tier-3 {
+  color: var(--muted);
+  background: transparent;
+  border-color: var(--border);
+}
+.tax-chip:hover { filter: brightness(0.92); text-decoration: underline; }
+.tax-meta {
+  margin: 6px 0 0;
+  font-size: 11.5px;
+  line-height: 1.35;
+}
+
+/* The hero KPI deck's existing `.kpi-sub.kpi-sub-strong` rule already
+   styles the "≥50 ac · power · water" subtext for #kpi-dc — the new
+   #kpi-hyperscale subtext picks up the same treatment automatically
+   because the markup pattern is identical. No new rules needed here. */
+
 /* ============================================================
    Footer — sources (editorial sites cite, SaaS dashboards don't)
    ============================================================ */
