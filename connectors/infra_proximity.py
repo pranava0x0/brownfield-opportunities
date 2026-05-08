@@ -195,18 +195,20 @@ class InfraProximity(Connector):
                 skipped_no_geom += 1
                 continue
             rec: dict[str, Any] = {"id": sid, "program": program}
-            any_field = False
             for layer, idx in indexes.items():
                 d = idx.nearest_distance_mi(lat_f, lon_f)
                 if d is None or d > MAX_DISTANCE_MI:
                     out_of_range[layer] += 1
                     continue
                 rec[DISTANCE_FIELD[layer]] = round(d, 1)
-                any_field = True
-            if not any_field:
-                # No layer is reachable → omit the record entirely. The
-                # frontend already treats absent records as "no enrichment."
-                continue
+            # Always emit the record — even when every layer is out-of-range —
+            # so the file's `id` set is the cross-program join key, and the
+            # frontend can distinguish "this site has no infra within reach"
+            # (record present, fields absent) from "enrichment never ran for
+            # this id" (record absent). Pre-2026-05 we dropped the record on
+            # all-out-of-range; that silently hid 542 sites (mostly off-grid
+            # AK + Pacific territories, where HIFLD has no transmission
+            # coverage at all and TIGER primary-road / rail are sparse).
             records.append(rec)
             program_counts[program] = program_counts.get(program, 0) + 1
 
