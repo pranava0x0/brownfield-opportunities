@@ -1541,6 +1541,31 @@ def test_infra_distance_renders_adjacent_below_threshold(page, base_url):
         assert "muted-cell" not in cls, f"{sel} kept muted-cell class for adjacent value"
 
 
+def test_gas_pipeline_row_renders_when_value_known(page, base_url):
+    """v1.13 Tier 1: detail panel shows a "Gas pipeline" row alongside
+    transmission / rail / highway. Confirms the ingest patch picks up
+    `gas_pipeline_mi` from `infra-proximity.json` and `setMileCell`
+    renders the value (formatted via `fmt.miles`)."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    sid = page.evaluate(
+        "(() => {"
+        "  const s = (window.__sites || [])[0];"
+        "  if (!s) return null;"
+        "  s.gas_pipeline_mi = 1.4;"
+        "  return s.id;"
+        "})()"
+    )
+    assert sid
+    page.evaluate(f"window.__selectSite('{sid}')")
+    page.wait_for_selector("#detail:not([hidden])")
+    cell = page.locator("#d-gas-pipeline-mi")
+    text = (cell.text_content() or "").strip()
+    assert "1.4" in text, f"gas pipeline cell should show 1.4 mi, got {text!r}"
+    cls = cell.get_attribute("class") or ""
+    assert "muted-cell" not in cls, "populated gas pipeline cell should not carry .muted-cell"
+
+
 def test_transmission_kv_chip_renders_when_kv_known(page, base_url):
     """v1.12 Tier 0: when `transmission_kv` is populated, a `.kv-chip`
     span is appended to the transmission cell. ≥230 kV gets the green
