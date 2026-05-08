@@ -117,6 +117,14 @@ class SiteRecord(BaseModel):
         default=None,
         description="Miles to nearest HIFLD electric power transmission line.",
     )
+    transmission_kv: Optional[float] = Field(
+        default=None,
+        description="Nominal kV of the nearest HIFLD transmission line "
+                    "(VOLTAGE field, or VOLT_CLASS lower-bound when VOLTAGE "
+                    "is HIFLD's null sentinel). Drives the data-center "
+                    "scoring tiers (≥230 kV for hyperscale, ≥500 kV for "
+                    "AI mega-campus).",
+    )
     rail_mi: Optional[float] = Field(
         default=None,
         description="Miles to nearest Census TIGER rail line.",
