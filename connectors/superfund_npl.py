@@ -9,6 +9,7 @@ import logging
 from typing import Any
 
 from connectors.base import Connector
+from connectors.geom import polygon_acreage
 
 log = logging.getLogger("connector.superfund_npl")
 
@@ -299,12 +300,19 @@ class SuperfundNPL(Connector):
 
         units = a.get("GIS_AREA_UNITS")
         raw_area = a.get("GIS_AREA")
+        # `units` is the source's hint about what GIS_AREA means. Acres /
+        # Square Miles → use it. Anything else (Miles for linear features,
+        # null for sites EPA never tagged) → compute acreage from the
+        # polygon rings ourselves. The rings are present for every NPL
+        # feature; without this fallback, ~8% of records ship with
+        # `acreage: null` even though we have enough geometry to compute it.
+        acres: float | None
         if units == "Acres" and raw_area is not None:
-            acres: float | None = round(float(raw_area), 1)
+            acres = round(float(raw_area), 1)
         elif units == "Square Miles" and raw_area is not None:
             acres = round(float(raw_area) * 640.0, 1)
         else:
-            acres = None
+            acres = polygon_acreage(rings)
 
         if acres is None and not include_no_acreage:
             return None

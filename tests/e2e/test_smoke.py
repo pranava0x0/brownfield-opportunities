@@ -55,7 +55,10 @@ def test_escape_closes_detail(page, base_url):
     page.wait_for_selector("#detail:not([hidden])")
 
     page.keyboard.press("Escape")
-    page.wait_for_selector("#detail[hidden]")
+    # state="attached" — see test_detail_panel_truly_hides_on_close for the
+    # rationale; the panel uses a 200ms visibility transition, so the default
+    # state="visible" wait races the transform-out window unpredictably.
+    page.wait_for_selector("#detail[hidden]", state="attached")
 
 
 def test_map_marker_click_opens_detail(page, base_url):
@@ -320,7 +323,13 @@ def test_detail_panel_truly_hides_on_close(page, base_url):
     page.locator("#sites-table tbody tr").first.click()
     page.wait_for_selector("#detail:not([hidden])")
     page.locator("#detail-close").click()
-    page.wait_for_selector("#detail[hidden]")
+    # state="attached" — the default ("visible") cannot succeed against an
+    # element with the [hidden] attribute under any predictable timing. The
+    # panel uses `visibility: hidden` synced to a 200ms transform transition,
+    # so the element technically renders for the first 200ms after [hidden]
+    # is set; the default-visible wait was racing that window. CI is slower
+    # than local, so the race resolved locally but timed out on the runner.
+    page.wait_for_selector("#detail[hidden]", state="attached")
 
     # aria-hidden flips synchronously.
     aria_hidden = page.evaluate(
