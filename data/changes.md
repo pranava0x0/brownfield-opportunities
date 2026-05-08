@@ -1,6 +1,323 @@
-# Changes — 2026-04-28T01:26:38Z
+# Changes — 2026-05-08T00:41:29Z
 
-**Summary:** +0 −0 ~0 sites  
+**Summary:** +0 −0 ~158 sites  
 prior: 1908 sites → current: 1908 sites
 
-_No changes._
+## Changed (158)
+
+- `ASD980637656` — TAPUTIMU FARM
+  - **acreage:** `None` → `19.6`
+- `AZ0000309013` — IRON KING MINE - HUMBOLDT SMELTER
+  - **acreage:** `None` → `493.5`
+- `AZ0570024133` — LUKE AIR FORCE BASE
+  - **acreage:** `None` → `3006.1`
+- `AZ0971590062` — YUMA MARINE CORPS AIR STATION
+  - **acreage:** `None` → `2715.9`
+- `AZ7570028582` — WILLIAMS AIR FORCE BASE
+  - **acreage:** `None` → `4024.5`
+- `AZD008397127` — ASARCO HAYDEN PLANT
+  - **acreage:** `None` → `4522.2`
+- `AZD008399263` — APACHE POWDER CO.
+  - **acreage:** `None` → `6080.0`
+- `AZD009004177` — MOTOROLA, INC. (52ND STREET PLANT)
+  - **acreage:** `None` → `2333.8`
+- `AZD094524097` — CYPRUS TOHONO MINE
+  - **acreage:** `None` → `11451.6`
+- `AZD980496780` — NINETEENTH AVENUE LANDFILL
+  - **acreage:** `None` → `204.5`
+- `AZD980695902` — PHOENIX-GOODYEAR AIRPORT AREA
+  - **acreage:** `None` → `1565.9`
+- `AZD980695969` — INDIAN BEND WASH AREA
+  - **acreage:** `None` → `7976.8`
+- `AZD980735666` — HASSAYAMPA LANDFILL
+  - **acreage:** `None` → `9.2`
+- `AZD980735724` — MOUNTAIN VIEW MOBILE HOME ESTATES
+  - **acreage:** `None` → `17.9`
+- `AZD980737530` — TUCSON INTERNATIONAL AIRPORT AREA
+  - **acreage:** `None` → `7563.9`
+- `CA0001576081` — AMCO CHEMICAL
+  - **acreage:** `None` → `0.9`
+- `CA0210020780` — SACRAMENTO ARMY DEPOT
+  - **acreage:** `None` → `485.4`
+- `CA1141190578` — KLAU/BUENA VISTA MINE
+  - **acreage:** `None` → `6246.5`
+- `CA1170090087` — HUNTERS POINT NAVAL SHIPYARD
+  - **acreage:** `None` → `867.8`
+- `CA1570024504` — EDWARDS AIR FORCE BASE
+  - **acreage:** `None` → `305104.1`
+- `CA2170023236` — ALAMEDA NAVAL AIR STATION
+  - **acreage:** `None` → `840.0`
+- `CA2170023533` — CAMP PENDLETON MARINE CORPS BASE
+  - **acreage:** `None` → `121626.3`
+- `CA2170090078` — MOFFETT FIELD NAVAL AIR STATION
+  - **acreage:** `None` → `1574.2`
+- `CA2570024453` — GEORGE AIR FORCE BASE
+  - **acreage:** `None` → `5268.6`
+- `CA2890012584` — LAWRENCE LIVERMORE NATL LAB, MAIN SITE (USDOE)
+  - **acreage:** `None` → `818.0`
+- `CA2890090002` — LAWRENCE LIVERMORE NATL LAB (SITE 300) (USDOE)
+  - **acreage:** `None` → `6809.7`
+- `CA2890190000` — LABORATORY FOR ENERGY-RELATED HEALTH RESEARCH/OLD CAMPUS LANDFILL (USDOE)
+  - **acreage:** `None` → `45.7`
+- `CA3570024551` — CASTLE AIR FORCE BASE (6 AREAS)
+  - **acreage:** `None` → `2752.8`
+- `CA4570024337` — MCCLELLAN AIR FORCE BASE (GROUND WATER CONTAMINATION)
+  - **acreage:** `None` → `2520.9`
+- `CA4570024345` — NORTON AIR FORCE BASE (LNDFLL #2)
+  - **acreage:** `None` → `2114.9`
+- `CA4570024527` — MARCH AIR FORCE BASE
+  - **acreage:** `None` → `8180.0`
+- `CA4971520834` — TRACY DEFENSE DEPOT (USARMY)
+  - **acreage:** `None` → `923.3`
+- `CA5570024575` — TRAVIS AIR FORCE BASE
+  - **acreage:** `None` → `5212.8`
+- `CA6170023208` — EL TORO MARINE CORPS AIR STATION
+  - **acreage:** `None` → `4277.5`
+- `CA7170024528` — CONCORD NAVAL WEAPONS STATION
+  - **acreage:** `None` → `10932.2`
+- `CA7210020676` — FORT ORD
+  - **acreage:** `None` → `27744.5`
+- `CA7210020759` — RIVERBANK ARMY AMMUNITION PLANT
+  - **acreage:** `None` → `163.2`
+- `CA8170024261` — BARSTOW MARINE CORPS LOGISTICS BASE
+  - **acreage:** `None` → `25105.7`
+- `CA8210020832` — SHARPE ARMY DEPOT
+  - **acreage:** `None` → `776.6`
+- `CA8570024143` — MATHER AIR FORCE BASE (AC&W DISPOSAL SITE)
+  - **acreage:** `None` → `5693.8`
+- `CA9800013030` — JET PROPULSION LABORATORY (NASA)
+  - **acreage:** `None` → `224.3`
+- `CAD000074120` — MGM BRAKES
+  - **acreage:** `None` → `4.4`
+- `CAD000625731` — J.H. BAXTER & CO.
+  - **acreage:** `None` → `85.6`
+- `CAD000626176` — DEL NORTE PESTICIDE STORAGE
+  - **acreage:** `None` → `11.2`
+- `CAD001864081` — WESTINGHOUSE ELECTRIC CORP. (SUNNYVALE PLANT)
+  - **acreage:** `None` → `77.7`
+- `CAD008242711` — MONTROSE CHEMICAL CORP.
+  - **acreage:** `None` → `926.0`
+- `CAD008339467` — JERVIS B. WEBB CO.
+  - **acreage:** `None` → `4.6`
+- `CAD009103318` — JASCO CHEMICAL CORP.
+  - **acreage:** `None` → `16.2`
+- `CAD009106220` — T.H. AGRICULTURE & NUTRITION CO.
+  - **acreage:** `None` → `5.0`
+- `CAD009106527` — MCCORMICK & BAXTER CREOSOTING CO.
+  - **acreage:** `None` → `42.3`
+- `CAD009111444` — TELEDYNE SEMICONDUCTOR
+  - **acreage:** `None` → `210.9`
+- `CAD009112087` — KOPPERS CO., INC. (OROVILLE PLANT)
+  - **acreage:** `None` → `222.1`
+- `CAD009138488` — SPECTRA-PHYSICS, INC.
+  - **acreage:** `None` → `233.1`
+- `CAD009159088` — TRW MICROWAVE, INC (BUILDING 825)
+  - **acreage:** `None` → `4.5`
+- `CAD009205097` — RAYTHEON CORP.
+  - **acreage:** `None` → `471.7`
+- `CAD009212838` — CTS PRINTEX, INC.
+  - **acreage:** `None` → `8.2`
+- `CAD009688052` — HALACO ENGINEERING COMPANY
+  - **acreage:** `None` → `77.5`
+- `CAD020748125` — CASMALIA RESOURCES
+  - **acreage:** `None` → `251.2`
+- `CAD029295706` — LORENTZ BARREL & DRUM CO.
+  - **acreage:** `None` → `72.5`
+- `CAD029452141` — SELMA PRESSURE TREATING COMPANY
+  - **acreage:** `None` → `40.0`
+- `CAD029544731` — DEL AMO
+  - **acreage:** `None` → `289.1`
+- `CAD041472341` — INTERSIL INC./SIEMENS COMPONENTS
+  - **acreage:** `None` → `52.9`
+- `CAD041472986` — NATIONAL SEMICONDUCTOR CORP.
+  - **acreage:** `None` → `536.5`
+- `CAD042245001` — OMEGA CHEMICAL CORPORATION
+  - **acreage:** `None` → `1440.4`
+- `CAD042728840` — APPLIED MATERIALS
+  - **acreage:** `None` → `7.8`
+- `CAD048634059` — ADVANCED MICRO DEVICES, INC.
+  - **acreage:** `None` → `12.2`
+- `CAD048645444` — BECKMAN INSTRUMENTS (PORTERVILLE PLANT)
+  - **acreage:** `None` → `9.6`
+- `CAD049236201` — MONOLITHIC MEMORIES
+  - **acreage:** `None` → `197.6`
+- `CAD052384021` — BROWN & BRYANT, INC. (ARVIN PLANT)
+  - **acreage:** `None` → `22.0`
+- `CAD055753370` — COOPER DRUM CO.
+  - **acreage:** `None` → `6.0`
+- `CAD061620217` — INTEL CORP. (MOUNTAIN VIEW PLANT)
+  - **acreage:** `None` → `471.7`
+- `CAD063015887` — COAST WOOD PRESERVING
+  - **acreage:** `None` → `10.1`
+- `CAD063020143` — VALLEY WOOD PRESERVING, INC.
+  - **acreage:** `None` → `33.5`
+- `CAD065021594` — LOUISIANA-PACIFIC CORP.
+  - **acreage:** `None` → `684.3`
+- `CAD066635442` — STOKER CHEMICAL
+  - **acreage:** `None` → `37.9`
+- `CAD070466479` — SIGNETICS, INC.
+  - **acreage:** `None` → `30.7`
+- `CAD071530380` — FRONTIER FERTILIZER
+  - **acreage:** `None` → `9.2`
+- `CAD092212497` — INTEL MAGNETICS
+  - **acreage:** `None` → `2.8`
+- `CAD095989778` — FAIRCHILD SEMICONDUCTOR CORP. (MOUNTAIN VIEW PLANT)
+  - **acreage:** `None` → `471.7`
+- `CAD097012298` — FAIRCHILD SEMICONDUCTOR CORP. (SOUTH SAN JOSE PLANT)
+  - **acreage:** `None` → `23.6`
+- `CAD098229214` — ALARK HARD CHROME
+  - **acreage:** `None` → `9.3`
+- `CAD980358832` — AEROJET GENERAL CORP.
+  - **acreage:** `None` → `20874.1`
+- `CAD980496863` — ATLAS ASBESTOS MINE
+  - **acreage:** `None` → `558.8`
+- `CAD980498455` — CRAZY HORSE SANITARY LANDFILL
+  - **acreage:** `None` → `157.0`
+- `CAD980498612` — IRON MOUNTAIN MINE
+  - **acreage:** `None` → `5536.2`
+- `CAD980498695` — MCCOLL
+  - **acreage:** `None` → `22.1`
+- `CAD980636781` — PACIFIC COAST PIPELINE
+  - **acreage:** `None` → `62.7`
+- `CAD980636914` — FRESNO MUNICIPAL SANITARY LANDFILL
+  - **acreage:** `None` → `258.2`
+- `CAD980638225` — COPPER BLUFF MINE
+  - **acreage:** `None` → `1.0`
+- `CAD980638860` — CELTOR CHEMICAL WORKS
+  - **acreage:** `None` → `3.4`
+- `CAD980673685` — LEVIATHAN MINE
+  - **acreage:** `None` → `337.6`
+- `CAD980677355` — SAN GABRIEL VALLEY (AREA 1)
+  - **acreage:** `None` → `4674.3`
+- `CAD980736151` — PURITY OIL SALES, INC.
+  - **acreage:** `None` → `21.6`
+- `CAD980736284` — INDUSTRIAL WASTE PROCESSING
+  - **acreage:** `None` → `0.6`
+- `CAD980737092` — PEMACO MAYWOOD
+  - **acreage:** `None` → `1.6`
+- `CAD980737613` — JIBBOOM JUNKYARD
+  - **acreage:** `None` → `11.7`
+- `CAD980816466` — SOUTHERN CALIFORNIA EDISON CO. (VISALIA POLEYARD)
+  - **acreage:** `None` → `3.9`
+- `CAD980817217` — COALINGA ASBESTOS MINE
+  - **acreage:** `None` → `678.7`
+- `CAD980817985` — SAN GABRIEL VALLEY (AREA 4)
+  - **acreage:** `None` → `4291.5`
+- `CAD980818512` — SAN GABRIEL VALLEY (AREA 2)
+  - **acreage:** `None` → `6784.0`
+- `CAD980818579` — SAN GABRIEL VALLEY (AREA 3)
+  - **acreage:** `None` → `738.9`
+- `CAD980884209` — HEWLETT-PACKARD (620-640 PAGE MILL ROAD)
+  - **acreage:** `None` → `183.7`
+- `CAD980884357` — WASTE DISPOSAL, INC.
+  - **acreage:** `None` → `38.0`
+- `CAD980893234` — WATKINS-JOHNSON CO. (STEWART DIVISION PLANT)
+  - **acreage:** `None` → `12.1`
+- `CAD980893275` — SULPHUR BANK MERCURY MINE
+  - **acreage:** `None` → `38434.5`
+- `CAD980894679` — WESTERN PACIFIC RAILROAD CO.
+  - **acreage:** `None` → `103.9`
+- `CAD980894885` — SOUTH BAY ASBESTOS AREA
+  - **acreage:** `None` → `381.7`
+- `CAD980894893` — SAN FERNANDO VALLEY (AREA 1)
+  - **acreage:** `None` → `4113.9`
+- `CAD980894901` — SAN FERNANDO VALLEY (AREA 2)
+  - **acreage:** `None` → `3578.2`
+- `CAD980894976` — SAN FERNANDO VALLEY (AREA 4)
+  - **acreage:** `None` → `293.7`
+- `CAD980894984` — SAN FERNANDO VALLEY (AREA 3)
+  - **acreage:** `None` → `318.2`
+- `CAD981171523` — SOLA OPTICAL USA, INC.
+  - **acreage:** `None` → `0.2`
+- `CAD981434517` — NEWMARK GROUND WATER CONTAMINATION
+  - **acreage:** `None` → `10149.6`
+- `CAD981436363` — UNITED HECKATHORN CO.
+  - **acreage:** `None` → `16.4`
+- `CAD981995947` — RALPH GRAY TRUCKING CO.
+  - **acreage:** `None` → `6.0`
+- `CAD981997752` — MODESTO GROUND WATER CONTAMINATION
+  - **acreage:** `None` → `117.4`
+- `CAD983618893` — LAVA CAP MINE
+  - **acreage:** `None` → `111.6`
+- `CAD990793887` — FIRESTONE TIRE & RUBBER CO. (SALINAS PLANT)
+  - **acreage:** `None` → `43.4`
+- `CAD990832735` — SYNERTEK, INC. (BUILDING 1)
+  - **acreage:** `None` → `14.2`
+- `CAN000900251` — ORANGE COUNTY NORTH BASIN
+  - **acreage:** `None` → `6334.2`
+- `CAN000900265` — TRIPLE SITE
+  - **acreage:** `None` → `305.8`
+- `CAN000905902` — SOUTHERN AVENUE INDUSTRIAL AREA
+  - **acreage:** `None` → `3.8`
+- `CAN000905945` — ROCKETS, FIREWORKS, AND FLARES SITE
+  - **acreage:** `None` → `3040.2`
+- `CAN000906063` — BLUE LEDGE MINE
+  - **acreage:** `None` → `16.4`
+- `CAN000908808` — AFTERTHOUGHT MINE
+  - **acreage:** `None` → `118.2`
+- `CAT000612184` — INTEL CORP. (SANTA CLARA III)
+  - **acreage:** `None` → `2.0`
+- `CAT000646208` — LIQUID GOLD OIL CORP.
+  - **acreage:** `None` → `35.1`
+- `CAT080012024` — OPERATING INDUSTRIES, INC., LANDFILL
+  - **acreage:** `None` → `203.2`
+- `CAT080012826` — STRINGFELLOW
+  - **acreage:** `None` → `666.0`
+- `CAT080034234` — ADVANCED MICRO DEVICES, INC. (BUILDING 915)
+  - **acreage:** `None` → `26.1`
+- `FMD980637987` — PCB WASTES
+  - **acreage:** `None` → `43.9`
+- `GAN000407160` — WESTSIDE LEAD
+  - **acreage:** `None` → `634.3`
+- `GU6571999519` — ANDERSEN AIR FORCE BASE
+  - **acreage:** `None` → `17609.5`
+- `GUD980637649` — ORDOT LANDFILL
+  - **acreage:** `None` → `48.1`
+- `HI0170090054` — NAVAL COMPUTER AND TELECOMMUNICATIONS AREA MASTER STATION EASTERN PACIFIC
+  - **acreage:** `None` → `2432.4`
+- `HI4170090076` — PEARL HARBOR NAVAL COMPLEX
+  - **acreage:** `None` → `8413.0`
+- `HI7210090026` — SCHOFIELD BARRACKS (USARMY)
+  - **acreage:** `None` → `11814.4`
+- `HID980637631` — DEL MONTE CORP. (OAHU PLANTATION)
+  - **acreage:** `None` → `2837.3`
+- `IAN000705485` — LOT 46 VALLEY GARDENS TCE
+  - **acreage:** `None` → `150.5`
+- `IDN001002859` — BALLARD MINE
+  - **acreage:** `None` → `7.9`
+- `MPD980798318` — PCB WAREHOUSE
+  - **acreage:** `None` → `63.6`
+- `NCD003166675` — ECUSTA MILL
+  - **acreage:** `None` → `621.6`
+- `NCD980843346` — ABERDEEN PESTICIDE DUMPS
+  - **acreage:** `None` → `56.9`
+- `NEN000710226` — PCE - CARRIAGE CLEANERS
+  - **acreage:** `None` → `0.0`
+- `NJD057143984` — CURTIS SPECIALTY PAPERS, INC
+  - **acreage:** `None` → `88.3`
+- `NJD980505341` — KING OF PRUSSIA
+  - **acreage:** `None` → `68.4`
+- `NJN000206345` — MANSFIELD TRAIL DUMP
+  - **acreage:** `None` → `106.0`
+- `NV3141190030` — RIO TINTO COPPER MINE
+  - **acreage:** `None` → `284.8`
+- `NVD083917252` — ANACONDA COPPER MINE
+  - **acreage:** `None` → `3713.5`
+- `NVD980813646` — CARSON RIVER MERCURY SITE
+  - **acreage:** `None` → `411013.1`
+- `NYD004986741` — SAINT-GOBAIN PERFORMANCE PLASTICS
+  - **acreage:** `None` → `6.4`
+- `OR0000515759` — BLACK BUTTE MINE
+  - **acreage:** `None` → `1442.7`
+- `ORD980511497` — ALKALI LAKE SITE
+  - **acreage:** `None` → `2906.0`
+- `ORN001002616` — FORMOSA MINE
+  - **acreage:** `None` → `255.5`
+- `ORSFN1002228` — BRADFORD ISLAND
+  - **acreage:** `None` → `265.6`
+- `PR4170027383` — NAVAL SECURITY GROUP ACTIVITY
+  - **acreage:** `None` → `0.0`
+- `PRN000206359` — HORMIGAS GROUND WATER PLUME
+  - **acreage:** `None` → `0.0`
+- `SCD058189622` — GALEY AND LORD PLANT
+  - **acreage:** `None` → `232.8`

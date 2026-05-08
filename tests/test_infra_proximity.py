@@ -244,9 +244,13 @@ def test_fetch_records_skips_sites_with_bad_coords(tmp_path, monkeypatch):
     assert ids == {"GOOD"}
 
 
-def test_fetch_records_omits_sites_with_no_layer_hit(tmp_path, monkeypatch):
-    """When every layer is >MAX_DISTANCE_MI away, the record is dropped
-    rather than emitted with all-empty distance fields."""
+def test_fetch_records_emits_tombstone_when_no_layer_hit(tmp_path, monkeypatch):
+    """When every layer is >MAX_DISTANCE_MI away (or returns None), still
+    emit a `{id, program}` tombstone record so the cross-program join file
+    reflects every site we tried to enrich. Pre-2026-05 the record was
+    silently dropped, hiding ~540 off-grid AK / Pacific sites — the gap
+    looked like "enrichment never ran" rather than "no infra in reach."
+    """
     monkeypatch.setattr(InfraProximity, "_data_dir", staticmethod(lambda: tmp_path))
     _write_program_file(tmp_path, "superfund-npl.json", [
         {"id": "REMOTE", "program": "superfund", "lat": 65.0, "lon": -160.0},
@@ -265,7 +269,14 @@ def test_fetch_records_omits_sites_with_no_layer_hit(tmp_path, monkeypatch):
     args = _make_args(infra_skip_highway=True, infra_skip_rail=True)
     with patch.object(inst, "http_get_json", side_effect=fake_get):
         records = inst.fetch_records(args, use_cache=True)
-    assert records == []
+    assert len(records) == 1
+    rec = records[0]
+    assert rec["id"] == "REMOTE"
+    assert rec["program"] == "superfund"
+    # No distance fields — tombstone record only.
+    assert "transmission_mi" not in rec
+    assert "highway_mi" not in rec
+    assert "rail_mi" not in rec
 
 
 def test_fetch_records_aborts_when_no_files_loaded(tmp_path, monkeypatch, caplog):
@@ -305,7 +316,8 @@ def test_fetch_records_skip_layer_flags_honored(tmp_path, monkeypatch):
 
 
 def test_fetch_records_drops_distance_over_max(tmp_path, monkeypatch):
-    """A segment exactly at MAX_DISTANCE_MI+1 is dropped."""
+    """A segment beyond MAX_DISTANCE_MI is dropped from the field set, but
+    the record itself is still emitted as a tombstone (id + program only)."""
     monkeypatch.setattr(InfraProximity, "_data_dir", staticmethod(lambda: tmp_path))
     _write_program_file(tmp_path, "superfund-npl.json", [
         {"id": "S1", "program": "superfund", "lat": 40.0, "lon": -74.0},
@@ -324,8 +336,42 @@ def test_fetch_records_drops_distance_over_max(tmp_path, monkeypatch):
     args = _make_args(infra_skip_highway=True, infra_skip_rail=True)
     with patch.object(inst, "http_get_json", side_effect=fake_get):
         records = inst.fetch_records(args, use_cache=True)
-    # Distance > MAX_DISTANCE_MI → no record emitted (and no infra fields).
-    assert records == []
+    # Distance > MAX_DISTANCE_MI → field absent, but tombstone record present.
+    assert len(records) == 1
+    assert records[0]["id"] == "S1"
+    assert "transmission_mi" not in records[0]
+
+
+def test_fetch_records_emits_partial_when_some_layers_in_range(tmp_path, monkeypatch):
+    """Site within range of one layer + out-of-range for the others: emit
+    the record with that one field, no field for the rest. (No tombstone-vs-
+    real-data ambiguity — partial records were already emitted pre-2026-05;
+    this just locks in the contract alongside the tombstone change.)"""
+    monkeypatch.setattr(InfraProximity, "_data_dir", staticmethod(lambda: tmp_path))
+    _write_program_file(tmp_path, "superfund-npl.json", [
+        {"id": "S1", "program": "superfund", "lat": 40.0, "lon": -74.0},
+    ])
+    # Transmission close, highway + rail far away.
+    pages_by_layer = {
+        "transmission": [{"features": [_polyline_feature([[-74.0, 40.0], [-74.01, 40.01]])]}, {"features": []}],
+        "highway":      [{"features": [_polyline_feature([[-74.0, 42.0], [-74.0, 42.1]])]}, {"features": []}],
+        "rail":         [{"features": [_polyline_feature([[-74.0, 42.0], [-74.0, 42.1]])]}, {"features": []}],
+    }
+    call_count = {"transmission": 0, "highway": 0, "rail": 0}
+    def fake_get(url, params, use_cache, cache_key=None):
+        layer = (cache_key or {}).get("layer")
+        result = pages_by_layer[layer][call_count[layer]]
+        call_count[layer] += 1
+        return result
+
+    inst = InfraProximity(cache_dir=tmp_path / "cache")
+    with patch.object(inst, "http_get_json", side_effect=fake_get):
+        records = inst.fetch_records(_make_args(), use_cache=True)
+    assert len(records) == 1
+    rec = records[0]
+    assert "transmission_mi" in rec
+    assert "highway_mi" not in rec
+    assert "rail_mi" not in rec
 
 
 # --- schema integration ---
