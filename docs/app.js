@@ -989,6 +989,7 @@ function ensureInfraLoaded() {
         if (rec.transmission_kv != null) patch.transmission_kv = rec.transmission_kv;
         if (rec.rail_mi != null) patch.rail_mi = rec.rail_mi;
         if (rec.highway_mi != null) patch.highway_mi = rec.highway_mi;
+        if (rec.gas_pipeline_mi != null) patch.gas_pipeline_mi = rec.gas_pipeline_mi;
         Object.assign(existing, patch);
       }
       // Re-run KPI deck (hyperscale-ready count depends on transmission_kv)
@@ -2097,6 +2098,7 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
   setKvSuffix("d-transmission-mi", s.transmission_kv);
   setMileCell("d-rail-mi", s.rail_mi, { offConus });
   setMileCell("d-highway-mi", s.highway_mi, { offConus });
+  setMileCell("d-gas-pipeline-mi", s.gas_pipeline_mi, { offConus });
   // State data-center tax incentive chip (Tier 1/2/3) — uses the static
   // STATE_DC_INCENTIVES lookup, no fetch.
   renderStateIncentive(s);
@@ -2410,10 +2412,12 @@ const CSV_COLUMNS = [
   // Owner provenance
   { key: "current_owner", label: "current_owner" },
   { key: "current_owner_source", label: "current_owner_source" },
-  // Universal infra-proximity (v1.10)
+  // Universal infra-proximity (v1.10 + v1.13 gas pipelines)
   { key: "transmission_mi", label: "transmission_mi" },
+  { key: "transmission_kv", label: "transmission_kv" },
   { key: "rail_mi", label: "rail_mi" },
   { key: "highway_mi", label: "highway_mi" },
+  { key: "gas_pipeline_mi", label: "gas_pipeline_mi" },
   // EPA RE-Powering qualitative (Superfund-only, v1.7)
   { key: "near_electric_transmission", label: "near_electric_transmission" },
   { key: "near_water_supply", label: "near_water_supply" },
