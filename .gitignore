@@ -6,3 +6,4 @@ __pycache__/
 .env.local
 .pytest_cache/
 .claude/settings.local.json
+.claude/scheduled_tasks.lock
