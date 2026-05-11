@@ -1816,3 +1816,208 @@ def test_marker_layer_created_before_fit_bounds(page, base_url):
     assert page.evaluate(
         "typeof window.__markerLayer.addLayer === 'function'"
     ), "markerLayer should be a Leaflet LayerGroup with .addLayer()"
+
+
+# ----- v1.12 mobile UX pass — the three new mobile patterns ship together.
+# Tests below all run at 375x812 (iPhone-SE-class). Each guard locks in the
+# *default* behavior at first paint so future refactors don't silently revert
+# to the desktop-only chrome that swamped the map on phones.
+
+def test_kpi_disclosure_collapsed_by_default_on_mobile(page, base_url):
+    """The hero KPI deck is wrapped in a <details disclosure>. On mobile the
+    summary strip shows two strongest numbers (sites + DC candidates) and
+    the carousel stays collapsed until the user taps. Guards against
+    accidentally hard-coding `open` on the details element."""
+    page.set_viewport_size({"width": 375, "height": 812})
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__sitesLoaded === true", timeout=20000)
+    state = page.evaluate(
+        "(() => {"
+        "  const d = document.getElementById('kpi-disclosure');"
+        "  const sum = document.querySelector('.kpi-summary');"
+        "  return {"
+        "    open: d.open,"
+        "    summaryDisplay: getComputedStyle(sum).display,"
+        "    totalText: document.getElementById('kpi-summary-total').textContent,"
+        "    dcText: document.getElementById('kpi-summary-dc').textContent,"
+        "  };"
+        "})()"
+    )
+    assert state["open"] is False, "KPI disclosure should default closed on mobile"
+    assert state["summaryDisplay"] != "none", "summary strip should be visible on mobile"
+    # Numbers populated (not the "—" loading placeholder).
+    assert state["totalText"] not in ("—", ""), "summary total not populated"
+    assert state["dcText"] not in ("—", ""), "summary DC count not populated"
+
+
+def test_kpi_disclosure_open_by_default_on_desktop(page, base_url):
+    """On desktop the disclosure is always open and the summary strip is
+    hidden — the carousel reads as a static 5-cell panel (no behavior change
+    from v1.11)."""
+    page.set_viewport_size({"width": 1280, "height": 800})
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__sitesLoaded === true", timeout=20000)
+    state = page.evaluate(
+        "(() => {"
+        "  const d = document.getElementById('kpi-disclosure');"
+        "  const sum = document.querySelector('.kpi-summary');"
+        "  return { open: d.open, summaryDisplay: getComputedStyle(sum).display };"
+        "})()"
+    )
+    assert state["open"] is True, "KPI disclosure should default open on desktop"
+    assert state["summaryDisplay"] == "none", "summary strip should be hidden on desktop"
+
+
+def test_filters_open_as_sheet_below_640px(page, base_url):
+    """Mobile filter UX (backlog [med]): on phones the gear toggles a
+    bottom-sheet (not the inline strip) and pulls up a backdrop. Guards
+    against drift back to the v1.6 inline-expand pattern."""
+    page.set_viewport_size({"width": 375, "height": 812})
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__sitesLoaded === true", timeout=20000)
+    page.locator("#filters-toggle").click()
+    # Wait for the sheet to be visible.
+    page.wait_for_function(
+        "!document.getElementById('filters').hidden", timeout=2000,
+    )
+    state = page.evaluate(
+        "(() => {"
+        "  const f = document.getElementById('filters');"
+        "  const b = document.getElementById('filters-backdrop');"
+        "  return {"
+        "    pos: getComputedStyle(f).position,"
+        "    bottom: getComputedStyle(f).bottom,"
+        "    radius: getComputedStyle(f).borderTopLeftRadius,"
+        "    backdropDisplay: getComputedStyle(b).display,"
+        "    backdropHidden: b.hidden,"
+        "  };"
+        "})()"
+    )
+    assert state["pos"] == "fixed", "filters strip should be fixed-position sheet on mobile"
+    assert state["bottom"] == "0px", "sheet anchored to viewport bottom"
+    assert state["radius"] != "0px", "sheet has rounded top corners"
+    assert state["backdropHidden"] is False, "backdrop should be visible behind the sheet"
+    assert state["backdropDisplay"] != "none", "backdrop should be in layout"
+
+
+def test_filters_sheet_done_closes_sheet(page, base_url):
+    """The Done button at the bottom of the sheet closes the sheet (the
+    inline desktop Reset link is `display: none` on mobile but its handler
+    still fires via the sheet's Reset button)."""
+    page.set_viewport_size({"width": 375, "height": 812})
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__sitesLoaded === true", timeout=20000)
+    page.locator("#filters-toggle").click()
+    page.wait_for_function("!document.getElementById('filters').hidden")
+    # Click Done programmatically (preview clicks have race issues with
+    # newly-rendered elements in some headless runs — programmatic click is
+    # equivalent and avoids the flake).
+    page.evaluate("document.getElementById('filters-sheet-apply').click()")
+    page.wait_for_function(
+        "document.getElementById('filters').hidden === true", timeout=2000,
+    )
+    backdrop_hidden = page.evaluate(
+        "document.getElementById('filters-backdrop').hidden"
+    )
+    assert backdrop_hidden is True, "backdrop should hide when sheet closes"
+
+
+def test_detail_sections_collapsed_by_default_on_mobile(page, base_url):
+    """The four accordions (Owner & encumbrances · Federal documents ·
+    Infrastructure proximity · Enforcement & compliance) default to closed
+    on phones so the bottom-sheet detail panel reads tight. Desktop keeps
+    them open — see the next test."""
+    page.set_viewport_size({"width": 375, "height": 812})
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    # Select any record so the panel mounts. Use the first table row.
+    first_id = page.evaluate(
+        "(() => window.__sites && window.__sites[0] ? window.__sites[0].id : null)()"
+    )
+    assert first_id, "no sites loaded"
+    page.evaluate(f"window.__selectSite('{first_id}')")
+    page.wait_for_selector("#detail:not([hidden])")
+    states = page.evaluate(
+        "(() => ['owner', 'infra'].map((id) => {"
+        "  const el = document.querySelector(`.d-section[data-section=\"${id}\"]`);"
+        "  return { id, open: el ? el.open : null };"
+        "}))()"
+    )
+    for s in states:
+        assert s["open"] is False, f"d-section[{s['id']}] should be closed on mobile (got open={s['open']})"
+
+
+def test_detail_sections_open_by_default_on_desktop(page, base_url):
+    """At desktop widths the accordions default open — the 100vh side rail
+    has the space, and a returning user would expect the same layout as
+    pre-v1.12. The toggle still works; this just guards the default."""
+    page.set_viewport_size({"width": 1280, "height": 800})
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    first_id = page.evaluate(
+        "(() => window.__sites && window.__sites[0] ? window.__sites[0].id : null)()"
+    )
+    page.evaluate(f"window.__selectSite('{first_id}')")
+    page.wait_for_selector("#detail:not([hidden])")
+    states = page.evaluate(
+        "(() => ['owner', 'infra'].map((id) => {"
+        "  const el = document.querySelector(`.d-section[data-section=\"${id}\"]`);"
+        "  return { id, open: el ? el.open : null };"
+        "}))()"
+    )
+    for s in states:
+        assert s["open"] is True, f"d-section[{s['id']}] should be open on desktop (got open={s['open']})"
+
+
+def test_table_hides_city_county_below_640px(page, base_url):
+    """Phones drop the 6th (City) and 7th (County) columns — values still
+    surface in the detail panel. Pill background is also dropped on the
+    Program column so the program label fits in ~64px without truncation."""
+    page.set_viewport_size({"width": 375, "height": 812})
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__sitesLoaded === true", timeout=20000)
+    page.locator("#tab-table").click()
+    page.wait_for_function("!document.getElementById('view-table').hidden")
+    state = page.evaluate(
+        "(() => {"
+        "  const ths = document.querySelectorAll('#sites-table thead th');"
+        "  const cityDisplay = getComputedStyle(ths[5]).display;"
+        "  const countyDisplay = getComputedStyle(ths[6]).display;"
+        "  const firstRow = document.querySelector('#sites-table tbody tr');"
+        "  const pill = firstRow ? firstRow.querySelector('td:nth-child(2) .pill') : null;"
+        "  const pillBg = pill ? getComputedStyle(pill).backgroundColor : null;"
+        "  return { cityDisplay, countyDisplay, pillBg };"
+        "})()"
+    )
+    assert state["cityDisplay"] == "none", "City column should be hidden on mobile"
+    assert state["countyDisplay"] == "none", "County column should be hidden on mobile"
+    # The pill background should be transparent or rgba(0,0,0,0) — both
+    # serializations are valid depending on browser. Solid backgrounds would
+    # carry the program's filled color.
+    assert state["pillBg"] in ("rgba(0, 0, 0, 0)", "transparent"), (
+        f"Program pill should have transparent bg on mobile, got {state['pillBg']!r}"
+    )
+
+
+def test_footer_sources_collapsed_on_mobile(page, base_url):
+    """On phones the footer's source list collapses behind a "Sources"
+    chip; desktop keeps the inline list always-visible (no behavior change
+    above 640px)."""
+    page.set_viewport_size({"width": 375, "height": 812})
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__sitesLoaded === true", timeout=20000)
+    state = page.evaluate(
+        "(() => {"
+        "  const d = document.querySelector('.footer-sources-disclosure');"
+        "  const sum = d.querySelector('summary');"
+        "  const list = d.querySelector('.footer-sources');"
+        "  return {"
+        "    open: d.open,"
+        "    summaryDisplay: getComputedStyle(sum).display,"
+        "    listDisplay: getComputedStyle(list).display,"
+        "  };"
+        "})()"
+    )
+    assert state["open"] is False, "footer sources should default closed on mobile"
+    assert state["summaryDisplay"] != "none", "Sources summary chip should be visible"
+    assert state["listDisplay"] == "none", "source list should be hidden until chip tapped"

@@ -600,6 +600,11 @@ function updateKpiDeck() {
   set("kpi-dc", fmt.compact(dcCount));
   set("kpi-hyperscale", fmt.compact(hyperCount));
   set("kpi-states", String(stateSet.size));
+  // Mobile disclosure strip — the two highest-signal numbers (total +
+  // DC candidates) live in the always-visible summary line; expanding the
+  // <details> reveals the full carousel.
+  set("kpi-summary-total", fmt.compact(total));
+  set("kpi-summary-dc", fmt.compact(dcCount));
 }
 
 // Active-filter chip count on the gear icon. Also updates aria-label on the
@@ -666,6 +671,8 @@ fetch(PRIMARY_DATA_URL)
     wirePersonaButtons();
     wireExportCsv();
     wireThemeToggle();
+    wireKpiDisclosure();
+    wireDetailSections();
     window.__sitesLoaded = true; // e2e hook
     // Expose data + a programmatic site-selector so e2e tests can target
     // an enriched record by id without depending on table sort order.
@@ -1498,6 +1505,75 @@ function filtersActive() {
   );
 }
 
+// Detail-panel accordions — session-memory for the four collapsible
+// sections (owner / docs / infra / echo). On phones the default is closed
+// (more compact bottom-sheet); on desktop the default is open (the panel
+// has 100vh to work with). Once the user clicks a <summary>, their choice
+// is recorded in DETAIL_SECTION_PREFS and replayed across site selections
+// in the same session. Reload resets to the defaults.
+const DETAIL_SECTION_IDS = ["owner", "docs", "infra", "echo"];
+const DETAIL_SECTION_PREFS = new Map(); // sectionId -> bool (user's choice)
+const DETAIL_SECTION_MQ = window.matchMedia("(max-width: 640px)");
+
+function applyDetailSectionDefaults() {
+  const mobile = DETAIL_SECTION_MQ.matches;
+  for (const id of DETAIL_SECTION_IDS) {
+    const section = document.querySelector(`.d-section[data-section="${id}"]`);
+    if (!section) continue;
+    if (DETAIL_SECTION_PREFS.has(id)) {
+      section.open = DETAIL_SECTION_PREFS.get(id);
+    } else {
+      section.open = !mobile;
+    }
+  }
+}
+
+function wireDetailSections() {
+  for (const id of DETAIL_SECTION_IDS) {
+    const section = document.querySelector(`.d-section[data-section="${id}"]`);
+    if (!section) continue;
+    section.addEventListener("toggle", () => {
+      DETAIL_SECTION_PREFS.set(id, section.open);
+    });
+  }
+  // Resize / rotation handling — only re-apply if the user hasn't recorded
+  // a preference (otherwise we'd thrash their explicit choice).
+  const onChange = () => {
+    const mobile = DETAIL_SECTION_MQ.matches;
+    for (const id of DETAIL_SECTION_IDS) {
+      if (DETAIL_SECTION_PREFS.has(id)) continue;
+      const section = document.querySelector(`.d-section[data-section="${id}"]`);
+      if (section) section.open = !mobile;
+    }
+  };
+  if (DETAIL_SECTION_MQ.addEventListener) DETAIL_SECTION_MQ.addEventListener("change", onChange);
+  else if (DETAIL_SECTION_MQ.addListener) DETAIL_SECTION_MQ.addListener(onChange);
+}
+
+// Open the KPI disclosure by default on desktop so the carousel renders as
+// a static panel. On phones we leave it closed (the slim summary strip is
+// the always-visible signal). A matchMedia listener keeps the state in
+// sync when the user resizes or rotates a tablet.
+function wireKpiDisclosure() {
+  const disc = el("kpi-disclosure");
+  if (!disc) return;
+  const mq = window.matchMedia("(max-width: 640px)");
+  const sync = (mobileMode) => {
+    // Don't fight the user — only auto-toggle if the user hasn't manually
+    // interacted in this session. After first toggle the mode flips and we
+    // respect the user's choice.
+    if (disc.dataset.userToggled === "true") return;
+    disc.open = !mobileMode;
+  };
+  sync(mq.matches);
+  // Modern browsers: addEventListener; Safari <14 fallback: addListener.
+  if (mq.addEventListener) mq.addEventListener("change", (ev) => sync(ev.matches));
+  else if (mq.addListener) mq.addListener((ev) => sync(ev.matches));
+  disc.addEventListener("toggle", () => {
+    disc.dataset.userToggled = "true";
+  });
+}
+
 function wireSearch() {
   const input = el("search");
   if (filterState.q) input.value = filterState.q;
@@ -1522,13 +1598,63 @@ function wireSearch() {
   });
 }
 
+// matchMedia for the bottom-sheet filter pattern. On phones, opening the
+// filters dims a backdrop behind the sheet so the map underneath reads as
+// "deferred"; closing it hides the backdrop. Desktop just toggles the
+// inline strip's [hidden] attr — no backdrop, no body scroll lock.
+const FILTER_SHEET_MQ = window.matchMedia("(max-width: 640px)");
+
+function openFiltersUi() {
+  const filters = el("filters");
+  const toggle = el("filters-toggle");
+  const backdrop = el("filters-backdrop");
+  filters.hidden = false;
+  toggle.setAttribute("aria-expanded", "true");
+  if (FILTER_SHEET_MQ.matches && backdrop) backdrop.hidden = false;
+  if (map) setTimeout(() => map.invalidateSize(), 50);
+}
+
+function closeFiltersUi() {
+  const filters = el("filters");
+  const toggle = el("filters-toggle");
+  const backdrop = el("filters-backdrop");
+  filters.hidden = true;
+  toggle.setAttribute("aria-expanded", "false");
+  if (backdrop) backdrop.hidden = true;
+  if (map) setTimeout(() => map.invalidateSize(), 50);
+}
+
 function wireFilters() {
   const toggle = el("filters-toggle");
   toggle.addEventListener("click", () => {
     const expanded = toggle.getAttribute("aria-expanded") === "true";
-    toggle.setAttribute("aria-expanded", String(!expanded));
-    el("filters").hidden = expanded;
-    if (map) setTimeout(() => map.invalidateSize(), 50);
+    if (expanded) closeFiltersUi();
+    else openFiltersUi();
+  });
+
+  // Bottom-sheet specific controls — backdrop click, × button, "Done"
+  // button all close the sheet. The desktop strip ignores these because
+  // the sheet header/footer/backdrop are `display: none` above 640px.
+  const backdrop = el("filters-backdrop");
+  if (backdrop) backdrop.addEventListener("click", closeFiltersUi);
+  const closeBtn = el("filters-sheet-close");
+  if (closeBtn) closeBtn.addEventListener("click", closeFiltersUi);
+  const doneBtn = el("filters-sheet-apply");
+  if (doneBtn) doneBtn.addEventListener("click", closeFiltersUi);
+  const sheetReset = el("filters-sheet-reset");
+  if (sheetReset) {
+    sheetReset.addEventListener("click", () => {
+      // Delegate to the existing inline reset so we don't duplicate the
+      // multi-step reset logic. The desktop Reset button is `display: none`
+      // on mobile but its click handler still fires programmatically.
+      const inlineReset = el("filters-reset");
+      if (inlineReset) inlineReset.click();
+    });
+  }
+  // Escape closes the sheet on mobile too.
+  document.addEventListener("keydown", (ev) => {
+    if (ev.key !== "Escape") return;
+    if (toggle.getAttribute("aria-expanded") === "true") closeFiltersUi();
   });
 
   const progBoxes = {};
@@ -2177,6 +2303,10 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
   renderEnforcement(s);
   renderSummary(s);
   resetDetailTabs();
+  // After all section content updates, re-apply the accordion defaults so a
+  // newly-shown section (e.g. ECHO block transitioning from hidden→visible)
+  // picks up either the user's recorded preference or the viewport default.
+  applyDetailSectionDefaults();
 
   const profile = el("d-profile");
   if (s.profile_url) {

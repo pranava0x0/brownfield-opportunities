@@ -53,37 +53,57 @@
       <h2>Every federally-tracked contaminated site in America, mapped.</h2>
       <p>~47,000 EPA Superfund, ACRES brownfield, DOD FUDS, and BRAC properties. Filter by state, acreage, and program — and see which sites have the power, water, and rail proximity to support reuse.</p>
     </div>
-    <div class="kpi-deck" id="kpi-deck" aria-label="Headline metrics">
-      <div class="kpi" data-kpi="total">
-        <span class="kpi-label">Sites tracked</span>
-        <span class="kpi-num" id="kpi-total">—</span>
-        <span class="kpi-sub" id="kpi-total-sub">across 4 programs</span>
+    <details class="kpi-disclosure" id="kpi-disclosure">
+      <summary class="kpi-summary" aria-label="Show headline metrics">
+        <span class="kpi-summary-pair">
+          <span class="kpi-summary-num" id="kpi-summary-total">—</span>
+          <span class="kpi-summary-label">sites</span>
+        </span>
+        <span class="kpi-summary-dot" aria-hidden="true">·</span>
+        <span class="kpi-summary-pair">
+          <span class="kpi-summary-num" id="kpi-summary-dc">—</span>
+          <span class="kpi-summary-label">DC candidates</span>
+        </span>
+        <span class="kpi-summary-chevron" aria-hidden="true"></span>
+      </summary>
+      <div class="kpi-deck" id="kpi-deck" aria-label="Headline metrics">
+        <div class="kpi" data-kpi="total">
+          <span class="kpi-label">Sites tracked</span>
+          <span class="kpi-num" id="kpi-total">—</span>
+          <span class="kpi-sub" id="kpi-total-sub">across 4 programs</span>
+        </div>
+        <div class="kpi" data-kpi="acreage">
+          <span class="kpi-label">Acres tracked</span>
+          <span class="kpi-num" id="kpi-acres">—</span>
+          <span class="kpi-sub" id="kpi-acres-sub">with reported area</span>
+        </div>
+        <div class="kpi" data-kpi="dc">
+          <span class="kpi-label">DC reuse candidates</span>
+          <span class="kpi-num" id="kpi-dc">—</span>
+          <span class="kpi-sub kpi-sub-strong" id="kpi-dc-sub">≥50 ac · power · water</span>
+        </div>
+        <div class="kpi" data-kpi="hyperscale">
+          <span class="kpi-label">Hyperscale-ready</span>
+          <span class="kpi-num" id="kpi-hyperscale">—</span>
+          <span class="kpi-sub kpi-sub-strong" id="kpi-hyperscale-sub">≥100 ac · ≥230 kV · ≤1 mi</span>
+        </div>
+        <div class="kpi" data-kpi="states">
+          <span class="kpi-label">States covered</span>
+          <span class="kpi-num" id="kpi-states">—</span>
+          <span class="kpi-sub" id="kpi-states-sub">incl. AK · HI · territories</span>
+        </div>
       </div>
-      <div class="kpi" data-kpi="acreage">
-        <span class="kpi-label">Acres tracked</span>
-        <span class="kpi-num" id="kpi-acres">—</span>
-        <span class="kpi-sub" id="kpi-acres-sub">with reported area</span>
-      </div>
-      <div class="kpi" data-kpi="dc">
-        <span class="kpi-label">DC reuse candidates</span>
-        <span class="kpi-num" id="kpi-dc">—</span>
-        <span class="kpi-sub kpi-sub-strong" id="kpi-dc-sub">≥50 ac · power · water</span>
-      </div>
-      <div class="kpi" data-kpi="hyperscale">
-        <span class="kpi-label">Hyperscale-ready</span>
-        <span class="kpi-num" id="kpi-hyperscale">—</span>
-        <span class="kpi-sub kpi-sub-strong" id="kpi-hyperscale-sub">≥100 ac · ≥230 kV · ≤1 mi</span>
-      </div>
-      <div class="kpi" data-kpi="states">
-        <span class="kpi-label">States covered</span>
-        <span class="kpi-num" id="kpi-states">—</span>
-        <span class="kpi-sub" id="kpi-states-sub">incl. AK · HI · territories</span>
-      </div>
-    </div>
+    </details>
   </div>
 </section>
 
+<div id="filters-backdrop" class="filters-backdrop" hidden aria-hidden="true"></div>
 <section id="filters" class="filters" hidden aria-label="Filters">
+  <header class="filters-sheet-head" aria-hidden="true">
+    <span class="filters-sheet-handle"></span>
+    <h2 class="filters-sheet-title">Filters</h2>
+    <button id="filters-sheet-close" class="filters-sheet-close" aria-label="Close filters">×</button>
+  </header>
   <fieldset class="filter filter-program">
     <legend>Program</legend>
     <label class="check"><input type="checkbox" id="f-program-superfund" checked> Superfund (NPL)</label>
@@ -122,6 +142,10 @@
     <div id="f-personas" class="persona-row" role="group" aria-label="Data-center suitability tier"></div>
   </fieldset>
   <button id="filters-reset" class="text-btn">Reset</button>
+  <footer class="filters-sheet-actions" aria-hidden="true">
+    <button id="filters-sheet-reset" type="button" class="filters-sheet-btn ghost">Reset</button>
+    <button id="filters-sheet-apply" type="button" class="filters-sheet-btn primary">Done</button>
+  </footer>
 </section>
 
 <main id="main" role="main" tabindex="-1">
@@ -186,19 +210,21 @@
     <ul id="d-children" class="children-list"></ul>
   </div>
 
-  <h3>Owner &amp; encumbrances</h3>
-  <dl class="kv">
-    <dt>Current owner</dt><dd id="d-owner" class="muted-cell">Not available</dd>
-    <dt>Owner source</dt><dd id="d-owner-source" class="muted-cell">—</dd>
-    <dt>Historical owners</dt><dd id="d-owners-hist" class="muted-cell">Not available</dd>
-    <dt>Encumbrances</dt><dd id="d-encumb" class="muted-cell">Not available</dd>
-  </dl>
+  <details class="d-section" data-section="owner">
+    <summary><h3>Owner &amp; encumbrances</h3></summary>
+    <dl class="kv">
+      <dt>Current owner</dt><dd id="d-owner" class="muted-cell">Not available</dd>
+      <dt>Owner source</dt><dd id="d-owner-source" class="muted-cell">—</dd>
+      <dt>Historical owners</dt><dd id="d-owners-hist" class="muted-cell">Not available</dd>
+      <dt>Encumbrances</dt><dd id="d-encumb" class="muted-cell">Not available</dd>
+    </dl>
+  </details>
 
-  <div id="d-docs-block" hidden>
-    <h3>Federal documents <span class="docs-count" id="d-docs-count" aria-hidden="true"></span></h3>
+  <details class="d-section" data-section="docs" id="d-docs-block" hidden>
+    <summary><h3>Federal documents <span class="docs-count" id="d-docs-count" aria-hidden="true"></span></h3></summary>
     <ul id="d-docs" class="docs-list"></ul>
     <p class="docs-source-line"><a id="d-docs-more" href="#" target="_blank" rel="noopener">All site documents on EPA →</a></p>
-  </div>
+  </details>
 
   <div id="d-fuds-block" hidden>
     <h3>FUDS details</h3>
@@ -211,23 +237,25 @@
 
   <div id="d-tax-incentive" class="tax-incentive-block" hidden></div>
 
-  <h3>Infrastructure proximity</h3>
-  <dl class="kv" id="d-infra-block">
-    <dt>Transmission line</dt><dd id="d-transmission-mi" class="muted-cell">Not available</dd>
-    <dt>Rail line</dt><dd id="d-rail-mi" class="muted-cell">Not available</dd>
-    <dt>Highway</dt><dd id="d-highway-mi" class="muted-cell">Not available</dd>
-    <dt>Gas pipeline</dt><dd id="d-gas-pipeline-mi" class="muted-cell">Not available</dd>
-    <dt>Electrical transmission</dt><dd id="d-near-elec" class="muted-cell">Not available</dd>
-    <dt>Highway (EPA RE-Powering)</dt><dd id="d-near-hwy" class="muted-cell">Not available</dd>
-    <dt>Railroad (EPA RE-Powering)</dt><dd id="d-near-rr" class="muted-cell">Not available</dd>
-    <dt>Water supply</dt><dd id="d-near-water" class="muted-cell">Not available</dd>
-    <dt>Wastewater</dt><dd id="d-near-ww" class="muted-cell">Not available</dd>
-    <dt>Population density</dt><dd id="d-pop-density" class="muted-cell">Not available</dd>
-    <dt>Data center candidate</dt><dd id="d-dc-candidate" class="muted-cell">Not available<span id="d-dc-criteria" class="dd-criteria" hidden></span></dd>
-  </dl>
+  <details class="d-section" data-section="infra">
+    <summary><h3>Infrastructure proximity</h3></summary>
+    <dl class="kv" id="d-infra-block">
+      <dt>Transmission line</dt><dd id="d-transmission-mi" class="muted-cell">Not available</dd>
+      <dt>Rail line</dt><dd id="d-rail-mi" class="muted-cell">Not available</dd>
+      <dt>Highway</dt><dd id="d-highway-mi" class="muted-cell">Not available</dd>
+      <dt>Gas pipeline</dt><dd id="d-gas-pipeline-mi" class="muted-cell">Not available</dd>
+      <dt>Electrical transmission</dt><dd id="d-near-elec" class="muted-cell">Not available</dd>
+      <dt>Highway (EPA RE-Powering)</dt><dd id="d-near-hwy" class="muted-cell">Not available</dd>
+      <dt>Railroad (EPA RE-Powering)</dt><dd id="d-near-rr" class="muted-cell">Not available</dd>
+      <dt>Water supply</dt><dd id="d-near-water" class="muted-cell">Not available</dd>
+      <dt>Wastewater</dt><dd id="d-near-ww" class="muted-cell">Not available</dd>
+      <dt>Population density</dt><dd id="d-pop-density" class="muted-cell">Not available</dd>
+      <dt>Data center candidate</dt><dd id="d-dc-candidate" class="muted-cell">Not available<span id="d-dc-criteria" class="dd-criteria" hidden></span></dd>
+    </dl>
+  </details>
 
-  <div id="d-echo-block" hidden>
-    <h3>Enforcement &amp; compliance <span class="docs-count" id="d-echo-source" aria-hidden="true">EPA ECHO</span></h3>
+  <details class="d-section" data-section="echo" id="d-echo-block" hidden>
+    <summary><h3>Enforcement &amp; compliance <span class="docs-count" id="d-echo-source" aria-hidden="true">EPA ECHO</span></h3></summary>
     <dl class="kv">
       <dt>Current compliance</dt><dd id="d-echo-compliance" class="muted-cell">Not available</dd>
       <dt>Inspections (5yr)</dt><dd id="d-echo-insp" class="muted-cell">Not available</dd>
@@ -240,21 +268,23 @@
       <dt>Active programs</dt><dd id="d-echo-programs" class="muted-cell">Not available</dd>
     </dl>
     <p class="docs-source-line"><a id="d-echo-dfr" href="#" target="_blank" rel="noopener">Full Detailed Facility Report on EPA ECHO →</a></p>
-  </div>
+  </details>
 
   <p class="source"><a id="d-profile" href="#" target="_blank" rel="noopener">Source profile</a></p>
   </section>
 </aside>
 
 <footer class="site-footer" role="contentinfo">
-  <span class="footer-sources">
-    Sources:
-    <a href="https://www.epa.gov/superfund" target="_blank" rel="noopener">EPA Superfund</a>,
-    <a href="https://www.epa.gov/cleanups/assessment-cleanup-and-redevelopment-exchange-system-acres" target="_blank" rel="noopener">EPA ACRES</a>,
-    <a href="https://www.usace.army.mil/Missions/Environmental/Formerly-Used-Defense-Sites/" target="_blank" rel="noopener">USACE FUDS</a>,
-    <a href="https://www.acq.osd.mil/brac/" target="_blank" rel="noopener">DOD BRAC</a>,
-    <a href="https://www.epa.gov/re-powering" target="_blank" rel="noopener">EPA RE-Powering</a>.
-  </span>
+  <details class="footer-sources-disclosure">
+    <summary class="footer-sources-summary">Sources</summary>
+    <span class="footer-sources">
+      <a href="https://www.epa.gov/superfund" target="_blank" rel="noopener">EPA Superfund</a>,
+      <a href="https://www.epa.gov/cleanups/assessment-cleanup-and-redevelopment-exchange-system-acres" target="_blank" rel="noopener">EPA ACRES</a>,
+      <a href="https://www.usace.army.mil/Missions/Environmental/Formerly-Used-Defense-Sites/" target="_blank" rel="noopener">USACE FUDS</a>,
+      <a href="https://www.acq.osd.mil/brac/" target="_blank" rel="noopener">DOD BRAC</a>,
+      <a href="https://www.epa.gov/re-powering" target="_blank" rel="noopener">EPA RE-Powering</a>.
+    </span>
+  </details>
   <span class="footer-meta">
     <span id="footer-refresh">Refreshed —</span> ·
     <a href="https://github.com/pranava0x0/brownfield-opportunities" target="_blank" rel="noopener">Open data on GitHub</a>

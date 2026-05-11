@@ -400,28 +400,89 @@ main:focus { outline: none; }
 }
 .kpi-sub.kpi-sub-strong { color: var(--text-soft); }
 
+/* KPI disclosure (mobile) — the deck is wrapped in <details> so the
+   carousel can be collapsed behind a single-line summary on phones. On
+   desktop, the disclosure is always-open and the <summary> is hidden so
+   the deck reads as a static panel. The trick: forcing `open` via CSS
+   isn't possible (the attribute is the source of truth), so app.js opens
+   it once on first paint when the viewport is wider than 640px. */
+.kpi-disclosure { display: block; }
+.kpi-disclosure > .kpi-summary { display: none; }
+.kpi-disclosure[open] > .kpi-deck { margin-top: 0; }
+
 @media (max-width: 1024px) {
   .hero-inner { grid-template-columns: 1fr; gap: 16px; }
   .hero h2 { font-size: 22px; }
 }
 @media (max-width: 640px) {
-  .hero { padding: 14px 14px 12px; }
+  .hero { padding: 12px 12px 10px; }
   .hero-eyebrow { font-size: 9.5px; }
   .hero h2 { font-size: 18px; }
   .hero p { font-size: 12.5px; }
-  /* On phones the map is the product — hide hero copy, keep the KPI deck
-     as a swipeable carousel so users still see headline numbers. */
+  /* On phones the map is the product — hide hero copy entirely; the KPI
+     deck collapses behind a disclosure with a compact summary strip. */
   .hero-copy { display: none; }
+  .kpi-disclosure > .kpi-summary {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    list-style: none;
+    cursor: pointer;
+    padding: 6px 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 11.5px;
+    color: var(--muted);
+    letter-spacing: 0.01em;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .kpi-disclosure > .kpi-summary::-webkit-details-marker { display: none; }
+  .kpi-summary-pair {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+  }
+  .kpi-summary-num {
+    font-family: var(--font-serif);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+  .kpi-summary-label {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 9.5px;
+    font-weight: 600;
+  }
+  .kpi-summary-dot { color: var(--border-strong); }
+  .kpi-summary-chevron {
+    margin-left: auto;
+    width: 8px;
+    height: 8px;
+    border-right: 1.5px solid var(--muted);
+    border-bottom: 1.5px solid var(--muted);
+    transform: rotate(45deg) translate(-1px, -1px);
+    transition: transform 150ms ease;
+  }
+  .kpi-disclosure[open] .kpi-summary-chevron {
+    transform: rotate(-135deg) translate(-1px, -1px);
+  }
+  .kpi-disclosure[open] > .kpi-deck { margin-top: 8px; }
   .kpi-deck {
     border-radius: 6px;
     overflow-x: auto;
     overflow-y: hidden;
-    grid-template-columns: repeat(4, minmax(120px, 1fr));
+    grid-template-columns: repeat(5, minmax(120px, 1fr));
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
   }
   .kpi { scroll-snap-align: start; }
-  .kpi-num { font-size: 18px; }
+  .kpi-num { font-size: 19px; }
+  .kpi-label { font-size: 9px; }
 }
 
 /* ============================================================
@@ -437,6 +498,12 @@ main:focus { outline: none; }
   flex-wrap: wrap;
 }
 .filters[hidden] { display: none; }
+/* Desktop: the sheet chrome (drag handle, title, close, action footer)
+   doesn't render — the filters read as an inline strip below the hero. */
+.filters-sheet-head,
+.filters-sheet-actions,
+.filters-backdrop { display: none; }
+.filters-backdrop[hidden] { display: none; }
 .filter {
   display: flex;
   flex-direction: column;
@@ -769,6 +836,45 @@ main {
   padding-top: 16px;
   font-weight: 600;
 }
+/* Collapsible detail-panel sections. The <summary> inherits the h3 style
+   so the visual treatment stays identical to the static-h3 sections; the
+   chevron rotates between collapsed and expanded. On desktop they default
+   to open (set programmatically once by app.js based on matchMedia); on
+   mobile they default to closed so the panel fits in a 65vh sheet without
+   immediate scroll. */
+.detail .d-section { margin: 0; }
+.detail .d-section > summary {
+  list-style: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.detail .d-section > summary::-webkit-details-marker { display: none; }
+.detail .d-section > summary > h3 {
+  margin: 22px 0 8px;
+  flex: 1;
+  /* Re-spec the border-top + padding-top here so the section divider lives
+     on the summary row, not on the (potentially-hidden) inner h3. */
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+.detail .d-section > summary::after {
+  content: "";
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  margin-top: 14px;
+  border-right: 1.5px solid var(--muted);
+  border-bottom: 1.5px solid var(--muted);
+  transform: rotate(45deg);
+  transition: transform 150ms ease;
+}
+.detail .d-section[open] > summary::after {
+  transform: rotate(-135deg);
+}
+.detail .d-section[hidden] { display: none; }
 .detail .muted { color: var(--muted); font-size: 13px; margin: 0 0 18px; }
 .close {
   position: absolute;
@@ -1147,28 +1253,226 @@ main {
 .site-footer a:hover { color: var(--accent); }
 .site-footer .footer-sources { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .site-footer .footer-meta { font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* Footer sources disclosure — on desktop the <summary> is hidden and the
+   source list reads as an always-visible inline span (the historical
+   behavior). On mobile we hide the source list by default and surface a
+   tappable "Sources" summary that expands the list when tapped. */
+.footer-sources-disclosure { flex: 1 1 auto; min-width: 0; }
+.footer-sources-disclosure > .footer-sources-summary {
+  display: none;
+  list-style: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  color: var(--muted);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+.footer-sources-disclosure > .footer-sources-summary::-webkit-details-marker {
+  display: none;
+}
+.footer-sources-disclosure > .footer-sources { display: inline; }
+/* Belt-and-suspenders for the [hidden] trap pattern — see design.md § 8.1. */
+.footer-sources-disclosure[hidden] { display: none; }
 
 /* ============================================================
    Mobile — hero compresses, detail becomes bottom sheet
    ============================================================ */
 @media (max-width: 640px) {
-  .topbar { padding: 8px 12px; gap: 10px; flex-wrap: wrap; }
-  .topbar-controls { width: 100%; gap: 6px; }
+  .topbar { padding: 6px 12px; gap: 6px; flex-wrap: wrap; }
+  .brand { flex: 1 1 auto; min-width: 0; }
+  .topbar-controls { width: 100%; gap: 4px; flex-wrap: wrap; }
   .search { flex: 1; min-width: 0; order: -1; }
   .search input { font-size: 16px; /* avoid iOS auto-zoom */ }
-  .brand h1 { font-size: 17px; }
-  .brand .sub { font-size: 11px; }
-  .tab { padding: 8px 12px; font-size: 13px; }
-  .kv { grid-template-columns: 110px 1fr; }
+  .brand h1 { font-size: 16px; }
+  .brand .sub { font-size: 10px; margin-top: 1px; }
+  .icon-btn { width: 30px; height: 30px; }
+  .tab { padding: 6px 12px; font-size: 13px; }
+  .tabs { padding: 2px; }
+  .kv { grid-template-columns: 96px 1fr; gap: 6px 12px; }
   #sites-table { font-size: 12px; }
   #sites-table th, #sites-table td { padding: 9px 10px; }
-  .filters { padding: 10px 12px; gap: 12px; }
+  /* On phones the table drops City + County (6th and 7th columns) — those
+     values still live in the detail panel. The Program pill loses its
+     filled background and reads as a small uppercase label colored by
+     program so the cell fits in ~64px without truncation. */
+  #sites-table th:nth-child(6),
+  #sites-table th:nth-child(7),
+  #sites-table td:nth-child(6),
+  #sites-table td:nth-child(7) { display: none; }
+  #sites-table td:nth-child(2) .pill {
+    background: transparent !important;
+    padding: 0;
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-weight: 700;
+    border-radius: 0;
+  }
+  #sites-table td:nth-child(2) .pill[data-program="superfund"] { color: var(--program-superfund); }
+  #sites-table td:nth-child(2) .pill[data-program="brownfield"] { color: var(--program-brownfield); }
+  #sites-table td:nth-child(2) .pill[data-program="fuds"] { color: var(--program-fuds); }
+  #sites-table td:nth-child(2) .pill[data-program="brac"] { color: var(--program-brac); }
+  /* Filters become a bottom sheet on phones — same pattern as the detail
+     panel. The inline strip behavior is replaced with a slide-up overlay
+     so the map stays visible underneath while the user picks filters. */
+  .filters {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    top: auto;
+    width: 100%;
+    max-height: 80vh;
+    padding: 16px 16px calc(76px + env(safe-area-inset-bottom));
+    gap: 14px;
+    background: var(--surface);
+    border-bottom: none;
+    border-top: 1px solid var(--border);
+    border-radius: 14px 14px 0 0;
+    box-shadow: var(--shadow);
+    z-index: 1050;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    transform: translateY(0);
+    transition: transform 220ms cubic-bezier(.2,.8,.2,1);
+  }
+  .filters[hidden] {
+    display: flex;
+    transform: translateY(110%);
+    pointer-events: none;
+  }
+  .filters-sheet-head {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    margin: -16px -16px 6px;
+    padding: 10px 16px 8px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    z-index: 2;
+  }
+  .filters-sheet-handle {
+    position: absolute;
+    top: 6px; left: 50%;
+    transform: translateX(-50%);
+    width: 36px; height: 4px;
+    border-radius: 2px;
+    background: var(--border-strong);
+  }
+  .filters-sheet-title {
+    margin: 8px 0 0;
+    font-family: var(--font-serif);
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    grid-column: 1;
+  }
+  .filters-sheet-close {
+    grid-column: 2;
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    margin-top: 6px;
+  }
+  .filters-sheet-close:hover { background: var(--surface-2); color: var(--text); }
+  .filter { width: 100%; gap: 6px; }
+  .filter select, .filter input[type="range"] { width: 100%; min-width: 0; }
+  .filter-acreage { min-width: 0; }
+  /* Hide the desktop inline "Reset" link; the sheet has its own action row. */
+  #filters-reset { display: none; }
+  .filters-sheet-actions {
+    display: flex;
+    gap: 10px;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    z-index: 2;
+  }
+  .filters-sheet-btn {
+    flex: 1;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+  }
+  .filters-sheet-btn.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  .filters-sheet-btn.primary:hover { background: var(--accent-strong); border-color: var(--accent-strong); }
+  .filters-sheet-btn.ghost { color: var(--text-soft); }
+  /* Backdrop dims the map behind the sheet. */
+  .filters-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.4);
+    z-index: 1040;
+    opacity: 1;
+    transition: opacity 200ms ease;
+  }
+  .filters-backdrop[hidden] {
+    opacity: 0;
+    pointer-events: none;
+  }
+  [data-theme="dark"] .filters-backdrop { background: rgba(0, 0, 0, 0.55); }
   .filter select, .filter input[type="range"] { min-width: 120px; font-size: 14px; }
 
   .legend { font-size: 10.5px; padding: 8px 10px 6px; max-width: 180px; }
   .legend-title { font-size: 9px; }
+  /* Detail-panel h3s tighten on phones (less section divider, tighter set). */
+  .detail h3 { font-size: 10px; letter-spacing: 0.14em; padding-top: 14px; margin: 16px 0 6px; }
+  .detail .d-section > summary > h3 { padding-top: 14px; margin: 16px 0 6px; }
+  /* Persona buttons fit 3 per row at 375px instead of 2 + scroll. */
+  .persona-btn { min-width: 96px; padding: 5px 8px; }
+  .persona-label { font-size: 11.5px; }
+  .persona-min { font-size: 10px; }
+  /* Detail panel headline shrinks to match the topbar treatment. The
+     bottom-sheet padding override lives on the `.detail` block below
+     (this section reaches it through the cascade). */
+  .detail h2 { font-size: 18px; }
+  /* Acreage tick labels stay readable but don't overflow on narrow viewports. */
+  .acreage-ticks-labels { font-size: 9px; }
 
-  .site-footer { padding: 8px 12px; font-size: 10.5px; gap: 4px 12px; }
+  .site-footer { padding: 6px 12px; font-size: 10.5px; gap: 4px 10px; }
+  /* Source list collapses behind a tappable "Sources" pill on phones. */
+  .footer-sources-disclosure > .footer-sources-summary {
+    display: inline-block;
+    padding: 2px 8px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .footer-sources-disclosure > .footer-sources { display: none; }
+  .footer-sources-disclosure[open] > .footer-sources {
+    display: block;
+    margin-top: 6px;
+    width: 100%;
+    line-height: 1.4;
+  }
 
   /* Bottom-sheet detail panel — easier reach, doesn't block the map. */
   .detail {
@@ -1178,11 +1482,11 @@ main {
     right: 0;
     width: 100%;
     height: 65vh;
-    max-height: 75vh;
+    max-height: 78vh;
     border-left: none;
     border-top: 1px solid var(--border);
     border-radius: 14px 14px 0 0;
-    padding: 18px 18px calc(20px + env(safe-area-inset-bottom));
+    padding: 16px 16px calc(18px + env(safe-area-inset-bottom));
     transform: translateY(0);
   }
   .detail[hidden] { transform: translateY(110%); }
