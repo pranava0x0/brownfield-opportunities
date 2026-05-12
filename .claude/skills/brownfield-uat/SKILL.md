@@ -457,10 +457,13 @@ For each round, prefer one `browser_batch` per round. Don't fan out into
 ## Logging Conventions for This Project
 
 - **Bugs** → `issues.md` table format: `Date | Area | Description | Root cause | Status`.
-- **UX improvements** → `backlog.md` under the appropriate section
-  (`## Frontend / UX`, `## Performance / hosting`, etc.) with priority
-  prefix `**[high]**` / `**[med]**` / `**[low]**`.
-- Both files already exist; append rather than restructure.
+- **UX improvements** → `backlog.md` under `## Frontend / UX — reducing clickthroughs…`
+  (or nearest appropriate section) with priority prefix `**[high]**` / `**[med]**` / `**[low]**`.
+- **New invariants / gotchas** → add a bullet to `CLAUDE.md` under the relevant
+  subsystem note AND update the **Known Gotchas** section of this skill.
+- **Quick Reference table** — update the skill's Known State table whenever a
+  measured value changes: DOM count, decimation thresholds, test count.
+- Both `issues.md` and `backlog.md` already exist; append rather than restructure.
 - Reference commits when fixed: `Fixed — <what>; <commit-sha-or-PR>`.
 
 ---
@@ -480,25 +483,76 @@ For each round, prefer one `browser_batch` per round. Don't fan out into
   the codebase has been bitten twice (detail panel, filter chip). Always
   add an explicit `[hidden] { display: none; }` rule alongside any
   `.foo { display: ...; }` for elements with the hidden attr.
+- **`syncUrl()` is debounced 200 ms** — checking `window.location.search`
+  in the same eval tick as a filter change will always read the stale URL.
+  Use a second eval call (a round-trip takes 20–50 ms) or a
+  `setTimeout`-based wait INSIDE the eval. Never use a Promise-resolving
+  `preview_eval` to wait — `preview_eval` doesn't support Promise return
+  values and will time out after 30 s.
+- **Table IntersectionObserver fires ~8× in headless environments** —
+  the first `querySelectorAll('#sites-table tbody tr').length` call after
+  the default sort may return 2000 (8 pages × 250 rows = ~18.9k DOM nodes)
+  instead of 250. This is a known headless artefact (all content is
+  "visible" at once). Re-sort the table first (`nameHeader.click()`) to
+  reset to 250 before asserting row counts or DOM size.
+- **`preview_resize` actual inner dimensions differ from requested** —
+  `window.innerWidth/innerHeight` on a "375×812" resize comes back as
+  ~614×1330. CSS breakpoints still fire correctly (614 < 640), so mobile
+  layout applies as expected; just don't hard-assert pixel dimensions in
+  evals.
+- **DOM node count in Table view is ~18.9k (Open bug, 2026-05-11)** —
+  the `test_dom_size_under_5k_nodes` test runs against the Map tab, not
+  the Table tab. Don't fail a UAT pass when the table-view node count
+  exceeds 5k; log it as a known issue if it climbs materially above 18.9k.
 
 ---
 
-## Quick Reference: Known State (as of v1.11.5, 2026-05-06)
+## Quick Reference: Known State (as of v1.12 / v1.13, 2026-05-11)
 
 | Item                      | Value                                                         |
 | ------------------------- | ------------------------------------------------------------- |
 | First-paint payload (gz)  | ~170 KB sites.json + ~1.6 MB acres + ~600 KB FUDS/BRAC/redev |
 | Total markers             | ~46,759 (1,908 Superfund + 36,003 ACRES + 8,821 FUDS + 27 BRAC) |
 | DC reuse candidates       | 821 (Superfund w/ power + ≥50 ac + water service)             |
-| Marker decimation         | zoom ≤4 → 1/8, ≤5 → 1/4, ≤6 → 1/2, ≥7 → all                 |
+| Hyperscale-ready sites    | 250 (≥100 ac + ≥230 kV transmission within 1 mi)             |
+| Marker decimation         | zoom ≤4 → 1/16, ≤5 → 1/8, ≤6 → 1/2, ≥7 → all (tightened v1.12) |
 | Cold-load DOMContentLoaded| ~60 ms (chunked hydration keeps main thread responsive)       |
-| Total DOM nodes after ready | ~2,713 (measured 2026-05-06; regression test caps at 5,000) |
+| DOM nodes — Map tab       | ~2,728 (measured 2026-05-11; regression test caps at 5,000)   |
+| DOM nodes — Table tab     | ~18,907 (IntersectionObserver fires ~8× headless; open bug)   |
 | County zoom threshold     | `COUNTY_MIN_ZOOM = 7` (lazy-loaded TopoJSON)                  |
-| KPI deck IDs              | `#kpi-total`, `#kpi-acres`, `#kpi-dc`, `#kpi-states`          |
+| KPI deck IDs              | `#kpi-total`, `#kpi-acres`, `#kpi-dc`, `#kpi-states`, `#kpi-hyperscale` |
 | Hero refresh ID           | `#hero-refresh` (also `#footer-refresh` mirrors it)           |
+| Hero version ID           | `.hero-eyebrow` — currently shows "v1.11" (stale; open bug)   |
 | Filter chip ID            | `#filters-chip` (badge on `#filters-toggle`)                  |
-| Readiness pills           | `.cleanup-pill` (NPL Deleted) · `.reuse-pill` (`In_Reuse=Yes`) · `.dc-pill` (`data_center_reuse_candidate`) — all three can co-render in `#d-program` |
+| Persona filter IDs        | `#f-personas button[data-tier]` (edge/colo/hyperscale/mega)   |
+| Readiness pills           | `.cleanup-pill` (NPL Deleted) · `.reuse-pill` (`In_Reuse=Yes`) · `.dc-pill` (`data_center_reuse_candidate`) · `.dc-tier-pill` (computed tier) — all four can co-render in `#d-program` |
 | 0×0-boot recovery         | `fitUsBoundsSafely()` + `ResizeObserver` (UAT-011, 2026-05-06)|
 | Detail title selector     | `#detail h2` (no `#d-name` — that ID doesn't exist)           |
 | Valid example Superfund ID | `AZD980737530` (Tucson International Airport Area)            |
 | Test count                | 330 (266 unit + 64 e2e — ran clean 2026-05-06)                |
+
+---
+
+## Documentation update guide
+
+When a UAT session finds bugs or ships new features, update these files
+**in the same session** before declaring done:
+
+| File | What to update |
+| ---- | -------------- |
+| `issues.md` | Append a row: `Date \| Area \| Description \| Root cause \| Status`. Keep "Open" until the fix lands; then update to `Fixed — <what>; <commit>`. |
+| `backlog.md` | Append to the appropriate section. UX improvements go in `## Frontend / UX — reducing clickthroughs…`. Data sources go in the Tier 1/2/3 sections. |
+| `CLAUDE.md` | Add a new bullet under the relevant subsystem (detail panel, table, filters, etc.) when a new invariant or gotcha is established. Don't rewrite existing bullets — add new ones. |
+| This skill (`SKILL.md`) | Update the **Quick Reference** table when a measured value changes (DOM count, marker count, test count, decimation thresholds). Add to **Known Gotchas** for any timing trap, headless artefact, or assertion pattern that cost investigation time. |
+
+**Hero version string** — the eyebrow in `docs/index.html` carries a hardcoded version
+string (`.hero-eyebrow` inner text). Update it when a major version ships. The string
+format is `US BROWNFIELD ATLAS · V{major.minor} · Updated {YYYY-MM-DD}`.
+Search `index.html` for the current literal and bump both the version and the date.
+Also bump `#hero-refresh` and `#footer-refresh` if a data refresh happened.
+
+**`CLAUDE.md` project notes** — the "Project-specific notes (Brownfield Opportunities)"
+section at the bottom of `CLAUDE.md` is the authoritative per-feature reference. Add
+a new note bullet when: a new selector or ID is established, a new invariant is discovered
+(e.g. "the IntersectionObserver fires 8× headless"), or a workaround is needed for a
+source-side quirk. Keep bullets under ~8 lines — longer specs go in `docs/`.

@@ -218,6 +218,26 @@ The v1.11.2 commit fixed the ECHO connector and shipped 380 of 1,787 Final/Delet
 
 ---
 
+## Frontend / UX — reducing clickthroughs to good sites (2026-05-11 UAT)
+
+Each item is a step the user must take today that could be removed or collapsed. Ordered by impact on the "open dashboard → find a viable DC site" flow.
+
+- **[high] KPI cells as one-click filter shortcuts.** Clicking the "HYPERSCALE-READY · 250" KPI cell should apply the Hyperscale persona filter instantly — same as clicking gear → scroll to Personas → Hyperscale. Clicking "DC-REUSE CANDIDATES · 821" should filter to `data_center_reuse_candidate = true`. Currently both cells have a descriptive subtext implying they're actionable but neither responds to clicks. Implementation: add `cursor: pointer` + `role="button"` + `aria-label` to each KPI `<dd>`, wire a click handler that sets `filterState.dcTier` (or `filterState.dcCandidate`) and calls `applyFilter()` + `refitMapToFilters()`. Same drift-safe pattern as `PROGRAM_LEGEND` iteration — when a new tier KPI cell ships, the handler wires off its `data-tier` attribute.
+
+- **[high] Search typeahead dropdown.** When the user types ≥3 chars in `#search`, show a floating dropdown of up to 8 matching site names (sourced from `tableState.filtered` using `_searchKey`). Clicking a result calls `window.__selectSite(id)` directly — no tab switch, no scroll hunt. Today the flow is: type → see "160 of 46,759" count → switch to Table tab → scroll to find the row → click. Typeahead collapses this to: type → click a name. Edge case: if a result is off the current map viewport, `selectSite()` already pans to the marker. The `#search` input's 350 ms debounce stays; the dropdown just renders off the same filtered set.
+
+- **[med] "Nearby sites" panel in detail view.** After opening a site, show a collapsible "Nearby sites" section listing up to 5 sites within 25 mi (using the `lat_real` / `lon_real` fields + a simple Haversine check against `window.__sites`). Each nearby site is a link that calls `__selectSite(id)`. Today a buyer evaluating adjacent parcels must: close panel → manually navigate map → zoom in → click another marker. The nearby list reduces this to one click. Cap at 5 results (same 25 mi radius, sorted by distance ascending) to avoid overwhelming the panel — the filter strip + map handle the broader search.
+
+- **[med] Detail panel remembers active tab within session.** `selectSite()` calls `resetDetailTabs()` so every new site opens on Overview. If a user is browsing AI summaries across multiple sites, they click "Summary" on every selection. Store the active tab in a session-level variable (`window._lastDetailTab`) and `resetDetailTabs()` reads it: default to Overview on first open, otherwise restore the last tab the user explicitly clicked. Clear on page reload. Zero new URL state needed.
+
+- **[med] Persona filter active label in filter chip.** The gear-button chip badge shows "1" when any filter is active — including the persona filter — but doesn't show *which* persona. A user who bookmarked `?dc_tier=hyperscale` returns to the page and sees a mystery "1" chip. Update `updateFilterChip()` to set the chip's `title` attribute (tooltip) to a human-readable summary ("Hyperscale · 250 sites") and optionally replace the number with a short label ("Hyperscale") when the persona filter is the only active filter. Minimal DOM change; the chip ID and structure stay the same.
+
+- **[low] KPI subtext full text on hover.** KPI subtexts truncate with `text-overflow: ellipsis` on desktop (e.g. "4.9K sites with rep..."). Add `title="${fullText}"` to each `.kpi-sub` so the browser native tooltip shows the unclipped value. One-liner; no layout change.
+
+- **[low] "Copy shareable link" button.** Add a small copy-link icon (or make the existing "Share" / URL pattern more discoverable) that calls `navigator.clipboard.writeText(window.location.href)` and briefly shows a toast ("Link copied!"). Today the URL *does* round-trip all filter state, but nothing in the UI signals that the URL is a permalink. A single icon next to the gear button makes the share story obvious without changing any routing logic.
+
+---
+
 ## ~~v1.11.1 — Bug-fix pass + UX polish (2026-05-05)~~ Done
 
 Three defects closed:
