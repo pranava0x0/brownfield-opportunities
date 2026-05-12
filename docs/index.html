@@ -22,10 +22,13 @@
     <p class="sub" id="meta">Loading…</p>
   </div>
   <nav class="topbar-controls" aria-label="Toolbar">
-    <label class="search">
-      <span class="search-icon" aria-hidden="true">⌕</span>
-      <input id="search" type="search" placeholder="Search sites…" aria-label="Search by name, city, county, or state" title="Search by name, city, county, or state">
-    </label>
+    <div class="search-wrap">
+      <label class="search">
+        <span class="search-icon" aria-hidden="true">⌕</span>
+        <input id="search" type="search" placeholder="Search sites…" aria-label="Search by name, city, county, or state" title="Search by name, city, county, or state" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="search-typeahead">
+      </label>
+      <ul id="search-typeahead" class="search-typeahead" role="listbox" aria-label="Matching sites" hidden></ul>
+    </div>
     <span id="search-count" class="search-count" aria-live="polite"></span>
     <button id="filters-toggle" class="icon-btn" aria-expanded="false" aria-controls="filters" title="Filters">
       <span aria-hidden="true">⚙</span><span class="sr-only">Filters</span>
@@ -33,6 +36,9 @@
     </button>
     <button id="export-csv" class="icon-btn" title="Export visible rows as CSV">
       <span aria-hidden="true">↓</span><span class="sr-only">Export CSV</span>
+    </button>
+    <button id="share-link" class="icon-btn" title="Copy shareable link to clipboard">
+      <span aria-hidden="true">⎘</span><span class="sr-only">Copy shareable link</span>
     </button>
     <button id="theme-toggle" class="icon-btn" title="Toggle dark mode">
       <span aria-hidden="true" id="theme-icon">☾</span><span class="sr-only">Toggle theme</span>
@@ -48,7 +54,7 @@
   <div class="hero-inner">
     <div class="hero-copy">
       <p class="hero-eyebrow">
-        <span>US Brownfield Atlas</span><span class="dot">·</span><span id="hero-version">v1.11</span><span class="dot">·</span><span id="hero-refresh">Updated —</span>
+        <span>US Brownfield Atlas</span><span class="dot">·</span><span id="hero-version">v1.13</span><span class="dot">·</span><span id="hero-refresh">Updated —</span>
       </p>
       <h2>Every federally-tracked contaminated site in America, mapped.</h2>
       <p>~47,000 EPA Superfund, ACRES brownfield, DOD FUDS, and BRAC properties. Filter by state, acreage, and program — and see which sites have the power, water, and rail proximity to support reuse.</p>
@@ -80,17 +86,17 @@
         <div class="kpi" data-kpi="dc">
           <span class="kpi-label">DC reuse candidates</span>
           <span class="kpi-num" id="kpi-dc">—</span>
-          <span class="kpi-sub kpi-sub-strong" id="kpi-dc-sub">≥50 ac · power · water</span>
+          <span class="kpi-sub kpi-sub-strong" id="kpi-dc-sub" title="≥50 ac · power · water">≥50 ac · power · water</span>
         </div>
         <div class="kpi" data-kpi="hyperscale">
           <span class="kpi-label">Hyperscale-ready</span>
           <span class="kpi-num" id="kpi-hyperscale">—</span>
-          <span class="kpi-sub kpi-sub-strong" id="kpi-hyperscale-sub">≥100 ac · ≥230 kV · ≤1 mi</span>
+          <span class="kpi-sub kpi-sub-strong" id="kpi-hyperscale-sub" title="≥100 ac · ≥230 kV · ≤1 mi">≥100 ac · ≥230 kV · ≤1 mi</span>
         </div>
         <div class="kpi" data-kpi="states">
           <span class="kpi-label">States covered</span>
           <span class="kpi-num" id="kpi-states">—</span>
-          <span class="kpi-sub" id="kpi-states-sub">incl. AK · HI · territories</span>
+          <span class="kpi-sub" id="kpi-states-sub" title="incl. AK · HI · territories">incl. AK · HI · territories</span>
         </div>
       </div>
     </details>
@@ -268,6 +274,11 @@
       <dt>Active programs</dt><dd id="d-echo-programs" class="muted-cell">Not available</dd>
     </dl>
     <p class="docs-source-line"><a id="d-echo-dfr" href="#" target="_blank" rel="noopener">Full Detailed Facility Report on EPA ECHO →</a></p>
+  </details>
+
+  <details id="d-nearby-block" class="nearby-disclosure" hidden>
+    <summary>Nearby sites <span id="d-nearby-count" class="muted-cell"></span></summary>
+    <ul id="d-nearby-list" class="nearby-list" aria-label="Nearby sites within 25 miles"></ul>
   </details>
 
   <p class="source"><a id="d-profile" href="#" target="_blank" rel="noopener">Source profile</a></p>

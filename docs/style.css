@@ -176,6 +176,13 @@ main:focus { outline: none; }
   gap: 8px;
   flex-wrap: wrap;
 }
+.search-wrap {
+  position: relative;
+  flex: 1 1 240px;
+  min-width: 220px;
+  max-width: 360px;
+  display: flex;
+}
 .search {
   position: relative;
   display: flex;
@@ -184,10 +191,69 @@ main:focus { outline: none; }
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 4px 10px;
-  flex: 1 1 240px;
-  min-width: 220px;
-  max-width: 360px;
+  flex: 1;
+  min-width: 0;
   transition: border-color 120ms, background 120ms;
+}
+.search-typeahead {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
+  max-height: 320px;
+  overflow-y: auto;
+}
+[data-theme="dark"] .search-typeahead {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.42);
+}
+.search-typeahead[hidden] { display: none; }
+.typeahead-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas: "name program" "meta program";
+  gap: 1px 8px;
+  padding: 7px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1.3;
+  color: var(--text);
+}
+.typeahead-item:hover,
+.typeahead-item.active {
+  background: var(--accent-soft);
+}
+.typeahead-name {
+  grid-area: name;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.typeahead-meta {
+  grid-area: meta;
+  font-size: 11px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.typeahead-program {
+  grid-area: program;
+  align-self: center;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  white-space: nowrap;
 }
 .search:focus-within { border-color: var(--accent); background: var(--surface); }
 .search-icon {
@@ -399,6 +465,27 @@ main:focus { outline: none; }
   .kpi-sub { white-space: normal; overflow: visible; text-overflow: clip; }
 }
 .kpi-sub.kpi-sub-strong { color: var(--text-soft); }
+
+/* Actionable KPI cells (Hyperscale, DC reuse candidates) act as
+   click-to-filter shortcuts. Cursor + faint hover hint signals
+   interactivity; `.kpi-active` shows the filter is engaged. */
+.kpi.kpi-actionable {
+  cursor: pointer;
+  transition: background 90ms ease;
+  border-radius: 0;
+  outline-offset: -2px;
+}
+.kpi.kpi-actionable:hover { background: var(--surface-2); }
+.kpi.kpi-actionable:focus-visible { outline: 2px solid var(--accent); }
+.kpi.kpi-actionable.kpi-active {
+  background: var(--accent-soft);
+}
+.kpi.kpi-actionable.kpi-active .kpi-num { color: var(--accent-strong, var(--accent)); }
+.kpi.kpi-actionable.kpi-active .kpi-label::after {
+  content: " · active";
+  color: var(--accent);
+  font-weight: 700;
+}
 
 /* KPI disclosure (mobile) — the deck is wrapped in <details> so the
    carousel can be collapsed behind a single-line summary on phones. On
@@ -1029,6 +1116,81 @@ main {
 }
 .summary-meta[hidden] { display: none; }
 #d-summary-empty[hidden], #d-summary-body[hidden] { display: none; }
+
+/* Nearby sites block in detail panel — up to 5 results within 25 mi */
+.nearby-disclosure { margin-top: 16px; }
+.nearby-disclosure[hidden] { display: none; }
+.nearby-disclosure > summary {
+  cursor: pointer;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-bottom: 8px;
+  font-weight: 600;
+  list-style: none;
+}
+.nearby-disclosure > summary::-webkit-details-marker { display: none; }
+.nearby-disclosure > summary::before {
+  content: "▸ ";
+  display: inline-block;
+  transition: transform 120ms;
+}
+.nearby-disclosure[open] > summary::before { content: "▾ "; }
+.nearby-disclosure > summary .muted-cell {
+  text-transform: none;
+  letter-spacing: 0;
+  margin-left: 6px;
+}
+.nearby-list {
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.nearby-link {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas: "name dist" "meta dist";
+  gap: 2px 8px;
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 7px 10px;
+  cursor: pointer;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  transition: background 90ms, border-color 90ms;
+}
+.nearby-link:hover { background: var(--surface-2); border-color: var(--border-strong); }
+.nearby-name {
+  grid-area: name;
+  font-size: 13px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.nearby-meta {
+  grid-area: meta;
+  font-size: 11px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.nearby-dist {
+  grid-area: dist;
+  align-self: center;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  white-space: nowrap;
+}
 
 /* ECHO enforcement block in detail panel */
 #d-echo-block { margin-top: 16px; }

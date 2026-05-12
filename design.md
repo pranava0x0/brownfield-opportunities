@@ -212,11 +212,26 @@ the map view can absolute-position itself to fill the remainder.
 ### 3.1 Topbar
 
 `flex` row, wraps on narrow widths. Order on desktop: brand → search →
-count → filters btn → export btn → theme btn → map/table tabs. Search has
-`flex: 1 1 240px; max-width: 360px` so it grows into available space without
-swallowing the toolbar. The `.search-count` is **outside** the search input
-wrapper so a long count string ("23,447 of 46,778 in California · 412k ac
-(389k w/ acreage)") can ellipsis-truncate without compressing the input.
+count → filters btn → export btn → **share-link btn (⎘)** → theme btn →
+map/table tabs. Search has `flex: 1 1 240px; max-width: 360px` so it grows
+into available space without swallowing the toolbar. The `.search-count`
+is **outside** the search input wrapper so a long count string ("23,447 of
+46,778 in California · 412k ac (389k w/ acreage)") can ellipsis-truncate
+without compressing the input.
+
+The search element is now a `.search-wrap` container holding:
+- `<label class="search">` with the visible input
+- `<ul id="search-typeahead" role="listbox">` absolutely-positioned
+  dropdown that opens when ≥2 chars are typed (capped at 8 results, ranked
+  name-prefix > name-contains > city/state-contains). Arrow keys navigate,
+  Enter / mousedown picks → `window.__selectSite(id)`. Escape clears.
+  Lets users jump directly to a known site without the tab-switch + scroll
+  hunt path.
+
+The share-link button (`#share-link`) calls `navigator.clipboard.writeText
+(window.location.href)` and fires a toast confirming the copy. URL state
+already round-trips every active filter (see `syncUrl()`), so the share
+button is just discoverability — it tells users the page is permalinkable.
 
 On mobile (`<640px`): `flex-wrap: wrap` pushes controls onto a second row;
 `.search { flex: 1; order: -1 }` puts the search bar on top, full width.
@@ -261,8 +276,26 @@ Each cell:
   qualifying criteria like "≥50 ac · power · water")
 
 Desktop: `kpi-sub` truncates on one line (`text-overflow: ellipsis`,
-requires `display: block` — see § 8.3 ellipsis pitfall).
+requires `display: block` — see § 8.3 ellipsis pitfall). All five subtexts
+carry a `title` attribute mirroring their `textContent` so the unclipped
+value surfaces on hover. Static-string subtexts (DC criteria, hyperscale
+criteria, states subtext) get `title` in `index.html`; the two dynamic
+ones (total / acreage) get it written by `updateKpiDeck()` via the
+`setSub()` helper.
 Mobile: `white-space: normal` so all the criteria are readable.
+
+**Click-to-filter shortcuts.** Two cells are interactive:
+- `[data-kpi="hyperscale"]` → toggles `filterState.dcTier = "hyperscale"`
+  (writes `?dc_tier=hyperscale` after debounce, lights the persona
+  button's `aria-pressed`)
+- `[data-kpi="dc"]` → toggles `filterState.dcCandidate`
+  (writes `?dc_candidate=1`)
+
+Both carry `role="button"`, `tabindex="0"`, keyboard activation
+(Enter / Space), `.kpi-actionable` class for the cursor+hover affordance,
+and `.kpi-active` when engaged. The other three cells (total / acreage
+/ states) are overview metrics, not filterable predicates — they
+intentionally stay inert. Reset clears both via `refreshKpiActiveStates()`.
 
 ### 3.4 Filters strip
 
@@ -306,7 +339,11 @@ Right-side overlay, 440px wide capped at `min(440px, 92vw)`. 4px top
 program-color stripe via `::before { background: var(--detail-stripe) }`
 which `selectSite()` sets inline. Two-tab strip below the title:
 **Overview** (everything structured) vs **Summary** (the AI narrative card).
-Always opens on Overview — `resetDetailTabs()` runs in every `selectSite()`.
+`resetDetailTabs()` reads the session-scoped `_lastDetailTab` variable —
+default `"overview"` on fresh load, otherwise restores the last tab the
+user explicitly clicked. A user reading AI summaries across multiple
+sites doesn't have to re-click Summary on every selection; page reload
+resets the preference.
 
 Content inside Overview, in order:
 1. Title `<h2>` + location `<p class="muted">`
@@ -323,7 +360,11 @@ Content inside Overview, in order:
    EPA RE-Powering signals + DC candidate criteria sub-line)
 10. ECHO enforcement block (when present; nonzero formal actions / penalties
     get red highlight via `.violation`)
-11. Source profile link
+11. **Nearby sites** block (`<details>` element, up to 5 sites within 25 mi
+    via Haversine on `lat_real`/`lon_real`, sorted ascending). Hidden when
+    no neighbours fall within the radius. Each entry is a button → `selectSite`,
+    so users evaluating adjacent parcels can pivot without map-pan + click.
+12. Source profile link
 
 Closes via the × button (top-right), Escape key, or clicking the map. Close
 restores `[hidden]` + `aria-hidden="true"`.
@@ -667,6 +708,32 @@ for ACRES / BRAC. Never fall back to `data-program` here — that's how
 v1.11.1 shipped with every FUDS / BRAC / ACRES row showing an identical
 pill in the PROGRAM and STATUS columns (UAT-009). Regression-locked by
 `test_table_status_column_no_program_duplication`.
+
+### 8.8 IntersectionObserver callbacks need a scroll-position guard
+
+`isIntersecting === true` is necessary but not sufficient for "user
+scrolled near the bottom." During the Map→Table tab swap (and in headless
+contexts where layout settles over multiple paint passes), the observer
+can fire several times before the sentinel's position stabilizes — each
+firing calls `appendNextPage()` and prefetches another 250 rows.
+2026-05-11 UAT found the table rendering 2,000 rows (8×) on a clean
+default sort, ballooning DOM to ~18,907 nodes. The fix in
+`setupTableInfiniteScroll()` adds an explicit
+`wrap.scrollHeight - wrap.scrollTop - wrap.clientHeight > 400` check
+that bails when the user hasn't actually scrolled near the bottom.
+Regression-locked by `test_table_intersection_observer_does_not_overfire`
++ `test_intersection_observer_appends_when_user_scrolls` (the latter
+guards that the guard doesn't block real user-driven pagination).
+
+### 8.9 Anything that enumerates KPI cells must whitelist actionable ones
+
+`wireKpiClicks()` iterates the KPI deck but only wires cells where
+`data-kpi ∈ {hyperscale, dc}`. Adding a new KPI without updating the
+`ACTIONABLE` map will leave it visually-similar but inert. When a future
+filterable KPI ships (e.g. "Tier-1 incentive states only"), drop its
+`data-kpi` slug into the map and `toggleKpiFilter()` switch, then add a
+matching entry to `filterState` and `refreshKpiActiveStates()`. Same
+drift-safe pattern as `PROGRAM_LEGEND` / `DC_TIERS` (§ 8.2).
 
 ---
 
