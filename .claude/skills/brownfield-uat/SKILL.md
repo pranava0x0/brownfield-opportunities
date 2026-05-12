@@ -529,7 +529,11 @@ For each round, prefer one `browser_batch` per round. Don't fan out into
 | 0×0-boot recovery         | `fitUsBoundsSafely()` + `ResizeObserver` (UAT-011, 2026-05-06)|
 | Detail title selector     | `#detail h2` (no `#d-name` — that ID doesn't exist)           |
 | Valid example Superfund ID | `AZD980737530` (Tucson International Airport Area)            |
-| Test count                | 330 (266 unit + 64 e2e — ran clean 2026-05-06)                |
+| KPI shortcut cells        | `[data-kpi="hyperscale"]` · `[data-kpi="dc"]` — click to toggle (`.kpi-active` class shows engaged state) |
+| Search typeahead          | `#search-typeahead` (role=listbox, ≥2 chars opens, 8 max)     |
+| Nearby sites block        | `#d-nearby-block` (Haversine, 25 mi, top 5)                  |
+| Share-link button         | `#share-link` (⎘ icon, clipboard write + toast)              |
+| Test count                | 380 (282 unit + 98 e2e — ran clean 2026-05-12)                |
 
 ---
 

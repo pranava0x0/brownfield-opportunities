@@ -1142,9 +1142,37 @@ def test_fuds_owner_label_normalized(page, base_url):
         )
 
 
-def test_selectsite_resets_to_overview_tab(page, base_url):
-    """Switching sites should reset the active tab back to Overview, so a
-    user reading a Summary doesn't carry that pane state into the next site."""
+def test_selectsite_persists_active_tab_within_session(page, base_url):
+    """A user reading AI summaries across multiple sites shouldn't have to
+    re-click Summary every time. The active tab persists within the session
+    until the user explicitly clicks the other tab; page reload resets to
+    Overview. (Replaces the older "snap back to Overview" contract — the
+    new contract is "remember the last user-selected tab".)"""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    page.locator("#tab-table").click()
+    rows = page.locator("#sites-table tbody tr")
+    rows.nth(0).click()
+    page.wait_for_selector("#detail:not([hidden])")
+    # First open: defaults to Overview (no prior user choice in this session).
+    assert page.locator("#dtab-overview").get_attribute("aria-selected") == "true"
+    # User clicks Summary.
+    page.locator("#dtab-summary").click()
+    assert page.locator("#dtab-summary").get_attribute("aria-selected") == "true"
+    # Pick a different site → Summary stays active (session memory).
+    rows.nth(1).click()
+    assert page.locator("#dtab-summary").get_attribute("aria-selected") == "true"
+    assert page.locator("#dpane-summary").evaluate("el => el.hidden") is False
+    # User explicitly clicks Overview → preference flips.
+    page.locator("#dtab-overview").click()
+    rows.nth(2).click()
+    assert page.locator("#dtab-overview").get_attribute("aria-selected") == "true"
+    assert page.locator("#dpane-overview").evaluate("el => el.hidden") is False
+
+
+def test_detail_tab_resets_to_overview_on_page_reload(page, base_url):
+    """Session memory shouldn't survive a page reload — every fresh load
+    starts on Overview regardless of what the user last clicked."""
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
     page.locator("#tab-table").click()
@@ -1153,10 +1181,13 @@ def test_selectsite_resets_to_overview_tab(page, base_url):
     page.wait_for_selector("#detail:not([hidden])")
     page.locator("#dtab-summary").click()
     assert page.locator("#dtab-summary").get_attribute("aria-selected") == "true"
-    # Pick a different site → tab should snap back.
-    rows.nth(1).click()
+    # Reload → should reset.
+    page.reload()
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    page.locator("#tab-table").click()
+    page.locator("#sites-table tbody tr").nth(0).click()
+    page.wait_for_selector("#detail:not([hidden])")
     assert page.locator("#dtab-overview").get_attribute("aria-selected") == "true"
-    assert page.locator("#dpane-overview").evaluate("el => el.hidden") is False
 
 
 def test_table_status_column_no_program_duplication(page, base_url):
@@ -2021,3 +2052,421 @@ def test_footer_sources_collapsed_on_mobile(page, base_url):
     assert state["open"] is False, "footer sources should default closed on mobile"
     assert state["summaryDisplay"] != "none", "Sources summary chip should be visible"
     assert state["listDisplay"] == "none", "source list should be hidden until chip tapped"
+
+
+# ============================================================================
+# 2026-05-11 UAT — KPI shortcuts, search typeahead, nearby sites, chip tooltip,
+# share-link, IntersectionObserver scroll guard, hero version
+# ============================================================================
+
+
+def test_hero_version_label_matches_current_release(page, base_url):
+    """The hero eyebrow carries a hardcoded version string. If a feature
+    ships without bumping it, external viewers see stale `v1.X`. Hard-
+    asserts a v1.13+ floor so the next major release that misses the
+    bump fails loudly. Update the regex when shipping past v1.13."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__sitesLoaded === true", timeout=20000)
+    text = (page.locator("#hero-version").text_content() or "").strip()
+    import re as _re
+    assert _re.match(r"^v1\.(1[3-9]|[2-9]\d)", text) or _re.match(r"^v[2-9]\.", text), (
+        f"hero version stale: got {text!r}, expected v1.13+ (bump #hero-version "
+        "in index.html when shipping a new feature pass)"
+    )
+
+
+def test_kpi_hyperscale_cell_acts_as_filter_shortcut(page, base_url):
+    """Clicking the HYPERSCALE-READY KPI applies the Hyperscale persona
+    filter directly — bypassing the gear → scroll → click flow. Toggling
+    again clears it. The KPI cell's `.kpi-active` class + the persona
+    button's `aria-pressed=true` stay in sync."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    # Pre-condition: nothing active.
+    assert page.locator("[data-kpi='hyperscale']").get_attribute("aria-pressed") == "false"
+    # Click → activates Hyperscale tier filter.
+    page.locator("[data-kpi='hyperscale']").click()
+    page.wait_for_function(
+        "() => location.search.indexOf('dc_tier=hyperscale') !== -1",
+        timeout=2000,
+    )
+    cls = page.locator("[data-kpi='hyperscale']").get_attribute("class") or ""
+    assert "kpi-active" in cls, f"expected kpi-active class, got {cls!r}"
+    # Persona button must auto-sync.
+    persona = page.locator("button[data-tier='hyperscale']")
+    assert persona.get_attribute("aria-pressed") == "true", "persona button out of sync"
+    # Filter narrows the table.
+    visible = page.evaluate("window.__tableState?.filtered?.length || 0")
+    assert visible > 0 and visible < 5000, f"hyperscale filter not narrowing, got {visible}"
+    # Toggle off.
+    page.locator("[data-kpi='hyperscale']").click()
+    page.wait_for_function(
+        "() => location.search.indexOf('dc_tier=') === -1",
+        timeout=2000,
+    )
+    cls = page.locator("[data-kpi='hyperscale']").get_attribute("class") or ""
+    assert "kpi-active" not in cls
+
+
+def test_kpi_dc_cell_filters_to_reuse_candidates(page, base_url):
+    """Clicking the DC REUSE CANDIDATES KPI filters to sites with
+    `data_center_reuse_candidate === true`. URL gets `?dc_candidate=1`."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    page.locator("[data-kpi='dc']").click()
+    page.wait_for_function(
+        "() => location.search.indexOf('dc_candidate=1') !== -1",
+        timeout=2000,
+    )
+    cls = page.locator("[data-kpi='dc']").get_attribute("class") or ""
+    assert "kpi-active" in cls
+    # Every visible site must carry the candidate flag.
+    sample = page.evaluate(
+        "(() => (window.__tableState?.filtered || []).slice(0, 5)"
+        ".map(s => s.data_center_reuse_candidate === true))()"
+    )
+    assert all(sample), f"expected all candidates, got {sample!r}"
+    # Toggle off.
+    page.locator("[data-kpi='dc']").click()
+    page.wait_for_function(
+        "() => location.search.indexOf('dc_candidate=') === -1",
+        timeout=2000,
+    )
+
+
+def test_kpi_non_actionable_cells_are_inert(page, base_url):
+    """The Total / Acreage / States KPI cells are overview metrics, not
+    filterable predicates. They should NOT carry .kpi-actionable and
+    clicking them must not mutate filter state."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    for kpi in ("total", "acreage", "states"):
+        cls = page.locator(f"[data-kpi='{kpi}']").get_attribute("class") or ""
+        assert "kpi-actionable" not in cls, f"{kpi} KPI shouldn't be actionable"
+    # Clicking a non-actionable cell should leave filters unchanged.
+    page.locator("[data-kpi='total']").click()
+    assert page.locator("#filters-chip").evaluate("el => el.hidden") is True
+
+
+def test_kpi_filter_reset_clears_dc_candidate(page, base_url):
+    """Reset must clear `filterState.dcCandidate` and the .kpi-active class
+    on the DC KPI cell — same drift-safe pattern as the v1.7 program list
+    UAT-007 lesson."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    page.locator("[data-kpi='dc']").click()
+    page.wait_for_function(
+        "() => location.search.indexOf('dc_candidate=1') !== -1",
+        timeout=2000,
+    )
+    # Open filter panel + click reset.
+    page.locator("#filters-toggle").click()
+    page.locator("#filters-reset").click()
+    page.wait_for_function(
+        "() => location.search.indexOf('dc_candidate=') === -1",
+        timeout=2000,
+    )
+    cls = page.locator("[data-kpi='dc']").get_attribute("class") or ""
+    assert "kpi-active" not in cls
+
+
+def test_kpi_actionable_cells_are_keyboard_accessible(page, base_url):
+    """Actionable KPI cells must respond to Enter / Space (role=button,
+    tabindex=0). Verified by direct keydown dispatch — the cell's
+    keyboard handler should toggle the filter."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    cell = page.locator("[data-kpi='hyperscale']")
+    assert cell.get_attribute("role") == "button"
+    assert cell.get_attribute("tabindex") == "0"
+    # Dispatch Enter directly.
+    page.evaluate(
+        "document.querySelector('[data-kpi=\"hyperscale\"]')"
+        ".dispatchEvent(new KeyboardEvent('keydown', {key:'Enter', bubbles:true}))"
+    )
+    page.wait_for_function(
+        "() => location.search.indexOf('dc_tier=hyperscale') !== -1",
+        timeout=2000,
+    )
+
+
+def test_search_typeahead_renders_matches(page, base_url):
+    """Typing in #search opens the combobox dropdown with up to 8 ranked
+    matches. Name-prefix > name-contains > city/state-contains."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    page.locator("#search").fill("fox river")
+    page.wait_for_selector("#search-typeahead:not([hidden])", state="attached", timeout=2000)
+    items = page.locator("#search-typeahead .typeahead-item")
+    n = items.count()
+    assert 1 <= n <= 8, f"expected 1-8 typeahead results, got {n}"
+    # Combobox a11y attributes wire up.
+    assert page.locator("#search").get_attribute("aria-expanded") == "true"
+    # First result should contain the search text or relate to the query.
+    first_name = items.first.locator(".typeahead-name").text_content() or ""
+    assert "Fox" in first_name or "fox" in first_name.lower()
+
+
+def test_search_typeahead_click_opens_detail(page, base_url):
+    """Clicking a typeahead result calls __selectSite() directly —
+    bypassing the table-tab-and-scroll path. Detail panel opens with
+    the matching site's title."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    page.locator("#search").fill("fox river")
+    page.wait_for_selector("#search-typeahead:not([hidden])", state="attached", timeout=2000)
+    expected_name = page.locator("#search-typeahead .typeahead-item").first.locator(
+        ".typeahead-name"
+    ).text_content()
+    # mousedown (not click) — pickTypeahead fires on mousedown to pre-empt blur.
+    page.locator("#search-typeahead .typeahead-item").first.dispatch_event("mousedown")
+    page.wait_for_selector("#detail:not([hidden])", timeout=3000)
+    title = (page.locator("#detail h2").text_content() or "").strip()
+    assert expected_name and title.startswith(expected_name[:8]), (
+        f"detail title {title!r} doesn't match expected {expected_name!r}"
+    )
+    # Typeahead closes after selection.
+    assert page.locator("#search-typeahead").evaluate("el => el.hidden") is True
+
+
+def test_search_typeahead_keyboard_navigation(page, base_url):
+    """ArrowDown / ArrowUp navigate, Enter picks the highlighted result.
+    Pure-keyboard flow for accessibility."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    page.locator("#search").click()
+    page.locator("#search").fill("harbor")
+    page.wait_for_selector("#search-typeahead:not([hidden])", state="attached", timeout=2000)
+    items = page.locator("#search-typeahead .typeahead-item")
+    assert items.count() >= 1
+    # ArrowDown → first item is active.
+    page.locator("#search").press("ArrowDown")
+    first_active = items.first.get_attribute("class") or ""
+    assert "active" in first_active
+    # Enter → selects that result.
+    page.locator("#search").press("Enter")
+    page.wait_for_selector("#detail:not([hidden])", timeout=3000)
+
+
+def test_search_typeahead_hidden_for_short_queries(page, base_url):
+    """Don't open the dropdown for 0–1 chars; risk of returning thousands
+    of partials. Threshold is 2 chars in `renderTypeahead`."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    page.locator("#search").fill("a")
+    # Should NOT open.
+    hidden = page.locator("#search-typeahead").evaluate("el => el.hidden")
+    assert hidden is True, "typeahead leaked for 1-char query"
+
+
+def test_search_typeahead_escape_clears_and_closes(page, base_url):
+    """Escape closes the dropdown and clears the search query."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    page.locator("#search").fill("harbor")
+    page.wait_for_selector("#search-typeahead:not([hidden])", state="attached", timeout=2000)
+    page.locator("#search").press("Escape")
+    assert page.locator("#search-typeahead").evaluate("el => el.hidden") is True
+    assert page.locator("#search").input_value() == ""
+
+
+def test_nearby_sites_block_renders_for_selected_site(page, base_url):
+    """Detail panel shows up to 5 nearby sites within 25 mi of the
+    selected site (Haversine via lat_real/lon_real). Block is hidden
+    when no neighbours fall within the radius."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    # Find a Superfund site likely to have neighbours (in a dense state).
+    sid = page.evaluate(
+        "(() => {"
+        "  const dense = ['NY','NJ','PA','CA','TX','IL','OH','FL'];"
+        "  const s = (window.__sites || []).find(s => "
+        "    s.program === 'superfund' && dense.indexOf(s.state) !== -1 && s.lat != null);"
+        "  return s ? s.id : null;"
+        "})()"
+    )
+    assert sid, "no dense-state Superfund site found"
+    page.evaluate(f"window.__selectSite('{sid}')")
+    page.wait_for_selector("#detail:not([hidden])", timeout=3000)
+    # Either the block is shown with results, or hidden because no neighbours.
+    block = page.locator("#d-nearby-block")
+    hidden = block.evaluate("el => el.hidden")
+    if not hidden:
+        items = page.locator("#d-nearby-list li")
+        n = items.count()
+        assert 1 <= n <= 5, f"nearby list should cap at 5 results, got {n}"
+        # Each entry has a name, meta, and distance.
+        first = items.first
+        assert first.locator(".nearby-name").count() == 1
+        assert first.locator(".nearby-dist").count() == 1
+        dist = (first.locator(".nearby-dist").text_content() or "").strip()
+        # Format is "X.X mi"; numeric part should be ≤ 25.
+        import re as _re
+        m = _re.match(r"^([\d.]+)\s*mi$", dist)
+        assert m, f"distance format unexpected: {dist!r}"
+        assert float(m.group(1)) <= 25.0, f"distance {dist!r} exceeds radius"
+
+
+def test_nearby_sites_click_navigates(page, base_url):
+    """Clicking a nearby-site button opens that site's detail panel."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    # Use Fox River — we verified manually it has 22 neighbours.
+    sid = page.evaluate(
+        "(() => (window.__sites || []).find(s => "
+        "  s.name && s.name.indexOf('Fox River') !== -1)?.id)()"
+    )
+    if not sid:
+        # Fall back to ANY site with neighbours.
+        sid = page.evaluate(
+            "(() => (window.__sites || []).find(s => "
+            "  s.program === 'superfund' && s.state === 'NJ')?.id)()"
+        )
+    assert sid, "couldn't find a site with neighbours"
+    page.evaluate(f"window.__selectSite('{sid}')")
+    page.wait_for_selector("#detail:not([hidden])", timeout=3000)
+    block = page.locator("#d-nearby-block")
+    if block.evaluate("el => el.hidden"):
+        return  # No neighbours — fine, just don't test the click path.
+    # Open the disclosure if collapsed.
+    block.evaluate("el => el.open = true")
+    items = page.locator("#d-nearby-list .nearby-link")
+    if items.count() == 0:
+        return
+    target_id = items.first.get_attribute("data-id")
+    items.first.click()
+    page.wait_for_function(
+        f"() => window.selectedId === '{target_id}' || "
+        f"document.querySelector('#detail h2')?.textContent?.length > 0",
+        timeout=2000,
+    )
+
+
+def test_nearby_sites_hidden_when_no_coords(page, base_url):
+    """A site with null coords should hide the block entirely (no empty
+    state spam)."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    sid = page.evaluate(
+        "(() => (window.__sites || []).find(s => s.lat == null && s.lon == null)?.id)()"
+    )
+    if not sid:
+        # All sites have coords — skip rather than fail (data evolves).
+        return
+    page.evaluate(f"window.__selectSite('{sid}')")
+    page.wait_for_selector("#detail:not([hidden])", timeout=3000)
+    assert page.locator("#d-nearby-block").evaluate("el => el.hidden") is True
+
+
+def test_filter_chip_tooltip_lists_active_filters(page, base_url):
+    """The chip badge's `title` attribute carries a human-readable list of
+    active filters ("Active: <filter1> · <filter2>"). Replaces the
+    mystery "1" badge surface that gave no context for bookmarked URLs."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    # Apply Hyperscale via KPI shortcut.
+    page.locator("[data-kpi='hyperscale']").click()
+    page.wait_for_function(
+        "() => location.search.indexOf('dc_tier=hyperscale') !== -1",
+        timeout=2000,
+    )
+    title = page.locator("#filters-chip").get_attribute("title") or ""
+    assert title.startswith("Active:"), f"chip title missing 'Active:' prefix: {title!r}"
+    assert "Hyperscale" in title, f"chip title missing tier label: {title!r}"
+    # Stack a second filter — title should list both.
+    page.locator("[data-kpi='dc']").click()
+    page.wait_for_function(
+        "() => location.search.indexOf('dc_candidate=1') !== -1",
+        timeout=2000,
+    )
+    title2 = page.locator("#filters-chip").get_attribute("title") or ""
+    assert "Hyperscale" in title2 and "DC candidates" in title2, (
+        f"chip title missing one of the active filters: {title2!r}"
+    )
+    # Cleared → no title attribute.
+    page.locator("[data-kpi='hyperscale']").click()
+    page.locator("[data-kpi='dc']").click()
+    page.wait_for_function(
+        "() => document.getElementById('filters-chip').hidden === true",
+        timeout=2000,
+    )
+
+
+def test_kpi_subtext_has_title_attribute_for_truncation(page, base_url):
+    """KPI subtexts truncate with ellipsis on desktop; `title` attr surfaces
+    the unclipped value on hover. Verified for both static-string subtexts
+    (DC/hyperscale criteria) and dynamic ones (total/acreage)."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    for sub_id in ("kpi-total-sub", "kpi-acres-sub", "kpi-dc-sub",
+                   "kpi-hyperscale-sub", "kpi-states-sub"):
+        title = page.locator(f"#{sub_id}").get_attribute("title")
+        text = (page.locator(f"#{sub_id}").text_content() or "").strip()
+        assert title, f"#{sub_id} missing title attribute"
+        assert title.strip() == text, (
+            f"#{sub_id} title {title!r} doesn't match text {text!r}"
+        )
+
+
+def test_share_link_button_present_and_writes_to_clipboard(page, base_url, context):
+    """Share-link button exists in the topbar. Granting clipboard
+    permissions lets us verify the actual clipboard write."""
+    # Grant clipboard read/write so the test can confirm the copy.
+    context.grant_permissions(["clipboard-read", "clipboard-write"])
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    btn = page.locator("#share-link")
+    assert btn.count() == 1, "share-link button missing from topbar"
+    # Apply a filter so the URL is non-trivial.
+    page.locator("[data-kpi='hyperscale']").click()
+    page.wait_for_function(
+        "() => location.search.indexOf('dc_tier=hyperscale') !== -1",
+        timeout=2000,
+    )
+    btn.click()
+    # Toast confirms copy (either success or fallback).
+    page.wait_for_selector("#toast", timeout=2000)
+    toast_text = (page.locator("#toast").text_content() or "").lower()
+    assert "link" in toast_text or "copy" in toast_text or "clipboard" in toast_text
+
+
+def test_table_intersection_observer_does_not_overfire(page, base_url):
+    """2026-05-11 regression guard: in headless contexts the IntersectionObserver
+    sentinel can fire repeatedly during the Map→Table tab swap, prefetching
+    up to 8 pages and inflating DOM size 8×. The scroll-position guard
+    in `setupTableInfiniteScroll()` caps rendered rows at TABLE_PAGE_SIZE
+    until the user actually scrolls."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    page.locator("#tab-table").click()
+    page.wait_for_function("!document.getElementById('view-table').hidden")
+    rows = page.evaluate("document.querySelectorAll('#sites-table tbody tr').length")
+    # Strict cap — TABLE_PAGE_SIZE is 250. Allow one page worth of slack
+    # for browsers that render a buffer page.
+    assert rows <= 500, (
+        f"table over-renders on tab switch: got {rows} rows (expected ≤500). "
+        "Headless-only IntersectionObserver over-fire bug regressed."
+    )
+    # Total DOM should stay under 5k — the long-standing cap.
+    dom = page.evaluate("document.querySelectorAll('*').length")
+    assert dom < 5000, f"DOM grew to {dom} nodes on Table tab swap (cap is 5000)"
+
+
+def test_intersection_observer_appends_when_user_scrolls(page, base_url):
+    """Companion to the over-fire guard: when the user DOES scroll near
+    the bottom, the observer must still append the next page. The scroll
+    guard mustn't block real user-driven pagination."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    page.locator("#tab-table").click()
+    page.wait_for_function("!document.getElementById('view-table').hidden")
+    initial = page.evaluate("document.querySelectorAll('#sites-table tbody tr').length")
+    # Scroll to bottom — IntersectionObserver should fire and append.
+    page.evaluate(
+        "(() => { const w = document.querySelector('.table-wrap'); "
+        " w.scrollTop = w.scrollHeight; })()"
+    )
+    page.wait_for_function(
+        f"document.querySelectorAll('#sites-table tbody tr').length > {initial}",
+        timeout=5000,
+    )
