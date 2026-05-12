@@ -1291,14 +1291,16 @@ main {
   .kv { grid-template-columns: 96px 1fr; gap: 6px 12px; }
   #sites-table { font-size: 12px; }
   #sites-table th, #sites-table td { padding: 9px 10px; }
-  /* On phones the table drops City + County (6th and 7th columns) — those
-     values still live in the detail panel. The Program pill loses its
-     filled background and reads as a small uppercase label colored by
-     program so the cell fits in ~64px without truncation. */
+  /* On phones the table drops City + County + DC tier (6th, 7th, 8th
+     columns) — those values still live in the detail panel. The Program
+     pill loses its filled background and reads as a small uppercase label
+     colored by program so the cell fits in ~64px without truncation. */
   #sites-table th:nth-child(6),
   #sites-table th:nth-child(7),
+  #sites-table th:nth-child(8),
   #sites-table td:nth-child(6),
-  #sites-table td:nth-child(7) { display: none; }
+  #sites-table td:nth-child(7),
+  #sites-table td:nth-child(8) { display: none; }
   #sites-table td:nth-child(2) .pill {
     background: transparent !important;
     padding: 0;
