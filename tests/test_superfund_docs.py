@@ -12,7 +12,11 @@ from pathlib import Path
 import pytest
 import requests
 
-from connectors.epa_superfund_docs import EpaSuperfundDocs, SF_SITE_ID_RE
+from connectors.epa_superfund_docs import (
+    EpaSuperfundDocs,
+    INCLUDED_DOCTYPE,
+    SF_SITE_ID_RE,
+)
 
 
 # ----- collection-link parser -----
@@ -153,6 +157,72 @@ def test_status_filter_strips_whitespace():
 
 
 # ----- network resilience (audit fix 2026-05-04) -----
+
+
+# ----- doctype filter (broadened 2026-05-12 from label allowlist) -----
+
+
+def test_included_doctype_is_sc():
+    """Curated public documents have type=SC on cumulis; AR is the
+    administrative-record docket dump. The filter is doctype-based so
+    label-string variations ("Publicly Available Documents" vs
+    "PUBLICLY AVAILABLE DOCUMENTS" vs "SPP Public Available Documents") all
+    pass through as long as cumulis classifies them as SC."""
+    assert INCLUDED_DOCTYPE == "SC"
+
+
+def test_fetch_records_includes_non_spp_curated_labels(tmp_path, monkeypatch):
+    """Regression test: prior allowlist required "SPP Public Available Documents"
+    exactly, missing the ~28% of F/D sites whose curators used variants like
+    "Publicly Available Documents", "Five Year Review Reports", or
+    "Decision Documents" (no SPP prefix). All of those are tagged type=SC by
+    cumulis, so the doctype filter must let them through."""
+    monkeypatch.setattr(
+        EpaSuperfundDocs, "_load_superfund_sites",
+        lambda self: [
+            {
+                "id": "EPAID-X",
+                "epa_id": "EPAID-X",
+                "npl_status_code": "F",
+                "profile_url": "https://www.epa.gov/superfund/site-x",
+                "acreage": 100,
+                "name": "Site X",
+            }
+        ],
+    )
+    monkeypatch.setattr(EpaSuperfundDocs, "_resolve_sf_site_id",
+                        lambda self, url, use_cache: "9999999")
+    # docdata returns three collections: one SC with a non-allowlisted label,
+    # one SC with an allowlisted label, and one AR (admin record) which must
+    # stay excluded.
+    docdata_html = """
+    <a href="../SiteProfiles/index.cfm?fuseaction=second.scs&id=9999999&doc=Y&colid=11111&region=05&type=SC">Five Year Review Reports (3 documents)</a>
+    <a href="../SiteProfiles/index.cfm?fuseaction=second.scs&id=9999999&doc=Y&colid=22222&region=05&type=SC">Key Documents (2 documents)</a>
+    <a href="../SiteProfiles/index.cfm?fuseaction=second.ars&id=9999999&doc=Y&colid=33333&region=05&type=AR">REMEDIAL (15 documents)</a>
+    """
+    cachejson_calls: list[str] = []
+
+    def fake_get_text(self, url, params=None, use_cache=True):
+        return docdata_html
+
+    def fake_get_json(self, url, params=None, use_cache=True):
+        cachejson_calls.append(url)
+        # Synthesize one doc per collection.
+        return {"data": [{"docId": f"d{len(cachejson_calls)}", "docTitle": "Doc"}]}
+
+    monkeypatch.setattr(EpaSuperfundDocs, "http_get_text", fake_get_text)
+    monkeypatch.setattr(EpaSuperfundDocs, "http_get_json", fake_get_json)
+
+    inst = EpaSuperfundDocs(cache_dir=tmp_path)
+    args = argparse.Namespace(
+        docs_limit=1, docs_skip=0, docs_per_site=8, docs_status="F", limit=None,
+    )
+    records = inst.fetch_records(args, use_cache=False)
+    assert len(records) == 1
+    # Both SC collections must have been queried; the AR collection must not.
+    assert len(cachejson_calls) == 2, f"expected 2 SC cachejson calls, got {len(cachejson_calls)}"
+    # Both docs land in the output (per-site cap = 8, we only emit 2).
+    assert len(records[0]["documents"]) == 2
 
 
 def test_fetch_records_skips_site_on_pretty_page_connection_error(tmp_path, monkeypatch):

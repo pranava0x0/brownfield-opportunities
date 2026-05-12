@@ -58,14 +58,32 @@ SEMS_DOCUMENT_URL = "https://semspub.epa.gov/src/document/{region}/{doc_id}"
 # cross-walked anywhere public.
 SF_SITE_ID_RE = re.compile(r"csitinfo\.cfm\?id=(\d+)", re.IGNORECASE)
 
-# Only collect documents from these "curated, public-facing" collections.
-# AR (Administrative Records) collections are skipped — they're docket dumps
-# of every piece of correspondence on a site, low signal-to-noise.
-COLLECTION_ALLOWLIST = {
+# Filter by doctype, not by label string. Cumulis tags every collection with
+# `type=SC` (curated "Reports and Documents") or `type=AR` (administrative
+# record docket dumps). The SC vs AR line is EPA's own — every curated
+# public-facing collection is type=SC. The previous label-allowlist approach
+# missed ~28% of F/D sites because curators use a long tail of label
+# variations ("Publicly Available Documents", "PUBLICLY AVAILABLE DOCUMENTS",
+# "Five Year Review Reports", "Five-Year Reviews", "Decision Documents"
+# without the SPP prefix, etc.). Switched to the doctype gate 2026-05-12.
+INCLUDED_DOCTYPE = "SC"
+
+# Kept as documentation of which curated labels we expect to see — not
+# enforced. The doctype filter above is the source of truth for inclusion.
+EXPECTED_CURATED_LABELS = {
     "Key Documents",
-    "SPP Decision Documents",
+    "Publicly Available Documents",
     "SPP Public Available Documents",
+    "Decision Documents",
+    "SPP Decision Documents",
+    "Technical Reports and Studies",
     "SPP Technical Reports and Studies",
+    "Five Year Review Reports",
+    "Five-Year Review Reports",
+    "Five Year Reviews",
+    "Fact Sheets and Public Meeting Documents",
+    "SPP Public Meeting Documents",
+    "Enforcement and Settlement Documents",
     "SPP Enforcement and Settlement Documents",
 }
 
@@ -278,7 +296,7 @@ class EpaSuperfundDocs(Connector):
 
         all_docs: list[dict[str, Any]] = []
         for col in collections:
-            if col["label"] not in COLLECTION_ALLOWLIST:
+            if col["type"] != INCLUDED_DOCTYPE:
                 continue
             try:
                 col_data = self.http_get_json(
@@ -336,7 +354,7 @@ class EpaSuperfundDocs(Connector):
             html,
         ):
             label = m.group("label").strip()
-            # Trim "(N documents)" suffix to stay aligned with COLLECTION_ALLOWLIST.
+            # Trim "(N documents)" suffix for clean labels in the output.
             label_clean = re.sub(r"\s*\(\d+\s+documents?\)\s*$", "", label)
             collections.append({
                 "colid": m.group("colid"),
