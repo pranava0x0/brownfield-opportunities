@@ -501,6 +501,11 @@ const filterState = {
   // Selecting "hyperscale" filters to sites scoring at hyperscale OR mega
   // (mega is a strict superset). URL state: ?dc_tier=hyperscale.
   dcTier: "",
+  // EPA RE-Powering data-center reuse candidate boolean (`s.data_center_reuse_candidate`).
+  // Wired from the "DC reuse candidates" KPI cell click-to-filter shortcut.
+  // URL state: ?dc_candidate=1. Independent of `dcTier` — Tier 0 score includes
+  // sites that aren't EPA-flagged, and EPA flags some sites that don't score.
+  dcCandidate: false,
 };
 
 let acresLoadingPromise = null; // de-dup parallel toggles
@@ -593,10 +598,21 @@ function updateKpiDeck() {
     const node = el(id);
     if (node) node.textContent = value;
   };
+  // Also set `title` on every KPI subtext so the unclipped string is
+  // available on hover — `text-overflow: ellipsis` truncates these on
+  // narrow desktop columns (e.g. "4.9K sites with rep…"). The static
+  // strings in HTML (DC/hyperscale criteria, states subtext) get their
+  // title applied at init via setKpiSubTitles().
+  const setSub = (id, value) => {
+    const node = el(id);
+    if (!node) return;
+    node.textContent = value;
+    node.title = value;
+  };
   set("kpi-total", fmt.compact(total));
-  set("kpi-total-sub", `across ${programSet.size} program${programSet.size === 1 ? "" : "s"}`);
+  setSub("kpi-total-sub", `across ${programSet.size} program${programSet.size === 1 ? "" : "s"}`);
   set("kpi-acres", fmt.compact(acreSum));
-  set("kpi-acres-sub", `${fmt.compact(acreCount)} sites with reported area`);
+  setSub("kpi-acres-sub", `${fmt.compact(acreCount)} sites with reported area`);
   set("kpi-dc", fmt.compact(dcCount));
   set("kpi-hyperscale", fmt.compact(hyperCount));
   set("kpi-states", String(stateSet.size));
@@ -611,24 +627,50 @@ function updateKpiDeck() {
 // filter button so screen readers know the active count.
 function updateFilterChip() {
   let count = 0;
-  if (filterState.q) count++;
-  if (filterState.state) count++;
-  count += filterState.statuses.size;
-  if (filterState.minAcreage > 0) count++;
-  // Default is all four programs on; any deselection counts as a filter.
-  if (filterState.programs.size && filterState.programs.size < PROGRAM_LEGEND.length) count++;
-  if (filterState.dcTier) count++;
+  const active = [];
+  if (filterState.q) { count++; active.push(`search "${filterState.q}"`); }
+  if (filterState.state) {
+    count++;
+    const stateLabel = STATE_NAMES[filterState.state] || TERRITORY_NAMES[filterState.state] || filterState.state;
+    active.push(`state ${stateLabel}`);
+  }
+  if (filterState.statuses.size) {
+    count += filterState.statuses.size;
+    active.push(`NPL ${Array.from(filterState.statuses).join("/")}`);
+  }
+  if (filterState.minAcreage > 0) {
+    count++;
+    const min = Math.round(Math.pow(10, filterState.minAcreage));
+    active.push(`≥${min.toLocaleString()} ac`);
+  }
+  if (filterState.programs.size && filterState.programs.size < PROGRAM_LEGEND.length) {
+    count++;
+    active.push(`${filterState.programs.size}/${PROGRAM_LEGEND.length} programs`);
+  }
+  if (filterState.dcTier) {
+    count++;
+    const tier = DC_TIERS.find((t) => t.id === filterState.dcTier);
+    active.push(tier?.label || filterState.dcTier);
+  }
+  if (filterState.dcCandidate) {
+    count++;
+    active.push("DC candidates");
+  }
   const chip = el("filters-chip");
   const btn = el("filters-toggle");
   if (chip) {
     if (count > 0) {
       chip.hidden = false;
       chip.textContent = String(count);
+      // Tooltip surfaces *which* filters are active so a user returning
+      // to a bookmarked URL doesn't see a mystery "1" badge.
+      chip.title = `Active: ${active.join(" · ")}`;
     } else {
       chip.hidden = true;
+      chip.removeAttribute("title");
     }
   }
-  if (btn) btn.setAttribute("aria-label", count ? `Filters (${count} active)` : "Filters");
+  if (btn) btn.setAttribute("aria-label", count ? `Filters (${count} active: ${active.join(", ")})` : "Filters");
 }
 
 // ----- CSS-var color resolver ----- //
@@ -669,7 +711,10 @@ fetch(PRIMARY_DATA_URL)
     wireSearch();
     wireFilters();
     wirePersonaButtons();
+    wireKpiClicks();
+    wireNearbyClicks();
     wireExportCsv();
+    wireShareLink();
     wireThemeToggle();
     wireKpiDisclosure();
     wireDetailSections();
@@ -1382,6 +1427,7 @@ function siteMatchesFilters(s, opts = {}) {
     const got = DC_TIER_RANK[tier] || 0;
     if (got < need) return false;
   }
+  if (filterState.dcCandidate && s.data_center_reuse_candidate !== true) return false;
   if (!siteMatchesQuery(s, opts.q ?? filterState.q)) return false;
   return true;
 }
@@ -1501,7 +1547,8 @@ function filtersActive() {
     filterState.statuses.size > 0 ||
     filterState.minAcreage > 0 ||
     filterState.programs.size !== PROGRAM_LEGEND.length ||
-    filterState.dcTier !== ""
+    filterState.dcTier !== "" ||
+    filterState.dcCandidate
   );
 }
 
@@ -1576,6 +1623,7 @@ function wireKpiDisclosure() {
 
 function wireSearch() {
   const input = el("search");
+  const dropdown = el("search-typeahead");
   if (filterState.q) input.value = filterState.q;
   // Debounce the geographic refit so we don't fitBounds on every keystroke.
   let refitTimer = null;
@@ -1583,18 +1631,121 @@ function wireSearch() {
     if (refitTimer) clearTimeout(refitTimer);
     refitTimer = setTimeout(refitMapToFilters, 350);
   };
+  let typeaheadIdx = -1; // currently highlighted suggestion (-1 = none)
+  let typeaheadResults = [];
+  const closeTypeahead = () => {
+    if (!dropdown) return;
+    dropdown.hidden = true;
+    dropdown.innerHTML = "";
+    typeaheadIdx = -1;
+    typeaheadResults = [];
+    input.setAttribute("aria-expanded", "false");
+    input.removeAttribute("aria-activedescendant");
+  };
+  const renderTypeahead = (q) => {
+    if (!dropdown) return;
+    const query = q.trim().toLowerCase();
+    if (query.length < 2) { closeTypeahead(); return; }
+    // Search the in-memory site index. Cap at 8 results — primary purpose is
+    // "jump directly to a known site," not browse-via-typeahead.
+    const matches = [];
+    for (const s of sites) {
+      if (!s._searchKey || !s.name) continue;
+      if (!s._searchKey.includes(query)) continue;
+      matches.push(s);
+      if (matches.length >= 50) break; // Hard cap before sorting for perf.
+    }
+    // Rank: name-prefix > name-contains > city/state-contains.
+    matches.sort((a, b) => {
+      const an = (a.name || "").toLowerCase();
+      const bn = (b.name || "").toLowerCase();
+      const ap = an.startsWith(query) ? 0 : an.includes(query) ? 1 : 2;
+      const bp = bn.startsWith(query) ? 0 : bn.includes(query) ? 1 : 2;
+      if (ap !== bp) return ap - bp;
+      return an.localeCompare(bn);
+    });
+    typeaheadResults = matches.slice(0, 8);
+    if (!typeaheadResults.length) { closeTypeahead(); return; }
+    dropdown.innerHTML = typeaheadResults.map((s, i) => {
+      const programLabel = PROGRAM_LABEL[s.program] || s.program;
+      const place = [s.city, s.state].filter(Boolean).join(", ");
+      return `<li class="typeahead-item" role="option" id="typeahead-opt-${i}" data-id="${escapeAttr(s.id)}" data-program="${escapeAttr(s.program)}">` +
+        `<span class="typeahead-name">${escapeHtml(s.name)}</span>` +
+        (place ? `<span class="typeahead-meta">${escapeHtml(place)}</span>` : "") +
+        `<span class="typeahead-program">${escapeHtml(programLabel)}</span>` +
+        `</li>`;
+    }).join("");
+    dropdown.hidden = false;
+    typeaheadIdx = -1;
+    input.setAttribute("aria-expanded", "true");
+  };
+  const highlightTypeahead = (idx) => {
+    if (!dropdown) return;
+    const items = dropdown.querySelectorAll(".typeahead-item");
+    items.forEach((li, i) => li.classList.toggle("active", i === idx));
+    if (idx >= 0 && items[idx]) {
+      input.setAttribute("aria-activedescendant", items[idx].id);
+      items[idx].scrollIntoView({ block: "nearest" });
+    } else {
+      input.removeAttribute("aria-activedescendant");
+    }
+    typeaheadIdx = idx;
+  };
+  const pickTypeahead = (idx) => {
+    const s = typeaheadResults[idx];
+    if (!s) return;
+    closeTypeahead();
+    input.blur();
+    if (typeof window.__selectSite === "function") window.__selectSite(s.id);
+    else selectSite(s.id);
+  };
   input.addEventListener("input", () => {
     filterState.q = input.value;
     applyFilter();
     queueRefit();
+    renderTypeahead(input.value);
+  });
+  input.addEventListener("focus", () => {
+    if (input.value) renderTypeahead(input.value);
   });
   input.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && input.value) {
+    if (e.key === "Escape" && (input.value || (dropdown && !dropdown.hidden))) {
       e.stopPropagation();
-      input.value = "";
-      filterState.q = "";
-      applyFilter();
+      closeTypeahead();
+      if (input.value) {
+        input.value = "";
+        filterState.q = "";
+        applyFilter();
+      }
+      return;
     }
+    if (dropdown && !dropdown.hidden && typeaheadResults.length) {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        highlightTypeahead((typeaheadIdx + 1) % typeaheadResults.length);
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        highlightTypeahead(typeaheadIdx <= 0 ? typeaheadResults.length - 1 : typeaheadIdx - 1);
+      } else if (e.key === "Enter" && typeaheadIdx >= 0) {
+        e.preventDefault();
+        pickTypeahead(typeaheadIdx);
+      }
+    }
+  });
+  if (dropdown) {
+    dropdown.addEventListener("mousedown", (e) => {
+      // mousedown (not click) so we fire before blur tears the dropdown down.
+      const li = e.target.closest(".typeahead-item");
+      if (!li) return;
+      e.preventDefault();
+      const idx = [...dropdown.children].indexOf(li);
+      if (idx >= 0) pickTypeahead(idx);
+    });
+  }
+  document.addEventListener("click", (e) => {
+    if (!dropdown || dropdown.hidden) return;
+    if (e.target === input || dropdown.contains(e.target)) return;
+    closeTypeahead();
   });
 }
 
@@ -1732,8 +1883,10 @@ function wireFilters() {
     filterState.minAcreage = 0;
     filterState.q = "";
     filterState.dcTier = "";
+    filterState.dcCandidate = false;
     el("search").value = "";
     refreshPersonaButtons();
+    refreshKpiActiveStates();
     for (const [program, box] of Object.entries(progBoxes)) {
       if (box) box.checked = filterState.programs.has(program);
     }
@@ -1774,6 +1927,7 @@ function wirePersonaButtons() {
       filterState.dcTier = tier;
     }
     refreshPersonaButtons();
+    refreshKpiActiveStates();
     applyFilter();
     refitMapToFilters();
   });
@@ -1787,6 +1941,65 @@ function refreshPersonaButtons() {
     const active = btn.dataset.tier === filterState.dcTier;
     btn.setAttribute("aria-pressed", String(active));
     btn.classList.toggle("active", active);
+  }
+}
+
+// KPI deck click-to-filter shortcuts. Two cells are wired:
+//   data-kpi="hyperscale" → toggle the Hyperscale persona filter
+//   data-kpi="dc"         → toggle the EPA RE-Powering DC candidate filter
+// The other three cells (total / acreage / states) are non-actionable —
+// they show overview metrics, not filterable predicates. Each actionable
+// cell gets `role="button"` + `tabindex=0` + keyboard activation so the
+// shortcut is a11y-equivalent to the filter panel.
+function wireKpiClicks() {
+  const deck = el("kpi-deck");
+  if (!deck) return;
+  const ACTIONABLE = { hyperscale: "tier", dc: "candidate" };
+  for (const cell of deck.querySelectorAll("[data-kpi]")) {
+    const kpi = cell.dataset.kpi;
+    if (!ACTIONABLE[kpi]) continue;
+    cell.classList.add("kpi-actionable");
+    cell.setAttribute("role", "button");
+    cell.setAttribute("tabindex", "0");
+    const labelText = cell.querySelector(".kpi-label")?.textContent?.trim();
+    cell.setAttribute("aria-label", labelText
+      ? `Filter to ${labelText}`
+      : `Toggle ${kpi} filter`);
+    const handler = () => toggleKpiFilter(kpi);
+    cell.addEventListener("click", handler);
+    cell.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        handler();
+      }
+    });
+  }
+  refreshKpiActiveStates();
+}
+
+function toggleKpiFilter(kpi) {
+  if (kpi === "hyperscale") {
+    filterState.dcTier = filterState.dcTier === "hyperscale" ? "" : "hyperscale";
+    refreshPersonaButtons();
+  } else if (kpi === "dc") {
+    filterState.dcCandidate = !filterState.dcCandidate;
+  } else {
+    return;
+  }
+  refreshKpiActiveStates();
+  applyFilter();
+  refitMapToFilters();
+}
+
+function refreshKpiActiveStates() {
+  const deck = el("kpi-deck");
+  if (!deck) return;
+  for (const cell of deck.querySelectorAll("[data-kpi]")) {
+    let active = false;
+    if (cell.dataset.kpi === "hyperscale") active = filterState.dcTier === "hyperscale";
+    else if (cell.dataset.kpi === "dc") active = filterState.dcCandidate;
+    cell.classList.toggle("kpi-active", active);
+    cell.setAttribute("aria-pressed", String(active));
   }
 }
 
@@ -1964,7 +2177,18 @@ function setupTableInfiniteScroll() {
   wrap.appendChild(_tableSentinel);
   _tableObserver = new IntersectionObserver(
     (entries) => {
-      if (entries.some((e) => e.isIntersecting)) appendNextPage();
+      if (!entries.some((e) => e.isIntersecting)) return;
+      // Scroll-position guard. During the Map→Table tab transition (and in
+      // headless contexts where layout settles in multiple passes) the
+      // observer can fire several times before the sentinel's position
+      // stabilises, prefetching up to 8 pages and inflating DOM size 8×.
+      // Only honour the firing when the user has actually scrolled close
+      // to the bottom of the rendered set. The 400px threshold matches the
+      // 300px rootMargin + a small buffer for sub-pixel rounding.
+      const remaining =
+        wrap.scrollHeight - wrap.scrollTop - wrap.clientHeight;
+      if (remaining > 400) return;
+      appendNextPage();
     },
     { root: wrap, rootMargin: "300px" }
   );
@@ -2061,16 +2285,21 @@ function wireDetailPanel() {
 }
 
 // Tabs inside the detail panel: Overview (default) vs Summary (AI card).
-// Default-back-to-Overview every time selectSite() opens a new site so
-// the user always lands on the structured-fields view first.
+// Selecting a new site preserves the LAST tab the user clicked within the
+// session, so an analyst reading AI summaries across multiple sites
+// doesn't have to re-click "Summary" on every selection. Resets to
+// "overview" on page reload. URL/localStorage intentionally NOT used —
+// the preference is ephemeral.
+let _lastDetailTab = "overview";
 function wireDetailTabs() {
   const tabs = [
-    { btn: el("dtab-overview"), pane: el("dpane-overview") },
-    { btn: el("dtab-summary"), pane: el("dpane-summary") },
+    { id: "overview", btn: el("dtab-overview"), pane: el("dpane-overview") },
+    { id: "summary",  btn: el("dtab-summary"),  pane: el("dpane-summary") },
   ];
   for (const t of tabs) {
     if (!t.btn || !t.pane) continue;
     t.btn.addEventListener("click", () => {
+      _lastDetailTab = t.id;
       for (const other of tabs) {
         const isMe = other === t;
         other.btn.classList.toggle("active", isMe);
@@ -2084,10 +2313,11 @@ function wireDetailTabs() {
 function resetDetailTabs() {
   const ov = el("dtab-overview"), sm = el("dtab-summary");
   const ovp = el("dpane-overview"), smp = el("dpane-summary");
-  if (ov) { ov.classList.add("active"); ov.setAttribute("aria-selected", "true"); }
-  if (sm) { sm.classList.remove("active"); sm.setAttribute("aria-selected", "false"); }
-  if (ovp) ovp.hidden = false;
-  if (smp) smp.hidden = true;
+  const summaryActive = _lastDetailTab === "summary";
+  if (ov) { ov.classList.toggle("active", !summaryActive); ov.setAttribute("aria-selected", String(!summaryActive)); }
+  if (sm) { sm.classList.toggle("active", summaryActive); sm.setAttribute("aria-selected", String(summaryActive)); }
+  if (ovp) ovp.hidden = summaryActive;
+  if (smp) smp.hidden = !summaryActive;
 }
 
 function selectSite(id, { fromMap = false, fromTable = false } = {}) {
@@ -2302,6 +2532,7 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
   renderDocuments(s);
   renderEnforcement(s);
   renderSummary(s);
+  renderNearbySites(s);
   resetDetailTabs();
   // After all section content updates, re-apply the accordion defaults so a
   // newly-shown section (e.g. ECHO block transitioning from hidden→visible)
@@ -2486,6 +2717,90 @@ function renderSummary(s) {
   }
 }
 
+// Render the "Nearby sites" block — up to 5 other sites within
+// NEARBY_RADIUS_MI of the selected site (Haversine on `lat_real`/`lon_real`
+// so inset-remapped coords don't pollute distance). Clicking a result
+// calls `selectSite(id)`. Block is hidden when the selected site has no
+// real coords or when no neighbours fall within the radius.
+const NEARBY_RADIUS_MI = 25;
+const NEARBY_MAX_RESULTS = 5;
+function renderNearbySites(s) {
+  const block = el("d-nearby-block");
+  const list = el("d-nearby-list");
+  const countEl = el("d-nearby-count");
+  if (!block || !list) return;
+  const lat = s.lat_real ?? s.lat;
+  const lon = s.lon_real ?? s.lon;
+  if (lat == null || lon == null) {
+    block.hidden = true;
+    list.innerHTML = "";
+    return;
+  }
+  // Linear scan of in-memory sites. Pre-filter via cheap lat-window check
+  // (~0.4° box, ~28 mi at the equator) before Haversine to skip ~99% of
+  // the corpus in O(n).
+  const latDelta = NEARBY_RADIUS_MI / 69; // ~mi per degree of latitude
+  const lonDelta = NEARBY_RADIUS_MI / (69 * Math.cos((lat * Math.PI) / 180));
+  const candidates = [];
+  for (const other of sites) {
+    if (other.id === s.id) continue;
+    const olat = other.lat_real ?? other.lat;
+    const olon = other.lon_real ?? other.lon;
+    if (olat == null || olon == null) continue;
+    if (Math.abs(olat - lat) > latDelta) continue;
+    if (Math.abs(olon - lon) > lonDelta) continue;
+    const dist = haversineMi(lat, lon, olat, olon);
+    if (dist <= NEARBY_RADIUS_MI) candidates.push({ s: other, dist });
+  }
+  candidates.sort((a, b) => a.dist - b.dist);
+  const top = candidates.slice(0, NEARBY_MAX_RESULTS);
+  if (!top.length) {
+    block.hidden = true;
+    list.innerHTML = "";
+    return;
+  }
+  list.innerHTML = top.map(({ s: o, dist }) => {
+    const programLabel = PROGRAM_LABEL[o.program] || o.program;
+    const place = [o.city, o.state].filter(Boolean).join(", ");
+    return `<li>` +
+      `<button type="button" class="nearby-link" data-id="${escapeAttr(o.id)}">` +
+      `<span class="nearby-name">${escapeHtml(o.name || o.id)}</span>` +
+      `<span class="nearby-meta">${escapeHtml(programLabel)}${place ? " · " + escapeHtml(place) : ""}</span>` +
+      `<span class="nearby-dist">${dist.toFixed(1)} mi</span>` +
+      `</button></li>`;
+  }).join("");
+  if (countEl) countEl.textContent = `(${top.length}${candidates.length > top.length ? ` of ${candidates.length}` : ""} within ${NEARBY_RADIUS_MI} mi)`;
+  block.hidden = false;
+}
+
+// Haversine distance in miles between two lat/lon points. Used by the
+// nearby-sites renderer where precise great-circle distance matters
+// across the full ~3,000-mile US span; the local-equirectangular
+// approximation in `connectors/spatial.py` would understate distance
+// by up to ~3% near the corners of CONUS.
+function haversineMi(lat1, lon1, lat2, lon2) {
+  const R = 3958.8; // Earth radius in miles
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+    Math.cos((lat2 * Math.PI) / 180) *
+    Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+
+// Delegated click handler for nearby-site links — wired once at init.
+function wireNearbyClicks() {
+  const list = el("d-nearby-list");
+  if (!list) return;
+  list.addEventListener("click", (e) => {
+    const btn = e.target.closest(".nearby-link");
+    if (!btn) return;
+    const id = btn.dataset.id;
+    if (id) selectSite(id);
+  });
+}
+
 function closeDetail() {
   const detail = el("detail");
   detail.hidden = true;
@@ -2639,6 +2954,40 @@ function applyTheme(theme) {
   const icon = document.getElementById("theme-icon");
   if (icon) icon.textContent = theme === "dark" ? "☀" : "☾";
 }
+// Copy the current page URL (with all filter state encoded by syncUrl)
+// to the clipboard. Prefers the modern async Clipboard API; falls back
+// to the legacy hidden-textarea + execCommand path for older browsers
+// and for non-secure-context loads (Clipboard API requires HTTPS or
+// localhost). Toast confirms the copy so users get feedback without an
+// extra modal.
+function wireShareLink() {
+  const btn = el("share-link");
+  if (!btn) return;
+  btn.addEventListener("click", async () => {
+    const url = window.location.href;
+    let ok = false;
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(url);
+        ok = true;
+      } else {
+        const ta = document.createElement("textarea");
+        ta.value = url;
+        ta.setAttribute("readonly", "");
+        ta.style.position = "fixed";
+        ta.style.left = "-9999px";
+        document.body.appendChild(ta);
+        ta.select();
+        ok = document.execCommand("copy");
+        document.body.removeChild(ta);
+      }
+    } catch (_e) {
+      ok = false;
+    }
+    showToast(ok ? "Link copied to clipboard" : "Couldn't copy link — long-press the address bar instead");
+  });
+}
+
 function wireThemeToggle() {
   el("theme-toggle").addEventListener("click", () => {
     const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
@@ -2681,6 +3030,10 @@ function loadInitialFiltersFromUrl() {
   if (p.has("dc_tier")) {
     const t = p.get("dc_tier") || "";
     if (DC_TIER_RANK[t]) filterState.dcTier = t;
+  }
+  if (p.has("dc_candidate")) {
+    const v = p.get("dc_candidate");
+    if (v === "1" || v === "true") filterState.dcCandidate = true;
   }
 }
 
@@ -2727,6 +3080,7 @@ function syncUrl() {
     if (!isDefaultProgram) p.set("program", Array.from(filterState.programs).join(","));
     if (filterState.minAcreage > 0) p.set("min_ac", String(filterState.minAcreage));
     if (filterState.dcTier) p.set("dc_tier", filterState.dcTier);
+    if (filterState.dcCandidate) p.set("dc_candidate", "1");
     if (selectedId) p.set("site", selectedId);
     const qs = p.toString();
     const newUrl = qs ? `${location.pathname}?${qs}` : location.pathname;
