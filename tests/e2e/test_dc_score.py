@@ -48,12 +48,43 @@ def test_module_exposes_score_function(page, base_url):
     assert has["tooltip"] == "string"
 
 
-def test_weights_sum_to_100(page, base_url):
+def test_weights_sum_to_score_cap(page, base_url):
+    """Component caps sum to at least 100. v1.13.4 raised the readiness
+    component from 10 to 15 to accommodate the +5 Opportunity Zone bonus
+    without displacing existing readiness signals (DC candidate / cleanup
+    / reuse). Total is 105; the final score is clamped to 100 via
+    `Math.min(100, total)` in `computeDcCompositeScore`. A site that
+    saturates every component on tech alone hits 100 and the OZ bonus
+    is absorbed by the clamp — that's the intended "OZ doesn't dominate
+    technical suitability" semantic.
+    """
     _ready(page, base_url)
     total = page.evaluate(
         "() => Object.values(window.DC_SCORE_WEIGHTS).reduce((a, b) => a + b, 0)"
     )
-    assert total == 100
+    # Allow the sum to exceed 100 by up to the OZ bonus (5). Keeps the
+    # test robust if future readiness sub-components get re-balanced
+    # within the cap.
+    assert 100 <= total <= 105, f"weights sum {total} outside [100, 105]"
+
+
+def test_max_score_capped_at_100(page, base_url):
+    """End-to-end clamp check: even with every signal maxed (including OZ),
+    the displayed score caps at 100. Mirrors the design intent of the v1.13.4
+    cap-grow."""
+    _ready(page, base_url)
+    score = page.evaluate("""
+() => window.computeDcCompositeScore({
+  transmission_mi: 0.0, transmission_kv: 500,
+  acreage: 500, gas_pipeline_mi: 0.0,
+  highway_mi: 1, rail_mi: 1,
+  data_center_reuse_candidate: true,
+  npl_status_code: "D",
+  in_reuse: "Yes",
+  in_opportunity_zone: true,
+})
+    """)
+    assert score == 100
 
 
 def test_tooltip_is_attached_to_column_header(page, base_url):
