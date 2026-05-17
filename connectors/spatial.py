@@ -394,3 +394,134 @@ class PointIndex:
         """Convenience: distance only, no attr."""
         hit = self.nearest_with_attr(lat, lon, max_rings=max_rings)
         return None if hit is None else hit[0]
+
+
+def _point_in_ring(lon: float, lat: float, ring: list[list[float]]) -> bool:
+    """Ray-casting point-in-polygon test against a single ring of `[lon, lat]`
+    vertices. Standard odd-crossings algorithm; vertex on boundary counts as
+    inside (matches Esri's `esriSpatialRelIntersects` convention for the OZ
+    use case where census-tract boundaries are deliberately drawn to include
+    edge addresses)."""
+    inside = False
+    n = len(ring)
+    if n < 3:
+        return False
+    j = n - 1
+    for i in range(n):
+        xi, yi = ring[i][0], ring[i][1]
+        xj, yj = ring[j][0], ring[j][1]
+        # Edge crosses the horizontal ray at y=lat?
+        if (yi > lat) != (yj > lat):
+            # x-intercept of the edge at y=lat
+            x_cross = (xj - xi) * (lat - yi) / (yj - yi + 1e-30) + xi
+            if lon < x_cross:
+                inside = not inside
+        j = i
+    return inside
+
+
+class PolygonIndex:
+    """Spatial grid over POLYGONS for point-in-polygon containment lookups.
+
+    Used by enrichment connectors that need "what polygon contains this site"
+    rather than "what's the nearest feature" — e.g. Opportunity Zone census
+    tracts (~8,765 nationwide), state polygons, congressional districts.
+
+    Each polygon is stored as a list of rings (`[[[lon, lat], ...], ...]` —
+    first ring is exterior, remaining rings are holes per the GeoJSON
+    convention). The bucket-by-bbox grid identifies candidate polygons in
+    O(1) cells; we then ray-cast against each candidate. For OZ-scale
+    (~8,765 polygons spread across the US, average tract is small), most
+    queries resolve in <5 ray-casts.
+
+    Note this is intentionally NOT the same architecture as `SegmentIndex` /
+    `PointIndex` — those use Chebyshev-ring expansion for *nearest* queries.
+    Containment is a binary in-or-out test, not a distance query, so it
+    only checks the cell(s) containing the query point and returns as soon
+    as any polygon's bbox contains the point and ray-casting confirms.
+    """
+
+    def __init__(self, cell_deg: float = DEFAULT_CELL_DEG):
+        if cell_deg <= 0:
+            raise ValueError("cell_deg must be positive")
+        self.cell_deg = cell_deg
+        # cell -> list of polygon indices that touch the cell.
+        self._cells: dict[tuple[int, int], list[int]] = defaultdict(list)
+        # Per-polygon: list of rings + bbox + attr.
+        self._rings: list[list[list[list[float]]]] = []
+        self._bboxes: list[tuple[float, float, float, float]] = []  # (lat_lo, lon_lo, lat_hi, lon_hi)
+        self._attrs: list[object] = []
+
+    @property
+    def polygon_count(self) -> int:
+        return len(self._rings)
+
+    def add_polygon(
+        self,
+        rings: list[list[list[float]]],
+        attr: object = None,
+    ) -> bool:
+        """Add one polygon. `rings` is GeoJSON-style — first ring is exterior,
+        any subsequent rings are holes. Returns True if added, False if
+        filtered out (degenerate / out-of-range).
+
+        For ESRI polygons (`{"rings": [[[lon, lat], ...], ...]}`), pass the
+        `rings` field directly.
+        """
+        if not rings or not rings[0] or len(rings[0]) < 3:
+            return False
+        # Compute bbox from the exterior ring (ring 0). Skip null-island
+        # rings entirely.
+        ext = rings[0]
+        lats = [p[1] for p in ext if isinstance(p, (list, tuple)) and len(p) >= 2]
+        lons = [p[0] for p in ext if isinstance(p, (list, tuple)) and len(p) >= 2]
+        if len(lats) < 3 or len(lons) < 3:
+            return False
+        lat_lo, lat_hi = min(lats), max(lats)
+        lon_lo, lon_hi = min(lons), max(lons)
+        if not (-90 <= lat_lo <= 90) or not (-90 <= lat_hi <= 90):
+            return False
+        if not (-180 <= lon_lo <= 180) or not (-180 <= lon_hi <= 180):
+            return False
+        idx = len(self._rings)
+        self._rings.append(rings)
+        self._bboxes.append((lat_lo, lon_lo, lat_hi, lon_hi))
+        self._attrs.append(attr)
+        # Bucket by every cell the bbox touches.
+        cy_lo, cx_lo = _cell_for(lat_lo, lon_lo, self.cell_deg)
+        cy_hi, cx_hi = _cell_for(lat_hi, lon_hi, self.cell_deg)
+        for cy in range(cy_lo, cy_hi + 1):
+            for cx in range(cx_lo, cx_hi + 1):
+                self._cells[(cy, cx)].append(idx)
+        return True
+
+    def containing(self, lat: float, lon: float) -> object | None:
+        """Return the attr of the FIRST polygon that contains (lat, lon),
+        or None if the point is outside every indexed polygon.
+
+        Polygons don't overlap for OZ census tracts (Treasury designation
+        is by tract; tracts partition the US), so "first match" is the
+        natural semantic. If a future use case has overlapping polygons,
+        add `containing_all()`.
+        """
+        cy, cx = _cell_for(lat, lon, self.cell_deg)
+        for idx in self._cells.get((cy, cx), ()):
+            lat_lo, lon_lo, lat_hi, lon_hi = self._bboxes[idx]
+            # Coarse bbox filter — skip the ray-cast if the bbox doesn't even
+            # contain the point.
+            if not (lat_lo <= lat <= lat_hi and lon_lo <= lon <= lon_hi):
+                continue
+            rings = self._rings[idx]
+            # Exterior contains the point?
+            if not _point_in_ring(lon, lat, rings[0]):
+                continue
+            # Check holes (rings 1..). If point is in any hole, polygon
+            # doesn't actually contain it.
+            in_hole = False
+            for hole in rings[1:]:
+                if _point_in_ring(lon, lat, hole):
+                    in_hole = True
+                    break
+            if not in_hole:
+                return self._attrs[idx]
+        return None
