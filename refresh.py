@@ -60,6 +60,12 @@ def _build_parser() -> argparse.ArgumentParser:
                    help="Pretty-print JSON (default is minified — saves ~30%% on uncompressed size).")
     p.add_argument("--combined", action="store_true",
                    help="With --all: also write a combined sites.json with every program's records (~2 MB gzipped). Default off — frontend lazy-loads.")
+    p.add_argument("--missing-only", action="store_true",
+                   help="Enrichment connectors only: skip sites already in the existing "
+                        "docs/data/<slug>.json and merge new records with what's on disk. "
+                        "Useful for resuming partial backfills (epa-superfund-docs, epa-echo, "
+                        "ai-summary) without re-fetching covered sites. Ignored by producer "
+                        "connectors (superfund-npl, epa-acres, dod-fuds, dod-brac).")
 
     # Each connector contributes its own flags. We register them all so help text
     # surfaces every option; non-applicable ones are simply ignored at runtime.

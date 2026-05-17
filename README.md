@@ -76,6 +76,32 @@ Output:
 
 The script is idempotent: re-runs hit a local cache (`data/cache/`) until you pass `--no-cache`. JSON is minified by default and skips null fields; `exclude_none=True` keeps the per-record overhead small.
 
+### Filling gaps: `--missing-only`
+
+Enrichment connectors (`epa-superfund-docs`, `epa-echo`, `infra-proximity`, `ai-summary`) accept `--missing-only`, which:
+
+1. Reads the existing `docs/data/<slug>.json`.
+2. Builds the set of `id`s already covered.
+3. Filters the candidate list to exclude those — only fetches the gap.
+4. Merges the new records with what's on disk before writing, so a partial run never DROPS existing records.
+
+```bash
+# Resume the F/D Superfund docs backfill until every site has a document list.
+python refresh.py --source epa-superfund-docs --missing-only --docs-limit 200
+
+# Top off ECHO enrichment after a Superfund refresh added new sites.
+python refresh.py --source epa-echo --missing-only --echo-limit 200
+
+# After producer connectors add new sites, enrich just the new ones.
+# (infra-proximity short-circuits the ~6-minute index build when nothing is missing.)
+python refresh.py --source infra-proximity --missing-only
+
+# Static AI summaries for the long tail (no API key needed).
+python refresh.py --source ai-summary --ai-static --missing-only --ai-limit 0
+```
+
+The flag is ignored by producer connectors (`superfund-npl`, `epa-acres`, `dod-fuds`, `dod-brac`) — those always fully replace their output because the source-of-truth API is the canonical state. Note also: some gaps are structural and `--missing-only` can't close them — ACRES has no acreage column at the source FeatureServer (all 36k records have `acreage: null` by design), and ~66% of FUDS records (5,832 / 8,822) lack acreage because USACE hasn't digitized layer-4 polygons. See `CLAUDE.md` for the full dead-end inventory.
+
 ### Adding a new data source
 
 The fetch logic lives in `connectors/`. Each source is one file with a class that subclasses `Connector`:

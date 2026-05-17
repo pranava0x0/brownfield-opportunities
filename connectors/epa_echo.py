@@ -214,6 +214,18 @@ class EpaEcho(Connector):
                 (s.get("name") or "").lower(),
             )
         )
+
+        # `--missing-only`: drop sites already in the existing output before
+        # applying skip/take, so the cap targets uncovered work.
+        missing_only = bool(getattr(args, "missing_only", False))
+        if missing_only:
+            covered = self.existing_ids()
+            if covered:
+                before = len(sites)
+                sites = [s for s in sites if s.get("id") not in covered]
+                log.info("--missing-only: %d/%d sites already covered, %d remaining",
+                         before - len(sites), before, len(sites))
+
         skip = max(0, getattr(args, "echo_skip", 0) or 0)
         take = getattr(args, "echo_limit", DEFAULT_LIMIT) or 0
         target_sites = sites[skip: skip + take] if take else sites[skip:]
@@ -264,6 +276,15 @@ class EpaEcho(Connector):
         if getattr(args, "limit", None):
             records = records[: args.limit]
         log.info("enriched %d sites with ECHO data", len(records))
+
+        # In `--missing-only` mode, merge the new delta with what's on disk
+        # so the file write doesn't truncate previously-enriched records.
+        if missing_only:
+            existing = self.existing_records()
+            merged = self.merge_records_by_id(records, existing)
+            log.info("--missing-only: merged %d new + %d existing = %d total",
+                     len(records), len(existing), len(merged))
+            return merged
         return records
 
     # ----- helpers -----
