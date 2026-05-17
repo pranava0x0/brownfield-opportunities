@@ -1314,6 +1314,35 @@ main {
   border-color: var(--readiness-ready);
 }
 
+/* Power-plant chip — matches kv-chip but slightly wider since it carries
+   MW + fuel ("450 MW · natural gas"). `.ready` lights up green when the
+   nameplate is large enough to host a hyperscale DC behind the meter. */
+.pp-chip {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 0 6px;
+  margin-left: 4px;
+  border: 1px solid var(--border-strong, var(--border));
+  border-radius: 9px;
+  color: var(--muted);
+  background: var(--surface);
+  vertical-align: 1px;
+  font-variant-numeric: tabular-nums;
+}
+.pp-chip.ready {
+  color: var(--readiness-ready);
+  border-color: var(--readiness-ready);
+}
+
+/* Flood-zone cell — bare text (not a chip), with status-color tinting on
+   the whole <dd> when the SFHA classification is known.
+   - .violation = red (Special Flood Hazard Area — permitting risk)
+   - .ready = green (Zone X — minimal hazard) */
+#d-flood-zone.violation { color: var(--status-final); font-weight: 500; }
+#d-flood-zone.ready { color: var(--readiness-ready); font-weight: 500; }
+
 /* Persona presets in the filter strip — one button per ladder rung.
    Active state matches the program-checkbox emphasis: filled bg, accent
    border. Each button has a label + small acreage threshold. */

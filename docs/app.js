@@ -1021,9 +1021,12 @@ function ensureSummariesLoaded() {
 
 // Universal infrastructure-proximity enrichment. Joins onto every program
 // (Superfund, ACRES, FUDS, BRAC) by `id` to add `transmission_mi`,
-// `rail_mi`, `highway_mi`. Computed at refresh time from HIFLD + Census
-// TIGER by the `infra-proximity` connector. Distances >100 mi are absent
-// (treated as out-of-range / out-of-CONUS).
+// `rail_mi`, `highway_mi`, `gas_pipeline_mi`, plus the v1.13.3 additions
+// `substation_mi/kv`, `power_plant_mi/mw/fuel`, and `flood_zone/in_sfha`.
+// Computed at refresh time from HIFLD + Census TIGER + OSM Overpass + FEMA
+// NFHL by the `infra-proximity` connector. Distances >100 mi are absent
+// (treated as out-of-range / out-of-CONUS); flood_zone is null outside any
+// mapped FEMA study area.
 function ensureInfraLoaded() {
   if (infraLoadingPromise) return infraLoadingPromise;
   infraLoadingPromise = fetch(INFRA_DATA_URL, { priority: "low" })
@@ -1042,6 +1045,13 @@ function ensureInfraLoaded() {
         if (rec.rail_mi != null) patch.rail_mi = rec.rail_mi;
         if (rec.highway_mi != null) patch.highway_mi = rec.highway_mi;
         if (rec.gas_pipeline_mi != null) patch.gas_pipeline_mi = rec.gas_pipeline_mi;
+        if (rec.substation_mi != null) patch.substation_mi = rec.substation_mi;
+        if (rec.substation_kv != null) patch.substation_kv = rec.substation_kv;
+        if (rec.power_plant_mi != null) patch.power_plant_mi = rec.power_plant_mi;
+        if (rec.power_plant_mw != null) patch.power_plant_mw = rec.power_plant_mw;
+        if (rec.power_plant_fuel != null) patch.power_plant_fuel = rec.power_plant_fuel;
+        if (rec.flood_zone != null) patch.flood_zone = rec.flood_zone;
+        if (rec.in_sfha != null) patch.in_sfha = rec.in_sfha;
         Object.assign(existing, patch);
       }
       // Re-run KPI deck (hyperscale-ready count depends on transmission_kv)
@@ -2476,9 +2486,22 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
   // nearest line is hyperscale-grade (≥230 kV) at a glance. The kV chip
   // is a child span so subsequent calls to setMileCell don't clobber it.
   setKvSuffix("d-transmission-mi", s.transmission_kv);
+  setMileCell("d-substation-mi", s.substation_mi, { offConus });
+  // Substation kV uses the same chip pattern as transmission. A 500 kV
+  // substation 0.3 mi away is the most actionable signal for a hyperscale
+  // siting evaluation — pairs with the transmission line distance above.
+  setKvSuffix("d-substation-mi", s.substation_kv);
+  setMileCell("d-power-plant-mi", s.power_plant_mi, { offConus });
+  // Append MW + fuel suffix to the power-plant row so users see "2.5 mi · 450 MW · natural gas".
+  setPowerPlantSuffix("d-power-plant-mi", s.power_plant_mw, s.power_plant_fuel);
   setMileCell("d-rail-mi", s.rail_mi, { offConus });
   setMileCell("d-highway-mi", s.highway_mi, { offConus });
   setMileCell("d-gas-pipeline-mi", s.gas_pipeline_mi, { offConus });
+  // Flood zone is a string code, not a mile-distance, so it gets its own
+  // renderer. Critical permitting signal: a site in an SFHA effectively
+  // can't be permitted as critical infrastructure (DC, energy plant) without
+  // expensive elevation / flood-proofing work.
+  setFloodZoneCell("d-flood-zone", s.flood_zone, s.in_sfha);
   // State data-center tax incentive chip (Tier 1/2/3) — uses the static
   // STATE_DC_INCENTIVES lookup, no fetch.
   renderStateIncentive(s);
@@ -2881,12 +2904,19 @@ const CSV_COLUMNS = [
   // Owner provenance
   { key: "current_owner", label: "current_owner" },
   { key: "current_owner_source", label: "current_owner_source" },
-  // Universal infra-proximity (v1.10 + v1.13 gas pipelines)
+  // Universal infra-proximity (v1.10 + v1.13 gas pipelines + v1.13.3 substation/power-plant/flood)
   { key: "transmission_mi", label: "transmission_mi" },
   { key: "transmission_kv", label: "transmission_kv" },
+  { key: "substation_mi", label: "substation_mi" },
+  { key: "substation_kv", label: "substation_kv" },
+  { key: "power_plant_mi", label: "power_plant_mi" },
+  { key: "power_plant_mw", label: "power_plant_mw" },
+  { key: "power_plant_fuel", label: "power_plant_fuel" },
   { key: "rail_mi", label: "rail_mi" },
   { key: "highway_mi", label: "highway_mi" },
   { key: "gas_pipeline_mi", label: "gas_pipeline_mi" },
+  { key: "flood_zone", label: "flood_zone" },
+  { key: "in_sfha", label: "in_sfha" },
   // EPA RE-Powering qualitative (Superfund-only, v1.7)
   { key: "near_electric_transmission", label: "near_electric_transmission" },
   { key: "near_water_supply", label: "near_water_supply" },
@@ -3164,6 +3194,73 @@ function setKvSuffix(id, kv) {
     : "<138 kV — sub-transmission";
   node.appendChild(document.createTextNode(" "));
   node.appendChild(span);
+}
+
+// Append "450 MW · natural gas" to the end of the power-plant distance cell.
+// Same chip pattern as setKvSuffix — used for the nearest-power-plant signal
+// where the MW + fuel type matter as much as the distance (e.g. "450 MW
+// natural gas at 2 mi" implies behind-the-meter PPA potential, while "20 MW
+// solar at 1 mi" doesn't).
+function setPowerPlantSuffix(id, mw, fuel) {
+  const node = el(id);
+  if (!node) return;
+  for (const old of node.querySelectorAll(".pp-chip")) old.remove();
+  if (mw == null && !fuel) return;
+  const parts = [];
+  if (mw != null) parts.push(`${Math.round(mw).toLocaleString()} MW`);
+  if (fuel) parts.push(String(fuel));
+  const span = document.createElement("span");
+  // Highlight large dispatchable generation — these are the PPA / behind-the-
+  // meter candidates. >100 MW nameplate is the rough threshold where
+  // utility-scale generation can host a hyperscale DC's load behind the meter.
+  span.className = "pp-chip" + (mw != null && mw >= 100 ? " ready" : "");
+  span.textContent = parts.join(" · ");
+  span.title = mw != null && mw >= 100
+    ? "≥100 MW — hyperscale-tier dispatchable generation nearby"
+    : "Nearby generation — PPA / co-location candidate";
+  node.appendChild(document.createTextNode(" "));
+  node.appendChild(span);
+}
+
+// FEMA flood-zone codes the dashboard can encounter. The map keeps the
+// labels short for the detail panel; the title attribute carries the full
+// description so users can hover for context.
+const FLOOD_ZONE_LABELS = {
+  A: { short: "Zone A · 100-yr floodplain", title: "1% annual chance of flooding — no Base Flood Elevation determined" },
+  AE: { short: "Zone AE · 100-yr w/ BFE", title: "1% annual chance of flooding — Base Flood Elevation determined" },
+  AH: { short: "Zone AH · 100-yr ponding", title: "1% annual chance of shallow ponding (1-3 ft)" },
+  AO: { short: "Zone AO · 100-yr sheet flow", title: "1% annual chance of sheet flow flooding (1-3 ft)" },
+  V: { short: "Zone V · coastal high-hazard", title: "Coastal 1% annual chance with velocity hazard (wave action)" },
+  VE: { short: "Zone VE · coastal w/ BFE", title: "Coastal 1% annual chance with velocity hazard — BFE determined" },
+  X: { short: "Zone X · minimal hazard", title: "Outside 1% and 0.2% annual chance floodplains" },
+  D: { short: "Zone D · undetermined", title: "Possible but undetermined flood hazards" },
+};
+
+// Render the flood-zone cell. Critical permitting signal: a site in an SFHA
+// effectively can't be permitted as critical infrastructure (data center,
+// energy plant) without expensive elevation / flood-proofing work — so SFHA
+// gets a red "violation"-style tint to read at a glance.
+function setFloodZoneCell(id, zone, inSfha) {
+  const node = el(id);
+  if (!node) return;
+  if (zone == null) {
+    node.textContent = "Not available";
+    node.classList.add("muted-cell");
+    node.classList.remove("violation", "ready");
+    node.title = "";
+    return;
+  }
+  const info = FLOOD_ZONE_LABELS[zone] || { short: `Zone ${zone}`, title: "" };
+  node.textContent = info.short;
+  node.classList.remove("muted-cell");
+  // Red for SFHA (permitting risk); green for Zone X (minimal hazard).
+  node.classList.toggle("violation", inSfha === true);
+  node.classList.toggle("ready", inSfha === false && (zone === "X" || zone === "X500"));
+  node.title = info.title + (inSfha === true
+    ? " — Special Flood Hazard Area (SFHA)"
+    : inSfha === false
+    ? " — outside SFHA"
+    : "");
 }
 
 // Render the State DC tax incentive chip in the detail panel. Looks up
