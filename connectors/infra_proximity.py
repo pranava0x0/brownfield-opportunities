@@ -208,6 +208,27 @@ class InfraProximity(Connector):
         log.info("loaded %d sites across %d program files",
                  len(sites), self._loaded_program_count)
 
+        # `--missing-only`: drop sites already enriched in the existing output.
+        # The connector emits a record per site (even when every layer is out
+        # of range — see the tombstone comment in the loop below), so "id in
+        # existing output" is the exact predicate for "we already tried this
+        # one." Useful when the producer connectors added new sites since the
+        # last infra-proximity run.
+        missing_only = bool(getattr(args, "missing_only", False))
+        if missing_only:
+            covered = self.existing_ids()
+            if covered:
+                before = len(sites)
+                sites = [s for s in sites if s.get("id") not in covered]
+                log.info("--missing-only: %d/%d sites already covered, %d remaining",
+                         before - len(sites), before, len(sites))
+            # No new sites to enrich → skip the ~6-minute index build entirely.
+            if not sites:
+                existing = self.existing_records()
+                log.info("--missing-only: nothing to fetch; returning %d existing records",
+                         len(existing))
+                return existing
+
         # Build one SegmentIndex per layer. Skipped layers leave the field
         # absent from emitted records (frontend renders "Not available").
         indexes: dict[str, SegmentIndex] = {}
@@ -295,6 +316,14 @@ class InfraProximity(Connector):
         if getattr(args, "limit", None):
             records = records[: args.limit]
 
+        # In `--missing-only` mode, merge the new delta with what's on disk
+        # so the file write doesn't truncate previously-enriched records.
+        if missing_only:
+            existing = self.existing_records()
+            merged = self.merge_records_by_id(records, existing)
+            log.info("--missing-only: merged %d new + %d existing = %d total",
+                     len(records), len(existing), len(merged))
+            return merged
         return records
 
     # ---- helpers ---------------------------------------------------------
