@@ -1274,6 +1274,42 @@ main {
   padding: 0 6px;
 }
 
+/* Opportunity Zone pill — financial signal, not technical. Outlined in
+   accent (matches dc-pill, since OZ is a "look at this" indicator rather
+   than a "ready to ship" indicator like cleanup-complete). */
+.pill.oz-pill {
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 9.5px;
+  padding: 0 6px;
+}
+
+/* Opportunity Zone "Yes" rendering in the detail-panel infra section —
+   reuses the `ready` green color token shared with flood-zone Zone X
+   and the kV / pp chips. Anchor `<a>` inside the dd uses the same color. */
+#d-opp-zone.ready { color: var(--readiness-ready); font-weight: 500; }
+#d-opp-zone.ready a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Filter checkbox row for "Opportunity Zone only" — sits in the filter
+   strip alongside the persona buttons. Compact, single-line label. */
+.filter-opp-zone {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.filter-opp-zone input { margin: 0; }
+.filter-opp-zone span { color: var(--text); }
+
 /* DC suitability tier pill (Tier 0 score). Outline-only — accent-colored
    for sub-hyperscale (edge / colo) and green-tinted (`.ready`) for
    hyperscale / mega so the strongest signal pops without color clash. */
