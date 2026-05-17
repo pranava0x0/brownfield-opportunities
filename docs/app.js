@@ -2092,6 +2092,10 @@ function makeRow(s) {
   } else {
     statusHtml = '<span class="muted-cell">—</span>';
   }
+  const dcScore = computeDcCompositeScore(s);
+  const dcScoreHtml = dcScore == null
+    ? '<span class="muted-cell">—</span>'
+    : String(dcScore);
   tr.innerHTML = `
     <td>${escapeHtml(s.name || "—")}</td>
     <td><span class="pill" data-program="${escapeAttr(s.program)}">${escapeHtml(programLabel)}</span></td>
@@ -2100,6 +2104,7 @@ function makeRow(s) {
     <td>${statusHtml}</td>
     <td>${escapeHtml(s.city || "—")}</td>
     <td>${escapeHtml(s.county || "—")}</td>
+    <td class="num">${dcScoreHtml}</td>
   `;
   tr.addEventListener("click", () => selectSite(s.id, { fromTable: true }));
   return tr;
@@ -2211,6 +2216,16 @@ function ensureRowRendered(id) {
 
 function makeComparator(key, dir) {
   const mul = dir === "asc" ? 1 : -1;
+  if (key === "dc_score") {
+    return (a, b) => {
+      const av = computeDcCompositeScore(a);
+      const bv = computeDcCompositeScore(b);
+      if (av == null && bv == null) return 0;
+      if (av == null) return 1;
+      if (bv == null) return -1;
+      return (av - bv) * mul;
+    };
+  }
   return (a, b) => {
     const av = a[key], bv = b[key];
     if (av == null && bv == null) return 0;
@@ -2250,10 +2265,19 @@ if (_sortThead) {
     const key = th.dataset.sort;
     if (!key) return;
     if (key === sortKey) sortDir = sortDir === "asc" ? "desc" : "asc";
-    else { sortKey = key; sortDir = (key === "acreage") ? "desc" : "asc"; }
+    else { sortKey = key; sortDir = (key === "acreage" || key === "dc_score") ? "desc" : "asc"; }
     rebuildTable();
     if (selectedId) tableRowsById.get(selectedId)?.classList.add("selected");
   });
+}
+
+// Single source of truth for the DC-score column tooltip lives in
+// dc-score.js so the formula text doesn't drift between the score
+// implementation and the user-facing explanation.
+const _dcScoreTh = document.getElementById("th-dc-score");
+if (_dcScoreTh && typeof DC_SCORE_TOOLTIP === "string") {
+  _dcScoreTh.setAttribute("title", DC_SCORE_TOOLTIP);
+  _dcScoreTh.setAttribute("aria-label", `DC score. ${DC_SCORE_TOOLTIP}`);
 }
 
 // ----- Tabs -----
