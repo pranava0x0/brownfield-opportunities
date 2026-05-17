@@ -15,7 +15,7 @@ Static dashboard of EPA Superfund + ACRES brownfield + USACE FUDS + DOD BRAC sit
 
 **Per-site enrichment** —
 
-- **Universal infrastructure proximity** (v1.10) — distance in miles to nearest electric transmission line (HIFLD), primary road (Census TIGER), and rail (Census TIGER). Pure-Python spatial grid index, no shapely/rtree dependency. ~98% coverage on transmission alone.
+- **Universal infrastructure proximity** (v1.10 / expanded v1.13.3) — distance in miles to nearest electric transmission line (HIFLD, with kV), substation (OpenStreetMap, with kV), power plant (HIFLD, with MW + fuel type), primary road (Census TIGER), rail (Census TIGER), natural-gas pipeline (HIFLD), plus FEMA flood-zone classification (zone code + SFHA boolean). Pure-Python spatial grid for points + polylines; FEMA flood zone via per-site REST query. No shapely/rtree dependency.
 - **EPA Redevelopment / data-center reuse flag** (v1.7) — qualitative power / water / wastewater / population-density signals from EPA's RE-Powering FeatureServer. 828 / 1,905 Superfund sites flagged as data-center reuse candidates (≥50 ac + power + water).
 - **Federal documents** (v1.9) — RODs, ESDs, Five Year Reviews, fact sheets pulled from EPA SEMS via a three-hop walk (EPA pretty page → SF_SITE_ID → cumulis docdata → SEMS cachejson).
 - **EPA ECHO enforcement summary** (v1.11) — 5-year inspections / formal & informal actions / penalties / current compliance / last violation date. Open enforcement gets red-highlighted styling in the detail panel.

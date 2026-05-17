@@ -47,10 +47,21 @@ def _polyline_feature(coords: list[list[float]]) -> dict:
 
 
 def _make_args(**overrides):
-    """argparse.Namespace with the per-layer skip flags defaulted off."""
+    """argparse.Namespace with skip flags set up for fast unit tests.
+
+    Polyline layers default to NOT-skipped (tests that want them mock
+    `http_get_json`). Point + per-site layers (substation / power_plant /
+    flood_zone) default to SKIPPED — they go through different code paths
+    and would otherwise hit real Overpass / HIFLD / FEMA endpoints when the
+    enclosing test doesn't explicitly mock them.
+    """
     base = {"limit": None}
     for layer in LAYERS:
         base[f"infra_skip_{layer}"] = False
+    # Default-skip the layers added in v1.13.3 (substation, power_plant,
+    # flood_zone) so existing tests don't accidentally trigger network I/O.
+    for layer in ("substation", "power_plant", "flood_zone"):
+        base[f"infra_skip_{layer}"] = True
     base.update(overrides)
     return argparse.Namespace(**base)
 
@@ -85,7 +96,9 @@ def test_registered_in_registry():
 
 def test_distance_field_per_layer():
     # Sanity: every LAYERS key has a corresponding DISTANCE_FIELD entry.
-    assert set(DISTANCE_FIELD) == set(LAYERS)
+    # Point layers (substation, power_plant) live outside LAYERS but still
+    # carry a `*_mi` field, so DISTANCE_FIELD is a superset of LAYERS.
+    assert set(LAYERS).issubset(set(DISTANCE_FIELD))
 
 
 # --- _load_sites ---
@@ -585,3 +598,255 @@ def test_payload_with_infra_records_validates():
     # Confirm fields round-tripped.
     assert payload.sites[0].transmission_mi == 1.0
     assert payload.sites[1].rail_mi == 0.7
+
+
+# ----- v1.13.3: substation / power-plant / flood-zone layers -----
+
+def test_parse_osm_voltage_handles_typical_inputs():
+    from connectors.infra_proximity import _parse_osm_voltage
+    assert _parse_osm_voltage("230000") == 230.0
+    assert _parse_osm_voltage("115000") == 115.0
+    # Multi-value tag: max wins.
+    assert _parse_osm_voltage("230000;115000") == 230.0
+    assert _parse_osm_voltage("46000;115000;230000") == 230.0
+
+
+def test_parse_osm_voltage_returns_none_for_blanks():
+    from connectors.infra_proximity import _parse_osm_voltage
+    for v in (None, "", "  ", "abc", "0", "-100"):
+        assert _parse_osm_voltage(v) is None
+
+
+def test_parse_osm_voltage_skips_unparseable_parts():
+    """A `;`-separated multi-value with some garbage parts still returns
+    the max of the valid ones."""
+    from connectors.infra_proximity import _parse_osm_voltage
+    assert _parse_osm_voltage("230000;not_a_number;115000") == 230.0
+
+
+def test_build_substation_index_attaches_kv_attr(tmp_path, monkeypatch):
+    """The substation index must carry the parsed kV in the attr dict so
+    `nearest_with_attr()` can surface it on enrichment."""
+    monkeypatch.setattr(InfraProximity, "_data_dir", staticmethod(lambda: tmp_path))
+    inst = InfraProximity(cache_dir=tmp_path / "cache")
+    # Mock the per-bbox fetch to return a single substation with voltage tag.
+    monkeypatch.setattr(
+        inst, "_fetch_overpass_substations",
+        lambda bbox, use_cache: [
+            {"type": "way",
+             "center": {"lat": 40.0, "lon": -74.0},
+             "tags": {"power": "substation", "voltage": "230000"}},
+        ],
+    )
+    idx = inst._build_substation_index(use_cache=True)
+    # 7 bboxes × 1 substation each → 7 points all at (40, -74) with kv=230.
+    assert idx.point_count == 7
+    hit = idx.nearest_with_attr(40.0, -74.0)
+    assert hit is not None
+    d, attr = hit
+    assert d == pytest.approx(0.0, abs=0.001)
+    assert attr == {"kv": 230.0}
+
+
+def test_build_substation_index_skips_missing_geometry(tmp_path, monkeypatch):
+    monkeypatch.setattr(InfraProximity, "_data_dir", staticmethod(lambda: tmp_path))
+    inst = InfraProximity(cache_dir=tmp_path / "cache")
+    monkeypatch.setattr(
+        inst, "_fetch_overpass_substations",
+        lambda bbox, use_cache: [
+            {"type": "node", "lat": None, "lon": None, "tags": {}},
+            {"type": "way", "center": {}, "tags": {}},
+            {"type": "node", "lat": 40.0, "lon": -74.0, "tags": {}},  # valid
+        ],
+    )
+    idx = inst._build_substation_index(use_cache=True)
+    # 7 bboxes × 1 valid substation = 7 indexed points.
+    assert idx.point_count == 7
+
+
+def test_build_power_plant_index_carries_mw_and_fuel(tmp_path):
+    inst = InfraProximity(cache_dir=tmp_path / "cache")
+    pages = [
+        {"features": [
+            {"attributes": {"Plant_Name": "Test Gas", "Total_MW": 450.5,
+                            "PrimSource": "natural gas"},
+             "geometry": {"x": -74.0, "y": 40.0}},
+            {"attributes": {"Plant_Name": "Test Solar", "Total_MW": 12.3,
+                            "PrimSource": "solar"},
+             "geometry": {"x": -75.0, "y": 41.0}},
+        ]},
+        {"features": []},
+    ]
+    call_count = {"n": 0}
+    def fake_get(url, params, use_cache, cache_key=None):
+        result = pages[call_count["n"]]
+        call_count["n"] += 1
+        return result
+    with patch.object(inst, "http_get_json", side_effect=fake_get):
+        idx = inst._build_power_plant_index(use_cache=True)
+    assert idx.point_count == 2
+    hit = idx.nearest_with_attr(40.0, -74.0)
+    assert hit is not None
+    _, attr = hit
+    assert attr["mw"] == 450.5
+    assert attr["fuel"] == "natural gas"
+    assert attr["name"] == "Test Gas"
+
+
+def test_build_power_plant_index_skips_missing_geometry(tmp_path):
+    inst = InfraProximity(cache_dir=tmp_path / "cache")
+    pages = [
+        {"features": [
+            {"attributes": {}, "geometry": {}},  # no x/y
+            {"attributes": {"Total_MW": 10, "PrimSource": "wind"},
+             "geometry": {"x": -74.0, "y": 40.0}},
+        ]},
+        {"features": []},
+    ]
+    call_count = {"n": 0}
+    def fake_get(url, params, use_cache, cache_key=None):
+        result = pages[call_count["n"]]
+        call_count["n"] += 1
+        return result
+    with patch.object(inst, "http_get_json", side_effect=fake_get):
+        idx = inst._build_power_plant_index(use_cache=True)
+    assert idx.point_count == 1
+
+
+def test_query_flood_zone_parses_sfha_true(tmp_path):
+    inst = InfraProximity(cache_dir=tmp_path / "cache")
+    fake_response = {"features": [
+        {"attributes": {"FLD_ZONE": "AE", "SFHA_TF": "T", "ZONE_SUBTY": ""}},
+    ]}
+    with patch.object(inst, "http_get_json", return_value=fake_response):
+        zone, sfha = inst._query_flood_zone(40.0, -74.0, use_cache=True)
+    assert zone == "AE"
+    assert sfha is True
+
+
+def test_query_flood_zone_parses_sfha_false():
+    inst = InfraProximity(cache_dir=Path("/tmp/test_cache_unused"))
+    fake_response = {"features": [
+        {"attributes": {"FLD_ZONE": "X", "SFHA_TF": "F"}},
+    ]}
+    with patch.object(inst, "http_get_json", return_value=fake_response):
+        zone, sfha = inst._query_flood_zone(40.0, -74.0, use_cache=True)
+    assert zone == "X"
+    assert sfha is False
+
+
+def test_query_flood_zone_returns_none_when_no_features():
+    """Outside any mapped flood-study area, FEMA returns empty features."""
+    inst = InfraProximity(cache_dir=Path("/tmp/test_cache_unused"))
+    with patch.object(inst, "http_get_json", return_value={"features": []}):
+        zone, sfha = inst._query_flood_zone(40.0, -74.0, use_cache=True)
+    assert zone is None
+    assert sfha is None
+
+
+def test_query_flood_zone_handles_missing_sfha_tf():
+    """SFHA_TF can be missing on some FEMA polygons — `in_sfha` must
+    fall back to None rather than raising."""
+    inst = InfraProximity(cache_dir=Path("/tmp/test_cache_unused"))
+    fake_response = {"features": [
+        {"attributes": {"FLD_ZONE": "D"}},  # no SFHA_TF
+    ]}
+    with patch.object(inst, "http_get_json", return_value=fake_response):
+        zone, sfha = inst._query_flood_zone(40.0, -74.0, use_cache=True)
+    assert zone == "D"
+    assert sfha is None
+
+
+def test_query_flood_zone_skips_empty_zone_features():
+    """If FEMA returns a feature with FLD_ZONE blank, treat as no signal."""
+    inst = InfraProximity(cache_dir=Path("/tmp/test_cache_unused"))
+    fake_response = {"features": [
+        {"attributes": {"FLD_ZONE": "", "SFHA_TF": "F"}},
+    ]}
+    with patch.object(inst, "http_get_json", return_value=fake_response):
+        zone, sfha = inst._query_flood_zone(40.0, -74.0, use_cache=True)
+    assert zone is None
+    assert sfha is None
+
+
+def test_fetch_records_emits_new_fields_when_enabled(tmp_path, monkeypatch):
+    """End-to-end: with substation + power_plant + flood_zone enabled, the
+    enriched record carries all the new fields."""
+    monkeypatch.setattr(InfraProximity, "_data_dir", staticmethod(lambda: tmp_path))
+    _write_program_file(tmp_path, "superfund-npl.json", [
+        {"id": "S1", "program": "superfund", "lat": 40.0, "lon": -74.0},
+    ])
+    inst = InfraProximity(cache_dir=tmp_path / "cache")
+    # Mock the polyline pages (transmission only — keep the others skipped).
+    pages = [
+        {"features": [_polyline_feature([[-74.0, 40.0], [-74.001, 40.001]])]},
+        {"features": []},
+    ]
+    call_count = {"n": 0}
+    def fake_get(url, params, use_cache, cache_key=None):
+        # Power plant fetch and flood lookup both go through http_get_json.
+        key = cache_key or {}
+        if key.get("src") == "power_plants":
+            return {"features": [
+                {"attributes": {"Plant_Name": "Test Plant", "Total_MW": 100.0,
+                                "PrimSource": "natural gas"},
+                 "geometry": {"x": -74.0, "y": 40.001}},
+                {"features": []},
+            ]} if key.get("offset", 0) == 0 else {"features": []}
+        if key.get("src") == "fema_flood":
+            return {"features": [{"attributes": {"FLD_ZONE": "X", "SFHA_TF": "F"}}]}
+        # Polyline transmission fetch.
+        if key.get("layer") == "transmission":
+            result = pages[call_count["n"]]
+            call_count["n"] += 1
+            return result
+        return {"features": []}
+    # Mock the Overpass substation fetcher directly.
+    monkeypatch.setattr(
+        inst, "_fetch_overpass_substations",
+        lambda bbox, use_cache: [
+            {"type": "node", "lat": 40.001, "lon": -74.001,
+             "tags": {"voltage": "230000"}},
+        ],
+    )
+    args = _make_args(
+        infra_skip_substation=False, infra_skip_power_plant=False,
+        infra_skip_flood_zone=False,
+        infra_skip_highway=True, infra_skip_rail=True, infra_skip_gas_pipeline=True,
+    )
+    with patch.object(inst, "http_get_json", side_effect=fake_get):
+        records = inst.fetch_records(args, use_cache=True)
+    assert len(records) == 1
+    r = records[0]
+    assert "transmission_mi" in r
+    assert "substation_mi" in r
+    assert r["substation_kv"] == 230.0
+    assert "power_plant_mi" in r
+    assert r["power_plant_mw"] == 100.0
+    assert r["power_plant_fuel"] == "natural gas"
+    assert r["flood_zone"] == "X"
+    assert r["in_sfha"] is False
+
+
+def test_schema_accepts_new_v13_3_fields():
+    """New v1.13.3 fields must round-trip through SiteRecord + Payload."""
+    rec = SiteRecord(
+        id="S1", program="superfund",
+        substation_mi=0.7, substation_kv=230.0,
+        power_plant_mi=2.5, power_plant_mw=450.0, power_plant_fuel="natural gas",
+        flood_zone="X", in_sfha=False,
+    )
+    dumped = rec.model_dump(exclude_none=True)
+    assert dumped["substation_mi"] == 0.7
+    assert dumped["substation_kv"] == 230.0
+    assert dumped["power_plant_fuel"] == "natural gas"
+    assert dumped["flood_zone"] == "X"
+    assert dumped["in_sfha"] is False
+
+
+def test_schema_new_fields_excluded_when_none():
+    rec = SiteRecord(id="S1", program="superfund")
+    dumped = rec.model_dump(exclude_none=True)
+    for f in ("substation_mi", "substation_kv", "power_plant_mi",
+              "power_plant_mw", "power_plant_fuel", "flood_zone", "in_sfha"):
+        assert f not in dumped
