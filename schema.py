@@ -183,6 +183,29 @@ class SiteRecord(BaseModel):
                     "critical infrastructure without expensive elevation / "
                     "flood-proofing work.",
     )
+    in_opportunity_zone: Optional[bool] = Field(
+        default=None,
+        description="True if the site sits inside a Treasury-designated "
+                    "Qualified Opportunity Zone (QOZ). Universal nationwide "
+                    "coverage from HUD's Opportunity_Zones FeatureServer "
+                    "(8,765 census tracts). Distinct from the legacy "
+                    "`in_opp_zone` field which is populated from EPA "
+                    "RE-Powering qualitative data for Superfund sites only.",
+    )
+    oz_tract_geoid: Optional[str] = Field(
+        default=None,
+        description="GEOID10 of the Qualified Opportunity Zone census tract "
+                    "containing this site (11-digit state+county+tract). "
+                    "Used for hyperlinking to canonical Treasury / HUD "
+                    "tract-level resources.",
+    )
+    oz_rural: Optional[bool] = Field(
+        default=None,
+        description="True if the OZ tract is designated as Rural (per the "
+                    "HUD Rural flag on the Opportunity_Zones layer). Rural "
+                    "OZs are a small subset (~700 tracts) but matter for "
+                    "USDA-aligned investment programs.",
+    )
 
     # Ownership / transfer / history. Most are still None for most programs;
     # FUDS populates `current_owner` directly from the source.

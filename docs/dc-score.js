@@ -1,18 +1,26 @@
 // Composite DC suitability score (0–100).
 //
 // A weighted sum of the per-site signals already on disk from the
-// infra-proximity + epa-redev enrichment connectors. Higher = better
-// candidate for data-center or energy-generation development. Returns
-// null when transmission distance is missing (the load-bearing signal —
-// a site you can't power isn't a DC candidate at any size).
+// infra-proximity + epa-redev + opportunity-zone enrichment connectors.
+// Higher = better candidate for data-center or energy-generation
+// development. Returns null when transmission distance is missing (the
+// load-bearing signal — a site you can't power isn't a DC candidate).
 //
-// Component caps (total 100):
+// Component caps (sum 105, final clamped to 100):
 //   - Transmission distance: 20
 //   - Voltage (kV):          20
 //   - Acreage:               25
 //   - Gas pipeline:          15
 //   - Logistics (highway+rail): 10
-//   - Readiness (DC candidate / cleanup / active reuse): 10
+//   - Readiness (DC candidate / cleanup / active reuse / OZ): 15
+//
+// The readiness cap grew from 10 → 15 in v1.13.4 to accommodate the +5
+// Opportunity Zone bonus without displacing existing readiness signals
+// (DC candidate, cleanup-complete, active reuse). Total weights now sum
+// to 105; final score clamped to 100 so the displayed range stays clean.
+// A perfect-on-tech site at 100 doesn't see the OZ bump (clamp absorbs
+// it), but the vast majority of sites <95 get a measurable lift inside
+// a QOZ — which is the intent.
 //
 // Bucket thresholds align with the existing DC_TIERS ladder where possible
 // (≥138 / 230 / 500 kV, ≥25 / 100 / 500 ac, transmission ≤1 mi) so the
@@ -24,14 +32,15 @@ const DC_SCORE_WEIGHTS = Object.freeze({
   acreage:               25,
   gas_pipeline:          15,
   logistics:             10,
-  readiness:             10,
+  readiness:             15,
 });
 
 const DC_SCORE_TOOLTIP =
   "DC suitability score (0–100). Weighted sum: transmission distance (20), " +
   "voltage (20), acreage (25), gas pipeline (15), highway + rail logistics (10), " +
-  "readiness — EPA DC candidate flag, NPL cleanup status, active reuse (10). " +
-  "Higher = better candidate. Sites without transmission data score N/A.";
+  "readiness — EPA DC candidate flag, NPL cleanup status, active reuse, " +
+  "Opportunity Zone (15 max). Higher = better candidate. " +
+  "Sites without transmission data score N/A.";
 
 function _scoreTransmissionDistance(mi) {
   if (mi == null) return 0;
@@ -89,7 +98,8 @@ function _scoreReadiness(site) {
   if (site.npl_status_code === "D") s += 3;       // cleanup complete
   else if (site.npl_status_code === "F") s += 1;  // on Final NPL
   if (typeof site.in_reuse === "string" && /^yes/i.test(site.in_reuse)) s += 2;
-  return Math.min(s, 10);
+  if (site.in_opportunity_zone === true) s += 5;  // Treasury QOZ — financial sweetener
+  return Math.min(s, 15);
 }
 
 function computeDcCompositeScore(site) {

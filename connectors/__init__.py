@@ -15,6 +15,7 @@ from connectors.epa_echo import EpaEcho
 from connectors.epa_redev import EpaRedev
 from connectors.epa_superfund_docs import EpaSuperfundDocs
 from connectors.infra_proximity import InfraProximity
+from connectors.opportunity_zone import OpportunityZone
 from connectors.superfund_npl import SuperfundNPL
 
 REGISTRY: dict[str, type[Connector]] = {}
@@ -43,5 +44,6 @@ register("dod-brac", DodBrac)
 register("epa-redev", EpaRedev)
 register("epa-superfund-docs", EpaSuperfundDocs)
 register("infra-proximity", InfraProximity)
+register("opportunity-zone", OpportunityZone)
 register("epa-echo", EpaEcho)
 register("ai-summary", AiSummary)
