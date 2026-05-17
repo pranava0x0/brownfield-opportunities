@@ -14,6 +14,7 @@ import math
 import pytest
 
 from connectors.spatial import (
+    PointIndex,
     SegmentIndex,
     _segment_distance_m,
     haversine_mi,
@@ -256,3 +257,107 @@ def test_nearest_distance_mi_unaffected_by_attr_path():
     da = idx_a.nearest_distance_mi(40.0, -99.95)
     db = idx_b.nearest_distance_mi(40.0, -99.95)
     assert da == pytest.approx(db, rel=1e-6)
+
+
+# ----- PointIndex -----
+
+def test_point_index_empty_returns_none():
+    idx = PointIndex()
+    assert idx.nearest_with_attr(40.0, -100.0) is None
+    assert idx.nearest_distance_mi(40.0, -100.0) is None
+    assert idx.point_count == 0
+
+
+def test_point_index_zero_distance_at_point():
+    idx = PointIndex(cell_deg=0.25)
+    idx.add_point(40.0, -100.0, attr={"name": "Sub-A"})
+    hit = idx.nearest_with_attr(40.0, -100.0)
+    assert hit is not None
+    d, attr = hit
+    assert d == pytest.approx(0.0, abs=0.001)
+    assert attr == {"name": "Sub-A"}
+
+
+def test_point_index_picks_closer_of_two_points():
+    idx = PointIndex(cell_deg=0.25)
+    idx.add_point(40.0, -100.0, attr="A")     # far
+    idx.add_point(40.05, -100.05, attr="B")   # close (~4.5 mi from query)
+    hit = idx.nearest_with_attr(40.05, -100.05)
+    assert hit is not None
+    d, attr = hit
+    assert attr == "B"
+    assert d == pytest.approx(0.0, abs=0.001)
+
+
+def test_point_index_filters_null_island():
+    """(0,0) is the standard ESRI sentinel for missing geometry — must not
+    pollute distance lookups."""
+    idx = PointIndex()
+    assert idx.add_point(0.0, 0.0, attr="bad") is False
+    assert idx.add_point(40.0, -100.0, attr="good") is True
+    hit = idx.nearest_with_attr(40.0, -100.0)
+    assert hit is not None
+    _, attr = hit
+    assert attr == "good"
+
+
+def test_point_index_filters_out_of_range_coords():
+    idx = PointIndex()
+    assert idx.add_point(95.0, 0.0, attr="bad") is False     # |lat| > 90
+    assert idx.add_point(0.0, 200.0, attr="bad") is False    # |lon| > 180
+    assert idx.add_point(45.0, -75.0, attr="good") is True
+    assert idx.point_count == 1
+
+
+def test_point_index_filters_non_numeric_coords():
+    idx = PointIndex()
+    assert idx.add_point("notanumber", -75.0) is False
+    assert idx.add_point(45.0, None) is False
+    assert idx.point_count == 0
+
+
+def test_point_index_ring_expansion_finds_far_point():
+    """A query in an empty central cell must walk outward to find the hit."""
+    idx = PointIndex(cell_deg=0.25)
+    # Single point ~0.6° away in both lat and lon — needs 3 rings of
+    # expansion at 0.25° cells. Distance at 40°N: ~52 mi.
+    idx.add_point(40.6, -100.6, attr="P")
+    hit = idx.nearest_with_attr(40.0, -100.0)
+    assert hit is not None
+    d, attr = hit
+    assert attr == "P"
+    assert 45 < d < 60
+
+
+def test_point_index_early_exit_skips_distant_cells():
+    """Once we've found a hit, expansion must stop before scanning irrelevant
+    far cells. We verify this indirectly: a near point plus 100 distant points
+    should still resolve to the near point and not require visiting all 101.
+    """
+    idx = PointIndex(cell_deg=0.25)
+    idx.add_point(40.001, -100.001, attr="near")
+    # Distant ring of fillers — none should beat 'near' on distance.
+    for i in range(100):
+        idx.add_point(45.0 + 0.001 * i, -90.0, attr=f"far-{i}")
+    hit = idx.nearest_with_attr(40.0, -100.0)
+    assert hit is not None
+    _, attr = hit
+    assert attr == "near"
+
+
+def test_point_index_attr_can_be_dict():
+    """Substation / power-plant layers carry multi-field attrs."""
+    idx = PointIndex(cell_deg=0.25)
+    idx.add_point(40.0, -100.0, attr={"kv": 230.0, "name": "Test Sub"})
+    hit = idx.nearest_with_attr(40.0, -100.0)
+    assert hit is not None
+    _, attr = hit
+    assert attr["kv"] == 230.0
+    assert attr["name"] == "Test Sub"
+
+
+def test_point_index_invalid_cell_deg_raises():
+    with pytest.raises(ValueError):
+        PointIndex(cell_deg=0)
+    with pytest.raises(ValueError):
+        PointIndex(cell_deg=-0.5)

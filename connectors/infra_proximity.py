@@ -1,44 +1,55 @@
 """Universal infrastructure-proximity enrichment.
 
-Computes nearest-distance to electric transmission, freight rail, major
-highway, and natural-gas pipeline from every site we already know about
-(Superfund, ACRES, FUDS, BRAC), so the data-center thesis ("post-remediation
-industrial land + grid + rail + road + behind-the-meter gas = AI siting
-target") works for ~47k records, not just the ~1.9k that EPA's Redevelopment
-mapper covers today.
+Computes nearest-distance to seven layers of infrastructure relevant to data-
+center and energy-infrastructure siting from every site we already know about
+(Superfund, ACRES, FUDS, BRAC), so the DC thesis ("post-remediation industrial
+land + grid + rail + road + behind-the-meter gas = AI siting target") works
+for ~47k records, not just the ~1.9k that EPA's Redevelopment mapper covers.
 
 Sources (all public, no auth):
 - **Transmission lines**: HIFLD `Electric_Power_Transmission_Lines`
   (~52k polyline features, includes voltage where reported).
-- **Rail**: US Census TIGERweb Railroads (~112k features). Census is the
-  cleanest single national source — HIFLD's NTAD layer has more attributes
-  but for proximity-only we don't need the metadata.
+- **Rail**: US Census TIGERweb Railroads (~112k features).
 - **Highways**: US Census TIGERweb Primary Roads (~17k features, MTFCC=S1100,
   i.e. Interstates + US/state routes that meet primary-road criteria).
 - **Natural gas pipelines**: HIFLD `Natural Gas Interstate and Intrastate
   Pipelines (EIA)` — ~33k polylines spanning interstate + intrastate +
-  gathering. <2 mi to a major line is the threshold for behind-the-meter
-  gas-turbine viability (Stargate Texas pattern: VoltaGrid 2.3 GW BTM gas
-  + GE Vernova 29 turbines). NGL (natural-gas-liquids) layer intentionally
-  excluded — DCs care about methane, not propane.
+  gathering. <2 mi to a major line enables behind-the-meter gas-turbine
+  viability.
+- **Substations**: OpenStreetMap `power=substation` via Overpass API,
+  CONUS-chunked. ~80-100k features nationwide. A 500 kV transmission line
+  half a mile away is only actionable if a substation is close enough to
+  interconnect; this layer is the missing half of the transmission signal.
+- **Power plants**: HIFLD `Power_Plants_in_the_US` (EIA-860 sourced, ~13k
+  points). Co-location with existing generation = PPA / behind-the-meter
+  candidate + demonstrated local grid capacity.
+- **Flood zone**: FEMA NFHL `Flood Hazard Zones` layer 28, queried per-site
+  via ArcGIS `query` operation (one HTTP call per site; the underlying ~12M
+  polygons are too many to pre-index in memory). Returns the FEMA zone code
+  (`A`, `AE`, `X`, `V`, etc.) and the boolean SFHA flag (Special Flood
+  Hazard Area = 100-yr floodplain). A site in an SFHA is a permitting
+  screen-out for critical infrastructure.
 
 This is an *enrichment-only* connector — it doesn't add new sites. It reads
-the per-program JSON files written by the producer connectors, computes
-three distance fields per record, and writes a compact lookup file. The
-frontend lazy-loads it after first paint and joins onto `sitesById` by `id`.
+the per-program JSON files written by the producer connectors and writes a
+compact lookup file. The frontend lazy-loads it after first paint and joins
+onto `sitesById` by `id`.
 
 Performance:
-- ~180k polyline features fetched in ~1 minute on a cold run; cached on
-  disk thereafter, so re-runs are seconds.
+- The four polyline + two point layers fetch in ~3 min on a cold run; cached
+  on disk thereafter, so subsequent re-runs are seconds.
 - Pure-Python grid index in `connectors.spatial` — no shapely/rtree.
-- Distance lookup is O(log n) amortized via 0.25° grid cells.
+- Flood zone is the slow one: per-site FEMA REST query at 1.5s/site → ~20h
+  for a full 47k-site nationwide run. Cache makes incremental runs cheap.
+  Use `--infra-skip-flood-zone` to iterate quickly without paying the cost.
 - Distances >100 mi are dropped (treated as out-of-CONUS) to keep the
-  enrichment file lean. ~600 KB gzipped at full coverage.
+  enrichment file lean.
 
 CLI:
     python refresh.py --source infra-proximity            # enrichment-only run
     python refresh.py --all                               # part of the full refresh
     python refresh.py --source infra-proximity --infra-skip-rail   # subset
+    python refresh.py --source infra-proximity --infra-skip-flood-zone  # skip the slow one
 """
 from __future__ import annotations
 
@@ -48,8 +59,10 @@ import logging
 from pathlib import Path
 from typing import Any, Iterable
 
+import requests
+
 from connectors.base import Connector
-from connectors.spatial import SegmentIndex
+from connectors.spatial import PointIndex, SegmentIndex
 
 log = logging.getLogger("connector.infra_proximity")
 
@@ -162,7 +175,75 @@ DISTANCE_FIELD: dict[str, str] = {
     "highway": "highway_mi",
     "rail": "rail_mi",
     "gas_pipeline": "gas_pipeline_mi",
+    "substation": "substation_mi",
+    "power_plant": "power_plant_mi",
 }
+
+# ---- Point layers (substations + power plants) ----
+
+# HIFLD Power Plants (EIA-860 sourced). Public, paginated like transmission.
+POWER_PLANT_QUERY_URL = (
+    "https://services2.arcgis.com/FiaPA4ga0iQKduv3/arcgis/rest/services/"
+    "Power_Plants_in_the_US/FeatureServer/0/query"
+)
+
+# CONUS bounding-box chunks for the Overpass substation pull. The Overpass
+# API rate-limits + payload-caps large queries, so we split the US into
+# regions. South + Florida have higher substation density; we keep them as
+# their own chunks to avoid timeouts. Format: (south, west, north, east).
+OVERPASS_SUBSTATION_BBOXES: list[tuple[float, float, float, float]] = [
+    # CONUS quadrants — 38°N + 100°W splits at roughly Kansas City.
+    (38.0, -125.0, 50.0, -100.0),   # CONUS-NW
+    (38.0, -100.0, 50.0,  -65.0),   # CONUS-NE (high density: NYC-Boston corridor)
+    (24.0, -125.0, 38.0, -100.0),   # CONUS-SW
+    (24.0, -100.0, 38.0,  -65.0),   # CONUS-SE
+    # Alaska — large area but very sparse infra; one chunk fine.
+    (50.0, -180.0, 72.0, -130.0),
+    # Hawaii.
+    (17.0, -162.0, 23.0, -154.0),
+    # Puerto Rico + USVI.
+    (17.0,  -68.0, 19.0,  -64.0),
+]
+
+OVERPASS_URL = "https://overpass-api.de/api/interpreter"
+OVERPASS_TIMEOUT_S = 180  # Overpass server-side query timeout
+
+# OSM voltage tag is in volts. Multi-value tags use `;` separator
+# (e.g. "230000;115000"). We take the highest value.
+def _parse_osm_voltage(raw: object) -> float | None:
+    if raw is None:
+        return None
+    s = str(raw).strip()
+    if not s:
+        return None
+    best: float | None = None
+    for part in s.split(";"):
+        part = part.strip()
+        if not part:
+            continue
+        try:
+            v = float(part)
+        except ValueError:
+            continue
+        if v <= 0:
+            continue
+        # Convert volts → kV.
+        kv = v / 1000.0
+        if best is None or kv > best:
+            best = kv
+    return best
+
+
+# ---- Flood-zone (per-site) ----
+
+# FEMA NFHL Layer 28 = Flood Hazard Zones (polygon).
+FLOOD_QUERY_URL = (
+    "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/"
+    "28/query"
+)
+# HTTP codes we treat as transient — log + continue rather than abort the
+# whole multi-hour batch. FEMA's service is occasionally slow / 500s.
+FLOOD_TRANSIENT_HTTP_CODES = {404, 408, 429, 500, 502, 503, 504}
 
 
 class InfraProximity(Connector):
@@ -184,14 +265,17 @@ class InfraProximity(Connector):
                 default=None,
                 help="Cap the number of records to enrich (default: unlimited).",
             )
-        # Per-layer skip toggles for fast iteration during development.
-        for layer in LAYERS:
+        # Per-layer skip toggles for fast iteration during development. All
+        # seven layers (4 polyline + 2 point + 1 per-site polygon) accept
+        # `--infra-skip-<layer_name>`, matching the existing convention.
+        all_layers = list(LAYERS.keys()) + ["substation", "power_plant", "flood_zone"]
+        for layer in all_layers:
             p.add_argument(
                 f"--infra-skip-{layer}",
                 dest=f"infra_skip_{layer}",
                 action="store_true",
                 default=False,
-                help=f"Skip the {layer} layer (no {DISTANCE_FIELD[layer]} field emitted).",
+                help=f"Skip the {layer} layer (no related fields emitted).",
             )
 
     def fetch_records(
@@ -229,9 +313,8 @@ class InfraProximity(Connector):
                          len(existing))
                 return existing
 
-        # Build one SegmentIndex per layer. Skipped layers leave the field
-        # absent from emitted records (frontend renders "Not available").
-        indexes: dict[str, SegmentIndex] = {}
+        # Build one SegmentIndex per polyline layer.
+        seg_indexes: dict[str, SegmentIndex] = {}
         for layer, cfg in LAYERS.items():
             if getattr(args, f"infra_skip_{layer}", False):
                 log.info("skipping layer %s per --infra-skip-%s", layer, layer)
@@ -243,15 +326,41 @@ class InfraProximity(Connector):
                     "absent from all records", layer,
                 )
                 continue
-            indexes[layer] = idx
+            seg_indexes[layer] = idx
 
-        if not indexes:
+        # Build a PointIndex per point layer (substation, power plant).
+        point_indexes: dict[str, PointIndex] = {}
+        if not getattr(args, "infra_skip_substation", False):
+            sub_idx = self._build_substation_index(use_cache=use_cache)
+            if sub_idx.point_count:
+                point_indexes["substation"] = sub_idx
+        else:
+            log.info("skipping layer substation per --infra-skip-substation")
+        if not getattr(args, "infra_skip_power_plant", False):
+            pp_idx = self._build_power_plant_index(use_cache=use_cache)
+            if pp_idx.point_count:
+                point_indexes["power_plant"] = pp_idx
+        else:
+            log.info("skipping layer power_plant per --infra-skip-power_plant")
+
+        # Per-site flood-zone is opt-in via flag presence — the slow one.
+        do_flood = not getattr(args, "infra_skip_flood_zone", False)
+        if not do_flood:
+            log.info("skipping layer flood_zone per --infra-skip-flood_zone")
+
+        if not seg_indexes and not point_indexes and not do_flood:
             log.error("no infrastructure layers built — aborting enrichment")
             return []
 
         records: list[dict[str, Any]] = []
         skipped_no_geom = 0
-        out_of_range = {layer: 0 for layer in indexes}
+        out_of_range: dict[str, int] = {
+            **{layer: 0 for layer in seg_indexes},
+            **{layer: 0 for layer in point_indexes},
+        }
+        flood_lookups = 0
+        flood_in_sfha = 0
+        flood_skipped = 0
         # Per-program counts for telemetry.
         program_counts: dict[str, int] = {}
         for site in sites:
@@ -269,10 +378,9 @@ class InfraProximity(Connector):
                 skipped_no_geom += 1
                 continue
             rec: dict[str, Any] = {"id": sid, "program": program}
-            for layer, idx in indexes.items():
-                # Transmission carries a per-segment kV attribute; rail and
-                # highway are geometry-only. Branch so we don't pay the
-                # tuple-allocation cost on layers that don't need it.
+
+            # ---- polyline layers ----
+            for layer, idx in seg_indexes.items():
                 if layer == "transmission":
                     hit = idx.nearest_with_attr(lat_f, lon_f)
                     if hit is None:
@@ -284,9 +392,6 @@ class InfraProximity(Connector):
                         continue
                     rec[DISTANCE_FIELD[layer]] = round(d, 1)
                     if kv is not None:
-                        # Round to 1 kV so 138.0 / 230.0 / 345.0 read clean
-                        # in the JSON. HIFLD reports many lines as integer
-                        # kV but a handful are floats (e.g. 138.5).
                         rec["transmission_kv"] = round(float(kv), 1)
                 else:
                     d = idx.nearest_distance_mi(lat_f, lon_f)
@@ -294,6 +399,51 @@ class InfraProximity(Connector):
                         out_of_range[layer] += 1
                         continue
                     rec[DISTANCE_FIELD[layer]] = round(d, 1)
+
+            # ---- point layers (substation + power plant) ----
+            for layer, pidx in point_indexes.items():
+                hit = pidx.nearest_with_attr(lat_f, lon_f)
+                if hit is None:
+                    out_of_range[layer] += 1
+                    continue
+                d, attr = hit
+                if d > MAX_DISTANCE_MI:
+                    out_of_range[layer] += 1
+                    continue
+                rec[DISTANCE_FIELD[layer]] = round(d, 1)
+                if isinstance(attr, dict):
+                    if layer == "substation" and attr.get("kv") is not None:
+                        rec["substation_kv"] = round(float(attr["kv"]), 1)
+                    elif layer == "power_plant":
+                        if attr.get("mw") is not None:
+                            rec["power_plant_mw"] = round(float(attr["mw"]), 1)
+                        if attr.get("fuel"):
+                            rec["power_plant_fuel"] = str(attr["fuel"])
+
+            # ---- per-site flood zone ----
+            if do_flood:
+                try:
+                    fz, sfha = self._query_flood_zone(lat_f, lon_f, use_cache=use_cache)
+                    flood_lookups += 1
+                    if fz is not None:
+                        rec["flood_zone"] = fz
+                    if sfha is not None:
+                        rec["in_sfha"] = sfha
+                        if sfha:
+                            flood_in_sfha += 1
+                except (requests.ConnectionError, requests.Timeout) as e:
+                    log.warning("[%s] FEMA NFHL network error: %s — skipping flood field",
+                                sid, type(e).__name__)
+                    flood_skipped += 1
+                except requests.HTTPError as e:
+                    code = e.response.status_code if e.response is not None else None
+                    if code in FLOOD_TRANSIENT_HTTP_CODES:
+                        log.warning("[%s] FEMA NFHL HTTP %s — skipping flood field",
+                                    sid, code)
+                        flood_skipped += 1
+                    else:
+                        raise
+
             # Always emit the record — even when every layer is out-of-range —
             # so the file's `id` set is the cross-program join key, and the
             # frontend can distinguish "this site has no infra within reach"
@@ -308,8 +458,11 @@ class InfraProximity(Connector):
         if skipped_no_geom:
             log.info("skipped %d sites with missing/invalid coordinates", skipped_no_geom)
         for layer, n in out_of_range.items():
-            log.info("[%s] %d sites had no segment within %d mi",
+            log.info("[%s] %d sites had no feature within %d mi",
                      layer, n, int(MAX_DISTANCE_MI))
+        if do_flood:
+            log.info("[flood_zone] %d lookups (%d in SFHA, %d skipped on network errors)",
+                     flood_lookups, flood_in_sfha, flood_skipped)
         log.info("enriched %d records — by program: %s",
                  len(records), program_counts)
 
@@ -438,3 +591,184 @@ class InfraProximity(Connector):
             if mapped is not None:
                 return mapped
         return None
+
+    # ---- point-layer fetchers ----
+
+    def _build_substation_index(self, use_cache: bool) -> PointIndex:
+        """Fetch OSM substations via Overpass across CONUS+AK+HI+PR bboxes
+        and bucket the (lat, lon, kv) tuples into a PointIndex.
+
+        OSM ways tagged `power=substation` are stored as polygons; we use
+        Overpass's `out center` to receive the centroid as `center.{lat,lon}`,
+        so the index treats every substation — node or way — as a single
+        point. Voltage tag is parsed via `_parse_osm_voltage` (volts → kV,
+        max across `;`-separated multi-values).
+        """
+        log.info("[substation] fetching OSM via Overpass across %d bboxes",
+                 len(OVERPASS_SUBSTATION_BBOXES))
+        idx = PointIndex()
+        for i, bbox in enumerate(OVERPASS_SUBSTATION_BBOXES, 1):
+            elements = self._fetch_overpass_substations(bbox, use_cache=use_cache)
+            log.info("[substation] bbox %d/%d %s → %d features",
+                     i, len(OVERPASS_SUBSTATION_BBOXES), bbox, len(elements))
+            for el in elements:
+                # node: lat/lon at top level; way: center.lat/lon.
+                lat = el.get("lat") or (el.get("center") or {}).get("lat")
+                lon = el.get("lon") or (el.get("center") or {}).get("lon")
+                if lat is None or lon is None:
+                    continue
+                tags = el.get("tags") or {}
+                kv = _parse_osm_voltage(tags.get("voltage"))
+                attr = {"kv": kv} if kv is not None else None
+                idx.add_point(lat, lon, attr=attr)
+        log.info("[substation] indexed %d points", idx.point_count)
+        return idx
+
+    def _fetch_overpass_substations(
+        self,
+        bbox: tuple[float, float, float, float],
+        use_cache: bool,
+    ) -> list[dict[str, Any]]:
+        """Single Overpass query for one bbox. Caches the response on disk
+        keyed by the bbox tuple."""
+        s, w, n, e = bbox
+        # `out center tags` brings way centroids + tag dicts in one response.
+        ql = (
+            f"[out:json][timeout:{OVERPASS_TIMEOUT_S}];"
+            f"(node[\"power\"=\"substation\"]({s},{w},{n},{e});"
+            f"way[\"power\"=\"substation\"]({s},{w},{n},{e}););"
+            f"out center tags;"
+        )
+        cache_key = {"src": "overpass_substations", "bbox": list(bbox)}
+        path = self.cache_path(cache_key)
+        if use_cache and path.exists():
+            log.info("cache hit  %s", path.name)
+            try:
+                return json.loads(path.read_text()).get("elements", [])
+            except (OSError, json.JSONDecodeError):
+                log.warning("[substation] cache file %s unreadable; refetching", path.name)
+
+        import time as _time
+        from connectors.base import REQUEST_DELAY_S, REQUEST_TIMEOUT_S, USER_AGENT
+        log.info("fetching   %s (bbox %s)", path.name, bbox)
+        _time.sleep(REQUEST_DELAY_S)
+        # Overpass is sensitive to UA + accepts GET with data= param.
+        resp = requests.get(
+            OVERPASS_URL,
+            params={"data": ql},
+            headers={"User-Agent": USER_AGENT},
+            timeout=max(REQUEST_TIMEOUT_S, OVERPASS_TIMEOUT_S + 30),
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        path.write_text(json.dumps(data))
+        log.info("cached     %s (%d elements)", path.name, len(data.get("elements", [])))
+        return data.get("elements", [])
+
+    def _build_power_plant_index(self, use_cache: bool) -> PointIndex:
+        """Fetch HIFLD Power Plants (paginated FeatureServer) into a PointIndex.
+
+        Carries `Total_MW` and `PrimSource` (fuel type) on the attr so the
+        nearest-power-plant lookup can surface "what kind of generation is
+        nearby" without a second join.
+        """
+        log.info("[power_plant] fetching HIFLD Power_Plants_in_the_US")
+        idx = PointIndex()
+        offset = 0
+        page_size = 2000
+        while True:
+            params = {
+                "where": "1=1",
+                "outFields": "Plant_Name,Total_MW,PrimSource",
+                "returnGeometry": "true",
+                "outSR": "4326",
+                "geometryPrecision": "5",
+                "resultRecordCount": str(page_size),
+                "resultOffset": str(offset),
+                "f": "json",
+            }
+            data = self.http_get_json(
+                POWER_PLANT_QUERY_URL, params,
+                use_cache=use_cache,
+                cache_key={"src": "power_plants", "offset": offset},
+            )
+            features = data.get("features") or []
+            log.info("[power_plant] page offset=%d got=%d", offset, len(features))
+            if not features:
+                break
+            for feat in features:
+                geom = feat.get("geometry") or {}
+                lon = geom.get("x")
+                lat = geom.get("y")
+                if lat is None or lon is None:
+                    continue
+                a = feat.get("attributes") or {}
+                attr = {
+                    "name": a.get("Plant_Name"),
+                    "mw": a.get("Total_MW"),
+                    "fuel": a.get("PrimSource"),
+                }
+                idx.add_point(lat, lon, attr=attr)
+            if len(features) < page_size:
+                break
+            offset += page_size
+        log.info("[power_plant] indexed %d points", idx.point_count)
+        return idx
+
+    # ---- per-site flood-zone ----
+
+    def _query_flood_zone(
+        self,
+        lat: float,
+        lon: float,
+        use_cache: bool,
+    ) -> tuple[str | None, bool | None]:
+        """Ask FEMA NFHL: what flood-zone polygon contains this point?
+
+        Returns `(FLD_ZONE, in_sfha)` where:
+        - `FLD_ZONE`: source-side code (`A`, `AE`, `X`, `V`, `VE`, `D`, ...);
+          None if the site lies outside any mapped FEMA flood study area.
+        - `in_sfha`: True / False / None for SFHA_TF == `T` / `F` / missing.
+
+        One HTTP call per site. Cached per (lat, lon) rounded to 5 decimals
+        (~1 m precision — way finer than the FEMA polygon edges).
+        """
+        cache_key = {
+            "src": "fema_flood",
+            "lat": round(float(lat), 5),
+            "lon": round(float(lon), 5),
+        }
+        params = {
+            "geometry": f"{lon},{lat}",
+            "geometryType": "esriGeometryPoint",
+            "spatialRel": "esriSpatialRelIntersects",
+            "inSR": "4326",
+            "outFields": "FLD_ZONE,SFHA_TF,ZONE_SUBTY",
+            "returnGeometry": "false",
+            "f": "json",
+        }
+        data = self.http_get_json(
+            FLOOD_QUERY_URL, params,
+            use_cache=use_cache,
+            cache_key=cache_key,
+        )
+        features = data.get("features") or []
+        if not features:
+            return (None, None)
+        # FEMA polygons don't overlap; one feature is the expected case. If
+        # multiple ever come back, prefer the one with a non-empty FLD_ZONE.
+        for feat in features:
+            attrs = feat.get("attributes") or {}
+            zone = attrs.get("FLD_ZONE")
+            if zone:
+                sfha_raw = attrs.get("SFHA_TF")
+                in_sfha: bool | None = None
+                if isinstance(sfha_raw, str):
+                    s = sfha_raw.strip().upper()
+                    if s == "T":
+                        in_sfha = True
+                    elif s == "F":
+                        in_sfha = False
+                return (str(zone), in_sfha)
+        # All features had empty FLD_ZONE — treat as no signal.
+        return (None, None)

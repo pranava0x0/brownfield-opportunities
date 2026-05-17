@@ -283,3 +283,114 @@ class SegmentIndex:
         if return_idx:
             return (d_mi, best_idx)
         return (d_mi,)
+
+
+class PointIndex:
+    """Spatial grid over POINTS — companion to `SegmentIndex` for point-feature
+    layers like substations and power plants.
+
+    Same bucket-by-grid + Chebyshev-ring-expansion algorithm. Points are
+    stored as parallel arrays of (lat, lon, attr) to avoid object overhead at
+    the 70k-100k scale these layers reach nationwide. `attr` is opaque to the
+    index — typically a dict capturing source-side fields (kV, MW, fuel type,
+    name) that the caller wants to surface alongside the distance.
+
+    Distance uses the same local-equirectangular projection as `SegmentIndex`
+    so identical bounds apply (good to better than 1% in CONUS).
+    """
+
+    def __init__(self, cell_deg: float = DEFAULT_CELL_DEG):
+        if cell_deg <= 0:
+            raise ValueError("cell_deg must be positive")
+        self.cell_deg = cell_deg
+        self._cells: dict[tuple[int, int], list[int]] = defaultdict(list)
+        # Parallel arrays — keeps the per-point footprint to a single Python
+        # int + tuple ref versus storing dicts in a list.
+        self._lats: list[float] = []
+        self._lons: list[float] = []
+        self._attrs: list[object] = []
+
+    @property
+    def point_count(self) -> int:
+        return len(self._lats)
+
+    def add_point(
+        self,
+        lat: float,
+        lon: float,
+        attr: object = None,
+    ) -> bool:
+        """Add one point. Returns True if added, False if filtered out.
+
+        Same sentinel filter as `SegmentIndex.add_polyline`: drops null-island
+        and out-of-range coordinates rather than letting them poison nearest
+        lookups. Out-of-range coords are common in ESRI sources for "missing
+        geometry" rows.
+        """
+        try:
+            lat_f = float(lat)
+            lon_f = float(lon)
+        except (TypeError, ValueError):
+            return False
+        if abs(lat_f) < 0.5 and abs(lon_f) < 0.5:
+            return False
+        if not (-90 <= lat_f <= 90) or not (-180 <= lon_f <= 180):
+            return False
+        idx = len(self._lats)
+        self._lats.append(lat_f)
+        self._lons.append(lon_f)
+        self._attrs.append(attr)
+        cy, cx = _cell_for(lat_f, lon_f, self.cell_deg)
+        self._cells[(cy, cx)].append(idx)
+        return True
+
+    def nearest_with_attr(
+        self,
+        lat: float,
+        lon: float,
+        max_rings: int = MAX_RINGS,
+    ) -> tuple[float, object] | None:
+        """Return `(distance_mi, attr)` for the nearest point, or None if
+        nothing is found within `max_rings * cell_deg` of search radius.
+        """
+        if not self._lats:
+            return None
+        cy, cx = _cell_for(lat, lon, self.cell_deg)
+        best_m: float | None = None
+        best_idx: int = -1
+        cos_lat = math.cos(math.radians(lat))
+        m_per_deg_lon = 111_320.0 * cos_lat
+        m_per_deg_lat = 110_540.0
+        px = lon * m_per_deg_lon
+        py = lat * m_per_deg_lat
+        seen: set[int] = set()
+        for ring in range(max_rings + 1):
+            for cell in _cells_in_ring(cy, cx, ring):
+                for idx in self._cells.get(cell, ()):
+                    if idx in seen:
+                        continue
+                    seen.add(idx)
+                    qx = self._lons[idx] * m_per_deg_lon
+                    qy = self._lats[idx] * m_per_deg_lat
+                    d = math.hypot(px - qx, py - qy)
+                    if best_m is None or d < best_m:
+                        best_m = d
+                        best_idx = idx
+            if best_m is not None:
+                next_inner_m = ring * self.cell_deg * min(m_per_deg_lat, m_per_deg_lon)
+                if best_m <= next_inner_m:
+                    break
+        if best_m is None:
+            return None
+        d_mi = best_m / 1609.344
+        return (d_mi, self._attrs[best_idx])
+
+    def nearest_distance_mi(
+        self,
+        lat: float,
+        lon: float,
+        max_rings: int = MAX_RINGS,
+    ) -> float | None:
+        """Convenience: distance only, no attr."""
+        hit = self.nearest_with_attr(lat, lon, max_rings=max_rings)
+        return None if hit is None else hit[0]

@@ -139,6 +139,50 @@ class SiteRecord(BaseModel):
                     "intrastate + gathering, EIA-sourced). <2 mi enables "
                     "behind-the-meter gas-turbine viability for hyperscale DCs.",
     )
+    substation_mi: Optional[float] = Field(
+        default=None,
+        description="Miles to nearest electric substation (OpenStreetMap "
+                    "power=substation, ways centered + nodes). Pairs with "
+                    "transmission_mi: a 500 kV line within 0.5 mi is only "
+                    "actionable if a substation is close enough to interconnect.",
+    )
+    substation_kv: Optional[float] = Field(
+        default=None,
+        description="Highest nominal kV reported on the nearest OSM substation "
+                    "(voltage tag, max across `;`-separated values, converted "
+                    "from volts). None when the tag is missing or unparseable.",
+    )
+    power_plant_mi: Optional[float] = Field(
+        default=None,
+        description="Miles to nearest HIFLD power plant (EIA-860 sourced). "
+                    "Co-location with existing generation is a strong DC siting "
+                    "signal — implies PPA / behind-the-meter potential and "
+                    "demonstrated local grid capacity.",
+    )
+    power_plant_mw: Optional[float] = Field(
+        default=None,
+        description="Total nameplate MW of the nearest power plant.",
+    )
+    power_plant_fuel: Optional[str] = Field(
+        default=None,
+        description="Primary fuel of the nearest power plant (HIFLD `PrimSource` "
+                    "field — e.g. 'natural gas', 'nuclear', 'coal', 'wind', 'solar').",
+    )
+    flood_zone: Optional[str] = Field(
+        default=None,
+        description="FEMA NFHL flood-zone code at the site (`A`, `AE`, `V`, `VE`, "
+                    "`X`, `D`, etc.). None when the site lies outside any mapped "
+                    "FEMA flood study area. Different from `in_sfha` which is "
+                    "the boolean rollup.",
+    )
+    in_sfha: Optional[bool] = Field(
+        default=None,
+        description="True if the site sits inside a Special Flood Hazard Area "
+                    "(1% annual chance / 100-yr floodplain — FEMA `SFHA_TF=T`). "
+                    "A site in an SFHA effectively can't be permitted as "
+                    "critical infrastructure without expensive elevation / "
+                    "flood-proofing work.",
+    )
 
     # Ownership / transfer / history. Most are still None for most programs;
     # FUDS populates `current_owner` directly from the source.
