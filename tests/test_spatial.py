@@ -15,7 +15,9 @@ import pytest
 
 from connectors.spatial import (
     PointIndex,
+    PolygonIndex,
     SegmentIndex,
+    _point_in_ring,
     _segment_distance_m,
     haversine_mi,
 )
@@ -361,3 +363,149 @@ def test_point_index_invalid_cell_deg_raises():
         PointIndex(cell_deg=0)
     with pytest.raises(ValueError):
         PointIndex(cell_deg=-0.5)
+
+
+# ----- PolygonIndex -----
+
+# Unit square at lat/lon (40-41, -75 to -74) for shared use across tests.
+_SQUARE = [[
+    [-75.0, 40.0],
+    [-74.0, 40.0],
+    [-74.0, 41.0],
+    [-75.0, 41.0],
+    [-75.0, 40.0],  # closing vertex
+]]
+
+
+def test_point_in_ring_inside():
+    # Standard square ring, point in the middle.
+    ring = _SQUARE[0]
+    assert _point_in_ring(-74.5, 40.5, ring) is True
+
+
+def test_point_in_ring_outside():
+    ring = _SQUARE[0]
+    assert _point_in_ring(-73.0, 40.5, ring) is False
+    assert _point_in_ring(-74.5, 42.0, ring) is False
+
+
+def test_point_in_ring_degenerate_returns_false():
+    # Ring with <3 vertices.
+    assert _point_in_ring(0, 0, [[0, 0], [1, 1]]) is False
+    assert _point_in_ring(0, 0, []) is False
+
+
+def test_polygon_index_empty_returns_none():
+    idx = PolygonIndex()
+    assert idx.containing(40.5, -74.5) is None
+    assert idx.polygon_count == 0
+
+
+def test_polygon_index_hits_containing_polygon():
+    idx = PolygonIndex(cell_deg=0.25)
+    assert idx.add_polygon(_SQUARE, attr={"name": "A"}) is True
+    # Inside the square.
+    hit = idx.containing(40.5, -74.5)
+    assert hit == {"name": "A"}
+
+
+def test_polygon_index_miss_outside_polygon():
+    idx = PolygonIndex(cell_deg=0.25)
+    idx.add_polygon(_SQUARE, attr={"name": "A"})
+    # Outside the square (east side).
+    assert idx.containing(40.5, -73.0) is None
+
+
+def test_polygon_index_picks_first_containing_when_overlapping():
+    """Polygon indexing returns the FIRST polygon whose ring contains the
+    point. For OZ census tracts the polygons don't overlap, but the API
+    should be deterministic — first-added wins."""
+    idx = PolygonIndex(cell_deg=0.25)
+    bigger = [[
+        [-76.0, 39.0], [-73.0, 39.0], [-73.0, 42.0], [-76.0, 42.0], [-76.0, 39.0],
+    ]]
+    idx.add_polygon(_SQUARE, attr="small")
+    idx.add_polygon(bigger, attr="big")
+    hit = idx.containing(40.5, -74.5)
+    assert hit == "small"
+
+
+def test_polygon_index_respects_holes():
+    """A polygon with an interior hole should NOT contain a point that
+    falls inside the hole."""
+    # Outer square + interior hole at (40.4-40.6, -74.6 to -74.4).
+    rings = [
+        _SQUARE[0],
+        [
+            [-74.6, 40.4],
+            [-74.4, 40.4],
+            [-74.4, 40.6],
+            [-74.6, 40.6],
+            [-74.6, 40.4],
+        ],
+    ]
+    idx = PolygonIndex(cell_deg=0.25)
+    idx.add_polygon(rings, attr="donut")
+    # Inside the hole — should miss.
+    assert idx.containing(40.5, -74.5) is None
+    # Outside the hole, still inside the outer ring — should hit.
+    assert idx.containing(40.1, -74.9) == "donut"
+
+
+def test_polygon_index_skips_degenerate_polygon():
+    idx = PolygonIndex()
+    # Empty rings.
+    assert idx.add_polygon([], attr="x") is False
+    # First ring with <3 vertices.
+    assert idx.add_polygon([[[-74, 40], [-73, 40]]], attr="x") is False
+    assert idx.polygon_count == 0
+
+
+def test_polygon_index_skips_out_of_range_polygon():
+    """Out-of-range lat/lon values (sentinel garbage) must not be indexed."""
+    bad_rings = [[
+        [200.0, 95.0],
+        [201.0, 95.0],
+        [201.0, 96.0],
+        [200.0, 96.0],
+        [200.0, 95.0],
+    ]]
+    idx = PolygonIndex()
+    assert idx.add_polygon(bad_rings, attr="bad") is False
+    assert idx.polygon_count == 0
+
+
+def test_polygon_index_multiple_polygons_in_different_cells():
+    """Each polygon should be bucketed by its own bbox; a query in one
+    cell should never accidentally hit a polygon in a distant cell."""
+    idx = PolygonIndex(cell_deg=0.25)
+    square_a = _SQUARE  # near (40, -74)
+    square_b = [[
+        [-100.0, 30.0],
+        [-99.0, 30.0],
+        [-99.0, 31.0],
+        [-100.0, 31.0],
+        [-100.0, 30.0],
+    ]]
+    idx.add_polygon(square_a, attr="A")
+    idx.add_polygon(square_b, attr="B")
+    assert idx.containing(40.5, -74.5) == "A"
+    assert idx.containing(30.5, -99.5) == "B"
+    # Far from both.
+    assert idx.containing(35.0, -90.0) is None
+
+
+def test_polygon_index_invalid_cell_deg_raises():
+    with pytest.raises(ValueError):
+        PolygonIndex(cell_deg=0)
+    with pytest.raises(ValueError):
+        PolygonIndex(cell_deg=-0.5)
+
+
+def test_polygon_index_count_grows_with_adds():
+    idx = PolygonIndex()
+    assert idx.polygon_count == 0
+    idx.add_polygon(_SQUARE, attr="x")
+    assert idx.polygon_count == 1
+    idx.add_polygon(_SQUARE, attr="y")
+    assert idx.polygon_count == 2

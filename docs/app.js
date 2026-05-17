@@ -11,6 +11,7 @@ const BRAC_DATA_URL = "data/dod-brac.json";
 const REDEV_DATA_URL = "data/epa-redev.json";
 const SUPERFUND_DOCS_URL = "data/epa-superfund-docs.json";
 const INFRA_DATA_URL = "data/infra-proximity.json";
+const OPP_ZONE_URL = "data/opportunity-zone.json";
 const ECHO_DATA_URL = "data/epa-echo.json";
 const AI_SUMMARY_URL = "data/ai-summary.json";
 // Vector basemap: US states (always) + US counties (lazy at zoom ≥ COUNTY_MIN_ZOOM).
@@ -506,6 +507,10 @@ const filterState = {
   // URL state: ?dc_candidate=1. Independent of `dcTier` — Tier 0 score includes
   // sites that aren't EPA-flagged, and EPA flags some sites that don't score.
   dcCandidate: false,
+  // Treasury Opportunity Zone boolean. When true, only show sites inside a
+  // QOZ (`s.in_opportunity_zone === true`). Wired from the "Show only OZ
+  // sites" filter checkbox. URL state: ?oz=1.
+  oppZone: false,
 };
 
 let acresLoadingPromise = null; // de-dup parallel toggles
@@ -514,6 +519,7 @@ let bracLoadingPromise = null;
 let redevLoadingPromise = null;
 let superfundDocsLoadingPromise = null;
 let infraLoadingPromise = null;
+let oppZoneLoadingPromise = null;
 let echoLoadingPromise = null;
 let summariesLoadingPromise = null;
 
@@ -656,6 +662,10 @@ function updateFilterChip() {
     count++;
     active.push("DC candidates");
   }
+  if (filterState.oppZone) {
+    count++;
+    active.push("Opportunity Zone");
+  }
   const chip = el("filters-chip");
   const btn = el("filters-toggle");
   if (chip) {
@@ -754,6 +764,7 @@ fetch(PRIMARY_DATA_URL)
     lazyLoads.push(ensureRedevLoaded());
     lazyLoads.push(ensureSuperfundDocsLoaded());
     lazyLoads.push(ensureInfraLoaded());
+    lazyLoads.push(ensureOppZoneLoaded());
     lazyLoads.push(ensureEchoLoaded());
     lazyLoads.push(ensureSummariesLoaded());
     applyUrlSelection();
@@ -1067,6 +1078,43 @@ function ensureInfraLoaded() {
       infraLoadingPromise = null;
     });
   return infraLoadingPromise;
+}
+
+// Opportunity Zone enrichment. Joins onto every program by `id` to add
+// `in_opportunity_zone` (boolean), `oz_tract_geoid` (11-digit GEOID10),
+// and `oz_rural` (boolean). Distinct from the legacy `in_opp_zone` field
+// (a string from EPA RE-Powering, Superfund-only) which stays unchanged.
+function ensureOppZoneLoaded() {
+  if (oppZoneLoadingPromise) return oppZoneLoadingPromise;
+  oppZoneLoadingPromise = fetch(OPP_ZONE_URL, { priority: "low" })
+    .then((r) => {
+      if (r.status === 404) return { sites: [] };
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then((payload) => {
+      for (const rec of payload.sites || []) {
+        const existing = sitesById.get(rec.id);
+        if (!existing) continue;
+        // Always set in_opportunity_zone (true OR false — both are meaningful).
+        if (rec.in_opportunity_zone != null) {
+          existing.in_opportunity_zone = rec.in_opportunity_zone;
+        }
+        if (rec.oz_tract_geoid != null) existing.oz_tract_geoid = rec.oz_tract_geoid;
+        if (rec.oz_rural != null) existing.oz_rural = rec.oz_rural;
+      }
+      updateKpiDeck();
+      // Re-run filter so sites that flipped IN/OUT of OZ visibility update.
+      if (typeof applyFilter === "function") applyFilter();
+      if (selectedId && sitesById.has(selectedId)) {
+        try { selectSite(selectedId); } catch {}
+      }
+    })
+    .catch((err) => {
+      console.error("Opportunity-Zone enrichment load failed:", err);
+      oppZoneLoadingPromise = null;
+    });
+  return oppZoneLoadingPromise;
 }
 
 // ----- Map -----
@@ -1438,6 +1486,7 @@ function siteMatchesFilters(s, opts = {}) {
     if (got < need) return false;
   }
   if (filterState.dcCandidate && s.data_center_reuse_candidate !== true) return false;
+  if (filterState.oppZone && s.in_opportunity_zone !== true) return false;
   if (!siteMatchesQuery(s, opts.q ?? filterState.q)) return false;
   return true;
 }
@@ -1558,7 +1607,8 @@ function filtersActive() {
     filterState.minAcreage > 0 ||
     filterState.programs.size !== PROGRAM_LEGEND.length ||
     filterState.dcTier !== "" ||
-    filterState.dcCandidate
+    filterState.dcCandidate ||
+    filterState.oppZone
   );
 }
 
@@ -1881,6 +1931,19 @@ function wireFilters() {
   acreVal.textContent =
     filterState.minAcreage === 0 ? "0" : Math.round(Math.pow(10, filterState.minAcreage)).toLocaleString() + " ac";
 
+  // Opportunity Zone filter checkbox. Reflects current filterState.oppZone
+  // (set from URL on page load if `?oz=1`). Refit map after toggle so the
+  // view zooms to whatever's left visible.
+  const ozBox = el("f-opp-zone");
+  if (ozBox) {
+    ozBox.checked = filterState.oppZone;
+    ozBox.addEventListener("change", () => {
+      filterState.oppZone = !!ozBox.checked;
+      applyFilter();
+      refitMapToFilters();
+    });
+  }
+
   el("filters-reset").addEventListener("click", () => {
     // Restore *all* programs in PROGRAM_LEGEND, not a hardcoded subset —
     // when FUDS / BRAC were added in v1.7 this handler stayed at v1.6's
@@ -1894,9 +1957,13 @@ function wireFilters() {
     filterState.q = "";
     filterState.dcTier = "";
     filterState.dcCandidate = false;
+    filterState.oppZone = false;
     el("search").value = "";
     refreshPersonaButtons();
     refreshKpiActiveStates();
+    // Reset must also un-check the OZ filter checkbox.
+    const ozBox = el("f-opp-zone");
+    if (ozBox) ozBox.checked = false;
     for (const [program, box] of Object.entries(progBoxes)) {
       if (box) box.checked = filterState.programs.has(program);
     }
@@ -2386,6 +2453,12 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
   const reusePill = (typeof s.in_reuse === "string" && /^yes/i.test(s.in_reuse))
     ? ` <span class="pill reuse-pill" title="Site is currently in active reuse (EPA Superfund Redevelopment mapper)">Active Reuse</span>`
     : "";
+  // Opportunity Zone pill — financial signal, not technical. 30% capital
+  // gains deferral on 5+yr holds inside a Treasury-designated QOZ. Rural
+  // OZs are a meaningful subset (~700 / 8,765 tracts) so we label them.
+  const ozPill = s.in_opportunity_zone === true
+    ? ` <span class="pill oz-pill" title="Site is inside a Treasury Qualified Opportunity Zone — capital gains deferral applies to 5+yr holds (QOF investment)${s.oz_rural ? ' · Rural OZ designation' : ''}">${s.oz_rural ? 'OZ · Rural' : 'OZ'}</span>`
+    : "";
   // DC suitability tier (Tier 0 score) — earns a green "Hyperscale-ready"
   // outline pill at hyperscale+, accent-colored at colo / edge. Title shows
   // the threshold met so the buyer sees *why*.
@@ -2400,7 +2473,7 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
     else titleParts.push("transmission ≤1 mi");
     tierPill = ` <span class="pill ${cls}" title="${escapeAttr(titleParts.join(" · "))}">${escapeHtml(DC_TIER_LABEL[tier])}</span>`;
   }
-  el("d-program").innerHTML = programPill + cleanupPill + reusePill + dcPill + tierPill;
+  el("d-program").innerHTML = programPill + cleanupPill + reusePill + dcPill + ozPill + tierPill;
   // The acreage `<dd>` carries an inline note `<span>` for FUDS records
   // missing acreage. Replace only the text node so the note span isn't
   // clobbered, then toggle the note for the FUDS-no-boundary case.
@@ -2502,6 +2575,11 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
   // can't be permitted as critical infrastructure (DC, energy plant) without
   // expensive elevation / flood-proofing work.
   setFloodZoneCell("d-flood-zone", s.flood_zone, s.in_sfha);
+  // Opportunity Zone — financial signal for buyers, surfaced as a cell in
+  // the infra section. Yes/No based on the universal HUD layer; legacy
+  // string-valued `in_opp_zone` (EPA RE-Powering, Superfund-only) is a
+  // fallback when the universal enrichment hasn't loaded yet.
+  setOpportunityZoneCell("d-opp-zone", s);
   // State data-center tax incentive chip (Tier 1/2/3) — uses the static
   // STATE_DC_INCENTIVES lookup, no fetch.
   renderStateIncentive(s);
@@ -3089,6 +3167,10 @@ function loadInitialFiltersFromUrl() {
     const v = p.get("dc_candidate");
     if (v === "1" || v === "true") filterState.dcCandidate = true;
   }
+  if (p.has("oz")) {
+    const v = p.get("oz");
+    if (v === "1" || v === "true") filterState.oppZone = true;
+  }
 }
 
 function applyUrlSelection() {
@@ -3135,6 +3217,7 @@ function syncUrl() {
     if (filterState.minAcreage > 0) p.set("min_ac", String(filterState.minAcreage));
     if (filterState.dcTier) p.set("dc_tier", filterState.dcTier);
     if (filterState.dcCandidate) p.set("dc_candidate", "1");
+    if (filterState.oppZone) p.set("oz", "1");
     if (selectedId) p.set("site", selectedId);
     const qs = p.toString();
     const newUrl = qs ? `${location.pathname}?${qs}` : location.pathname;
@@ -3220,6 +3303,51 @@ function setPowerPlantSuffix(id, mw, fuel) {
     : "Nearby generation — PPA / co-location candidate";
   node.appendChild(document.createTextNode(" "));
   node.appendChild(span);
+}
+
+// Render the Opportunity Zone cell. Three states:
+//   - `in_opportunity_zone === true`: green "Yes" (or "Yes — Rural OZ") with
+//     a deep-link to the HUD OZ tract page so users can pivot to canonical.
+//   - `in_opportunity_zone === false`: muted "Outside any OZ".
+//   - undefined: fall back to the legacy EPA RE-Powering string field for
+//     Superfund sites (`in_opp_zone === "Yes"` or similar), or show "Not
+//     available" if neither source has data.
+function setOpportunityZoneCell(id, s) {
+  const node = el(id);
+  if (!node) return;
+  const universal = s.in_opportunity_zone;
+  if (universal === true) {
+    const rural = s.oz_rural === true;
+    const label = rural ? "Yes — Rural OZ" : "Yes";
+    if (s.oz_tract_geoid) {
+      // HUD's interactive OZ map deep-links by tract GEOID.
+      const url = `https://opportunityzones.hud.gov/resources/map`;
+      node.innerHTML = `<a href="${escapeAttr(url)}" target="_blank" rel="noopener" title="${escapeAttr(`Treasury-designated QOZ · Census tract ${s.oz_tract_geoid}${rural ? " · Rural OZ" : ""}`)}">${escapeHtml(label)} (tract ${s.oz_tract_geoid.slice(-6)})</a>`;
+    } else {
+      node.textContent = label;
+    }
+    node.classList.remove("muted-cell");
+    node.classList.add("ready");
+    return;
+  }
+  if (universal === false) {
+    node.textContent = "Outside any OZ";
+    node.classList.remove("ready", "muted-cell");
+    return;
+  }
+  // Legacy fallback for Superfund sites enriched by the EPA RE-Powering layer.
+  if (typeof s.in_opp_zone === "string" && s.in_opp_zone.trim()) {
+    const legacy = s.in_opp_zone.trim();
+    node.textContent = /^yes/i.test(legacy)
+      ? "Yes (EPA RE-Powering)"
+      : `${legacy} (EPA RE-Powering)`;
+    node.classList.remove("muted-cell");
+    if (/^yes/i.test(legacy)) node.classList.add("ready");
+    return;
+  }
+  node.textContent = "Not available";
+  node.classList.add("muted-cell");
+  node.classList.remove("ready");
 }
 
 // FEMA flood-zone codes the dashboard can encounter. The map keeps the
