@@ -55,6 +55,56 @@ class Connector(ABC):
 
     # --- shared infra ---
 
+    OUTPUT_DIR = Path(__file__).resolve().parent.parent / "docs" / "data"
+
+    def existing_output_path(self) -> Path:
+        """Where this connector's prior output JSON lives (`docs/data/<slug>.json`)."""
+        return self.OUTPUT_DIR / f"{self.slug}.json"
+
+    def existing_records(self) -> list[dict[str, Any]]:
+        """Return the records list from the prior output, or [] if absent/malformed.
+
+        Used by enrichment connectors in `--missing-only` mode to (a) figure
+        out which IDs are already covered and (b) preserve them in the
+        merged write so a partial backfill never DROPS existing records.
+        """
+        path = self.existing_output_path()
+        if not path.exists():
+            return []
+        try:
+            data = json.loads(path.read_text())
+        except (json.JSONDecodeError, OSError) as e:
+            log.warning("[%s] could not read existing output: %s", self.slug, e)
+            return []
+        sites = data.get("sites") or []
+        return sites if isinstance(sites, list) else []
+
+    def existing_ids(self) -> set[str]:
+        """Set of `id` values already in the prior output. Empty when none."""
+        return {r.get("id") for r in self.existing_records() if r.get("id")}
+
+    @staticmethod
+    def merge_records_by_id(
+        new_records: list[dict[str, Any]],
+        existing_records: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
+        """Merge two record lists keyed by `id`. New wins on collision.
+
+        Used by `--missing-only` mode: the connector fetches only sites it
+        hasn't covered yet, then merges those new records with everything
+        already on disk so the write doesn't truncate the file.
+        """
+        by_id: dict[str, dict[str, Any]] = {}
+        for r in existing_records:
+            rid = r.get("id")
+            if rid:
+                by_id[rid] = r
+        for r in new_records:
+            rid = r.get("id")
+            if rid:
+                by_id[rid] = r
+        return list(by_id.values())
+
     def cache_path(self, key_obj: Any) -> Path:
         key = hashlib.sha256(
             json.dumps(key_obj, sort_keys=True, default=str).encode("utf-8")
