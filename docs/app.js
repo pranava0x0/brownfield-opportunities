@@ -12,6 +12,8 @@ const REDEV_DATA_URL = "data/epa-redev.json";
 const SUPERFUND_DOCS_URL = "data/epa-superfund-docs.json";
 const INFRA_DATA_URL = "data/infra-proximity.json";
 const OPP_ZONE_URL = "data/opportunity-zone.json";
+const CLIMATE_ZONE_URL = "data/climate-zone.json";
+const ISO_RTO_URL = "data/iso-rto.json";
 const ECHO_DATA_URL = "data/epa-echo.json";
 const AI_SUMMARY_URL = "data/ai-summary.json";
 // Vector basemap: US states (always) + US counties (lazy at zoom ≥ COUNTY_MIN_ZOOM).
@@ -126,6 +128,16 @@ const PROGRAM_LABEL = {
   brownfield: "Brownfield (ACRES)",
   fuds: "FUDS (Defense)",
   brac: "BRAC (Bases)",
+};
+const ISO_RTO_LABELS = {
+  CAISO: "CAISO",
+  ERCOT: "ERCOT",
+  "ISO-NE": "ISO-NE",
+  MISO: "MISO",
+  NYISO: "NYISO",
+  PJM: "PJM",
+  SPP: "SPP",
+  "non-RTO": "Non-RTO",
 };
 
 // Postal-code → full name. Splits states from territories so the dropdown can
@@ -511,6 +523,10 @@ const filterState = {
   // QOZ (`s.in_opportunity_zone === true`). Wired from the "Show only OZ
   // sites" filter checkbox. URL state: ?oz=1.
   oppZone: false,
+  // Regional grid-operator filter. Empty = all. Values come from EIA/HIFLD
+  // RTO polygons: CAISO / ERCOT / ISO-NE / MISO / NYISO / PJM / SPP /
+  // non-RTO. URL state: ?iso_rto=PJM.
+  isoRto: "",
 };
 
 let acresLoadingPromise = null; // de-dup parallel toggles
@@ -520,6 +536,8 @@ let redevLoadingPromise = null;
 let superfundDocsLoadingPromise = null;
 let infraLoadingPromise = null;
 let oppZoneLoadingPromise = null;
+let climateZoneLoadingPromise = null;
+let isoRtoLoadingPromise = null;
 let echoLoadingPromise = null;
 let summariesLoadingPromise = null;
 
@@ -666,6 +684,10 @@ function updateFilterChip() {
     count++;
     active.push("Opportunity Zone");
   }
+  if (filterState.isoRto) {
+    count++;
+    active.push(`ISO/RTO ${ISO_RTO_LABELS[filterState.isoRto] || filterState.isoRto}`);
+  }
   const chip = el("filters-chip");
   const btn = el("filters-toggle");
   if (chip) {
@@ -715,6 +737,7 @@ fetch(PRIMARY_DATA_URL)
     try { initMap(); } catch (e) { console.error("initMap error (non-fatal):", e); }
     populateStatusFilter();
     populateStateFilter();
+    populateIsoRtoFilter();
     rebuildTable();
     wireTabs();
     wireDetailPanel();
@@ -765,6 +788,8 @@ fetch(PRIMARY_DATA_URL)
     lazyLoads.push(ensureSuperfundDocsLoaded());
     lazyLoads.push(ensureInfraLoaded());
     lazyLoads.push(ensureOppZoneLoaded());
+    lazyLoads.push(ensureClimateZoneLoaded());
+    lazyLoads.push(ensureIsoRtoLoaded());
     lazyLoads.push(ensureEchoLoaded());
     lazyLoads.push(ensureSummariesLoaded());
     applyUrlSelection();
@@ -1115,6 +1140,63 @@ function ensureOppZoneLoaded() {
       oppZoneLoadingPromise = null;
     });
   return oppZoneLoadingPromise;
+}
+
+// County-level IECC / ASHRAE climate-zone enrichment. Joins onto every
+// program by `id` to add `climate_zone` (e.g. 5B / 3A), used as a DC
+// cooling-climate signal in the detail panel and CSV export.
+function ensureClimateZoneLoaded() {
+  if (climateZoneLoadingPromise) return climateZoneLoadingPromise;
+  climateZoneLoadingPromise = fetch(CLIMATE_ZONE_URL, { priority: "low" })
+    .then((r) => {
+      if (r.status === 404) return { sites: [] };
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then((payload) => {
+      for (const rec of payload.sites || []) {
+        const existing = sitesById.get(rec.id);
+        if (!existing) continue;
+        if (rec.climate_zone != null) existing.climate_zone = rec.climate_zone;
+      }
+      if (selectedId && sitesById.has(selectedId)) {
+        try { selectSite(selectedId); } catch {}
+      }
+    })
+    .catch((err) => {
+      console.error("Climate-zone enrichment load failed:", err);
+      climateZoneLoadingPromise = null;
+    });
+  return climateZoneLoadingPromise;
+}
+
+// EIA/HIFLD ISO/RTO region enrichment. Joins onto lower-48/DC sites by `id`
+// to add `iso_rto`, which drives the ISO/RTO filter and detail-panel row.
+function ensureIsoRtoLoaded() {
+  if (isoRtoLoadingPromise) return isoRtoLoadingPromise;
+  isoRtoLoadingPromise = fetch(ISO_RTO_URL, { priority: "low" })
+    .then((r) => {
+      if (r.status === 404) return { sites: [] };
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then((payload) => {
+      for (const rec of payload.sites || []) {
+        const existing = sitesById.get(rec.id);
+        if (!existing) continue;
+        if (rec.iso_rto != null) existing.iso_rto = rec.iso_rto;
+      }
+      populateIsoRtoFilter();
+      if (typeof applyFilter === "function") applyFilter();
+      if (selectedId && sitesById.has(selectedId)) {
+        try { selectSite(selectedId); } catch {}
+      }
+    })
+    .catch((err) => {
+      console.error("ISO/RTO enrichment load failed:", err);
+      isoRtoLoadingPromise = null;
+    });
+  return isoRtoLoadingPromise;
 }
 
 // ----- Map -----
@@ -1487,6 +1569,7 @@ function siteMatchesFilters(s, opts = {}) {
   }
   if (filterState.dcCandidate && s.data_center_reuse_candidate !== true) return false;
   if (filterState.oppZone && s.in_opportunity_zone !== true) return false;
+  if (filterState.isoRto && s.iso_rto !== filterState.isoRto) return false;
   if (!siteMatchesQuery(s, opts.q ?? filterState.q)) return false;
   return true;
 }
@@ -1608,7 +1691,8 @@ function filtersActive() {
     filterState.programs.size !== PROGRAM_LEGEND.length ||
     filterState.dcTier !== "" ||
     filterState.dcCandidate ||
-    filterState.oppZone
+    filterState.oppZone ||
+    filterState.isoRto !== ""
   );
 }
 
@@ -1902,6 +1986,15 @@ function wireFilters() {
     refitMapToFilters();
   });
 
+  const isoSel = el("f-iso-rto");
+  if (isoSel) {
+    isoSel.addEventListener("change", () => {
+      filterState.isoRto = isoSel.value;
+      applyFilter();
+      refitMapToFilters();
+    });
+  }
+
   // NPL Status checkboxes — delegated change handler so we don't have to
   // re-bind each time `populateStatusFilter()` re-renders the inputs.
   el("f-status-checks").addEventListener("change", (ev) => {
@@ -1958,6 +2051,7 @@ function wireFilters() {
     filterState.dcTier = "";
     filterState.dcCandidate = false;
     filterState.oppZone = false;
+    filterState.isoRto = "";
     el("search").value = "";
     refreshPersonaButtons();
     refreshKpiActiveStates();
@@ -1971,6 +2065,7 @@ function wireFilters() {
     if (filterState.programs.has("fuds")) ensureFudsLoaded();
     if (filterState.programs.has("brac")) ensureBracLoaded();
     stateSel.value = "";
+    if (isoSel) isoSel.value = "";
     for (const cb of el("f-status-checks").querySelectorAll("input[type=checkbox]")) cb.checked = false;
     acreEl.value = "0";
     acreVal.textContent = "0";
@@ -2118,6 +2213,28 @@ function populateStateFilter() {
   const all = new Set(present);
   if (all.has(current)) sel.value = current;
   else if (all.has(filterState.state)) sel.value = filterState.state;
+}
+
+function populateIsoRtoFilter() {
+  const sel = el("f-iso-rto");
+  if (!sel) return;
+  const current = sel.value || filterState.isoRto;
+  const values = new Set();
+  for (const s of sites) if (s.iso_rto) values.add(s.iso_rto);
+  const ordered = Object.keys(ISO_RTO_LABELS).filter((value) => values.has(value));
+  sel.innerHTML = `<option value="">Any ISO/RTO</option>` +
+    ordered.map((value) =>
+      `<option value="${escapeAttr(value)}">${escapeHtml(ISO_RTO_LABELS[value] || value)}</option>`
+    ).join("");
+  if (current && values.has(current)) {
+    sel.value = current;
+    filterState.isoRto = current;
+  } else if (filterState.isoRto && values.size > 0) {
+    filterState.isoRto = "";
+    sel.value = "";
+  } else {
+    sel.value = "";
+  }
 }
 
 function populateStatusFilter() {
@@ -2575,6 +2692,8 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
   // can't be permitted as critical infrastructure (DC, energy plant) without
   // expensive elevation / flood-proofing work.
   setFloodZoneCell("d-flood-zone", s.flood_zone, s.in_sfha);
+  setTextCell("d-iso-rto", s.iso_rto ? (ISO_RTO_LABELS[s.iso_rto] || s.iso_rto) : null);
+  setTextCell("d-climate-zone", s.climate_zone);
   // Opportunity Zone — financial signal for buyers, surfaced as a cell in
   // the infra section. Yes/No based on the universal HUD layer; legacy
   // string-valued `in_opp_zone` (EPA RE-Powering, Superfund-only) is a
@@ -2995,6 +3114,8 @@ const CSV_COLUMNS = [
   { key: "gas_pipeline_mi", label: "gas_pipeline_mi" },
   { key: "flood_zone", label: "flood_zone" },
   { key: "in_sfha", label: "in_sfha" },
+  { key: "iso_rto", label: "iso_rto" },
+  { key: "climate_zone", label: "climate_zone" },
   // EPA RE-Powering qualitative (Superfund-only, v1.7)
   { key: "near_electric_transmission", label: "near_electric_transmission" },
   { key: "near_water_supply", label: "near_water_supply" },
@@ -3171,6 +3292,10 @@ function loadInitialFiltersFromUrl() {
     const v = p.get("oz");
     if (v === "1" || v === "true") filterState.oppZone = true;
   }
+  if (p.has("iso_rto")) {
+    const v = p.get("iso_rto") || "";
+    if (v) filterState.isoRto = v;
+  }
 }
 
 function applyUrlSelection() {
@@ -3218,6 +3343,7 @@ function syncUrl() {
     if (filterState.dcTier) p.set("dc_tier", filterState.dcTier);
     if (filterState.dcCandidate) p.set("dc_candidate", "1");
     if (filterState.oppZone) p.set("oz", "1");
+    if (filterState.isoRto) p.set("iso_rto", filterState.isoRto);
     if (selectedId) p.set("site", selectedId);
     const qs = p.toString();
     const newUrl = qs ? `${location.pathname}?${qs}` : location.pathname;
@@ -3303,6 +3429,18 @@ function setPowerPlantSuffix(id, mw, fuel) {
     : "Nearby generation — PPA / co-location candidate";
   node.appendChild(document.createTextNode(" "));
   node.appendChild(span);
+}
+
+function setTextCell(id, value, emptyText = "Not available") {
+  const node = el(id);
+  if (!node) return;
+  if (value == null || value === "") {
+    node.textContent = emptyText;
+    node.classList.add("muted-cell");
+  } else {
+    node.textContent = String(value);
+    node.classList.remove("muted-cell");
+  }
 }
 
 // Render the Opportunity Zone cell. Three states:

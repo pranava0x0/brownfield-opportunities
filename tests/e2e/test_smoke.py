@@ -1597,6 +1597,46 @@ def test_gas_pipeline_row_renders_when_value_known(page, base_url):
     assert "muted-cell" not in cls, "populated gas pipeline cell should not carry .muted-cell"
 
 
+def test_iso_rto_and_climate_zone_detail_rows_render(page, base_url):
+    """Data-center Tier 1 layers: ISO/RTO and climate-zone enrichments join
+    onto a selected site and render in the detail panel."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    site = page.evaluate(
+        """(() => {
+          const s = (window.__sites || []).find((row) => row.iso_rto && row.climate_zone);
+          return s ? { id: s.id, iso: s.iso_rto, climate: s.climate_zone } : null;
+        })()"""
+    )
+    assert site, "expected at least one site with both ISO/RTO and climate-zone enrichment"
+    page.evaluate(f"window.__selectSite('{site['id']}')")
+    page.wait_for_selector("#detail:not([hidden])")
+    iso_text = (page.locator("#d-iso-rto").text_content() or "").strip()
+    climate_text = (page.locator("#d-climate-zone").text_content() or "").strip()
+    assert site["iso"].replace("non-RTO", "Non-RTO") in iso_text
+    assert site["climate"] == climate_text
+    assert "muted-cell" not in (page.locator("#d-climate-zone").get_attribute("class") or "")
+
+
+def test_iso_rto_filter_facet_filters_sites(page, base_url):
+    """The ISO/RTO dropdown is a real filter facet and round-trips into
+    URL state as ?iso_rto=..."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    page.locator("#filters-toggle").click()
+    page.wait_for_selector("#filters:not([hidden])")
+    page.locator("#f-iso-rto").select_option("PJM")
+    page.wait_for_function(
+        "() => window.__tableState.filtered.length > 0 && "
+        "window.__tableState.filtered.every((s) => s.iso_rto === 'PJM')",
+        timeout=5000,
+    )
+    page.wait_for_function("() => location.search.includes('iso_rto=PJM')", timeout=2000)
+    assert "iso_rto=PJM" in page.url
+    title = page.locator("#filters-chip").get_attribute("title") or ""
+    assert "ISO/RTO PJM" in title
+
+
 def test_transmission_kv_chip_renders_when_kv_known(page, base_url):
     """v1.12 Tier 0: when `transmission_kv` is populated, a `.kv-chip`
     span is appended to the transmission cell. ≥230 kV gets the green

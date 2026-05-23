@@ -525,3 +525,29 @@ class PolygonIndex:
             if not in_hole:
                 return self._attrs[idx]
         return None
+
+    def containing_all(self, lat: float, lon: float) -> list[object]:
+        """Return attrs for EVERY polygon that contains (lat, lon).
+
+        Most existing callers use non-overlapping polygons and should keep
+        `containing()` for speed. RTO/ISO market polygons can overlap because
+        the source includes hubs, zones, and regions; callers there need all
+        candidates so they can apply a domain-specific priority rule.
+        """
+        matches: list[object] = []
+        cy, cx = _cell_for(lat, lon, self.cell_deg)
+        for idx in self._cells.get((cy, cx), ()):
+            lat_lo, lon_lo, lat_hi, lon_hi = self._bboxes[idx]
+            if not (lat_lo <= lat <= lat_hi and lon_lo <= lon <= lon_hi):
+                continue
+            rings = self._rings[idx]
+            if not _point_in_ring(lon, lat, rings[0]):
+                continue
+            in_hole = False
+            for hole in rings[1:]:
+                if _point_in_ring(lon, lat, hole):
+                    in_hole = True
+                    break
+            if not in_hole:
+                matches.append(self._attrs[idx])
+        return matches
