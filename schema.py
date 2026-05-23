@@ -206,6 +206,19 @@ class SiteRecord(BaseModel):
                     "OZs are a small subset (~700 tracts) but matter for "
                     "USDA-aligned investment programs.",
     )
+    iso_rto: Optional[str] = Field(
+        default=None,
+        description="Regional transmission organization / independent system "
+                    "operator containing this site, e.g. PJM, MISO, ERCOT, "
+                    "CAISO, SPP, NYISO, ISO-NE, or non-RTO when the site is "
+                    "in the lower-48 but outside an EIA/HIFLD RTO polygon.",
+    )
+    climate_zone: Optional[str] = Field(
+        default=None,
+        description="IECC / ASHRAE climate zone by county, e.g. 5B or 3A. "
+                    "Derived from DOE Building America / PNNL county climate "
+                    "zone boundaries.",
+    )
 
     # Ownership / transfer / history. Most are still None for most programs;
     # FUDS populates `current_owner` directly from the source.
