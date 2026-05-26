@@ -248,7 +248,21 @@ class EpaSuperfundDocs(Connector):
                             epa_id, e)
                 continue
             if not docs:
-                log.info("[%s] no documents found (SF_SITE_ID=%s)", epa_id, sf_site_id)
+                # Mark as covered with an empty documents list so future
+                # --missing-only runs don't re-attempt this site. SF_SITE_ID
+                # was resolved successfully but no qualifying collections
+                # exist — that's a stable "we tried" result, not a retriable
+                # failure. The frontend's renderDocuments() hides the block
+                # when documents.length === 0, so this is visually identical
+                # to never having been enriched.
+                log.info("[%s] no documents found (SF_SITE_ID=%s) — marking covered",
+                         epa_id, sf_site_id)
+                records.append({
+                    "id": epa_id,
+                    "program": "superfund",
+                    "epa_id": epa_id,
+                    "documents": [],
+                })
                 continue
             docs = docs[:per_site_cap]
             records.append({
