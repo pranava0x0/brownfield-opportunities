@@ -555,6 +555,58 @@ def test_meta_text_shows_per_program_counts(page, base_url):
     assert "refreshed" in text.lower()
 
 
+def test_refresh_date_reflects_freshest_data_file(page, base_url):
+    """The hero / footer / subtitle 'last update' date is the MAX generated_at
+    across EVERY loaded data file — not pinned to sites.json. Regression: the
+    date used to key off sites.json alone, so it understated freshness whenever
+    an enrichment file (e.g. epa-superfund-docs) refreshed on a later cadence.
+    No date is hardcoded here — the expected max is computed from the files
+    themselves, so this stays green across data refreshes. If a new data file
+    with a generated_at is added, add it to the list below."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    result = page.evaluate(
+        """async () => {
+          const files = [
+            'sites.json', 'epa-acres.json', 'dod-fuds.json', 'dod-brac.json',
+            'epa-redev.json', 'epa-superfund-docs.json', 'infra-proximity.json',
+            'opportunity-zone.json', 'climate-zone.json', 'iso-rto.json',
+            'epa-echo.json', 'ai-summary.json',
+          ];
+          const fmt = (s) => new Date(Date.parse(s)).toISOString().slice(0, 10);
+          let coreDate = null;
+          const dates = [];
+          for (const f of files) {
+            try {
+              const r = await fetch('data/' + f);
+              if (!r.ok) continue;
+              const j = await r.json();
+              if (j && j.generated_at) {
+                dates.push(j.generated_at);
+                if (f === 'sites.json') coreDate = j.generated_at;
+              }
+            } catch (e) { /* unreachable file — skip */ }
+          }
+          dates.sort((a, b) => Date.parse(b) - Date.parse(a));
+          return {
+            displayed: window.__refreshedAt,
+            expectedMax: dates.length ? fmt(dates[0]) : null,
+            coreDate: coreDate ? fmt(coreDate) : null,
+          };
+        }"""
+    )
+    assert result["displayed"] == result["expectedMax"], (
+        f"displayed refresh date {result['displayed']!r} != freshest file "
+        f"date {result['expectedMax']!r}"
+    )
+    # Guard the actual regression: when an enrichment file is fresher than the
+    # core Superfund set, the displayed date must have advanced past sites.json.
+    if result["expectedMax"] != result["coreDate"]:
+        assert result["displayed"] != result["coreDate"], (
+            "refresh date is pinned to sites.json instead of the freshest file"
+        )
+
+
 def test_filter_chip_hidden_by_default_visible_when_active(page, base_url):
     """v1.8: chip badge on the gear button counts active filters.
     Bug fix: `display: inline-flex` was overriding `[hidden]` so the chip
