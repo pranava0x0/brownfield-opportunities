@@ -54,7 +54,7 @@
   <div class="hero-inner">
     <div class="hero-copy">
       <p class="hero-eyebrow">
-        <span>US Brownfield Atlas</span><span class="dot">·</span><span id="hero-version">v1.13</span><span class="dot">·</span><span id="hero-refresh">Updated —</span>
+        <span>US Brownfield Atlas</span><span class="dot">·</span><span id="hero-version">v1.14</span><span class="dot">·</span><span id="hero-refresh">Updated —</span>
       </p>
       <h2>Every federally-tracked contaminated site in America, mapped.</h2>
       <p>~47,000 EPA Superfund, ACRES brownfield, DOD FUDS, and BRAC properties. Filter by state, acreage, and program — and see which sites have the power, water, and rail proximity to support reuse.</p>
@@ -253,6 +253,16 @@
   </div>
 
   <div id="d-tax-incentive" class="tax-incentive-block" hidden></div>
+
+  <details class="d-section" data-section="suitability" id="d-suitability-block" open>
+    <summary><h3>Siting suitability</h3></summary>
+    <div class="suitability" id="d-suitability">
+      <div class="suit-lens" id="d-suit-dc"></div>
+      <div class="suit-lens" id="d-suit-gen"></div>
+      <p class="suit-flood" id="d-suit-flood" hidden></p>
+      <p class="suit-note muted">Computed from grid, gas, land, market, and flood signals already on this record. Higher = stronger candidate.</p>
+    </div>
+  </details>
 
   <details class="d-section" data-section="infra">
     <summary><h3>Infrastructure proximity</h3></summary>

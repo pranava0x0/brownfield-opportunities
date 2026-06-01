@@ -30,6 +30,9 @@
      (which colors NPL "Not on NPL" pills) so the readiness signal isn't
      conflated with an NPL-status shade. */
   --readiness-ready: #2f7a4d;
+  /* Suitability-score "marginal" amber — between ready-green and muted.
+     Drives the siting-suitability meter for scores 25–49. */
+  --suit-amber: #c46a14;
   /* Map markers and legend are colored by program (one dot per program). */
   --program-superfund: #b8332f;
   --program-brownfield: #1c5e9e;
@@ -76,6 +79,7 @@
   --status-other: #5fa45f;
   --status-acres: #7eb6e8;
   --readiness-ready: #6cc18a;
+  --suit-amber: #e6a040;
   --program-superfund: #ef5050;
   --program-brownfield: #7eb6e8;
   --program-fuds: #b47ad8;
@@ -1454,6 +1458,100 @@ main {
   font-size: 11.5px;
   line-height: 1.35;
 }
+
+/* ----- Siting suitability block (detail panel) ----- */
+.suitability { margin-top: 4px; }
+.suit-lens { margin: 0 0 14px; }
+.suit-lens:last-of-type { margin-bottom: 6px; }
+.suit-lens-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.suit-lens-name {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-soft);
+}
+.suit-score {
+  font-weight: 800;
+  font-size: 20px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.suit-score[data-tier="strong"]   { color: var(--readiness-ready); }
+.suit-score[data-tier="moderate"] { color: var(--accent); }
+.suit-score[data-tier="marginal"] { color: var(--suit-amber); }
+.suit-score[data-tier="weak"]     { color: var(--muted); }
+.suit-score-max {
+  font-weight: 600;
+  font-size: 11px;
+  color: var(--muted);
+  margin-left: 1px;
+}
+.suit-track {
+  position: relative;
+  height: 6px;
+  margin: 6px 0 7px;
+  background: var(--accent-soft);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.suit-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 3px;
+  transition: width 0.25s ease;
+}
+.suit-fill[data-tier="strong"]   { background: var(--readiness-ready); }
+.suit-fill[data-tier="moderate"] { background: var(--accent); }
+.suit-fill[data-tier="marginal"] { background: var(--suit-amber); }
+.suit-fill[data-tier="weak"]     { background: var(--muted); }
+.suit-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.suit-chip {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  padding: 1px 7px;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  color: var(--text-soft);
+  border: 1px solid var(--border);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.suit-chip.suit-penalty {
+  color: #fff;
+  background: var(--program-superfund);
+  border-color: transparent;
+}
+.suit-na {
+  margin: 5px 0 0;
+  font-size: 11.5px;
+  color: var(--muted);
+  font-style: italic;
+}
+.suit-note {
+  margin: 2px 0 0;
+  font-size: 11px;
+  line-height: 1.35;
+}
+.suit-flood {
+  margin: 4px 0 8px;
+  padding: 7px 10px;
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--text-soft);
+  background: rgba(184, 51, 47, 0.10);
+  border-left: 3px solid var(--program-superfund);
+  border-radius: 3px;
+}
+.suit-flood[hidden] { display: none; }
 
 /* The hero KPI deck's existing `.kpi-sub.kpi-sub-strong` rule already
    styles the "≥50 ac · power · water" subtext for #kpi-dc — the new
