@@ -1,0 +1,37 @@
+# Brownfield Opportunities — US contaminated-site atlas for data-center & power-generation siting
+
+> An open dataset and interactive map of ~46,800 federally-tracked contaminated and formerly-used US sites (EPA Superfund/NPL, EPA ACRES brownfields, DOD FUDS, DOD BRAC), enriched with grid, gas, flood, opportunity-zone, climate, and tax-incentive data, and scored 0–100 for two siting use cases: hosting a data-center electrical LOAD, and building new power GENERATION.
+
+The dashboard is a static, dependency-light site (Leaflet + vanilla JS — no backend, no build step). Every data file is open and fetchable as JSON from `data/`. The two suitability scores are computed client-side in `dc-score.js` as pure, deterministic functions of signals already on each record, so any consumer can reproduce or re-weight them. All source data derives from public US federal datasets (EPA, USACE, DOD, HIFLD, Census TIGER, FEMA, HUD, EIA); per-source attribution is in the dashboard footer and `schema.py`.
+
+## Site
+
+- [Interactive dashboard](https://pranava0x0.github.io/brownfield-opportunities/): map + sortable table, program/state/acreage/NPL/persona filters, and a per-site detail panel with the suitability scores, infrastructure proximity, enforcement, documents, and an AI summary. URL state (`?site=`, `?q=`, `?state=`, `?status=`, `?program=`, `?dc_tier=`, `?oz=`) is shareable.
+- [Source repository](https://github.com/pranava0x0/brownfield-opportunities): connectors, schema, tests, and refresh tooling.
+
+## Data files (open JSON, served from data/)
+
+- [sites.json](https://pranava0x0.github.io/brownfield-opportunities/data/sites.json): Superfund/NPL sites, the eager first-paint set (~1,900 records). Mirror of superfund-npl.json.
+- [epa-acres.json](https://pranava0x0.github.io/brownfield-opportunities/data/epa-acres.json): ~36,000 EPA ACRES brownfield properties (lazy-loaded).
+- [dod-fuds.json](https://pranava0x0.github.io/brownfield-opportunities/data/dod-fuds.json): ~8,800 DOD Formerly Used Defense Sites.
+- [dod-brac.json](https://pranava0x0.github.io/brownfield-opportunities/data/dod-brac.json): 27 DOD BRAC base-closure sites.
+- [infra-proximity.json](https://pranava0x0.github.io/brownfield-opportunities/data/infra-proximity.json): per-site distances (miles) to transmission lines (+kV), substations (+kV), power plants (+MW & fuel), gas pipelines, rail, and highways, plus the FEMA flood-zone code and Special-Flood-Hazard-Area flag. Joined onto every program by `id`.
+- [opportunity-zone.json](https://pranava0x0.github.io/brownfield-opportunities/data/opportunity-zone.json): Treasury Qualified Opportunity Zone containment (tract GEOID + rural flag).
+- [iso-rto.json](https://pranava0x0.github.io/brownfield-opportunities/data/iso-rto.json): ISO/RTO market (PJM, MISO, ERCOT, CAISO, SPP, NYISO, ISO-NE, or non-RTO).
+- [climate-zone.json](https://pranava0x0.github.io/brownfield-opportunities/data/climate-zone.json): IECC/ASHRAE county climate zone.
+- [epa-redev.json](https://pranava0x0.github.io/brownfield-opportunities/data/epa-redev.json): EPA RE-Powering infrastructure-proximity flags + the data-center-reuse-candidate boolean (Superfund-only enrichment).
+- [epa-echo.json](https://pranava0x0.github.io/brownfield-opportunities/data/epa-echo.json): EPA ECHO enforcement & compliance summary (Superfund-only).
+- [epa-superfund-docs.json](https://pranava0x0.github.io/brownfield-opportunities/data/epa-superfund-docs.json): curated federal documents per Superfund site (RODs, Five-Year Reviews, fact sheets).
+- [ai-summary.json](https://pranava0x0.github.io/brownfield-opportunities/data/ai-summary.json): one-paragraph plain-English site summaries synthesized from the structured fields.
+
+## Scoring & schema
+
+- [dc-score.js](https://github.com/pranava0x0/brownfield-opportunities/blob/main/docs/dc-score.js): the two siting lenses. `computeDcCompositeScore(site)` scores a data-center LOAD (weights power access — transmission distance/voltage/substation/power-plant co-location — plus acreage, gas, logistics, readiness); `computeGenerationScore(site)` scores NEW GENERATION (land-dominant, transmission+substation to export, gas feedstock, ISO/RTO market). Both 0–100, both gate on transmission data (null = "can't assess"), both subtract an 18-point penalty for a FEMA Special Flood Hazard Area. Each has a `*Breakdown()` companion returning per-component points.
+- [schema.py](https://github.com/pranava0x0/brownfield-opportunities/blob/main/schema.py): the `SiteRecord` Pydantic schema — the single source of truth for every field on every record. Each record sets `id` (cross-source unique) and `program` (`superfund` | `brownfield` | `fuds` | `brac`).
+
+## Notes
+
+- Distances are in miles; values over 100 mi are dropped as out-of-CONUS. A distance of `0.0` means "adjacent" (borders the boundary), not missing.
+- Acreage is unavailable for all ACRES brownfields and ~66% of FUDS sites (source-side gaps, not omissions) — those fall to the bottom of acreage sorts and render "—".
+- Flood-zone coverage is partial and being backfilled (per-site FEMA queries); a missing `in_sfha` means "not yet checked / unmapped", not "no risk", and carries no score penalty.
+- Data refreshes on a cron via GitHub Actions; the dashboard footer shows the refresh date.
