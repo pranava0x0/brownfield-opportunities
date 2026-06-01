@@ -2702,6 +2702,9 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
   // State data-center tax incentive chip (Tier 1/2/3) — uses the static
   // STATE_DC_INCENTIVES lookup, no fetch.
   renderStateIncentive(s);
+  // Siting suitability scores (data-center load + new generation), the
+  // synthesis of the infra signals above. Reads dc-score.js — no fetch.
+  renderSuitability(s);
   // EPA RE-Powering qualitative indicators (Superfund-only — only present
   // for the ~1.9k sites the EPA Redevelopment mapper covers).
   el("d-near-elec").textContent = fmt.text(s.near_electric_transmission);
@@ -3116,6 +3119,10 @@ const CSV_COLUMNS = [
   { key: "in_sfha", label: "in_sfha" },
   { key: "iso_rto", label: "iso_rto" },
   { key: "climate_zone", label: "climate_zone" },
+  // Computed suitability scores (0–100, dc-score.js) — synthesis of the
+  // infra signals above. Empty when transmission data is missing.
+  { key: "dc_score", label: "dc_score", compute: (s) => computeDcCompositeScore(s) },
+  { key: "generation_score", label: "generation_score", compute: (s) => computeGenerationScore(s) },
   // EPA RE-Powering qualitative (Superfund-only, v1.7)
   { key: "near_electric_transmission", label: "near_electric_transmission" },
   { key: "near_water_supply", label: "near_water_supply" },
@@ -3153,6 +3160,12 @@ function pickCsvField(obj, key) {
 }
 
 function csvCell(s, col) {
+  // Computed columns (e.g. the suitability scores) derive their value from
+  // a function rather than a stored field.
+  if (typeof col.compute === "function") {
+    const cv = col.compute(s);
+    return cv == null ? "" : cv;
+  }
   let v = pickCsvField(s, col.key);
   if ((v == null || v === "") && col.fallback) v = pickCsvField(s, col.fallback);
   if (v == null) return "";
@@ -3527,6 +3540,76 @@ function setFloodZoneCell(id, zone, inSfha) {
     : inSfha === false
     ? " — outside SFHA"
     : "");
+}
+
+// ----- Siting suitability block -----
+// Group the per-component score breakdown into a few human-readable
+// buckets so the detail panel shows *why* a site scores the way it does
+// without a 9-row field dump. The keys match the breakdown objects
+// returned by computeDcScoreBreakdown / computeGenerationScoreBreakdown
+// in dc-score.js.
+const _DC_SUIT_GROUPS = [
+  { label: "Power access", cls: "suit-power",  keys: ["transmission_distance", "voltage", "substation", "power_plant"] },
+  { label: "Land",         cls: "suit-land",   keys: ["acreage"] },
+  { label: "Gas",          cls: "suit-gas",    keys: ["gas_pipeline"] },
+  { label: "Logistics",    cls: "suit-logi",   keys: ["logistics"] },
+  { label: "Readiness",    cls: "suit-ready",  keys: ["readiness"] },
+];
+const _GEN_SUIT_GROUPS = [
+  { label: "Land",         cls: "suit-land",   keys: ["acreage"] },
+  { label: "Grid export",  cls: "suit-power",  keys: ["transmission_distance", "voltage", "substation"] },
+  { label: "Gas",          cls: "suit-gas",    keys: ["gas_pipeline"] },
+  { label: "Market",       cls: "suit-market", keys: ["iso_rto"] },
+  { label: "Readiness",    cls: "suit-ready",  keys: ["readiness"] },
+];
+
+function _suitTier(score) {
+  return score >= 75 ? "strong" : score >= 50 ? "moderate" : score >= 25 ? "marginal" : "weak";
+}
+
+function _suitLensHtml(title, score, breakdown, groups) {
+  if (score == null) {
+    return `<div class="suit-lens-head"><span class="suit-lens-name">${escapeHtml(title)}</span>`
+      + `<span class="suit-score muted-cell">N/A</span></div>`
+      + `<p class="suit-na">No transmission data — can't score power access.</p>`;
+  }
+  const chips = [];
+  for (const g of groups) {
+    const pts = g.keys.reduce((sum, k) => sum + (breakdown[k] || 0), 0);
+    if (pts > 0) chips.push(`<span class="suit-chip ${g.cls}">${escapeHtml(g.label)} ${pts}</span>`);
+  }
+  const penalty = breakdown.flood_penalty || 0;
+  if (penalty < 0) chips.push(`<span class="suit-chip suit-penalty">Flood ${penalty}</span>`);
+  const tier = _suitTier(score);
+  return `<div class="suit-lens-head">`
+    + `<span class="suit-lens-name">${escapeHtml(title)}</span>`
+    + `<span class="suit-score" data-tier="${tier}">${score}<span class="suit-score-max">/100</span></span>`
+    + `</div>`
+    + `<div class="suit-track"><span class="suit-fill" data-tier="${tier}" style="width:${score}%"></span></div>`
+    + `<div class="suit-chips">${chips.join("")}</div>`;
+}
+
+// Fill the detail-panel "Siting suitability" block with the two scoring
+// lenses (data-center load vs. new power generation) plus an SFHA
+// deal-blocker note. Both scores read from the same on-disk signals the
+// infra-proximity section shows above — this is the synthesis layer.
+function renderSuitability(s) {
+  const dcEl = el("d-suit-dc");
+  const genEl = el("d-suit-gen");
+  if (!dcEl || !genEl) return;
+  dcEl.innerHTML = _suitLensHtml(
+    "Data center", computeDcCompositeScore(s), computeDcScoreBreakdown(s) || {}, _DC_SUIT_GROUPS);
+  genEl.innerHTML = _suitLensHtml(
+    "Power generation", computeGenerationScore(s), computeGenerationScoreBreakdown(s) || {}, _GEN_SUIT_GROUPS);
+  const floodEl = el("d-suit-flood");
+  if (floodEl) {
+    const flooded = s.in_sfha === true;
+    floodEl.hidden = !flooded;
+    if (flooded) {
+      floodEl.textContent = "⚑ In a FEMA Special Flood Hazard Area — permitting as critical "
+        + "infrastructure requires elevation / flood-proofing. Both scores carry an 18-point penalty.";
+    }
+  }
 }
 
 // Render the State DC tax incentive chip in the detail panel. Looks up

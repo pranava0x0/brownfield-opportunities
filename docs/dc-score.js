@@ -1,134 +1,295 @@
-// Composite DC suitability score (0–100).
+// Site suitability scoring — two complementary lenses, both 0–100.
 //
-// A weighted sum of the per-site signals already on disk from the
-// infra-proximity + epa-redev + opportunity-zone enrichment connectors.
-// Higher = better candidate for data-center or energy-generation
-// development. Returns null when transmission distance is missing (the
-// load-bearing signal — a site you can't power isn't a DC candidate).
+// Every signal here is already on disk from the infra-proximity +
+// epa-redev + opportunity-zone + iso-rto enrichment connectors. The
+// scorers are pure / deterministic so a buyer can reason about why a
+// site ranks where it does — no ML, no hidden state.
 //
-// Component caps (sum 105, final clamped to 100):
-//   - Transmission distance: 20
-//   - Voltage (kV):          20
-//   - Acreage:               25
-//   - Gas pipeline:          15
-//   - Logistics (highway+rail): 10
-//   - Readiness (DC candidate / cleanup / active reuse / OZ): 15
+//   computeDcCompositeScore(site)   — siting a data-center LOAD.
+//   computeGenerationScore(site)    — siting NEW power GENERATION.
 //
-// The readiness cap grew from 10 → 15 in v1.13.4 to accommodate the +5
-// Opportunity Zone bonus without displacing existing readiness signals
-// (DC candidate, cleanup-complete, active reuse). Total weights now sum
-// to 105; final score clamped to 100 so the displayed range stays clean.
-// A perfect-on-tech site at 100 doesn't see the OZ bump (clamp absorbs
-// it), but the vast majority of sites <95 get a measurable lift inside
-// a QOZ — which is the intent.
+// The two lenses share machinery (transmission, voltage, substation,
+// gas, acreage, flood penalty) but weight it differently, because what
+// makes a parcel good for a 200 MW compute load is not what makes it
+// good for a 200 MW solar/gas/storage build:
 //
-// Bucket thresholds align with the existing DC_TIERS ladder where possible
-// (≥138 / 230 / 500 kV, ≥25 / 100 / 500 ac, transmission ≤1 mi) so the
-// numeric score and the tier pill never disagree about ordering.
+//   • A data center wants to be NEAR existing power it can buy —
+//     transmission, a substation to interconnect, and ideally an
+//     existing plant for a PPA / behind-the-meter deal. Footprint
+//     matters but tops out around hyperscale (~500 ac).
+//   • New generation wants LAND first (solar is ~5–8 ac/MW), a way to
+//     EXPORT what it makes (transmission + substation to interconnect),
+//     gas feedstock for thermal builds, and an organized market
+//     (ISO/RTO) to clear the interconnection queue and sell into.
+//     Co-location with an existing plant is irrelevant — you ARE the
+//     plant — and a site already "in reuse" is a liability, not a plus,
+//     because the land is occupied.
+//
+// Both lenses gate on transmission distance: a site with no grid within
+// the connector's 100-mi window can neither be powered (DC) nor
+// interconnect its output (generation), so the score is null, not 0 —
+// "we can't assess this" is different from "this is bad."
+//
+// Both apply a Special-Flood-Hazard-Area penalty: a site inside FEMA's
+// 1%-annual-chance floodplain (in_sfha === true) effectively can't be
+// permitted as critical infrastructure without expensive elevation /
+// flood-proofing. It's a strong negative but mitigable, so it subtracts
+// rather than zeroing the score. in_sfha === null (unmapped / not yet
+// backfilled) is NOT penalized — absence of evidence isn't evidence.
 
-const DC_SCORE_WEIGHTS = Object.freeze({
-  transmission_distance: 20,
-  voltage:               20,
-  acreage:               25,
-  gas_pipeline:          15,
-  logistics:             10,
-  readiness:             15,
-});
+// ---------------------------------------------------------------------------
+// Shared component scorers. Each returns points on a 0..cap scale; the
+// per-lens weight tables below pick the cap.
+// ---------------------------------------------------------------------------
 
-const DC_SCORE_TOOLTIP =
-  "DC suitability score (0–100). Weighted sum: transmission distance (20), " +
-  "voltage (20), acreage (25), gas pipeline (15), highway + rail logistics (10), " +
-  "readiness — EPA DC candidate flag, NPL cleanup status, active reuse, " +
-  "Opportunity Zone (15 max). Higher = better candidate. " +
-  "Sites without transmission data score N/A.";
-
-function _scoreTransmissionDistance(mi) {
+// Distance to the nearest transmission line, linear falloff 0.05→2 mi.
+// The load-bearing signal for both lenses — adjacent is full marks,
+// ≥2 mi is zero.
+function _scoreTransmissionDistance(mi, cap) {
   if (mi == null) return 0;
-  if (mi <= 0.05) return 20;       // adjacent / on-site
-  if (mi >= 2)    return 0;        // too far
-  // Linear falloff between 0.05 and 2 mi.
-  return Math.round((1 - mi / 2) * 20);
+  if (mi <= 0.05) return cap;     // adjacent / on-site
+  if (mi >= 2)    return 0;       // too far to matter
+  return Math.round((1 - mi / 2) * cap);
 }
 
-function _scoreVoltage(kv) {
+// Nominal kV of the nearest line. Higher class = more transfer capacity
+// (to import for a DC, or export for generation).
+function _scoreVoltage(kv, cap) {
   if (kv == null) return 0;
-  if (kv >= 500) return 20;
-  if (kv >= 230) return 16;
-  if (kv >= 138) return 12;
-  if (kv >= 69)  return 8;
-  return 4;
+  let frac;
+  if (kv >= 500)      frac = 1.0;   // EHV — mega-campus / large gen export
+  else if (kv >= 230) frac = 0.8;   // hyperscale-grade
+  else if (kv >= 138) frac = 0.6;   // colo-grade
+  else if (kv >= 69)  frac = 0.4;   // sub-transmission
+  else                frac = 0.2;   // distribution-class
+  return Math.round(frac * cap);
 }
 
-function _scoreAcreage(acres) {
-  if (acres == null) return 0;
-  if (acres >= 500) return 25;
-  if (acres >= 100) return 20;
-  if (acres >= 25)  return 14;
-  if (acres >= 5)   return 7;
-  return 2;
-}
-
-function _scoreGasPipeline(mi) {
+// Distance to the nearest substation — the actual point of
+// interconnection. A 500 kV line 0.3 mi away is worthless without a
+// substation close enough to tap, which is why this is a distinct
+// component from transmission distance.
+function _scoreSubstation(mi, cap) {
   if (mi == null) return 0;
-  if (mi <= 0.05) return 15;
-  if (mi <= 1)    return 12;
-  if (mi <= 5)    return 8;
-  if (mi <= 15)   return 4;
+  let frac;
+  if (mi <= 0.5)     frac = 1.0;
+  else if (mi <= 2)  frac = 0.75;
+  else if (mi <= 5)  frac = 0.5;
+  else if (mi <= 10) frac = 0.25;
+  else               frac = 0;
+  return Math.round(frac * cap);
+}
+
+// Distance to the nearest existing power plant. DC-only: signals a PPA /
+// behind-the-meter co-location opportunity and demonstrated local grid
+// capacity. Intentionally absent from the generation lens.
+function _scorePowerPlant(mi, cap) {
+  if (mi == null) return 0;
+  if (mi <= 1)  return cap;
+  if (mi <= 5)  return Math.round(cap * 0.75);
+  if (mi <= 15) return Math.round(cap * 0.4);
   return 0;
 }
 
-function _scoreLogistics(highwayMi, railMi) {
-  let s = 0;
-  if (highwayMi != null) {
-    if (highwayMi <= 1)       s += 5;
-    else if (highwayMi <= 5)  s += 3;
-    else if (highwayMi <= 15) s += 1;
-  }
-  if (railMi != null) {
-    if (railMi <= 1)       s += 5;
-    else if (railMi <= 5)  s += 3;
-    else if (railMi <= 15) s += 1;
-  }
-  return Math.min(s, 10);
+// Distance to the nearest natural-gas pipeline. Enables behind-the-meter
+// gas turbines (DC bridge power) or gas-fired generation feedstock.
+function _scoreGasPipeline(mi, cap) {
+  if (mi == null) return 0;
+  if (mi <= 0.05) return cap;
+  if (mi <= 1)    return Math.round(cap * 0.8);
+  if (mi <= 5)    return Math.round(cap * 0.55);
+  if (mi <= 15)   return Math.round(cap * 0.27);
+  return 0;
 }
 
-function _scoreReadiness(site) {
+// DC acreage curve — footprint matters but saturates at the hyperscale
+// threshold (~500 ac); a 50,000-acre parcel is no better than a 500-acre
+// one for a single campus.
+function _scoreAcreageDc(acres, cap) {
+  if (acres == null) return 0;
+  if (acres >= 500) return cap;
+  if (acres >= 100) return Math.round(cap * 0.8);
+  if (acres >= 25)  return Math.round(cap * 0.55);
+  if (acres >= 5)   return Math.round(cap * 0.25);
+  return Math.round(cap * 0.05);
+}
+
+// Generation acreage curve — land is the dominant constraint and bigger
+// is genuinely better (utility-scale solar/wind scales with acreage), so
+// the curve keeps climbing past where the DC curve flattens.
+function _scoreAcreageGen(acres, cap) {
+  if (acres == null) return 0;
+  if (acres >= 1000) return cap;
+  if (acres >= 500)  return Math.round(cap * 0.85);
+  if (acres >= 250)  return Math.round(cap * 0.65);
+  if (acres >= 100)  return Math.round(cap * 0.45);
+  if (acres >= 25)   return Math.round(cap * 0.22);
+  if (acres >= 5)    return Math.round(cap * 0.08);
+  return 0;
+}
+
+// Highway + rail proximity (DC-only) — construction logistics, equipment
+// delivery. Minor relative to power, capped low.
+function _scoreLogistics(highwayMi, railMi, cap) {
+  let s = 0;
+  const each = cap / 2;
+  for (const mi of [highwayMi, railMi]) {
+    if (mi == null) continue;
+    if (mi <= 1)       s += each;
+    else if (mi <= 5)  s += each * 0.6;
+    else if (mi <= 15) s += each * 0.2;
+  }
+  return Math.min(Math.round(s), cap);
+}
+
+const _ORGANIZED_RTOS = new Set([
+  "PJM", "MISO", "ERCOT", "CAISO", "SPP", "NYISO", "ISO-NE",
+]);
+
+// ISO/RTO membership (generation-only) — an organized market means a
+// defined interconnection queue and a place to sell the output. A
+// bilateral / non-RTO region is workable but harder, so it scores half.
+function _scoreIsoRto(iso, cap) {
+  if (iso == null) return 0;
+  if (_ORGANIZED_RTOS.has(iso)) return cap;
+  if (iso === "non-RTO")        return Math.round(cap * 0.5);
+  return Math.round(cap * 0.5);  // any other lower-48 value
+}
+
+// SFHA flood penalty — subtracted from both lenses. Only when explicitly
+// inside the 1%-annual-chance floodplain; unmapped (null) is not charged.
+function _floodPenalty(site) {
+  return site.in_sfha === true ? FLOOD_SFHA_PENALTY : 0;
+}
+
+const FLOOD_SFHA_PENALTY = 18;
+
+// ---------------------------------------------------------------------------
+// Lens 1 — data-center LOAD suitability. Positive caps sum to 100; the
+// flood penalty pushes below that and the result is clamped to [0,100].
+// ---------------------------------------------------------------------------
+
+const DC_SCORE_WEIGHTS = Object.freeze({
+  transmission_distance: 16,
+  voltage:               14,
+  substation:            12,
+  power_plant:            8,
+  acreage:               20,
+  gas_pipeline:          10,
+  logistics:              6,
+  readiness:             14,
+});
+
+const DC_SCORE_TOOLTIP =
+  "Data-center suitability (0–100). Weighted sum of power access — " +
+  "transmission distance (16), voltage (14), substation (12), power-plant " +
+  "co-location (8) — plus acreage (20), gas pipeline (10), highway+rail " +
+  "logistics (6), and readiness (14: EPA DC flag, cleanup status, reuse, " +
+  "Opportunity Zone). A Special Flood Hazard Area subtracts 18. " +
+  "Sites without transmission data score N/A.";
+
+// readiness for a data-center load: signals that the parcel is ready to
+// transact and develop. Cap 14 (sub-signals can sum to 15; OZ is the
+// financial sweetener that gets absorbed by the cap on a fully-ready site).
+function _scoreReadinessDc(site) {
   let s = 0;
   if (site.data_center_reuse_candidate === true) s += 5;
   if (site.npl_status_code === "D") s += 3;       // cleanup complete
   else if (site.npl_status_code === "F") s += 1;  // on Final NPL
   if (typeof site.in_reuse === "string" && /^yes/i.test(site.in_reuse)) s += 2;
-  if (site.in_opportunity_zone === true) s += 5;  // Treasury QOZ — financial sweetener
-  return Math.min(s, 15);
-}
-
-function computeDcCompositeScore(site) {
-  if (!site) return null;
-  if (site.transmission_mi == null) return null;
-  const total =
-      _scoreTransmissionDistance(site.transmission_mi)
-    + _scoreVoltage(site.transmission_kv)
-    + _scoreAcreage(site.acreage)
-    + _scoreGasPipeline(site.gas_pipeline_mi)
-    + _scoreLogistics(site.highway_mi, site.rail_mi)
-    + _scoreReadiness(site);
-  return Math.max(0, Math.min(100, total));
+  if (site.in_opportunity_zone === true) s += 5;  // Treasury QOZ
+  return Math.min(s, DC_SCORE_WEIGHTS.readiness);
 }
 
 function computeDcScoreBreakdown(site) {
   if (!site) return null;
   if (site.transmission_mi == null) return null;
+  const W = DC_SCORE_WEIGHTS;
   return {
-    transmission_distance: _scoreTransmissionDistance(site.transmission_mi),
-    voltage:               _scoreVoltage(site.transmission_kv),
-    acreage:               _scoreAcreage(site.acreage),
-    gas_pipeline:          _scoreGasPipeline(site.gas_pipeline_mi),
-    logistics:             _scoreLogistics(site.highway_mi, site.rail_mi),
-    readiness:             _scoreReadiness(site),
+    transmission_distance: _scoreTransmissionDistance(site.transmission_mi, W.transmission_distance),
+    voltage:               _scoreVoltage(site.transmission_kv, W.voltage),
+    substation:            _scoreSubstation(site.substation_mi, W.substation),
+    power_plant:           _scorePowerPlant(site.power_plant_mi, W.power_plant),
+    acreage:               _scoreAcreageDc(site.acreage, W.acreage),
+    gas_pipeline:          _scoreGasPipeline(site.gas_pipeline_mi, W.gas_pipeline),
+    logistics:             _scoreLogistics(site.highway_mi, site.rail_mi, W.logistics),
+    readiness:             _scoreReadinessDc(site),
+    flood_penalty:        -_floodPenalty(site),
   };
 }
 
+function computeDcCompositeScore(site) {
+  const bd = computeDcScoreBreakdown(site);
+  if (bd == null) return null;
+  const total = Object.values(bd).reduce((a, b) => a + b, 0);
+  return Math.max(0, Math.min(100, total));
+}
+
+// ---------------------------------------------------------------------------
+// Lens 2 — new-GENERATION suitability. Positive caps sum to 100; flood
+// penalty subtracts; clamped to [0,100].
+// ---------------------------------------------------------------------------
+
+const GENERATION_SCORE_WEIGHTS = Object.freeze({
+  acreage:               28,   // land is the dominant constraint
+  transmission_distance: 18,   // a way to export the output
+  substation:            16,   // the actual interconnection point
+  voltage:               12,   // export headroom
+  gas_pipeline:          12,   // gas-fired feedstock
+  iso_rto:                8,   // organized market = clearer queue + offtake
+  readiness:              6,   // developable / clean / incentivized land
+});
+
+const GENERATION_SCORE_TOOLTIP =
+  "Power-generation siting suitability (0–100). Weighted for building NEW " +
+  "generation: acreage (28), transmission distance to export (18), " +
+  "substation interconnection (16), voltage headroom (12), gas-pipeline " +
+  "feedstock (12), ISO/RTO market (8), readiness (6). A Special Flood " +
+  "Hazard Area subtracts 18. Unlike the DC score it ignores power-plant " +
+  "co-location (you ARE the plant) and doesn't reward active reuse " +
+  "(occupied land). Sites without transmission data score N/A.";
+
+// readiness for a generation build: a cleaned-up, vacant, incentivized
+// parcel is ideal. Deliberately does NOT credit `in_reuse` — an
+// occupied site is worse for a ground-up build, not better.
+function _scoreReadinessGen(site) {
+  let s = 0;
+  if (site.npl_status_code === "D") s += 4;       // cleanup complete → developable
+  if (site.in_opportunity_zone === true) s += 2;  // financing sweetener
+  return Math.min(s, GENERATION_SCORE_WEIGHTS.readiness);
+}
+
+function computeGenerationScoreBreakdown(site) {
+  if (!site) return null;
+  if (site.transmission_mi == null) return null;
+  const W = GENERATION_SCORE_WEIGHTS;
+  return {
+    acreage:               _scoreAcreageGen(site.acreage, W.acreage),
+    transmission_distance: _scoreTransmissionDistance(site.transmission_mi, W.transmission_distance),
+    substation:            _scoreSubstation(site.substation_mi, W.substation),
+    voltage:               _scoreVoltage(site.transmission_kv, W.voltage),
+    gas_pipeline:          _scoreGasPipeline(site.gas_pipeline_mi, W.gas_pipeline),
+    iso_rto:               _scoreIsoRto(site.iso_rto, W.iso_rto),
+    readiness:             _scoreReadinessGen(site),
+    flood_penalty:        -_floodPenalty(site),
+  };
+}
+
+function computeGenerationScore(site) {
+  const bd = computeGenerationScoreBreakdown(site);
+  if (bd == null) return null;
+  const total = Object.values(bd).reduce((a, b) => a + b, 0);
+  return Math.max(0, Math.min(100, total));
+}
+
+// ---------------------------------------------------------------------------
+
 window.computeDcCompositeScore = computeDcCompositeScore;
 window.computeDcScoreBreakdown = computeDcScoreBreakdown;
+window.computeGenerationScore = computeGenerationScore;
+window.computeGenerationScoreBreakdown = computeGenerationScoreBreakdown;
 window.DC_SCORE_WEIGHTS = DC_SCORE_WEIGHTS;
 window.DC_SCORE_TOOLTIP = DC_SCORE_TOOLTIP;
+window.GENERATION_SCORE_WEIGHTS = GENERATION_SCORE_WEIGHTS;
+window.GENERATION_SCORE_TOOLTIP = GENERATION_SCORE_TOOLTIP;
+window.FLOOD_SFHA_PENALTY = FLOOD_SFHA_PENALTY;
