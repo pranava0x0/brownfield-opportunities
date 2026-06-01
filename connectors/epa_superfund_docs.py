@@ -238,8 +238,31 @@ class EpaSuperfundDocs(Connector):
                 log.warning("[%s] docdata network error: %s — skipping",
                             epa_id, type(e).__name__)
                 continue
+            except (requests.exceptions.JSONDecodeError, json.JSONDecodeError, ValueError) as e:
+                # semspub.epa.gov occasionally returns truncated or malformed
+                # JSON for cachejson collections. Skip the offending site
+                # rather than abort the whole batch — same containment shape
+                # as the network-error branch above. The response isn't
+                # cached on parse failure, so a future run will retry.
+                log.warning("[%s] docdata JSON parse error: %s — skipping",
+                            epa_id, e)
+                continue
             if not docs:
-                log.info("[%s] no documents found (SF_SITE_ID=%s)", epa_id, sf_site_id)
+                # Mark as covered with an empty documents list so future
+                # --missing-only runs don't re-attempt this site. SF_SITE_ID
+                # was resolved successfully but no qualifying collections
+                # exist — that's a stable "we tried" result, not a retriable
+                # failure. The frontend's renderDocuments() hides the block
+                # when documents.length === 0, so this is visually identical
+                # to never having been enriched.
+                log.info("[%s] no documents found (SF_SITE_ID=%s) — marking covered",
+                         epa_id, sf_site_id)
+                records.append({
+                    "id": epa_id,
+                    "program": "superfund",
+                    "epa_id": epa_id,
+                    "documents": [],
+                })
                 continue
             docs = docs[:per_site_cap]
             records.append({
