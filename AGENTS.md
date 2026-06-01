@@ -1,5 +1,7 @@
-# CLAUDE.md — Universal Development Principles
+# AGENTS.md — Universal Development Principles
 
+> **Tool-agnostic agent guide ([agentsmd.org](https://agentsmd.org)). This file is a synced mirror of [CLAUDE.md](CLAUDE.md) — the canonical source. Keep them identical (only this title + banner differ); regenerate with `cp CLAUDE.md AGENTS.md` and restore this header when `CLAUDE.md` changes. Do not hand-edit or find-replace `Claude`→`Codex` here.**
+>
 > Distilled from patterns across multiple projects. Apply universally; skip sections irrelevant to the current project type.
 
 ---
