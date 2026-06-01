@@ -427,3 +427,25 @@ def test_suitability_block_renders_both_lenses(page, base_url):
     # should be numeric.
     assert any(ch.isdigit() for ch in dc_txt), f"DC score not numeric: {dc_txt!r}"
     assert any(ch.isdigit() for ch in gen_txt), f"generation score not numeric: {gen_txt!r}"
+
+
+def test_suitability_block_is_above_owner_in_panel(page, base_url):
+    """UAT 2026-05-31: the suitability block — the headline DC/generation
+    judgment the whole tool is built around — must sit near the TOP of the
+    detail panel (right after the core KV grid), not buried below the
+    Owner / Documents / Tax sections. Guards against accidental re-burial.
+    `compareDocumentPosition` returns DOCUMENT_POSITION_FOLLOWING (4) when
+    the owner block comes after the suitability block in document order."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30_000)
+    suit_before_owner = page.evaluate(
+        "() => {"
+        "  const suit = document.getElementById('d-suitability-block');"
+        "  const owner = document.querySelector(\"#detail [data-section='owner']\");"
+        "  if (!suit || !owner) return null;"
+        "  return !!(suit.compareDocumentPosition(owner) & Node.DOCUMENT_POSITION_FOLLOWING);"
+        "}"
+    )
+    assert suit_before_owner is True, (
+        "suitability block must appear before the Owner section in the detail panel"
+    )
