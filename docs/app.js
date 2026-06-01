@@ -567,6 +567,31 @@ function setHeroRefresh(dateStr) {
   if (footerEl) footerEl.textContent = `Refreshed ${dateStr}`;
 }
 
+// Tracks the freshest `generated_at` across EVERY data file the page loads —
+// the eager sites.json plus all lazy program / enrichment files — and keeps
+// the max. Each load path reports its payload's generated_at here, so the
+// hero, footer, and subtitle reflect the most recent refresh and tick forward
+// as fresher files land after first paint. The core Superfund set and the
+// enrichment layers (docs, AI summaries, infra, …) refresh on independent
+// cadences; pinning the displayed date to sites.json alone understated
+// freshness whenever an enrichment file was newer. Basemap files
+// (us-states / us-counties) carry no generated_at and are ignored.
+let _freshestRefreshTs = -Infinity;
+function recordRefreshDate(generatedAt) {
+  if (!generatedAt) return;
+  const ts = Date.parse(generatedAt);
+  if (isNaN(ts) || ts <= _freshestRefreshTs) return;
+  _freshestRefreshTs = ts;
+  const refreshed = fmt.date(generatedAt);
+  window.__refreshedAt = refreshed;
+  setHeroRefresh(refreshed);
+  // Re-render the subtitle so its "· refreshed <date>" suffix follows the new
+  // freshest date — enrichment loaders don't otherwise call updateMetaText.
+  // It reads window.__refreshedAt and recomputes per-program counts from the
+  // in-memory `sites` array (cheap; fires at most once per data file).
+  updateMetaText();
+}
+
 // Compose the topbar subtitle from the actual per-program counts so it
 // can't drift after lazy loads land. Replaces the previous hardcoded
 // "X Superfund + Y brownfields" template that mislabeled the breakdown
@@ -727,9 +752,7 @@ fetch(PRIMARY_DATA_URL)
   })
   .then((payload) => {
     ingestSites(payload.sites || []);
-    const refreshed = fmt.date(payload.generated_at);
-    window.__refreshedAt = refreshed;
-    setHeroRefresh(refreshed);
+    recordRefreshDate(payload.generated_at);
     updateMetaText({
       loadingLabel: filterState.programs.has("brownfield") ? "brownfields" : null,
     });
@@ -856,6 +879,7 @@ function ensureAcresLoaded() {
       return r.json();
     })
     .then((payload) => {
+      recordRefreshDate(payload.generated_at);
       ingestSites(payload.sites || []);
       updateMetaText();
       populateStateFilter();
@@ -889,6 +913,7 @@ function ensureFudsLoaded() {
       return r.json();
     })
     .then((payload) => {
+      recordRefreshDate(payload.generated_at);
       ingestSites(payload.sites || []);
       updateMetaText();
       populateStateFilter();
@@ -915,6 +940,7 @@ function ensureBracLoaded() {
       return r.json();
     })
     .then((payload) => {
+      recordRefreshDate(payload.generated_at);
       ingestSites(payload.sites || []);
       updateMetaText();
       populateStateFilter();
@@ -939,6 +965,7 @@ function ensureRedevLoaded() {
       return r.json();
     })
     .then((payload) => {
+      recordRefreshDate(payload.generated_at);
       const truthyKeys = [
         "near_electric_transmission", "near_highway", "near_railroad",
         "near_water_supply", "near_wastewater", "pop_density",
@@ -977,6 +1004,7 @@ function ensureSuperfundDocsLoaded() {
       return r.json();
     })
     .then((payload) => {
+      recordRefreshDate(payload.generated_at);
       for (const rec of payload.sites || []) {
         const existing = sitesById.get(rec.id || rec.epa_id);
         if (!existing) continue;
@@ -1010,6 +1038,7 @@ function ensureEchoLoaded() {
       return r.json();
     })
     .then((payload) => {
+      recordRefreshDate(payload.generated_at);
       for (const rec of payload.sites || []) {
         const existing = sitesById.get(rec.id || rec.epa_id);
         if (!existing) continue;
@@ -1037,6 +1066,7 @@ function ensureSummariesLoaded() {
       return r.json();
     })
     .then((payload) => {
+      recordRefreshDate(payload.generated_at);
       for (const rec of payload.sites || []) {
         const existing = sitesById.get(rec.id);
         if (!existing) continue;
@@ -1072,6 +1102,7 @@ function ensureInfraLoaded() {
       return r.json();
     })
     .then((payload) => {
+      recordRefreshDate(payload.generated_at);
       for (const rec of payload.sites || []) {
         const existing = sitesById.get(rec.id);
         if (!existing) continue;
@@ -1118,6 +1149,7 @@ function ensureOppZoneLoaded() {
       return r.json();
     })
     .then((payload) => {
+      recordRefreshDate(payload.generated_at);
       for (const rec of payload.sites || []) {
         const existing = sitesById.get(rec.id);
         if (!existing) continue;
@@ -1154,6 +1186,7 @@ function ensureClimateZoneLoaded() {
       return r.json();
     })
     .then((payload) => {
+      recordRefreshDate(payload.generated_at);
       for (const rec of payload.sites || []) {
         const existing = sitesById.get(rec.id);
         if (!existing) continue;
@@ -1181,6 +1214,7 @@ function ensureIsoRtoLoaded() {
       return r.json();
     })
     .then((payload) => {
+      recordRefreshDate(payload.generated_at);
       for (const rec of payload.sites || []) {
         const existing = sitesById.get(rec.id);
         if (!existing) continue;
