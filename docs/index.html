@@ -17,6 +17,7 @@
 <body>
 <a href="#main" class="skip-link">Skip to main content</a>
 <header class="topbar" role="banner">
+  <div class="topbar-row">
   <div class="brand">
     <h1>Brownfield Opportunities</h1>
     <p class="sub" id="meta">Loading…</p>
@@ -46,62 +47,47 @@
     <div class="tabs" role="tablist" aria-label="View">
       <button id="tab-map" class="tab active" role="tab" aria-selected="true" aria-controls="view-map">Map</button>
       <button id="tab-table" class="tab" role="tab" aria-selected="false" aria-controls="view-table">Table</button>
+      <button id="tab-candidates" class="tab" role="tab" aria-selected="false" aria-controls="view-candidates">DC Candidates</button>
     </div>
   </nav>
-</header>
-
-<section class="hero" aria-label="About this dashboard">
-  <div class="hero-inner">
-    <div class="hero-copy">
-      <p class="hero-eyebrow">
-        <span>US Brownfield Atlas</span><span class="dot">·</span><span id="hero-version">v1.14</span><span class="dot">·</span><span id="hero-refresh">Updated —</span>
-      </p>
-      <h2>Every federally-tracked contaminated site in America, mapped.</h2>
-      <p>~47,000 EPA Superfund, ACRES brownfield, DOD FUDS, and BRAC properties. Filter by state, acreage, and program — and see which sites have the power, water, and rail proximity to support reuse.</p>
-    </div>
-    <details class="kpi-disclosure" id="kpi-disclosure">
-      <summary class="kpi-summary" aria-label="Show headline metrics">
-        <span class="kpi-summary-pair">
-          <span class="kpi-summary-num" id="kpi-summary-total">—</span>
-          <span class="kpi-summary-label">sites</span>
-        </span>
-        <span class="kpi-summary-dot" aria-hidden="true">·</span>
-        <span class="kpi-summary-pair">
-          <span class="kpi-summary-num" id="kpi-summary-dc">—</span>
-          <span class="kpi-summary-label">DC candidates</span>
-        </span>
-        <span class="kpi-summary-chevron" aria-hidden="true"></span>
-      </summary>
-      <div class="kpi-deck" id="kpi-deck" aria-label="Headline metrics">
-        <div class="kpi" data-kpi="total">
-          <span class="kpi-label">Sites tracked</span>
-          <span class="kpi-num" id="kpi-total">—</span>
-          <span class="kpi-sub" id="kpi-total-sub">across 4 programs</span>
-        </div>
-        <div class="kpi" data-kpi="acreage">
-          <span class="kpi-label">Acres tracked</span>
-          <span class="kpi-num" id="kpi-acres">—</span>
-          <span class="kpi-sub" id="kpi-acres-sub">with reported area</span>
-        </div>
-        <div class="kpi" data-kpi="dc">
-          <span class="kpi-label">DC reuse candidates</span>
-          <span class="kpi-num" id="kpi-dc">—</span>
-          <span class="kpi-sub kpi-sub-strong" id="kpi-dc-sub" title="≥50 ac · power · water">≥50 ac · power · water</span>
-        </div>
-        <div class="kpi" data-kpi="hyperscale">
-          <span class="kpi-label">Hyperscale-ready</span>
-          <span class="kpi-num" id="kpi-hyperscale">—</span>
-          <span class="kpi-sub kpi-sub-strong" id="kpi-hyperscale-sub" title="≥100 ac · ≥230 kV · ≤1 mi">≥100 ac · ≥230 kV · ≤1 mi</span>
-        </div>
-        <div class="kpi" data-kpi="states">
-          <span class="kpi-label">States covered</span>
-          <span class="kpi-num" id="kpi-states">—</span>
-          <span class="kpi-sub" id="kpi-states-sub" title="incl. AK · HI · territories">incl. AK · HI · territories</span>
-        </div>
-      </div>
-    </details>
   </div>
-</section>
+  <details class="kpi-disclosure" id="kpi-disclosure">
+    <summary class="kpi-summary" aria-label="Show headline metrics">
+      <span class="kpi-summary-pair">
+        <span class="kpi-summary-num" id="kpi-summary-total">—</span>
+        <span class="kpi-summary-label">sites</span>
+      </span>
+      <span class="kpi-summary-dot" aria-hidden="true">·</span>
+      <span class="kpi-summary-pair">
+        <span class="kpi-summary-num" id="kpi-summary-dc">—</span>
+        <span class="kpi-summary-label">DC candidates</span>
+      </span>
+      <span class="kpi-summary-chevron" aria-hidden="true"></span>
+    </summary>
+    <div class="kpi-deck" id="kpi-deck" aria-label="Headline metrics">
+      <div class="kpi" data-kpi="total">
+        <span class="kpi-label">Sites tracked</span>
+        <span class="kpi-num" id="kpi-total">—</span>
+        <span class="kpi-sub" id="kpi-total-sub">across 4 programs</span>
+      </div>
+      <div class="kpi" data-kpi="acreage">
+        <span class="kpi-label">Acres tracked</span>
+        <span class="kpi-num" id="kpi-acres">—</span>
+        <span class="kpi-sub" id="kpi-acres-sub">with reported area</span>
+      </div>
+      <div class="kpi" data-kpi="dc">
+        <span class="kpi-label">DC reuse candidates</span>
+        <span class="kpi-num" id="kpi-dc">—</span>
+        <span class="kpi-sub kpi-sub-strong" id="kpi-dc-sub" title="≥50 ac · power · water">≥50 ac · power · water</span>
+      </div>
+      <div class="kpi" data-kpi="hyperscale">
+        <span class="kpi-label">Hyperscale-ready</span>
+        <span class="kpi-num" id="kpi-hyperscale">—</span>
+        <span class="kpi-sub kpi-sub-strong" id="kpi-hyperscale-sub" title="≥100 ac · ≥230 kV · ≤1 mi">≥100 ac · ≥230 kV · ≤1 mi</span>
+      </div>
+    </div>
+  </details>
+</header>
 
 <div id="filters-backdrop" class="filters-backdrop" hidden aria-hidden="true"></div>
 <section id="filters" class="filters" hidden aria-label="Filters">
@@ -185,6 +171,55 @@
           </tr>
         </thead>
         <tbody><!-- rows injected --></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="view-candidates" class="view" role="tabpanel" aria-labelledby="tab-candidates" hidden>
+    <div class="candidates-header">
+      <div class="candidates-filters" role="group" aria-label="DC candidates filters">
+        <div class="cand-filter-group">
+          <span class="cand-filter-label">Lens</span>
+          <button class="cand-filter active" data-cand-lens="dc">Data Center</button>
+          <button class="cand-filter" data-cand-lens="gen">Generation</button>
+        </div>
+        <div class="cand-filter-group">
+          <span class="cand-filter-label">Min tier</span>
+          <button class="cand-filter active" data-cand-tier="">All</button>
+          <button class="cand-filter" data-cand-tier="edge">Edge+</button>
+          <button class="cand-filter" data-cand-tier="colo">Colo+</button>
+          <button class="cand-filter" data-cand-tier="hyperscale">Hyperscale+</button>
+          <button class="cand-filter" data-cand-tier="mega">Mega</button>
+        </div>
+        <div class="cand-filter-group">
+          <span class="cand-filter-label">Readiness</span>
+          <button class="cand-filter active" data-cand-ready="">Any</button>
+          <button class="cand-filter" data-cand-ready="complete">Cleanup done</button>
+          <button class="cand-filter" data-cand-ready="reuse">Active reuse</button>
+          <button class="cand-filter" data-cand-ready="epa">EPA candidate</button>
+          <button class="cand-filter" data-cand-ready="oz">Opp. Zone</button>
+        </div>
+      </div>
+      <p class="candidates-stats" id="candidates-stats" aria-live="polite">Loading…</p>
+    </div>
+    <div id="candidates-wrap">
+      <table id="candidates-table">
+        <thead>
+          <tr>
+            <th class="num" title="Rank by score">#</th>
+            <th>Site</th>
+            <th>ST</th>
+            <th class="num">Acres</th>
+            <th class="num" title="Composite suitability score 0–100">Score</th>
+            <th>Tier</th>
+            <th class="num" title="Nearest transmission line voltage">kV</th>
+            <th class="num" title="Distance to nearest substation">Sub mi</th>
+            <th title="Nearest power plant — distance, capacity, fuel">Plant</th>
+            <th class="num" title="Distance to nearest gas pipeline">Gas mi</th>
+            <th title="Readiness and risk signals">Signals</th>
+          </tr>
+        </thead>
+        <tbody><!-- rows injected by buildCandidatesView() --></tbody>
       </table>
     </div>
   </section>
