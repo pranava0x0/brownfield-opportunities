@@ -630,7 +630,6 @@ function updateKpiDeck() {
   let acreCount = 0;
   let dcCount = 0;
   let hyperCount = 0;
-  const stateSet = new Set();
   const programSet = new Set();
   for (const s of sites) {
     if (typeof s.acreage === "number") {
@@ -640,7 +639,6 @@ function updateKpiDeck() {
     if (s.data_center_reuse_candidate === true) dcCount++;
     const tier = computeDcScore(s);
     if (tier === "hyperscale" || tier === "mega") hyperCount++;
-    if (s.state) stateSet.add(s.state);
     if (s.program) programSet.add(s.program);
   }
   const set = (id, value) => {
@@ -664,7 +662,6 @@ function updateKpiDeck() {
   setSub("kpi-acres-sub", `${fmt.compact(acreCount)} sites with reported area`);
   set("kpi-dc", fmt.compact(dcCount));
   set("kpi-hyperscale", fmt.compact(hyperCount));
-  set("kpi-states", String(stateSet.size));
   // Mobile disclosure strip — the two highest-signal numbers (total +
   // DC candidates) live in the always-visible summary line; expanding the
   // <details> reveals the full carousel.
@@ -763,6 +760,7 @@ fetch(PRIMARY_DATA_URL)
     populateIsoRtoFilter();
     rebuildTable();
     wireTabs();
+    wireCandidatesFilters();
     wireDetailPanel();
     wireSearch();
     wireFilters();
@@ -818,8 +816,9 @@ fetch(PRIMARY_DATA_URL)
     applyUrlSelection();
     if (lazyLoads.length === 0) {
       markAppReady();
+      maybeRefreshCandidates();
     } else {
-      Promise.allSettled(lazyLoads).then(() => markAppReady());
+      Promise.allSettled(lazyLoads).then(() => { markAppReady(); maybeRefreshCandidates(); });
     }
   })
   .catch((err) => {
@@ -2510,21 +2509,279 @@ if (_dcScoreTh && typeof DC_SCORE_TOOLTIP === "string") {
 
 // ----- Tabs -----
 function wireTabs() {
-  const mapTab = el("tab-map"), tableTab = el("tab-table");
+  const mapTab = el("tab-map");
+  const tableTab = el("tab-table");
+  const candidatesTab = el("tab-candidates");
   const setView = (which) => {
     const onMap = which === "map";
-    mapTab.classList.toggle("active", onMap);
-    tableTab.classList.toggle("active", !onMap);
-    mapTab.setAttribute("aria-selected", onMap);
-    tableTab.setAttribute("aria-selected", !onMap);
-    el("view-map").classList.toggle("active", onMap);
-    el("view-table").classList.toggle("active", !onMap);
-    el("view-map").hidden = !onMap;
-    el("view-table").hidden = onMap;
+    const onTable = which === "table";
+    const onCandidates = which === "candidates";
+    for (const [tab, active] of [[mapTab, onMap], [tableTab, onTable], [candidatesTab, onCandidates]]) {
+      if (!tab) continue;
+      tab.classList.toggle("active", active);
+      tab.setAttribute("aria-selected", String(active));
+    }
+    const mapView = el("view-map");
+    const tableView = el("view-table");
+    const candidatesView = el("view-candidates");
+    if (mapView)        { mapView.classList.toggle("active", onMap);        mapView.hidden = !onMap; }
+    if (tableView)      { tableView.classList.toggle("active", onTable);      tableView.hidden = !onTable; }
+    if (candidatesView) { candidatesView.classList.toggle("active", onCandidates); candidatesView.hidden = !onCandidates; }
     if (onMap) setTimeout(() => map.invalidateSize(), 50);
+    if (onCandidates) buildCandidatesView();
   };
   mapTab.addEventListener("click", () => setView("map"));
   tableTab.addEventListener("click", () => setView("table"));
+  if (candidatesTab) candidatesTab.addEventListener("click", () => setView("candidates"));
+}
+
+// ----- DC Candidates view -----
+//
+// A ranked, pre-sorted table of every site with a suitability score, showing
+// the key signals that explain the score side-by-side: voltage class,
+// substation proximity, nearest plant (capacity + fuel), gas pipeline,
+// and readiness/risk badges (OZ, Cleanup, Flood, etc.).
+//
+// The view is rebuilt on tab activation and after all lazy-loads settle
+// (scores improve as infra-proximity, OZ, ISO-RTO data arrives).
+const CANDIDATES_PAGE = 200;
+const candidatesState = {
+  sorted:      [],
+  rendered:    0,
+  lens:        "dc",   // "dc" | "gen"
+  tierMin:     "",     // "" | "edge" | "colo" | "hyperscale" | "mega"
+  readyFilter: "",     // "" | "complete" | "reuse" | "epa" | "oz"
+};
+let _candidatesObserver = null;
+
+function _candidateScoreFn() {
+  return candidatesState.lens === "gen" ? computeGenerationScore : computeDcCompositeScore;
+}
+
+function _candidatesPassesTier(s) {
+  if (!candidatesState.tierMin) return true;
+  const tier = computeDcScore(s);
+  if (!tier) return false;
+  return (DC_TIER_RANK[tier] || 0) >= (DC_TIER_RANK[candidatesState.tierMin] || 0);
+}
+
+function _candidatesPassesReady(s) {
+  switch (candidatesState.readyFilter) {
+    case "complete": return s.npl_status_code === "D";
+    case "reuse":    return /^yes/i.test(s.in_reuse || "");
+    case "epa":      return s.data_center_reuse_candidate === true;
+    case "oz":       return s.in_opportunity_zone === true;
+    default:         return true;
+  }
+}
+
+// Returns true when the site has a large dispatchable plant nearby that
+// could indicate an inheritable grid interconnection (the "Homer City /
+// Widows Creek" pattern: coal/gas plants ≥500 MW within 1 mi).
+function _hasGridInheritance(s) {
+  return s.power_plant_mw != null && s.power_plant_mw >= 500
+    && s.power_plant_mi != null && s.power_plant_mi <= 1
+    && s.power_plant_fuel != null
+    && /coal|natural gas/i.test(s.power_plant_fuel);
+}
+
+function makeCandidateRow(s, rank) {
+  const tr = document.createElement("tr");
+  tr.dataset.id = s.id;
+
+  const scoreFn = _candidateScoreFn();
+  const score   = scoreFn(s);
+  const tier    = computeDcScore(s);
+
+  // Score cell — reuse existing .suit-score[data-tier] coloring
+  const scoreTier = score == null ? null
+    : score >= 75 ? "strong" : score >= 50 ? "moderate"
+    : score >= 25 ? "marginal" : "weak";
+  const scoreHtml = score == null
+    ? '<span class="muted-cell">—</span>'
+    : `<span class="suit-score" data-tier="${escapeAttr(scoreTier)}">${score}</span>`;
+
+  // Tier pill — reuse .dc-tier-pill
+  const tierHtml = tier
+    ? `<span class="pill dc-tier-pill${tier === "hyperscale" || tier === "mega" ? " ready" : ""}">${escapeHtml(DC_TIER_LABEL[tier] || tier)}</span>`
+    : '<span class="muted-cell">—</span>';
+
+  // kV
+  const kvHtml = s.transmission_kv != null
+    ? `${Math.round(s.transmission_kv).toLocaleString()} kV`
+    : '<span class="muted-cell">—</span>';
+
+  // Substation distance
+  const subHtml = s.substation_mi != null
+    ? fmt.miles(s.substation_mi)
+    : '<span class="muted-cell">—</span>';
+
+  // Power plant — distance, MW, abbreviated fuel
+  let plantHtml = '<span class="muted-cell">—</span>';
+  if (s.power_plant_mw != null || s.power_plant_fuel) {
+    const parts = [];
+    if (s.power_plant_mi != null) parts.push(fmt.miles(s.power_plant_mi));
+    if (s.power_plant_mw != null) parts.push(`${Math.round(s.power_plant_mw).toLocaleString()} MW`);
+    if (s.power_plant_fuel) {
+      // Shorten verbose EIA-860 fuel names
+      const fuel = String(s.power_plant_fuel)
+        .replace(/Conventional/gi, "").replace(/Photovoltaic/gi, "").trim();
+      parts.push(fuel);
+    }
+    const isLarge = s.power_plant_mw != null && s.power_plant_mw >= 100;
+    const cls = isLarge ? "pp-chip ready" : "pp-chip";
+    plantHtml = `<span class="${cls}">${escapeHtml(parts.join(" · "))}</span>`;
+  }
+
+  // Gas pipeline distance
+  const gasHtml = s.gas_pipeline_mi != null
+    ? fmt.miles(s.gas_pipeline_mi)
+    : '<span class="muted-cell">—</span>';
+
+  // Signal badges — readiness green / risk red / financial blue
+  const badges = [];
+  if (s.in_opportunity_zone) {
+    const lbl = s.oz_rural ? "OZ Rural" : "OZ";
+    badges.push(`<span class="sig-badge sig-oz" title="${s.oz_rural ? "Rural Qualified Opportunity Zone — 30% basis step-up" : "Qualified Opportunity Zone"}">${escapeHtml(lbl)}</span>`);
+  }
+  if (s.npl_status_code === "D") {
+    badges.push('<span class="sig-badge sig-ready" title="Deleted from NPL — cleanup complete">Clean</span>');
+  }
+  if (/^yes/i.test(s.in_reuse || "")) {
+    badges.push('<span class="sig-badge sig-ready" title="Active reuse underway">Reuse</span>');
+  }
+  if (s.data_center_reuse_candidate) {
+    badges.push('<span class="sig-badge sig-dc" title="EPA RE-Powering data-center reuse candidate">EPA DC</span>');
+  }
+  if (_hasGridInheritance(s)) {
+    badges.push('<span class="sig-badge sig-grid" title="Large coal/gas plant ≤1 mi — potential inherited grid interconnection">Grid Inherit</span>');
+  }
+  if (s.in_sfha === true) {
+    badges.push('<span class="sig-badge sig-flood" title="FEMA Special Flood Hazard Area — permitting challenge for critical infrastructure">Flood</span>');
+  }
+
+  const progLabel = PROGRAM_LABEL[s.program] || s.program;
+  tr.innerHTML = `
+    <td class="num cand-rank">${rank}</td>
+    <td class="cand-name">${escapeHtml(s.name || "—")}<span class="cand-prog"><span class="pill" data-program="${escapeAttr(s.program)}">${escapeHtml(progLabel)}</span></span></td>
+    <td>${escapeHtml(s.state || "—")}</td>
+    <td class="num">${fmt.acres(s.acreage)}</td>
+    <td class="num cand-score">${scoreHtml}</td>
+    <td>${tierHtml}</td>
+    <td class="num">${kvHtml}</td>
+    <td class="num">${subHtml}</td>
+    <td class="cand-plant">${plantHtml}</td>
+    <td class="num">${gasHtml}</td>
+    <td class="cand-signals">${badges.join("")}</td>
+  `;
+  tr.addEventListener("click", () => selectSite(s.id, { fromTable: true }));
+  return tr;
+}
+
+function buildCandidatesView() {
+  const scoreFn = _candidateScoreFn();
+  candidatesState.sorted = sites
+    .filter((s) => scoreFn(s) != null)
+    .filter(_candidatesPassesTier)
+    .filter(_candidatesPassesReady)
+    .sort((a, b) => (scoreFn(b) || 0) - (scoreFn(a) || 0));
+
+  // Tier distribution for the stats line
+  const counts = { mega: 0, hyperscale: 0, colo: 0, edge: 0 };
+  for (const s of candidatesState.sorted) {
+    const t = computeDcScore(s);
+    if (t && t in counts) counts[t]++;
+  }
+  const total = candidatesState.sorted.length;
+  const parts = [];
+  if (counts.mega)       parts.push(`${counts.mega.toLocaleString()} Mega`);
+  if (counts.hyperscale) parts.push(`${counts.hyperscale.toLocaleString()} Hyperscale`);
+  if (counts.colo)       parts.push(`${counts.colo.toLocaleString()} Colo`);
+  if (counts.edge)       parts.push(`${counts.edge.toLocaleString()} Edge`);
+  const statsEl = el("candidates-stats");
+  if (statsEl) {
+    statsEl.textContent = total > 0
+      ? `${total.toLocaleString()} sites scored · ${parts.join(" · ")} · sorted by ${candidatesState.lens === "gen" ? "generation" : "data-center"} score`
+      : "No candidates match current filters.";
+  }
+
+  const tbody = document.querySelector("#candidates-table tbody");
+  if (!tbody) return;
+  tbody.innerHTML = "";
+  candidatesState.rendered = 0;
+  _appendCandidatesPage(tbody);
+  _setupCandidatesScroll();
+}
+
+function _appendCandidatesPage(tbody) {
+  const start = candidatesState.rendered;
+  const end   = Math.min(start + CANDIDATES_PAGE, candidatesState.sorted.length);
+  const frag  = document.createDocumentFragment();
+  for (let i = start; i < end; i++) {
+    frag.appendChild(makeCandidateRow(candidatesState.sorted[i], i + 1));
+  }
+  tbody.appendChild(frag);
+  candidatesState.rendered = end;
+}
+
+function _setupCandidatesScroll() {
+  const wrap = el("candidates-wrap");
+  if (!wrap) return;
+  if (_candidatesObserver) _candidatesObserver.disconnect();
+  let sentinel = wrap.querySelector(".cand-sentinel");
+  if (!sentinel) {
+    sentinel = document.createElement("div");
+    sentinel.className = "cand-sentinel";
+    sentinel.setAttribute("aria-hidden", "true");
+    wrap.appendChild(sentinel);
+  }
+  _candidatesObserver = new IntersectionObserver(
+    (entries) => {
+      if (!entries.some((e) => e.isIntersecting)) return;
+      // Same scroll-position guard as the main table (UAT-2026-05-11):
+      // don't prefetch during tab-transition layout thrash.
+      const remaining = wrap.scrollHeight - wrap.scrollTop - wrap.clientHeight;
+      if (remaining > 400) return;
+      const tbody = document.querySelector("#candidates-table tbody");
+      if (tbody && candidatesState.rendered < candidatesState.sorted.length) {
+        _appendCandidatesPage(tbody);
+      }
+    },
+    { root: wrap, rootMargin: "300px" }
+  );
+  _candidatesObserver.observe(sentinel);
+}
+
+function wireCandidatesFilters() {
+  document.querySelectorAll("[data-cand-lens]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("[data-cand-lens]").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      candidatesState.lens = btn.dataset.candLens;
+      if (el("view-candidates").classList.contains("active")) buildCandidatesView();
+    });
+  });
+  document.querySelectorAll("[data-cand-tier]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("[data-cand-tier]").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      candidatesState.tierMin = btn.dataset.candTier;
+      if (el("view-candidates").classList.contains("active")) buildCandidatesView();
+    });
+  });
+  document.querySelectorAll("[data-cand-ready]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("[data-cand-ready]").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      candidatesState.readyFilter = btn.dataset.candReady;
+      if (el("view-candidates").classList.contains("active")) buildCandidatesView();
+    });
+  });
+}
+
+function maybeRefreshCandidates() {
+  const view = el("view-candidates");
+  if (view && view.classList.contains("active")) buildCandidatesView();
 }
 
 // ----- Detail panel -----
