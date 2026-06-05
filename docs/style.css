@@ -149,14 +149,18 @@ main:focus { outline: none; }
    ============================================================ */
 .topbar {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 24px;
+  flex-direction: column;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
-  gap: 16px;
   position: relative;
   z-index: 50;
+}
+.topbar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 24px;
+  gap: 16px;
 }
 .brand h1 {
   margin: 0;
@@ -418,6 +422,18 @@ main:focus { outline: none; }
   border: 1px solid var(--border);
   border-radius: 8px;
   overflow: hidden;
+}
+/* When the KPI deck lives inside the topbar it should integrate flush —
+   no card border, no radius, just a top divider line. */
+.topbar .kpi-deck {
+  border: none;
+  border-radius: 0;
+  border-top: 1px solid var(--border);
+}
+.topbar .kpi { padding: 7px 24px; }
+.topbar .kpi:first-child { padding-left: 24px; }
+.topbar .kpi-disclosure { display: block; }
+.topbar .kpi-disclosure > .kpi-summary { display: none; }
 }
 .kpi {
   padding: 10px 12px;
@@ -1603,7 +1619,8 @@ main {
    Mobile — hero compresses, detail becomes bottom sheet
    ============================================================ */
 @media (max-width: 640px) {
-  .topbar { padding: 6px 12px; gap: 6px; flex-wrap: wrap; }
+  .topbar-row { padding: 6px 12px; gap: 6px; flex-wrap: wrap; }
+  .topbar .kpi { padding: 6px 12px; }
   .brand { flex: 1 1 auto; min-width: 0; }
   .topbar-controls { width: 100%; gap: 4px; flex-wrap: wrap; }
   .search { flex: 1; min-width: 0; order: -1; }
@@ -1838,7 +1855,186 @@ main {
 
 /* Tablet (641–1024) */
 @media (min-width: 641px) and (max-width: 1024px) {
-  .topbar { padding: 12px 16px; }
+  .topbar-row { padding: 10px 16px; }
+  .topbar .kpi { padding: 7px 16px; }
   .filters { padding: 10px 16px; }
   .hero { padding: 18px 16px 14px; }
+}
+
+/* ============================================================
+   DC Candidates view
+   ============================================================ */
+#view-candidates.view.active {
+  display: flex;
+  flex-direction: column;
+}
+.candidates-header {
+  flex-shrink: 0;
+  padding: 10px 14px 8px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border-strong);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.candidates-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+.cand-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.cand-filter-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding-right: 2px;
+  white-space: nowrap;
+}
+.cand-filter {
+  padding: 3px 9px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-soft);
+  font-size: 11.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 80ms, border-color 80ms, color 80ms;
+  touch-action: manipulation;
+  white-space: nowrap;
+}
+.cand-filter:hover:not(.active) {
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+.cand-filter.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.candidates-stats {
+  font-size: 11.5px;
+  color: var(--muted);
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+#candidates-wrap {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  background: var(--surface);
+  contain: layout paint;
+}
+#candidates-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+#candidates-table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border-strong);
+  text-align: left;
+  padding: 10px 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  z-index: 1;
+}
+#candidates-table thead th.num { text-align: right; }
+#candidates-table tbody tr {
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 90ms;
+}
+#candidates-table tbody tr:hover { background: var(--surface-2); }
+#candidates-table tbody tr.selected { background: var(--accent-soft); }
+[data-theme="dark"] #candidates-table tbody tr.selected { background: rgba(126, 182, 232, 0.12); }
+#candidates-table td {
+  padding: 8px 12px;
+  vertical-align: middle;
+  color: var(--text-soft);
+}
+#candidates-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.cand-rank {
+  color: var(--muted) !important;
+  font-size: 11px;
+  width: 36px;
+}
+.cand-name {
+  color: var(--text) !important;
+  font-weight: 500;
+  max-width: 200px;
+}
+.cand-prog {
+  display: block;
+  margin-top: 3px;
+}
+.cand-score { white-space: nowrap; }
+.cand-score .suit-score { font-size: 16px; font-weight: 800; }
+.cand-plant {
+  max-width: 180px;
+  white-space: nowrap;
+}
+.cand-signals { white-space: nowrap; }
+
+/* Signal badges — readiness and risk flags in the DC Candidates table */
+.sig-badge {
+  display: inline-block;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  margin-right: 3px;
+  white-space: nowrap;
+}
+.sig-badge.sig-oz {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+.sig-badge.sig-ready {
+  background: rgba(47, 122, 77, 0.1);
+  color: var(--readiness-ready);
+  border: 1px solid var(--readiness-ready);
+}
+.sig-badge.sig-dc {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+.sig-badge.sig-flood {
+  background: rgba(184, 51, 47, 0.1);
+  color: var(--program-superfund);
+  border: 1px solid var(--program-superfund);
+}
+.sig-badge.sig-grid {
+  background: rgba(111, 54, 145, 0.1);
+  color: var(--program-fuds);
+  border: 1px solid var(--program-fuds);
+}
+[data-theme="dark"] .sig-badge.sig-ready { background: rgba(108, 193, 138, 0.12); }
+[data-theme="dark"] .sig-badge.sig-flood { background: rgba(239, 80, 80, 0.12); }
+[data-theme="dark"] .sig-badge.sig-grid  { background: rgba(180, 122, 216, 0.12); }
+.cand-sentinel { height: 1px; }
+
+/* Narrow screens: hide plant + gas columns */
+@media (max-width: 768px) {
+  #candidates-table th:nth-child(9),
+  #candidates-table td:nth-child(9),
+  #candidates-table th:nth-child(10),
+  #candidates-table td:nth-child(10) { display: none; }
 }
