@@ -2585,6 +2585,16 @@ function _hasGridInheritance(s) {
     && /coal|natural gas/i.test(s.power_plant_fuel);
 }
 
+// Returns true when the site meets the EPA's stated EO 14318 / January 2026
+// guidance criteria for fast-tracked brownfield/Superfund data center permits:
+// program is superfund or brownfield, ≥100 ac, grid ≤2 mi, outside SFHA.
+function _hasEO14318(s) {
+  return (s.program === "superfund" || s.program === "brownfield")
+    && s.acreage != null && s.acreage >= 100
+    && s.transmission_mi != null && s.transmission_mi <= 2
+    && s.in_sfha !== true;
+}
+
 function makeCandidateRow(s, rank) {
   const tr = document.createElement("tr");
   tr.dataset.id = s.id;
@@ -2655,6 +2665,9 @@ function makeCandidateRow(s, rank) {
   }
   if (_hasGridInheritance(s)) {
     badges.push('<span class="sig-badge sig-grid" title="Large coal/gas plant ≤1 mi — potential inherited grid interconnection">Grid Inherit</span>');
+  }
+  if (_hasEO14318(s)) {
+    badges.push('<span class="sig-badge sig-fedfast" title="Meets EO 14318 / EPA Jan 2026 guidance: superfund/brownfield ≥100 ac, grid ≤2 mi, outside SFHA — qualifies for fast-tracked NEPA categorical exclusion">Fed Fast Lane</span>');
   }
   if (s.in_sfha === true) {
     badges.push('<span class="sig-badge sig-flood" title="FEMA Special Flood Hazard Area — permitting challenge for critical infrastructure">Flood</span>');
@@ -2865,7 +2878,12 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
   // gains deferral on 5+yr holds inside a Treasury-designated QOZ. Rural
   // OZs are a meaningful subset (~700 / 8,765 tracts) so we label them.
   const ozPill = s.in_opportunity_zone === true
-    ? ` <span class="pill oz-pill" title="Site is inside a Treasury Qualified Opportunity Zone — capital gains deferral applies to 5+yr holds (QOF investment)${s.oz_rural ? ' · Rural OZ designation' : ''}">${s.oz_rural ? 'OZ · Rural' : 'OZ'}</span>`
+    ? ` <span class="pill oz-pill" title="Site is inside a Treasury Qualified Opportunity Zone — capital gains deferral applies to 5+yr holds (QOF investment)${s.oz_rural ? ' · Rural OZ designation' : ''}">${s.oz_rural ? 'OZ \xb7 Rural' : 'OZ'}</span>`
+    : "";
+  // EO 14318 "Federal Fast Lane" — policy signal. Meets EPA Jan 2026 criteria
+  // for fast-tracked NEPA categorical exclusion + Army Corps Section 404 permits.
+  const eo14318Pill = _hasEO14318(s)
+    ? ` <span class="pill eo14318-pill" title="Meets EO 14318 / EPA Jan 2026 guidance — fast-tracked NEPA categorical exclusion and Army Corps Section 404 permits apply (superfund/brownfield ≥100 ac, grid ≤2 mi, outside SFHA)">Fed Fast Lane</span>`
     : "";
   // DC suitability tier (Tier 0 score) — earns a green "Hyperscale-ready"
   // outline pill at hyperscale+, accent-colored at colo / edge. Title shows
@@ -2879,9 +2897,9 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
     const titleParts = [`${tierMeta.minAcres.toLocaleString()}+ ac`];
     if (tierMeta.minKv > 0) titleParts.push(`≥${tierMeta.minKv} kV transmission ≤1 mi`);
     else titleParts.push("transmission ≤1 mi");
-    tierPill = ` <span class="pill ${cls}" title="${escapeAttr(titleParts.join(" · "))}">${escapeHtml(DC_TIER_LABEL[tier])}</span>`;
+    tierPill = ` <span class="pill ${cls}" title="${escapeAttr(titleParts.join(" \xb7 "))}">${escapeHtml(DC_TIER_LABEL[tier])}</span>`;
   }
-  el("d-program").innerHTML = programPill + cleanupPill + reusePill + dcPill + ozPill + tierPill;
+  el("d-program").innerHTML = programPill + cleanupPill + reusePill + dcPill + ozPill + eo14318Pill + tierPill;
   // The acreage `<dd>` carries an inline note `<span>` for FUDS records
   // missing acreage. Replace only the text node so the note span isn't
   // clobbered, then toggle the note for the FUDS-no-boundary case.
@@ -3840,7 +3858,7 @@ function setFloodZoneCell(id, zone, inSfha) {
 // returned by computeDcScoreBreakdown / computeGenerationScoreBreakdown
 // in dc-score.js.
 const _DC_SUIT_GROUPS = [
-  { label: "Power access", cls: "suit-power",  keys: ["transmission_distance", "voltage", "substation", "power_plant"] },
+  { label: "Power access", cls: "suit-power",  keys: ["transmission_distance", "voltage", "substation", "grid_inheritance"] },
   { label: "Land",         cls: "suit-land",   keys: ["acreage"] },
   { label: "Gas",          cls: "suit-gas",    keys: ["gas_pipeline"] },
   { label: "Logistics",    cls: "suit-logi",   keys: ["logistics"] },
