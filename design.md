@@ -259,14 +259,13 @@ horizontal scroll-snap carousel:
 
 ### 3.3 KPI deck
 
-Five cells today, computed from the in-memory `sites` array on every filter
+Four cells, computed from the in-memory `sites` array on every filter
 change (no extra HTTP):
 
 1. **Sites tracked** — total record count
 2. **Acres tracked** — sum of `s.acreage` across records with reported area
-3. **DC reuse candidates** — sites with `data_center_reuse_candidate === true`
+3. **Datacenter-ready** — sites with `data_center_reuse_candidate === true`
 4. **Hyperscale-ready** — sites scoring ≥hyperscale via `computeDcScore()`
-5. **States covered** — `new Set(records.map(s => s.state)).size`
 
 Each cell:
 - `kpi-label` (uppercase, 9.5px, `min-height: 2.4em` so 1-line and 2-line
@@ -276,12 +275,9 @@ Each cell:
   qualifying criteria like "≥50 ac · power · water")
 
 Desktop: `kpi-sub` truncates on one line (`text-overflow: ellipsis`,
-requires `display: block` — see § 8.3 ellipsis pitfall). All five subtexts
-carry a `title` attribute mirroring their `textContent` so the unclipped
-value surfaces on hover. Static-string subtexts (DC criteria, hyperscale
-criteria, states subtext) get `title` in `index.html`; the two dynamic
-ones (total / acreage) get it written by `updateKpiDeck()` via the
-`setSub()` helper.
+requires `display: block` — see § 8.3 ellipsis pitfall). Dynamic subtexts
+(total / acreage) get `title` written by `updateKpiDeck()` via `setSub()`;
+static ones (DC criteria, hyperscale criteria) have `title` in `index.html`.
 Mobile: `white-space: normal` so all the criteria are readable.
 
 **Click-to-filter shortcuts.** Two cells are interactive:
@@ -293,9 +289,9 @@ Mobile: `white-space: normal` so all the criteria are readable.
 
 Both carry `role="button"`, `tabindex="0"`, keyboard activation
 (Enter / Space), `.kpi-actionable` class for the cursor+hover affordance,
-and `.kpi-active` when engaged. The other three cells (total / acreage
-/ states) are overview metrics, not filterable predicates — they
-intentionally stay inert. Reset clears both via `refreshKpiActiveStates()`.
+and `.kpi-active` when engaged. The other two cells (total / acreage)
+are overview metrics, not filterable predicates — intentionally inert.
+Reset clears both via `refreshKpiActiveStates()`.
 
 ### 3.4 Filters strip
 
