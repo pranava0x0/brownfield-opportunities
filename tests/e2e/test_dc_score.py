@@ -113,12 +113,13 @@ def test_null_site_yields_null(page, base_url):
 # -- All-max records -------------------------------------------------------
 
 def test_dc_all_max_record_scores_100(page, base_url):
-    """A record that maxes every DC component (including the v2 substation
-    + power-plant additions) lands at exactly 100."""
+    """A record that maxes every DC component (including grid inheritance,
+    substation, and rural OZ readiness) lands at exactly 100."""
     _ready(page, base_url)
     rec = {
         "transmission_mi": 0.0, "transmission_kv": 500,
-        "substation_mi": 0.0, "power_plant_mi": 0.5,
+        "substation_mi": 0.0,
+        "power_plant_mi": 0.5, "power_plant_mw": 600, "power_plant_fuel": "Natural Gas",
         "acreage": 1000, "gas_pipeline_mi": 0.0,
         "highway_mi": 0.5, "rail_mi": 0.5,
         "data_center_reuse_candidate": True,
@@ -177,14 +178,25 @@ def test_dc_substation_component(page, base_url, mi, expected):
     assert bd["substation"] == expected
 
 
-@pytest.mark.parametrize("mi,expected", [
-    (None, 0), (0.5, 8), (1.0, 8), (5.0, 6), (15.0, 3), (30.0, 0),
+@pytest.mark.parametrize("fuel,mw,mi,expected", [
+    ("Natural Gas", 600, 0.5, 8),  # qualifies: gas ≥500 MW ≤1 mi
+    ("Natural Gas", 600, 1.0, 8),  # exactly at 1 mi boundary
+    ("Natural Gas", 600, 1.1, 0),  # just over 1 mi → no points
+    ("Natural Gas", 400, 0.5, 0),  # MW too small
+    ("Hydro",       600, 0.5, 0),  # wrong fuel type
+    ("Coal",        500, 0.5, 8),  # coal qualifies
+    (None,          600, 0.5, 0),  # no fuel → no points
 ])
-def test_dc_power_plant_component(page, base_url, mi, expected):
-    """NEW in v2 — PPA / behind-the-meter co-location signal."""
+def test_dc_grid_inheritance_component(page, base_url, fuel, mw, mi, expected):
+    """Grid inheritance: large coal/gas ≥500 MW within 1 mi scores full 8 pts;
+    any other combination scores 0 (queue bypass only applies to large
+    dispatchable plants with likely stranded interconnection agreements)."""
     _ready(page, base_url)
-    bd = _dc_bd(page, {"transmission_mi": 0.5, "power_plant_mi": mi})
-    assert bd["power_plant"] == expected
+    rec = {"transmission_mi": 0.5, "power_plant_mi": mi, "power_plant_mw": mw}
+    if fuel is not None:
+        rec["power_plant_fuel"] = fuel
+    bd = _dc_bd(page, rec)
+    assert bd["grid_inheritance"] == expected
 
 
 @pytest.mark.parametrize("acres,expected", [
@@ -216,8 +228,8 @@ def test_dc_logistics_component(page, base_url, hwy, rail, expected):
 
 
 def test_dc_readiness_caps_at_14(page, base_url):
-    """Every readiness sub-signal (DC flag 5 + cleanup 3 + reuse 2 + OZ 5
-    = 15) is capped at the component max of 14."""
+    """All readiness sub-signals together (DC flag 5 + cleanup 3 + reuse 2 +
+    rural OZ 7 = 17) are capped at the component max of 14."""
     _ready(page, base_url)
     rec = {
         "transmission_mi": 0.5,
@@ -225,8 +237,48 @@ def test_dc_readiness_caps_at_14(page, base_url):
         "npl_status_code": "D",
         "in_reuse": "Yes",
         "in_opportunity_zone": True,
+        "oz_rural": True,
     }
     assert _dc_bd(page, rec)["readiness"] == 14
+
+
+def test_oz_rural_bonus_higher_than_standard_oz(page, base_url):
+    """Rural OZ scores +7; non-rural OZ scores +5 — the extra 2 pts reflect
+    the 30% vs 15% QOF basis step-up premium for designated rural tracts."""
+    _ready(page, base_url)
+    base = {"transmission_mi": 0.5, "in_opportunity_zone": True}
+    rural = _dc_bd(page, dict(base, oz_rural=True))["readiness"]
+    non_rural = _dc_bd(page, base)["readiness"]
+    assert rural == 7
+    assert non_rural == 5
+    assert rural > non_rural
+
+
+def test_eo14318_readiness_bonus(page, base_url):
+    """EO 14318 eligible sites (superfund/brownfield, ≥100 ac, grid ≤2 mi,
+    outside SFHA) earn +3 readiness pts; ineligible combos earn 0."""
+    _ready(page, base_url)
+    eligible = {
+        "transmission_mi": 1.0, "program": "superfund",
+        "acreage": 200, "in_sfha": False,
+    }
+    assert _dc_bd(page, eligible)["readiness"] == 3
+
+    # FUDS is not covered by EO 14318
+    ineligible_prog = dict(eligible, program="fuds")
+    assert _dc_bd(page, ineligible_prog)["readiness"] == 0
+
+    # Under 100 acres
+    ineligible_small = dict(eligible, acreage=50)
+    assert _dc_bd(page, ineligible_small)["readiness"] == 0
+
+    # Grid too far
+    ineligible_far = dict(eligible, transmission_mi=3.0)
+    assert _dc_bd(page, ineligible_far)["readiness"] == 0
+
+    # In SFHA
+    ineligible_flood = dict(eligible, in_sfha=True)
+    assert _dc_bd(page, ineligible_flood)["readiness"] == 0
 
 
 def test_dc_readiness_npl_final_gives_partial(page, base_url):
@@ -242,7 +294,8 @@ def test_sfha_subtracts_from_both_scores(page, base_url):
     _ready(page, base_url)
     rec = {
         "transmission_mi": 0.0, "transmission_kv": 500,
-        "substation_mi": 0.0, "power_plant_mi": 0.5,
+        "substation_mi": 0.0,
+        "power_plant_mi": 0.5, "power_plant_mw": 600, "power_plant_fuel": "Natural Gas",
         "acreage": 1000, "gas_pipeline_mi": 0.0,
         "highway_mi": 0.5, "rail_mi": 0.5,
         "data_center_reuse_candidate": True,
@@ -324,11 +377,15 @@ def test_gen_readiness_ignores_reuse(page, base_url):
     assert _gen_bd(page, clean_oz)["readiness"] == 6
 
 
-def test_gen_excludes_power_plant_component(page, base_url):
-    """The generation breakdown must not carry a power_plant key — you ARE
-    the plant, co-location is irrelevant."""
+def test_gen_excludes_grid_inheritance_component(page, base_url):
+    """The generation breakdown must not carry a grid_inheritance key — you
+    ARE the plant, co-location is irrelevant for new generation."""
     _ready(page, base_url)
-    bd = _gen_bd(page, {"transmission_mi": 0.5, "power_plant_mi": 0.1})
+    bd = _gen_bd(page, {
+        "transmission_mi": 0.5, "power_plant_mi": 0.1,
+        "power_plant_mw": 1000, "power_plant_fuel": "Natural Gas",
+    })
+    assert "grid_inheritance" not in bd
     assert "power_plant" not in bd
 
 

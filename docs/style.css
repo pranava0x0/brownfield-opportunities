@@ -2029,6 +2029,22 @@ main {
 [data-theme="dark"] .sig-badge.sig-ready { background: rgba(108, 193, 138, 0.12); }
 [data-theme="dark"] .sig-badge.sig-flood { background: rgba(239, 80, 80, 0.12); }
 [data-theme="dark"] .sig-badge.sig-grid  { background: rgba(180, 122, 216, 0.12); }
+.sig-badge.sig-fedfast {
+  background: rgba(196, 106, 20, 0.1);
+  color: var(--program-brac);
+  border: 1px solid var(--program-brac);
+}
+[data-theme="dark"] .sig-badge.sig-fedfast { background: rgba(230, 160, 64, 0.12); }
+.pill.eo14318-pill {
+  background: transparent;
+  color: var(--program-brac);
+  border: 1px solid var(--program-brac);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 9.5px;
+  padding: 0 6px;
+}
 .cand-sentinel { height: 1px; }
 
 /* Narrow screens: hide plant + gas columns */
