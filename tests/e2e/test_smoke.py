@@ -511,17 +511,14 @@ def test_owner_section_uses_user_friendly_copy(page, base_url):
 
 
 def test_hero_strip_renders(page, base_url):
-    """v1.8: hero strip with eyebrow, serif H2, dek, and KPI deck above the map."""
+    """KPI deck above the map and footer refresh date are populated."""
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
-    # Hero copy (visible on desktop)
-    assert page.locator(".hero h2").count() == 1
-    assert "America" in page.locator(".hero h2").text_content()
-    # Hero refresh stamp filled in (not the dash placeholder)
-    refresh = page.locator("#hero-refresh").text_content()
-    assert refresh.startswith("Updated") and "—" not in refresh
-    # KPI deck — four cells, each with a non-dash number
-    for kpi_id in ("kpi-total", "kpi-acres", "kpi-dc", "kpi-states"):
+    # Footer refresh stamp filled in (not the dash placeholder)
+    refresh = page.locator("#footer-refresh").text_content()
+    assert refresh.startswith("Refreshed") and "—" not in refresh
+    # KPI deck — five cells, each with a non-dash number
+    for kpi_id in ("kpi-total", "kpi-acres", "kpi-dc", "kpi-hyperscale", "kpi-generation"):
         text = page.locator(f"#{kpi_id}").text_content()
         assert text != "—" and text != "", f"{kpi_id} still showing placeholder: {text!r}"
 

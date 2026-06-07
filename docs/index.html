@@ -48,6 +48,7 @@
       <button id="tab-map" class="tab active" role="tab" aria-selected="true" aria-controls="view-map">Map</button>
       <button id="tab-table" class="tab" role="tab" aria-selected="false" aria-controls="view-table">Table</button>
       <button id="tab-candidates" class="tab" role="tab" aria-selected="false" aria-controls="view-candidates">DC Candidates</button>
+      <button id="tab-about" class="tab" role="tab" aria-selected="false" aria-controls="view-about">About</button>
     </div>
   </nav>
   </div>
@@ -60,7 +61,7 @@
       <span class="kpi-summary-dot" aria-hidden="true">·</span>
       <span class="kpi-summary-pair">
         <span class="kpi-summary-num" id="kpi-summary-dc">—</span>
-        <span class="kpi-summary-label">DC candidates</span>
+        <span class="kpi-summary-label">datacenter-ready</span>
       </span>
       <span class="kpi-summary-chevron" aria-hidden="true"></span>
     </summary>
@@ -76,7 +77,7 @@
         <span class="kpi-sub" id="kpi-acres-sub">with reported area</span>
       </div>
       <div class="kpi" data-kpi="dc">
-        <span class="kpi-label">DC reuse candidates</span>
+        <span class="kpi-label">Datacenter-ready</span>
         <span class="kpi-num" id="kpi-dc">—</span>
         <span class="kpi-sub kpi-sub-strong" id="kpi-dc-sub" title="≥50 ac · power · water">≥50 ac · power · water</span>
       </div>
@@ -84,6 +85,11 @@
         <span class="kpi-label">Hyperscale-ready</span>
         <span class="kpi-num" id="kpi-hyperscale">—</span>
         <span class="kpi-sub kpi-sub-strong" id="kpi-hyperscale-sub" title="≥100 ac · ≥230 kV · ≤1 mi">≥100 ac · ≥230 kV · ≤1 mi</span>
+      </div>
+      <div class="kpi" data-kpi="generation">
+        <span class="kpi-label">Generation-ready</span>
+        <span class="kpi-num" id="kpi-generation">—</span>
+        <span class="kpi-sub kpi-sub-strong" id="kpi-generation-sub" title="≥75 gen score · land · grid export">≥75 score · land · grid export</span>
       </div>
     </div>
   </details>
@@ -142,6 +148,10 @@
   <label class="filter filter-opp-zone">
     <input id="f-opp-zone" type="checkbox" aria-label="Show only sites inside a Treasury Opportunity Zone">
     <span>Opportunity Zone only</span>
+  </label>
+  <label class="filter filter-available">
+    <input id="f-available" type="checkbox" aria-label="Show only sites available for development (cleanup complete or transferred)">
+    <span>Available sites only</span>
   </label>
   <button id="filters-reset" class="text-btn">Reset</button>
   <footer class="filters-sheet-actions" aria-hidden="true">
@@ -222,6 +232,155 @@
         <tbody><!-- rows injected by buildCandidatesView() --></tbody>
       </table>
     </div>
+  </section>
+
+  <section id="view-about" class="view about-view" role="tabpanel" aria-labelledby="tab-about" hidden>
+    <div class="about-wrap">
+
+      <div class="about-lead">
+        <h2>US Brownfield &amp; Federal Site Atlas</h2>
+        <p>This dashboard indexes <strong>46,700+ contaminated federal and brownfield sites</strong> across four programs and scores each one for data-center and power-generation suitability using public infrastructure, financial, and risk signals.</p>
+      </div>
+
+      <div class="about-grid">
+
+        <div class="about-section">
+          <h3>The four programs</h3>
+          <dl class="about-programs">
+            <dt><span class="about-dot" style="background:var(--program-superfund)"></span>Superfund (EPA NPL)</dt>
+            <dd>The National Priorities List — the most contaminated sites in the US under EPA's CERCLA authority. ~1,908 sites. Strongest remediation data: documents, ECHO enforcement, AI summaries, milestone dates.</dd>
+
+            <dt><span class="about-dot" style="background:var(--program-brownfield)"></span>Brownfields (EPA ACRES)</dt>
+            <dd>~36,000 brownfield properties tracked by EPA's Assessment, Cleanup and Redevelopment Exchange System. Former gas stations, factories, and rail yards. Acreage data is not available from EPA's source.</dd>
+
+            <dt><span class="about-dot" style="background:var(--program-fuds)"></span>FUDS (US Army Corps)</dt>
+            <dd>~8,800 Formerly Used Defense Sites — military land conveyed out of federal ownership before 1986, where DoD still has cleanup obligations. USACE tracks eligibility and active projects. ~66% lack digitized polygon boundaries.</dd>
+
+            <dt><span class="about-dot" style="background:var(--program-brac)"></span>BRAC (DoD Base Closures)</dt>
+            <dd>27 installations closed under Base Realignment and Closure rounds. Large-acreage sites (often 500–4,000+ acres) with existing utilities, roads, and sometimes grid connections.</dd>
+          </dl>
+        </div>
+
+        <div class="about-section">
+          <h3>Siting scores explained</h3>
+          <dl class="about-dl">
+            <dt>DC composite score (0–100)</dt>
+            <dd>Weighted rubric for siting a data-center <em>load</em>: transmission distance (16 pts), voltage class (14), substation proximity (12), grid inheritance from a large co-located plant (8), acreage (20), gas pipeline (10), logistics/highway (6), readiness signals (14). A flood-zone penalty of −18 applies for sites in FEMA Special Flood Hazard Areas. Returns null when no transmission data is available.</dd>
+
+            <dt>Generation score (0–100)</dt>
+            <dd>Weighted rubric for siting new <em>power generation</em>: acreage (28 pts), transmission-to-export (18), substation (16), voltage (12), gas pipeline (12), ISO/RTO market access (8), readiness (6). No power-plant component — you are the plant. Same flood penalty and transmission gate as the DC lens.</dd>
+
+            <dt>DC tier (Edge / Colo / Hyperscale / Mega)</dt>
+            <dd>Quick-filter bucket derived from acreage + transmission distance + voltage class. Used by the persona buttons and <code>?dc_tier=</code> URL parameter. Separate from the 0–100 composite score.</dd>
+
+            <dt>Datacenter-ready</dt>
+            <dd>EPA's official RE-Powering designation: Superfund sites with ≥50 acres, electric transmission, and water service area. ~821 sites. EPA's own flag, not a computed score.</dd>
+
+            <dt>Hyperscale-ready</dt>
+            <dd>Sites meeting the hyperscale tier threshold: ≥100 acres, ≥230 kV transmission within 1 mile. ~250 sites across all four programs.</dd>
+
+            <dt>Generation-ready</dt>
+            <dd>Sites scoring ≥75 on the Generation lens — strong land, grid export, and market combination. ~114 sites.</dd>
+          </dl>
+        </div>
+
+        <div class="about-section">
+          <h3>Infrastructure signals</h3>
+          <dl class="about-dl">
+            <dt>Transmission line</dt>
+            <dd>Miles to the nearest HIFLD high-voltage line, plus its voltage (kV). Source: HIFLD Electric Power Transmission Lines (~52k polylines).</dd>
+
+            <dt>Substation</dt>
+            <dd>Miles to the nearest HV substation (≥69 kV). Source: OpenStreetMap <code>power=substation</code> via Overpass API. HIFLD substations went private in 2025.</dd>
+
+            <dt>Power plant</dt>
+            <dd>Miles to the nearest plant, its capacity (MW), and primary fuel. Co-located coal/gas plants ≥500 MW within 1 mile earn the <strong>Grid Inherit</strong> signal — they may carry stranded FERC interconnection agreements worth hundreds of millions in avoided queue costs. Source: HIFLD (~13,400 EIA-860 plants).</dd>
+
+            <dt>Gas pipeline</dt>
+            <dd>Miles to the nearest interstate or intrastate natural gas pipeline. Relevant for behind-the-meter generation. Source: HIFLD (~33k polylines).</dd>
+
+            <dt>Highway / Rail</dt>
+            <dd>Miles to the nearest primary road (Census TIGER S1100) and railroad (Census TIGER). Logistics signals for construction and supply chains.</dd>
+
+            <dt>Flood zone</dt>
+            <dd>FEMA NFHL zone code. Sites in Special Flood Hazard Areas (Zone A/AE/V/VE) receive a −18 point penalty in both scores. Sites with no FEMA data are not penalized.</dd>
+
+            <dt>Opportunity Zone</dt>
+            <dd>Treasury-designated QOZ tract status and whether it is Rural (~700 of 8,765 tracts). Rural OZ sites also qualify for IRA clean energy community credits. Source: HUD FeatureServer.</dd>
+
+            <dt>ISO / RTO</dt>
+            <dd>Regional transmission organization: PJM, MISO, ERCOT, CAISO, SPP, NYISO, ISO-NE, or non-RTO. Affects interconnection queue access and electricity market structure. Source: EIA Atlas.</dd>
+
+            <dt>Climate zone</dt>
+            <dd>IECC/ASHRAE zone (e.g. 5B, 3A) from DOE Building America county data. Cooler zones mean lower cooling-energy overhead (lower PUE).</dd>
+          </dl>
+        </div>
+
+        <div class="about-section">
+          <h3>Readiness signals</h3>
+          <dl class="about-dl">
+            <dt>Cleanup Complete</dt>
+            <dd>Superfund sites formally deleted from the NPL — EPA certifies cleanup meets health and environmental standards. ~300 of 1,908 NPL sites.</dd>
+
+            <dt>Active Reuse</dt>
+            <dd>Sites in active reuse per EPA's RedevelopmentAppSitePoints. Superfund-only.</dd>
+
+            <dt>EPA Candidate</dt>
+            <dd>EPA's official data-center reuse designation: ≥50 acres, electric transmission, water service area. ~821 sites.</dd>
+
+            <dt>Fed Fast Lane (EO 14318)</dt>
+            <dd>Executive Order 14318 (July 2025) created NEPA categorical exclusions and fast-tracked Army Corps permits for qualifying data center developments on Superfund and brownfield sites.</dd>
+
+            <dt>OZ / OZ·Rural</dt>
+            <dd>Qualified Opportunity Zone status. Rural OZ sites receive the higher IRA bonus (+10pp PTC/ITC) and a 30% OZ basis step-up vs. 15% standard.</dd>
+          </dl>
+        </div>
+
+        <div class="about-section">
+          <h3>How to use this tool</h3>
+          <dl class="about-dl">
+            <dt>Map view</dt>
+            <dd>Click any marker to open the site detail panel. Markers are sized by acreage. Zoom in to see all sites in a dense region — markers are decimated at low zoom for performance.</dd>
+
+            <dt>Filters</dt>
+            <dd>The gear (⚙) button opens filters: program, NPL status, state, acreage, DC tier persona, Opportunity Zone, and DC candidate toggle. All filters round-trip via the URL — share a filtered view with the ⎘ button.</dd>
+
+            <dt>DC Candidates tab</dt>
+            <dd>Ranked table of all scored sites. Switch between the Data Center and Generation lenses. Filter by minimum tier or readiness signal.</dd>
+
+            <dt>KPI cells</dt>
+            <dd>The Datacenter-ready and Hyperscale-ready cells are clickable — they toggle a filter to show only those sites.</dd>
+
+            <dt>Export</dt>
+            <dd>The ↓ button exports the current filtered set as a CSV, including all infrastructure distances, scores, and enrichment fields.</dd>
+
+            <dt>Site detail panel</dt>
+            <dd>Opens on any marker or table-row click. Shows siting score breakdowns, infrastructure distances, federal documents, ECHO enforcement, and state tax incentive context. The Summary tab shows the AI-generated narrative.</dd>
+          </dl>
+        </div>
+
+        <div class="about-section about-sources">
+          <h3>Data sources &amp; freshness</h3>
+          <ul class="about-source-list">
+            <li><a href="https://www.epa.gov/superfund/superfund-national-priorities-list-npl" target="_blank" rel="noopener">EPA Superfund NPL</a> — EPA FeatureServer</li>
+            <li><a href="https://www.epa.gov/brownfields/epas-brownfields-program" target="_blank" rel="noopener">EPA ACRES Brownfields</a> — EPA FeatureServer (2021 snapshot)</li>
+            <li><a href="https://www.usace.army.mil/Missions/Environmental/Formerly-Used-Defense-Sites/" target="_blank" rel="noopener">USACE FUDS</a> — ArcGIS FeatureServer</li>
+            <li><a href="https://www.acq.osd.mil/eie/brac/index.html" target="_blank" rel="noopener">DoD BRAC</a> — ESRI milbases FeatureServer</li>
+            <li><a href="https://www.epa.gov/re-powering" target="_blank" rel="noopener">EPA RE-Powering</a> — RedevelopmentAppSitePoints FeatureServer</li>
+            <li><a href="https://hifld-geoplatform.hub.arcgis.com/" target="_blank" rel="noopener">HIFLD</a> — Transmission lines, power plants, gas pipelines</li>
+            <li><a href="https://www.openstreetmap.org/" target="_blank" rel="noopener">OpenStreetMap</a> — Substations via Overpass API</li>
+            <li><a href="https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html" target="_blank" rel="noopener">Census TIGER</a> — Roads, railroads, county boundaries</li>
+            <li><a href="https://hazards.fema.gov/nhl/" target="_blank" rel="noopener">FEMA NFHL</a> — Flood Hazard Zones (per-site query)</li>
+            <li><a href="https://opportunityzones.hud.gov/" target="_blank" rel="noopener">HUD Opportunity Zones</a> — QOZ tracts</li>
+            <li><a href="https://www.eia.gov/" target="_blank" rel="noopener">EIA Atlas</a> — ISO/RTO region polygons</li>
+            <li><a href="https://www.energycodes.gov/development/buildings/climate_zones" target="_blank" rel="noopener">DOE Building America</a> — ASHRAE climate zones</li>
+            <li><a href="https://echo.epa.gov/" target="_blank" rel="noopener">EPA ECHO</a> — Enforcement history (Superfund only)</li>
+          </ul>
+          <p class="about-note">Last data refresh: <span id="about-refresh-date">—</span>. Source code and raw data files: <a href="https://github.com/pranava0x0/brownfield-opportunities" target="_blank" rel="noopener">GitHub</a>.</p>
+        </div>
+
+      </div><!-- .about-grid -->
+    </div><!-- .about-wrap -->
   </section>
 </main>
 
@@ -312,10 +471,7 @@
       <dt>ISO/RTO</dt><dd id="d-iso-rto" class="muted-cell">Not available</dd>
       <dt>Climate zone</dt><dd id="d-climate-zone" class="muted-cell">Not available</dd>
       <dt>Opportunity Zone</dt><dd id="d-opp-zone" class="muted-cell">Not available</dd>
-      <dt>Electrical transmission</dt><dd id="d-near-elec" class="muted-cell">Not available</dd>
-      <dt>Highway (EPA RE-Powering)</dt><dd id="d-near-hwy" class="muted-cell">Not available</dd>
-      <dt>Railroad (EPA RE-Powering)</dt><dd id="d-near-rr" class="muted-cell">Not available</dd>
-      <dt>Water supply</dt><dd id="d-near-water" class="muted-cell">Not available</dd>
+      <dt>Water service area</dt><dd id="d-near-water" class="muted-cell">Not available</dd>
       <dt>Wastewater</dt><dd id="d-near-ww" class="muted-cell">Not available</dd>
       <dt>Population density</dt><dd id="d-pop-density" class="muted-cell">Not available</dd>
       <dt>Data center candidate</dt><dd id="d-dc-candidate" class="muted-cell">Not available<span id="d-dc-criteria" class="dd-criteria" hidden></span></dd>
@@ -336,6 +492,17 @@
       <dt>Active programs</dt><dd id="d-echo-programs" class="muted-cell">Not available</dd>
     </dl>
     <p class="docs-source-line"><a id="d-echo-dfr" href="#" target="_blank" rel="noopener">Full Detailed Facility Report on EPA ECHO →</a></p>
+  </details>
+
+  <details class="d-section" data-section="grants" id="d-grants-block" hidden>
+    <summary><h3>Federal funding <span class="docs-count" id="d-grants-count" aria-hidden="true"></span></h3></summary>
+    <dl class="kv">
+      <dt>Cleanup status</dt><dd id="d-cleanup-status" class="muted-cell">Not available</dd>
+      <dt>Completion date</dt><dd id="d-cleanup-date" class="muted-cell">Not available</dd>
+      <dt>Total EPA grants</dt><dd id="d-grant-total" class="muted-cell">Not available</dd>
+      <dt>Grant types</dt><dd id="d-grant-types" class="muted-cell">Not available</dd>
+    </dl>
+    <p class="docs-source-line">Source: EPA ACRES brownfield grants program</p>
   </details>
 
   <details id="d-nearby-block" class="nearby-disclosure" hidden>
