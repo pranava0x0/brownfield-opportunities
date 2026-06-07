@@ -254,6 +254,29 @@ class SiteRecord(BaseModel):
                     "last_inspection_date, programs (list).",
     )
 
+    # EPA ACRES cleanup status + grant history (acres-cleanup enrichment).
+    # Only populated for brownfield (ACRES) records; null for other programs.
+    cleanup_status: Optional[str] = Field(
+        default=None,
+        description="ACRES cleanup activity status: 'Completed', 'In Progress', or 'Not Started'.",
+    )
+    cleanup_complete_date: Optional[str] = Field(
+        default=None,
+        description="ISO date (YYYY-MM-DD) when cleanup was marked Completed.",
+    )
+    grant_total_usd: Optional[int] = Field(
+        default=None,
+        description="Sum of all EPA brownfield grant awards for this property (USD).",
+    )
+    grant_count: Optional[int] = Field(
+        default=None,
+        description="Number of individual EPA brownfield grant awards.",
+    )
+    grant_types: Optional[list[str]] = Field(
+        default=None,
+        description="Unique grant types awarded: Assessment, Cleanup, RLF, etc.",
+    )
+
     # AI-generated plain-English site summary (Claude Haiku). Populated by
     # the `ai-summary` enrichment connector. Cached by content-hash of the
     # source fields so re-runs only re-bill when the underlying data

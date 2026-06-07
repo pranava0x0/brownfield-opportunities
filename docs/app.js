@@ -16,6 +16,7 @@ const CLIMATE_ZONE_URL = "data/climate-zone.json";
 const ISO_RTO_URL = "data/iso-rto.json";
 const ECHO_DATA_URL = "data/epa-echo.json";
 const AI_SUMMARY_URL = "data/ai-summary.json";
+const ACRES_CLEANUP_URL = "data/acres-cleanup.json";
 // Vector basemap: US states (always) + US counties (lazy at zoom ≥ COUNTY_MIN_ZOOM).
 // No tiles — Canada/Mexico literally don't exist on the map. Choropleth-style
 // look (think CNN election tracker / datacenterbans.com) with bold state borders
@@ -515,7 +516,7 @@ const filterState = {
   // (mega is a strict superset). URL state: ?dc_tier=hyperscale.
   dcTier: "",
   // EPA RE-Powering data-center reuse candidate boolean (`s.data_center_reuse_candidate`).
-  // Wired from the "DC reuse candidates" KPI cell click-to-filter shortcut.
+  // Wired from the "Datacenter-ready" KPI cell click-to-filter shortcut.
   // URL state: ?dc_candidate=1. Independent of `dcTier` — Tier 0 score includes
   // sites that aren't EPA-flagged, and EPA flags some sites that don't score.
   dcCandidate: false,
@@ -527,6 +528,11 @@ const filterState = {
   // RTO polygons: CAISO / ERCOT / ISO-NE / MISO / NYISO / PJM / SPP /
   // non-RTO. URL state: ?iso_rto=PJM.
   isoRto: "",
+  // Show only sites that are meaningfully "available" for redevelopment:
+  // Superfund = NPL deleted, ACRES = cleanup completed, FUDS = eligible +
+  // non-federal owner, BRAC = always false (no reliable signal).
+  // URL state: ?available=1.
+  availableOnly: false,
 };
 
 let acresLoadingPromise = null; // de-dup parallel toggles
@@ -540,6 +546,7 @@ let climateZoneLoadingPromise = null;
 let isoRtoLoadingPromise = null;
 let echoLoadingPromise = null;
 let summariesLoadingPromise = null;
+let acresCleanupLoadingPromise = null;
 
 // Programmatic ready signal so UAT / Playwright / agent automation can wait
 // on a stable event instead of polling network responses. Fires once after
@@ -630,6 +637,7 @@ function updateKpiDeck() {
   let acreCount = 0;
   let dcCount = 0;
   let hyperCount = 0;
+  let genCount = 0;
   const programSet = new Set();
   for (const s of sites) {
     if (typeof s.acreage === "number") {
@@ -639,6 +647,8 @@ function updateKpiDeck() {
     if (s.data_center_reuse_candidate === true) dcCount++;
     const tier = computeDcScore(s);
     if (tier === "hyperscale" || tier === "mega") hyperCount++;
+    const genScore = computeGenerationScore(s);
+    if (genScore != null && genScore >= 75) genCount++;
     if (s.program) programSet.add(s.program);
   }
   const set = (id, value) => {
@@ -662,6 +672,7 @@ function updateKpiDeck() {
   setSub("kpi-acres-sub", `${fmt.compact(acreCount)} sites with reported area`);
   set("kpi-dc", fmt.compact(dcCount));
   set("kpi-hyperscale", fmt.compact(hyperCount));
+  set("kpi-generation", fmt.compact(genCount));
   // Mobile disclosure strip — the two highest-signal numbers (total +
   // DC candidates) live in the always-visible summary line; expanding the
   // <details> reveals the full carousel.
@@ -709,6 +720,10 @@ function updateFilterChip() {
   if (filterState.isoRto) {
     count++;
     active.push(`ISO/RTO ${ISO_RTO_LABELS[filterState.isoRto] || filterState.isoRto}`);
+  }
+  if (filterState.availableOnly) {
+    count++;
+    active.push("Available sites only");
   }
   const chip = el("filters-chip");
   const btn = el("filters-toggle");
@@ -813,6 +828,7 @@ fetch(PRIMARY_DATA_URL)
     lazyLoads.push(ensureIsoRtoLoaded());
     lazyLoads.push(ensureEchoLoaded());
     lazyLoads.push(ensureSummariesLoaded());
+    lazyLoads.push(ensureAcresCleanupLoaded());
     applyUrlSelection();
     if (lazyLoads.length === 0) {
       markAppReady();
@@ -1082,6 +1098,56 @@ function ensureSummariesLoaded() {
       summariesLoadingPromise = null;
     });
   return summariesLoadingPromise;
+}
+
+// EPA ACRES cleanup status + brownfield grant history. Lazy-loaded; joins onto
+// ACRES brownfield records in sitesById by id. Fields merged: cleanup_status,
+// cleanup_complete_date, grant_total_usd, grant_count, grant_types.
+// 404 → treated as "no data yet" (connector not run) rather than an error.
+function ensureAcresCleanupLoaded() {
+  if (acresCleanupLoadingPromise) return acresCleanupLoadingPromise;
+  acresCleanupLoadingPromise = fetch(ACRES_CLEANUP_URL, { priority: "low" })
+    .then((r) => {
+      if (r.status === 404) return { sites: [] };
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then((payload) => {
+      for (const rec of payload.sites || []) {
+        const existing = sitesById.get(rec.id);
+        if (!existing) continue;
+        if (rec.cleanup_status != null) existing.cleanup_status = rec.cleanup_status;
+        if (rec.cleanup_complete_date != null) existing.cleanup_complete_date = rec.cleanup_complete_date;
+        if (rec.grant_total_usd != null) existing.grant_total_usd = rec.grant_total_usd;
+        if (rec.grant_count != null) existing.grant_count = rec.grant_count;
+        if (rec.grant_types != null) existing.grant_types = rec.grant_types;
+      }
+      if (selectedId) {
+        const sel = sitesById.get(selectedId);
+        if (sel) renderGrants(sel);
+      }
+    })
+    .catch((err) => {
+      console.error("ACRES cleanup load failed:", err);
+      acresCleanupLoadingPromise = null;
+    });
+  return acresCleanupLoadingPromise;
+}
+
+// Cross-program "available for redevelopment" heuristic:
+//   Superfund  — NPL status Deleted (D) = remediation complete, removed from list.
+//   ACRES      — cleanup_status === "Completed" (from acres-cleanup enrichment).
+//   FUDS       — Eligible tier + non-federal current owner (transferred).
+//   BRAC       — no reliable public signal yet; always false.
+function siteIsAvailable(s) {
+  if (s.program === "superfund") return s.npl_status_code === "D";
+  if (s.program === "brownfield") return s.cleanup_status === "Completed";
+  if (s.program === "fuds") {
+    const owner = (s.current_owner || "").toLowerCase();
+    const notFederal = owner && !owner.startsWith("federal") && !owner.startsWith("fed:");
+    return s.eligibility === "Eligible" && notFederal;
+  }
+  return false;
 }
 
 // Universal infrastructure-proximity enrichment. Joins onto every program
@@ -1603,6 +1669,7 @@ function siteMatchesFilters(s, opts = {}) {
   if (filterState.dcCandidate && s.data_center_reuse_candidate !== true) return false;
   if (filterState.oppZone && s.in_opportunity_zone !== true) return false;
   if (filterState.isoRto && s.iso_rto !== filterState.isoRto) return false;
+  if (filterState.availableOnly && !siteIsAvailable(s)) return false;
   if (!siteMatchesQuery(s, opts.q ?? filterState.q)) return false;
   return true;
 }
@@ -1725,7 +1792,8 @@ function filtersActive() {
     filterState.dcTier !== "" ||
     filterState.dcCandidate ||
     filterState.oppZone ||
-    filterState.isoRto !== ""
+    filterState.isoRto !== "" ||
+    filterState.availableOnly
   );
 }
 
@@ -2070,6 +2138,17 @@ function wireFilters() {
     });
   }
 
+  const availBox = el("f-available");
+  if (availBox) {
+    availBox.checked = filterState.availableOnly;
+    availBox.addEventListener("change", () => {
+      filterState.availableOnly = !!availBox.checked;
+      if (filterState.availableOnly) ensureAcresCleanupLoaded();
+      applyFilter();
+      refitMapToFilters();
+    });
+  }
+
   el("filters-reset").addEventListener("click", () => {
     // Restore *all* programs in PROGRAM_LEGEND, not a hardcoded subset —
     // when FUDS / BRAC were added in v1.7 this handler stayed at v1.6's
@@ -2085,12 +2164,15 @@ function wireFilters() {
     filterState.dcCandidate = false;
     filterState.oppZone = false;
     filterState.isoRto = "";
+    filterState.availableOnly = false;
     el("search").value = "";
     refreshPersonaButtons();
     refreshKpiActiveStates();
-    // Reset must also un-check the OZ filter checkbox.
+    // Reset must also un-check the OZ filter checkbox and available-only checkbox.
     const ozBox = el("f-opp-zone");
     if (ozBox) ozBox.checked = false;
+    const availBox = el("f-available");
+    if (availBox) availBox.checked = false;
     for (const [program, box] of Object.entries(progBoxes)) {
       if (box) box.checked = filterState.programs.has(program);
     }
@@ -2316,6 +2398,9 @@ function makeRow(s) {
     statusHtml = `<span class="pill" data-status="${escapeAttr(s.npl_status_code)}">${escapeHtml(s.npl_status || "Unknown")}</span>`;
   } else if (s.program === "fuds" && s.eligibility) {
     statusHtml = escapeHtml(s.eligibility);
+  } else if (s.program === "brownfield" && s.cleanup_status) {
+    const cls = s.cleanup_status === "Completed" ? " ready" : "";
+    statusHtml = `<span class="cleanup-status${cls}">${escapeHtml(s.cleanup_status)}</span>`;
   } else {
     statusHtml = '<span class="muted-cell">—</span>';
   }
@@ -2512,11 +2597,16 @@ function wireTabs() {
   const mapTab = el("tab-map");
   const tableTab = el("tab-table");
   const candidatesTab = el("tab-candidates");
+  const aboutTab = el("tab-about");
   const setView = (which) => {
     const onMap = which === "map";
     const onTable = which === "table";
     const onCandidates = which === "candidates";
-    for (const [tab, active] of [[mapTab, onMap], [tableTab, onTable], [candidatesTab, onCandidates]]) {
+    const onAbout = which === "about";
+    for (const [tab, active] of [
+      [mapTab, onMap], [tableTab, onTable],
+      [candidatesTab, onCandidates], [aboutTab, onAbout],
+    ]) {
       if (!tab) continue;
       tab.classList.toggle("active", active);
       tab.setAttribute("aria-selected", String(active));
@@ -2524,15 +2614,22 @@ function wireTabs() {
     const mapView = el("view-map");
     const tableView = el("view-table");
     const candidatesView = el("view-candidates");
-    if (mapView)        { mapView.classList.toggle("active", onMap);        mapView.hidden = !onMap; }
-    if (tableView)      { tableView.classList.toggle("active", onTable);      tableView.hidden = !onTable; }
+    const aboutView = el("view-about");
+    if (mapView)        { mapView.classList.toggle("active", onMap);               mapView.hidden = !onMap; }
+    if (tableView)      { tableView.classList.toggle("active", onTable);           tableView.hidden = !onTable; }
     if (candidatesView) { candidatesView.classList.toggle("active", onCandidates); candidatesView.hidden = !onCandidates; }
+    if (aboutView)      { aboutView.classList.toggle("active", onAbout);           aboutView.hidden = !onAbout; }
     if (onMap) setTimeout(() => map.invalidateSize(), 50);
     if (onCandidates) buildCandidatesView();
+    if (onAbout) {
+      const d = el("about-refresh-date");
+      if (d && window.__refreshedAt) d.textContent = window.__refreshedAt;
+    }
   };
   mapTab.addEventListener("click", () => setView("map"));
   tableTab.addEventListener("click", () => setView("table"));
   if (candidatesTab) candidatesTab.addEventListener("click", () => setView("candidates"));
+  if (aboutTab) aboutTab.addEventListener("click", () => setView("about"));
 }
 
 // ----- DC Candidates view -----
@@ -3014,11 +3111,7 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
   // Siting suitability scores (data-center load + new generation), the
   // synthesis of the infra signals above. Reads dc-score.js — no fetch.
   renderSuitability(s);
-  // EPA RE-Powering qualitative indicators (Superfund-only — only present
-  // for the ~1.9k sites the EPA Redevelopment mapper covers).
-  el("d-near-elec").textContent = fmt.text(s.near_electric_transmission);
-  el("d-near-hwy").textContent = fmt.text(s.near_highway);
-  el("d-near-rr").textContent = fmt.text(s.near_railroad);
+  // EPA RE-Powering service-area indicators (Superfund-only).
   el("d-near-water").textContent = fmt.text(s.near_water_supply);
   el("d-near-ww").textContent = fmt.text(s.near_wastewater);
   el("d-pop-density").textContent = fmt.text(s.pop_density);
@@ -3087,6 +3180,7 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
 
   renderDocuments(s);
   renderEnforcement(s);
+  renderGrants(s);
   renderSummary(s);
   renderNearbySites(s);
   resetDetailTabs();
@@ -3274,6 +3368,67 @@ function renderSummary(s) {
 }
 
 // Render the "Nearby sites" block — up to 5 other sites within
+// EPA ACRES cleanup status + brownfield grant history. Shown for brownfield
+// records only; hidden for all other programs. Populates from the
+// acres-cleanup enrichment connector lazy-loaded via ensureAcresCleanupLoaded().
+function renderGrants(s) {
+  const block = el("d-grants-block");
+  if (!block) return;
+  if (s.program !== "brownfield" || (!s.cleanup_status && s.grant_total_usd == null)) {
+    block.hidden = true;
+    return;
+  }
+  block.hidden = false;
+
+  const statusEl = el("d-cleanup-status");
+  if (statusEl) {
+    if (s.cleanup_status) {
+      statusEl.textContent = s.cleanup_status;
+      statusEl.className = s.cleanup_status === "Completed" ? "ready" : "";
+    } else {
+      statusEl.textContent = "Not available";
+      statusEl.className = "muted-cell";
+    }
+  }
+
+  const dateEl = el("d-cleanup-date");
+  if (dateEl) {
+    if (s.cleanup_complete_date) {
+      dateEl.textContent = s.cleanup_complete_date;
+      dateEl.className = "";
+    } else {
+      dateEl.textContent = "Not available";
+      dateEl.className = "muted-cell";
+    }
+  }
+
+  const totalEl = el("d-grant-total");
+  if (totalEl) {
+    if (s.grant_total_usd != null) {
+      totalEl.textContent = "$" + s.grant_total_usd.toLocaleString();
+      totalEl.className = "";
+    } else {
+      totalEl.textContent = "Not available";
+      totalEl.className = "muted-cell";
+    }
+  }
+
+  const typesEl = el("d-grant-types");
+  if (typesEl) {
+    if (s.grant_types && s.grant_types.length) {
+      typesEl.textContent = s.grant_types.join(", ");
+      typesEl.className = "";
+    } else {
+      typesEl.textContent = "Not available";
+      typesEl.className = "muted-cell";
+    }
+  }
+
+  const countEl = el("d-grants-count");
+  if (countEl && s.grant_count != null) countEl.textContent = `(${s.grant_count})`;
+  else if (countEl) countEl.textContent = "";
+}
+
 // NEARBY_RADIUS_MI of the selected site (Haversine on `lat_real`/`lon_real`
 // so inset-remapped coords don't pollute distance). Clicking a result
 // calls `selectSite(id)`. Block is hidden when the selected site has no
@@ -3618,6 +3773,10 @@ function loadInitialFiltersFromUrl() {
     const v = p.get("iso_rto") || "";
     if (v) filterState.isoRto = v;
   }
+  if (p.has("available")) {
+    const v = p.get("available");
+    if (v === "1" || v === "true") filterState.availableOnly = true;
+  }
 }
 
 function applyUrlSelection() {
@@ -3666,6 +3825,7 @@ function syncUrl() {
     if (filterState.dcCandidate) p.set("dc_candidate", "1");
     if (filterState.oppZone) p.set("oz", "1");
     if (filterState.isoRto) p.set("iso_rto", filterState.isoRto);
+    if (filterState.availableOnly) p.set("available", "1");
     if (selectedId) p.set("site", selectedId);
     const qs = p.toString();
     const newUrl = qs ? `${location.pathname}?${qs}` : location.pathname;

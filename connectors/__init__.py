@@ -9,6 +9,7 @@ from __future__ import annotations
 from connectors.ai_summary import AiSummary
 from connectors.base import Connector
 from connectors.dod_brac import DodBrac
+from connectors.epa_acres_cleanup import EpaAcresCleanup
 from connectors.dod_fuds import DodFuds
 from connectors.epa_acres import EpaAcres
 from connectors.epa_echo import EpaEcho
@@ -50,4 +51,5 @@ register("opportunity-zone", OpportunityZone)
 register("climate-zone", ClimateZone)
 register("iso-rto", IsoRto)
 register("epa-echo", EpaEcho)
+register("acres-cleanup", EpaAcresCleanup)
 register("ai-summary", AiSummary)
