@@ -294,6 +294,40 @@ class SiteRecord(BaseModel):
                     "zone boundaries.",
     )
 
+    # FEMA National Risk Index (county-level, fema-nri enrichment connector).
+    # Composite + per-hazard natural-hazard risk. For DC siting the marquee
+    # operational hazards are wildfire (direct threat / insurability),
+    # drought (cooling-water availability), and heat wave (cooling load).
+    nri_risk_score: Optional[float] = Field(
+        default=None,
+        description="FEMA National Risk Index composite score (0-100 national "
+                    "percentile) for the county containing the site. Higher = "
+                    "more natural-hazard risk.",
+    )
+    nri_risk_rating: Optional[str] = Field(
+        default=None,
+        description="FEMA NRI composite rating bucket: 'Very Low', "
+                    "'Relatively Low', 'Relatively Moderate', 'Relatively "
+                    "High', 'Very High', or 'Insufficient Data'.",
+    )
+    nri_wildfire_rating: Optional[str] = Field(
+        default=None,
+        description="FEMA NRI wildfire risk rating (same bucket scale). The "
+                    "marquee climate hazard for data-center siting — drives "
+                    "insurability and the climate penalty in dc-score.js.",
+    )
+    nri_drought_rating: Optional[str] = Field(
+        default=None,
+        description="FEMA NRI drought risk rating (same bucket scale). Proxy "
+                    "for cooling-water availability stress.",
+    )
+    nri_heatwave_rating: Optional[str] = Field(
+        default=None,
+        description="FEMA NRI heat-wave risk rating (same bucket scale). "
+                    "Higher heat-wave risk raises cooling load / lowers "
+                    "free-cooling hours. Displayed for context; not penalized.",
+    )
+
     # Ownership / transfer / history. Most are still None for most programs;
     # FUDS populates `current_owner` directly from the source.
     current_owner: Optional[str] = None

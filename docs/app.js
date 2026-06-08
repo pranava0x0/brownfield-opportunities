@@ -20,6 +20,7 @@ const ACRES_CLEANUP_URL = "data/acres-cleanup.json";
 const RETIRED_PLANTS_URL = "data/eia-retired-plants.json";
 const REFERENCE_CAMPUSES_URL = "data/reference-campuses.json";
 const IRA_EC_URL = "data/ira-energy-community.json";
+const FEMA_NRI_URL = "data/fema-nri.json";
 // Vector basemap: US states (always) + US counties (lazy at zoom ≥ COUNTY_MIN_ZOOM).
 // No tiles — Canada/Mexico literally don't exist on the map. Choropleth-style
 // look (think CNN election tracker / datacenterbans.com) with bold state borders
@@ -553,6 +554,7 @@ let acresCleanupLoadingPromise = null;
 let retiredPlantsLoadingPromise = null;
 let referenceCampusesLoadingPromise = null;
 let iraEcLoadingPromise = null;
+let femaNriLoadingPromise = null;
 
 // Programmatic ready signal so UAT / Playwright / agent automation can wait
 // on a stable event instead of polling network responses. Fires once after
@@ -831,6 +833,7 @@ fetch(PRIMARY_DATA_URL)
     lazyLoads.push(ensureInfraLoaded());
     lazyLoads.push(ensureOppZoneLoaded());
     lazyLoads.push(ensureIraEnergyCommunityLoaded());
+    lazyLoads.push(ensureFemaNriLoaded());
     lazyLoads.push(ensureClimateZoneLoaded());
     lazyLoads.push(ensureIsoRtoLoaded());
     lazyLoads.push(ensureEchoLoaded());
@@ -1284,6 +1287,42 @@ function ensureIraEnergyCommunityLoaded() {
       iraEcLoadingPromise = null;
     });
   return iraEcLoadingPromise;
+}
+
+// FEMA National Risk Index enrichment. Joins onto every program by `id` to
+// add `nri_risk_score` + `nri_risk_rating` (composite) and the three
+// DC-relevant per-hazard ratings (wildfire / drought / heat wave). Feeds a
+// climate-risk penalty in dc-score.js (wildfire/drought ≥ Relatively High).
+function ensureFemaNriLoaded() {
+  if (femaNriLoadingPromise) return femaNriLoadingPromise;
+  femaNriLoadingPromise = fetch(FEMA_NRI_URL, { priority: "low" })
+    .then((r) => {
+      if (r.status === 404) return { sites: [] };
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then((payload) => {
+      recordRefreshDate(payload.generated_at);
+      for (const rec of payload.sites || []) {
+        const existing = sitesById.get(rec.id);
+        if (!existing) continue;
+        if (rec.nri_risk_score != null) existing.nri_risk_score = rec.nri_risk_score;
+        if (rec.nri_risk_rating != null) existing.nri_risk_rating = rec.nri_risk_rating;
+        if (rec.nri_wildfire_rating != null) existing.nri_wildfire_rating = rec.nri_wildfire_rating;
+        if (rec.nri_drought_rating != null) existing.nri_drought_rating = rec.nri_drought_rating;
+        if (rec.nri_heatwave_rating != null) existing.nri_heatwave_rating = rec.nri_heatwave_rating;
+      }
+      // Climate penalty can change scores → re-run filter so KPIs/table update.
+      if (typeof applyFilter === "function") applyFilter();
+      if (selectedId && sitesById.has(selectedId)) {
+        try { selectSite(selectedId); } catch {}
+      }
+    })
+    .catch((err) => {
+      console.error("FEMA NRI enrichment load failed:", err);
+      femaNriLoadingPromise = null;
+    });
+  return femaNriLoadingPromise;
 }
 
 // County-level IECC / ASHRAE climate-zone enrichment. Joins onto every
@@ -3281,6 +3320,7 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
   // fallback when the universal enrichment hasn't loaded yet.
   setOpportunityZoneCell("d-opp-zone", s);
   setEnergyCommunityCell("d-energy-community", s);
+  setNriCell("d-nri-risk", s);
   // State data-center tax incentive chip (Tier 1/2/3) — uses the static
   // STATE_DC_INCENTIVES lookup, no fetch.
   renderStateIncentive(s);
@@ -3773,6 +3813,11 @@ const CSV_COLUMNS = [
   { key: "in_sfha", label: "in_sfha" },
   { key: "iso_rto", label: "iso_rto" },
   { key: "climate_zone", label: "climate_zone" },
+  // FEMA National Risk Index (v1.19) — climate / natural-hazard risk
+  { key: "nri_risk_score", label: "nri_risk_score" },
+  { key: "nri_risk_rating", label: "nri_risk_rating" },
+  { key: "nri_wildfire_rating", label: "nri_wildfire_rating" },
+  { key: "nri_drought_rating", label: "nri_drought_rating" },
   // IRA energy community (v1.18) — financial signal (+10pp ITC/PTC bonus)
   { key: "in_energy_community", label: "in_energy_community" },
   { key: "energy_community_type", label: "energy_community_type" },
@@ -4228,6 +4273,40 @@ function setEnergyCommunityCell(id, s) {
   node.classList.remove("ready");
 }
 
+// FEMA NRI risk rating → red/amber/green tinting. The composite rating is
+// the headline; wildfire / drought / heat-wave append as a per-hazard line
+// when any reaches a notable tier. "Very High" / "Relatively High" are the
+// risk tiers; everything else (incl. "Insufficient Data") renders neutral.
+const _NRI_RISK_CLASS = {
+  "Very High": "violation",
+  "Relatively High": "violation",
+};
+function setNriCell(id, s) {
+  const node = el(id);
+  if (!node) return;
+  const rating = s.nri_risk_rating;
+  if (!rating) {
+    node.textContent = "Not available";
+    node.classList.add("muted-cell");
+    node.classList.remove("violation", "ready");
+    return;
+  }
+  // Per-hazard suffix for the DC-relevant hazards when elevated.
+  const hz = [];
+  if (s.nri_wildfire_rating) hz.push(`wildfire ${s.nri_wildfire_rating}`);
+  if (s.nri_drought_rating) hz.push(`drought ${s.nri_drought_rating}`);
+  if (s.nri_heatwave_rating) hz.push(`heat ${s.nri_heatwave_rating}`);
+  const score = s.nri_risk_score != null ? ` (${s.nri_risk_score})` : "";
+  const suffix = hz.length ? ` — ${hz.join(", ")}` : "";
+  node.textContent = `${rating}${score}${suffix}`;
+  node.title = `FEMA National Risk Index composite${score} for the county. `
+    + `Wildfire and drought at Relatively-High or Very-High apply a climate penalty to the siting scores.`;
+  node.classList.remove("muted-cell", "violation", "ready");
+  const cls = _NRI_RISK_CLASS[rating];
+  if (cls) node.classList.add(cls);
+  else if (rating === "Very Low" || rating === "Relatively Low") node.classList.add("ready");
+}
+
 // FEMA flood-zone codes the dashboard can encounter. The map keeps the
 // labels short for the detail panel; the title attribute carries the full
 // description so users can hover for context.
@@ -4307,6 +4386,8 @@ function _suitLensHtml(title, score, breakdown, groups) {
   }
   const penalty = breakdown.flood_penalty || 0;
   if (penalty < 0) chips.push(`<span class="suit-chip suit-penalty">Flood ${penalty}</span>`);
+  const climate = breakdown.climate_penalty || 0;
+  if (climate < 0) chips.push(`<span class="suit-chip suit-penalty">Climate ${climate}</span>`);
   const tier = _suitTier(score);
   return `<div class="suit-lens-head">`
     + `<span class="suit-lens-name">${escapeHtml(title)}</span>`
@@ -4335,6 +4416,23 @@ function renderSuitability(s) {
     if (flooded) {
       floodEl.textContent = "⚑ In a FEMA Special Flood Hazard Area — permitting as critical "
         + "infrastructure requires elevation / flood-proofing. Both scores carry an 18-point penalty.";
+    }
+  }
+  const climateEl = el("d-suit-climate");
+  if (climateEl) {
+    // Surface the worst of wildfire / drought when it reaches a penalized tier.
+    const hazards = [];
+    if (s.nri_wildfire_rating === "Very High" || s.nri_wildfire_rating === "Relatively High") {
+      hazards.push(`wildfire (${s.nri_wildfire_rating})`);
+    }
+    if (s.nri_drought_rating === "Very High" || s.nri_drought_rating === "Relatively High") {
+      hazards.push(`drought (${s.nri_drought_rating})`);
+    }
+    climateEl.hidden = hazards.length === 0;
+    if (hazards.length) {
+      const pts = (s.nri_wildfire_rating === "Very High" || s.nri_drought_rating === "Very High") ? 10 : 5;
+      climateEl.textContent = `⚑ Elevated FEMA climate risk — ${hazards.join(" · ")}. `
+        + `Both scores carry a ${pts}-point penalty.`;
     }
   }
 }
