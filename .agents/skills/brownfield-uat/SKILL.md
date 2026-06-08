@@ -507,7 +507,7 @@ For each round, prefer one `browser_batch` per round. Don't fan out into
 
 ---
 
-## Quick Reference: Known State (as of v1.12 / v1.13, 2026-05-11)
+## Quick Reference: Known State (as of v1.19, 2026-06-08)
 
 | Item                      | Value                                                         |
 | ------------------------- | ------------------------------------------------------------- |
@@ -517,23 +517,26 @@ For each round, prefer one `browser_batch` per round. Don't fan out into
 | Hyperscale-ready sites    | 250 (≥100 ac + ≥230 kV transmission within 1 mi)             |
 | Marker decimation         | zoom ≤4 → 1/16, ≤5 → 1/8, ≤6 → 1/2, ≥7 → all (tightened v1.12) |
 | Cold-load DOMContentLoaded| ~60 ms (chunked hydration keeps main thread responsive)       |
-| DOM nodes — Map tab       | ~2,728 (measured 2026-05-11; regression test caps at 5,000)   |
+| DOM nodes — Map tab       | ~3,253 (measured 2026-06-08; regression test caps at 5,000)   |
 | DOM nodes — Table tab     | ~18,907 (IntersectionObserver fires ~8× headless; open bug)   |
 | County zoom threshold     | `COUNTY_MIN_ZOOM = 7` (lazy-loaded TopoJSON)                  |
-| KPI deck IDs              | `#kpi-total`, `#kpi-acres`, `#kpi-dc`, `#kpi-states`, `#kpi-hyperscale` |
+| KPI deck IDs              | `#kpi-total`, `#kpi-acres`, `#kpi-dc`, `#kpi-hyperscale`, `#kpi-generation` (NOTE: `#kpi-states` was replaced by `#kpi-generation`) |
+| Enrichment layers (v1.16–v1.19) | `eia-retired-plants.json` (7,620 sites ≤5 mi to retired ≥100 MW plant) · `ira-energy-community.json` (14,790 sites, +10pp ITC/PTC) · `fema-nri.json` (35,783 sites, climate risk) · `reference-campuses.json` (10 hyperscale brownfield deals, gold ★ markers — does NOT drive `__refreshedAt`) |
+| New detail rows           | `#d-energy-community` (IRA) · `#d-nri-risk` (FEMA NRI) · `#d-retired-plant-mi` — all in the Infrastructure proximity `<dl>` |
+| Scoring penalties         | `_floodPenalty` (−18 SFHA) + `_climatePenalty` (−10/−5 max of wildfire/drought) — both separate subtractive terms; weight tables sum to 100. Render as red `Flood -N` / `Climate -N` suit chips. |
 | Hero refresh ID           | `#hero-refresh` (also `#footer-refresh` mirrors it)           |
-| Hero version ID           | `.hero-eyebrow` — currently shows "v1.11" (stale; open bug)   |
+| Hero version ID           | `#hero-version` (in About view) — bumped to v1.19, 2026-06-08 |
 | Filter chip ID            | `#filters-chip` (badge on `#filters-toggle`)                  |
 | Persona filter IDs        | `#f-personas button[data-tier]` (edge/colo/hyperscale/mega)   |
-| Readiness pills           | `.cleanup-pill` (NPL Deleted) · `.reuse-pill` (`In_Reuse=Yes`) · `.dc-pill` (`data_center_reuse_candidate`) · `.dc-tier-pill` (computed tier) — all four can co-render in `#d-program` |
+| Readiness pills           | `.cleanup-pill` · `.reuse-pill` · `.dc-pill` · `.dc-tier-pill` · `.ira-pill` ("IRA · Coal"/"IRA") — all can co-render in `#d-program` |
 | 0×0-boot recovery         | `fitUsBoundsSafely()` + `ResizeObserver` (UAT-011, 2026-05-06)|
 | Detail title selector     | `#detail h2` (no `#d-name` — that ID doesn't exist)           |
-| Valid example Superfund ID | `AZD980737530` (Tucson International Airport Area)            |
+| Valid example Superfund ID | `AZD980737530` (Tucson International Airport Area); `OKD980629844` (Tar Creek — stacks Flood + Climate penalties + IRA·Coal, good demo) |
 | KPI shortcut cells        | `[data-kpi="hyperscale"]` · `[data-kpi="dc"]` — click to toggle (`.kpi-active` class shows engaged state) |
 | Search typeahead          | `#search-typeahead` (role=listbox, ≥2 chars opens, 8 max)     |
 | Nearby sites block        | `#d-nearby-block` (Haversine, 25 mi, top 5)                  |
 | Share-link button         | `#share-link` (⎘ icon, clipboard write + toast)              |
-| Test count                | 380 (282 unit + 98 e2e — ran clean 2026-05-12)                |
+| Test count                | 623 (408 unit + 215 e2e — ran clean 2026-06-08)               |
 
 ---
 
