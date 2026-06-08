@@ -251,7 +251,9 @@ class SiteRecord(BaseModel):
         description="ECHO enforcement summary: registry_id, dfr_url, "
                     "inspections_5yr, formal_actions_5yr, informal_actions_5yr, "
                     "penalties_5yr_usd, current_compliance, last_violation_date, "
-                    "last_inspection_date, programs (list).",
+                    "last_inspection_date, has_npdes_permit (bool — CWA/NPDES "
+                    "permit holder, proxy for legacy industrial water access), "
+                    "programs (list).",
     )
 
     # EPA ACRES cleanup status + grant history (acres-cleanup enrichment).

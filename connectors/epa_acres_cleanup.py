@@ -136,17 +136,26 @@ class EpaAcresCleanup(Connector):
             features = data.get("features") or []
             for feat in features:
                 attrs = feat.get("attributes") or {}
-                pid = str(attrs.get("PROPERTY_ID") or "").strip()
+                # ArcGIS returns mixed-case field names (Property_ID, CA_Status, etc.)
+                pid = str(attrs.get("Property_ID") or attrs.get("PROPERTY_ID") or "").strip()
                 if not pid:
                     continue
-                status_raw = (attrs.get("CA_STATUS") or "").strip()
+                status_raw = (attrs.get("CA_Status") or attrs.get("CA_STATUS") or "").strip()
                 status = status_raw if status_raw else None
                 records[pid] = {
                     "cleanup_status": status,
-                    "cleanup_complete_date": _iso_date(attrs.get("COMPLETION_DATE")),
-                    "cleanup_type": (attrs.get("CLEANUP_TYPE") or "").strip() or None,
-                    "grantee": (attrs.get("GRANTEE_NAME") or "").strip() or None,
-                    "award_amount": _safe_int(attrs.get("AWARD_AMOUNT")),
+                    "cleanup_complete_date": _iso_date(
+                        attrs.get("Cleanup_Completion_Date") or attrs.get("COMPLETION_DATE")
+                    ),
+                    "cleanup_type": (
+                        attrs.get("CA_Type") or attrs.get("CLEANUP_TYPE") or ""
+                    ).strip() or None,
+                    "grantee": (
+                        attrs.get("CA_Recipient") or attrs.get("GRANTEE_NAME") or ""
+                    ).strip() or None,
+                    "award_amount": _safe_int(
+                        attrs.get("CA_Number") or attrs.get("AWARD_AMOUNT")
+                    ),
                 }
 
             exceeded = data.get("exceededTransferLimit", False)

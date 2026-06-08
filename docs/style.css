@@ -2039,6 +2039,12 @@ main {
   border: 1px solid var(--program-brac);
 }
 [data-theme="dark"] .sig-badge.sig-fedfast { background: rgba(230, 160, 64, 0.12); }
+.sig-badge.sig-water {
+  background: rgba(28, 94, 158, 0.1);
+  color: var(--program-brownfield);
+  border: 1px solid var(--program-brownfield);
+}
+[data-theme="dark"] .sig-badge.sig-water { background: rgba(126, 182, 232, 0.12); }
 .pill.eo14318-pill {
   background: transparent;
   color: var(--program-brac);

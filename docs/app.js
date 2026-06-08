@@ -2769,6 +2769,9 @@ function makeCandidateRow(s, rank) {
   if (s.in_sfha === true) {
     badges.push('<span class="sig-badge sig-flood" title="FEMA Special Flood Hazard Area — permitting challenge for critical infrastructure">Flood</span>');
   }
+  if (s.enforcement?.has_npdes_permit === true) {
+    badges.push('<span class="sig-badge sig-water" title="Active CWA/NPDES permit — legacy industrial water discharge infrastructure (intake, treated effluent rights)">Water</span>');
+  }
 
   const progLabel = PROGRAM_LABEL[s.program] || s.program;
   tr.innerHTML = `
@@ -3314,6 +3317,20 @@ function renderEnforcement(s) {
     "d-echo-programs",
     Array.isArray(enf.programs) && enf.programs.length ? enf.programs.join(", ") : null,
   );
+  // NPDES permit flag — water-access proxy (CWA/NPDES = legacy industrial water infrastructure)
+  const npdesNode = el("d-echo-npdes");
+  if (npdesNode) {
+    if (enf.has_npdes_permit === true) {
+      npdesNode.textContent = "Yes — CWA/NPDES permit on file";
+      npdesNode.className = "ready";
+    } else if (enf.has_npdes_permit === false) {
+      npdesNode.textContent = "No";
+      npdesNode.className = "muted-cell";
+    } else {
+      npdesNode.textContent = "Not available";
+      npdesNode.className = "muted-cell";
+    }
+  }
   const dfr = el("d-echo-dfr");
   if (dfr) {
     if (enf.dfr_url) {
