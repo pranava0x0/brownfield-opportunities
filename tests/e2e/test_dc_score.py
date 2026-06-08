@@ -183,14 +183,20 @@ def test_dc_substation_component(page, base_url, mi, expected):
     ("Natural Gas", 600, 1.0, 8),  # exactly at 1 mi boundary
     ("Natural Gas", 600, 1.1, 0),  # just over 1 mi → no points
     ("Natural Gas", 400, 0.5, 0),  # MW too small (status unknown)
-    ("Hydro",       600, 0.5, 0),  # wrong fuel type (status unknown)
+    ("Hydro",       600, 0.5, 0),  # wrong fuel type (hydro not scored)
     ("Coal",        500, 0.5, 8),  # coal qualifies
     (None,          600, 0.5, 0),  # no fuel → no points
+    # v1.17: operating nuclear pathway (AWS/Susquehanna pattern)
+    # Active nuclear ≥500 MW within 5 mi → 45% of cap (PPA/grid-neighborhood signal)
+    ("nuclear",     600, 0.5, 4),  # nuclear at 0.5 mi → round(8*0.45)=4
+    ("nuclear",     600, 5.0, 4),  # nuclear at boundary 5 mi → still qualifies
+    ("nuclear",     600, 5.1, 0),  # just over 5 mi → no points
+    ("nuclear",     400, 0.5, 0),  # nuclear below 500 MW floor → no points
 ])
 def test_dc_grid_inheritance_component(page, base_url, fuel, mw, mi, expected):
-    """Grid inheritance: large coal/gas ≥500 MW within 1 mi scores full 8 pts;
-    any other combination scores 0 (queue bypass only applies to large
-    dispatchable plants with likely stranded interconnection agreements)."""
+    """Grid inheritance: large coal/gas ≥500 MW within 1 mi = full 8 pts;
+    operating nuclear ≥500 MW within 5 mi = 45% of cap (4 pts) — the
+    AWS/Talen Susquehanna PPA pattern; other fuels/distances = 0."""
     _ready(page, base_url)
     rec = {"transmission_mi": 0.5, "power_plant_mi": mi, "power_plant_mw": mw}
     if fuel is not None:
