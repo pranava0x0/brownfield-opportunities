@@ -2152,6 +2152,32 @@ main {
   font-size: 9.5px;
   padding: 0 6px;
 }
+/* IRA energy community pill — clean-energy incentive, green to distinguish
+   from the OZ pill's accent-blue. Stacks with OZ in the program-cell row. */
+.pill.ira-pill {
+  background: transparent;
+  color: var(--readiness-ready);
+  border: 1px solid var(--readiness-ready);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 9.5px;
+  padding: 0 6px;
+}
+.sig-badge.sig-ira {
+  background: rgba(47, 122, 77, 0.1);
+  color: var(--readiness-ready);
+  border: 1px solid var(--readiness-ready);
+}
+[data-theme="dark"] .sig-badge.sig-ira { background: rgba(108, 193, 138, 0.12); }
+/* IRA "Yes" rendering in the detail-panel infra section — green ready token,
+   same as OZ's #d-opp-zone.ready treatment. */
+#d-energy-community.ready { color: var(--readiness-ready); font-weight: 500; }
+#d-energy-community.ready a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
 .cand-sentinel { height: 1px; }
 
 /* Narrow screens: hide plant + gas columns */
