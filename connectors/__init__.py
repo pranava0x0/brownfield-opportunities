@@ -16,6 +16,7 @@ from connectors.epa_acres import EpaAcres
 from connectors.epa_echo import EpaEcho
 from connectors.epa_redev import EpaRedev
 from connectors.epa_superfund_docs import EpaSuperfundDocs
+from connectors.fema_nri import FemaNri
 from connectors.infra_proximity import InfraProximity
 from connectors.ira_energy_community import IraEnergyCommunity
 from connectors.iso_rto import IsoRto
@@ -51,6 +52,7 @@ register("epa-superfund-docs", EpaSuperfundDocs)
 register("infra-proximity", InfraProximity)
 register("opportunity-zone", OpportunityZone)
 register("ira-energy-community", IraEnergyCommunity)
+register("fema-nri", FemaNri)
 register("climate-zone", ClimateZone)
 register("eia-retired-plants", EiaRetiredPlants)
 register("iso-rto", IsoRto)

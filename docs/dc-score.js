@@ -207,6 +207,24 @@ function _floodPenalty(site) {
 
 const FLOOD_SFHA_PENALTY = 18;
 
+// FEMA NRI climate penalty — subtracted from both lenses. Driven by the two
+// operationally-deal-affecting hazards: wildfire (insurability / continuity)
+// and drought (cooling-water availability). Takes the MAX severity across the
+// two so a Very-High in either charges the full penalty; null/unrated is not
+// charged (absence of evidence ≠ low risk). Heat wave is displayed but not
+// penalized — it raises cooling cost but rarely blocks a project.
+const CLIMATE_PENALTY_VERY_HIGH = 10;
+const CLIMATE_PENALTY_REL_HIGH = 5;
+
+function _climatePenalty(site) {
+  let worst = 0;
+  for (const r of [site.nri_wildfire_rating, site.nri_drought_rating]) {
+    if (r === "Very High") worst = Math.max(worst, CLIMATE_PENALTY_VERY_HIGH);
+    else if (r === "Relatively High") worst = Math.max(worst, CLIMATE_PENALTY_REL_HIGH);
+  }
+  return worst;
+}
+
 // ---------------------------------------------------------------------------
 // Lens 1 — data-center LOAD suitability. Positive caps sum to 100; the
 // flood penalty pushes below that and the result is clamped to [0,100].
@@ -273,6 +291,7 @@ function computeDcScoreBreakdown(site) {
     logistics:             _scoreLogistics(site.highway_mi, site.rail_mi, W.logistics),
     readiness:             _scoreReadinessDc(site),
     flood_penalty:        -_floodPenalty(site),
+    climate_penalty:      -_climatePenalty(site),
   };
 }
 
@@ -333,6 +352,7 @@ function computeGenerationScoreBreakdown(site) {
     iso_rto:               _scoreIsoRto(site.iso_rto, W.iso_rto),
     readiness:             _scoreReadinessGen(site),
     flood_penalty:        -_floodPenalty(site),
+    climate_penalty:      -_climatePenalty(site),
   };
 }
 
@@ -354,3 +374,5 @@ window.DC_SCORE_TOOLTIP = DC_SCORE_TOOLTIP;
 window.GENERATION_SCORE_WEIGHTS = GENERATION_SCORE_WEIGHTS;
 window.GENERATION_SCORE_TOOLTIP = GENERATION_SCORE_TOOLTIP;
 window.FLOOD_SFHA_PENALTY = FLOOD_SFHA_PENALTY;
+window.CLIMATE_PENALTY_VERY_HIGH = CLIMATE_PENALTY_VERY_HIGH;
+window.CLIMATE_PENALTY_REL_HIGH = CLIMATE_PENALTY_REL_HIGH;
