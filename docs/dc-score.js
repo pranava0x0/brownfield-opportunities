@@ -87,26 +87,30 @@ function _scoreSubstation(mi, cap) {
 // rewarded here since the strategic value is the queue bypass, not just
 // having a plant nearby.
 //
-// v1.15: When `power_plant_retired === true` the threshold drops to ≥100 MW
-// and ANY dispatchable fuel qualifies (retired nuclear + coal + gas all leave
-// behind the same interconnection asset). The existing ≥500 MW coal/gas rule
-// is kept as the fallback proxy when status hasn't been fetched yet (null).
+// v1.15: EIA-860M retired-plant fields (`retired_plant_*`) are checked first.
+// A retired plant ≤1 mi with ≥100 MW earns full grid-inheritance credit —
+// the interconnection asset exists and no active load is competing for it.
+// Non-dispatchable (solar/wind) retired plants are excluded — they don't
+// leave behind a firm interconnect or behind-the-meter opportunity.
+//
+// Fallback: if no EIA-860M retired plant is recorded, check the HIFLD active
+// plant (`power_plant_*`) with the original strict rule (≥500 MW coal/gas) —
+// a large active plant nearby implies demonstrated local grid capacity and
+// PPA potential even if the interconnect is already committed.
 function _scoreGridInheritance(site, cap) {
-  if (site.power_plant_mi == null || site.power_plant_mi > 1) return 0;
-  if (site.power_plant_mw == null) return 0;
-
-  // Confirmed-retired plant: lower MW floor, any dispatchable fuel.
-  if (site.power_plant_retired === true) {
-    if (site.power_plant_mw < 100) return 0;
-    if (site.power_plant_fuel == null) return 0;
-    if (/solar|wind/i.test(site.power_plant_fuel)) return 0; // non-dispatchable
+  // 1. EIA-860M confirmed-retired plant (preferred signal)
+  if (site.retired_plant_mi != null && site.retired_plant_mi <= 1
+      && site.retired_plant_mw != null && site.retired_plant_mw >= 100) {
+    const fuel = (site.retired_plant_fuel || "").toLowerCase();
+    // Non-dispatchable: EIA codes SUN/WND/GEO/LFG/MSW or HIFLD text solar/wind/geothermal
+    if (/^(sun|wnd|geo|lfg|msw|obs|wds|ab|blq|slw|tdf)$/.test(fuel)
+        || /solar|wind|geothermal/i.test(fuel)) return 0;
     return cap;
   }
 
-  // Status unknown or operating: original strict rule (avoids giving
-  // grid-inheritance credit to active plants where interconnection is
-  // already committed and unavailable to a co-located buyer).
-  if (site.power_plant_mw < 500) return 0;
+  // 2. HIFLD active plant (fallback — strict rules)
+  if (site.power_plant_mi == null || site.power_plant_mi > 1) return 0;
+  if (site.power_plant_mw == null || site.power_plant_mw < 500) return 0;
   if (site.power_plant_fuel == null) return 0;
   if (!/coal|natural gas/i.test(site.power_plant_fuel)) return 0;
   return cap;

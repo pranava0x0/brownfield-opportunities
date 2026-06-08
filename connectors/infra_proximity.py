@@ -687,9 +687,14 @@ class InfraProximity(Connector):
         while True:
             params = {
                 "where": "1=1",
-                # Status added in v1.15 — cache key bumped to _v2 to force
-                # a fresh fetch so `power_plant_retired` populates on next run.
-                "outFields": "Plant_Name,Total_MW,PrimSource,Status",
+                # NOTE: HIFLD Power_Plants_in_the_US only includes ACTIVE
+                # generators — retired plants are not present in this dataset.
+                # `power_plant_retired` is populated by the separate
+                # `eia-retired-plants` enrichment connector (not yet built)
+                # which reads EIA-860 Form 3_3 retired generators.
+                # Cache key `power_plants` preserved from v1 to avoid
+                # invalidating existing cache on every refresh.
+                "outFields": "Plant_Name,Total_MW,PrimSource",
                 "returnGeometry": "true",
                 "outSR": "4326",
                 "geometryPrecision": "5",
@@ -700,7 +705,7 @@ class InfraProximity(Connector):
             data = self.http_get_json(
                 POWER_PLANT_QUERY_URL, params,
                 use_cache=use_cache,
-                cache_key={"src": "power_plants_v2", "offset": offset},
+                cache_key={"src": "power_plants", "offset": offset},
             )
             features = data.get("features") or []
             log.info("[power_plant] page offset=%d got=%d", offset, len(features))
@@ -717,7 +722,8 @@ class InfraProximity(Connector):
                     "name": a.get("Plant_Name"),
                     "mw": a.get("Total_MW"),
                     "fuel": a.get("PrimSource"),
-                    "status": a.get("Status"),
+                    # `status` populated by eia-retired-plants connector, not here.
+                    "status": None,
                 }
                 idx.add_point(lat, lon, attr=attr)
             if len(features) < page_size:
