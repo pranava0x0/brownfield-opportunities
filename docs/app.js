@@ -17,6 +17,7 @@ const ISO_RTO_URL = "data/iso-rto.json";
 const ECHO_DATA_URL = "data/epa-echo.json";
 const AI_SUMMARY_URL = "data/ai-summary.json";
 const ACRES_CLEANUP_URL = "data/acres-cleanup.json";
+const RETIRED_PLANTS_URL = "data/eia-retired-plants.json";
 // Vector basemap: US states (always) + US counties (lazy at zoom ≥ COUNTY_MIN_ZOOM).
 // No tiles — Canada/Mexico literally don't exist on the map. Choropleth-style
 // look (think CNN election tracker / datacenterbans.com) with bold state borders
@@ -547,6 +548,7 @@ let isoRtoLoadingPromise = null;
 let echoLoadingPromise = null;
 let summariesLoadingPromise = null;
 let acresCleanupLoadingPromise = null;
+let retiredPlantsLoadingPromise = null;
 
 // Programmatic ready signal so UAT / Playwright / agent automation can wait
 // on a stable event instead of polling network responses. Fires once after
@@ -829,6 +831,7 @@ fetch(PRIMARY_DATA_URL)
     lazyLoads.push(ensureEchoLoaded());
     lazyLoads.push(ensureSummariesLoaded());
     lazyLoads.push(ensureAcresCleanupLoaded());
+    lazyLoads.push(ensureRetiredPlantsLoaded());
     applyUrlSelection();
     if (lazyLoads.length === 0) {
       markAppReady();
@@ -1296,6 +1299,41 @@ function ensureIsoRtoLoaded() {
       isoRtoLoadingPromise = null;
     });
   return isoRtoLoadingPromise;
+}
+
+// EIA-860M retired-plants enrichment. Joins onto all programs by `id` to
+// add `retired_plant_mi`, `retired_plant_mw`, `retired_plant_fuel`,
+// `retired_plant_year`, and `retired_plant_name`. Drives the "Ret. Plant"
+// badge and the grid-inheritance scoring tier.
+function ensureRetiredPlantsLoaded() {
+  if (retiredPlantsLoadingPromise) return retiredPlantsLoadingPromise;
+  retiredPlantsLoadingPromise = fetch(RETIRED_PLANTS_URL, { priority: "low" })
+    .then((r) => {
+      if (r.status === 404) return { sites: [] };
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then((payload) => {
+      recordRefreshDate(payload.generated_at);
+      for (const rec of payload.sites || []) {
+        const existing = sitesById.get(rec.id);
+        if (!existing) continue;
+        if (rec.retired_plant_mi  != null) existing.retired_plant_mi   = rec.retired_plant_mi;
+        if (rec.retired_plant_mw  != null) existing.retired_plant_mw   = rec.retired_plant_mw;
+        if (rec.retired_plant_fuel)        existing.retired_plant_fuel  = rec.retired_plant_fuel;
+        if (rec.retired_plant_year != null) existing.retired_plant_year = rec.retired_plant_year;
+        if (rec.retired_plant_name)        existing.retired_plant_name  = rec.retired_plant_name;
+      }
+      if (typeof applyFilter === "function") applyFilter();
+      if (selectedId && sitesById.has(selectedId)) {
+        try { selectSite(selectedId); } catch {}
+      }
+    })
+    .catch((err) => {
+      console.error("Retired-plants enrichment load failed:", err);
+      retiredPlantsLoadingPromise = null;
+    });
+  return retiredPlantsLoadingPromise;
 }
 
 // ----- Map -----
@@ -2684,12 +2722,12 @@ function _hasGridInheritance(s) {
 
 // Confirmed-retired plant within 1 mi — the Conesville / Widows Creek pattern:
 // inherited transmission connection without competing for the active plant's
-// capacity. Lower MW floor (≥100) because even a 200 MW retired peaker leaves
-// behind interconnection infrastructure.
+// capacity.  Source: EIA-860M `retired_plant_*` fields (eia-retired-plants
+// enrichment connector).  Lower MW floor (≥100 MW) — even a retired 200 MW
+// peaker leaves behind a 138+ kV interconnect.
 function _hasRetiredPlant(s) {
-  return s.power_plant_retired === true
-    && s.power_plant_mi != null && s.power_plant_mi <= 1
-    && s.power_plant_mw != null && s.power_plant_mw >= 100;
+  return s.retired_plant_mi != null && s.retired_plant_mi <= 1
+    && s.retired_plant_mw != null && s.retired_plant_mw >= 100;
 }
 
 // Returns true when the site meets the EPA's stated EO 14318 / January 2026
@@ -3105,6 +3143,8 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
   setMileCell("d-power-plant-mi", s.power_plant_mi, { offConus });
   // Append MW + fuel suffix to the power-plant row so users see "2.5 mi · 450 MW · natural gas".
   setPowerPlantSuffix("d-power-plant-mi", s.power_plant_mw, s.power_plant_fuel);
+  // Retired plant row (EIA-860M). Shown when within MAX_DISTANCE_MI (5 mi).
+  setRetiredPlantCell("d-retired-plant-mi", s);
   setMileCell("d-rail-mi", s.rail_mi, { offConus });
   setMileCell("d-highway-mi", s.highway_mi, { offConus });
   setMileCell("d-gas-pipeline-mi", s.gas_pipeline_mi, { offConus });
@@ -3940,6 +3980,37 @@ function setPowerPlantSuffix(id, mw, fuel) {
     : "Nearby generation — PPA / co-location candidate";
   node.appendChild(document.createTextNode(" "));
   node.appendChild(span);
+}
+
+// Retired-plant row — shows distance + name + MW + fuel + year, with a
+// "Ret. Plant" badge tinted amber-brown to distinguish it from the active-
+// plant row above.  Hidden when no large retired plant is within 5 mi.
+function setRetiredPlantCell(id, s) {
+  const node = el(id);
+  if (!node) return;
+  const row = node.closest("tr") || node.parentElement;
+  if (s.retired_plant_mi == null) {
+    if (row) row.hidden = true;
+    node.textContent = "";
+    return;
+  }
+  if (row) row.hidden = false;
+  // Distance
+  node.textContent = fmt.miles(s.retired_plant_mi);
+  // Detail chip: name · MW · fuel · year
+  const parts = [];
+  if (s.retired_plant_name) parts.push(s.retired_plant_name);
+  if (s.retired_plant_mw != null) parts.push(`${Math.round(s.retired_plant_mw).toLocaleString()} MW`);
+  if (s.retired_plant_fuel) parts.push(s.retired_plant_fuel);
+  if (s.retired_plant_year) parts.push(`ret. ${s.retired_plant_year}`);
+  if (parts.length) {
+    const span = document.createElement("span");
+    span.className = "pp-chip sig-plant";
+    span.textContent = parts.join(" · ");
+    span.title = "Retired plant — inherited transmission + stranded interconnect (Conesville/Widows Creek pattern)";
+    node.appendChild(document.createTextNode(" "));
+    node.appendChild(span);
+  }
 }
 
 function setTextCell(id, value, emptyText = "Not available") {

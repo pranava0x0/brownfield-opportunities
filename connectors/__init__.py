@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from connectors.ai_summary import AiSummary
 from connectors.base import Connector
+from connectors.eia_retired_plants import EiaRetiredPlants
 from connectors.dod_brac import DodBrac
 from connectors.epa_acres_cleanup import EpaAcresCleanup
 from connectors.dod_fuds import DodFuds
@@ -49,6 +50,7 @@ register("epa-superfund-docs", EpaSuperfundDocs)
 register("infra-proximity", InfraProximity)
 register("opportunity-zone", OpportunityZone)
 register("climate-zone", ClimateZone)
+register("eia-retired-plants", EiaRetiredPlants)
 register("iso-rto", IsoRto)
 register("epa-echo", EpaEcho)
 register("acres-cleanup", EpaAcresCleanup)
