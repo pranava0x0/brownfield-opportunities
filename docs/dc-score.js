@@ -93,10 +93,18 @@ function _scoreSubstation(mi, cap) {
 // Non-dispatchable (solar/wind) retired plants are excluded — they don't
 // leave behind a firm interconnect or behind-the-meter opportunity.
 //
-// Fallback: if no EIA-860M retired plant is recorded, check the HIFLD active
-// plant (`power_plant_*`) with the original strict rule (≥500 MW coal/gas) —
-// a large active plant nearby implies demonstrated local grid capacity and
-// PPA potential even if the interconnect is already committed.
+// Fallback path 2: HIFLD active coal/gas plant ≤1 mi ≥500 MW — strict
+// rule for the Conesville/Widows Creek pattern with an operating plant.
+//
+// Fallback path 3 (nuclear adjacency, v1.17): operating nuclear ≥500 MW
+// within 5 mi → 45% of cap.  The AWS/Talen Susquehanna deal confirms that
+// nuclear proximity is a strong DC siting signal: 24/7 carbon-free baseload,
+// stable grid voltage, PPA pathway even when behind-the-fence direct connect
+// is blocked (FERC 2024).  Radius is wider (5 mi) because nuclear plants
+// connect high in the transmission hierarchy — the sub-transmission ring
+// around a nuclear plant is reliably served regardless of direct co-location.
+// Score capped at 45% because the interconnect is *not* stranded (still in use)
+// and direct-connect permitting is complex.
 function _scoreGridInheritance(site, cap) {
   // 1. EIA-860M confirmed-retired plant (preferred signal)
   if (site.retired_plant_mi != null && site.retired_plant_mi <= 1
@@ -108,12 +116,22 @@ function _scoreGridInheritance(site, cap) {
     return cap;
   }
 
-  // 2. HIFLD active plant (fallback — strict rules)
-  if (site.power_plant_mi == null || site.power_plant_mi > 1) return 0;
-  if (site.power_plant_mw == null || site.power_plant_mw < 500) return 0;
-  if (site.power_plant_fuel == null) return 0;
-  if (!/coal|natural gas/i.test(site.power_plant_fuel)) return 0;
-  return cap;
+  // 2. HIFLD active coal/gas plant (fallback — strict rules)
+  if (site.power_plant_mi != null && site.power_plant_mi <= 1
+      && site.power_plant_mw != null && site.power_plant_mw >= 500
+      && /coal|natural gas/i.test(site.power_plant_fuel || "")) {
+    return cap;
+  }
+
+  // 3. Operating nuclear ≥500 MW within 5 mi — PPA / grid-neighborhood signal.
+  // AWS/Talen Susquehanna (2023, $650M): the canonical nuclear-campus precedent.
+  if (site.power_plant_mi != null && site.power_plant_mi <= 5
+      && site.power_plant_mw != null && site.power_plant_mw >= 500
+      && /nuclear/i.test(site.power_plant_fuel || "")) {
+    return Math.round(cap * 0.45);
+  }
+
+  return 0;
 }
 
 // Distance to the nearest natural-gas pipeline. Enables behind-the-meter

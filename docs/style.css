@@ -829,6 +829,93 @@ main {
   font-size: 10px;
   letter-spacing: 0.02em;
 }
+/* Reference campus row in legend */
+.legend-row-ref {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed var(--border);
+}
+.legend-star {
+  color: #c8960c;
+  font-size: 13px;
+  line-height: 1;
+  display: inline-block;
+  width: 12px;
+  text-align: center;
+}
+
+/* Reference campus map markers */
+.ref-campus-icon {
+  background: none !important;
+  border: none !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ref-campus-icon span {
+  font-size: 18px;
+  color: #c8960c;
+  text-shadow: 0 0 3px rgba(0,0,0,0.55);
+  cursor: pointer;
+  line-height: 1;
+}
+[data-theme="dark"] .ref-campus-icon span {
+  color: #f0c040;
+  text-shadow: 0 0 4px rgba(0,0,0,0.8);
+}
+
+/* Reference campus popup */
+.ref-campus-popup {
+  font-size: 12.5px;
+  line-height: 1.5;
+  min-width: 200px;
+}
+.ref-campus-popup strong {
+  display: block;
+  font-size: 13.5px;
+  margin-bottom: 2px;
+  color: var(--text);
+}
+.ref-campus-company {
+  color: var(--muted);
+  font-size: 11.5px;
+  margin-bottom: 4px;
+}
+.ref-campus-prev {
+  font-style: italic;
+  font-size: 11.5px;
+  color: var(--text-soft);
+  margin-bottom: 6px;
+  border-left: 2px solid var(--border);
+  padding-left: 6px;
+}
+.ref-campus-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  font-size: 11px;
+  margin-bottom: 6px;
+}
+.ref-campus-meta span {
+  color: var(--text-soft);
+}
+.ref-status-operational {
+  color: var(--status-final) !important;
+  font-weight: 600;
+}
+.ref-status-active {
+  color: var(--accent) !important;
+  font-weight: 600;
+}
+.ref-status-planned {
+  color: var(--muted) !important;
+}
+.ref-campus-link {
+  font-size: 11px;
+  color: var(--accent);
+  text-decoration: none;
+}
+.ref-campus-link:hover { text-decoration: underline; }
 
 /* ============================================================
    Table — paginated, sticky head

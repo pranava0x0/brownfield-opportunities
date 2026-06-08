@@ -18,6 +18,7 @@ const ECHO_DATA_URL = "data/epa-echo.json";
 const AI_SUMMARY_URL = "data/ai-summary.json";
 const ACRES_CLEANUP_URL = "data/acres-cleanup.json";
 const RETIRED_PLANTS_URL = "data/eia-retired-plants.json";
+const REFERENCE_CAMPUSES_URL = "data/reference-campuses.json";
 // Vector basemap: US states (always) + US counties (lazy at zoom ≥ COUNTY_MIN_ZOOM).
 // No tiles — Canada/Mexico literally don't exist on the map. Choropleth-style
 // look (think CNN election tracker / datacenterbans.com) with bold state borders
@@ -491,7 +492,7 @@ const TAX_STATUS_NOTE = {
 
 // ----- State -----
 let sites = [];
-let map, markerLayer;
+let map, markerLayer, referenceCampusLayer;
 const markersById = new Map(); // id -> Leaflet marker
 const tableRowsById = new Map(); // id -> tr
 const sitesById = new Map();
@@ -549,6 +550,7 @@ let echoLoadingPromise = null;
 let summariesLoadingPromise = null;
 let acresCleanupLoadingPromise = null;
 let retiredPlantsLoadingPromise = null;
+let referenceCampusesLoadingPromise = null;
 
 // Programmatic ready signal so UAT / Playwright / agent automation can wait
 // on a stable event instead of polling network responses. Fires once after
@@ -832,6 +834,7 @@ fetch(PRIMARY_DATA_URL)
     lazyLoads.push(ensureSummariesLoaded());
     lazyLoads.push(ensureAcresCleanupLoaded());
     lazyLoads.push(ensureRetiredPlantsLoaded());
+    lazyLoads.push(ensureReferenceCampusesLoaded());
     applyUrlSelection();
     if (lazyLoads.length === 0) {
       markAppReady();
@@ -1336,6 +1339,62 @@ function ensureRetiredPlantsLoaded() {
   return retiredPlantsLoadingPromise;
 }
 
+function ensureReferenceCampusesLoaded() {
+  if (referenceCampusesLoadingPromise) return referenceCampusesLoadingPromise;
+  referenceCampusesLoadingPromise = fetch(REFERENCE_CAMPUSES_URL, { priority: "low" })
+    .then((r) => {
+      if (r.status === 404) return { campuses: [] };
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then((payload) => {
+      if (!referenceCampusLayer) return; // map not yet initialized
+      for (const campus of payload.campuses || []) {
+        if (campus.lat == null || campus.lon == null) continue;
+        const icon = L.divIcon({
+          className: "ref-campus-icon",
+          html: "<span>★</span>",
+          iconSize: [22, 22],
+          iconAnchor: [11, 11],
+          popupAnchor: [0, -13],
+        });
+        const marker = L.marker([campus.lat, campus.lon], { icon, zIndexOffset: 500 });
+        const acreStr = campus.acreage != null ? `${campus.acreage.toLocaleString()} ac` : null;
+        const mwStr = campus.capacity_mw != null ? `${campus.capacity_mw.toLocaleString()} MW` : null;
+        const sizeStr = [acreStr, mwStr].filter(Boolean).join(" · ") || "";
+        const yearStr = campus.year_operational
+          ? `Operational ${campus.year_operational}`
+          : campus.year_announced
+            ? `Announced ${campus.year_announced}`
+            : "";
+        const statusClass = campus.status === "operational" ? "ref-status-operational"
+          : campus.status === "under development" || campus.status === "under construction" ? "ref-status-active"
+          : "ref-status-planned";
+        marker.bindPopup(
+          `<div class="ref-campus-popup">` +
+          `<strong>${escapeHtml(campus.name)}</strong>` +
+          `<div class="ref-campus-company">${escapeHtml(campus.company)}</div>` +
+          `<div class="ref-campus-prev">${escapeHtml(campus.previous_use)}</div>` +
+          `<div class="ref-campus-meta">` +
+            (sizeStr ? `<span>${escapeHtml(sizeStr)}</span>` : "") +
+            (yearStr ? `<span>${escapeHtml(yearStr)}</span>` : "") +
+            `<span class="${statusClass}">${escapeHtml(campus.status)}</span>` +
+          `</div>` +
+          `<a href="${escapeHtml(campus.source_url)}" target="_blank" rel="noopener" class="ref-campus-link">Source ↗</a>` +
+          `</div>`,
+          { maxWidth: 280 }
+        );
+        referenceCampusLayer.addLayer(marker);
+      }
+      rerenderLegend();
+    })
+    .catch((err) => {
+      console.error("Reference campuses load failed:", err);
+      referenceCampusesLoadingPromise = null;
+    });
+  return referenceCampusesLoadingPromise;
+}
+
 // ----- Map -----
 function initMap() {
   const renderer = L.canvas({ padding: 0.5 });
@@ -1370,6 +1429,8 @@ function initMap() {
   markerLayer = L.layerGroup().addTo(map);
   window.__markerLayer = markerLayer;
   window.__map = map;
+  // Reference campus star markers sit above program markers (higher z-index).
+  referenceCampusLayer = L.layerGroup().addTo(map);
 
   fitUsBoundsSafely();
 
@@ -1639,8 +1700,16 @@ function addLegend() {
           `</div>`
       )
       .join("");
+    // Reference campus row — shown after program rows when campuses are loaded.
+    const refRow = (referenceCampusLayer && referenceCampusLayer.getLayers().length > 0)
+      ? `<div class="legend-row legend-row-ref">` +
+        `<span class="legend-star">★</span>` +
+        `<span class="legend-label">Confirmed deal</span>` +
+        `<span class="legend-num">${referenceCampusLayer.getLayers().length}</span>` +
+        `</div>`
+      : "";
     div.innerHTML =
-      `<div class="legend-title"><span>Program</span></div>${rows}` +
+      `<div class="legend-title"><span>Program</span></div>${rows}${refRow}` +
       `<div class="legend-foot">Marker size ∝ acreage (log)</div>`;
     L.DomEvent.disableClickPropagation(div);
     return div;
