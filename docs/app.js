@@ -16,6 +16,7 @@ const CLIMATE_ZONE_URL = "data/climate-zone.json";
 const ISO_RTO_URL = "data/iso-rto.json";
 const ECHO_DATA_URL = "data/epa-echo.json";
 const AI_SUMMARY_URL = "data/ai-summary.json";
+const ACRES_CLEANUP_URL = "data/acres-cleanup.json";
 // Vector basemap: US states (always) + US counties (lazy at zoom ≥ COUNTY_MIN_ZOOM).
 // No tiles — Canada/Mexico literally don't exist on the map. Choropleth-style
 // look (think CNN election tracker / datacenterbans.com) with bold state borders
@@ -515,7 +516,7 @@ const filterState = {
   // (mega is a strict superset). URL state: ?dc_tier=hyperscale.
   dcTier: "",
   // EPA RE-Powering data-center reuse candidate boolean (`s.data_center_reuse_candidate`).
-  // Wired from the "DC reuse candidates" KPI cell click-to-filter shortcut.
+  // Wired from the "Datacenter-ready" KPI cell click-to-filter shortcut.
   // URL state: ?dc_candidate=1. Independent of `dcTier` — Tier 0 score includes
   // sites that aren't EPA-flagged, and EPA flags some sites that don't score.
   dcCandidate: false,
@@ -527,6 +528,11 @@ const filterState = {
   // RTO polygons: CAISO / ERCOT / ISO-NE / MISO / NYISO / PJM / SPP /
   // non-RTO. URL state: ?iso_rto=PJM.
   isoRto: "",
+  // Show only sites that are meaningfully "available" for redevelopment:
+  // Superfund = NPL deleted, ACRES = cleanup completed, FUDS = eligible +
+  // non-federal owner, BRAC = always false (no reliable signal).
+  // URL state: ?available=1.
+  availableOnly: false,
 };
 
 let acresLoadingPromise = null; // de-dup parallel toggles
@@ -540,6 +546,7 @@ let climateZoneLoadingPromise = null;
 let isoRtoLoadingPromise = null;
 let echoLoadingPromise = null;
 let summariesLoadingPromise = null;
+let acresCleanupLoadingPromise = null;
 
 // Programmatic ready signal so UAT / Playwright / agent automation can wait
 // on a stable event instead of polling network responses. Fires once after
@@ -630,7 +637,7 @@ function updateKpiDeck() {
   let acreCount = 0;
   let dcCount = 0;
   let hyperCount = 0;
-  const stateSet = new Set();
+  let genCount = 0;
   const programSet = new Set();
   for (const s of sites) {
     if (typeof s.acreage === "number") {
@@ -640,7 +647,8 @@ function updateKpiDeck() {
     if (s.data_center_reuse_candidate === true) dcCount++;
     const tier = computeDcScore(s);
     if (tier === "hyperscale" || tier === "mega") hyperCount++;
-    if (s.state) stateSet.add(s.state);
+    const genScore = computeGenerationScore(s);
+    if (genScore != null && genScore >= 75) genCount++;
     if (s.program) programSet.add(s.program);
   }
   const set = (id, value) => {
@@ -664,7 +672,7 @@ function updateKpiDeck() {
   setSub("kpi-acres-sub", `${fmt.compact(acreCount)} sites with reported area`);
   set("kpi-dc", fmt.compact(dcCount));
   set("kpi-hyperscale", fmt.compact(hyperCount));
-  set("kpi-states", String(stateSet.size));
+  set("kpi-generation", fmt.compact(genCount));
   // Mobile disclosure strip — the two highest-signal numbers (total +
   // DC candidates) live in the always-visible summary line; expanding the
   // <details> reveals the full carousel.
@@ -712,6 +720,10 @@ function updateFilterChip() {
   if (filterState.isoRto) {
     count++;
     active.push(`ISO/RTO ${ISO_RTO_LABELS[filterState.isoRto] || filterState.isoRto}`);
+  }
+  if (filterState.availableOnly) {
+    count++;
+    active.push("Available sites only");
   }
   const chip = el("filters-chip");
   const btn = el("filters-toggle");
@@ -763,6 +775,7 @@ fetch(PRIMARY_DATA_URL)
     populateIsoRtoFilter();
     rebuildTable();
     wireTabs();
+    wireCandidatesFilters();
     wireDetailPanel();
     wireSearch();
     wireFilters();
@@ -815,11 +828,13 @@ fetch(PRIMARY_DATA_URL)
     lazyLoads.push(ensureIsoRtoLoaded());
     lazyLoads.push(ensureEchoLoaded());
     lazyLoads.push(ensureSummariesLoaded());
+    lazyLoads.push(ensureAcresCleanupLoaded());
     applyUrlSelection();
     if (lazyLoads.length === 0) {
       markAppReady();
+      maybeRefreshCandidates();
     } else {
-      Promise.allSettled(lazyLoads).then(() => markAppReady());
+      Promise.allSettled(lazyLoads).then(() => { markAppReady(); maybeRefreshCandidates(); });
     }
   })
   .catch((err) => {
@@ -1083,6 +1098,56 @@ function ensureSummariesLoaded() {
       summariesLoadingPromise = null;
     });
   return summariesLoadingPromise;
+}
+
+// EPA ACRES cleanup status + brownfield grant history. Lazy-loaded; joins onto
+// ACRES brownfield records in sitesById by id. Fields merged: cleanup_status,
+// cleanup_complete_date, grant_total_usd, grant_count, grant_types.
+// 404 → treated as "no data yet" (connector not run) rather than an error.
+function ensureAcresCleanupLoaded() {
+  if (acresCleanupLoadingPromise) return acresCleanupLoadingPromise;
+  acresCleanupLoadingPromise = fetch(ACRES_CLEANUP_URL, { priority: "low" })
+    .then((r) => {
+      if (r.status === 404) return { sites: [] };
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then((payload) => {
+      for (const rec of payload.sites || []) {
+        const existing = sitesById.get(rec.id);
+        if (!existing) continue;
+        if (rec.cleanup_status != null) existing.cleanup_status = rec.cleanup_status;
+        if (rec.cleanup_complete_date != null) existing.cleanup_complete_date = rec.cleanup_complete_date;
+        if (rec.grant_total_usd != null) existing.grant_total_usd = rec.grant_total_usd;
+        if (rec.grant_count != null) existing.grant_count = rec.grant_count;
+        if (rec.grant_types != null) existing.grant_types = rec.grant_types;
+      }
+      if (selectedId) {
+        const sel = sitesById.get(selectedId);
+        if (sel) renderGrants(sel);
+      }
+    })
+    .catch((err) => {
+      console.error("ACRES cleanup load failed:", err);
+      acresCleanupLoadingPromise = null;
+    });
+  return acresCleanupLoadingPromise;
+}
+
+// Cross-program "available for redevelopment" heuristic:
+//   Superfund  — NPL status Deleted (D) = remediation complete, removed from list.
+//   ACRES      — cleanup_status === "Completed" (from acres-cleanup enrichment).
+//   FUDS       — Eligible tier + non-federal current owner (transferred).
+//   BRAC       — no reliable public signal yet; always false.
+function siteIsAvailable(s) {
+  if (s.program === "superfund") return s.npl_status_code === "D";
+  if (s.program === "brownfield") return s.cleanup_status === "Completed";
+  if (s.program === "fuds") {
+    const owner = (s.current_owner || "").toLowerCase();
+    const notFederal = owner && !owner.startsWith("federal") && !owner.startsWith("fed:");
+    return s.eligibility === "Eligible" && notFederal;
+  }
+  return false;
 }
 
 // Universal infrastructure-proximity enrichment. Joins onto every program
@@ -1604,6 +1669,7 @@ function siteMatchesFilters(s, opts = {}) {
   if (filterState.dcCandidate && s.data_center_reuse_candidate !== true) return false;
   if (filterState.oppZone && s.in_opportunity_zone !== true) return false;
   if (filterState.isoRto && s.iso_rto !== filterState.isoRto) return false;
+  if (filterState.availableOnly && !siteIsAvailable(s)) return false;
   if (!siteMatchesQuery(s, opts.q ?? filterState.q)) return false;
   return true;
 }
@@ -1726,7 +1792,8 @@ function filtersActive() {
     filterState.dcTier !== "" ||
     filterState.dcCandidate ||
     filterState.oppZone ||
-    filterState.isoRto !== ""
+    filterState.isoRto !== "" ||
+    filterState.availableOnly
   );
 }
 
@@ -2071,6 +2138,17 @@ function wireFilters() {
     });
   }
 
+  const availBox = el("f-available");
+  if (availBox) {
+    availBox.checked = filterState.availableOnly;
+    availBox.addEventListener("change", () => {
+      filterState.availableOnly = !!availBox.checked;
+      if (filterState.availableOnly) ensureAcresCleanupLoaded();
+      applyFilter();
+      refitMapToFilters();
+    });
+  }
+
   el("filters-reset").addEventListener("click", () => {
     // Restore *all* programs in PROGRAM_LEGEND, not a hardcoded subset —
     // when FUDS / BRAC were added in v1.7 this handler stayed at v1.6's
@@ -2086,12 +2164,15 @@ function wireFilters() {
     filterState.dcCandidate = false;
     filterState.oppZone = false;
     filterState.isoRto = "";
+    filterState.availableOnly = false;
     el("search").value = "";
     refreshPersonaButtons();
     refreshKpiActiveStates();
-    // Reset must also un-check the OZ filter checkbox.
+    // Reset must also un-check the OZ filter checkbox and available-only checkbox.
     const ozBox = el("f-opp-zone");
     if (ozBox) ozBox.checked = false;
+    const availBox = el("f-available");
+    if (availBox) availBox.checked = false;
     for (const [program, box] of Object.entries(progBoxes)) {
       if (box) box.checked = filterState.programs.has(program);
     }
@@ -2317,6 +2398,9 @@ function makeRow(s) {
     statusHtml = `<span class="pill" data-status="${escapeAttr(s.npl_status_code)}">${escapeHtml(s.npl_status || "Unknown")}</span>`;
   } else if (s.program === "fuds" && s.eligibility) {
     statusHtml = escapeHtml(s.eligibility);
+  } else if (s.program === "brownfield" && s.cleanup_status) {
+    const cls = s.cleanup_status === "Completed" ? " ready" : "";
+    statusHtml = `<span class="cleanup-status${cls}">${escapeHtml(s.cleanup_status)}</span>`;
   } else {
     statusHtml = '<span class="muted-cell">—</span>';
   }
@@ -2510,21 +2594,319 @@ if (_dcScoreTh && typeof DC_SCORE_TOOLTIP === "string") {
 
 // ----- Tabs -----
 function wireTabs() {
-  const mapTab = el("tab-map"), tableTab = el("tab-table");
+  const mapTab = el("tab-map");
+  const tableTab = el("tab-table");
+  const candidatesTab = el("tab-candidates");
+  const aboutTab = el("tab-about");
   const setView = (which) => {
     const onMap = which === "map";
-    mapTab.classList.toggle("active", onMap);
-    tableTab.classList.toggle("active", !onMap);
-    mapTab.setAttribute("aria-selected", onMap);
-    tableTab.setAttribute("aria-selected", !onMap);
-    el("view-map").classList.toggle("active", onMap);
-    el("view-table").classList.toggle("active", !onMap);
-    el("view-map").hidden = !onMap;
-    el("view-table").hidden = onMap;
+    const onTable = which === "table";
+    const onCandidates = which === "candidates";
+    const onAbout = which === "about";
+    for (const [tab, active] of [
+      [mapTab, onMap], [tableTab, onTable],
+      [candidatesTab, onCandidates], [aboutTab, onAbout],
+    ]) {
+      if (!tab) continue;
+      tab.classList.toggle("active", active);
+      tab.setAttribute("aria-selected", String(active));
+    }
+    const mapView = el("view-map");
+    const tableView = el("view-table");
+    const candidatesView = el("view-candidates");
+    const aboutView = el("view-about");
+    if (mapView)        { mapView.classList.toggle("active", onMap);               mapView.hidden = !onMap; }
+    if (tableView)      { tableView.classList.toggle("active", onTable);           tableView.hidden = !onTable; }
+    if (candidatesView) { candidatesView.classList.toggle("active", onCandidates); candidatesView.hidden = !onCandidates; }
+    if (aboutView)      { aboutView.classList.toggle("active", onAbout);           aboutView.hidden = !onAbout; }
     if (onMap) setTimeout(() => map.invalidateSize(), 50);
+    if (onCandidates) buildCandidatesView();
+    if (onAbout) {
+      const d = el("about-refresh-date");
+      if (d && window.__refreshedAt) d.textContent = window.__refreshedAt;
+    }
   };
   mapTab.addEventListener("click", () => setView("map"));
   tableTab.addEventListener("click", () => setView("table"));
+  if (candidatesTab) candidatesTab.addEventListener("click", () => setView("candidates"));
+  if (aboutTab) aboutTab.addEventListener("click", () => setView("about"));
+}
+
+// ----- DC Candidates view -----
+//
+// A ranked, pre-sorted table of every site with a suitability score, showing
+// the key signals that explain the score side-by-side: voltage class,
+// substation proximity, nearest plant (capacity + fuel), gas pipeline,
+// and readiness/risk badges (OZ, Cleanup, Flood, etc.).
+//
+// The view is rebuilt on tab activation and after all lazy-loads settle
+// (scores improve as infra-proximity, OZ, ISO-RTO data arrives).
+const CANDIDATES_PAGE = 200;
+const candidatesState = {
+  sorted:      [],
+  rendered:    0,
+  lens:        "dc",   // "dc" | "gen"
+  tierMin:     "",     // "" | "edge" | "colo" | "hyperscale" | "mega"
+  readyFilter: "",     // "" | "complete" | "reuse" | "epa" | "oz"
+};
+let _candidatesObserver = null;
+
+function _candidateScoreFn() {
+  return candidatesState.lens === "gen" ? computeGenerationScore : computeDcCompositeScore;
+}
+
+function _candidatesPassesTier(s) {
+  if (!candidatesState.tierMin) return true;
+  const tier = computeDcScore(s);
+  if (!tier) return false;
+  return (DC_TIER_RANK[tier] || 0) >= (DC_TIER_RANK[candidatesState.tierMin] || 0);
+}
+
+function _candidatesPassesReady(s) {
+  switch (candidatesState.readyFilter) {
+    case "complete": return s.npl_status_code === "D";
+    case "reuse":    return /^yes/i.test(s.in_reuse || "");
+    case "epa":      return s.data_center_reuse_candidate === true;
+    case "oz":       return s.in_opportunity_zone === true;
+    default:         return true;
+  }
+}
+
+// Returns true when the site has a large dispatchable plant nearby that
+// could indicate an inheritable grid interconnection (the "Homer City /
+// Widows Creek" pattern: coal/gas plants ≥500 MW within 1 mi).
+function _hasGridInheritance(s) {
+  return s.power_plant_mw != null && s.power_plant_mw >= 500
+    && s.power_plant_mi != null && s.power_plant_mi <= 1
+    && s.power_plant_fuel != null
+    && /coal|natural gas/i.test(s.power_plant_fuel);
+}
+
+// Confirmed-retired plant within 1 mi — the Conesville / Widows Creek pattern:
+// inherited transmission connection without competing for the active plant's
+// capacity. Lower MW floor (≥100) because even a 200 MW retired peaker leaves
+// behind interconnection infrastructure.
+function _hasRetiredPlant(s) {
+  return s.power_plant_retired === true
+    && s.power_plant_mi != null && s.power_plant_mi <= 1
+    && s.power_plant_mw != null && s.power_plant_mw >= 100;
+}
+
+// Returns true when the site meets the EPA's stated EO 14318 / January 2026
+// guidance criteria for fast-tracked brownfield/Superfund data center permits:
+// program is superfund or brownfield, ≥100 ac, grid ≤2 mi, outside SFHA.
+function _hasEO14318(s) {
+  return (s.program === "superfund" || s.program === "brownfield")
+    && s.acreage != null && s.acreage >= 100
+    && s.transmission_mi != null && s.transmission_mi <= 2
+    && s.in_sfha !== true;
+}
+
+function makeCandidateRow(s, rank) {
+  const tr = document.createElement("tr");
+  tr.dataset.id = s.id;
+
+  const scoreFn = _candidateScoreFn();
+  const score   = scoreFn(s);
+  const tier    = computeDcScore(s);
+
+  // Score cell — reuse existing .suit-score[data-tier] coloring
+  const scoreTier = score == null ? null
+    : score >= 75 ? "strong" : score >= 50 ? "moderate"
+    : score >= 25 ? "marginal" : "weak";
+  const scoreHtml = score == null
+    ? '<span class="muted-cell">—</span>'
+    : `<span class="suit-score" data-tier="${escapeAttr(scoreTier)}">${score}</span>`;
+
+  // Tier pill — reuse .dc-tier-pill
+  const tierHtml = tier
+    ? `<span class="pill dc-tier-pill${tier === "hyperscale" || tier === "mega" ? " ready" : ""}">${escapeHtml(DC_TIER_LABEL[tier] || tier)}</span>`
+    : '<span class="muted-cell">—</span>';
+
+  // kV
+  const kvHtml = s.transmission_kv != null
+    ? `${Math.round(s.transmission_kv).toLocaleString()} kV`
+    : '<span class="muted-cell">—</span>';
+
+  // Substation distance
+  const subHtml = s.substation_mi != null
+    ? fmt.miles(s.substation_mi)
+    : '<span class="muted-cell">—</span>';
+
+  // Power plant — distance, MW, abbreviated fuel
+  let plantHtml = '<span class="muted-cell">—</span>';
+  if (s.power_plant_mw != null || s.power_plant_fuel) {
+    const parts = [];
+    if (s.power_plant_mi != null) parts.push(fmt.miles(s.power_plant_mi));
+    if (s.power_plant_mw != null) parts.push(`${Math.round(s.power_plant_mw).toLocaleString()} MW`);
+    if (s.power_plant_fuel) {
+      // Shorten verbose EIA-860 fuel names
+      const fuel = String(s.power_plant_fuel)
+        .replace(/Conventional/gi, "").replace(/Photovoltaic/gi, "").trim();
+      parts.push(fuel);
+    }
+    const isLarge = s.power_plant_mw != null && s.power_plant_mw >= 100;
+    const cls = isLarge ? "pp-chip ready" : "pp-chip";
+    plantHtml = `<span class="${cls}">${escapeHtml(parts.join(" · "))}</span>`;
+  }
+
+  // Gas pipeline distance
+  const gasHtml = s.gas_pipeline_mi != null
+    ? fmt.miles(s.gas_pipeline_mi)
+    : '<span class="muted-cell">—</span>';
+
+  // Signal badges — readiness green / risk red / financial blue
+  const badges = [];
+  if (s.in_opportunity_zone) {
+    const lbl = s.oz_rural ? "OZ Rural" : "OZ";
+    badges.push(`<span class="sig-badge sig-oz" title="${s.oz_rural ? "Rural Qualified Opportunity Zone — 30% basis step-up" : "Qualified Opportunity Zone"}">${escapeHtml(lbl)}</span>`);
+  }
+  if (s.npl_status_code === "D") {
+    badges.push('<span class="sig-badge sig-ready" title="Deleted from NPL — cleanup complete">Clean</span>');
+  }
+  if (/^yes/i.test(s.in_reuse || "")) {
+    badges.push('<span class="sig-badge sig-ready" title="Active reuse underway">Reuse</span>');
+  }
+  if (s.data_center_reuse_candidate) {
+    badges.push('<span class="sig-badge sig-dc" title="EPA RE-Powering data-center reuse candidate">EPA DC</span>');
+  }
+  if (_hasRetiredPlant(s)) {
+    badges.push('<span class="sig-badge sig-plant" title="Retired power plant ≤1 mi — inherited transmission connection and stranded interconnection agreement (Conesville / Widows Creek pattern)">Ret. Plant</span>');
+  } else if (_hasGridInheritance(s)) {
+    badges.push('<span class="sig-badge sig-grid" title="Large coal/gas plant ≤1 mi — potential inherited grid interconnection">Grid Inherit</span>');
+  }
+  if (_hasEO14318(s)) {
+    badges.push('<span class="sig-badge sig-fedfast" title="Meets EO 14318 / EPA Jan 2026 guidance: superfund/brownfield ≥100 ac, grid ≤2 mi, outside SFHA — qualifies for fast-tracked NEPA categorical exclusion">Fed Fast Lane</span>');
+  }
+  if (s.in_sfha === true) {
+    badges.push('<span class="sig-badge sig-flood" title="FEMA Special Flood Hazard Area — permitting challenge for critical infrastructure">Flood</span>');
+  }
+  if (s.enforcement?.has_npdes_permit === true) {
+    badges.push('<span class="sig-badge sig-water" title="Active CWA/NPDES permit — legacy industrial water discharge infrastructure (intake, treated effluent rights)">Water</span>');
+  }
+
+  const progLabel = PROGRAM_LABEL[s.program] || s.program;
+  tr.innerHTML = `
+    <td class="num cand-rank">${rank}</td>
+    <td class="cand-name">${escapeHtml(s.name || "—")}<span class="cand-prog"><span class="pill" data-program="${escapeAttr(s.program)}">${escapeHtml(progLabel)}</span></span></td>
+    <td>${escapeHtml(s.state || "—")}</td>
+    <td class="num">${fmt.acres(s.acreage)}</td>
+    <td class="num cand-score">${scoreHtml}</td>
+    <td>${tierHtml}</td>
+    <td class="num">${kvHtml}</td>
+    <td class="num">${subHtml}</td>
+    <td class="cand-plant">${plantHtml}</td>
+    <td class="num">${gasHtml}</td>
+    <td class="cand-signals">${badges.join("")}</td>
+  `;
+  tr.addEventListener("click", () => selectSite(s.id, { fromTable: true }));
+  return tr;
+}
+
+function buildCandidatesView() {
+  const scoreFn = _candidateScoreFn();
+  candidatesState.sorted = sites
+    .filter((s) => scoreFn(s) != null)
+    .filter(_candidatesPassesTier)
+    .filter(_candidatesPassesReady)
+    .sort((a, b) => (scoreFn(b) || 0) - (scoreFn(a) || 0));
+
+  // Tier distribution for the stats line
+  const counts = { mega: 0, hyperscale: 0, colo: 0, edge: 0 };
+  for (const s of candidatesState.sorted) {
+    const t = computeDcScore(s);
+    if (t && t in counts) counts[t]++;
+  }
+  const total = candidatesState.sorted.length;
+  const parts = [];
+  if (counts.mega)       parts.push(`${counts.mega.toLocaleString()} Mega`);
+  if (counts.hyperscale) parts.push(`${counts.hyperscale.toLocaleString()} Hyperscale`);
+  if (counts.colo)       parts.push(`${counts.colo.toLocaleString()} Colo`);
+  if (counts.edge)       parts.push(`${counts.edge.toLocaleString()} Edge`);
+  const statsEl = el("candidates-stats");
+  if (statsEl) {
+    statsEl.textContent = total > 0
+      ? `${total.toLocaleString()} sites scored · ${parts.join(" · ")} · sorted by ${candidatesState.lens === "gen" ? "generation" : "data-center"} score`
+      : "No candidates match current filters.";
+  }
+
+  const tbody = document.querySelector("#candidates-table tbody");
+  if (!tbody) return;
+  tbody.innerHTML = "";
+  candidatesState.rendered = 0;
+  _appendCandidatesPage(tbody);
+  _setupCandidatesScroll();
+}
+
+function _appendCandidatesPage(tbody) {
+  const start = candidatesState.rendered;
+  const end   = Math.min(start + CANDIDATES_PAGE, candidatesState.sorted.length);
+  const frag  = document.createDocumentFragment();
+  for (let i = start; i < end; i++) {
+    frag.appendChild(makeCandidateRow(candidatesState.sorted[i], i + 1));
+  }
+  tbody.appendChild(frag);
+  candidatesState.rendered = end;
+}
+
+function _setupCandidatesScroll() {
+  const wrap = el("candidates-wrap");
+  if (!wrap) return;
+  if (_candidatesObserver) _candidatesObserver.disconnect();
+  let sentinel = wrap.querySelector(".cand-sentinel");
+  if (!sentinel) {
+    sentinel = document.createElement("div");
+    sentinel.className = "cand-sentinel";
+    sentinel.setAttribute("aria-hidden", "true");
+    wrap.appendChild(sentinel);
+  }
+  _candidatesObserver = new IntersectionObserver(
+    (entries) => {
+      if (!entries.some((e) => e.isIntersecting)) return;
+      // Same scroll-position guard as the main table (UAT-2026-05-11):
+      // don't prefetch during tab-transition layout thrash.
+      const remaining = wrap.scrollHeight - wrap.scrollTop - wrap.clientHeight;
+      if (remaining > 400) return;
+      const tbody = document.querySelector("#candidates-table tbody");
+      if (tbody && candidatesState.rendered < candidatesState.sorted.length) {
+        _appendCandidatesPage(tbody);
+      }
+    },
+    { root: wrap, rootMargin: "300px" }
+  );
+  _candidatesObserver.observe(sentinel);
+}
+
+function wireCandidatesFilters() {
+  document.querySelectorAll("[data-cand-lens]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("[data-cand-lens]").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      candidatesState.lens = btn.dataset.candLens;
+      if (el("view-candidates").classList.contains("active")) buildCandidatesView();
+    });
+  });
+  document.querySelectorAll("[data-cand-tier]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("[data-cand-tier]").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      candidatesState.tierMin = btn.dataset.candTier;
+      if (el("view-candidates").classList.contains("active")) buildCandidatesView();
+    });
+  });
+  document.querySelectorAll("[data-cand-ready]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("[data-cand-ready]").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      candidatesState.readyFilter = btn.dataset.candReady;
+      if (el("view-candidates").classList.contains("active")) buildCandidatesView();
+    });
+  });
+}
+
+function maybeRefreshCandidates() {
+  const view = el("view-candidates");
+  if (view && view.classList.contains("active")) buildCandidatesView();
 }
 
 // ----- Detail panel -----
@@ -2608,7 +2990,12 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
   // gains deferral on 5+yr holds inside a Treasury-designated QOZ. Rural
   // OZs are a meaningful subset (~700 / 8,765 tracts) so we label them.
   const ozPill = s.in_opportunity_zone === true
-    ? ` <span class="pill oz-pill" title="Site is inside a Treasury Qualified Opportunity Zone — capital gains deferral applies to 5+yr holds (QOF investment)${s.oz_rural ? ' · Rural OZ designation' : ''}">${s.oz_rural ? 'OZ · Rural' : 'OZ'}</span>`
+    ? ` <span class="pill oz-pill" title="Site is inside a Treasury Qualified Opportunity Zone — capital gains deferral applies to 5+yr holds (QOF investment)${s.oz_rural ? ' · Rural OZ designation' : ''}">${s.oz_rural ? 'OZ \xb7 Rural' : 'OZ'}</span>`
+    : "";
+  // EO 14318 "Federal Fast Lane" — policy signal. Meets EPA Jan 2026 criteria
+  // for fast-tracked NEPA categorical exclusion + Army Corps Section 404 permits.
+  const eo14318Pill = _hasEO14318(s)
+    ? ` <span class="pill eo14318-pill" title="Meets EO 14318 / EPA Jan 2026 guidance — fast-tracked NEPA categorical exclusion and Army Corps Section 404 permits apply (superfund/brownfield ≥100 ac, grid ≤2 mi, outside SFHA)">Fed Fast Lane</span>`
     : "";
   // DC suitability tier (Tier 0 score) — earns a green "Hyperscale-ready"
   // outline pill at hyperscale+, accent-colored at colo / edge. Title shows
@@ -2622,9 +3009,9 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
     const titleParts = [`${tierMeta.minAcres.toLocaleString()}+ ac`];
     if (tierMeta.minKv > 0) titleParts.push(`≥${tierMeta.minKv} kV transmission ≤1 mi`);
     else titleParts.push("transmission ≤1 mi");
-    tierPill = ` <span class="pill ${cls}" title="${escapeAttr(titleParts.join(" · "))}">${escapeHtml(DC_TIER_LABEL[tier])}</span>`;
+    tierPill = ` <span class="pill ${cls}" title="${escapeAttr(titleParts.join(" \xb7 "))}">${escapeHtml(DC_TIER_LABEL[tier])}</span>`;
   }
-  el("d-program").innerHTML = programPill + cleanupPill + reusePill + dcPill + ozPill + tierPill;
+  el("d-program").innerHTML = programPill + cleanupPill + reusePill + dcPill + ozPill + eo14318Pill + tierPill;
   // The acreage `<dd>` carries an inline note `<span>` for FUDS records
   // missing acreage. Replace only the text node so the note span isn't
   // clobbered, then toggle the note for the FUDS-no-boundary case.
@@ -2739,11 +3126,7 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
   // Siting suitability scores (data-center load + new generation), the
   // synthesis of the infra signals above. Reads dc-score.js — no fetch.
   renderSuitability(s);
-  // EPA RE-Powering qualitative indicators (Superfund-only — only present
-  // for the ~1.9k sites the EPA Redevelopment mapper covers).
-  el("d-near-elec").textContent = fmt.text(s.near_electric_transmission);
-  el("d-near-hwy").textContent = fmt.text(s.near_highway);
-  el("d-near-rr").textContent = fmt.text(s.near_railroad);
+  // EPA RE-Powering service-area indicators (Superfund-only).
   el("d-near-water").textContent = fmt.text(s.near_water_supply);
   el("d-near-ww").textContent = fmt.text(s.near_wastewater);
   el("d-pop-density").textContent = fmt.text(s.pop_density);
@@ -2812,6 +3195,7 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
 
   renderDocuments(s);
   renderEnforcement(s);
+  renderGrants(s);
   renderSummary(s);
   renderNearbySites(s);
   resetDetailTabs();
@@ -2945,6 +3329,20 @@ function renderEnforcement(s) {
     "d-echo-programs",
     Array.isArray(enf.programs) && enf.programs.length ? enf.programs.join(", ") : null,
   );
+  // NPDES permit flag — water-access proxy (CWA/NPDES = legacy industrial water infrastructure)
+  const npdesNode = el("d-echo-npdes");
+  if (npdesNode) {
+    if (enf.has_npdes_permit === true) {
+      npdesNode.textContent = "Yes — CWA/NPDES permit on file";
+      npdesNode.className = "ready";
+    } else if (enf.has_npdes_permit === false) {
+      npdesNode.textContent = "No";
+      npdesNode.className = "muted-cell";
+    } else {
+      npdesNode.textContent = "Not available";
+      npdesNode.className = "muted-cell";
+    }
+  }
   const dfr = el("d-echo-dfr");
   if (dfr) {
     if (enf.dfr_url) {
@@ -2999,6 +3397,67 @@ function renderSummary(s) {
 }
 
 // Render the "Nearby sites" block — up to 5 other sites within
+// EPA ACRES cleanup status + brownfield grant history. Shown for brownfield
+// records only; hidden for all other programs. Populates from the
+// acres-cleanup enrichment connector lazy-loaded via ensureAcresCleanupLoaded().
+function renderGrants(s) {
+  const block = el("d-grants-block");
+  if (!block) return;
+  if (s.program !== "brownfield" || (!s.cleanup_status && s.grant_total_usd == null)) {
+    block.hidden = true;
+    return;
+  }
+  block.hidden = false;
+
+  const statusEl = el("d-cleanup-status");
+  if (statusEl) {
+    if (s.cleanup_status) {
+      statusEl.textContent = s.cleanup_status;
+      statusEl.className = s.cleanup_status === "Completed" ? "ready" : "";
+    } else {
+      statusEl.textContent = "Not available";
+      statusEl.className = "muted-cell";
+    }
+  }
+
+  const dateEl = el("d-cleanup-date");
+  if (dateEl) {
+    if (s.cleanup_complete_date) {
+      dateEl.textContent = s.cleanup_complete_date;
+      dateEl.className = "";
+    } else {
+      dateEl.textContent = "Not available";
+      dateEl.className = "muted-cell";
+    }
+  }
+
+  const totalEl = el("d-grant-total");
+  if (totalEl) {
+    if (s.grant_total_usd != null) {
+      totalEl.textContent = "$" + s.grant_total_usd.toLocaleString();
+      totalEl.className = "";
+    } else {
+      totalEl.textContent = "Not available";
+      totalEl.className = "muted-cell";
+    }
+  }
+
+  const typesEl = el("d-grant-types");
+  if (typesEl) {
+    if (s.grant_types && s.grant_types.length) {
+      typesEl.textContent = s.grant_types.join(", ");
+      typesEl.className = "";
+    } else {
+      typesEl.textContent = "Not available";
+      typesEl.className = "muted-cell";
+    }
+  }
+
+  const countEl = el("d-grants-count");
+  if (countEl && s.grant_count != null) countEl.textContent = `(${s.grant_count})`;
+  else if (countEl) countEl.textContent = "";
+}
+
 // NEARBY_RADIUS_MI of the selected site (Haversine on `lat_real`/`lon_real`
 // so inset-remapped coords don't pollute distance). Clicking a result
 // calls `selectSite(id)`. Block is hidden when the selected site has no
@@ -3343,6 +3802,10 @@ function loadInitialFiltersFromUrl() {
     const v = p.get("iso_rto") || "";
     if (v) filterState.isoRto = v;
   }
+  if (p.has("available")) {
+    const v = p.get("available");
+    if (v === "1" || v === "true") filterState.availableOnly = true;
+  }
 }
 
 function applyUrlSelection() {
@@ -3391,6 +3854,7 @@ function syncUrl() {
     if (filterState.dcCandidate) p.set("dc_candidate", "1");
     if (filterState.oppZone) p.set("oz", "1");
     if (filterState.isoRto) p.set("iso_rto", filterState.isoRto);
+    if (filterState.availableOnly) p.set("available", "1");
     if (selectedId) p.set("site", selectedId);
     const qs = p.toString();
     const newUrl = qs ? `${location.pathname}?${qs}` : location.pathname;
@@ -3583,7 +4047,7 @@ function setFloodZoneCell(id, zone, inSfha) {
 // returned by computeDcScoreBreakdown / computeGenerationScoreBreakdown
 // in dc-score.js.
 const _DC_SUIT_GROUPS = [
-  { label: "Power access", cls: "suit-power",  keys: ["transmission_distance", "voltage", "substation", "power_plant"] },
+  { label: "Power access", cls: "suit-power",  keys: ["transmission_distance", "voltage", "substation", "grid_inheritance"] },
   { label: "Land",         cls: "suit-land",   keys: ["acreage"] },
   { label: "Gas",          cls: "suit-gas",    keys: ["gas_pipeline"] },
   { label: "Logistics",    cls: "suit-logi",   keys: ["logistics"] },

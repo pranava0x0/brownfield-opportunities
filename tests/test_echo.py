@@ -267,3 +267,52 @@ def test_normalize_enforcement_no_registry_id_still_emits_enforcement():
     assert "registry_id" not in enf
     assert "dfr_url" not in enf
     assert enf["inspections_5yr"] == 2
+
+
+# ---- NPDES permit flag (column 99, v1.14.1) ----
+
+def test_echo_npdes_flag_derived_correctly():
+    """Column 99 NPDESFlag = 'Y' → has_npdes_permit True.
+    Proxy for legacy industrial water discharge infrastructure."""
+    facility_yes = {
+        "RegistryID": "1",
+        "FEA5yr": "0",
+        "NPDESFlag": "Y",
+    }
+    enf = EpaEcho.normalize_enforcement(facility_yes)
+    assert enf is not None
+    assert enf["has_npdes_permit"] is True
+
+
+def test_echo_npdes_flag_false_when_n():
+    facility_no = {
+        "RegistryID": "1",
+        "FEA5yr": "0",
+        "NPDESFlag": "N",
+    }
+    enf = EpaEcho.normalize_enforcement(facility_no)
+    assert enf is not None
+    assert enf["has_npdes_permit"] is False
+
+
+def test_echo_npdes_flag_absent_when_column_not_returned():
+    """Pre-v1.14.1 cached rows don't have NPDESFlag — `has_npdes_permit`
+    must be absent (not False) so callers can distinguish 'no permit' from
+    'column not in response'."""
+    facility = {
+        "RegistryID": "1",
+        "FEA5yr": "1",
+    }
+    enf = EpaEcho.normalize_enforcement(facility)
+    assert enf is not None
+    assert "has_npdes_permit" not in enf
+
+
+def test_echo_npdes_flag_case_insensitive():
+    """NPDESFlag values from ECHO are not consistently cased."""
+    for val in ("y", "YES", "Yes"):
+        enf = EpaEcho.normalize_enforcement({"RegistryID": "1", "Insp5yr": "1", "NPDESFlag": val})
+        assert enf["has_npdes_permit"] is True
+    for val in ("n", "NO", "No"):
+        enf = EpaEcho.normalize_enforcement({"RegistryID": "1", "Insp5yr": "1", "NPDESFlag": val})
+        assert enf["has_npdes_permit"] is False
