@@ -564,11 +564,18 @@ def test_refresh_date_reflects_freshest_data_file(page, base_url):
     page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
     result = page.evaluate(
         """async () => {
+          // Every data file whose loader calls recordRefreshDate() — i.e.
+          // files that DRIVE window.__refreshedAt. reference-campuses.json is
+          // intentionally excluded: it's an annual curated reference layer
+          // whose loader does NOT call recordRefreshDate, so it must not
+          // influence the expected max (else a future annual refresh would
+          // create a false failure).
           const files = [
             'sites.json', 'epa-acres.json', 'dod-fuds.json', 'dod-brac.json',
             'epa-redev.json', 'epa-superfund-docs.json', 'infra-proximity.json',
             'opportunity-zone.json', 'climate-zone.json', 'iso-rto.json',
-            'epa-echo.json', 'ai-summary.json',
+            'epa-echo.json', 'ai-summary.json', 'eia-retired-plants.json',
+            'ira-energy-community.json', 'fema-nri.json',
           ];
           const fmt = (s) => new Date(Date.parse(s)).toISOString().slice(0, 10);
           let coreDate = null;
