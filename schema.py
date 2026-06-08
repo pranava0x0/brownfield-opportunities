@@ -247,6 +247,39 @@ class SiteRecord(BaseModel):
                     "OZs are a small subset (~700 tracts) but matter for "
                     "USDA-aligned investment programs.",
     )
+    in_energy_community: Optional[bool] = Field(
+        default=None,
+        description="True if the site sits inside an IRA (Inflation Reduction "
+                    "Act) 'energy community' — a coal-closure census tract "
+                    "(coal mine closed after 1999 or coal generator retired "
+                    "after 2009, plus adjacent tracts) OR a fossil-fuel-"
+                    "employment statistical area (MSA/non-MSA with >=0.17% "
+                    "direct fossil-fuel employment and unemployment >= the "
+                    "national average). Clean-energy projects built on an "
+                    "energy community earn a +10 percentage-point ITC/PTC "
+                    "bonus under IRA sec. 45/48 — a material IRR lever for "
+                    "behind-the-meter generation paired with a data center. "
+                    "Source: DOE NETL energy-community layers (2024 edition).",
+    )
+    energy_community_type: Optional[str] = Field(
+        default=None,
+        description="Which IRA energy-community category the site qualifies "
+                    "under: 'coal_closure' (census-tract level; the more "
+                    "localized, higher-confidence signal — takes precedence) "
+                    "or 'fossil_fuel_employment' (county / statistical-area "
+                    "level). The brownfield category (CERCLA sec. 101(39)) is "
+                    "deliberately NOT auto-asserted here: it excludes NPL "
+                    "sites and carries BFPP nuances our program flag can't "
+                    "cleanly resolve, so we only assert the two unambiguous "
+                    "geographic categories.",
+    )
+    energy_community_detail: Optional[str] = Field(
+        default=None,
+        description="For coal_closure communities, why the tract qualifies: "
+                    "'Mine closure', 'Generator closure', or 'Adjacent to "
+                    "closure'. For fossil_fuel_employment, the MSA / non-MSA "
+                    "area name. Human-readable provenance for the detail panel.",
+    )
     iso_rto: Optional[str] = Field(
         default=None,
         description="Regional transmission organization / independent system "
