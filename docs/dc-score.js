@@ -232,8 +232,9 @@ const DC_SCORE_TOOLTIP =
   "Hazard Area subtracts 18. Sites without transmission data score N/A.";
 
 // readiness for a data-center load: signals that the parcel is ready to
-// transact and develop. Cap 14 (sub-signals can sum to 15; OZ is the
-// financial sweetener that gets absorbed by the cap on a fully-ready site).
+// transact and develop. Cap 14 (sub-signals can sum well above it; the
+// financial sweeteners — OZ, IRA energy community — get absorbed by the cap
+// on a fully-ready site but lift mid-tier sites).
 function _scoreReadinessDc(site) {
   let s = 0;
   if (site.data_center_reuse_candidate === true) s += 5;
@@ -244,6 +245,9 @@ function _scoreReadinessDc(site) {
     // Rural OZ: 30% QOF basis step-up vs. 15% for standard → +7 vs +5
     s += site.oz_rural === true ? 7 : 5;
   }
+  // IRA energy community: +10pp ITC/PTC bonus on a paired behind-the-meter
+  // clean-energy build. A meaningful IRR lever that stacks with OZ.
+  if (site.in_energy_community === true) s += 3;
   // EO 14318 "federal fast lane": superfund/brownfield ≥100 ac, grid ≤2 mi,
   // outside SFHA → NEPA categorical exclusion + fast-track Section 404.
   if ((site.program === "superfund" || site.program === "brownfield")
@@ -305,10 +309,13 @@ const GENERATION_SCORE_TOOLTIP =
 
 // readiness for a generation build: a cleaned-up, vacant, incentivized
 // parcel is ideal. Deliberately does NOT credit `in_reuse` — an
-// occupied site is worse for a ground-up build, not better.
+// occupied site is worse for a ground-up build, not better. The IRA energy
+// community bonus is especially relevant here: the +10pp ITC/PTC applies
+// directly to a new clean-generation build, so it earns more than OZ.
 function _scoreReadinessGen(site) {
   let s = 0;
   if (site.npl_status_code === "D") s += 4;       // cleanup complete → developable
+  if (site.in_energy_community === true) s += 3;  // +10pp ITC/PTC on the build
   if (site.in_opportunity_zone === true) s += 2;  // financing sweetener
   return Math.min(s, GENERATION_SCORE_WEIGHTS.readiness);
 }
