@@ -4,6 +4,27 @@ Ideas and enhancements. Priorities: **high** = next, **med** = soon, **low** = n
 
 ---
 
+## Session checkpoint — 2026-06-08
+
+**Completed this session (v1.16 → v1.17):**
+
+- **v1.16 (merged PR #12):** EIA-860M retired plant enrichment connector (`connectors/eia_retired_plants.py`). Fetches the public EIA-860M monthly Excel "Retired" sheet; 466 plants indexed; 7,620 records emitted (573 within 1 mi). Schema: `retired_plant_{mi,mw,fuel,year,name}`. `_scoreGridInheritance()` checks retired plants first (≥100 MW dispatchable, ≤1 mi = full 8 pts); falls back to HIFLD active plant (≥500 MW coal/gas ≤1 mi). CLAUDE.md updated. 105 e2e tests passed.
+
+- **v1.17 (just committed `f441590`):**
+  - **Reference campuses overlay:** `docs/data/reference-campuses.json` (10 confirmed hyperscale brownfield deals: Google/Widows Creek, Aligned/Conesville, Homer City Energy Campus, AWS/Susquehanna, NorthPoint/Fairless Works, Project Marvel AL, Meta/Forest City, QTS/Qimonda Richmond, Cheswick PA, Microsoft/Foxconn WI). Gold ★ star markers on a `referenceCampusLayer` in Leaflet; click → popup with company, previous use, status, acreage/MW, source link; legend row added when populated; lazy-loaded alongside other enrichments.
+  - **Nuclear adjacency DC scoring:** `_scoreGridInheritance()` gains a 3rd pathway — operating nuclear ≥500 MW within 5 mi → 45% of cap (4 pts). AWS/Talen Susquehanna $650M deal pattern (PPA + grid-neighborhood). 4 new e2e parametrize cases; 109 e2e + 388 unit tests pass.
+
+**In progress / blocked:**
+- **ECHO NPDES re-enrichment:** Connector already supports `has_npdes_permit` (v1.15 column 99). Re-enrichment run 2026-06-08 aborted at ~190 sites (transient `ConnectionError` to echodata.epa.gov). Must re-run: `python3 refresh.py --source epa-echo --echo-limit 0 --echo-status F,D` (~50 min). After: add `Water` badge in DC Candidates Signals + detail-panel enforcement row.
+
+**Next highest-value backlog items:**
+1. **[high] IRA Energy Community layer** — `connectors/ira_energy_community.py`, DOE LBNL tract-level FeatureServer; `in_energy_community: bool` + `energy_community_type` (brownfield / coal_closure / fossil_fuel_employment). Key financial signal for Homer City/Conesville cluster.
+2. **[high] FEMA NRI (National Risk Index)** — bulk CSV, per-tract annualized expected loss for 6 hazards (hurricane, tornado, wildfire, drought, earthquake, hail). Single download replaces ~5 separate hazard layers.
+3. **[high] NPDES badge frontend** (after ECHO re-enrichment completes) — `Water` badge in DC Candidates Signals column when `s.enforcement?.has_npdes_permit === true`.
+4. **[med] Military DC solicitations** — curated `docs/data/mil-dc-solicitations.json` (~5–10 rows: Arnold AFB TN, Davis-Monthan AZ, Edwards CA, McGuire-Dix-Lakehurst NJ, Robins GA). Same pattern as reference-campuses.json.
+
+---
+
 ## New ideas — DC-brownfield market research (2026-06-05)
 
 *Sourced from web research on the 2025–2026 DC-brownfield deal landscape: Homer City Energy Campus, Google/Widows Creek, Aligned/Conesville, AWS/Susquehanna, Microsoft/TMI/Mount Pleasant, Bessemer "Project Marvel," Keystone NAP/Fairless Works, EO 14318, EPA's January 2026 guidance, JLL/CBRE 2025–26 data center reports, IRA energy community rules, and the PNNL coal-plant-to-data-center white paper.*
@@ -24,7 +45,7 @@ The dominant pattern in 2025–2026 is retired coal/gas plant sites: they carry 
 
 Water is now the #2 site-selection constraint after grid (JLL 2026). Arizona, Nevada, and parts of TX have effectively closed new large-withdrawal permits. Former industrial/power plant sites with river access and legacy NPDES permits are worth a material premium. AZ and CA Aqueduct scores (WRI Aqueduct, Tier 2 backlog) are the right answer, but a quick proxy is available now:
 
-- **[high] EPA ECHO NPDES permit flag as water-access proxy.** Connector updated in v1.15 (column 99 = `NPDESFlag` in `ECHO_QCOLUMNS`; `has_npdes_permit` written to enforcement dict). `epa-echo.json` was regenerated 2026-06-08 — re-enrichment run in background to pick up NPDESFlag for all 1,906 records. When complete, `has_npdes_permit: bool` will be in every enforcement dict. Frontend detail panel and DC Candidates "Signals" column rendering still pending (add `Water` badge when `s.enforcement?.has_npdes_permit === true`).
+- **[high] EPA ECHO NPDES permit flag as water-access proxy.** Connector code done (v1.15 — column 99 `NPDESFlag` in `ECHO_QCOLUMNS`; `has_npdes_permit` extracted in `normalize_enforcement()`). Re-enrichment run 2026-06-08 aborted at ~190/1,906 sites with `ConnectionError` to echodata.epa.gov (transient network blip). `epa-echo.json` still reflects old data (0 records with `has_npdes_permit`). Re-run: `python3 refresh.py --source epa-echo --echo-limit 0 --echo-status F,D` — will hit first-hop cache (get_facilities) but re-fetch second-hop (get_qid, new qcolumns key), ~50 min when network is available. After completing: frontend needs a `Water` badge in DC Candidates Signals column (`s.enforcement?.has_npdes_permit === true`) and a row in the detail-panel enforcement section.
 
 - **[med] WRI Aqueduct baseline water stress → `water_stress_score`.** Already in Tier 2 backlog. Re-prioritize to **high** given 2026 market evidence that water is now a deal-killer in AZ, CA, parts of TX, and the Mountain West. Add to DC score as a penalty component (similar to flood: −12 pts for `bws_score ≥ 3`). The current Tier 2 entry has full implementation notes.
 
