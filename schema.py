@@ -176,6 +176,39 @@ class SiteRecord(BaseModel):
                     "within 1 mi is the Conesville / Widows Creek pattern: inherited "
                     "transmission connection without competing for active capacity.",
     )
+
+    # EIA-860M retired-plant proximity (eia-retired-plants enrichment connector).
+    # Source: EIA Preliminary Monthly Electric Generator Inventory "Retired" sheet.
+    # Only populated when a large (≥100 MW) dispatchable retired plant exists
+    # within MAX_DISTANCE_MI (5 mi).  Scoring fires at ≤1 mi.
+    retired_plant_mi: Optional[float] = Field(
+        default=None,
+        description="Miles to the nearest large (≥100 MW) RETIRED dispatchable "
+                    "power plant from EIA-860M.  Within 1 mi = Conesville / Widows "
+                    "Creek pattern: inherited transmission + stranded interconnect "
+                    "agreement, no competing active load.",
+    )
+    retired_plant_mw: Optional[float] = Field(
+        default=None,
+        description="Total nameplate MW of the nearest large retired plant.",
+    )
+    retired_plant_fuel: Optional[str] = Field(
+        default=None,
+        description="EIA energy-source code of the nearest retired plant "
+                    "(e.g. 'BIT' = bituminous coal, 'NG' = natural gas, "
+                    "'NUC' = nuclear). Non-dispatchable (SUN/WND) plants "
+                    "are excluded from the index.",
+    )
+    retired_plant_year: Optional[int] = Field(
+        default=None,
+        description="Retirement year of the nearest plant (latest year "
+                    "across generating units at the plant).",
+    )
+    retired_plant_name: Optional[str] = Field(
+        default=None,
+        description="Name of the nearest retired power plant.",
+    )
+
     flood_zone: Optional[str] = Field(
         default=None,
         description="FEMA NFHL flood-zone code at the site (`A`, `AE`, `V`, `VE`, "
