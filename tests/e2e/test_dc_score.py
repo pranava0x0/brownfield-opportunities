@@ -322,6 +322,38 @@ def test_eo14318_readiness_bonus(page, base_url):
     assert _dc_bd(page, ineligible_flood)["readiness"] == 0
 
 
+def test_dc_energy_community_readiness_bonus(page, base_url):
+    """An IRA energy community earns +3 DC-readiness pts (a financing
+    sweetener that stacks with OZ). Both coal_closure and
+    fossil_fuel_employment qualify; absent/false earns nothing."""
+    _ready(page, base_url)
+    base = {"transmission_mi": 0.5}
+    coal = dict(base, in_energy_community=True, energy_community_type="coal_closure")
+    ffe = dict(base, in_energy_community=True, energy_community_type="fossil_fuel_employment")
+    none = dict(base, in_energy_community=False)
+    assert _dc_bd(page, coal)["readiness"] == 3
+    assert _dc_bd(page, ffe)["readiness"] == 3
+    assert _dc_bd(page, none)["readiness"] == 0
+    # Stacks with OZ: standard OZ (5) + energy community (3) = 8
+    stacked = dict(base, in_opportunity_zone=True, in_energy_community=True)
+    assert _dc_bd(page, stacked)["readiness"] == 8
+
+
+def test_gen_energy_community_readiness_bonus(page, base_url):
+    """For a NEW-GENERATION build the IRA +10pp ITC/PTC bonus applies directly,
+    so energy community earns +3 — more than OZ's +2. Cap is 6."""
+    _ready(page, base_url)
+    base = {"transmission_mi": 0.5}
+    ec = dict(base, in_energy_community=True, energy_community_type="coal_closure")
+    assert _gen_bd(page, ec)["readiness"] == 3
+    # clean (4) + energy community (3) = 7, capped at 6
+    clean_ec = dict(ec, npl_status_code="D")
+    assert _gen_bd(page, clean_ec)["readiness"] == 6
+    # energy community (3) > OZ (2)
+    oz = dict(base, in_opportunity_zone=True)
+    assert _gen_bd(page, ec)["readiness"] > _gen_bd(page, oz)["readiness"]
+
+
 def test_dc_readiness_npl_final_gives_partial(page, base_url):
     _ready(page, base_url)
     assert _dc_bd(page, {"transmission_mi": 0.5, "npl_status_code": "F"})["readiness"] == 1

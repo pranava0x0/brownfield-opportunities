@@ -19,6 +19,7 @@ const AI_SUMMARY_URL = "data/ai-summary.json";
 const ACRES_CLEANUP_URL = "data/acres-cleanup.json";
 const RETIRED_PLANTS_URL = "data/eia-retired-plants.json";
 const REFERENCE_CAMPUSES_URL = "data/reference-campuses.json";
+const IRA_EC_URL = "data/ira-energy-community.json";
 // Vector basemap: US states (always) + US counties (lazy at zoom ≥ COUNTY_MIN_ZOOM).
 // No tiles — Canada/Mexico literally don't exist on the map. Choropleth-style
 // look (think CNN election tracker / datacenterbans.com) with bold state borders
@@ -551,6 +552,7 @@ let summariesLoadingPromise = null;
 let acresCleanupLoadingPromise = null;
 let retiredPlantsLoadingPromise = null;
 let referenceCampusesLoadingPromise = null;
+let iraEcLoadingPromise = null;
 
 // Programmatic ready signal so UAT / Playwright / agent automation can wait
 // on a stable event instead of polling network responses. Fires once after
@@ -828,6 +830,7 @@ fetch(PRIMARY_DATA_URL)
     lazyLoads.push(ensureSuperfundDocsLoaded());
     lazyLoads.push(ensureInfraLoaded());
     lazyLoads.push(ensureOppZoneLoaded());
+    lazyLoads.push(ensureIraEnergyCommunityLoaded());
     lazyLoads.push(ensureClimateZoneLoaded());
     lazyLoads.push(ensureIsoRtoLoaded());
     lazyLoads.push(ensureEchoLoaded());
@@ -1243,6 +1246,44 @@ function ensureOppZoneLoaded() {
       oppZoneLoadingPromise = null;
     });
   return oppZoneLoadingPromise;
+}
+
+// IRA Energy Community enrichment. Joins onto every program by `id` to add
+// `in_energy_community` (boolean), `energy_community_type` (coal_closure |
+// fossil_fuel_employment), and `energy_community_detail` (human-readable
+// provenance). A clean-energy project on an energy community earns a +10pp
+// ITC/PTC bonus under IRA §45/48 — a financial signal that stacks with OZ.
+function ensureIraEnergyCommunityLoaded() {
+  if (iraEcLoadingPromise) return iraEcLoadingPromise;
+  iraEcLoadingPromise = fetch(IRA_EC_URL, { priority: "low" })
+    .then((r) => {
+      if (r.status === 404) return { sites: [] };
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then((payload) => {
+      recordRefreshDate(payload.generated_at);
+      for (const rec of payload.sites || []) {
+        const existing = sitesById.get(rec.id);
+        if (!existing) continue;
+        // Always set in_energy_community (true OR false — both are meaningful).
+        if (rec.in_energy_community != null) {
+          existing.in_energy_community = rec.in_energy_community;
+        }
+        if (rec.energy_community_type != null) existing.energy_community_type = rec.energy_community_type;
+        if (rec.energy_community_detail != null) existing.energy_community_detail = rec.energy_community_detail;
+      }
+      // Re-run filter so the score-driven KPIs / table pick up the readiness bump.
+      if (typeof applyFilter === "function") applyFilter();
+      if (selectedId && sitesById.has(selectedId)) {
+        try { selectSite(selectedId); } catch {}
+      }
+    })
+    .catch((err) => {
+      console.error("IRA energy-community enrichment load failed:", err);
+      iraEcLoadingPromise = null;
+    });
+  return iraEcLoadingPromise;
 }
 
 // County-level IECC / ASHRAE climate-zone enrichment. Joins onto every
@@ -2868,6 +2909,10 @@ function makeCandidateRow(s, rank) {
     const lbl = s.oz_rural ? "OZ Rural" : "OZ";
     badges.push(`<span class="sig-badge sig-oz" title="${s.oz_rural ? "Rural Qualified Opportunity Zone — 30% basis step-up" : "Qualified Opportunity Zone"}">${escapeHtml(lbl)}</span>`);
   }
+  if (s.in_energy_community) {
+    const lbl = s.energy_community_type === "coal_closure" ? "IRA Coal" : "IRA";
+    badges.push(`<span class="sig-badge sig-ira" title="IRA energy community${s.energy_community_detail ? " — " + escapeAttr(s.energy_community_detail) : ""} — +10pp ITC/PTC bonus for clean-energy builds">${escapeHtml(lbl)}</span>`);
+  }
   if (s.npl_status_code === "D") {
     badges.push('<span class="sig-badge sig-ready" title="Deleted from NPL — cleanup complete">Clean</span>');
   }
@@ -3099,6 +3144,12 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
   const ozPill = s.in_opportunity_zone === true
     ? ` <span class="pill oz-pill" title="Site is inside a Treasury Qualified Opportunity Zone — capital gains deferral applies to 5+yr holds (QOF investment)${s.oz_rural ? ' · Rural OZ designation' : ''}">${s.oz_rural ? 'OZ \xb7 Rural' : 'OZ'}</span>`
     : "";
+  // IRA energy community pill — financial signal that stacks with OZ. A
+  // clean-energy build here earns a +10pp ITC/PTC bonus. Coal-closure
+  // communities are the higher-confidence (tract-level) signal.
+  const iraPill = s.in_energy_community === true
+    ? ` <span class="pill ira-pill" title="IRA energy community (${escapeAttr(s.energy_community_type === "coal_closure" ? "coal closure" : "fossil-fuel employment")}${s.energy_community_detail ? " · " + escapeAttr(s.energy_community_detail) : ""}) — clean-energy projects earn a +10 percentage-point ITC/PTC bonus">${s.energy_community_type === "coal_closure" ? "IRA \xb7 Coal" : "IRA"}</span>`
+    : "";
   // EO 14318 "Federal Fast Lane" — policy signal. Meets EPA Jan 2026 criteria
   // for fast-tracked NEPA categorical exclusion + Army Corps Section 404 permits.
   const eo14318Pill = _hasEO14318(s)
@@ -3118,7 +3169,7 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
     else titleParts.push("transmission ≤1 mi");
     tierPill = ` <span class="pill ${cls}" title="${escapeAttr(titleParts.join(" \xb7 "))}">${escapeHtml(DC_TIER_LABEL[tier])}</span>`;
   }
-  el("d-program").innerHTML = programPill + cleanupPill + reusePill + dcPill + ozPill + eo14318Pill + tierPill;
+  el("d-program").innerHTML = programPill + cleanupPill + reusePill + dcPill + ozPill + iraPill + eo14318Pill + tierPill;
   // The acreage `<dd>` carries an inline note `<span>` for FUDS records
   // missing acreage. Replace only the text node so the note span isn't
   // clobbered, then toggle the note for the FUDS-no-boundary case.
@@ -3229,6 +3280,7 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
   // string-valued `in_opp_zone` (EPA RE-Powering, Superfund-only) is a
   // fallback when the universal enrichment hasn't loaded yet.
   setOpportunityZoneCell("d-opp-zone", s);
+  setEnergyCommunityCell("d-energy-community", s);
   // State data-center tax incentive chip (Tier 1/2/3) — uses the static
   // STATE_DC_INCENTIVES lookup, no fetch.
   renderStateIncentive(s);
@@ -3721,6 +3773,9 @@ const CSV_COLUMNS = [
   { key: "in_sfha", label: "in_sfha" },
   { key: "iso_rto", label: "iso_rto" },
   { key: "climate_zone", label: "climate_zone" },
+  // IRA energy community (v1.18) — financial signal (+10pp ITC/PTC bonus)
+  { key: "in_energy_community", label: "in_energy_community" },
+  { key: "energy_community_type", label: "energy_community_type" },
   // Computed suitability scores (0–100, dc-score.js) — synthesis of the
   // infra signals above. Empty when transmission data is missing.
   { key: "dc_score", label: "dc_score", compute: (s) => computeDcCompositeScore(s) },
@@ -4132,6 +4187,40 @@ function setOpportunityZoneCell(id, s) {
       : `${legacy} (EPA RE-Powering)`;
     node.classList.remove("muted-cell");
     if (/^yes/i.test(legacy)) node.classList.add("ready");
+    return;
+  }
+  node.textContent = "Not available";
+  node.classList.add("muted-cell");
+  node.classList.remove("ready");
+}
+
+// Render the IRA energy community cell. Three states:
+//   - `in_energy_community === true`: green label with the category + the
+//     human-readable reason (coal mine/generator closure, adjacency, or the
+//     fossil-fuel-employment statistical-area name) and a deep-link to the
+//     DOE energy-communities map. The +10pp ITC/PTC bonus is the headline.
+//   - `in_energy_community === false`: muted "Not an energy community".
+//   - undefined: muted "Not available" (enrichment not loaded yet).
+function setEnergyCommunityCell(id, s) {
+  const node = el(id);
+  if (!node) return;
+  const v = s.in_energy_community;
+  if (v === true) {
+    const type = s.energy_community_type;
+    const typeLabel = type === "coal_closure" ? "Coal closure"
+      : type === "fossil_fuel_employment" ? "Fossil-fuel employment"
+      : "Energy community";
+    const detail = s.energy_community_detail ? ` — ${s.energy_community_detail}` : "";
+    const url = "https://energycommunities.gov/energy-community-tax-credit-bonus/";
+    const title = `IRA energy community (${typeLabel}${detail}) — clean-energy projects here earn a +10 percentage-point ITC/PTC bonus under IRA §45/48`;
+    node.innerHTML = `<a href="${escapeAttr(url)}" target="_blank" rel="noopener" title="${escapeAttr(title)}">Yes · ${escapeHtml(typeLabel)}${escapeHtml(detail)}</a>`;
+    node.classList.remove("muted-cell");
+    node.classList.add("ready");
+    return;
+  }
+  if (v === false) {
+    node.textContent = "Not an energy community";
+    node.classList.remove("ready", "muted-cell");
     return;
   }
   node.textContent = "Not available";
