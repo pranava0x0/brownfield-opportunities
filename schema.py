@@ -168,6 +168,14 @@ class SiteRecord(BaseModel):
         description="Primary fuel of the nearest power plant (HIFLD `PrimSource` "
                     "field — e.g. 'natural gas', 'nuclear', 'coal', 'wind', 'solar').",
     )
+    power_plant_retired: Optional[bool] = Field(
+        default=None,
+        description="True when the nearest plant's HIFLD Status is RE/OA/OS (retired "
+                    "/ out of service). False when operating/standby. None when the "
+                    "Status field wasn't available (older cache). A retired plant "
+                    "within 1 mi is the Conesville / Widows Creek pattern: inherited "
+                    "transmission connection without competing for active capacity.",
+    )
     flood_zone: Optional[str] = Field(
         default=None,
         description="FEMA NFHL flood-zone code at the site (`A`, `AE`, `V`, `VE`, "
@@ -251,7 +259,32 @@ class SiteRecord(BaseModel):
         description="ECHO enforcement summary: registry_id, dfr_url, "
                     "inspections_5yr, formal_actions_5yr, informal_actions_5yr, "
                     "penalties_5yr_usd, current_compliance, last_violation_date, "
-                    "last_inspection_date, programs (list).",
+                    "last_inspection_date, has_npdes_permit (bool — CWA/NPDES "
+                    "permit holder, proxy for legacy industrial water access), "
+                    "programs (list).",
+    )
+
+    # EPA ACRES cleanup status + grant history (acres-cleanup enrichment).
+    # Only populated for brownfield (ACRES) records; null for other programs.
+    cleanup_status: Optional[str] = Field(
+        default=None,
+        description="ACRES cleanup activity status: 'Completed', 'In Progress', or 'Not Started'.",
+    )
+    cleanup_complete_date: Optional[str] = Field(
+        default=None,
+        description="ISO date (YYYY-MM-DD) when cleanup was marked Completed.",
+    )
+    grant_total_usd: Optional[int] = Field(
+        default=None,
+        description="Sum of all EPA brownfield grant awards for this property (USD).",
+    )
+    grant_count: Optional[int] = Field(
+        default=None,
+        description="Number of individual EPA brownfield grant awards.",
+    )
+    grant_types: Optional[list[str]] = Field(
+        default=None,
+        description="Unique grant types awarded: Assessment, Cleanup, RLF, etc.",
     )
 
     # AI-generated plain-English site summary (Claude Haiku). Populated by

@@ -419,6 +419,14 @@ class InfraProximity(Connector):
                             rec["power_plant_mw"] = round(float(attr["mw"]), 1)
                         if attr.get("fuel"):
                             rec["power_plant_fuel"] = str(attr["fuel"])
+                        # HIFLD Status: RE/OA/OS = retired; OP/SB = operating.
+                        # None when older cache lacks the field — emit nothing
+                        # so callers distinguish "no" from "unknown."
+                        status = attr.get("status")
+                        if status is not None:
+                            rec["power_plant_retired"] = str(status).upper() in {
+                                "RE", "OA", "OS"
+                            }
 
             # ---- per-site flood zone ----
             if do_flood:
@@ -679,7 +687,9 @@ class InfraProximity(Connector):
         while True:
             params = {
                 "where": "1=1",
-                "outFields": "Plant_Name,Total_MW,PrimSource",
+                # Status added in v1.15 — cache key bumped to _v2 to force
+                # a fresh fetch so `power_plant_retired` populates on next run.
+                "outFields": "Plant_Name,Total_MW,PrimSource,Status",
                 "returnGeometry": "true",
                 "outSR": "4326",
                 "geometryPrecision": "5",
@@ -690,7 +700,7 @@ class InfraProximity(Connector):
             data = self.http_get_json(
                 POWER_PLANT_QUERY_URL, params,
                 use_cache=use_cache,
-                cache_key={"src": "power_plants", "offset": offset},
+                cache_key={"src": "power_plants_v2", "offset": offset},
             )
             features = data.get("features") or []
             log.info("[power_plant] page offset=%d got=%d", offset, len(features))
@@ -707,6 +717,7 @@ class InfraProximity(Connector):
                     "name": a.get("Plant_Name"),
                     "mw": a.get("Total_MW"),
                     "fuel": a.get("PrimSource"),
+                    "status": a.get("Status"),
                 }
                 idx.add_point(lat, lon, attr=attr)
             if len(features) < page_size:

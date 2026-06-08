@@ -83,7 +83,8 @@ ECHO_QCOLUMNS = (
     "55,"     # 55: FAC_DATE_LAST_FORMAL_ACTION
     "60,"     # 60: FAC_TOTAL_PENALTIES (5yr)
     "61,"     # 61: FAC_PENALTY_COUNT
-    "62"      # 62: FAC_DATE_LAST_PENALTY
+    "62,"     # 62: FAC_DATE_LAST_PENALTY
+    "99"      # 99: NPDES_FLAG — CWA/NPDES permit holder flag; proxy for water access infrastructure
 )
 
 DEFAULT_LIMIT = 100
@@ -499,6 +500,18 @@ class EpaEcho(Connector):
             else None
         )
 
+        # Column 99: NPDESFlag — "Y" when the facility holds a CWA/NPDES permit.
+        # Proxy for legacy industrial water discharge infrastructure (intake,
+        # treated effluent rights) — a strong water-access signal for DC siting.
+        # Null when the column wasn't in the response (pre-v1.13.5 cache rows);
+        # distinguish from explicit "N" so we don't overcount.
+        npdes_raw = _safe_str(facility.get("NPDESFlag"))
+        has_npdes = (
+            True if npdes_raw and npdes_raw.upper().startswith("Y")
+            else False if npdes_raw and npdes_raw.upper().startswith("N")
+            else None
+        )
+
         # If literally every signal is absent there's no value in emitting.
         # `is not None` rather than truthiness — `0 inspections` is a
         # meaningful "clean record" signal, not "no data on file".
@@ -534,4 +547,6 @@ class EpaEcho(Connector):
             out["current_compliance"] = compliance
         if programs:
             out["programs"] = programs
+        if has_npdes is not None:
+            out["has_npdes_permit"] = has_npdes
         return out
