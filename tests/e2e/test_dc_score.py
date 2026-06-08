@@ -199,32 +199,37 @@ def test_dc_grid_inheritance_component(page, base_url, fuel, mw, mi, expected):
     assert bd["grid_inheritance"] == expected
 
 
-@pytest.mark.parametrize("fuel,mw,retired,expected", [
-    # Retired plants: lower MW floor (≥100) and any dispatchable fuel qualifies.
-    ("coal",        300, True,  8),   # retired coal 300 MW — qualifies
-    ("natural gas", 100, True,  8),   # retired gas at minimum MW floor
-    ("nuclear",     200, True,  8),   # retired nuclear — qualifies (Zion pattern)
-    ("natural gas", 99,  True,  0),   # retired but below 100 MW floor
-    ("natural gas", 600, True,  8),   # retired large gas — also qualifies
-    ("solar",       500, True,  0),   # retired solar — non-dispatchable, no points
-    ("wind",        400, True,  0),   # retired wind — non-dispatchable
-    # Status unknown (power_plant_retired absent): original strict rule.
-    ("coal",        300, False, 0),   # operating small coal → doesn't qualify
-    ("natural gas", 500, False, 8),   # operating large gas → qualifies (old rule)
+@pytest.mark.parametrize("fuel,mw,use_retired_src,expected", [
+    # EIA-860M retired plant (retired_plant_* fields): lower MW floor ≥100,
+    # any dispatchable fuel qualifies.
+    ("BIT",         300, True,  8),   # retired coal 300 MW — qualifies
+    ("NG",          100, True,  8),   # retired gas at minimum MW floor
+    ("NUC",         200, True,  8),   # retired nuclear — qualifies (San Onofre pattern)
+    ("NG",           99, True,  0),   # retired but below 100 MW floor
+    ("NG",          600, True,  8),   # retired large gas — also qualifies
+    ("SUN",         500, True,  0),   # retired solar — non-dispatchable, no points
+    ("WND",         400, True,  0),   # retired wind — non-dispatchable
+    # HIFLD active plant fallback (power_plant_* fields, no retired_plant_*):
+    # original strict ≥500 MW coal/natural gas rule.
+    ("coal",        300, False, 0),   # active small coal → doesn't qualify
+    ("natural gas", 500, False, 8),   # active large gas → qualifies (old rule)
 ])
-def test_dc_grid_inheritance_retired_vs_operating(page, base_url, fuel, mw, retired, expected):
-    """v1.15: confirmed-retired plants (power_plant_retired=true) qualify at
-    ≥100 MW for any dispatchable fuel; operating/unknown plants keep the
-    original ≥500 MW coal/gas rule as the proxy."""
+def test_dc_grid_inheritance_retired_vs_operating(page, base_url, fuel, mw, use_retired_src, expected):
+    """v1.15: EIA-860M retired plants (`retired_plant_*` fields) qualify at
+    ≥100 MW for any dispatchable fuel; HIFLD active-plant fallback keeps the
+    original ≥500 MW coal/gas rule."""
     _ready(page, base_url)
-    rec = {
-        "transmission_mi": 0.5,
-        "power_plant_mi": 0.5,
-        "power_plant_mw": mw,
-        "power_plant_fuel": fuel,
-    }
-    if retired:
-        rec["power_plant_retired"] = True
+    rec = {"transmission_mi": 0.5}
+    if use_retired_src:
+        # Use EIA-860M retired-plant fields — no power_plant_* set
+        rec["retired_plant_mi"] = 0.5
+        rec["retired_plant_mw"] = mw
+        rec["retired_plant_fuel"] = fuel
+    else:
+        # Use HIFLD active-plant fallback
+        rec["power_plant_mi"] = 0.5
+        rec["power_plant_mw"] = mw
+        rec["power_plant_fuel"] = fuel
     bd = _dc_bd(page, rec)
     assert bd["grid_inheritance"] == expected
 

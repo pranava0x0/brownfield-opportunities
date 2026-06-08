@@ -669,10 +669,10 @@ def test_build_power_plant_index_carries_mw_and_fuel(tmp_path):
     pages = [
         {"features": [
             {"attributes": {"Plant_Name": "Test Gas", "Total_MW": 450.5,
-                            "PrimSource": "natural gas", "Status": "OP"},
+                            "PrimSource": "natural gas"},
              "geometry": {"x": -74.0, "y": 40.0}},
             {"attributes": {"Plant_Name": "Test Solar", "Total_MW": 12.3,
-                            "PrimSource": "solar", "Status": "RE"},
+                            "PrimSource": "solar"},
              "geometry": {"x": -75.0, "y": 41.0}},
         ]},
         {"features": []},
@@ -691,30 +691,11 @@ def test_build_power_plant_index_carries_mw_and_fuel(tmp_path):
     assert attr["mw"] == 450.5
     assert attr["fuel"] == "natural gas"
     assert attr["name"] == "Test Gas"
-    assert attr["status"] == "OP"
-
-
-def test_build_power_plant_index_carries_status(tmp_path):
-    """HIFLD `Status` field (RE/OA/OS = retired; OP/SB = operating) must be
-    stored in the attr dict so fetch_records can derive power_plant_retired."""
-    inst = InfraProximity(cache_dir=tmp_path / "cache")
-    pages = [
-        {"features": [
-            {"attributes": {"Plant_Name": "Old Coal", "Total_MW": 300.0,
-                            "PrimSource": "coal", "Status": "RE"},
-             "geometry": {"x": -83.0, "y": 40.0}},
-        ]},
-        {"features": []},
-    ]
-    call_count = {"n": 0}
-    def fake_get(url, params, use_cache, cache_key=None):
-        result = pages[call_count["n"]]
-        call_count["n"] += 1
-        return result
-    with patch.object(inst, "http_get_json", side_effect=fake_get):
-        idx = inst._build_power_plant_index(use_cache=True)
-    _, attr = idx.nearest_with_attr(40.0, -83.0)
-    assert attr["status"] == "RE"
+    # HIFLD Power_Plants_in_the_US only contains active generators — it has no
+    # Status field. The attr dict carries `status: None` as a placeholder;
+    # the eia-retired-plants enrichment connector will overwrite it via a
+    # separate join against EIA-860 Form 3_3 retired generators.
+    assert attr["status"] is None
 
 
 def _mock_load_sites(inst, sites):
@@ -725,20 +706,23 @@ def _mock_load_sites(inst, sites):
     return _loader
 
 
-def test_power_plant_retired_true_for_re_status(tmp_path, monkeypatch):
-    """When the nearest plant has Status=RE (retired), fetch_records must
-    emit power_plant_retired=True on the enriched record."""
+def test_power_plant_retired_absent_from_infra_proximity(tmp_path, monkeypatch):
+    """HIFLD Power_Plants_in_the_US only includes ACTIVE generators and has
+    no Status field. infra_proximity therefore never emits power_plant_retired
+    — it is always absent from records, not False. The field will be populated
+    by the future eia-retired-plants enrichment connector (EIA-860 Form 3_3)
+    via a separate join."""
     inst = InfraProximity(cache_dir=tmp_path / "cache")
     sites = [{"id": "S1", "program": "superfund", "lat": 40.0, "lon": -83.0}]
     monkeypatch.setattr(inst, "_load_sites", _mock_load_sites(inst, sites))
 
     def fake_get(url, params, use_cache, cache_key=None):
         key = cache_key or {}
-        if key.get("src") == "power_plants_v2":
+        if key.get("src") == "power_plants":
             if key.get("offset", 0) == 0:
                 return {"features": [
-                    {"attributes": {"Plant_Name": "Retired Coal", "Total_MW": 500.0,
-                                    "PrimSource": "coal", "Status": "RE"},
+                    {"attributes": {"Plant_Name": "Gas Plant", "Total_MW": 600.0,
+                                    "PrimSource": "natural gas"},
                      "geometry": {"x": -83.001, "y": 40.001}},
                 ]}
             return {"features": []}
@@ -755,69 +739,10 @@ def test_power_plant_retired_true_for_re_status(tmp_path, monkeypatch):
         records = inst.fetch_records(args, use_cache=True)
     assert len(records) == 1
     r = records[0]
-    assert r.get("power_plant_retired") is True
-
-
-def test_power_plant_retired_false_for_op_status(tmp_path, monkeypatch):
-    """Status=OP (operating) → power_plant_retired=False."""
-    inst = InfraProximity(cache_dir=tmp_path / "cache")
-    sites = [{"id": "S1", "program": "superfund", "lat": 40.0, "lon": -83.0}]
-    monkeypatch.setattr(inst, "_load_sites", _mock_load_sites(inst, sites))
-
-    def fake_get(url, params, use_cache, cache_key=None):
-        key = cache_key or {}
-        if key.get("src") == "power_plants_v2":
-            if key.get("offset", 0) == 0:
-                return {"features": [
-                    {"attributes": {"Plant_Name": "Active Gas", "Total_MW": 800.0,
-                                    "PrimSource": "natural gas", "Status": "OP"},
-                     "geometry": {"x": -83.001, "y": 40.001}},
-                ]}
-            return {"features": []}
-        return {"features": []}
-
-    monkeypatch.setattr(inst, "_fetch_overpass_substations", lambda bbox, use_cache: [])
-    args = _make_args(
-        infra_skip_substation=True, infra_skip_power_plant=False,
-        infra_skip_flood_zone=True,
-        infra_skip_highway=True, infra_skip_rail=True,
-        infra_skip_gas_pipeline=True, infra_skip_transmission=True,
-    )
-    with patch.object(inst, "http_get_json", side_effect=fake_get):
-        records = inst.fetch_records(args, use_cache=True)
-    assert records[0].get("power_plant_retired") is False
-
-
-def test_power_plant_retired_absent_when_status_not_returned(tmp_path, monkeypatch):
-    """Older cache rows without Status → power_plant_retired must be absent
-    (not False) so callers can distinguish 'operating' from 'unknown'."""
-    inst = InfraProximity(cache_dir=tmp_path / "cache")
-    sites = [{"id": "S1", "program": "superfund", "lat": 40.0, "lon": -83.0}]
-    monkeypatch.setattr(inst, "_load_sites", _mock_load_sites(inst, sites))
-
-    def fake_get(url, params, use_cache, cache_key=None):
-        key = cache_key or {}
-        if key.get("src") == "power_plants_v2":
-            if key.get("offset", 0) == 0:
-                return {"features": [
-                    # No Status field — simulates pre-v1.15 cache.
-                    {"attributes": {"Plant_Name": "Old Cache", "Total_MW": 600.0,
-                                    "PrimSource": "coal"},
-                     "geometry": {"x": -83.001, "y": 40.001}},
-                ]}
-            return {"features": []}
-        return {"features": []}
-
-    monkeypatch.setattr(inst, "_fetch_overpass_substations", lambda bbox, use_cache: [])
-    args = _make_args(
-        infra_skip_substation=True, infra_skip_power_plant=False,
-        infra_skip_flood_zone=True,
-        infra_skip_highway=True, infra_skip_rail=True,
-        infra_skip_gas_pipeline=True, infra_skip_transmission=True,
-    )
-    with patch.object(inst, "http_get_json", side_effect=fake_get):
-        records = inst.fetch_records(args, use_cache=True)
-    assert "power_plant_retired" not in records[0]
+    assert "power_plant_mi" in r       # normal distance field still emitted
+    assert "power_plant_mw" in r
+    assert "power_plant_fuel" in r
+    assert "power_plant_retired" not in r  # never populated from HIFLD
 
 
 def test_build_power_plant_index_skips_missing_geometry(tmp_path):
@@ -913,10 +838,10 @@ def test_fetch_records_emits_new_fields_when_enabled(tmp_path, monkeypatch):
     def fake_get(url, params, use_cache, cache_key=None):
         # Power plant fetch and flood lookup both go through http_get_json.
         key = cache_key or {}
-        if key.get("src") == "power_plants_v2":
+        if key.get("src") == "power_plants":
             return {"features": [
                 {"attributes": {"Plant_Name": "Test Plant", "Total_MW": 100.0,
-                                "PrimSource": "natural gas", "Status": "OP"},
+                                "PrimSource": "natural gas"},
                  "geometry": {"x": -74.0, "y": 40.001}},
                 {"features": []},
             ]} if key.get("offset", 0) == 0 else {"features": []}
