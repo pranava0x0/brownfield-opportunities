@@ -4,6 +4,56 @@ Ideas and enhancements. Priorities: **high** = next, **med** = soon, **low** = n
 
 ---
 
+## New ideas — DC-brownfield market research (2026-06-05)
+
+*Sourced from web research on the 2025–2026 DC-brownfield deal landscape: Homer City Energy Campus, Google/Widows Creek, Aligned/Conesville, AWS/Susquehanna, Microsoft/TMI/Mount Pleasant, Bessemer "Project Marvel," Keystone NAP/Fairless Works, EO 14318, EPA's January 2026 guidance, JLL/CBRE 2025–26 data center reports, IRA energy community rules, and the PNNL coal-plant-to-data-center white paper.*
+
+### Stranded grid capacity — the biggest missing signal (2026-06-05)
+
+The dominant pattern in 2025–2026 is retired coal/gas plant sites: they carry existing FERC-jurisdictional interconnection agreements that can potentially be inherited or re-contracted, bypassing PJM's 5–7-year queue. Google built on Widows Creek (TVA coal, 2,000 ac), Aligned on Conesville (AEP coal, 197 ac), Homer City is a 4.5 GW BTM gas plant on a 3,200 ac former coal site. In PJM, a 1 GW interconnection queue bypass is worth hundreds of millions in NPV at $10.7–11.3M/MW all-in construction cost.
+
+- ~~**[high] Score bonus for large-plant co-location ("Grid Inherit" signal).**~~ **Done 2026-06-07.** Replaced generic `power_plant` (distance-only, 8 pts) with `grid_inheritance` (8 pts, strict: coal/gas ≥500 MW ≤1 mi). Weight table still sums to 100. `_DC_SUIT_GROUPS` updated. 95 e2e tests pass.
+
+- **[high] EIA-860 plant retirement feed → retired-plant layer.** The current `power_plant_mi` nearest match is agnostic to whether the plant is operational or retired. Add a `power_plant_retired: bool` field: fetch the EIA Form 860 "Generators" and "Plants" tables (free bulk download at `https://www.eia.gov/electricity/data/eia860/`) and flag plants whose generator status is "RE" (retired) or "DC" (decommissioned). A retired plant nearby is MORE valuable than an operating one — it suggests stranded interconnection capacity. Also useful for filtering the DC Candidates tab to "Grid Inherit + Retired." Run order 310, emits to `docs/data/plant-retirement.json`; `ensurePlantRetirementLoaded()` joins by `power_plant_mi` approximate lat/lon match (nearest EIA plant within 0.5 mi). ~130k EIA generators nationwide; 90-day refresh cadence since retirements are steady. **Test**: `test_retired_plant_flag_matches_eia_status`.
+
+- **[med] FERC generator interconnection agreement lookup.** Decommissioned plants may have publicly filed FERC GIAs that can be searched on FERC eLibrary. Not automatable at scale, but: add a UI tooltip / "search FERC eLibrary" deep-link on any "Grid Inherit" flagged site in the DC Candidates table. A future enrichment pass could batch-scrape FERC eLibrary GIA filings by plant name for the top ~200 "Grid Inherit" candidates. Tier 4 complexity.
+
+### Water as the second constraint — no public nationwide layer (2026-06-05)
+
+Water is now the #2 site-selection constraint after grid (JLL 2026). Arizona, Nevada, and parts of TX have effectively closed new large-withdrawal permits. Former industrial/power plant sites with river access and legacy NPDES permits are worth a material premium. AZ and CA Aqueduct scores (WRI Aqueduct, Tier 2 backlog) are the right answer, but a quick proxy is available now:
+
+- **[high] EPA ECHO NPDES permit flag as water-access proxy.** `epa-echo.json` already carries `active_programs` per facility. When `active_programs` includes "NPDES" (National Pollutant Discharge Elimination System), the site has a legacy industrial water discharge permit — strong proxy for existing water access infrastructure (intake, treated effluent rights). Add `has_npdes_permit: bool` to the ECHO enrichment output and surface in the DC Candidates "Signals" column as a `Water` badge. No new HTTP — derive from existing `active_programs` field. Schema gain: one `Optional[bool]` field. Updates `epa_echo.py` normalizer + detail-panel "Water supply" row. **Test**: `test_echo_npdes_flag_derived_correctly`.
+
+- **[med] WRI Aqueduct baseline water stress → `water_stress_score`.** Already in Tier 2 backlog. Re-prioritize to **high** given 2026 market evidence that water is now a deal-killer in AZ, CA, parts of TX, and the Mountain West. Add to DC score as a penalty component (similar to flood: −12 pts for `bws_score ≥ 3`). The current Tier 2 entry has full implementation notes.
+
+### EO 14318 "federal fast lane" — new policy tailwind (2026-06-05)
+
+Executive Order 14318 (July 23, 2025) directed EPA to identify Superfund/brownfield sites for data center development, created NEPA categorical exclusions for qualifying projects, and fast-tracked Army Corps Section 404 permits. EPA published its brownfield data center guidance in January 2026. This is a significant regulatory tailwind that should be surfaced per-site.
+
+- ~~**[high] EO 14318 eligibility badge.**~~ **Done 2026-06-07.** `_hasEO14318()` helper in app.js; `+3` readiness bonus in `_scoreReadinessDc`; "Fed Fast Lane" `sig-badge` in DC Candidates Signals column; `eo14318-pill` in detail-panel program pill row. `test_eo14318_readiness_bonus` covers all four ineligibility branches.
+
+- **[med] Military installation data center solicitations.** Under EO 14318, the Pentagon is actively leasing land on **operating** military bases — not just closed BRAC sites. Five Air Force bases (Arnold AFB TN, Davis-Monthan AZ, Edwards CA, McGuire-Dix-Lakehurst NJ, Robins GA) have issued lease solicitations as of 2026. Add a curated layer `docs/data/mil-dc-solicitations.json` — a hand-maintained ~20-row JSON with site name, installation, state, solicitation status, estimated acreage, and source URL. Frontend shows these as distinctive markers on the map and a section in the DC Candidates tab. Unlike BRAC (closed sites already in our DB), these are active bases seeking tenants — a different use-case category.
+
+### IRA energy community bonus — stacking opportunity (2026-06-05)
+
+Brownfield sites qualify as "energy communities" under the IRA, entitling clean energy projects on them to +10pp PTC/ITC. Rural Qualified Opportunity Zone sites qualify for a 30% basis step-up (vs. 15% for standard OZ). These financial bonuses stack and significantly affect project IRR.
+
+- ~~**[high] Rural OZ score bonus in `dc-score.js`.**~~ **Done 2026-06-07.** `_scoreReadinessDc` now gives +7 for `oz_rural === true` and +5 for standard OZ. `test_oz_rural_bonus_higher_than_standard_oz` guards it.
+
+- **[med] IRA energy community layer.** The IRS definition of "energy communities" under IRA § 45 is broader than just brownfields — it also includes census tracts with ≥0.17% direct employment in fossil fuels or ≥25% local tax revenue from fossil-fuel extraction, and tracts adjacent to them. DOE LBNL maintains the definitive tract-level layer at `https://energycommunities.gov/energy-community-tax-credit-bonus/`. New `connectors/ira_energy_community.py`, slug `ira-energy-community`, `run_order=355`. Adds `in_energy_community: bool` + `energy_community_type: str` (brownfield / fossil_fuel_employment / coal_closure). Frontend surfaces as an `IRA+` badge in DC Candidates. The brownfield subset is a subset of our existing program flags, but the fossil-fuel-employment and coal-closure categories add new non-brownfield sites with IRA bonus eligibility.
+
+### Market-driven scoring gaps (2026-06-05)
+
+- **[high] Interconnection queue MW within 50 mi → `queued_mw_50mi`.** Already in Tier 2 backlog under "LBNL Queued Up." Re-prioritize to **high** based on JLL 2026 evidence that grid queue wait times (4–7 years in PJM) are the #1 site-selection constraint. Sites near large queued projects know grid is being built; sites in MISO backlog areas face less constraint than PJM. Use LBNL Queued Up 2025 Edition (free annual Excel) for non-ISO regions. Full implementation notes already in the Tier 2 backlog entry.
+
+- **[med] Union labor density by county → `ibew_density`.** States with prevailing wage requirements tied to data center tax incentives: PA (Shapiro mandate), NJ (signed law), CA (SB pending). Former steel/coal/industrial communities (Bessemer AL, Coshocton OH, Indiana PA) often have high IBEW concentrations — and this can be a prerequisite for incentive eligibility. BLS OEWS API (`api.bls.gov/publicAPI/v2/timeseries/data/`) — occupational employment for electricians (SOC 49-2111), HVAC (49-9021), construction supervisors (11-9021) by MSA → county crosswalk. New `connectors/bls_oews.py`, `run_order=380`. Surfaces as a `Labor` tier badge (High/Moderate/Low) in DC Candidates.
+
+- **[med] Reference layer: known hyperscale brownfield campuses.** Add a curated `docs/data/reference-campuses.json` (~15 rows) of confirmed hyperscale brownfield data center projects — Google/Widows Creek, Aligned/Conesville, Homer City, AWS/Susquehanna, Keystone NAP/Fairless Works, Bessemer/Project Marvel, Microsoft/Mount Pleasant, Meta/Forest City. Show as a dedicated overlay on the map (star markers, different color) and a reference section in the DC Candidates tab. This answers "where has the smart money already gone?" and helps users calibrate the scoring model against real-world decisions. Static JSON — refresh annually.
+
+- **[low] Permitting speed index by state.** Some states have formal expedited brownfield review programs (Connecticut SB 1404, Virginia DEQ fast-track, EPA CERCLA Bona Fide Prospective Purchaser protections). Map average time-to-close for brownfield redevelopment projects by state using ASTSWMO data. Surfaces as a "Permitting Speed" tier (Fast/Moderate/Slow) per state in the detail panel DC incentive section.
+
+---
+
 ## Data-center suitability scoring (tiered plan, researched 2026-05-07)
 
 **Goal.** Move the dashboard from "is this site a brownfield?" to "is this site a viable data-center site?" — a scored, persona-filterable view across all ~47k records. Today we have a single Boolean `data_center_reuse_candidate` flag (EPA RE-Powering, ≥50 ac + power + water, ~776 Superfund sites) plus universal `transmission_mi` / `rail_mi` / `highway_mi` distances. The thesis is that post-remediation industrial land with grid + water + fiber + favorable state tax is gold for AI buildouts; this section turns it into an actionable rubric.

@@ -511,17 +511,14 @@ def test_owner_section_uses_user_friendly_copy(page, base_url):
 
 
 def test_hero_strip_renders(page, base_url):
-    """v1.8: hero strip with eyebrow, serif H2, dek, and KPI deck above the map."""
+    """KPI deck above the map and footer refresh date are populated."""
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
-    # Hero copy (visible on desktop)
-    assert page.locator(".hero h2").count() == 1
-    assert "America" in page.locator(".hero h2").text_content()
-    # Hero refresh stamp filled in (not the dash placeholder)
-    refresh = page.locator("#hero-refresh").text_content()
-    assert refresh.startswith("Updated") and "—" not in refresh
-    # KPI deck — four cells, each with a non-dash number
-    for kpi_id in ("kpi-total", "kpi-acres", "kpi-dc", "kpi-states"):
+    # Footer refresh stamp filled in (not the dash placeholder)
+    refresh = page.locator("#footer-refresh").text_content()
+    assert refresh.startswith("Refreshed") and "—" not in refresh
+    # KPI deck — five cells, each with a non-dash number
+    for kpi_id in ("kpi-total", "kpi-acres", "kpi-dc", "kpi-hyperscale", "kpi-generation"):
         text = page.locator(f"#{kpi_id}").text_content()
         assert text != "—" and text != "", f"{kpi_id} still showing placeholder: {text!r}"
 
@@ -2227,12 +2224,12 @@ def test_kpi_dc_cell_filters_to_reuse_candidates(page, base_url):
 
 
 def test_kpi_non_actionable_cells_are_inert(page, base_url):
-    """The Total / Acreage / States KPI cells are overview metrics, not
+    """The Total / Acreage / Generation KPI cells are overview metrics, not
     filterable predicates. They should NOT carry .kpi-actionable and
     clicking them must not mutate filter state."""
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
-    for kpi in ("total", "acreage", "states"):
+    for kpi in ("total", "acreage", "generation"):
         cls = page.locator(f"[data-kpi='{kpi}']").get_attribute("class") or ""
         assert "kpi-actionable" not in cls, f"{kpi} KPI shouldn't be actionable"
     # Clicking a non-actionable cell should leave filters unchanged.
@@ -2491,7 +2488,7 @@ def test_kpi_subtext_has_title_attribute_for_truncation(page, base_url):
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
     for sub_id in ("kpi-total-sub", "kpi-acres-sub", "kpi-dc-sub",
-                   "kpi-hyperscale-sub", "kpi-states-sub"):
+                   "kpi-hyperscale-sub", "kpi-generation-sub"):
         title = page.locator(f"#{sub_id}").get_attribute("title")
         text = (page.locator(f"#{sub_id}").text_content() or "").strip()
         assert title, f"#{sub_id} missing title attribute"
