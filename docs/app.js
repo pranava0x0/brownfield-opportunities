@@ -2682,6 +2682,16 @@ function _hasGridInheritance(s) {
     && /coal|natural gas/i.test(s.power_plant_fuel);
 }
 
+// Confirmed-retired plant within 1 mi — the Conesville / Widows Creek pattern:
+// inherited transmission connection without competing for the active plant's
+// capacity. Lower MW floor (≥100) because even a 200 MW retired peaker leaves
+// behind interconnection infrastructure.
+function _hasRetiredPlant(s) {
+  return s.power_plant_retired === true
+    && s.power_plant_mi != null && s.power_plant_mi <= 1
+    && s.power_plant_mw != null && s.power_plant_mw >= 100;
+}
+
 // Returns true when the site meets the EPA's stated EO 14318 / January 2026
 // guidance criteria for fast-tracked brownfield/Superfund data center permits:
 // program is superfund or brownfield, ≥100 ac, grid ≤2 mi, outside SFHA.
@@ -2760,7 +2770,9 @@ function makeCandidateRow(s, rank) {
   if (s.data_center_reuse_candidate) {
     badges.push('<span class="sig-badge sig-dc" title="EPA RE-Powering data-center reuse candidate">EPA DC</span>');
   }
-  if (_hasGridInheritance(s)) {
+  if (_hasRetiredPlant(s)) {
+    badges.push('<span class="sig-badge sig-plant" title="Retired power plant ≤1 mi — inherited transmission connection and stranded interconnection agreement (Conesville / Widows Creek pattern)">Ret. Plant</span>');
+  } else if (_hasGridInheritance(s)) {
     badges.push('<span class="sig-badge sig-grid" title="Large coal/gas plant ≤1 mi — potential inherited grid interconnection">Grid Inherit</span>');
   }
   if (_hasEO14318(s)) {

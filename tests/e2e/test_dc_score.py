@@ -182,8 +182,8 @@ def test_dc_substation_component(page, base_url, mi, expected):
     ("Natural Gas", 600, 0.5, 8),  # qualifies: gas ≥500 MW ≤1 mi
     ("Natural Gas", 600, 1.0, 8),  # exactly at 1 mi boundary
     ("Natural Gas", 600, 1.1, 0),  # just over 1 mi → no points
-    ("Natural Gas", 400, 0.5, 0),  # MW too small
-    ("Hydro",       600, 0.5, 0),  # wrong fuel type
+    ("Natural Gas", 400, 0.5, 0),  # MW too small (status unknown)
+    ("Hydro",       600, 0.5, 0),  # wrong fuel type (status unknown)
     ("Coal",        500, 0.5, 8),  # coal qualifies
     (None,          600, 0.5, 0),  # no fuel → no points
 ])
@@ -195,6 +195,36 @@ def test_dc_grid_inheritance_component(page, base_url, fuel, mw, mi, expected):
     rec = {"transmission_mi": 0.5, "power_plant_mi": mi, "power_plant_mw": mw}
     if fuel is not None:
         rec["power_plant_fuel"] = fuel
+    bd = _dc_bd(page, rec)
+    assert bd["grid_inheritance"] == expected
+
+
+@pytest.mark.parametrize("fuel,mw,retired,expected", [
+    # Retired plants: lower MW floor (≥100) and any dispatchable fuel qualifies.
+    ("coal",        300, True,  8),   # retired coal 300 MW — qualifies
+    ("natural gas", 100, True,  8),   # retired gas at minimum MW floor
+    ("nuclear",     200, True,  8),   # retired nuclear — qualifies (Zion pattern)
+    ("natural gas", 99,  True,  0),   # retired but below 100 MW floor
+    ("natural gas", 600, True,  8),   # retired large gas — also qualifies
+    ("solar",       500, True,  0),   # retired solar — non-dispatchable, no points
+    ("wind",        400, True,  0),   # retired wind — non-dispatchable
+    # Status unknown (power_plant_retired absent): original strict rule.
+    ("coal",        300, False, 0),   # operating small coal → doesn't qualify
+    ("natural gas", 500, False, 8),   # operating large gas → qualifies (old rule)
+])
+def test_dc_grid_inheritance_retired_vs_operating(page, base_url, fuel, mw, retired, expected):
+    """v1.15: confirmed-retired plants (power_plant_retired=true) qualify at
+    ≥100 MW for any dispatchable fuel; operating/unknown plants keep the
+    original ≥500 MW coal/gas rule as the proxy."""
+    _ready(page, base_url)
+    rec = {
+        "transmission_mi": 0.5,
+        "power_plant_mi": 0.5,
+        "power_plant_mw": mw,
+        "power_plant_fuel": fuel,
+    }
+    if retired:
+        rec["power_plant_retired"] = True
     bd = _dc_bd(page, rec)
     assert bd["grid_inheritance"] == expected
 

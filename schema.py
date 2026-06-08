@@ -168,6 +168,14 @@ class SiteRecord(BaseModel):
         description="Primary fuel of the nearest power plant (HIFLD `PrimSource` "
                     "field — e.g. 'natural gas', 'nuclear', 'coal', 'wind', 'solar').",
     )
+    power_plant_retired: Optional[bool] = Field(
+        default=None,
+        description="True when the nearest plant's HIFLD Status is RE/OA/OS (retired "
+                    "/ out of service). False when operating/standby. None when the "
+                    "Status field wasn't available (older cache). A retired plant "
+                    "within 1 mi is the Conesville / Widows Creek pattern: inherited "
+                    "transmission connection without competing for active capacity.",
+    )
     flood_zone: Optional[str] = Field(
         default=None,
         description="FEMA NFHL flood-zone code at the site (`A`, `AE`, `V`, `VE`, "
