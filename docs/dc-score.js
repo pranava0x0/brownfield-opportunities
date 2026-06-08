@@ -80,15 +80,36 @@ function _scoreSubstation(mi, cap) {
   return Math.round(frac * cap);
 }
 
-// Distance to the nearest existing power plant. DC-only: signals a PPA /
-// behind-the-meter co-location opportunity and demonstrated local grid
-// capacity. Intentionally absent from the generation lens.
-function _scorePowerPlant(mi, cap) {
-  if (mi == null) return 0;
-  if (mi <= 1)  return cap;
-  if (mi <= 5)  return Math.round(cap * 0.75);
-  if (mi <= 15) return Math.round(cap * 0.4);
-  return 0;
+// "Grid Inherit" signal — DC-only. A retired coal/gas plant ≥500 MW within
+// 1 mi may carry an inheritable FERC interconnection agreement, bypassing
+// PJM's 5–7-year queue (the Homer City / Widows Creek pattern). Only large
+// dispatchable capacity qualifies; generic proximity is intentionally not
+// rewarded here since the strategic value is the queue bypass, not just
+// having a plant nearby.
+//
+// v1.15: When `power_plant_retired === true` the threshold drops to ≥100 MW
+// and ANY dispatchable fuel qualifies (retired nuclear + coal + gas all leave
+// behind the same interconnection asset). The existing ≥500 MW coal/gas rule
+// is kept as the fallback proxy when status hasn't been fetched yet (null).
+function _scoreGridInheritance(site, cap) {
+  if (site.power_plant_mi == null || site.power_plant_mi > 1) return 0;
+  if (site.power_plant_mw == null) return 0;
+
+  // Confirmed-retired plant: lower MW floor, any dispatchable fuel.
+  if (site.power_plant_retired === true) {
+    if (site.power_plant_mw < 100) return 0;
+    if (site.power_plant_fuel == null) return 0;
+    if (/solar|wind/i.test(site.power_plant_fuel)) return 0; // non-dispatchable
+    return cap;
+  }
+
+  // Status unknown or operating: original strict rule (avoids giving
+  // grid-inheritance credit to active plants where interconnection is
+  // already committed and unavailable to a co-located buyer).
+  if (site.power_plant_mw < 500) return 0;
+  if (site.power_plant_fuel == null) return 0;
+  if (!/coal|natural gas/i.test(site.power_plant_fuel)) return 0;
+  return cap;
 }
 
 // Distance to the nearest natural-gas pipeline. Enables behind-the-meter
@@ -173,7 +194,7 @@ const DC_SCORE_WEIGHTS = Object.freeze({
   transmission_distance: 16,
   voltage:               14,
   substation:            12,
-  power_plant:            8,
+  grid_inheritance:       8,  // large coal/gas ≥500 MW ≤1 mi (was generic power_plant)
   acreage:               20,
   gas_pipeline:          10,
   logistics:              6,
@@ -182,11 +203,11 @@ const DC_SCORE_WEIGHTS = Object.freeze({
 
 const DC_SCORE_TOOLTIP =
   "Data-center suitability (0–100). Weighted sum of power access — " +
-  "transmission distance (16), voltage (14), substation (12), power-plant " +
-  "co-location (8) — plus acreage (20), gas pipeline (10), highway+rail " +
-  "logistics (6), and readiness (14: EPA DC flag, cleanup status, reuse, " +
-  "Opportunity Zone). A Special Flood Hazard Area subtracts 18. " +
-  "Sites without transmission data score N/A.";
+  "transmission distance (16), voltage (14), substation (12), grid " +
+  "inheritance (8: coal/gas ≥500 MW within 1 mi) — plus acreage (20), " +
+  "gas pipeline (10), highway+rail logistics (6), and readiness (14: EPA " +
+  "DC flag, cleanup status, reuse, Opportunity Zone). A Special Flood " +
+  "Hazard Area subtracts 18. Sites without transmission data score N/A.";
 
 // readiness for a data-center load: signals that the parcel is ready to
 // transact and develop. Cap 14 (sub-signals can sum to 15; OZ is the
@@ -197,7 +218,18 @@ function _scoreReadinessDc(site) {
   if (site.npl_status_code === "D") s += 3;       // cleanup complete
   else if (site.npl_status_code === "F") s += 1;  // on Final NPL
   if (typeof site.in_reuse === "string" && /^yes/i.test(site.in_reuse)) s += 2;
-  if (site.in_opportunity_zone === true) s += 5;  // Treasury QOZ
+  if (site.in_opportunity_zone === true) {
+    // Rural OZ: 30% QOF basis step-up vs. 15% for standard → +7 vs +5
+    s += site.oz_rural === true ? 7 : 5;
+  }
+  // EO 14318 "federal fast lane": superfund/brownfield ≥100 ac, grid ≤2 mi,
+  // outside SFHA → NEPA categorical exclusion + fast-track Section 404.
+  if ((site.program === "superfund" || site.program === "brownfield")
+      && site.acreage != null && site.acreage >= 100
+      && site.transmission_mi != null && site.transmission_mi <= 2
+      && site.in_sfha !== true) {
+    s += 3;
+  }
   return Math.min(s, DC_SCORE_WEIGHTS.readiness);
 }
 
@@ -209,7 +241,7 @@ function computeDcScoreBreakdown(site) {
     transmission_distance: _scoreTransmissionDistance(site.transmission_mi, W.transmission_distance),
     voltage:               _scoreVoltage(site.transmission_kv, W.voltage),
     substation:            _scoreSubstation(site.substation_mi, W.substation),
-    power_plant:           _scorePowerPlant(site.power_plant_mi, W.power_plant),
+    grid_inheritance:      _scoreGridInheritance(site, W.grid_inheritance),
     acreage:               _scoreAcreageDc(site.acreage, W.acreage),
     gas_pipeline:          _scoreGasPipeline(site.gas_pipeline_mi, W.gas_pipeline),
     logistics:             _scoreLogistics(site.highway_mi, site.rail_mi, W.logistics),
