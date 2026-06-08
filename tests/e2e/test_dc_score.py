@@ -398,6 +398,46 @@ def test_sfha_floors_at_zero_not_negative(page, base_url):
     assert _gen(page, rec) == 0
 
 
+# -- FEMA NRI climate penalty ----------------------------------------------
+
+def test_climate_penalty_wildfire_very_high(page, base_url):
+    """Very-High wildfire (or drought) subtracts 10 from both lenses;
+    Relatively-High subtracts 5; lower tiers and null subtract nothing."""
+    _ready(page, base_url)
+    base = {"transmission_mi": 0.5}
+    vh = dict(base, nri_wildfire_rating="Very High")
+    rh = dict(base, nri_wildfire_rating="Relatively High")
+    mod = dict(base, nri_wildfire_rating="Relatively Moderate")
+    none = dict(base)
+    assert _dc_bd(page, vh)["climate_penalty"] == -10
+    assert _dc_bd(page, rh)["climate_penalty"] == -5
+    assert _dc_bd(page, mod)["climate_penalty"] == 0
+    assert _dc_bd(page, none)["climate_penalty"] == 0
+    # Same on the generation lens.
+    assert _gen_bd(page, vh)["climate_penalty"] == -10
+
+
+def test_climate_penalty_takes_max_of_wildfire_drought(page, base_url):
+    """The penalty is the worst of wildfire / drought, not the sum."""
+    _ready(page, base_url)
+    both = {"transmission_mi": 0.5,
+            "nri_wildfire_rating": "Very High",
+            "nri_drought_rating": "Relatively High"}
+    assert _dc_bd(page, both)["climate_penalty"] == -10  # max(10, 5), not 15
+    # Drought alone drives it when wildfire is benign.
+    drought_only = {"transmission_mi": 0.5,
+                    "nri_wildfire_rating": "Very Low",
+                    "nri_drought_rating": "Very High"}
+    assert _dc_bd(page, drought_only)["climate_penalty"] == -10
+
+
+def test_climate_penalty_heatwave_not_charged(page, base_url):
+    """Heat wave is displayed for context but does NOT drive the penalty."""
+    _ready(page, base_url)
+    rec = {"transmission_mi": 0.5, "nri_heatwave_rating": "Very High"}
+    assert _dc_bd(page, rec)["climate_penalty"] == 0
+
+
 # -- Generation per-component coverage -------------------------------------
 
 @pytest.mark.parametrize("acres,expected", [
