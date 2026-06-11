@@ -16,6 +16,15 @@ v2 (this file): the DC score now folds in substation proximity,
 power-plant co-location, and a Special-Flood-Hazard-Area penalty — the
 v1.13.3 signals that were on disk but unused. A second lens scores siting
 for new power *generation* with a land/interconnection/market weighting.
+
+v3 (v1.20): continuous signals (distance / acreage / MW) interpolate
+piecewise-linearly through the documented anchors instead of stepping;
+grid inheritance scales by plant MW and retirement recency with a
+half-credit 1–3 mi retired band and a 30% active coal/gas PPA band at
+1–5 mi; substations provably distribution-class (substation_kv < 69)
+are discounted; the generation lens gains a `grid_reuse` component
+(retired-plant interconnection repowering) and a longer gen-tie
+transmission reach (taper to 10 mi instead of cliffing at 2).
 """
 from __future__ import annotations
 
@@ -114,12 +123,14 @@ def test_null_site_yields_null(page, base_url):
 
 def test_dc_all_max_record_scores_100(page, base_url):
     """A record that maxes every DC component (including grid inheritance,
-    substation, and rural OZ readiness) lands at exactly 100."""
+    substation, and rural OZ readiness) lands at exactly 100. Grid
+    inheritance scales by MW, so the plant must be ≥1,000 MW for full
+    credit (v1.20)."""
     _ready(page, base_url)
     rec = {
         "transmission_mi": 0.0, "transmission_kv": 500,
         "substation_mi": 0.0,
-        "power_plant_mi": 0.5, "power_plant_mw": 600, "power_plant_fuel": "Natural Gas",
+        "power_plant_mi": 0.5, "power_plant_mw": 1200, "power_plant_fuel": "Natural Gas",
         "acreage": 1000, "gas_pipeline_mi": 0.0,
         "highway_mi": 0.5, "rail_mi": 0.5,
         "data_center_reuse_candidate": True,
@@ -130,11 +141,16 @@ def test_dc_all_max_record_scores_100(page, base_url):
 
 
 def test_generation_all_max_record_scores_100(page, base_url):
+    """v1.20: the generation lens carries a grid_reuse component, so the
+    all-max record needs a fresh ≥1,000 MW dispatchable retired plant
+    within 1 mi (the repowering pattern)."""
     _ready(page, base_url)
     rec = {
         "transmission_mi": 0.0, "transmission_kv": 500,
         "substation_mi": 0.0, "acreage": 2000,
         "gas_pipeline_mi": 0.0, "iso_rto": "PJM",
+        "retired_plant_mi": 0.5, "retired_plant_mw": 1200,
+        "retired_plant_fuel": "BIT", "retired_plant_year": 2024,
         "npl_status_code": "D", "in_opportunity_zone": True,
     }
     assert _gen(page, rec) == 100
@@ -170,33 +186,63 @@ def test_dc_voltage_component(page, base_url, kv, expected):
 
 @pytest.mark.parametrize("mi,expected", [
     (None, 0), (0.3, 12), (0.5, 12), (2.0, 9), (5.0, 6), (10.0, 3), (20.0, 0),
+    # v1.20: interpolated between anchors instead of stepping
+    (1.0, 11), (12.5, 2),
 ])
 def test_dc_substation_component(page, base_url, mi, expected):
-    """NEW in v2 — interconnection feasibility. 99% coverage on disk."""
+    """NEW in v2 — interconnection feasibility. 99% coverage on disk.
+    v1.20: piecewise-linear between the anchors (no cliffs)."""
     _ready(page, base_url)
     bd = _dc_bd(page, {"transmission_mi": 0.5, "substation_mi": mi})
     assert bd["substation"] == expected
 
 
+@pytest.mark.parametrize("kv,expected", [
+    (12, 6),     # distribution-class — can't serve/export bulk power → ×0.5
+    (69, 9),     # sub-transmission — limited headroom → ×0.75
+    (115, 12),   # transmission-class — full credit
+    (230, 12),
+    (None, 12),  # unknown tag — NOT discounted (absence of evidence)
+])
+def test_substation_distribution_class_discount(page, base_url, kv, expected):
+    """v1.20: OSM `power=substation` includes thousands of distribution
+    substations. When substation_kv PROVES distribution class the distance
+    score is discounted; a missing tag is not punished (same null
+    principle as flood / climate)."""
+    _ready(page, base_url)
+    rec = {"transmission_mi": 0.5, "substation_mi": 0.3}
+    if kv is not None:
+        rec["substation_kv"] = kv
+    assert _dc_bd(page, rec)["substation"] == expected
+
+
 @pytest.mark.parametrize("fuel,mw,mi,expected", [
-    ("Natural Gas", 600, 0.5, 8),  # qualifies: gas ≥500 MW ≤1 mi
-    ("Natural Gas", 600, 1.0, 8),  # exactly at 1 mi boundary
-    ("Natural Gas", 600, 1.1, 0),  # just over 1 mi → no points
-    ("Natural Gas", 400, 0.5, 0),  # MW too small (status unknown)
-    ("Hydro",       600, 0.5, 0),  # wrong fuel type (hydro not scored)
-    ("Coal",        500, 0.5, 8),  # coal qualifies
-    (None,          600, 0.5, 0),  # no fuel → no points
+    # v1.20: every plant pathway scales by MW — _mwFrac interpolates
+    # (100→0.5, 500→0.85, 1000→1.0). 600 MW → 0.88.
+    ("Natural Gas", 600,  0.5, 7),  # gas ≥500 MW ≤1 mi → round(8×0.88)=7
+    ("Natural Gas", 600,  1.0, 7),  # exactly at 1 mi boundary
+    ("Natural Gas", 1200, 0.5, 8),  # ≥1,000 MW → full credit
+    # v1.20: active coal/gas 1–5 mi → 30% PPA-neighborhood band (was 0)
+    ("Natural Gas", 600,  1.1, 2),  # round(8×0.3×0.88)=2
+    ("Natural Gas", 600,  5.0, 2),  # band boundary
+    ("Natural Gas", 600,  5.1, 0),  # past the band → no points
+    ("Natural Gas", 400,  0.5, 0),  # MW too small (status unknown)
+    ("Hydro",       600,  0.5, 0),  # wrong fuel type (hydro not scored)
+    ("Coal",        500,  0.5, 7),  # coal qualifies → round(8×0.85)=7
+    (None,          600,  0.5, 0),  # no fuel → no points
     # v1.17: operating nuclear pathway (AWS/Susquehanna pattern)
-    # Active nuclear ≥500 MW within 5 mi → 45% of cap (PPA/grid-neighborhood signal)
-    ("nuclear",     600, 0.5, 4),  # nuclear at 0.5 mi → round(8*0.45)=4
-    ("nuclear",     600, 5.0, 4),  # nuclear at boundary 5 mi → still qualifies
-    ("nuclear",     600, 5.1, 0),  # just over 5 mi → no points
-    ("nuclear",     400, 0.5, 0),  # nuclear below 500 MW floor → no points
+    # Active nuclear ≥500 MW within 5 mi → 45% of cap × MW fraction
+    ("nuclear",     600,  0.5, 3),  # round(8×0.45×0.88)=3
+    ("nuclear",     600,  5.0, 3),  # boundary 5 mi → still qualifies
+    ("nuclear",     2500, 4.0, 4),  # Susquehanna-scale → round(8×0.45)=4
+    ("nuclear",     600,  5.1, 0),  # just over 5 mi → no points
+    ("nuclear",     400,  0.5, 0),  # nuclear below 500 MW floor → no points
 ])
 def test_dc_grid_inheritance_component(page, base_url, fuel, mw, mi, expected):
-    """Grid inheritance: large coal/gas ≥500 MW within 1 mi = full 8 pts;
-    operating nuclear ≥500 MW within 5 mi = 45% of cap (4 pts) — the
-    AWS/Talen Susquehanna PPA pattern; other fuels/distances = 0."""
+    """Grid inheritance: large coal/gas within 1 mi scaled by MW; nuclear
+    within 5 mi at 45% (AWS/Talen Susquehanna PPA pattern); coal/gas
+    1–5 mi at 30% (same PPA-neighborhood logic, weaker — CFE targets
+    price thermal PPAs below nuclear)."""
     _ready(page, base_url)
     rec = {"transmission_mi": 0.5, "power_plant_mi": mi, "power_plant_mw": mw}
     if fuel is not None:
@@ -207,23 +253,27 @@ def test_dc_grid_inheritance_component(page, base_url, fuel, mw, mi, expected):
 
 @pytest.mark.parametrize("fuel,mw,use_retired_src,expected", [
     # EIA-860M retired plant (retired_plant_* fields): lower MW floor ≥100,
-    # any dispatchable fuel qualifies.
-    ("BIT",         300, True,  8),   # retired coal 300 MW — qualifies
-    ("NG",          100, True,  8),   # retired gas at minimum MW floor
-    ("NUC",         200, True,  8),   # retired nuclear — qualifies (San Onofre pattern)
-    ("NG",           99, True,  0),   # retired but below 100 MW floor
-    ("NG",          600, True,  8),   # retired large gas — also qualifies
+    # any dispatchable fuel qualifies, credit scales with MW (v1.20):
+    # _mwFrac → 100 MW = 0.5, 500 MW = 0.85, ≥1,000 MW = 1.0.
+    ("BIT",         300, True,  5),   # retired coal 300 MW → round(8×0.675)=5
+    ("NG",          100, True,  4),   # minimum MW floor → round(8×0.5)=4
+    ("NUC",         200, True,  5),   # retired nuclear (San Onofre) → round(8×0.5875)=5
+    ("NG",           99, True,  0),   # below 100 MW floor
+    ("NG",          600, True,  7),   # retired large gas → round(8×0.88)=7
+    ("NG",         1500, True,  8),   # ≥1,000 MW → full credit
     ("SUN",         500, True,  0),   # retired solar — non-dispatchable, no points
     ("WND",         400, True,  0),   # retired wind — non-dispatchable
     # HIFLD active plant fallback (power_plant_* fields, no retired_plant_*):
-    # original strict ≥500 MW coal/natural gas rule.
+    # strict ≥500 MW coal/natural gas rule, also MW-scaled.
     ("coal",        300, False, 0),   # active small coal → doesn't qualify
-    ("natural gas", 500, False, 8),   # active large gas → qualifies (old rule)
+    ("natural gas", 500, False, 7),   # active large gas → round(8×0.85)=7
 ])
 def test_dc_grid_inheritance_retired_vs_operating(page, base_url, fuel, mw, use_retired_src, expected):
     """v1.15: EIA-860M retired plants (`retired_plant_*` fields) qualify at
     ≥100 MW for any dispatchable fuel; HIFLD active-plant fallback keeps the
-    original ≥500 MW coal/gas rule."""
+    ≥500 MW coal/gas floor. v1.20: both paths scale by _mwFrac — a 100 MW
+    interconnect can't host a hyperscale campus and no longer earns the
+    same credit as a 2,000 MW one."""
     _ready(page, base_url)
     rec = {"transmission_mi": 0.5}
     if use_retired_src:
@@ -240,8 +290,47 @@ def test_dc_grid_inheritance_retired_vs_operating(page, base_url, fuel, mw, use_
     assert bd["grid_inheritance"] == expected
 
 
+@pytest.mark.parametrize("year,expected", [
+    (2024, 8),   # fresh retirement — interconnect typically intact
+    (2018, 8),   # fresh-bucket boundary
+    (2012, 6),   # 2008–2017 → ×0.75: infrastructure persists, capacity contested
+    (2003, 4),   # <2008 → ×0.5: corridor only, agreement long gone
+    (None, 8),   # unknown year — not punished
+])
+def test_dc_grid_inheritance_retirement_recency(page, base_url, year, expected):
+    """v1.20: a retired plant's interconnection value decays with time —
+    FERC interconnection service lapses after permanent retirement and the
+    freed headroom gets reabsorbed. Homer City (2023) ≠ a 2002 retirement."""
+    _ready(page, base_url)
+    rec = {"transmission_mi": 0.5, "retired_plant_mi": 0.5,
+           "retired_plant_mw": 1200, "retired_plant_fuel": "BIT"}
+    if year is not None:
+        rec["retired_plant_year"] = year
+    assert _dc_bd(page, rec)["grid_inheritance"] == expected
+
+
+@pytest.mark.parametrize("mi,expected", [
+    (1.0, 8),   # ≤1 mi — site effectively IS / abuts the plant property
+    (2.0, 4),   # 1–3 mi — near a freed-up grid node → half credit (was 0)
+    (3.0, 4),   # band boundary
+    (3.1, 0),   # past the band
+])
+def test_dc_grid_inheritance_retired_distance_band(page, base_url, mi, expected):
+    """v1.20: the hard 1.0-mi cliff is now a half-credit band to 3 mi —
+    3,299 sites sit 1–3 mi from a ≥100 MW retired plant and previously
+    scored identically to sites with nothing nearby."""
+    _ready(page, base_url)
+    rec = {"transmission_mi": 0.5, "retired_plant_mi": mi,
+           "retired_plant_mw": 1200, "retired_plant_fuel": "BIT",
+           "retired_plant_year": 2024}
+    assert _dc_bd(page, rec)["grid_inheritance"] == expected
+
+
 @pytest.mark.parametrize("acres,expected", [
     (None, 0), (1, 1), (5, 5), (25, 11), (100, 16), (500, 20), (50_000, 20),
+    # v1.20: interpolated — a 99-acre parcel no longer scores 5 pts below
+    # a 100-acre one
+    (2, 2), (50, 13), (200, 17),
 ])
 def test_dc_acreage_component(page, base_url, acres, expected):
     _ready(page, base_url)
@@ -251,6 +340,8 @@ def test_dc_acreage_component(page, base_url, acres, expected):
 
 @pytest.mark.parametrize("mi,expected", [
     (None, 0), (0.0, 10), (1.0, 8), (5.0, 6), (15.0, 3), (30.0, 0),
+    # v1.20: interpolated between anchors; tail tapers to 0 at 30 mi
+    (3.0, 7), (20.0, 2),
 ])
 def test_dc_gas_pipeline_component(page, base_url, mi, expected):
     _ready(page, base_url)
@@ -368,7 +459,7 @@ def test_sfha_subtracts_from_both_scores(page, base_url):
     rec = {
         "transmission_mi": 0.0, "transmission_kv": 500,
         "substation_mi": 0.0,
-        "power_plant_mi": 0.5, "power_plant_mw": 600, "power_plant_fuel": "Natural Gas",
+        "power_plant_mi": 0.5, "power_plant_mw": 1200, "power_plant_fuel": "Natural Gas",
         "acreage": 1000, "gas_pipeline_mi": 0.0,
         "highway_mi": 0.5, "rail_mi": 0.5,
         "data_center_reuse_candidate": True,
@@ -441,8 +532,10 @@ def test_climate_penalty_heatwave_not_charged(page, base_url):
 # -- Generation per-component coverage -------------------------------------
 
 @pytest.mark.parametrize("acres,expected", [
-    (None, 0), (1, 0), (5, 2), (25, 6), (100, 13), (250, 18),
-    (500, 24), (1000, 28), (5000, 28),
+    # v1.20: cap rebalanced 28 → 24 to make room for grid_reuse; curve
+    # shape (and its anchors) unchanged, now interpolated.
+    (None, 0), (1, 0), (5, 2), (25, 5), (100, 11), (250, 16),
+    (500, 20), (1000, 24), (5000, 24),
 ])
 def test_gen_acreage_component(page, base_url, acres, expected):
     """Generation acreage curve keeps climbing past the DC flatten point —
@@ -453,7 +546,9 @@ def test_gen_acreage_component(page, base_url, acres, expected):
 
 
 @pytest.mark.parametrize("mi,expected", [
-    (0.0, 18), (1.0, 9), (2.0, 0),
+    # v1.20: generation builds gen-tie lines — value tapers to 0 at 10 mi
+    # instead of cliffing at 2 (which is a DC-load assumption).
+    (0.0, 18), (1.0, 14), (2.0, 10), (5.0, 6), (10.0, 0), (15.0, 0),
 ])
 def test_gen_transmission_distance_component(page, base_url, mi, expected):
     _ready(page, base_url)
@@ -461,7 +556,8 @@ def test_gen_transmission_distance_component(page, base_url, mi, expected):
 
 
 @pytest.mark.parametrize("mi,expected", [
-    (None, 0), (0.3, 16), (2.0, 12), (5.0, 8), (10.0, 4), (20.0, 0),
+    # v1.20: cap rebalanced 16 → 14 to make room for grid_reuse.
+    (None, 0), (0.3, 14), (2.0, 11), (5.0, 7), (10.0, 4), (20.0, 0),
 ])
 def test_gen_substation_component(page, base_url, mi, expected):
     _ready(page, base_url)
@@ -490,9 +586,10 @@ def test_gen_readiness_ignores_reuse(page, base_url):
     assert _gen_bd(page, clean_oz)["readiness"] == 6
 
 
-def test_gen_excludes_grid_inheritance_component(page, base_url):
-    """The generation breakdown must not carry a grid_inheritance key — you
-    ARE the plant, co-location is irrelevant for new generation."""
+def test_gen_active_plant_colocation_gives_no_credit(page, base_url):
+    """Co-location with an ACTIVE plant is irrelevant for new generation —
+    you ARE the plant. The generation breakdown carries no
+    grid_inheritance key, and an active plant earns zero grid_reuse."""
     _ready(page, base_url)
     bd = _gen_bd(page, {
         "transmission_mi": 0.5, "power_plant_mi": 0.1,
@@ -500,6 +597,27 @@ def test_gen_excludes_grid_inheritance_component(page, base_url):
     })
     assert "grid_inheritance" not in bd
     assert "power_plant" not in bd
+    assert bd["grid_reuse"] == 0
+
+
+@pytest.mark.parametrize("fuel,mw,mi,year,expected", [
+    ("BIT", 1200, 0.5, 2024, 8),   # fresh ≥1 GW retired coal ≤1 mi — full repowering credit
+    ("NG",   100, 0.5, 2024, 4),   # minimum MW floor → ×0.5
+    ("BIT", 1200, 2.0, 2024, 4),   # 1–3 mi band → ×0.5
+    ("BIT", 1200, 0.5, 2003, 4),   # stale retirement → ×0.5
+    ("SUN",  500, 0.5, 2024, 0),   # non-dispatchable — no firm interconnect left behind
+])
+def test_gen_grid_reuse_component(page, base_url, fuel, mw, mi, year, expected):
+    """v1.20: the generation lens credits RETIRED-plant interconnection
+    reuse — the canonical repowering play (coal-to-solar / storage / gas).
+    Same MW / distance / recency scaling as the DC lens's retired path."""
+    _ready(page, base_url)
+    bd = _gen_bd(page, {
+        "transmission_mi": 0.5, "retired_plant_mi": mi,
+        "retired_plant_mw": mw, "retired_plant_fuel": fuel,
+        "retired_plant_year": year,
+    })
+    assert bd["grid_reuse"] == expected
 
 
 def test_lenses_diverge_on_same_record(page, base_url):
