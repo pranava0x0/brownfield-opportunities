@@ -1908,6 +1908,9 @@ function applyFilter() {
   refreshTableForFilter();
   updateCountText();
   updateFilterChip();
+  // The candidates view sources from tableState.filtered — rebuild it when
+  // it's the active tab so global filter changes apply live there too.
+  maybeRefreshCandidates();
   syncUrl();
 }
 
@@ -2826,37 +2829,25 @@ function wireTabs() {
 // substation proximity, nearest plant (capacity + fuel), gas pipeline,
 // and readiness/risk badges (OZ, Cleanup, Flood, etc.).
 //
-// The view is rebuilt on tab activation and after all lazy-loads settle
-// (scores improve as infra-proximity, OZ, ISO-RTO data arrives).
+// Sources from `tableState.filtered` — the SAME globally-filtered set the
+// map and table show — so search / state / program / acreage / persona /
+// OZ filters carry across tabs. (Pre-unification the tab silently ignored
+// them and duplicated tier + readiness as unsynced parallel controls —
+// see the 2026-06-10 tab-UX findings in backlog.md.) The only view-local
+// state is the scoring lens, round-tripped through the URL as `?lens=gen`.
+//
+// The view is rebuilt on tab activation, on every applyFilter(), and after
+// all lazy-loads settle (scores improve as enrichment data arrives).
 const CANDIDATES_PAGE = 200;
 const candidatesState = {
-  sorted:      [],
-  rendered:    0,
-  lens:        "dc",   // "dc" | "gen"
-  tierMin:     "",     // "" | "edge" | "colo" | "hyperscale" | "mega"
-  readyFilter: "",     // "" | "complete" | "reuse" | "epa" | "oz"
+  sorted:   [],
+  rendered: 0,
+  lens:     "dc",   // "dc" | "gen" — URL state ?lens=
 };
 let _candidatesObserver = null;
 
 function _candidateScoreFn() {
   return candidatesState.lens === "gen" ? computeGenerationScore : computeDcCompositeScore;
-}
-
-function _candidatesPassesTier(s) {
-  if (!candidatesState.tierMin) return true;
-  const tier = computeDcScore(s);
-  if (!tier) return false;
-  return (DC_TIER_RANK[tier] || 0) >= (DC_TIER_RANK[candidatesState.tierMin] || 0);
-}
-
-function _candidatesPassesReady(s) {
-  switch (candidatesState.readyFilter) {
-    case "complete": return s.npl_status_code === "D";
-    case "reuse":    return /^yes/i.test(s.in_reuse || "");
-    case "epa":      return s.data_center_reuse_candidate === true;
-    case "oz":       return s.in_opportunity_zone === true;
-    default:         return true;
-  }
 }
 
 // Returns true when the site has a large dispatchable plant nearby that
@@ -2996,10 +2987,8 @@ function makeCandidateRow(s, rank) {
 
 function buildCandidatesView() {
   const scoreFn = _candidateScoreFn();
-  candidatesState.sorted = sites
+  candidatesState.sorted = tableState.filtered
     .filter((s) => scoreFn(s) != null)
-    .filter(_candidatesPassesTier)
-    .filter(_candidatesPassesReady)
     .sort((a, b) => (scoreFn(b) || 0) - (scoreFn(a) || 0));
 
   // Tier distribution for the stats line
@@ -3016,9 +3005,10 @@ function buildCandidatesView() {
   if (counts.edge)       parts.push(`${counts.edge.toLocaleString()} Edge`);
   const statsEl = el("candidates-stats");
   if (statsEl) {
+    const filtered = filtersActive() || filterState.q !== "";
     statsEl.textContent = total > 0
-      ? `${total.toLocaleString()} sites scored · ${parts.join(" · ")} · sorted by ${candidatesState.lens === "gen" ? "generation" : "data-center"} score`
-      : "No candidates match current filters.";
+      ? `${total.toLocaleString()} sites scored · ${parts.join(" · ")} · sorted by ${candidatesState.lens === "gen" ? "generation" : "data-center"} score${filtered ? " · global filters applied" : ""}`
+      : (filtered ? "No scored sites match the current filters — adjust them via the ⚙ Filters strip." : "No candidates match current filters.");
   }
 
   const tbody = document.querySelector("#candidates-table tbody");
@@ -3068,31 +3058,30 @@ function _setupCandidatesScroll() {
   _candidatesObserver.observe(sentinel);
 }
 
+// Reflect candidatesState.lens onto the lens buttons — called at wire time
+// and again after URL-state parsing so a `?lens=gen` deep-link lands with
+// the right button lit.
+function refreshCandLensButtons() {
+  document.querySelectorAll("[data-cand-lens]").forEach((b) =>
+    b.classList.toggle("active", b.dataset.candLens === candidatesState.lens));
+}
+
 function wireCandidatesFilters() {
+  // `?lens=` is parsed here, NOT in loadInitialFiltersFromUrl() — that
+  // runs at top level before `const candidatesState` initializes (TDZ).
+  // wireCandidatesFilters runs from the boot .then(), safely after.
+  if (new URLSearchParams(location.search).get("lens") === "gen") {
+    candidatesState.lens = "gen";
+  }
   document.querySelectorAll("[data-cand-lens]").forEach((btn) => {
     btn.addEventListener("click", () => {
-      document.querySelectorAll("[data-cand-lens]").forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
       candidatesState.lens = btn.dataset.candLens;
+      refreshCandLensButtons();
+      syncUrl();
       if (el("view-candidates").classList.contains("active")) buildCandidatesView();
     });
   });
-  document.querySelectorAll("[data-cand-tier]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      document.querySelectorAll("[data-cand-tier]").forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-      candidatesState.tierMin = btn.dataset.candTier;
-      if (el("view-candidates").classList.contains("active")) buildCandidatesView();
-    });
-  });
-  document.querySelectorAll("[data-cand-ready]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      document.querySelectorAll("[data-cand-ready]").forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-      candidatesState.readyFilter = btn.dataset.candReady;
-      if (el("view-candidates").classList.contains("active")) buildCandidatesView();
-    });
-  });
+  refreshCandLensButtons();
 }
 
 function maybeRefreshCandidates() {
@@ -4064,6 +4053,8 @@ function syncUrl() {
     if (filterState.oppZone) p.set("oz", "1");
     if (filterState.isoRto) p.set("iso_rto", filterState.isoRto);
     if (filterState.availableOnly) p.set("available", "1");
+    // Candidates-view lens — only encoded off-default ("dc").
+    if (candidatesState.lens !== "dc") p.set("lens", candidatesState.lens);
     if (selectedId) p.set("site", selectedId);
     const qs = p.toString();
     const newUrl = qs ? `${location.pathname}?${qs}` : location.pathname;
