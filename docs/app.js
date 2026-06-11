@@ -4363,7 +4363,7 @@ const _DC_SUIT_GROUPS = [
 ];
 const _GEN_SUIT_GROUPS = [
   { label: "Land",         cls: "suit-land",   keys: ["acreage"] },
-  { label: "Grid export",  cls: "suit-power",  keys: ["transmission_distance", "voltage", "substation"] },
+  { label: "Grid export",  cls: "suit-power",  keys: ["transmission_distance", "voltage", "substation", "grid_reuse"] },
   { label: "Gas",          cls: "suit-gas",    keys: ["gas_pipeline"] },
   { label: "Market",       cls: "suit-market", keys: ["iso_rto"] },
   { label: "Readiness",    cls: "suit-ready",  keys: ["readiness"] },
