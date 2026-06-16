@@ -4,6 +4,18 @@ Ideas and enhancements. Priorities: **high** = next, **med** = soon, **low** = n
 
 ---
 
+## Session checkpoint — 2026-06-16 (scheduled data-maintenance run)
+
+**Completed (v1.22):**
+- **RAU_Status (SWRAU land-readiness) wired through the stack.** Was fetched in epa-redev `OUTFIELDS` but dropped in `normalize()`. Now in `schema.py` + `EpaRedev.normalize()` (`_clean_rau_status()`), regenerated from cache (zero new HTTP). Live: 940 "Meets the Measure" / 832 "Does Not Meet" / 87 retracted / 13 formerly-retracted / 33 null on 1,905 records. Frontend: green "Land Ready" program-cell pill (`_meetsRau()`), detail-panel "Land readiness" row (`setRauStatusCell()`), CSV column, DC-score readiness +3 / generation +2 (cap-absorbed, weights still sum to 100). 3 unit + 2 e2e tests. Verified in preview.
+- **Resumable flood backfill (`--infra-flood-budget` + seed).** `infra_proximity.py` now seeds prior `flood_zone`/`in_sfha` from the on-disk file (so a partial run never re-nulls) and caps NEW FEMA fetches via `--infra-flood-budget N` (cache hits/seeds are free), writing the full record set every run. `_flood_cache_key()` centralizes the cache key. 1 unit test. CLAUDE.md documents the pattern + the ~15-min rail-index fixed cost.
+
+**In progress (this session):**
+- **flood_zone backfill run** — `--infra-flood-budget 1100` launched 2026-06-16; takes prior 9,900 → ~11,000 (21.2% → ~23.5%). Per-site loop iterates all 46,760 (~45 min) + 1,100 FEMA fetches (~28 min). Commits the data file when it writes. Remaining ~35,760 sites for future scheduled runs (see CLAUDE.md "Resumable flood backfill").
+
+**Still open (deferred — need supervised/long runs):**
+- **ECHO NPDES re-enrichment** — `has_npdes_permit` still 0/1,906. Needs a full replace run (NOT `--missing-only` — that skips all covered ids, leaving the stale field). Truncation gotcha: verify `len==1906` before commit. ~50 min–10 hr, killed twice historically. Best done in a supervised session.
+
 ## Session checkpoint — 2026-06-08
 
 **Completed this session (v1.16 → v1.17):**
