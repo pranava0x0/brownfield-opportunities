@@ -216,8 +216,21 @@ class EpaRedev(Connector):
             "pop_density": a.get("PopDensity"),
             "in_opp_zone": a.get("InOppZone"),
             "in_reuse": a.get("In_Reuse"),
+            "rau_status": _clean_rau_status(a.get("RAU_Status")),
         }
 
         rec["data_center_reuse_candidate"] = is_dc_candidate(rec)
 
         return rec
+
+
+def _clean_rau_status(raw: Any) -> str | None:
+    """Normalize EPA's SWRAU status string; collapse blanks to None.
+
+    EPA ships one of five values (incl. null). Whitespace-only or empty
+    strings are treated as "not measured" rather than a literal label.
+    """
+    if raw is None:
+        return None
+    s = str(raw).strip()
+    return s or None
