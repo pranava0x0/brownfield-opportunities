@@ -445,6 +445,31 @@ def test_gen_energy_community_readiness_bonus(page, base_url):
     assert _gen_bd(page, ec)["readiness"] > _gen_bd(page, oz)["readiness"]
 
 
+def test_dc_rau_status_readiness_bonus(page, base_url):
+    """EPA SWRAU 'Meets the Measure' (all land ready) earns +3 DC-readiness.
+    Only the affirmative determinations count — 'Does Not Meet' and the
+    '(Retracted)' variant earn nothing."""
+    _ready(page, base_url)
+    base = {"transmission_mi": 0.5}
+    meets = dict(base, rau_status="Meets the Measure")
+    formerly = dict(base, rau_status="Meets the Measure (Formerly Retracted)")
+    not_meets = dict(base, rau_status="Does Not Meet the Measure")
+    retracted = dict(base, rau_status="Does Not Meet the Measure (Retracted)")
+    assert _dc_bd(page, meets)["readiness"] == 3
+    assert _dc_bd(page, formerly)["readiness"] == 3
+    assert _dc_bd(page, not_meets)["readiness"] == 0
+    assert _dc_bd(page, retracted)["readiness"] == 0
+
+
+def test_gen_rau_status_readiness_bonus(page, base_url):
+    """For a generation build, SWRAU-ready land earns +2 (developable signal)."""
+    _ready(page, base_url)
+    base = {"transmission_mi": 0.5}
+    meets = dict(base, rau_status="Meets the Measure")
+    assert _gen_bd(page, meets)["readiness"] == 2
+    assert _gen_bd(page, dict(base, rau_status="Does Not Meet the Measure"))["readiness"] == 0
+
+
 def test_dc_readiness_npl_final_gives_partial(page, base_url):
     _ready(page, base_url)
     assert _dc_bd(page, {"transmission_mi": 0.5, "npl_status_code": "F"})["readiness"] == 1

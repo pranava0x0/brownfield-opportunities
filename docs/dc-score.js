@@ -326,6 +326,10 @@ function _scoreReadinessDc(site) {
   if (site.npl_status_code === "D") s += 3;       // cleanup complete
   else if (site.npl_status_code === "F") s += 1;  // on Final NPL
   if (typeof site.in_reuse === "string" && /^yes/i.test(site.in_reuse)) s += 2;
+  // EPA SWRAU "all land ready for anticipated use" — the strongest public
+  // per-site land-availability signal. Only the affirmative determinations
+  // count (not "Does Not Meet" / "(Retracted)").
+  if (typeof site.rau_status === "string" && /^Meets the Measure/i.test(site.rau_status)) s += 3;
   if (site.in_opportunity_zone === true) {
     // Rural OZ: 30% QOF basis step-up vs. 15% for standard → +7 vs +5
     s += site.oz_rural === true ? 7 : 5;
@@ -404,6 +408,8 @@ function _scoreReadinessGen(site) {
   let s = 0;
   if (site.npl_status_code === "D") s += 4;       // cleanup complete → developable
   if (site.in_energy_community === true) s += 3;  // +10pp ITC/PTC on the build
+  // EPA SWRAU "all land ready for anticipated use" — developable signal.
+  if (typeof site.rau_status === "string" && /^Meets the Measure/i.test(site.rau_status)) s += 2;
   if (site.in_opportunity_zone === true) s += 2;  // financing sweetener
   return Math.min(s, GENERATION_SCORE_WEIGHTS.readiness);
 }
