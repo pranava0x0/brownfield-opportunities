@@ -1004,6 +1004,7 @@ function ensureRedevLoaded() {
         const patch = {};
         for (const k of truthyKeys) if (rec[k]) patch[k] = rec[k];
         if (rec.data_center_reuse_candidate != null) patch.data_center_reuse_candidate = rec.data_center_reuse_candidate;
+        if (rec.rau_status) patch.rau_status = rec.rau_status;
         if (rec.acreage != null && existing.acreage == null) patch.acreage = rec.acreage;
         Object.assign(existing, patch);
       }
@@ -2880,6 +2881,13 @@ function _hasEO14318(s) {
     && s.in_sfha !== true;
 }
 
+// EPA Sitewide Ready for Anticipated Use (SWRAU) — true only for the two
+// affirmative values. "Does Not Meet the Measure", its "(Retracted)" variant,
+// and null all return false (a retracted determination is not a ready signal).
+function _meetsRau(rauStatus) {
+  return typeof rauStatus === "string" && /^Meets the Measure/i.test(rauStatus);
+}
+
 function makeCandidateRow(s, rank) {
   const tr = document.createElement("tr");
   tr.dataset.id = s.id;
@@ -3166,6 +3174,13 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
   const reusePill = (typeof s.in_reuse === "string" && /^yes/i.test(s.in_reuse))
     ? ` <span class="pill reuse-pill" title="Site is currently in active reuse (EPA Superfund Redevelopment mapper)">Active Reuse</span>`
     : "";
+  // "Land Ready" — EPA Sitewide Ready for Anticipated Use (SWRAU). The single
+  // best public per-site land-availability signal: EPA's own answer to "is
+  // ALL of this site's land ready for its anticipated use." Only the two
+  // affirmative values count; the "(Retracted)" / "Does Not Meet" values don't.
+  const landReadyPill = _meetsRau(s.rau_status)
+    ? ` <span class="pill reuse-pill" title="EPA Sitewide Ready for Anticipated Use (SWRAU): all of this site's land is ready for its anticipated use">Land Ready</span>`
+    : "";
   // Opportunity Zone pill — financial signal, not technical. 30% capital
   // gains deferral on 5+yr holds inside a Treasury-designated QOZ. Rural
   // OZs are a meaningful subset (~700 / 8,765 tracts) so we label them.
@@ -3197,7 +3212,7 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
     else titleParts.push("transmission ≤1 mi");
     tierPill = ` <span class="pill ${cls}" title="${escapeAttr(titleParts.join(" \xb7 "))}">${escapeHtml(DC_TIER_LABEL[tier])}</span>`;
   }
-  el("d-program").innerHTML = programPill + cleanupPill + reusePill + dcPill + ozPill + iraPill + eo14318Pill + tierPill;
+  el("d-program").innerHTML = programPill + cleanupPill + reusePill + landReadyPill + dcPill + ozPill + iraPill + eo14318Pill + tierPill;
   // The acreage `<dd>` carries an inline note `<span>` for FUDS records
   // missing acreage. Replace only the text node so the note span isn't
   // clobbered, then toggle the note for the FUDS-no-boundary case.
@@ -3309,6 +3324,7 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
   // fallback when the universal enrichment hasn't loaded yet.
   setOpportunityZoneCell("d-opp-zone", s);
   setEnergyCommunityCell("d-energy-community", s);
+  setRauStatusCell("d-rau-status", s);
   setNriCell("d-nri-risk", s);
   // State data-center tax incentive chip (Tier 1/2/3) — uses the static
   // STATE_DC_INCENTIVES lookup, no fetch.
@@ -3820,6 +3836,7 @@ const CSV_COLUMNS = [
   { key: "near_wastewater", label: "near_wastewater" },
   { key: "pop_density", label: "pop_density" },
   { key: "data_center_reuse_candidate", label: "dc_reuse_candidate" },
+  { key: "rau_status", label: "rau_status" },
   // ECHO enforcement (v1.11)
   { key: "enforcement.inspections_5yr", label: "echo_inspections_5yr" },
   { key: "enforcement.formal_actions_5yr", label: "echo_formal_actions_5yr" },
@@ -4228,6 +4245,33 @@ function setOpportunityZoneCell(id, s) {
   node.textContent = "Not available";
   node.classList.add("muted-cell");
   node.classList.remove("ready");
+}
+
+// Render the EPA SWRAU "Land readiness" cell. Four states:
+//   - "Meets the Measure" (incl. "Formerly Retracted"): green affirmative.
+//   - "Does Not Meet the Measure": plain text (not ready, not an error).
+//   - "(Retracted)" variant: plain text with the retraction noted.
+//   - null / unknown: muted "Not available" (only Superfund redev sites have it).
+function setRauStatusCell(id, s) {
+  const node = el(id);
+  if (!node) return;
+  const raw = typeof s.rau_status === "string" ? s.rau_status.trim() : "";
+  if (!raw) {
+    node.textContent = "Not available";
+    node.classList.add("muted-cell");
+    node.classList.remove("ready");
+    return;
+  }
+  node.classList.remove("muted-cell");
+  if (_meetsRau(raw)) {
+    node.textContent = "All land ready (SWRAU)";
+    node.title = "EPA Sitewide Ready for Anticipated Use: all of this site's land is ready for its anticipated use" + (/Formerly Retracted/i.test(raw) ? " (formerly retracted)" : "");
+    node.classList.add("ready");
+  } else {
+    node.textContent = /Retracted/i.test(raw) ? "Not ready (determination retracted)" : "Not all land ready";
+    node.title = "EPA Sitewide Ready for Anticipated Use: " + raw;
+    node.classList.remove("ready");
+  }
 }
 
 // Render the IRA energy community cell. Three states:
