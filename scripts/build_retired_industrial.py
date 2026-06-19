@@ -85,12 +85,33 @@ NAICS6_LABEL = {
     "325110": "Petrochemical plant", "325311": "Nitrogen-fertilizer plant",
 }
 
+# Large-load MINING / ore-processing sites (NAICS 212) — big-footprint
+# industrial sites that retain grid + sometimes adjacent generation. NOT oil &
+# gas extraction (211 = scattered wellpads, not single large-load sites) and
+# NOT power plants (2211, covered by eia-retired-plants).
+NAICS_MINING_LABEL = {
+    "212": "Mine / ore-processing site",
+    "212111": "Coal mine / prep plant", "212112": "Coal mine / prep plant",
+    "212113": "Anthracite mine", "212114": "Surface coal mine",
+    "212210": "Iron-ore mine", "212220": "Gold / silver mine",
+    "212230": "Copper / nickel / lead / zinc mine", "212290": "Metal-ore mine",
+    "212311": "Crushed-stone quarry", "212312": "Limestone quarry",
+    "212391": "Potash / soda / borate mine", "212393": "Chemical mineral mine",
+}
+
 
 def _sector(naics: str) -> str | None:
     n = str(naics or "")
-    if n[:2] not in ("31", "32", "33"):
-        return None  # not manufacturing
-    return NAICS6_LABEL.get(n) or NAICS3_LABEL.get(n[:3]) or "Manufacturing plant"
+    if n[:2] in ("31", "32", "33"):
+        return NAICS6_LABEL.get(n) or NAICS3_LABEL.get(n[:3]) or "Manufacturing plant"
+    if n[:3] == "212":  # mining / ore-processing (large-load, not oil & gas)
+        return NAICS_MINING_LABEL.get(n) or NAICS_MINING_LABEL.get(n[:3])
+    return None  # not a large-load manufacturing / mining site
+
+
+def _category(naics: str) -> str:
+    """Top-level grouping for the overlay legend / popup."""
+    return "Mining" if str(naics or "")[:3] == "212" else "Manufacturing"
 
 
 _ACRONYMS = {"LLC", "LP", "INC", "CO", "US", "USA", "II", "III", "IV", "NGLP"}
@@ -171,6 +192,7 @@ def main() -> int:
             "city": _pretty_name(r.get("city") or "") or None,
             "county": _pretty_name(r.get("county") or "") or None,
             "sector": sector,
+            "category": _category(r.get("naics_code")),
             "naics": str(r.get("naics_code") or ""),
             "last_report_year": r.get("year"),
             "reporting_status": "valid_reason"
