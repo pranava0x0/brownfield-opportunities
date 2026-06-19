@@ -14,7 +14,7 @@ our Superfund / ACRES / FUDS / BRAC universe, so this overlay surfaces them.
 
 Source — EPA GHGRP via the Envirofacts REST service (no API key)
 ----------------------------------------------------------------
-`https://data.epa.gov/efservice/PUB_DIM_FACILITY/NAICS_CODE/<code>/ROWS/a:b/JSON`
+`https://data.epa.gov/efservice/PUB_DIM_FACILITY/REPORTING_STATUS/<status>/ROWS/a:b/JSON`
 returns one row per facility-reporting-year with `latitude`, `longitude`,
 `facility_id`, `facility_name`, `naics_code`, `year`, `reporting_status`,
 `parent_company`, `city`, `county`, `state`. ~8,000 large emitters report
@@ -25,10 +25,13 @@ The closure signal is EPA's OWN `reporting_status` field — values:
   - STOPPED_REPORTING_VALID_REASON    → ceased reporting (closed / idled /
                                          dropped below threshold), reason given
   - STOPPED_REPORTING_UNKNOWN_REASON  → ceased reporting, no reason
-We keep facilities whose LATEST-year row carries a STOPPED_REPORTING_* status —
-far more reliable than inferring closure from a facility dropping out of the
-data. This is a "stopped GHGRP reporting" signal, NOT a hard "demolished"
-claim — labeled honestly in the UI.
+We pull BOTH stopped-reporting statuses directly (one query each, paged), then
+keep facilities whose NAICS is in manufacturing (sectors 31–33, which includes
+petroleum refining 324). This is a "stopped GHGRP reporting" signal, NOT a hard
+"demolished" claim — labeled honestly in the UI. Querying by status (vs. the
+old per-NAICS enumeration) is comprehensive: ~558 manufacturing closures
+nationwide across chemicals, primary metal, food, cement/glass, paper,
+refineries, auto plants, etc. — not just the dozen sectors we used to list.
 
 Output envelope mirrors the other docs/data/*.json files; it is an OVERLAY
 (like reference-campuses.json), NOT a SiteRecord set, so it stays out of the
@@ -50,25 +53,45 @@ log = logging.getLogger("build_retired_industrial")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
 OUT_PATH = Path(__file__).resolve().parent.parent / "docs" / "data" / "retired-industrial.json"
-EFSERVICE = "https://data.epa.gov/efservice/PUB_DIM_FACILITY/NAICS_CODE/{naics}/ROWS/{a}:{b}/JSON"
+EFSERVICE = "https://data.epa.gov/efservice/PUB_DIM_FACILITY/REPORTING_STATUS/{status}/ROWS/{a}:{b}/JSON"
 PAGE = 1000
 USER_AGENT = "brownfield-opportunities/retired-industrial (data.epa.gov GHGRP)"
 
-# DC-relevant heavy-industrial sectors — the ones whose closure strands a
-# large grid interconnection and/or a big flat brownfield parcel. NAICS → label.
-NAICS_SECTORS = {
-    "331110": "Iron & steel mill",
-    "331313": "Primary aluminum smelter",   # may 500 on the API — handled
-    "331314": "Secondary aluminum smelter",
-    "331410": "Nonferrous metal smelter",
-    "331492": "Secondary nonferrous smelter",
-    "327310": "Cement plant",
-    "322110": "Pulp mill",
-    "322120": "Paper mill",
-    "322130": "Paperboard mill",
-    "325110": "Petrochemical plant",
-    "327211": "Flat glass plant",
+STOPPED_STATUSES = ("STOPPED_REPORTING_VALID_REASON", "STOPPED_REPORTING_UNKNOWN_REASON")
+
+# Manufacturing = NAICS sectors 31–33 (includes petroleum refining 324). We
+# label by the 3-digit subsector, with finer 6-digit overrides for the
+# marquee high-grid-load sectors (smelters, mills, refineries, auto plants).
+NAICS3_LABEL = {
+    "311": "Food-processing plant", "312": "Beverage / tobacco plant",
+    "313": "Textile mill", "314": "Textile-product mill", "315": "Apparel plant",
+    "316": "Leather plant", "321": "Wood-products mill", "322": "Pulp & paper mill",
+    "323": "Printing plant", "324": "Petroleum & coal-products plant",
+    "325": "Chemical plant", "326": "Plastics & rubber plant",
+    "327": "Cement / glass / mineral plant", "331": "Primary-metal mill",
+    "332": "Fabricated-metal plant", "333": "Machinery plant",
+    "334": "Electronics plant", "335": "Electrical-equipment plant",
+    "336": "Transportation-equipment plant", "337": "Furniture plant",
+    "339": "Misc. manufacturing plant",
 }
+NAICS6_LABEL = {
+    "331313": "Primary aluminum smelter", "331314": "Secondary aluminum smelter",
+    "331110": "Iron & steel mill", "331410": "Primary nonferrous smelter",
+    "331492": "Secondary nonferrous smelter", "331511": "Iron foundry",
+    "324110": "Petroleum refinery", "327310": "Cement plant",
+    "327211": "Flat-glass plant", "327213": "Glass-container plant",
+    "322110": "Pulp mill", "322120": "Paper mill", "322130": "Paperboard mill",
+    "336111": "Automobile assembly plant", "336112": "Light-truck assembly plant",
+    "325110": "Petrochemical plant", "325311": "Nitrogen-fertilizer plant",
+}
+
+
+def _sector(naics: str) -> str | None:
+    n = str(naics or "")
+    if n[:2] not in ("31", "32", "33"):
+        return None  # not manufacturing
+    return NAICS6_LABEL.get(n) or NAICS3_LABEL.get(n[:3]) or "Manufacturing plant"
+
 
 _ACRONYMS = {"LLC", "LP", "INC", "CO", "US", "USA", "II", "III", "IV", "NGLP"}
 
@@ -79,12 +102,11 @@ def _http_json(url: str):
         return json.load(r)
 
 
-def _fetch_naics(naics: str) -> list[dict]:
+def _fetch_status(status: str) -> list[dict]:
     rows: list[dict] = []
     start = 0
     while True:
-        url = EFSERVICE.format(naics=naics, a=start, b=start + PAGE)
-        page = _http_json(url)
+        page = _http_json(EFSERVICE.format(status=status, a=start, b=start + PAGE))
         rows.extend(page)
         if len(page) < PAGE:
             break
@@ -109,50 +131,55 @@ def _pretty_name(raw: str) -> str:
 
 
 def main() -> int:
-    by_id: dict[int, dict] = {}
+    # Collect every facility-year row carrying a stopped-reporting status, then
+    # dedupe to the most-recent year per facility.
+    facs: dict[int, dict] = {}
     latest_year = 0
-    for naics, label in NAICS_SECTORS.items():
+    for status in STOPPED_STATUSES:
         try:
-            rows = _fetch_naics(naics)
-        except Exception as e:  # noqa: BLE001 — log + continue, one sector failing shouldn't abort
-            log.warning("[%s %s] fetch failed (%s) — skipping sector", naics, label, type(e).__name__)
+            rows = _fetch_status(status)
+        except Exception as e:  # noqa: BLE001 — log + continue
+            log.warning("[%s] fetch failed (%s) — skipping", status, type(e).__name__)
             continue
-        # Group by facility, keep the most-recent reporting year per facility.
-        facs: dict[int, dict] = {}
+        log.info("[%s] %d facility-year rows", status, len(rows))
         for r in rows:
-            fid = r.get("facility_id")
-            yr = r.get("year")
+            fid, yr = r.get("facility_id"), r.get("year")
             if fid is None or yr is None:
                 continue
             latest_year = max(latest_year, yr)
             cur = facs.get(fid)
             if cur is None or yr > cur["year"]:
                 facs[fid] = r
-        kept = 0
-        for fid, r in facs.items():
-            status = str(r.get("reporting_status") or "")
-            if not status.startswith("STOPPED_REPORTING"):
-                continue
-            lat, lon = r.get("latitude"), r.get("longitude")
-            if lat is None or lon is None:
-                continue
-            by_id[fid] = {
-                "id": f"GHGRP-{fid}",
-                "name": _pretty_name(r.get("facility_name") or ""),
-                "lat": float(lat),
-                "lon": float(lon),
-                "state": r.get("state"),
-                "city": _pretty_name(r.get("city") or "") or None,
-                "county": _pretty_name(r.get("county") or "") or None,
-                "sector": label,
-                "naics": naics,
-                "last_report_year": r.get("year"),
-                "reporting_status": "valid_reason"
-                    if status == "STOPPED_REPORTING_VALID_REASON" else "unknown_reason",
-                "parent_company": _pretty_name(r.get("parent_company") or "") or None,
-            }
-            kept += 1
-        log.info("[%s %s] %d facilities, %d stopped-reporting with coords", naics, label, len(facs), kept)
+
+    by_id: dict[int, dict] = {}
+    from collections import Counter
+    sect_counts: Counter = Counter()
+    for fid, r in facs.items():
+        sector = _sector(r.get("naics_code"))
+        if sector is None:  # not manufacturing (power, oil/gas, mining, waste…)
+            continue
+        lat, lon = r.get("latitude"), r.get("longitude")
+        if lat is None or lon is None:
+            continue
+        status = str(r.get("reporting_status") or "")
+        by_id[fid] = {
+            "id": f"GHGRP-{fid}",
+            "name": _pretty_name(r.get("facility_name") or ""),
+            "lat": float(lat),
+            "lon": float(lon),
+            "state": r.get("state"),
+            "city": _pretty_name(r.get("city") or "") or None,
+            "county": _pretty_name(r.get("county") or "") or None,
+            "sector": sector,
+            "naics": str(r.get("naics_code") or ""),
+            "last_report_year": r.get("year"),
+            "reporting_status": "valid_reason"
+                if status == "STOPPED_REPORTING_VALID_REASON" else "unknown_reason",
+            "parent_company": _pretty_name(r.get("parent_company") or "") or None,
+        }
+        sect_counts[r.get("naics_code", "")[:3]] += 1
+    log.info("kept %d manufacturing closures; by NAICS-3: %s",
+             len(by_id), dict(sect_counts.most_common()))
 
     sites = sorted(by_id.values(), key=lambda s: (s.get("state") or "", s["name"]))
     payload = {
