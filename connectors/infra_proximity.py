@@ -244,6 +244,11 @@ FLOOD_QUERY_URL = (
 # HTTP codes we treat as transient — log + continue rather than abort the
 # whole multi-hour batch. FEMA's service is occasionally slow / 500s.
 FLOOD_TRANSIENT_HTTP_CODES = {404, 408, 429, 500, 502, 503, 504}
+# Abort flood fetching after this many CONSECUTIVE FEMA NFHL failures — a
+# sustained SSLError/timeout wave means the endpoint is unhealthy, and each
+# attempt still burns the 1.5s delay + up to the 60s timeout. Cached successes
+# are durable, so the next run resumes when FEMA recovers.
+FLOOD_ERROR_CIRCUIT_BREAK = 25
 
 
 def _flood_cache_key(lat: float, lon: float) -> dict[str, Any]:
@@ -414,8 +419,9 @@ class InfraProximity(Connector):
         flood_in_sfha = 0
         flood_skipped = 0
         flood_seeded = 0
-        flood_fetches = 0          # actual NEW fetches (cache misses) this run
+        flood_fetches = 0          # NEW network attempts (cache misses) this run — budget unit
         flood_budget_skipped = 0   # sites left unqueried because budget ran out
+        consecutive_flood_errors = 0  # circuit-breaker counter for FEMA failure waves
         # Per-program counts for telemetry.
         program_counts: dict[str, int] = {}
         for site in sites:
@@ -507,8 +513,6 @@ class InfraProximity(Connector):
                     if cache_exists or flood_budget == 0 or flood_fetches < flood_budget:
                         try:
                             fz, sfha = self._query_flood_zone(lat_f, lon_f, use_cache=use_cache)
-                            if not cache_exists:
-                                flood_fetches += 1
                             flood_lookups += 1
                             if fz is not None:
                                 rec["flood_zone"] = fz
@@ -520,14 +524,35 @@ class InfraProximity(Connector):
                             log.warning("[%s] FEMA NFHL network error: %s — skipping flood field",
                                         sid, type(e).__name__)
                             flood_skipped += 1
+                            consecutive_flood_errors += 1
                         except requests.HTTPError as e:
                             code = e.response.status_code if e.response is not None else None
                             if code in FLOOD_TRANSIENT_HTTP_CODES:
                                 log.warning("[%s] FEMA NFHL HTTP %s — skipping flood field",
                                             sid, code)
                                 flood_skipped += 1
+                                consecutive_flood_errors += 1
                             else:
                                 raise
+                        else:
+                            consecutive_flood_errors = 0
+                        finally:
+                            # Count every NETWORK attempt against the budget — not
+                            # only successes — so a flaky / erroring endpoint
+                            # (FEMA NFHL throws SSLError waves) can't make the run
+                            # unbounded. Cache hits make no call, so they're free.
+                            if not cache_exists:
+                                flood_fetches += 1
+                        # Circuit breaker: if FEMA is in a sustained failure wave,
+                        # stop wasting the budget on it — cached successes are
+                        # already durable, so resume on a later run when it's
+                        # healthy. (Each failure still costs the 1.5s delay + up
+                        # to the 60s timeout, so a long wave is pure waste.)
+                        if consecutive_flood_errors >= FLOOD_ERROR_CIRCUIT_BREAK:
+                            log.error("[flood_zone] %d consecutive FEMA errors — "
+                                      "aborting flood fetches (resume later); "
+                                      "%d done this run", consecutive_flood_errors, flood_fetches)
+                            do_flood = False
                     else:
                         flood_budget_skipped += 1
 
