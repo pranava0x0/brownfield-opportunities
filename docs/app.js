@@ -2943,6 +2943,9 @@ function makeCandidateRow(s, rank) {
 
   // Signal badges — readiness green / risk red / financial blue
   const badges = [];
+  if (_meetsRau(s.rau_status)) {
+    badges.push('<span class="sig-badge sig-land" title="EPA Sitewide Ready for Anticipated Use (SWRAU): all of this site\'s land is ready for its anticipated use — the strongest public land-availability signal">Land Ready</span>');
+  }
   if (s.in_opportunity_zone) {
     const lbl = s.oz_rural ? "OZ Rural" : "OZ";
     badges.push(`<span class="sig-badge sig-oz" title="${s.oz_rural ? "Rural Qualified Opportunity Zone — 30% basis step-up" : "Qualified Opportunity Zone"}">${escapeHtml(lbl)}</span>`);
