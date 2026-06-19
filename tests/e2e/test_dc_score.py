@@ -554,6 +554,24 @@ def test_climate_penalty_heatwave_not_charged(page, base_url):
     assert _dc_bd(page, rec)["climate_penalty"] == 0
 
 
+def test_regulatory_penalty_dc_lens_only(page, base_url):
+    """A restrictive/cautionary state DC regulatory climate subtracts from the
+    DATA-CENTER lens only — a DC moratorium doesn't constrain a power-plant
+    build, so the generation lens carries no such penalty."""
+    _ready(page, base_url)
+    base = {"transmission_mi": 0.5}
+    restrictive = dict(base, dc_regulatory_climate="restrictive")
+    cautionary = dict(base, dc_regulatory_climate="cautionary")
+    assert _dc_bd(page, restrictive)["regulatory_penalty"] == -8
+    assert _dc_bd(page, cautionary)["regulatory_penalty"] == -4
+    assert _dc_bd(page, base)["regulatory_penalty"] == 0
+    # The restrictive penalty actually lowers the composite DC score.
+    assert _dc(page, restrictive) < _dc(page, base)
+    # Generation lens: no regulatory_penalty key, and the score is unaffected.
+    assert "regulatory_penalty" not in _gen_bd(page, restrictive)
+    assert _gen(page, restrictive) == _gen(page, base)
+
+
 # -- Generation per-component coverage -------------------------------------
 
 @pytest.mark.parametrize("acres,expected", [

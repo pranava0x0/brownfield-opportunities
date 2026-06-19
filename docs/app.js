@@ -475,6 +475,24 @@ const STATE_DC_INCENTIVES = {
   HI: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "none", verified_at: "2026-05-08", url: "https://invest.hawaii.gov/" },
   DC: { tier: 3, program: "QHTC sales-tax exemption repealed 2019; no replacement", min_investment_usd: null, min_jobs: null, sunset: null, status: "none", verified_at: "2026-05-08", url: "https://www.salestaxinstitute.com/resources/district-of-columbia-repeals-sales-tax-exemption-for-qualified-high-technology-companies" },
 };
+
+// State data-center REGULATORY climate — the flip side of STATE_DC_INCENTIVES.
+// In 2025-26 "Regulation" rose to a Tier-3 site-selection filter (moratorium
+// bills, by-right zoning repeals, ratepayer cost-shift laws). This raises
+// timeline/cost risk for a DC build and feeds a DC-lens-only score penalty
+// (dc-score.js:_regulatoryPenalty) + a "Zoning" Signals badge. Deliberately
+// CONSERVATIVE: only states with a documented, currently-live restrictive
+// signal are listed — every other state is treated as neutral (no penalty).
+// `climate`: "restrictive" (−8) | "cautionary" (−4). Dead/failed bills are
+// excluded (e.g. ME's failed veto override, MN's bills died May 2026).
+// Sources are 2026 trackers; re-audit quarterly — this space moves monthly.
+// See CLAUDE.md "STATE_DC_REGULATION audit history."
+const STATE_DC_REGULATION = {
+  VA: { climate: "restrictive", note: "Loudoun County repealed by-right data-center zoning (Mar 2025); all new projects require public hearings, and the state is debating sunsetting the DC tax exemption.", verified_at: "2026-06-19", url: "https://www.multistate.us/resources/state-data-center-policy-101" },
+  OK: { climate: "restrictive", note: "SB 1488 (moratorium on new data-center construction to Nov 2029) advancing; HB 2992 imposes data-center cost-allocation / ratepayer-protection rules.", verified_at: "2026-06-19", url: "https://goodjobsfirst.org/data-center-moratorium-bills-are-spreading-in-2026/" },
+  VT: { climate: "cautionary", note: "S.205 would pause data-center facilities above 10 MW until July 2030 (advancing, not enacted).", verified_at: "2026-06-19", url: "https://goodjobsfirst.org/data-center-moratorium-bills-are-spreading-in-2026/" },
+  FL: { climate: "cautionary", note: "SB 484 bars utilities from passing data-center costs onto residential / small-business ratepayers — a cost-allocation friction (state is otherwise pro-DC).", verified_at: "2026-06-19", url: "https://www.multistate.us/resources/state-data-center-policy-101" },
+};
 const TAX_TIER_LABEL = {
   1: "Tier 1 incentive (most attractive)",
   2: "Tier 2 incentive",
@@ -887,6 +905,10 @@ function ingestSites(records) {
       .filter(Boolean)
       .join(" ")
       .toLowerCase();
+    // Stamp the state DC regulatory climate once at ingest so the DC-lens
+    // score penalty (dc-score.js) and the "Zoning" badge are O(1) lookups.
+    const reg = s.state && STATE_DC_REGULATION[s.state];
+    if (reg) s.dc_regulatory_climate = reg.climate;
     sitesById.set(s.id, s);
     if (s.program) loadedPrograms.add(s.program);
   }
@@ -2994,6 +3016,13 @@ function makeCandidateRow(s, rank) {
   if (_climHaz) {
     badges.push(`<span class="sig-badge sig-flood" title="FEMA National Risk Index: Very High ${_climHaz} risk — insurability / cooling-water constraint (−10 to the suitability score)">Climate</span>`);
   }
+  // State DC regulatory friction (DC-lens penalty). Names the policy so the
+  // ranking drag is explained, not just flagged.
+  if (s.dc_regulatory_climate) {
+    const reg = STATE_DC_REGULATION[s.state];
+    const pts = s.dc_regulatory_climate === "restrictive" ? "−8" : "−4";
+    badges.push(`<span class="sig-badge sig-flood" title="${escapeAttr((reg && reg.note) || "State regulatory restriction")} (${pts} to the data-center score)">Zoning</span>`);
+  }
   if (s.enforcement?.has_npdes_permit === true) {
     badges.push('<span class="sig-badge sig-water" title="Active CWA/NPDES permit — legacy industrial water discharge infrastructure (intake, treated effluent rights)">Water</span>');
   }
@@ -4446,6 +4475,8 @@ function _suitLensHtml(title, score, breakdown, groups) {
   if (penalty < 0) chips.push(`<span class="suit-chip suit-penalty">Flood ${penalty}</span>`);
   const climate = breakdown.climate_penalty || 0;
   if (climate < 0) chips.push(`<span class="suit-chip suit-penalty">Climate ${climate}</span>`);
+  const reg = breakdown.regulatory_penalty || 0;
+  if (reg < 0) chips.push(`<span class="suit-chip suit-penalty">Zoning ${reg}</span>`);
   const tier = _suitTier(score);
   return `<div class="suit-lens-head">`
     + `<span class="suit-lens-name">${escapeHtml(title)}</span>`
@@ -4491,6 +4522,16 @@ function renderSuitability(s) {
       const pts = (s.nri_wildfire_rating === "Very High" || s.nri_drought_rating === "Very High") ? 10 : 5;
       climateEl.textContent = `⚑ Elevated FEMA climate risk — ${hazards.join(" · ")}. `
         + `Both scores carry a ${pts}-point penalty.`;
+    }
+  }
+  const regEl = el("d-suit-reg");
+  if (regEl) {
+    const reg = s.state && STATE_DC_REGULATION[s.state];
+    regEl.hidden = !reg;
+    if (reg) {
+      const pts = reg.climate === "restrictive" ? 8 : 4;
+      regEl.textContent = `⚑ ${reg.note} The data-center score carries a ${pts}-point penalty `
+        + `(the generation score is unaffected — this restricts data centers, not power plants).`;
     }
   }
 }
