@@ -15,10 +15,12 @@ const OPP_ZONE_URL = "data/opportunity-zone.json";
 const CLIMATE_ZONE_URL = "data/climate-zone.json";
 const ISO_RTO_URL = "data/iso-rto.json";
 const ECHO_DATA_URL = "data/epa-echo.json";
+const PARCEL_OWNER_URL = "data/parcel-owner.json";
 const AI_SUMMARY_URL = "data/ai-summary.json";
 const ACRES_CLEANUP_URL = "data/acres-cleanup.json";
 const RETIRED_PLANTS_URL = "data/eia-retired-plants.json";
 const REFERENCE_CAMPUSES_URL = "data/reference-campuses.json";
+const RETIRED_INDUSTRIAL_URL = "data/retired-industrial.json";
 const IRA_EC_URL = "data/ira-energy-community.json";
 const FEMA_NRI_URL = "data/fema-nri.json";
 // Vector basemap: US states (always) + US counties (lazy at zoom ≥ COUNTY_MIN_ZOOM).
@@ -475,6 +477,24 @@ const STATE_DC_INCENTIVES = {
   HI: { tier: 3, program: null, min_investment_usd: null, min_jobs: null, sunset: null, status: "none", verified_at: "2026-05-08", url: "https://invest.hawaii.gov/" },
   DC: { tier: 3, program: "QHTC sales-tax exemption repealed 2019; no replacement", min_investment_usd: null, min_jobs: null, sunset: null, status: "none", verified_at: "2026-05-08", url: "https://www.salestaxinstitute.com/resources/district-of-columbia-repeals-sales-tax-exemption-for-qualified-high-technology-companies" },
 };
+
+// State data-center REGULATORY climate — the flip side of STATE_DC_INCENTIVES.
+// In 2025-26 "Regulation" rose to a Tier-3 site-selection filter (moratorium
+// bills, by-right zoning repeals, ratepayer cost-shift laws). This raises
+// timeline/cost risk for a DC build and feeds a DC-lens-only score penalty
+// (dc-score.js:_regulatoryPenalty) + a "Zoning" Signals badge. Deliberately
+// CONSERVATIVE: only states with a documented, currently-live restrictive
+// signal are listed — every other state is treated as neutral (no penalty).
+// `climate`: "restrictive" (−8) | "cautionary" (−4). Dead/failed bills are
+// excluded (e.g. ME's failed veto override, MN's bills died May 2026).
+// Sources are 2026 trackers; re-audit quarterly — this space moves monthly.
+// See CLAUDE.md "STATE_DC_REGULATION audit history."
+const STATE_DC_REGULATION = {
+  VA: { climate: "restrictive", note: "Loudoun County repealed by-right data-center zoning (Mar 2025); all new projects require public hearings, and the state is debating sunsetting the DC tax exemption.", verified_at: "2026-06-19", url: "https://www.multistate.us/resources/state-data-center-policy-101" },
+  OK: { climate: "restrictive", note: "SB 1488 (moratorium on new data-center construction to Nov 2029) advancing; HB 2992 imposes data-center cost-allocation / ratepayer-protection rules.", verified_at: "2026-06-19", url: "https://goodjobsfirst.org/data-center-moratorium-bills-are-spreading-in-2026/" },
+  VT: { climate: "cautionary", note: "S.205 would pause data-center facilities above 10 MW until July 2030 (advancing, not enacted).", verified_at: "2026-06-19", url: "https://goodjobsfirst.org/data-center-moratorium-bills-are-spreading-in-2026/" },
+  FL: { climate: "cautionary", note: "SB 484 bars utilities from passing data-center costs onto residential / small-business ratepayers — a cost-allocation friction (state is otherwise pro-DC).", verified_at: "2026-06-19", url: "https://www.multistate.us/resources/state-data-center-policy-101" },
+};
 const TAX_TIER_LABEL = {
   1: "Tier 1 incentive (most attractive)",
   2: "Tier 2 incentive",
@@ -494,7 +514,7 @@ const TAX_STATUS_NOTE = {
 
 // ----- State -----
 let sites = [];
-let map, markerLayer, referenceCampusLayer;
+let map, markerLayer, referenceCampusLayer, retiredIndustrialLayer;
 const markersById = new Map(); // id -> Leaflet marker
 const tableRowsById = new Map(); // id -> tr
 const sitesById = new Map();
@@ -549,10 +569,13 @@ let oppZoneLoadingPromise = null;
 let climateZoneLoadingPromise = null;
 let isoRtoLoadingPromise = null;
 let echoLoadingPromise = null;
+let parcelOwnerLoadingPromise = null;
 let summariesLoadingPromise = null;
 let acresCleanupLoadingPromise = null;
 let retiredPlantsLoadingPromise = null;
 let referenceCampusesLoadingPromise = null;
+let retiredIndustrialLoadingPromise = null;
+let retiredIndustrialSites = []; // raw payload, for the Retired Sites stats tab
 let iraEcLoadingPromise = null;
 let femaNriLoadingPromise = null;
 
@@ -837,10 +860,12 @@ fetch(PRIMARY_DATA_URL)
     lazyLoads.push(ensureClimateZoneLoaded());
     lazyLoads.push(ensureIsoRtoLoaded());
     lazyLoads.push(ensureEchoLoaded());
+    lazyLoads.push(ensureParcelOwnerLoaded());
     lazyLoads.push(ensureSummariesLoaded());
     lazyLoads.push(ensureAcresCleanupLoaded());
     lazyLoads.push(ensureRetiredPlantsLoaded());
     lazyLoads.push(ensureReferenceCampusesLoaded());
+    lazyLoads.push(ensureRetiredIndustrialLoaded());
     applyUrlSelection();
     if (lazyLoads.length === 0) {
       markAppReady();
@@ -887,6 +912,10 @@ function ingestSites(records) {
       .filter(Boolean)
       .join(" ")
       .toLowerCase();
+    // Stamp the state DC regulatory climate once at ingest so the DC-lens
+    // score penalty (dc-score.js) and the "Zoning" badge are O(1) lookups.
+    const reg = s.state && STATE_DC_REGULATION[s.state];
+    if (reg) s.dc_regulatory_climate = reg.climate;
     sitesById.set(s.id, s);
     if (s.program) loadedPrograms.add(s.program);
   }
@@ -1004,6 +1033,7 @@ function ensureRedevLoaded() {
         const patch = {};
         for (const k of truthyKeys) if (rec[k]) patch[k] = rec[k];
         if (rec.data_center_reuse_candidate != null) patch.data_center_reuse_candidate = rec.data_center_reuse_candidate;
+        if (rec.rau_status) patch.rau_status = rec.rau_status;
         if (rec.acreage != null && existing.acreage == null) patch.acreage = rec.acreage;
         Object.assign(existing, patch);
       }
@@ -1079,6 +1109,41 @@ function ensureEchoLoaded() {
       echoLoadingPromise = null;
     });
   return echoLoadingPromise;
+}
+
+// Parcel-owner enrichment — verified owner name from public state/county
+// cadastral records (parcel_owner connector). Fill-if-empty: don't clobber a
+// program-provided owner (e.g. FUDS's USACE current_owner); only populate the
+// ~38k sites that have none. The detail panel's owner row + source line pick
+// these up automatically (no extra wiring).
+function ensureParcelOwnerLoaded() {
+  if (parcelOwnerLoadingPromise) return parcelOwnerLoadingPromise;
+  parcelOwnerLoadingPromise = fetch(PARCEL_OWNER_URL, { priority: "low" })
+    .then((r) => {
+      if (r.status === 404) return { sites: [] };
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then((payload) => {
+      recordRefreshDate(payload.generated_at);
+      for (const rec of payload.sites || []) {
+        const existing = sitesById.get(rec.id);
+        if (!existing || !rec.current_owner) continue;
+        if (existing.current_owner) continue; // don't overwrite a source-provided owner
+        existing.current_owner = rec.current_owner;
+        existing.current_owner_source = rec.current_owner_source || "Public parcel records";
+      }
+      // Re-render an already-open detail panel so the owner row goes live the
+      // moment this lazy load lands (matches the docs / summary / infra loaders).
+      if (selectedId && sitesById.has(selectedId)) {
+        try { selectSite(selectedId); } catch {}
+      }
+    })
+    .catch((err) => {
+      console.error("Parcel-owner enrichment load failed:", err);
+      parcelOwnerLoadingPromise = null;
+    });
+  return parcelOwnerLoadingPromise;
 }
 
 // AI-generated site summaries (Claude Haiku output). Per-site 3-paragraph
@@ -1475,6 +1540,62 @@ function ensureReferenceCampusesLoaded() {
   return referenceCampusesLoadingPromise;
 }
 
+// Retired heavy-industrial overlay — large closed smelters / mills / plants
+// (EPA GHGRP facilities that ceased reporting). Each is a candidate DC site:
+// a closed aluminum smelter or steel mill leaves a large stranded grid
+// interconnection. Generated by scripts/build_retired_industrial.py. Mirrors
+// the reference-campus overlay pattern (lazy-loaded, own layer + legend row).
+function ensureRetiredIndustrialLoaded() {
+  if (retiredIndustrialLoadingPromise) return retiredIndustrialLoadingPromise;
+  retiredIndustrialLoadingPromise = fetch(RETIRED_INDUSTRIAL_URL, { priority: "low" })
+    .then((r) => {
+      if (r.status === 404) return { sites: [] };
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then((payload) => {
+      recordRefreshDate(payload.generated_at); // this can be the freshest artifact in a GHGRP refresh
+      retiredIndustrialSites = payload.sites || []; // feed the Retired Sites tab
+      maybeRefreshRetired();
+      if (!retiredIndustrialLayer) return; // map not yet initialized
+      for (const s of retiredIndustrialSites) {
+        if (s.lat == null || s.lon == null) continue;
+        const icon = L.divIcon({
+          className: "retired-industrial-icon",
+          html: "<span>◆</span>",
+          iconSize: [18, 18],
+          iconAnchor: [9, 9],
+          popupAnchor: [0, -10],
+        });
+        const marker = L.marker([s.lat, s.lon], { icon, zIndexOffset: 400 });
+        const place = [s.city, s.state].filter(Boolean).join(", ");
+        const reason = s.reporting_status === "valid_reason"
+          ? "ceased GHGRP reporting (a reason was stated)"
+          : "ceased GHGRP reporting (reason unknown — could be closed, idled, or below threshold)";
+        marker.bindPopup(
+          `<div class="ref-campus-popup">` +
+          `<strong>${escapeHtml(s.name)}</strong>` +
+          `<div class="ref-campus-company">${escapeHtml(s.sector)}</div>` +
+          (place ? `<div class="ref-campus-prev">${escapeHtml(place)}</div>` : "") +
+          `<div class="ref-campus-meta">` +
+            (s.last_report_year ? `<span>Last reported ${escapeHtml(String(s.last_report_year))}</span>` : "") +
+            (s.parent_company ? `<span>${escapeHtml(s.parent_company)}</span>` : "") +
+          `</div>` +
+          `<div class="ref-campus-prev" style="margin-top:6px">Screening signal — ${escapeHtml(reason)}. A former large-load facility may retain reusable grid infrastructure worth diligence; not a confirmed-available or still-connected site.</div>` +
+          `</div>`,
+          { maxWidth: 280 }
+        );
+        retiredIndustrialLayer.addLayer(marker);
+      }
+      rerenderLegend();
+    })
+    .catch((err) => {
+      console.error("Retired industrial overlay load failed:", err);
+      retiredIndustrialLoadingPromise = null;
+    });
+  return retiredIndustrialLoadingPromise;
+}
+
 // ----- Map -----
 function initMap() {
   const renderer = L.canvas({ padding: 0.5 });
@@ -1511,6 +1632,8 @@ function initMap() {
   window.__map = map;
   // Reference campus star markers sit above program markers (higher z-index).
   referenceCampusLayer = L.layerGroup().addTo(map);
+  // Retired heavy-industrial overlay (candidate sites with stranded grid).
+  retiredIndustrialLayer = L.layerGroup().addTo(map);
 
   fitUsBoundsSafely();
 
@@ -1788,8 +1911,16 @@ function addLegend() {
         `<span class="legend-num">${referenceCampusLayer.getLayers().length}</span>` +
         `</div>`
       : "";
+    // Retired heavy-industrial row — candidate sites with stranded grid.
+    const retRow = (retiredIndustrialLayer && retiredIndustrialLayer.getLayers().length > 0)
+      ? `<div class="legend-row legend-row-ref">` +
+        `<span class="legend-diamond">◆</span>` +
+        `<span class="legend-label">Retired industrial</span>` +
+        `<span class="legend-num">${retiredIndustrialLayer.getLayers().length}</span>` +
+        `</div>`
+      : "";
     div.innerHTML =
-      `<div class="legend-title"><span>Program</span></div>${rows}${refRow}` +
+      `<div class="legend-title"><span>Program</span></div>${rows}${refRow}${retRow}` +
       `<div class="legend-foot">Marker size ∝ acreage (log)</div>`;
     L.DomEvent.disableClickPropagation(div);
     return div;
@@ -2787,15 +2918,17 @@ function wireTabs() {
   const mapTab = el("tab-map");
   const tableTab = el("tab-table");
   const candidatesTab = el("tab-candidates");
+  const retiredTab = el("tab-retired");
   const aboutTab = el("tab-about");
   const setView = (which) => {
     const onMap = which === "map";
     const onTable = which === "table";
     const onCandidates = which === "candidates";
+    const onRetired = which === "retired";
     const onAbout = which === "about";
     for (const [tab, active] of [
       [mapTab, onMap], [tableTab, onTable],
-      [candidatesTab, onCandidates], [aboutTab, onAbout],
+      [candidatesTab, onCandidates], [retiredTab, onRetired], [aboutTab, onAbout],
     ]) {
       if (!tab) continue;
       tab.classList.toggle("active", active);
@@ -2804,13 +2937,16 @@ function wireTabs() {
     const mapView = el("view-map");
     const tableView = el("view-table");
     const candidatesView = el("view-candidates");
+    const retiredView = el("view-retired");
     const aboutView = el("view-about");
     if (mapView)        { mapView.classList.toggle("active", onMap);               mapView.hidden = !onMap; }
     if (tableView)      { tableView.classList.toggle("active", onTable);           tableView.hidden = !onTable; }
     if (candidatesView) { candidatesView.classList.toggle("active", onCandidates); candidatesView.hidden = !onCandidates; }
+    if (retiredView)    { retiredView.classList.toggle("active", onRetired);       retiredView.hidden = !onRetired; }
     if (aboutView)      { aboutView.classList.toggle("active", onAbout);           aboutView.hidden = !onAbout; }
     if (onMap) setTimeout(() => map.invalidateSize(), 50);
     if (onCandidates) buildCandidatesView();
+    if (onRetired) { ensureRetiredIndustrialLoaded(); buildRetiredView(); }
     if (onAbout) {
       const d = el("about-refresh-date");
       if (d && window.__refreshedAt) d.textContent = window.__refreshedAt;
@@ -2819,7 +2955,68 @@ function wireTabs() {
   mapTab.addEventListener("click", () => setView("map"));
   tableTab.addEventListener("click", () => setView("table"));
   if (candidatesTab) candidatesTab.addEventListener("click", () => setView("candidates"));
+  if (retiredTab) retiredTab.addEventListener("click", () => setView("retired"));
   if (aboutTab) aboutTab.addEventListener("click", () => setView("about"));
+}
+
+// ----- Retired Sites stats view -----
+// Renders a by-prior-use breakdown of the retired-industrial overlay
+// (docs/data/retired-industrial.json). Pure DOM + CSS bars (no chart lib).
+function maybeRefreshRetired() {
+  const v = el("view-retired");
+  if (v && v.classList.contains("active")) buildRetiredView();
+}
+
+function buildRetiredView() {
+  const host = el("retired-stats");
+  if (!host) return;
+  const sites = retiredIndustrialSites;
+  if (!sites.length) {
+    host.innerHTML = '<p class="muted">Loading retired-site data…</p>';
+    return;
+  }
+  const total = sites.length;
+  const byCat = {};
+  const bySector = {};
+  const byState = {};
+  for (const s of sites) {
+    const cat = s.category || "Other";
+    byCat[cat] = (byCat[cat] || 0) + 1;
+    if (s.sector) bySector[s.sector] = (bySector[s.sector] || 0) + 1;
+    if (s.state) byState[s.state] = (byState[s.state] || 0) + 1;
+  }
+  const sectors = Object.entries(bySector).sort((a, b) => b[1] - a[1]);
+  const states = Object.entries(byState).sort((a, b) => b[1] - a[1]).slice(0, 10);
+  const maxSector = sectors.length ? sectors[0][1] : 1;
+  const maxState = states.length ? states[0][1] : 1;
+  const pct = (n, max) => Math.max(2, Math.round((n / max) * 100));
+
+  const catCards = Object.entries(byCat).sort((a, b) => b[1] - a[1]).map(([c, n]) =>
+    `<div class="retired-kpi"><span class="retired-kpi-num">${n.toLocaleString()}</span>`
+    + `<span class="retired-kpi-label">${escapeHtml(c)}</span></div>`).join("");
+
+  const sectorRows = sectors.map(([name, n]) =>
+    `<div class="retired-bar-row">`
+    + `<span class="retired-bar-label" title="${escapeAttr(name)}">${escapeHtml(name)}</span>`
+    + `<span class="retired-bar-track"><span class="retired-bar-fill" style="width:${pct(n, maxSector)}%"></span></span>`
+    + `<span class="retired-bar-num">${n.toLocaleString()}</span>`
+    + `</div>`).join("");
+
+  const stateRows = states.map(([st, n]) =>
+    `<div class="retired-bar-row">`
+    + `<span class="retired-bar-label">${escapeHtml(STATE_NAMES[st] || st)}</span>`
+    + `<span class="retired-bar-track"><span class="retired-bar-fill alt" style="width:${pct(n, maxState)}%"></span></span>`
+    + `<span class="retired-bar-num">${n.toLocaleString()}</span>`
+    + `</div>`).join("");
+
+  host.innerHTML =
+    `<div class="retired-kpis"><div class="retired-kpi"><span class="retired-kpi-num">${total.toLocaleString()}</span>`
+    + `<span class="retired-kpi-label">Retired sites</span></div>${catCards}</div>`
+    + `<div class="retired-cols">`
+    + `<section class="retired-col"><h3>Top prior uses</h3><div class="retired-bars">${sectorRows}</div></section>`
+    + `<section class="retired-col"><h3>Top states</h3><div class="retired-bars">${stateRows}</div></section>`
+    + `</div>`
+    + `<p class="retired-foot muted">Source: EPA GHGRP facilities that ceased reporting (closed, idled, or below threshold). This is a screening signal for reusable grid infrastructure — verify ownership, interconnection, and closure before treating any site as available. Use the rust ◆ markers on the Map to locate them.</p>`;
 }
 
 // ----- DC Candidates view -----
@@ -2870,6 +3067,17 @@ function _hasRetiredPlant(s) {
     && s.retired_plant_mw != null && s.retired_plant_mw >= 100;
 }
 
+// Operating nuclear plant ≥500 MW within 5 mi — the AWS/Talen Susquehanna
+// pattern: 24/7 carbon-free baseload accessed via PPA. Wider radius than
+// coal/gas (5 mi vs 1) because nuclear connects high in the transmission
+// hierarchy and DCs reach it via PPA, not direct co-location. Mirrors the
+// nuclear pathway in dc-score.js:_scoreGridInheritance.
+function _hasNuclearAdjacency(s) {
+  return s.power_plant_mi != null && s.power_plant_mi <= 5
+    && s.power_plant_mw != null && s.power_plant_mw >= 500
+    && s.power_plant_fuel != null && /nuclear/i.test(s.power_plant_fuel);
+}
+
 // Returns true when the site meets the EPA's stated EO 14318 / January 2026
 // guidance criteria for fast-tracked brownfield/Superfund data center permits:
 // program is superfund or brownfield, ≥100 ac, grid ≤2 mi, outside SFHA.
@@ -2878,6 +3086,13 @@ function _hasEO14318(s) {
     && s.acreage != null && s.acreage >= 100
     && s.transmission_mi != null && s.transmission_mi <= 2
     && s.in_sfha !== true;
+}
+
+// EPA Sitewide Ready for Anticipated Use (SWRAU) — true only for the two
+// affirmative values. "Does Not Meet the Measure", its "(Retracted)" variant,
+// and null all return false (a retracted determination is not a ready signal).
+function _meetsRau(rauStatus) {
+  return typeof rauStatus === "string" && /^Meets the Measure/i.test(rauStatus);
 }
 
 function makeCandidateRow(s, rank) {
@@ -2935,6 +3150,9 @@ function makeCandidateRow(s, rank) {
 
   // Signal badges — readiness green / risk red / financial blue
   const badges = [];
+  if (_meetsRau(s.rau_status)) {
+    badges.push('<span class="sig-badge sig-land" title="EPA Sitewide Ready for Anticipated Use (SWRAU): all of this site\'s land is ready for its anticipated use — the strongest public land-availability signal">Land Ready</span>');
+  }
   if (s.in_opportunity_zone) {
     const lbl = s.oz_rural ? "OZ Rural" : "OZ";
     badges.push(`<span class="sig-badge sig-oz" title="${s.oz_rural ? "Rural Qualified Opportunity Zone — 30% basis step-up" : "Qualified Opportunity Zone"}">${escapeHtml(lbl)}</span>`);
@@ -2956,12 +3174,33 @@ function makeCandidateRow(s, rank) {
     badges.push('<span class="sig-badge sig-plant" title="Retired power plant ≤1 mi — inherited transmission connection and stranded interconnection agreement (Conesville / Widows Creek pattern)">Ret. Plant</span>');
   } else if (_hasGridInheritance(s)) {
     badges.push('<span class="sig-badge sig-grid" title="Large coal/gas plant ≤1 mi — potential inherited grid interconnection">Grid Inherit</span>');
+  } else if (_hasNuclearAdjacency(s)) {
+    badges.push('<span class="sig-badge sig-grid" title="Operating nuclear ≥500 MW within 5 mi — 24/7 carbon-free baseload via PPA (AWS/Talen Susquehanna pattern)">Nuclear</span>');
   }
   if (_hasEO14318(s)) {
     badges.push('<span class="sig-badge sig-fedfast" title="Meets EO 14318 / EPA Jan 2026 guidance: superfund/brownfield ≥100 ac, grid ≤2 mi, outside SFHA — qualifies for fast-tracked NEPA categorical exclusion">Fed Fast Lane</span>');
   }
   if (s.in_sfha === true) {
     badges.push('<span class="sig-badge sig-flood" title="FEMA Special Flood Hazard Area — permitting challenge for critical infrastructure">Flood</span>');
+  }
+  // FEMA NRI wildfire/drought climate penalty — surface BOTH penalized tiers so
+  // the ranking drag is visible (Very High = −10, Relatively High = −5), parallel
+  // to Flood. Show the magnitude in the badge so a −5 site isn't invisible.
+  const _climRank = (r) => r === "Very High" ? 2 : r === "Relatively High" ? 1 : 0;
+  const _climWorst = Math.max(_climRank(s.nri_wildfire_rating), _climRank(s.nri_drought_rating));
+  if (_climWorst > 0) {
+    const _climPts = _climWorst === 2 ? 10 : 5;
+    const _climTier = _climWorst === 2 ? "Very High" : "Relatively High";
+    const _climHaz = _climRank(s.nri_wildfire_rating) >= _climRank(s.nri_drought_rating)
+      ? "wildfire" : "drought";
+    badges.push(`<span class="sig-badge sig-flood" title="FEMA National Risk Index: ${_climTier} ${_climHaz} risk — insurability / cooling-water constraint (−${_climPts} to the suitability score)">Climate −${_climPts}</span>`);
+  }
+  // State DC regulatory friction (DC-lens penalty). Names the policy so the
+  // ranking drag is explained, not just flagged.
+  if (s.dc_regulatory_climate) {
+    const reg = STATE_DC_REGULATION[s.state];
+    const pts = s.dc_regulatory_climate === "restrictive" ? "−8" : "−4";
+    badges.push(`<span class="sig-badge sig-flood" title="${escapeAttr((reg && reg.note) || "State regulatory restriction")} (${pts} to the data-center score)">Zoning</span>`);
   }
   if (s.enforcement?.has_npdes_permit === true) {
     badges.push('<span class="sig-badge sig-water" title="Active CWA/NPDES permit — legacy industrial water discharge infrastructure (intake, treated effluent rights)">Water</span>');
@@ -3166,6 +3405,13 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
   const reusePill = (typeof s.in_reuse === "string" && /^yes/i.test(s.in_reuse))
     ? ` <span class="pill reuse-pill" title="Site is currently in active reuse (EPA Superfund Redevelopment mapper)">Active Reuse</span>`
     : "";
+  // "Land Ready" — EPA Sitewide Ready for Anticipated Use (SWRAU). The single
+  // best public per-site land-availability signal: EPA's own answer to "is
+  // ALL of this site's land ready for its anticipated use." Only the two
+  // affirmative values count; the "(Retracted)" / "Does Not Meet" values don't.
+  const landReadyPill = _meetsRau(s.rau_status)
+    ? ` <span class="pill reuse-pill" title="EPA Sitewide Ready for Anticipated Use (SWRAU): all of this site's land is ready for its anticipated use">Land Ready</span>`
+    : "";
   // Opportunity Zone pill — financial signal, not technical. 30% capital
   // gains deferral on 5+yr holds inside a Treasury-designated QOZ. Rural
   // OZs are a meaningful subset (~700 / 8,765 tracts) so we label them.
@@ -3197,7 +3443,7 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
     else titleParts.push("transmission ≤1 mi");
     tierPill = ` <span class="pill ${cls}" title="${escapeAttr(titleParts.join(" \xb7 "))}">${escapeHtml(DC_TIER_LABEL[tier])}</span>`;
   }
-  el("d-program").innerHTML = programPill + cleanupPill + reusePill + dcPill + ozPill + iraPill + eo14318Pill + tierPill;
+  el("d-program").innerHTML = programPill + cleanupPill + reusePill + landReadyPill + dcPill + ozPill + iraPill + eo14318Pill + tierPill;
   // The acreage `<dd>` carries an inline note `<span>` for FUDS records
   // missing acreage. Replace only the text node so the note span isn't
   // clobbered, then toggle the note for the FUDS-no-boundary case.
@@ -3309,6 +3555,7 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
   // fallback when the universal enrichment hasn't loaded yet.
   setOpportunityZoneCell("d-opp-zone", s);
   setEnergyCommunityCell("d-energy-community", s);
+  setRauStatusCell("d-rau-status", s);
   setNriCell("d-nri-risk", s);
   // State data-center tax incentive chip (Tier 1/2/3) — uses the static
   // STATE_DC_INCENTIVES lookup, no fetch.
@@ -3820,6 +4067,7 @@ const CSV_COLUMNS = [
   { key: "near_wastewater", label: "near_wastewater" },
   { key: "pop_density", label: "pop_density" },
   { key: "data_center_reuse_candidate", label: "dc_reuse_candidate" },
+  { key: "rau_status", label: "rau_status" },
   // ECHO enforcement (v1.11)
   { key: "enforcement.inspections_5yr", label: "echo_inspections_5yr" },
   { key: "enforcement.formal_actions_5yr", label: "echo_formal_actions_5yr" },
@@ -4230,6 +4478,33 @@ function setOpportunityZoneCell(id, s) {
   node.classList.remove("ready");
 }
 
+// Render the EPA SWRAU "Land readiness" cell. Four states:
+//   - "Meets the Measure" (incl. "Formerly Retracted"): green affirmative.
+//   - "Does Not Meet the Measure": plain text (not ready, not an error).
+//   - "(Retracted)" variant: plain text with the retraction noted.
+//   - null / unknown: muted "Not available" (only Superfund redev sites have it).
+function setRauStatusCell(id, s) {
+  const node = el(id);
+  if (!node) return;
+  const raw = typeof s.rau_status === "string" ? s.rau_status.trim() : "";
+  if (!raw) {
+    node.textContent = "Not available";
+    node.classList.add("muted-cell");
+    node.classList.remove("ready");
+    return;
+  }
+  node.classList.remove("muted-cell");
+  if (_meetsRau(raw)) {
+    node.textContent = "All land ready (SWRAU)";
+    node.title = "EPA Sitewide Ready for Anticipated Use: all of this site's land is ready for its anticipated use" + (/Formerly Retracted/i.test(raw) ? " (formerly retracted)" : "");
+    node.classList.add("ready");
+  } else {
+    node.textContent = /Retracted/i.test(raw) ? "Not ready (determination retracted)" : "Not all land ready";
+    node.title = "EPA Sitewide Ready for Anticipated Use: " + raw;
+    node.classList.remove("ready");
+  }
+}
+
 // Render the IRA energy community cell. Three states:
 //   - `in_energy_community === true`: green label with the category + the
 //     human-readable reason (coal mine/generator closure, adjacency, or the
@@ -4379,6 +4654,8 @@ function _suitLensHtml(title, score, breakdown, groups) {
   if (penalty < 0) chips.push(`<span class="suit-chip suit-penalty">Flood ${penalty}</span>`);
   const climate = breakdown.climate_penalty || 0;
   if (climate < 0) chips.push(`<span class="suit-chip suit-penalty">Climate ${climate}</span>`);
+  const reg = breakdown.regulatory_penalty || 0;
+  if (reg < 0) chips.push(`<span class="suit-chip suit-penalty">Zoning ${reg}</span>`);
   const tier = _suitTier(score);
   return `<div class="suit-lens-head">`
     + `<span class="suit-lens-name">${escapeHtml(title)}</span>`
@@ -4424,6 +4701,16 @@ function renderSuitability(s) {
       const pts = (s.nri_wildfire_rating === "Very High" || s.nri_drought_rating === "Very High") ? 10 : 5;
       climateEl.textContent = `⚑ Elevated FEMA climate risk — ${hazards.join(" · ")}. `
         + `Both scores carry a ${pts}-point penalty.`;
+    }
+  }
+  const regEl = el("d-suit-reg");
+  if (regEl) {
+    const reg = s.state && STATE_DC_REGULATION[s.state];
+    regEl.hidden = !reg;
+    if (reg) {
+      const pts = reg.climate === "restrictive" ? 8 : 4;
+      regEl.textContent = `⚑ ${reg.note} The data-center score carries a ${pts}-point penalty `
+        + `(the generation score is unaffected — this restricts data centers, not power plants).`;
     }
   }
 }

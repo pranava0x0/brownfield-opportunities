@@ -235,6 +235,71 @@ def test_fetch_records_emits_distance_per_layer(tmp_path, monkeypatch):
     assert "gas_pipeline_mi" in by_id["S1"]
 
 
+def _write_existing_output(dir_path: Path, sites: list[dict]) -> None:
+    """Mimic a prior infra-proximity.json on disk (for flood seeding)."""
+    payload = {
+        "generated_at": "2026-06-01T00:00:00Z",
+        "source": "test",
+        "source_url": "test://",
+        "count": len(sites),
+        "sites": sites,
+    }
+    (dir_path / "infra-proximity.json").write_text(json.dumps(payload))
+
+
+def test_flood_seed_and_budget(tmp_path, monkeypatch):
+    """Resumable flood backfill: prior flood values are seeded (carried
+    forward without re-querying), and `--infra-flood-budget` caps NEW fetches
+    so a run tops up the cache by N sites then writes the full record set.
+
+    S1 is already populated on disk → seeded verbatim, no query.
+    S2 is unpopulated, budget=1 → one fetch happens.
+    S3 is unpopulated, budget exhausted → deferred, no flood field.
+    All three records are still emitted (no truncation).
+    """
+    monkeypatch.setattr(InfraProximity, "_data_dir", staticmethod(lambda: tmp_path))
+    monkeypatch.setattr(InfraProximity, "OUTPUT_DIR", tmp_path)
+    _write_program_file(tmp_path, "superfund-npl.json", [
+        {"id": "S1", "program": "superfund", "lat": 40.0, "lon": -74.0},
+        {"id": "S2", "program": "superfund", "lat": 41.0, "lon": -75.0},
+        {"id": "S3", "program": "superfund", "lat": 42.0, "lon": -76.0},
+    ])
+    # Prior output: S1 already has a flood determination.
+    _write_existing_output(tmp_path, [
+        {"id": "S1", "program": "superfund", "flood_zone": "AE", "in_sfha": True},
+        {"id": "S2", "program": "superfund"},  # unpopulated
+    ])
+
+    queried: list[tuple[float, float]] = []
+    def fake_flood(lat, lon, use_cache):
+        queried.append((round(lat, 1), round(lon, 1)))
+        return ("X", False)
+
+    inst = InfraProximity(cache_dir=tmp_path / "cache")
+    # Only the flood layer is active; budget allows exactly one new fetch.
+    args = _make_args(
+        infra_skip_transmission=True, infra_skip_highway=True,
+        infra_skip_rail=True, infra_skip_gas_pipeline=True,
+        infra_skip_flood_zone=False, infra_flood_budget=1,
+    )
+    with patch.object(inst, "_query_flood_zone", side_effect=fake_flood):
+        records = inst.fetch_records(args, use_cache=True)
+
+    by_id = {r["id"]: r for r in records}
+    # All three records emitted — no truncation.
+    assert set(by_id) == {"S1", "S2", "S3"}
+    # S1 seeded verbatim, never queried.
+    assert by_id["S1"]["flood_zone"] == "AE"
+    assert by_id["S1"]["in_sfha"] is True
+    assert (40.0, -74.0) not in queried
+    # S2 consumed the one-fetch budget.
+    assert by_id["S2"]["flood_zone"] == "X"
+    assert (41.0, -75.0) in queried
+    # S3 deferred over budget — no flood field, but record still present.
+    assert "flood_zone" not in by_id["S3"]
+    assert len(queried) == 1
+
+
 def test_fetch_records_skips_sites_with_bad_coords(tmp_path, monkeypatch):
     monkeypatch.setattr(InfraProximity, "_data_dir", staticmethod(lambda: tmp_path))
     _write_program_file(tmp_path, "superfund-npl.json", [

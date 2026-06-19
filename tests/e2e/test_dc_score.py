@@ -445,6 +445,31 @@ def test_gen_energy_community_readiness_bonus(page, base_url):
     assert _gen_bd(page, ec)["readiness"] > _gen_bd(page, oz)["readiness"]
 
 
+def test_dc_rau_status_readiness_bonus(page, base_url):
+    """EPA SWRAU 'Meets the Measure' (all land ready) earns +3 DC-readiness.
+    Only the affirmative determinations count — 'Does Not Meet' and the
+    '(Retracted)' variant earn nothing."""
+    _ready(page, base_url)
+    base = {"transmission_mi": 0.5}
+    meets = dict(base, rau_status="Meets the Measure")
+    formerly = dict(base, rau_status="Meets the Measure (Formerly Retracted)")
+    not_meets = dict(base, rau_status="Does Not Meet the Measure")
+    retracted = dict(base, rau_status="Does Not Meet the Measure (Retracted)")
+    assert _dc_bd(page, meets)["readiness"] == 3
+    assert _dc_bd(page, formerly)["readiness"] == 3
+    assert _dc_bd(page, not_meets)["readiness"] == 0
+    assert _dc_bd(page, retracted)["readiness"] == 0
+
+
+def test_gen_rau_status_readiness_bonus(page, base_url):
+    """For a generation build, SWRAU-ready land earns +2 (developable signal)."""
+    _ready(page, base_url)
+    base = {"transmission_mi": 0.5}
+    meets = dict(base, rau_status="Meets the Measure")
+    assert _gen_bd(page, meets)["readiness"] == 2
+    assert _gen_bd(page, dict(base, rau_status="Does Not Meet the Measure"))["readiness"] == 0
+
+
 def test_dc_readiness_npl_final_gives_partial(page, base_url):
     _ready(page, base_url)
     assert _dc_bd(page, {"transmission_mi": 0.5, "npl_status_code": "F"})["readiness"] == 1
@@ -527,6 +552,24 @@ def test_climate_penalty_heatwave_not_charged(page, base_url):
     _ready(page, base_url)
     rec = {"transmission_mi": 0.5, "nri_heatwave_rating": "Very High"}
     assert _dc_bd(page, rec)["climate_penalty"] == 0
+
+
+def test_regulatory_penalty_dc_lens_only(page, base_url):
+    """A restrictive/cautionary state DC regulatory climate subtracts from the
+    DATA-CENTER lens only — a DC moratorium doesn't constrain a power-plant
+    build, so the generation lens carries no such penalty."""
+    _ready(page, base_url)
+    base = {"transmission_mi": 0.5}
+    restrictive = dict(base, dc_regulatory_climate="restrictive")
+    cautionary = dict(base, dc_regulatory_climate="cautionary")
+    assert _dc_bd(page, restrictive)["regulatory_penalty"] == -8
+    assert _dc_bd(page, cautionary)["regulatory_penalty"] == -4
+    assert _dc_bd(page, base)["regulatory_penalty"] == 0
+    # The restrictive penalty actually lowers the composite DC score.
+    assert _dc(page, restrictive) < _dc(page, base)
+    # Generation lens: no regulatory_penalty key, and the score is unaffected.
+    assert "regulatory_penalty" not in _gen_bd(page, restrictive)
+    assert _gen(page, restrictive) == _gen(page, base)
 
 
 # -- Generation per-component coverage -------------------------------------
