@@ -67,9 +67,30 @@ STATE_PARCEL_SOURCES: dict[str, dict[str, Any]] = {
         "parcel_id_field": "parno",
         "source": "NC OneMap (NC1Map statewide parcels)",
     },
-    # TX StratMap (TxGIO). Endpoint host moved post-TNRIS; confirm the live host
-    # in the deploy environment before enabling (dev sandbox couldn't resolve
-    # feature.tnris.org). Field names per StratMap land-parcels schema.
+    # Verified 2026-06-19 — Montana Cadastral (MT Dept. of Revenue ORION). Point
+    # query returned owner "ARCO ENVIRONMENTAL REMEDIATION LLC" for the Anaconda
+    # Smelter Superfund site (the correct PRP), with GISAcres matching.
+    "MT": {
+        "base": "https://gisservicemt.gov/arcgis/rest/services/MSDI_Framework/Parcels/MapServer/0",
+        "owner_field": "OwnerName",
+        "acreage_field": "GISAcres",
+        "parcel_id_field": "PARCELID",
+        "source": "Montana Cadastral (MT Dept. of Revenue)",
+    },
+    # Verified 2026-06-19 — Wisconsin V8 Statewide Parcel Map (DOA). Use the
+    # DYNAMIC service (the DW_Map_Cached tile service doesn't support Query).
+    "WI": {
+        "base": "https://uadnrmaps.wi.gov/arcgis/rest/services/DW_Map_Dynamic/EN_County_Tax_Parcels_WTM_Ext_Dynamic_L16/MapServer/0",
+        "owner_field": "OWNERNME1",
+        "acreage_field": "GISACRES",
+        "parcel_id_field": "PARCELID",
+        "source": "WI V8 Statewide Parcels (WI DOA)",
+    },
+    # TX StratMap (TxGIO). Endpoint CONFIRMED current as of 2026-06-19
+    # (tnris.org/stratmap/land-parcels.html) but `feature.tnris.org` was
+    # unreachable from BOTH the dev sandbox socket and WebFetch — a network
+    # restriction here, not a dead host. Enable + verify the owner field name
+    # in the deploy environment (best guess OWNER_NAME, unconfirmed).
     # "TX": {
     #     "base": "https://feature.tnris.org/arcgis/rest/services/Parcels/stratmap25_land_parcels_48/MapServer/0",
     #     "owner_field": "OWNER_NAME",
