@@ -139,3 +139,33 @@ def test_lens_restored_from_url(page, base_url):
     _open_candidates(page)
     stats = page.evaluate("document.getElementById('candidates-stats').textContent")
     assert "generation score" in stats
+
+
+def test_land_ready_badge_renders_for_swrau_site(page, base_url):
+    """A site whose EPA SWRAU `rau_status` meets the measure shows the
+    solid-green "Land Ready" signal badge in the candidates Signals column.
+    Pick a state with <=200 scored sites (one candidates page) and inject the
+    SWRAU value onto one of its scored sites so it is guaranteed to render."""
+    _ready(page, base_url)
+    state = page.evaluate(
+        "() => {"
+        "  const byState = {};"
+        "  for (const s of window.__sites) {"
+        "    if (s.transmission_mi != null && s.state) (byState[s.state] ||= []).push(s);"
+        "  }"
+        "  for (const [st, arr] of Object.entries(byState)) {"
+        "    if (arr.length >= 1 && arr.length <= 200) {"
+        "      arr[0].rau_status = 'Meets the Measure'; return st;"
+        "    }"
+        "  }"
+        "  return null;"
+        "}"
+    )
+    assert state, "expected a state with 1..200 scored sites"
+    _set_state_filter(page, state)
+    _open_candidates(page)
+    labels = page.evaluate(
+        "() => Array.from(document.querySelectorAll('#candidates-table .sig-land'))"
+        ".map((b) => b.textContent.trim())"
+    )
+    assert "Land Ready" in labels, "expected a Land Ready badge for the SWRAU site"
