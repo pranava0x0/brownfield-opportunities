@@ -118,6 +118,40 @@ def test_legend_renders(page, base_url):
     assert "Program" in text  # legend title
 
 
+def test_retired_industrial_overlay_loads(page, base_url):
+    """The GHGRP retired-industrial overlay lazy-loads rust ◆ markers and adds
+    a 'Retired industrial' legend row (candidate sites with stranded grid)."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30_000)
+    # Markers populate after the low-priority lazy fetch resolves.
+    page.wait_for_function(
+        "() => document.querySelectorAll('.retired-industrial-icon').length > 0",
+        timeout=15_000,
+    )
+    count = page.evaluate("() => document.querySelectorAll('.retired-industrial-icon').length")
+    assert count > 0
+    legend = page.locator(".legend").text_content()
+    assert "Retired industrial" in legend
+
+
+def test_retired_sites_stats_tab(page, base_url):
+    """The Retired Sites tab renders a by-prior-use stats breakdown
+    (KPI cards + sector/state bars) from the retired-industrial overlay."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30_000)
+    page.wait_for_function(
+        "() => window.__sites && document.querySelectorAll('.retired-industrial-icon').length > 0",
+        timeout=15_000,
+    )
+    page.locator("#tab-retired").click()
+    page.wait_for_selector(".retired-bar-row")
+    kpis = page.evaluate(
+        "() => Array.from(document.querySelectorAll('.retired-kpi-label')).map(e => e.textContent)"
+    )
+    assert "Manufacturing" in kpis and "Mining" in kpis
+    assert page.locator(".retired-bar-row").count() > 5
+
+
 def test_filters_panel_toggles(page, base_url):
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("document.getElementById('meta').textContent.indexOf('sites') > -1")
@@ -575,7 +609,8 @@ def test_refresh_date_reflects_freshest_data_file(page, base_url):
             'epa-redev.json', 'epa-superfund-docs.json', 'infra-proximity.json',
             'opportunity-zone.json', 'climate-zone.json', 'iso-rto.json',
             'epa-echo.json', 'ai-summary.json', 'eia-retired-plants.json',
-            'ira-energy-community.json', 'fema-nri.json',
+            'ira-energy-community.json', 'fema-nri.json', 'parcel-owner.json',
+            'retired-industrial.json',
           ];
           const fmt = (s) => new Date(Date.parse(s)).toISOString().slice(0, 10);
           let coreDate = null;
