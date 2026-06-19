@@ -2175,6 +2175,15 @@ main {
   border: 1px solid var(--readiness-ready);
 }
 [data-theme="dark"] .sig-badge.sig-ira { background: rgba(108, 193, 138, 0.12); }
+/* SWRAU "Land Ready" — the strongest public land-availability signal, so it
+   gets a solid-fill green chip to stand out from the outline-green readiness
+   badges (Clean / Reuse / IRA) rather than blending into them. */
+.sig-badge.sig-land {
+  background: var(--readiness-ready);
+  color: #fff;
+  border: 1px solid var(--readiness-ready);
+}
+[data-theme="dark"] .sig-badge.sig-land { color: #0d1b12; }
 /* IRA "Yes" rendering in the detail-panel infra section — green ready token,
    same as OZ's #d-opp-zone.ready treatment. */
 #d-energy-community.ready { color: var(--readiness-ready); font-weight: 500; }
