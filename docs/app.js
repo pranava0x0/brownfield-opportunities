@@ -1133,6 +1133,11 @@ function ensureParcelOwnerLoaded() {
         existing.current_owner = rec.current_owner;
         existing.current_owner_source = rec.current_owner_source || "Public parcel records";
       }
+      // Re-render an already-open detail panel so the owner row goes live the
+      // moment this lazy load lands (matches the docs / summary / infra loaders).
+      if (selectedId && sitesById.has(selectedId)) {
+        try { selectSite(selectedId); } catch {}
+      }
     })
     .catch((err) => {
       console.error("Parcel-owner enrichment load failed:", err);
@@ -1549,6 +1554,7 @@ function ensureRetiredIndustrialLoaded() {
       return r.json();
     })
     .then((payload) => {
+      recordRefreshDate(payload.generated_at); // this can be the freshest artifact in a GHGRP refresh
       retiredIndustrialSites = payload.sites || []; // feed the Retired Sites tab
       maybeRefreshRetired();
       if (!retiredIndustrialLayer) return; // map not yet initialized
@@ -1564,8 +1570,8 @@ function ensureRetiredIndustrialLoaded() {
         const marker = L.marker([s.lat, s.lon], { icon, zIndexOffset: 400 });
         const place = [s.city, s.state].filter(Boolean).join(", ");
         const reason = s.reporting_status === "valid_reason"
-          ? "ceased EPA GHGRP reporting (stated reason)"
-          : "ceased EPA GHGRP reporting";
+          ? "ceased GHGRP reporting (a reason was stated)"
+          : "ceased GHGRP reporting (reason unknown — could be closed, idled, or below threshold)";
         marker.bindPopup(
           `<div class="ref-campus-popup">` +
           `<strong>${escapeHtml(s.name)}</strong>` +
@@ -1575,7 +1581,7 @@ function ensureRetiredIndustrialLoaded() {
             (s.last_report_year ? `<span>Last reported ${escapeHtml(String(s.last_report_year))}</span>` : "") +
             (s.parent_company ? `<span>${escapeHtml(s.parent_company)}</span>` : "") +
           `</div>` +
-          `<div class="ref-campus-prev" style="margin-top:6px">Candidate site — a large retired industrial load can leave a stranded high-voltage grid interconnection (${escapeHtml(reason)}).</div>` +
+          `<div class="ref-campus-prev" style="margin-top:6px">Screening signal — ${escapeHtml(reason)}. A former large-load facility may retain reusable grid infrastructure worth diligence; not a confirmed-available or still-connected site.</div>` +
           `</div>`,
           { maxWidth: 280 }
         );
@@ -3010,7 +3016,7 @@ function buildRetiredView() {
     + `<section class="retired-col"><h3>Top prior uses</h3><div class="retired-bars">${sectorRows}</div></section>`
     + `<section class="retired-col"><h3>Top states</h3><div class="retired-bars">${stateRows}</div></section>`
     + `</div>`
-    + `<p class="retired-foot muted">Source: EPA GHGRP facilities that ceased reporting. Use the rust ◆ markers on the Map to locate them. These are candidate sites — a closed facility's grid interconnection is the asset.</p>`;
+    + `<p class="retired-foot muted">Source: EPA GHGRP facilities that ceased reporting (closed, idled, or below threshold). This is a screening signal for reusable grid infrastructure — verify ownership, interconnection, and closure before treating any site as available. Use the rust ◆ markers on the Map to locate them.</p>`;
 }
 
 // ----- DC Candidates view -----
@@ -3177,12 +3183,17 @@ function makeCandidateRow(s, rank) {
   if (s.in_sfha === true) {
     badges.push('<span class="sig-badge sig-flood" title="FEMA Special Flood Hazard Area — permitting challenge for critical infrastructure">Flood</span>');
   }
-  // Very-High wildfire or drought (FEMA NRI) is the −10 climate penalty in the
-  // DC score; surface it so the ranking drag is visible, parallel to Flood.
-  const _climHaz = s.nri_wildfire_rating === "Very High" ? "wildfire"
-    : s.nri_drought_rating === "Very High" ? "drought" : null;
-  if (_climHaz) {
-    badges.push(`<span class="sig-badge sig-flood" title="FEMA National Risk Index: Very High ${_climHaz} risk — insurability / cooling-water constraint (−10 to the suitability score)">Climate</span>`);
+  // FEMA NRI wildfire/drought climate penalty — surface BOTH penalized tiers so
+  // the ranking drag is visible (Very High = −10, Relatively High = −5), parallel
+  // to Flood. Show the magnitude in the badge so a −5 site isn't invisible.
+  const _climRank = (r) => r === "Very High" ? 2 : r === "Relatively High" ? 1 : 0;
+  const _climWorst = Math.max(_climRank(s.nri_wildfire_rating), _climRank(s.nri_drought_rating));
+  if (_climWorst > 0) {
+    const _climPts = _climWorst === 2 ? 10 : 5;
+    const _climTier = _climWorst === 2 ? "Very High" : "Relatively High";
+    const _climHaz = _climRank(s.nri_wildfire_rating) >= _climRank(s.nri_drought_rating)
+      ? "wildfire" : "drought";
+    badges.push(`<span class="sig-badge sig-flood" title="FEMA National Risk Index: ${_climTier} ${_climHaz} risk — insurability / cooling-water constraint (−${_climPts} to the suitability score)">Climate −${_climPts}</span>`);
   }
   // State DC regulatory friction (DC-lens penalty). Names the policy so the
   // ranking drag is explained, not just flagged.

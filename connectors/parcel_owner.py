@@ -184,8 +184,15 @@ class ParcelOwner(Connector):
             sid = s.get("id")
             if not sid:
                 continue
-            # Skip sites already resolved (have a non-null owner from a prior run).
-            if seeded.get(sid, {}).get("current_owner"):
+            # Skip any site already ATTEMPTED in a prior run — whether it
+            # resolved to an owner OR is a null-owner tombstone. Keying on
+            # `sid in seeded` (not `.get("current_owner")`) is load-bearing:
+            # the output serializes with exclude_none, so a tombstone comes
+            # back from existing_records() as just {id, program} with no
+            # current_owner. The old `.get("current_owner")` check was falsy
+            # for tombstones, so every known no-match re-consumed the budget
+            # on every run. Guarded by test_seeded_null_owner_is_not_requeried.
+            if sid in seeded:
                 continue
             if limit and new_queries >= limit:
                 break
