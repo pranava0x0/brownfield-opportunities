@@ -118,6 +118,22 @@ def test_legend_renders(page, base_url):
     assert "Program" in text  # legend title
 
 
+def test_retired_industrial_overlay_loads(page, base_url):
+    """The GHGRP retired-industrial overlay lazy-loads rust ◆ markers and adds
+    a 'Retired industrial' legend row (candidate sites with stranded grid)."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30_000)
+    # Markers populate after the low-priority lazy fetch resolves.
+    page.wait_for_function(
+        "() => document.querySelectorAll('.retired-industrial-icon').length > 0",
+        timeout=15_000,
+    )
+    count = page.evaluate("() => document.querySelectorAll('.retired-industrial-icon').length")
+    assert count > 0
+    legend = page.locator(".legend").text_content()
+    assert "Retired industrial" in legend
+
+
 def test_filters_panel_toggles(page, base_url):
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("document.getElementById('meta').textContent.indexOf('sites') > -1")
