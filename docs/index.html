@@ -13,6 +13,26 @@
       integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
       crossorigin="">
 <link rel="stylesheet" href="style.css">
+<!-- Google Analytics 4 (gtag.js) — privacy-friendly + opt-out-aware. ACTIVE.
+     GA_MEASUREMENT_ID below is the live GA4 id; to change accounts edit it in
+     that one spot (set it back to "G-XXXXXXXXXX" to make this a clean no-op).
+     It skips entirely when the browser sends Do-Not-Track, and uses
+     anonymize_ip. Data only flows once this page is deployed to GitHub Pages. -->
+<script>
+(function () {
+  var GA_MEASUREMENT_ID = "G-TH38TZ7RM0"; // GA4 "Brownfield Opportunities" web stream (Mint Test account)
+  var dnt = navigator.doNotTrack == "1" || window.doNotTrack == "1" || navigator.msDoNotTrack == "1";
+  if (GA_MEASUREMENT_ID === "G-XXXXXXXXXX" || !/^G-[A-Z0-9]+$/.test(GA_MEASUREMENT_ID) || dnt) return;
+  var s = document.createElement("script");
+  s.async = true;
+  s.src = "https://www.googletagmanager.com/gtag/js?id=" + GA_MEASUREMENT_ID;
+  document.head.appendChild(s);
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = function () { dataLayer.push(arguments); };
+  gtag("js", new Date());
+  gtag("config", GA_MEASUREMENT_ID, { anonymize_ip: true });
+})();
+</script>
 </head>
 <body>
 <a href="#main" class="skip-link">Skip to main content</a>
@@ -48,6 +68,7 @@
       <button id="tab-map" class="tab active" role="tab" aria-selected="true" aria-controls="view-map">Map</button>
       <button id="tab-table" class="tab" role="tab" aria-selected="false" aria-controls="view-table">Table</button>
       <button id="tab-candidates" class="tab" role="tab" aria-selected="false" aria-controls="view-candidates">DC Candidates</button>
+      <button id="tab-retired" class="tab" role="tab" aria-selected="false" aria-controls="view-retired">Retired Sites</button>
       <button id="tab-about" class="tab" role="tab" aria-selected="false" aria-controls="view-about">About</button>
     </div>
   </nav>
@@ -196,6 +217,15 @@
         <span class="cand-filter-note">Narrow with the global filters (⚙) — search, state, program, tier, and acreage all apply here too.</span>
       </div>
       <p class="candidates-stats" id="candidates-stats" aria-live="polite">Loading…</p>
+      <details class="cand-help">
+        <summary>How this ranking works</summary>
+        <div class="cand-help-body">
+          <p>Every site gets a <strong>0–100 suitability score</strong> from the data already on its record — no opinions, just public federal signals. Pick a <strong>lens</strong> above: <em>Data Center</em> (siting a compute load) or <em>Generation</em> (siting new power). The table is sorted best-first for the chosen lens.</p>
+          <p>The score is a weighted sum of <strong>power access</strong> (transmission distance &amp; voltage, substation, grid inheritance), <strong>land</strong> (acreage), <strong>gas</strong>, <strong>logistics</strong> (highway/rail), and <strong>readiness</strong> (cleanup status, reuse, EPA flag, incentives) — minus penalties for <strong>flood zones</strong>, <strong>climate risk</strong>, and (Data Center lens only) a <strong>restrictive state regulatory climate</strong>. Sites with no transmission data show “—”.</p>
+          <p class="cand-help-tiers"><strong>Tier</strong> is a quick capacity bucket: Edge → Colo → Hyperscale → Mega, driven by acreage and grid headroom.</p>
+          <p><strong>Signals</strong> badges explain the score at a glance — <span class="cand-help-pos">green/blue = upside</span> (Land Ready, OZ, IRA, EPA DC, Grid Inherit, Nuclear, Fed Fast Lane, Water), <span class="cand-help-neg">red = risk/drag</span> (Flood, Climate, Zoning). Open any row for the full per-component breakdown.</p>
+        </div>
+      </details>
     </div>
     <div id="candidates-wrap">
       <table id="candidates-table">
@@ -216,6 +246,16 @@
         </thead>
         <tbody><!-- rows injected by buildCandidatesView() --></tbody>
       </table>
+    </div>
+  </section>
+
+  <section id="view-retired" class="view retired-view" role="tabpanel" aria-labelledby="tab-retired" hidden>
+    <div class="retired-wrap">
+      <div class="retired-lead">
+        <h2>Retired industrial sites — by prior use</h2>
+        <p>Large facilities that ceased EPA GHGRP reporting — which can mean closed, idled, <em>or</em> simply dropping below the reporting threshold. Treat it as a <strong>screening signal</strong>: a former smelter, mill, refinery, or mine may retain reusable grid infrastructure worth investigating for data-center or generation reuse. It does not by itself confirm the site is available or still connected. Counts by the facility's prior use.</p>
+      </div>
+      <div id="retired-stats" aria-live="polite"><p class="muted">Loading retired-site data…</p></div>
     </div>
   </section>
 
@@ -244,16 +284,24 @@
             <dt><span class="about-dot" style="background:var(--program-brac)"></span>BRAC (DoD Base Closures)</dt>
             <dd>27 installations closed under Base Realignment and Closure rounds. Large-acreage sites (often 500–4,000+ acres) with existing utilities, roads, and sometimes grid connections.</dd>
           </dl>
+          <h4 class="about-subhead">Map overlays</h4>
+          <dl class="about-programs">
+            <dt><span class="about-glyph" style="color:#c8960c">★</span>Confirmed deals</dt>
+            <dd>10 confirmed hyperscale/colo data-center projects already built on brownfield or former-industrial land (Google/Widows Creek, AWS/Susquehanna, Aligned/Conesville, etc.) — reference points for what a successful conversion looks like.</dd>
+
+            <dt><span class="about-glyph" style="color:#9a5b2e">◆</span>Retired industrial</dt>
+            <dd>~660 large retired industrial sites nationwide that ceased EPA GHGRP reporting — ~530 <strong>manufacturing</strong> (chemical plants, smelters, steel/paper mills, cement, glass, refineries, auto-assembly) plus ~125 <strong>mining</strong> (mostly coal mines / prep plants). A <strong>screening signal</strong> — a former smelter, mill, or refinery may retain reusable grid infrastructure (not confirmed available or still connected; the overlay isn't yet joined to transmission/closure evidence). These often sit outside the four programs above.</dd>
+          </dl>
         </div>
 
         <div class="about-section">
           <h3>Siting scores explained</h3>
           <dl class="about-dl">
             <dt>DC composite score (0–100)</dt>
-            <dd>Weighted rubric for siting a data-center <em>load</em>: transmission distance (16 pts), voltage class (14), substation proximity (12), grid inheritance from a large co-located plant (8), acreage (20), gas pipeline (10), logistics/highway (6), readiness signals (14). A flood-zone penalty of −18 applies for sites in FEMA Special Flood Hazard Areas. Returns null when no transmission data is available.</dd>
+            <dd>Weighted rubric for siting a data-center <em>load</em>. Positive weights sum to 100: transmission distance (16 pts), voltage class (14), substation proximity (12), grid inheritance from a large co-located / retired / nuclear plant (8), acreage (20), gas pipeline (10), logistics — highway + rail (6), readiness signals (14). Then <strong>subtractive penalties</strong>: −18 for a FEMA Special Flood Hazard Area, up to −10 for Very-High FEMA wildfire/drought risk, and up to −8 for a restrictive state regulatory climate (DC-lens only). The result is clamped to 0–100. Returns <em>N/A</em> when no transmission data is available (can't assess power access ≠ a bad site).</dd>
 
             <dt>Generation score (0–100)</dt>
-            <dd>Weighted rubric for siting new <em>power generation</em>: acreage (28 pts), transmission-to-export (18), substation (16), voltage (12), gas pipeline (12), ISO/RTO market access (8), readiness (6). No power-plant component — you are the plant. Same flood penalty and transmission gate as the DC lens.</dd>
+            <dd>Weighted rubric for siting new <em>power generation</em> — weighted differently because what suits a 200 MW compute load ≠ a 200 MW solar/gas build. Positive weights sum to 100: acreage (24 pts, the dominant constraint), transmission-to-export (18), substation interconnection (14), voltage headroom (12), gas pipeline (10), grid reuse — repowering a retired plant's interconnection (8), ISO/RTO market access (8), readiness (6). It has <strong>no active-plant component</strong> (you are the plant) and gives <strong>no credit for active reuse</strong> (occupied land is a liability for a ground-up build). Carries the same flood (−18) and climate (−10) penalties and the same transmission gate as the DC lens, but <strong>not</strong> the regulatory penalty (a DC moratorium doesn't block a power plant).</dd>
 
             <dt>DC tier (Edge / Colo / Hyperscale / Mega)</dt>
             <dd>Quick-filter bucket derived from acreage + transmission distance + voltage class. Used by the persona buttons and <code>?dc_tier=</code> URL parameter. Separate from the 0–100 composite score.</dd>
@@ -290,6 +338,15 @@
             <dt>Flood zone</dt>
             <dd>FEMA NFHL zone code. Sites in Special Flood Hazard Areas (Zone A/AE/V/VE) receive a −18 point penalty in both scores. Sites with no FEMA data are not penalized.</dd>
 
+            <dt>Natural-hazard risk</dt>
+            <dd>FEMA National Risk Index county composite plus three DC-relevant hazard ratings — wildfire (insurability / continuity), drought (cooling-water), and heat wave (cooling load). The worst of wildfire/drought drives a climate penalty (−10 Very High, −5 Relatively High) in both scores; heat wave is shown but not penalized. Source: FEMA NRI county FeatureServer.</dd>
+
+            <dt>Retired power plant</dt>
+            <dd>Miles to the nearest large (≥100 MW) <em>retired</em> dispatchable plant from EIA-860M. A retired plant ≤1 mile is the strongest grid-inheritance signal — stranded interconnection with no active load competing for it (the Conesville / Widows Creek pattern). Drives the <strong>Ret. Plant</strong> badge and full grid-inheritance scoring credit. Source: EIA Form EIA-860M.</dd>
+
+            <dt>IRA energy community</dt>
+            <dd>Whether the site is in an Inflation Reduction Act energy community (coal-closure tract or fossil-fuel-employment county) — a +10pp ITC/PTC bonus on a clean-energy build. Source: DOE NETL 2024 layers.</dd>
+
             <dt>Opportunity Zone</dt>
             <dd>Treasury-designated QOZ tract status and whether it is Rural (~700 of 8,765 tracts). Rural OZ sites also qualify for IRA clean energy community credits. Source: HUD FeatureServer.</dd>
 
@@ -318,6 +375,21 @@
 
             <dt>OZ / OZ·Rural</dt>
             <dd>Qualified Opportunity Zone status. Rural OZ sites receive the higher IRA bonus (+10pp PTC/ITC) and a 30% OZ basis step-up vs. 15% standard.</dd>
+
+            <dt>Land Ready</dt>
+            <dd>EPA Sitewide Ready for Anticipated Use (SWRAU) — EPA's own determination that <em>all</em> of a site's land is ready for its anticipated use. The strongest public land-availability signal. ~940 Superfund sites meet the measure.</dd>
+
+            <dt>IRA / IRA·Coal</dt>
+            <dd>Inflation Reduction Act energy community (coal-closure tract = "IRA·Coal", or fossil-fuel-employment county). +10pp ITC/PTC bonus on a paired clean-energy build.</dd>
+
+            <dt>Ret. Plant / Grid Inherit / Nuclear</dt>
+            <dd>Grid-inheritance signals: a large retired plant ≤1 mi (<strong>Ret. Plant</strong>), a large active coal/gas plant ≤1 mi (<strong>Grid Inherit</strong>), or an operating nuclear plant ≥500 MW ≤5 mi (<strong>Nuclear</strong> — the AWS/Susquehanna PPA pattern). Each implies an inheritable / nearby high-voltage interconnection.</dd>
+
+            <dt>Water</dt>
+            <dd>An active CWA/NPDES discharge permit on the site (EPA ECHO) — a proxy for legacy industrial water infrastructure (intake, treated-effluent rights). Water is the #2 DC siting constraint after grid.</dd>
+
+            <dt>Climate / Zoning (risk)</dt>
+            <dd>Red risk badges that lower the score: <strong>Climate</strong> flags Very-High FEMA wildfire/drought (−10); <strong>Zoning</strong> flags a restrictive state regulatory climate — moratorium bills, by-right repeals, ratepayer cost-shift laws (−8, DC-lens only).</dd>
           </dl>
         </div>
 
@@ -359,9 +431,13 @@
             <li><a href="https://opportunityzones.hud.gov/" target="_blank" rel="noopener">HUD Opportunity Zones</a> — QOZ tracts</li>
             <li><a href="https://www.eia.gov/" target="_blank" rel="noopener">EIA Atlas</a> — ISO/RTO region polygons</li>
             <li><a href="https://www.energycodes.gov/development/buildings/climate_zones" target="_blank" rel="noopener">DOE Building America</a> — ASHRAE climate zones</li>
-            <li><a href="https://echo.epa.gov/" target="_blank" rel="noopener">EPA ECHO</a> — Enforcement history (Superfund only)</li>
+            <li><a href="https://echo.epa.gov/" target="_blank" rel="noopener">EPA ECHO</a> — Enforcement history + NPDES water permits (Superfund only)</li>
+            <li><a href="https://hazards.fema.gov/nri/" target="_blank" rel="noopener">FEMA National Risk Index</a> — County natural-hazard ratings (wildfire, drought, heat)</li>
+            <li><a href="https://energycommunities.gov/" target="_blank" rel="noopener">DOE NETL</a> — IRA energy communities (coal-closure tracts, fossil-fuel-employment counties)</li>
+            <li><a href="https://www.eia.gov/electricity/data/eia860m/" target="_blank" rel="noopener">EIA-860M</a> — Retired power-plant generators</li>
+            <li><a href="https://www.epa.gov/ghgreporting" target="_blank" rel="noopener">EPA GHGRP</a> — Retired heavy-industrial facilities (Envirofacts REST)</li>
           </ul>
-          <p class="about-note">Dashboard <span id="hero-version">v1.21</span> · Last data refresh: <span id="about-refresh-date">—</span>. Source code and raw data files: <a href="https://github.com/pranava0x0/brownfield-opportunities" target="_blank" rel="noopener">GitHub</a>.</p>
+          <p class="about-note">Dashboard <span id="hero-version">v1.24</span> · Last data refresh: <span id="about-refresh-date">—</span>. Source code and raw data files: <a href="https://github.com/pranava0x0/brownfield-opportunities" target="_blank" rel="noopener">GitHub</a>. The AI Summary on each site detail panel is generated from these federal records — see any site's Summary tab.</p>
         </div>
 
       </div><!-- .about-grid -->
@@ -407,7 +483,8 @@
       <div class="suit-lens" id="d-suit-gen"></div>
       <p class="suit-flood" id="d-suit-flood" hidden></p>
       <p class="suit-flood" id="d-suit-climate" hidden></p>
-      <p class="suit-note muted">Computed from grid, gas, land, market, flood, and FEMA climate-risk signals already on this record. Higher = stronger candidate.</p>
+      <p class="suit-flood" id="d-suit-reg" hidden></p>
+      <p class="suit-note muted">Computed from grid, gas, land, market, flood, FEMA climate-risk, and state regulatory signals already on this record. Higher = stronger candidate.</p>
     </div>
   </details>
 
@@ -464,6 +541,7 @@
       <dt>Wastewater</dt><dd id="d-near-ww" class="muted-cell">Not available</dd>
       <dt>Population density</dt><dd id="d-pop-density" class="muted-cell">Not available</dd>
       <dt>Data center candidate</dt><dd id="d-dc-candidate" class="muted-cell">Not available<span id="d-dc-criteria" class="dd-criteria" hidden></span></dd>
+      <dt>Land readiness</dt><dd id="d-rau-status" class="muted-cell">Not available</dd>
     </dl>
   </details>
 

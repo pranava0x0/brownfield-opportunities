@@ -21,6 +21,7 @@ from connectors.infra_proximity import InfraProximity
 from connectors.ira_energy_community import IraEnergyCommunity
 from connectors.iso_rto import IsoRto
 from connectors.opportunity_zone import OpportunityZone
+from connectors.parcel_owner import ParcelOwner
 from connectors.superfund_npl import SuperfundNPL
 from connectors.climate_zone import ClimateZone
 
@@ -59,3 +60,4 @@ register("iso-rto", IsoRto)
 register("epa-echo", EpaEcho)
 register("acres-cleanup", EpaAcresCleanup)
 register("ai-summary", AiSummary)
+register("parcel-owner", ParcelOwner)
