@@ -198,3 +198,33 @@ def test_climate_badge_renders_for_very_high_hazard(page, base_url):
         ".map((b) => b.textContent.trim())"
     )
     assert "Climate" in labels, "expected a Climate badge for the Very-High-hazard site"
+
+
+def test_nuclear_badge_renders_for_nuclear_adjacency(page, base_url):
+    """A site within 5 mi of an operating nuclear plant >=500 MW shows the
+    "Nuclear" grid-inheritance badge (the AWS/Susquehanna pattern)."""
+    _ready(page, base_url)
+    state = page.evaluate(
+        "() => {"
+        "  const byState = {};"
+        "  for (const s of window.__sites) {"
+        "    if (s.transmission_mi != null && s.state) (byState[s.state] ||= []).push(s);"
+        "  }"
+        "  for (const [st, arr] of Object.entries(byState)) {"
+        "    if (arr.length >= 1 && arr.length <= 200) {"
+        "      Object.assign(arr[0], {power_plant_mi: 2.0, power_plant_mw: 800,"
+        "        power_plant_fuel: 'nuclear', retired_plant_mi: null});"
+        "      return st;"
+        "    }"
+        "  }"
+        "  return null;"
+        "}"
+    )
+    assert state, "expected a state with 1..200 scored sites"
+    _set_state_filter(page, state)
+    _open_candidates(page)
+    labels = page.evaluate(
+        "() => Array.from(document.querySelectorAll('#candidates-table .cand-signals .sig-badge'))"
+        ".map((b) => b.textContent.trim())"
+    )
+    assert "Nuclear" in labels, "expected a Nuclear badge for the nuclear-adjacent site"

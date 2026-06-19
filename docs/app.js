@@ -2871,6 +2871,17 @@ function _hasRetiredPlant(s) {
     && s.retired_plant_mw != null && s.retired_plant_mw >= 100;
 }
 
+// Operating nuclear plant ≥500 MW within 5 mi — the AWS/Talen Susquehanna
+// pattern: 24/7 carbon-free baseload accessed via PPA. Wider radius than
+// coal/gas (5 mi vs 1) because nuclear connects high in the transmission
+// hierarchy and DCs reach it via PPA, not direct co-location. Mirrors the
+// nuclear pathway in dc-score.js:_scoreGridInheritance.
+function _hasNuclearAdjacency(s) {
+  return s.power_plant_mi != null && s.power_plant_mi <= 5
+    && s.power_plant_mw != null && s.power_plant_mw >= 500
+    && s.power_plant_fuel != null && /nuclear/i.test(s.power_plant_fuel);
+}
+
 // Returns true when the site meets the EPA's stated EO 14318 / January 2026
 // guidance criteria for fast-tracked brownfield/Superfund data center permits:
 // program is superfund or brownfield, ≥100 ac, grid ≤2 mi, outside SFHA.
@@ -2967,6 +2978,8 @@ function makeCandidateRow(s, rank) {
     badges.push('<span class="sig-badge sig-plant" title="Retired power plant ≤1 mi — inherited transmission connection and stranded interconnection agreement (Conesville / Widows Creek pattern)">Ret. Plant</span>');
   } else if (_hasGridInheritance(s)) {
     badges.push('<span class="sig-badge sig-grid" title="Large coal/gas plant ≤1 mi — potential inherited grid interconnection">Grid Inherit</span>');
+  } else if (_hasNuclearAdjacency(s)) {
+    badges.push('<span class="sig-badge sig-grid" title="Operating nuclear ≥500 MW within 5 mi — 24/7 carbon-free baseload via PPA (AWS/Talen Susquehanna pattern)">Nuclear</span>');
   }
   if (_hasEO14318(s)) {
     badges.push('<span class="sig-badge sig-fedfast" title="Meets EO 14318 / EPA Jan 2026 guidance: superfund/brownfield ≥100 ac, grid ≤2 mi, outside SFHA — qualifies for fast-tracked NEPA categorical exclusion">Fed Fast Lane</span>');
