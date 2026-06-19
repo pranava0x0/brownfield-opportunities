@@ -2974,6 +2974,13 @@ function makeCandidateRow(s, rank) {
   if (s.in_sfha === true) {
     badges.push('<span class="sig-badge sig-flood" title="FEMA Special Flood Hazard Area — permitting challenge for critical infrastructure">Flood</span>');
   }
+  // Very-High wildfire or drought (FEMA NRI) is the −10 climate penalty in the
+  // DC score; surface it so the ranking drag is visible, parallel to Flood.
+  const _climHaz = s.nri_wildfire_rating === "Very High" ? "wildfire"
+    : s.nri_drought_rating === "Very High" ? "drought" : null;
+  if (_climHaz) {
+    badges.push(`<span class="sig-badge sig-flood" title="FEMA National Risk Index: Very High ${_climHaz} risk — insurability / cooling-water constraint (−10 to the suitability score)">Climate</span>`);
+  }
   if (s.enforcement?.has_npdes_permit === true) {
     badges.push('<span class="sig-badge sig-water" title="Active CWA/NPDES permit — legacy industrial water discharge infrastructure (intake, treated effluent rights)">Water</span>');
   }
