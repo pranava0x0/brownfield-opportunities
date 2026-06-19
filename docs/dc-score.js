@@ -291,6 +291,22 @@ function _climatePenalty(site) {
   return worst;
 }
 
+// Regulatory-climate penalty — DC LENS ONLY. In 2025-26 "Regulation" rose to
+// a Tier-3 site-selection filter: data-center moratorium bills, by-right
+// zoning repeals (Loudoun, Mar 2025), and ratepayer cost-shift laws raise
+// timeline/cost risk in specific states. `site.dc_regulatory_climate` is
+// stamped at ingest from STATE_DC_REGULATION (app.js). Deliberately NOT applied
+// to the generation lens — a DC moratorium does not block a power-plant build.
+// Modest by design (friction, not a ban) and absent (null) → no penalty.
+const REGULATORY_PENALTY_RESTRICTIVE = 8;
+const REGULATORY_PENALTY_CAUTIONARY = 4;
+
+function _regulatoryPenalty(site) {
+  if (site.dc_regulatory_climate === "restrictive") return REGULATORY_PENALTY_RESTRICTIVE;
+  if (site.dc_regulatory_climate === "cautionary") return REGULATORY_PENALTY_CAUTIONARY;
+  return 0;
+}
+
 // ---------------------------------------------------------------------------
 // Lens 1 — data-center LOAD suitability. Positive caps sum to 100; the
 // flood penalty pushes below that and the result is clamped to [0,100].
@@ -314,7 +330,9 @@ const DC_SCORE_TOOLTIP =
   "scaled by MW and retirement recency) — plus acreage (20), gas " +
   "pipeline (10), highway+rail logistics (6), and readiness (14: EPA " +
   "DC flag, cleanup status, reuse, Opportunity Zone). A Special Flood " +
-  "Hazard Area subtracts 18. Sites without transmission data score N/A.";
+  "Hazard Area subtracts 18; Very-High wildfire/drought subtracts up to 10; " +
+  "a restrictive state regulatory climate subtracts up to 8. Sites without " +
+  "transmission data score N/A.";
 
 // readiness for a data-center load: signals that the parcel is ready to
 // transact and develop. Cap 14 (sub-signals can sum well above it; the
@@ -363,6 +381,7 @@ function computeDcScoreBreakdown(site) {
     readiness:             _scoreReadinessDc(site),
     flood_penalty:        -_floodPenalty(site),
     climate_penalty:      -_climatePenalty(site),
+    regulatory_penalty:   -_regulatoryPenalty(site),
   };
 }
 
@@ -451,4 +470,6 @@ window.GENERATION_SCORE_WEIGHTS = GENERATION_SCORE_WEIGHTS;
 window.GENERATION_SCORE_TOOLTIP = GENERATION_SCORE_TOOLTIP;
 window.FLOOD_SFHA_PENALTY = FLOOD_SFHA_PENALTY;
 window.CLIMATE_PENALTY_VERY_HIGH = CLIMATE_PENALTY_VERY_HIGH;
+window.REGULATORY_PENALTY_RESTRICTIVE = REGULATORY_PENALTY_RESTRICTIVE;
+window.REGULATORY_PENALTY_CAUTIONARY = REGULATORY_PENALTY_CAUTIONARY;
 window.CLIMATE_PENALTY_REL_HIGH = CLIMATE_PENALTY_REL_HIGH;

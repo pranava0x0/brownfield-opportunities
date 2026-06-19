@@ -228,3 +228,31 @@ def test_nuclear_badge_renders_for_nuclear_adjacency(page, base_url):
         ".map((b) => b.textContent.trim())"
     )
     assert "Nuclear" in labels, "expected a Nuclear badge for the nuclear-adjacent site"
+
+
+def test_zoning_badge_renders_for_restrictive_state(page, base_url):
+    """A site in a restrictive DC regulatory-climate state (stamped
+    s.dc_regulatory_climate at ingest) shows the red "Zoning" risk badge."""
+    _ready(page, base_url)
+    state = page.evaluate(
+        "() => {"
+        "  const byState = {};"
+        "  for (const s of window.__sites) {"
+        "    if (s.transmission_mi != null && s.state) (byState[s.state] ||= []).push(s);"
+        "  }"
+        "  for (const [st, arr] of Object.entries(byState)) {"
+        "    if (arr.length >= 1 && arr.length <= 200) {"
+        "      arr[0].dc_regulatory_climate = 'restrictive'; return st;"
+        "    }"
+        "  }"
+        "  return null;"
+        "}"
+    )
+    assert state, "expected a state with 1..200 scored sites"
+    _set_state_filter(page, state)
+    _open_candidates(page)
+    labels = page.evaluate(
+        "() => Array.from(document.querySelectorAll('#candidates-table .cand-signals .sig-badge'))"
+        ".map((b) => b.textContent.trim())"
+    )
+    assert "Zoning" in labels, "expected a Zoning badge for the restrictive-state site"
