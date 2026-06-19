@@ -2022,6 +2022,32 @@ main {
   margin: 0;
   font-variant-numeric: tabular-nums;
 }
+/* "How this ranking works" explainer — collapsed by default so it doesn't
+   eat map/table real estate, but one click decodes the whole view. */
+.cand-help {
+  font-size: 12px;
+  margin-top: 2px;
+}
+.cand-help > summary {
+  cursor: pointer;
+  color: var(--accent);
+  font-weight: 600;
+  width: fit-content;
+  list-style-position: inside;
+}
+.cand-help > summary:hover { text-decoration: underline; }
+.cand-help-body {
+  margin-top: 6px;
+  padding: 10px 12px;
+  background: var(--accent-soft);
+  border-radius: 6px;
+  max-width: 70ch;
+  line-height: 1.5;
+}
+.cand-help-body p { margin: 0 0 8px; }
+.cand-help-body p:last-child { margin-bottom: 0; }
+.cand-help-pos { color: var(--readiness-ready); font-weight: 600; }
+.cand-help-neg { color: var(--program-superfund); font-weight: 600; }
 #candidates-wrap {
   flex: 1;
   min-height: 0;
