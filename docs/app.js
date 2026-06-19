@@ -575,6 +575,7 @@ let acresCleanupLoadingPromise = null;
 let retiredPlantsLoadingPromise = null;
 let referenceCampusesLoadingPromise = null;
 let retiredIndustrialLoadingPromise = null;
+let retiredIndustrialSites = []; // raw payload, for the Retired Sites stats tab
 let iraEcLoadingPromise = null;
 let femaNriLoadingPromise = null;
 
@@ -1548,8 +1549,10 @@ function ensureRetiredIndustrialLoaded() {
       return r.json();
     })
     .then((payload) => {
+      retiredIndustrialSites = payload.sites || []; // feed the Retired Sites tab
+      maybeRefreshRetired();
       if (!retiredIndustrialLayer) return; // map not yet initialized
-      for (const s of payload.sites || []) {
+      for (const s of retiredIndustrialSites) {
         if (s.lat == null || s.lon == null) continue;
         const icon = L.divIcon({
           className: "retired-industrial-icon",
@@ -2909,15 +2912,17 @@ function wireTabs() {
   const mapTab = el("tab-map");
   const tableTab = el("tab-table");
   const candidatesTab = el("tab-candidates");
+  const retiredTab = el("tab-retired");
   const aboutTab = el("tab-about");
   const setView = (which) => {
     const onMap = which === "map";
     const onTable = which === "table";
     const onCandidates = which === "candidates";
+    const onRetired = which === "retired";
     const onAbout = which === "about";
     for (const [tab, active] of [
       [mapTab, onMap], [tableTab, onTable],
-      [candidatesTab, onCandidates], [aboutTab, onAbout],
+      [candidatesTab, onCandidates], [retiredTab, onRetired], [aboutTab, onAbout],
     ]) {
       if (!tab) continue;
       tab.classList.toggle("active", active);
@@ -2926,13 +2931,16 @@ function wireTabs() {
     const mapView = el("view-map");
     const tableView = el("view-table");
     const candidatesView = el("view-candidates");
+    const retiredView = el("view-retired");
     const aboutView = el("view-about");
     if (mapView)        { mapView.classList.toggle("active", onMap);               mapView.hidden = !onMap; }
     if (tableView)      { tableView.classList.toggle("active", onTable);           tableView.hidden = !onTable; }
     if (candidatesView) { candidatesView.classList.toggle("active", onCandidates); candidatesView.hidden = !onCandidates; }
+    if (retiredView)    { retiredView.classList.toggle("active", onRetired);       retiredView.hidden = !onRetired; }
     if (aboutView)      { aboutView.classList.toggle("active", onAbout);           aboutView.hidden = !onAbout; }
     if (onMap) setTimeout(() => map.invalidateSize(), 50);
     if (onCandidates) buildCandidatesView();
+    if (onRetired) { ensureRetiredIndustrialLoaded(); buildRetiredView(); }
     if (onAbout) {
       const d = el("about-refresh-date");
       if (d && window.__refreshedAt) d.textContent = window.__refreshedAt;
@@ -2941,7 +2949,68 @@ function wireTabs() {
   mapTab.addEventListener("click", () => setView("map"));
   tableTab.addEventListener("click", () => setView("table"));
   if (candidatesTab) candidatesTab.addEventListener("click", () => setView("candidates"));
+  if (retiredTab) retiredTab.addEventListener("click", () => setView("retired"));
   if (aboutTab) aboutTab.addEventListener("click", () => setView("about"));
+}
+
+// ----- Retired Sites stats view -----
+// Renders a by-prior-use breakdown of the retired-industrial overlay
+// (docs/data/retired-industrial.json). Pure DOM + CSS bars (no chart lib).
+function maybeRefreshRetired() {
+  const v = el("view-retired");
+  if (v && v.classList.contains("active")) buildRetiredView();
+}
+
+function buildRetiredView() {
+  const host = el("retired-stats");
+  if (!host) return;
+  const sites = retiredIndustrialSites;
+  if (!sites.length) {
+    host.innerHTML = '<p class="muted">Loading retired-site data…</p>';
+    return;
+  }
+  const total = sites.length;
+  const byCat = {};
+  const bySector = {};
+  const byState = {};
+  for (const s of sites) {
+    const cat = s.category || "Other";
+    byCat[cat] = (byCat[cat] || 0) + 1;
+    if (s.sector) bySector[s.sector] = (bySector[s.sector] || 0) + 1;
+    if (s.state) byState[s.state] = (byState[s.state] || 0) + 1;
+  }
+  const sectors = Object.entries(bySector).sort((a, b) => b[1] - a[1]);
+  const states = Object.entries(byState).sort((a, b) => b[1] - a[1]).slice(0, 10);
+  const maxSector = sectors.length ? sectors[0][1] : 1;
+  const maxState = states.length ? states[0][1] : 1;
+  const pct = (n, max) => Math.max(2, Math.round((n / max) * 100));
+
+  const catCards = Object.entries(byCat).sort((a, b) => b[1] - a[1]).map(([c, n]) =>
+    `<div class="retired-kpi"><span class="retired-kpi-num">${n.toLocaleString()}</span>`
+    + `<span class="retired-kpi-label">${escapeHtml(c)}</span></div>`).join("");
+
+  const sectorRows = sectors.map(([name, n]) =>
+    `<div class="retired-bar-row">`
+    + `<span class="retired-bar-label" title="${escapeAttr(name)}">${escapeHtml(name)}</span>`
+    + `<span class="retired-bar-track"><span class="retired-bar-fill" style="width:${pct(n, maxSector)}%"></span></span>`
+    + `<span class="retired-bar-num">${n.toLocaleString()}</span>`
+    + `</div>`).join("");
+
+  const stateRows = states.map(([st, n]) =>
+    `<div class="retired-bar-row">`
+    + `<span class="retired-bar-label">${escapeHtml(STATE_NAMES[st] || st)}</span>`
+    + `<span class="retired-bar-track"><span class="retired-bar-fill alt" style="width:${pct(n, maxState)}%"></span></span>`
+    + `<span class="retired-bar-num">${n.toLocaleString()}</span>`
+    + `</div>`).join("");
+
+  host.innerHTML =
+    `<div class="retired-kpis"><div class="retired-kpi"><span class="retired-kpi-num">${total.toLocaleString()}</span>`
+    + `<span class="retired-kpi-label">Retired sites</span></div>${catCards}</div>`
+    + `<div class="retired-cols">`
+    + `<section class="retired-col"><h3>Top prior uses</h3><div class="retired-bars">${sectorRows}</div></section>`
+    + `<section class="retired-col"><h3>Top states</h3><div class="retired-bars">${stateRows}</div></section>`
+    + `</div>`
+    + `<p class="retired-foot muted">Source: EPA GHGRP facilities that ceased reporting. Use the rust ◆ markers on the Map to locate them. These are candidate sites — a closed facility's grid interconnection is the asset.</p>`;
 }
 
 // ----- DC Candidates view -----
