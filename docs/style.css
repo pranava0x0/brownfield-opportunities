@@ -864,6 +864,36 @@ main {
   text-shadow: 0 0 4px rgba(0,0,0,0.8);
 }
 
+/* Retired heavy-industrial overlay — rust diamond, distinct from the gold
+   reference-campus stars and the program marker palette. */
+.legend-diamond {
+  color: #9a5b2e;
+  font-size: 12px;
+  line-height: 1;
+  display: inline-block;
+  width: 12px;
+  text-align: center;
+}
+[data-theme="dark"] .legend-diamond { color: #cf9b6a; }
+.retired-industrial-icon {
+  background: none !important;
+  border: none !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.retired-industrial-icon span {
+  font-size: 15px;
+  color: #9a5b2e;
+  text-shadow: 0 0 3px rgba(0,0,0,0.55);
+  cursor: pointer;
+  line-height: 1;
+}
+[data-theme="dark"] .retired-industrial-icon span {
+  color: #cf9b6a;
+  text-shadow: 0 0 4px rgba(0,0,0,0.8);
+}
+
 /* Reference campus popup */
 .ref-campus-popup {
   font-size: 12.5px;
