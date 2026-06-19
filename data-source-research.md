@@ -126,6 +126,61 @@ years spread 2002–2025 with big mass pre-2013 (motivated the recency decay).
 
 ---
 
+## 2026-06-19 — retired heavy-industrial assets (smelters / mills / manufacturing)
+
+Goal: surface retired industrial sites NOT in our data (aluminum smelters,
+steel/paper mills, etc.). These carry the largest stranded grid interconnects
+in the country — an aluminum smelter is ~300–700 MW of continuous load — so a
+retired one is a top-tier DC-conversion candidate (the Alcoa / Century pattern).
+
+### 9. EPA GHGRP via Envirofacts REST — **WORKS, recommended programmatic source**
+
+`https://data.epa.gov/efservice/PUB_DIM_FACILITY/<filter>/ROWS/a:b/JSON` is
+LIVE (probed 2026-06-19). Returns per-facility rows with `latitude`,
+`longitude`, `city`, `state`, `facility_name`, `naics_code`, `year`,
+`program_name`. ~8,000 large emitters/yr since 2010. **Closure is inferable by
+report-dropout**: a facility reporting through year N then absent afterward is
+very likely idled/closed. Verified counts (distinct facilities, geocoded):
+iron/steel mills NAICS **331110 → 68 facilities, 2016–2023**; cement **327310
+→ 9**; paperboard **322130 → 7**. **Quirk:** NAICS **331313** (primary
+aluminum) returns HTTP 500 on the `/NAICS_CODE/331313/` filter (other NAICS are
+fine) — query aluminum via FLIGHT subpart C or parent `3313`, not this code.
+Filter syntax: `…/PUB_DIM_FACILITY/NAICS_CODE/<code>/ROWS/0:400/JSON`. Best path
+for the broad "retired manufacturing plant" universe (steel / cement / paper /
+chemicals / glass). A connector would diff years per facility and emit those
+whose last report year < latest GHGRP year, with sector + a crude MW proxy.
+
+### 10. USGS primary aluminum smelters — **curated overlay, highest MW/site**
+
+Authoritative source is USGS Mineral Commodity Summaries (annual PDF,
+`pubs.usgs.gov/periodicals/mcs2026/mcs2026-aluminum.pdf` — WebFetch can't parse
+the PDF and the Read tool needs `poppler`; use `pdftotext`). Small universe:
+2025 = 6 operating smelters in 5 states, 2 idled (Hawesville KY since 2022,
+New Madrid MO since 2024). Recently closed: New Madrid MO (Jan 2024, 263k tpy),
+Wenatchee WA (idled 2015 → closed 2021), Massena East NY (2015), Ravenswood WV
+(idled 2009 → closed 2015). Best as a hand-curated `docs/data/retired-
+industrial.json` overlay (same pattern as `reference-campuses.json`) — ~15–20
+rows, lat/lon + status + capacity + MW + closure year + source. Highest
+signal-per-row of any option here.
+
+### 11. WARN Act plant-closure notices — recent closures, geocoding required
+
+Federal/state WARN notices list company + address + date for plant closings
+(~last 2 yr coverage). Aggregators exist (warnfirehose.com — 85k notices, API
+gated to paid; warntracker.com — partial free); many state DOL pages publish
+free (CA EDD, NY DOL) but fragmented and addresses need geocoding. Good for VERY
+recent closures; lower priority than GHGRP (already geocoded + national).
+
+### 12. Not yet probed (candidates for next pass)
+- **EPA TRI** via Envirofacts — same report-dropout method, lower threshold →
+  broader (~21k facilities), more small sites.
+- **EPA FRS** (Facility Registry Service) — master facility list; some rows
+  carry an operating-status field + NAICS; filter inactive + industrial NAICS.
+- **USGS Mineral Operations** ArcGIS layer — active mines & mineral plants with
+  status; check for a public FeatureServer.
+
+---
+
 ## Reusable probe patterns
 
 - ArcGIS service inventory: `https://<host>/arcgis/rest/services?f=json`
