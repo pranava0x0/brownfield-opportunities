@@ -15,6 +15,7 @@ const OPP_ZONE_URL = "data/opportunity-zone.json";
 const CLIMATE_ZONE_URL = "data/climate-zone.json";
 const ISO_RTO_URL = "data/iso-rto.json";
 const ECHO_DATA_URL = "data/epa-echo.json";
+const PARCEL_OWNER_URL = "data/parcel-owner.json";
 const AI_SUMMARY_URL = "data/ai-summary.json";
 const ACRES_CLEANUP_URL = "data/acres-cleanup.json";
 const RETIRED_PLANTS_URL = "data/eia-retired-plants.json";
@@ -568,6 +569,7 @@ let oppZoneLoadingPromise = null;
 let climateZoneLoadingPromise = null;
 let isoRtoLoadingPromise = null;
 let echoLoadingPromise = null;
+let parcelOwnerLoadingPromise = null;
 let summariesLoadingPromise = null;
 let acresCleanupLoadingPromise = null;
 let retiredPlantsLoadingPromise = null;
@@ -857,6 +859,7 @@ fetch(PRIMARY_DATA_URL)
     lazyLoads.push(ensureClimateZoneLoaded());
     lazyLoads.push(ensureIsoRtoLoaded());
     lazyLoads.push(ensureEchoLoaded());
+    lazyLoads.push(ensureParcelOwnerLoaded());
     lazyLoads.push(ensureSummariesLoaded());
     lazyLoads.push(ensureAcresCleanupLoaded());
     lazyLoads.push(ensureRetiredPlantsLoaded());
@@ -1105,6 +1108,36 @@ function ensureEchoLoaded() {
       echoLoadingPromise = null;
     });
   return echoLoadingPromise;
+}
+
+// Parcel-owner enrichment — verified owner name from public state/county
+// cadastral records (parcel_owner connector). Fill-if-empty: don't clobber a
+// program-provided owner (e.g. FUDS's USACE current_owner); only populate the
+// ~38k sites that have none. The detail panel's owner row + source line pick
+// these up automatically (no extra wiring).
+function ensureParcelOwnerLoaded() {
+  if (parcelOwnerLoadingPromise) return parcelOwnerLoadingPromise;
+  parcelOwnerLoadingPromise = fetch(PARCEL_OWNER_URL, { priority: "low" })
+    .then((r) => {
+      if (r.status === 404) return { sites: [] };
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then((payload) => {
+      recordRefreshDate(payload.generated_at);
+      for (const rec of payload.sites || []) {
+        const existing = sitesById.get(rec.id);
+        if (!existing || !rec.current_owner) continue;
+        if (existing.current_owner) continue; // don't overwrite a source-provided owner
+        existing.current_owner = rec.current_owner;
+        existing.current_owner_source = rec.current_owner_source || "Public parcel records";
+      }
+    })
+    .catch((err) => {
+      console.error("Parcel-owner enrichment load failed:", err);
+      parcelOwnerLoadingPromise = null;
+    });
+  return parcelOwnerLoadingPromise;
 }
 
 // AI-generated site summaries (Claude Haiku output). Per-site 3-paragraph
