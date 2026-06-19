@@ -196,6 +196,15 @@
         <span class="cand-filter-note">Narrow with the global filters (⚙) — search, state, program, tier, and acreage all apply here too.</span>
       </div>
       <p class="candidates-stats" id="candidates-stats" aria-live="polite">Loading…</p>
+      <details class="cand-help">
+        <summary>How this ranking works</summary>
+        <div class="cand-help-body">
+          <p>Every site gets a <strong>0–100 suitability score</strong> from the data already on its record — no opinions, just public federal signals. Pick a <strong>lens</strong> above: <em>Data Center</em> (siting a compute load) or <em>Generation</em> (siting new power). The table is sorted best-first for the chosen lens.</p>
+          <p>The score is a weighted sum of <strong>power access</strong> (transmission distance &amp; voltage, substation, grid inheritance), <strong>land</strong> (acreage), <strong>gas</strong>, <strong>logistics</strong> (highway/rail), and <strong>readiness</strong> (cleanup status, reuse, EPA flag, incentives) — minus penalties for <strong>flood zones</strong>, <strong>climate risk</strong>, and (Data Center lens only) a <strong>restrictive state regulatory climate</strong>. Sites with no transmission data show “—”.</p>
+          <p class="cand-help-tiers"><strong>Tier</strong> is a quick capacity bucket: Edge → Colo → Hyperscale → Mega, driven by acreage and grid headroom.</p>
+          <p><strong>Signals</strong> badges explain the score at a glance — <span class="cand-help-pos">green/blue = upside</span> (Land Ready, OZ, IRA, EPA DC, Grid Inherit, Nuclear, Fed Fast Lane, Water), <span class="cand-help-neg">red = risk/drag</span> (Flood, Climate, Zoning). Open any row for the full per-component breakdown.</p>
+        </div>
+      </details>
     </div>
     <div id="candidates-wrap">
       <table id="candidates-table">
@@ -407,7 +416,8 @@
       <div class="suit-lens" id="d-suit-gen"></div>
       <p class="suit-flood" id="d-suit-flood" hidden></p>
       <p class="suit-flood" id="d-suit-climate" hidden></p>
-      <p class="suit-note muted">Computed from grid, gas, land, market, flood, and FEMA climate-risk signals already on this record. Higher = stronger candidate.</p>
+      <p class="suit-flood" id="d-suit-reg" hidden></p>
+      <p class="suit-note muted">Computed from grid, gas, land, market, flood, FEMA climate-risk, and state regulatory signals already on this record. Higher = stronger candidate.</p>
     </div>
   </details>
 

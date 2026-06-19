@@ -4,6 +4,19 @@ Ideas and enhancements. Priorities: **high** = next, **med** = soon, **low** = n
 
 ---
 
+## Session checkpoint — 2026-06-19
+
+**Completed this session:**
+- **Ranking-view Signals badges (v1.22.x).** Surfaced four scoring signals that already moved a site's DC score but were invisible in the DC Candidates table: **Land Ready** (SWRAU, solid-green), **Climate** (FEMA NRI Very-High wildfire/drought, red), **Nuclear** (operating nuclear ≥500 MW ≤5 mi grid-inheritance, purple), **Zoning** (state regulatory friction, red). Each has an e2e regression test (`test_candidates_view.py`).
+- **v1.23 — `STATE_DC_REGULATION` regulatory-climate penalty.** From 2026 market research (Regulation is now a Tier-3 siting filter). Per-state lookup → `s.dc_regulatory_climate` stamped at ingest → `_regulatoryPenalty()` subtracts 8/4 from the **DC lens only** (generation untouched — a DC moratorium doesn't block a power plant). 4 states flagged (VA/OK restrictive, VT/FL cautionary), conservative + dated, quarterly re-audit. UI: Zoning badge, suitability chip + note, score meters. `test_regulatory_penalty_dc_lens_only`; weight tables still sum to 100. CLAUDE.md entry added.
+- **"How this ranking works" explainer.** Collapsible `.cand-help` in the candidates view decoding the 0–100 score, both lenses, tier buckets, and badge color semantics — the clarity surface for the ranking. Verified visually (VA: DC 76 vs Gen 78 divergence from the penalty).
+- **Data:** flood_zone backfill checkpoint 9,900 → 13,407 (28.7%); ECHO NPDES re-enrichment running (`--echo-limit 0 --echo-status F,D`) to populate `has_npdes_permit` — Water badge/detail row already wired, lights up on completion.
+
+**Deferred — terrain slope (from 2026-06-19 research, #2 idea):**
+- **[med] Terrain slope penalty.** Standard siting filters at <7% slope; we score no terrain. USGS 3DEP / National Elevation Dataset is public. For the ~5k polygon-bearing sites (Superfund/FUDS/BRAC) sample mean slope and penalize steep/unbuildable parcels. **Why deferred, not done:** heavier than point-in-polygon (DEM raster sampling — USGS EPQS is one elevation/point, so slope needs ~4-5 calls/site = ~25k calls, or a raster pull that needs rasterio/GDAL and breaks the pure-Python spatial architecture); and coverage is partial (the 36k ACRES points have no polygon). Best scoped as its own session, ideally folded into the backlogged `developable-land` connector (both need polygon sampling). Fiber/IXP proximity and substation hosting-capacity were also evaluated and confirmed **data-blocked** (no public nationwide source) — don't re-research without a new source.
+
+---
+
 ## Session checkpoint — 2026-06-16 (scheduled data-maintenance run)
 
 **Completed (v1.22):**
