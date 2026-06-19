@@ -181,8 +181,56 @@ recent closures; lower priority than GHGRP (already geocoded + national).
 
 ---
 
+## 2026-06-19 — parcel OWNER verification via public state cadastral layers
+
+CLAUDE.md gap #7 said nationwide parcel-owner data is "impossible publicly"
+(true — no single free source). But MANY states publish a free statewide
+parcels layer with owner NAMES via ArcGIS REST, queryable by point. Spot-check
+proved this is very much possible state-by-state.
+
+### 13. NC OneMap statewide parcels — **WORKS, no token needed**
+
+`https://services.nconemap.gov/secure/rest/services/NC1Map_Parcels/FeatureServer`
+— layer **0 = points (centroids), layer 1 = POLYGONS** (use layer 1 for
+point-in-polygon owner lookup; querying layer 0 by point returns nothing —
+that was the first-try miss). Point query:
+`…/1/query?geometry=<lon>,<lat>&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=ownname,gisacres,parno&returnGeometry=false&f=json`.
+Despite the `secure/` path it needs **no token** for Query. Fields: `ownname`
+(owner), `mailadd`/`mcity` (mailing addr), `gisacres`, `parno` (parcel id),
+`cntyname`. **Validation:** Ore Knob Mine Superfund → `ownname`="REEVES THOMAS
+G & EVELYN", `gisacres`=147.1 vs our acreage 148.2 (right parcel). A 40-site NC
+batch (superfund+FUDS) hit **38/40 (95%)** named owners — DOMTAR PAPER CO,
+CHEMTRONICS, AKZO NOBEL, CLARIANT, GE SUBSIDIARY, WARREN COUNTY, individuals.
+The 2 misses: a federal megasite (Camp Lejeune — military reservation isn't in
+county parcels) + 1 off-parcel point. **ACRES brownfields hit lower** — their
+coords are address-geocodes that sometimes land just off the parcel polygon.
+Built into `connectors/parcel_owner.py` (`STATE_PARCEL_SOURCES["NC"]`).
+
+### 14. TX StratMap parcels (TxGIO) — endpoint host unresolved from sandbox
+
+StratMap aggregates ~245 appraisal districts statewide. Endpoint per search:
+`https://feature.tnris.org/arcgis/rest/services/Parcels/stratmap25_land_parcels_48/MapServer/0`
+— but `feature.tnris.org` (and a guessed `feature.txgio.org`) did **not resolve
+via DNS** from the dev sandbox (TNRIS→TxGIO rename, 2025). Could be a sandbox
+network restriction or a host change. Stubbed (commented) in the registry —
+confirm the live host in the deploy env before enabling. Owner field per
+StratMap schema is `OWNER_NAME`.
+
+### 15. The per-state registry approach (the plan)
+
+No nationwide source, but the connector's `STATE_PARCEL_SOURCES` registry makes
+coverage incremental: one verified `{base, owner_field, source}` entry per
+state. Next states to verify (states with known free statewide layers): TX
+(StratMap, host TBD), and any state whose GIS portal hosts a parcels
+FeatureServer with an owner field — probe each with the point-query pattern
+above + `outFields=*` to discover its owner field name before adding. Federal
+megasites and ACRES address-geocodes are the structural miss classes.
+
+---
+
 ## Reusable probe patterns
 
+- Parcel owner by point (ArcGIS): `<parcels_layer>/query?geometry=<lon>,<lat>&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=false&f=json` — use the POLYGON layer, not a centroid/point layer.
 - ArcGIS service inventory: `https://<host>/arcgis/rest/services?f=json`
   (+ `/​<folder>?f=json`); layer schema: `…/FeatureServer/<n>?f=json`;
   row count: `…/query?where=1%3D1&returnCountOnly=true&f=json`;
