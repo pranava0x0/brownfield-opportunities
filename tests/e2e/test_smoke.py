@@ -134,6 +134,24 @@ def test_retired_industrial_overlay_loads(page, base_url):
     assert "Retired industrial" in legend
 
 
+def test_retired_sites_stats_tab(page, base_url):
+    """The Retired Sites tab renders a by-prior-use stats breakdown
+    (KPI cards + sector/state bars) from the retired-industrial overlay."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30_000)
+    page.wait_for_function(
+        "() => window.__sites && document.querySelectorAll('.retired-industrial-icon').length > 0",
+        timeout=15_000,
+    )
+    page.locator("#tab-retired").click()
+    page.wait_for_selector(".retired-bar-row")
+    kpis = page.evaluate(
+        "() => Array.from(document.querySelectorAll('.retired-kpi-label')).map(e => e.textContent)"
+    )
+    assert "Manufacturing" in kpis and "Mining" in kpis
+    assert page.locator(".retired-bar-row").count() > 5
+
+
 def test_filters_panel_toggles(page, base_url):
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("document.getElementById('meta').textContent.indexOf('sites') > -1")
