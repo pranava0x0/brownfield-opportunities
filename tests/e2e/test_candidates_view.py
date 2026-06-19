@@ -169,3 +169,32 @@ def test_land_ready_badge_renders_for_swrau_site(page, base_url):
         ".map((b) => b.textContent.trim())"
     )
     assert "Land Ready" in labels, "expected a Land Ready badge for the SWRAU site"
+
+
+def test_climate_badge_renders_for_very_high_hazard(page, base_url):
+    """A site with a FEMA NRI Very-High wildfire or drought rating (the −10
+    climate penalty) shows the red "Climate" risk badge in the Signals
+    column, parallel to the Flood badge for SFHA sites."""
+    _ready(page, base_url)
+    state = page.evaluate(
+        "() => {"
+        "  const byState = {};"
+        "  for (const s of window.__sites) {"
+        "    if (s.transmission_mi != null && s.state) (byState[s.state] ||= []).push(s);"
+        "  }"
+        "  for (const [st, arr] of Object.entries(byState)) {"
+        "    if (arr.length >= 1 && arr.length <= 200) {"
+        "      arr[0].nri_wildfire_rating = 'Very High'; return st;"
+        "    }"
+        "  }"
+        "  return null;"
+        "}"
+    )
+    assert state, "expected a state with 1..200 scored sites"
+    _set_state_filter(page, state)
+    _open_candidates(page)
+    labels = page.evaluate(
+        "() => Array.from(document.querySelectorAll('#candidates-table .cand-signals .sig-badge'))"
+        ".map((b) => b.textContent.trim())"
+    )
+    assert "Climate" in labels, "expected a Climate badge for the Very-High-hazard site"
