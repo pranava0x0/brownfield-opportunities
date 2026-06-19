@@ -68,6 +68,7 @@
       <button id="tab-map" class="tab active" role="tab" aria-selected="true" aria-controls="view-map">Map</button>
       <button id="tab-table" class="tab" role="tab" aria-selected="false" aria-controls="view-table">Table</button>
       <button id="tab-candidates" class="tab" role="tab" aria-selected="false" aria-controls="view-candidates">DC Candidates</button>
+      <button id="tab-retired" class="tab" role="tab" aria-selected="false" aria-controls="view-retired">Retired Sites</button>
       <button id="tab-about" class="tab" role="tab" aria-selected="false" aria-controls="view-about">About</button>
     </div>
   </nav>
@@ -245,6 +246,16 @@
         </thead>
         <tbody><!-- rows injected by buildCandidatesView() --></tbody>
       </table>
+    </div>
+  </section>
+
+  <section id="view-retired" class="view retired-view" role="tabpanel" aria-labelledby="tab-retired" hidden>
+    <div class="retired-wrap">
+      <div class="retired-lead">
+        <h2>Retired industrial sites — by prior use</h2>
+        <p>Large facilities that ceased EPA GHGRP reporting (closed / idled). A closed smelter, mill, refinery, or mine leaves a big stranded grid interconnection — candidate land for data-center reuse. Counts by the facility's prior use.</p>
+      </div>
+      <div id="retired-stats" aria-live="polite"><p class="muted">Loading retired-site data…</p></div>
     </div>
   </section>
 
