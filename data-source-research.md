@@ -126,8 +126,111 @@ years spread 2002–2025 with big mass pre-2013 (motivated the recency decay).
 
 ---
 
+## 2026-06-19 — retired heavy-industrial assets (smelters / mills / manufacturing)
+
+Goal: surface retired industrial sites NOT in our data (aluminum smelters,
+steel/paper mills, etc.). These carry the largest stranded grid interconnects
+in the country — an aluminum smelter is ~300–700 MW of continuous load — so a
+retired one is a top-tier DC-conversion candidate (the Alcoa / Century pattern).
+
+### 9. EPA GHGRP via Envirofacts REST — **WORKS, recommended programmatic source**
+
+`https://data.epa.gov/efservice/PUB_DIM_FACILITY/<filter>/ROWS/a:b/JSON` is
+LIVE (probed 2026-06-19). Returns per-facility rows with `latitude`,
+`longitude`, `city`, `state`, `facility_name`, `naics_code`, `year`,
+`program_name`. ~8,000 large emitters/yr since 2010. **Closure is inferable by
+report-dropout**: a facility reporting through year N then absent afterward is
+very likely idled/closed. Verified counts (distinct facilities, geocoded):
+iron/steel mills NAICS **331110 → 68 facilities, 2016–2023**; cement **327310
+→ 9**; paperboard **322130 → 7**. **Quirk:** NAICS **331313** (primary
+aluminum) returns HTTP 500 on the `/NAICS_CODE/331313/` filter (other NAICS are
+fine) — query aluminum via FLIGHT subpart C or parent `3313`, not this code.
+Filter syntax: `…/PUB_DIM_FACILITY/NAICS_CODE/<code>/ROWS/0:400/JSON`. Best path
+for the broad "retired manufacturing plant" universe (steel / cement / paper /
+chemicals / glass). A connector would diff years per facility and emit those
+whose last report year < latest GHGRP year, with sector + a crude MW proxy.
+
+### 10. USGS primary aluminum smelters — **curated overlay, highest MW/site**
+
+Authoritative source is USGS Mineral Commodity Summaries (annual PDF,
+`pubs.usgs.gov/periodicals/mcs2026/mcs2026-aluminum.pdf` — WebFetch can't parse
+the PDF and the Read tool needs `poppler`; use `pdftotext`). Small universe:
+2025 = 6 operating smelters in 5 states, 2 idled (Hawesville KY since 2022,
+New Madrid MO since 2024). Recently closed: New Madrid MO (Jan 2024, 263k tpy),
+Wenatchee WA (idled 2015 → closed 2021), Massena East NY (2015), Ravenswood WV
+(idled 2009 → closed 2015). Best as a hand-curated `docs/data/retired-
+industrial.json` overlay (same pattern as `reference-campuses.json`) — ~15–20
+rows, lat/lon + status + capacity + MW + closure year + source. Highest
+signal-per-row of any option here.
+
+### 11. WARN Act plant-closure notices — recent closures, geocoding required
+
+Federal/state WARN notices list company + address + date for plant closings
+(~last 2 yr coverage). Aggregators exist (warnfirehose.com — 85k notices, API
+gated to paid; warntracker.com — partial free); many state DOL pages publish
+free (CA EDD, NY DOL) but fragmented and addresses need geocoding. Good for VERY
+recent closures; lower priority than GHGRP (already geocoded + national).
+
+### 12. Not yet probed (candidates for next pass)
+- **EPA TRI** via Envirofacts — same report-dropout method, lower threshold →
+  broader (~21k facilities), more small sites.
+- **EPA FRS** (Facility Registry Service) — master facility list; some rows
+  carry an operating-status field + NAICS; filter inactive + industrial NAICS.
+- **USGS Mineral Operations** ArcGIS layer — active mines & mineral plants with
+  status; check for a public FeatureServer.
+
+---
+
+## 2026-06-19 — parcel OWNER verification via public state cadastral layers
+
+CLAUDE.md gap #7 said nationwide parcel-owner data is "impossible publicly"
+(true — no single free source). But MANY states publish a free statewide
+parcels layer with owner NAMES via ArcGIS REST, queryable by point. Spot-check
+proved this is very much possible state-by-state.
+
+### 13. NC OneMap statewide parcels — **WORKS, no token needed**
+
+`https://services.nconemap.gov/secure/rest/services/NC1Map_Parcels/FeatureServer`
+— layer **0 = points (centroids), layer 1 = POLYGONS** (use layer 1 for
+point-in-polygon owner lookup; querying layer 0 by point returns nothing —
+that was the first-try miss). Point query:
+`…/1/query?geometry=<lon>,<lat>&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=ownname,gisacres,parno&returnGeometry=false&f=json`.
+Despite the `secure/` path it needs **no token** for Query. Fields: `ownname`
+(owner), `mailadd`/`mcity` (mailing addr), `gisacres`, `parno` (parcel id),
+`cntyname`. **Validation:** Ore Knob Mine Superfund → `ownname`="REEVES THOMAS
+G & EVELYN", `gisacres`=147.1 vs our acreage 148.2 (right parcel). A 40-site NC
+batch (superfund+FUDS) hit **38/40 (95%)** named owners — DOMTAR PAPER CO,
+CHEMTRONICS, AKZO NOBEL, CLARIANT, GE SUBSIDIARY, WARREN COUNTY, individuals.
+The 2 misses: a federal megasite (Camp Lejeune — military reservation isn't in
+county parcels) + 1 off-parcel point. **ACRES brownfields hit lower** — their
+coords are address-geocodes that sometimes land just off the parcel polygon.
+Built into `connectors/parcel_owner.py` (`STATE_PARCEL_SOURCES["NC"]`).
+
+### 14. TX StratMap parcels (TxGIO) — endpoint host unresolved from sandbox
+
+StratMap aggregates ~245 appraisal districts statewide. Endpoint per search:
+`https://feature.tnris.org/arcgis/rest/services/Parcels/stratmap25_land_parcels_48/MapServer/0`
+— but `feature.tnris.org` (and a guessed `feature.txgio.org`) did **not resolve
+via DNS** from the dev sandbox (TNRIS→TxGIO rename, 2025). Could be a sandbox
+network restriction or a host change. Stubbed (commented) in the registry —
+confirm the live host in the deploy env before enabling. Owner field per
+StratMap schema is `OWNER_NAME`.
+
+### 15. The per-state registry approach (the plan)
+
+No nationwide source, but the connector's `STATE_PARCEL_SOURCES` registry makes
+coverage incremental: one verified `{base, owner_field, source}` entry per
+state. Next states to verify (states with known free statewide layers): TX
+(StratMap, host TBD), and any state whose GIS portal hosts a parcels
+FeatureServer with an owner field — probe each with the point-query pattern
+above + `outFields=*` to discover its owner field name before adding. Federal
+megasites and ACRES address-geocodes are the structural miss classes.
+
+---
+
 ## Reusable probe patterns
 
+- Parcel owner by point (ArcGIS): `<parcels_layer>/query?geometry=<lon>,<lat>&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=false&f=json` — use the POLYGON layer, not a centroid/point layer.
 - ArcGIS service inventory: `https://<host>/arcgis/rest/services?f=json`
   (+ `/​<folder>?f=json`); layer schema: `…/FeatureServer/<n>?f=json`;
   row count: `…/query?where=1%3D1&returnCountOnly=true&f=json`;

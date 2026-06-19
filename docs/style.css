@@ -864,6 +864,36 @@ main {
   text-shadow: 0 0 4px rgba(0,0,0,0.8);
 }
 
+/* Retired heavy-industrial overlay — rust diamond, distinct from the gold
+   reference-campus stars and the program marker palette. */
+.legend-diamond {
+  color: #9a5b2e;
+  font-size: 12px;
+  line-height: 1;
+  display: inline-block;
+  width: 12px;
+  text-align: center;
+}
+[data-theme="dark"] .legend-diamond { color: #cf9b6a; }
+.retired-industrial-icon {
+  background: none !important;
+  border: none !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.retired-industrial-icon span {
+  font-size: 15px;
+  color: #9a5b2e;
+  text-shadow: 0 0 3px rgba(0,0,0,0.55);
+  cursor: pointer;
+  line-height: 1;
+}
+[data-theme="dark"] .retired-industrial-icon span {
+  color: #cf9b6a;
+  text-shadow: 0 0 4px rgba(0,0,0,0.8);
+}
+
 /* Reference campus popup */
 .ref-campus-popup {
   font-size: 12.5px;
@@ -2022,6 +2052,32 @@ main {
   margin: 0;
   font-variant-numeric: tabular-nums;
 }
+/* "How this ranking works" explainer — collapsed by default so it doesn't
+   eat map/table real estate, but one click decodes the whole view. */
+.cand-help {
+  font-size: 12px;
+  margin-top: 2px;
+}
+.cand-help > summary {
+  cursor: pointer;
+  color: var(--accent);
+  font-weight: 600;
+  width: fit-content;
+  list-style-position: inside;
+}
+.cand-help > summary:hover { text-decoration: underline; }
+.cand-help-body {
+  margin-top: 6px;
+  padding: 10px 12px;
+  background: var(--accent-soft);
+  border-radius: 6px;
+  max-width: 70ch;
+  line-height: 1.5;
+}
+.cand-help-body p { margin: 0 0 8px; }
+.cand-help-body p:last-child { margin-bottom: 0; }
+.cand-help-pos { color: var(--readiness-ready); font-weight: 600; }
+.cand-help-neg { color: var(--program-superfund); font-weight: 600; }
 #candidates-wrap {
   flex: 1;
   min-height: 0;
@@ -2175,6 +2231,15 @@ main {
   border: 1px solid var(--readiness-ready);
 }
 [data-theme="dark"] .sig-badge.sig-ira { background: rgba(108, 193, 138, 0.12); }
+/* SWRAU "Land Ready" — the strongest public land-availability signal, so it
+   gets a solid-fill green chip to stand out from the outline-green readiness
+   badges (Clean / Reuse / IRA) rather than blending into them. */
+.sig-badge.sig-land {
+  background: var(--readiness-ready);
+  color: #fff;
+  border: 1px solid var(--readiness-ready);
+}
+[data-theme="dark"] .sig-badge.sig-land { color: #0d1b12; }
 /* IRA "Yes" rendering in the detail-panel infra section — green ready token,
    same as OZ's #d-opp-zone.ready treatment. */
 #d-energy-community.ready { color: var(--readiness-ready); font-weight: 500; }
@@ -2200,6 +2265,31 @@ main {
   margin: 0 auto;
   padding: 32px 24px 64px;
 }
+/* Retired Sites stats view */
+.retired-view { overflow: auto; }
+.retired-wrap { max-width: 1000px; margin: 0 auto; padding: 28px 24px 64px; }
+.retired-lead h2 { margin: 0 0 6px; font-family: var(--font-serif); font-size: 24px; }
+.retired-lead p { margin: 0 0 20px; color: var(--text-soft); max-width: 70ch; line-height: 1.5; font-size: 13px; }
+.retired-kpis { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; }
+.retired-kpi {
+  display: flex; flex-direction: column; gap: 2px;
+  background: var(--surface-2); border-radius: 8px; padding: 12px 18px; min-width: 120px;
+}
+.retired-kpi-num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; color: #9a5b2e; }
+[data-theme="dark"] .retired-kpi-num { color: #cf9b6a; }
+.retired-kpi-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.retired-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+@media (max-width: 760px) { .retired-cols { grid-template-columns: 1fr; gap: 24px; } }
+.retired-col h3 { margin: 0 0 10px; font-size: 14px; }
+.retired-bars { display: flex; flex-direction: column; gap: 5px; }
+.retired-bar-row { display: grid; grid-template-columns: 13em 1fr 3em; align-items: center; gap: 8px; font-size: 12px; }
+.retired-bar-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
+.retired-bar-track { background: var(--surface-2); border-radius: 3px; height: 14px; overflow: hidden; }
+.retired-bar-fill { display: block; height: 100%; background: #9a5b2e; border-radius: 3px; }
+.retired-bar-fill.alt { background: var(--accent); }
+[data-theme="dark"] .retired-bar-fill { background: #cf9b6a; }
+.retired-bar-num { text-align: right; font-variant-numeric: tabular-nums; color: var(--text-soft); }
+.retired-foot { margin-top: 24px; font-size: 12px; line-height: 1.5; max-width: 70ch; }
 .about-lead {
   margin-bottom: 40px;
   padding-bottom: 28px;
@@ -2264,6 +2354,23 @@ main {
   height: 10px;
   border-radius: 50%;
   flex-shrink: 0;
+}
+.about-glyph {
+  display: inline-block;
+  width: 12px;
+  text-align: center;
+  flex-shrink: 0;
+  font-size: 13px;
+  line-height: 1;
+}
+.about-subhead {
+  grid-column: 1 / -1;
+  margin: 16px 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
 }
 .about-sources { grid-column: 1 / -1; }
 .about-source-list {

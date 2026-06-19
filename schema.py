@@ -108,6 +108,14 @@ class SiteRecord(BaseModel):
         default=None,
         description="Computed: meets EPA data-center siting criteria (power, water, acreage).",
     )
+    rau_status: Optional[str] = Field(
+        default=None,
+        description="EPA Sitewide Ready for Anticipated Use (SWRAU) status — "
+                    "whether all of the site's land is ready for its anticipated "
+                    "use. One of 'Meets the Measure', 'Does Not Meet the Measure', "
+                    "'Does Not Meet the Measure (Retracted)', "
+                    "'Meets the Measure (Formerly Retracted)', or null.",
+    )
 
     # Universal infrastructure-proximity distances in miles, computed from
     # HIFLD + Census TIGER at refresh time by the `infra-proximity`

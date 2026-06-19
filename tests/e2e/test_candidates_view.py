@@ -139,3 +139,121 @@ def test_lens_restored_from_url(page, base_url):
     _open_candidates(page)
     stats = page.evaluate("document.getElementById('candidates-stats').textContent")
     assert "generation score" in stats
+
+
+def test_land_ready_badge_renders_for_swrau_site(page, base_url):
+    """A site whose EPA SWRAU `rau_status` meets the measure shows the
+    solid-green "Land Ready" signal badge in the candidates Signals column.
+    Pick a state with <=200 scored sites (one candidates page) and inject the
+    SWRAU value onto one of its scored sites so it is guaranteed to render."""
+    _ready(page, base_url)
+    state = page.evaluate(
+        "() => {"
+        "  const byState = {};"
+        "  for (const s of window.__sites) {"
+        "    if (s.transmission_mi != null && s.state) (byState[s.state] ||= []).push(s);"
+        "  }"
+        "  for (const [st, arr] of Object.entries(byState)) {"
+        "    if (arr.length >= 1 && arr.length <= 200) {"
+        "      arr[0].rau_status = 'Meets the Measure'; return st;"
+        "    }"
+        "  }"
+        "  return null;"
+        "}"
+    )
+    assert state, "expected a state with 1..200 scored sites"
+    _set_state_filter(page, state)
+    _open_candidates(page)
+    labels = page.evaluate(
+        "() => Array.from(document.querySelectorAll('#candidates-table .sig-land'))"
+        ".map((b) => b.textContent.trim())"
+    )
+    assert "Land Ready" in labels, "expected a Land Ready badge for the SWRAU site"
+
+
+def test_climate_badge_renders_for_very_high_hazard(page, base_url):
+    """A site with a FEMA NRI Very-High wildfire or drought rating (the −10
+    climate penalty) shows the red "Climate" risk badge in the Signals
+    column, parallel to the Flood badge for SFHA sites."""
+    _ready(page, base_url)
+    state = page.evaluate(
+        "() => {"
+        "  const byState = {};"
+        "  for (const s of window.__sites) {"
+        "    if (s.transmission_mi != null && s.state) (byState[s.state] ||= []).push(s);"
+        "  }"
+        "  for (const [st, arr] of Object.entries(byState)) {"
+        "    if (arr.length >= 1 && arr.length <= 200) {"
+        "      arr[0].nri_wildfire_rating = 'Very High'; return st;"
+        "    }"
+        "  }"
+        "  return null;"
+        "}"
+    )
+    assert state, "expected a state with 1..200 scored sites"
+    _set_state_filter(page, state)
+    _open_candidates(page)
+    labels = page.evaluate(
+        "() => Array.from(document.querySelectorAll('#candidates-table .cand-signals .sig-badge'))"
+        ".map((b) => b.textContent.trim())"
+    )
+    assert any(l.startswith("Climate") for l in labels), "expected a Climate badge for the Very-High-hazard site"
+    assert "Climate −10" in labels, "Very-High hazard should badge the −10 magnitude"
+
+
+def test_nuclear_badge_renders_for_nuclear_adjacency(page, base_url):
+    """A site within 5 mi of an operating nuclear plant >=500 MW shows the
+    "Nuclear" grid-inheritance badge (the AWS/Susquehanna pattern)."""
+    _ready(page, base_url)
+    state = page.evaluate(
+        "() => {"
+        "  const byState = {};"
+        "  for (const s of window.__sites) {"
+        "    if (s.transmission_mi != null && s.state) (byState[s.state] ||= []).push(s);"
+        "  }"
+        "  for (const [st, arr] of Object.entries(byState)) {"
+        "    if (arr.length >= 1 && arr.length <= 200) {"
+        "      Object.assign(arr[0], {power_plant_mi: 2.0, power_plant_mw: 800,"
+        "        power_plant_fuel: 'nuclear', retired_plant_mi: null});"
+        "      return st;"
+        "    }"
+        "  }"
+        "  return null;"
+        "}"
+    )
+    assert state, "expected a state with 1..200 scored sites"
+    _set_state_filter(page, state)
+    _open_candidates(page)
+    labels = page.evaluate(
+        "() => Array.from(document.querySelectorAll('#candidates-table .cand-signals .sig-badge'))"
+        ".map((b) => b.textContent.trim())"
+    )
+    assert "Nuclear" in labels, "expected a Nuclear badge for the nuclear-adjacent site"
+
+
+def test_zoning_badge_renders_for_restrictive_state(page, base_url):
+    """A site in a restrictive DC regulatory-climate state (stamped
+    s.dc_regulatory_climate at ingest) shows the red "Zoning" risk badge."""
+    _ready(page, base_url)
+    state = page.evaluate(
+        "() => {"
+        "  const byState = {};"
+        "  for (const s of window.__sites) {"
+        "    if (s.transmission_mi != null && s.state) (byState[s.state] ||= []).push(s);"
+        "  }"
+        "  for (const [st, arr] of Object.entries(byState)) {"
+        "    if (arr.length >= 1 && arr.length <= 200) {"
+        "      arr[0].dc_regulatory_climate = 'restrictive'; return st;"
+        "    }"
+        "  }"
+        "  return null;"
+        "}"
+    )
+    assert state, "expected a state with 1..200 scored sites"
+    _set_state_filter(page, state)
+    _open_candidates(page)
+    labels = page.evaluate(
+        "() => Array.from(document.querySelectorAll('#candidates-table .cand-signals .sig-badge'))"
+        ".map((b) => b.textContent.trim())"
+    )
+    assert "Zoning" in labels, "expected a Zoning badge for the restrictive-state site"

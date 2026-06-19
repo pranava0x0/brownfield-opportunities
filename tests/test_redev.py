@@ -67,7 +67,22 @@ def test_normalize_happy_path():
     assert rec["pop_density"] == "Completely Within Urban Area"
     assert rec["in_opp_zone"] == "No"
     assert rec["in_reuse"] == "No"
+    assert rec["rau_status"] == "Meets the Measure"
     assert rec["data_center_reuse_candidate"] is True
+
+
+def test_rau_status_passthrough_variants():
+    for val in ("Does Not Meet the Measure",
+                "Does Not Meet the Measure (Retracted)",
+                "Meets the Measure (Formerly Retracted)"):
+        rec = EpaRedev.normalize(_feature({"RAU_Status": val}))
+        assert rec["rau_status"] == val
+
+
+def test_rau_status_blank_and_null_collapse_to_none():
+    assert EpaRedev.normalize(_feature({"RAU_Status": None}))["rau_status"] is None
+    assert EpaRedev.normalize(_feature({"RAU_Status": "   "}))["rau_status"] is None
+    assert EpaRedev.normalize(_feature({"RAU_Status": ""}))["rau_status"] is None
 
 
 def test_drops_record_with_no_epa_id():
@@ -202,7 +217,7 @@ def test_record_shape_complete():
         "near_electric_transmission", "near_highway", "near_railroad",
         "near_water_supply", "near_wastewater", "near_water_body",
         "pop_density", "in_opp_zone", "in_reuse",
-        "data_center_reuse_candidate",
+        "data_center_reuse_candidate", "rau_status",
     }
     assert set(rec.keys()) == expected
     assert rec["program"] == "superfund"
