@@ -197,7 +197,8 @@ def test_climate_badge_renders_for_very_high_hazard(page, base_url):
         "() => Array.from(document.querySelectorAll('#candidates-table .cand-signals .sig-badge'))"
         ".map((b) => b.textContent.trim())"
     )
-    assert "Climate" in labels, "expected a Climate badge for the Very-High-hazard site"
+    assert any(l.startswith("Climate") for l in labels), "expected a Climate badge for the Very-High-hazard site"
+    assert "Climate −10" in labels, "Very-High hazard should badge the −10 magnitude"
 
 
 def test_nuclear_badge_renders_for_nuclear_adjacency(page, base_url):
