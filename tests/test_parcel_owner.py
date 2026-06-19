@@ -78,6 +78,19 @@ def test_seeded_owner_is_not_requeried(tmp_path):
     assert out[0]["current_owner"] == "ALREADY KNOWN INC"
 
 
+def test_seeded_null_owner_is_not_requeried(tmp_path):
+    """A null-owner TOMBSTONE from a prior run (serialized as just {id, program}
+    by exclude_none) must NOT be re-queried — the no-match is permanent and
+    re-querying would re-consume the budget every run. Even though a winning
+    response is registered, the skip keeps it a tombstone."""
+    sites = [{"id": "NCD6", "program": "superfund", "state": "NC", "lat": 35.5, "lon": -80.5}]
+    existing = [{"id": "NCD6", "program": "superfund"}]  # tombstone (current_owner dropped)
+    c = _conn(tmp_path, sites, existing=existing, response_for={(35.5, -80.5): _OWNER_RESP})
+    out = c.fetch_records(_args(), use_cache=False)
+    assert len(out) == 1
+    assert out[0].get("current_owner") is None  # stayed a tombstone — not re-queried
+
+
 def test_state_filter_restricts_to_one_state(tmp_path):
     sites = [
         {"id": "NCD4", "program": "superfund", "state": "NC", "lat": 35.5, "lon": -80.5},
