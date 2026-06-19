@@ -13,6 +13,26 @@
       integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
       crossorigin="">
 <link rel="stylesheet" href="style.css">
+<!-- Google Analytics 4 (gtag.js) — privacy-friendly + opt-out-aware.
+     TO ACTIVATE: replace GA_MEASUREMENT_ID below with your GA4 id (G-XXXXXXXXXX).
+     Until then it is a complete no-op (no network, no cookies). It also skips
+     entirely when the browser sends Do-Not-Track, and uses anonymize_ip. This
+     is the only place to change the id. -->
+<script>
+(function () {
+  var GA_MEASUREMENT_ID = "G-XXXXXXXXXX"; // <-- replace with your GA4 Measurement ID to enable
+  var dnt = navigator.doNotTrack == "1" || window.doNotTrack == "1" || navigator.msDoNotTrack == "1";
+  if (GA_MEASUREMENT_ID === "G-XXXXXXXXXX" || !/^G-[A-Z0-9]+$/.test(GA_MEASUREMENT_ID) || dnt) return;
+  var s = document.createElement("script");
+  s.async = true;
+  s.src = "https://www.googletagmanager.com/gtag/js?id=" + GA_MEASUREMENT_ID;
+  document.head.appendChild(s);
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = function () { dataLayer.push(arguments); };
+  gtag("js", new Date());
+  gtag("config", GA_MEASUREMENT_ID, { anonymize_ip: true });
+})();
+</script>
 </head>
 <body>
 <a href="#main" class="skip-link">Skip to main content</a>
@@ -259,7 +279,7 @@
             <dd>10 confirmed hyperscale/colo data-center projects already built on brownfield or former-industrial land (Google/Widows Creek, AWS/Susquehanna, Aligned/Conesville, etc.) — reference points for what a successful conversion looks like.</dd>
 
             <dt><span class="about-glyph" style="color:#9a5b2e">◆</span>Retired industrial</dt>
-            <dd>~57 large retired smelters, steel/paper mills, cement, petrochemical, and glass plants that ceased EPA GHGRP reporting. Candidate sites: a closed aluminum smelter or steel mill leaves a large stranded grid interconnection. These often sit outside the four programs above.</dd>
+            <dd>~530 large retired manufacturing facilities nationwide — smelters, steel/paper mills, cement, glass, chemical plants, refineries, and auto-assembly plants — that ceased EPA GHGRP reporting. Candidate sites: a closed smelter, mill, or refinery leaves a large stranded grid interconnection. These often sit outside the four programs above.</dd>
           </dl>
         </div>
 
