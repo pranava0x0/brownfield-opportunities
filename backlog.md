@@ -4,6 +4,15 @@ Ideas and enhancements. Priorities: **high** = next, **med** = soon, **low** = n
 
 ---
 
+## Session checkpoint — 2026-06-23 (scheduled data-maintenance run)
+
+**Completed this session:**
+- **flood_zone backfill — `--infra-flood-budget 1800` run.** Full `infra-proximity` connector (no skip flags), seed preserved prior progress. Result: **flood_zone 9,900 → 12,203 (21.2% → 26.1%)**, net +2,303 mapped sites (brownfield 8,136 → 10,439; superfund stable at 1,764/1,908). Log: `9900 seeded, 3414 lookups (1800 new fetches, 1194 in SFHA, 2 network errors, 33444 deferred over budget)`. The lookup-vs-populated gap (3,412 lookups → +2,303 populated) is expected — FEMA NFHL returns null `flood_zone` for the ~25% of CONUS that's unmapped, a legitimate "queried, no zone" result. Verified `len==46760`, other infra fields intact (transmission 46,211 / substation 46,328 / power_plant 46,496), FUDS/BRAC not nulled. 6 flood unit tests pass.
+
+**Still open (next scheduled runs):**
+- **flood_zone — ~34,557 sites remain (73.9%).** FUDS (0/8,822) and BRAC (0/27) are entirely unstarted — they iterate last, after brownfield. Continue with `python3 refresh.py --source infra-proximity --infra-flood-budget N` (N≥1500 to amortize the ~15-min rail-index build). Seed makes it cleanly resumable. NOTE: a None `flood_zone` now means EITHER "not yet queried" OR "queried but unmapped" — re-queries of unmapped sites hit cache (free), so no budget waste, just re-counted in "lookups."
+- **ECHO NPDES re-enrichment** — `has_npdes_permit` still 0/1,906. Needs a full replace run (NOT `--missing-only`). ~50 min–10 hr, killed twice historically; best in a supervised session.
+
 ## Session checkpoint — 2026-06-16 (scheduled data-maintenance run)
 
 **Completed (v1.22):**
