@@ -18,14 +18,13 @@ def test_ap1000_weights_follow_priority_order(page: Page, base_url: str) -> None
     weights = page.evaluate("() => window.AP1000_WEIGHTS")
     assert sum(weights.values()) == 100
     assert weights == {
-        "acreage": 30,
-        "water": 27,
-        "transmission": 14,
-        "substation": 10,
-        "workforce": 13,
-        "fiber": 6,
+        "water": 40,
+        "transmission": 22,
+        "substation": 16,
+        "workforce": 15,
+        "fiber": 7,
     }
-    assert weights["acreage"] > weights["water"]
+    assert page.evaluate("() => window.AP1000_MIN_DEVELOPABLE_ACRES") == 500
     assert weights["water"] > weights["transmission"] + weights["substation"]
     assert weights["transmission"] + weights["substation"] > weights["workforce"]
     assert weights["workforce"] > weights["fiber"]
@@ -42,8 +41,8 @@ def test_ap1000_ranking_is_deterministic(page: Page, base_url: str) -> None:
         }"""
     )
     assert len(rows) == 14
-    assert rows[0]["id"] == "jblm-wa"
-    assert rows[0]["score"] == 88
+    assert rows[0]["id"] == "redstone-arsenal-al"
+    assert rows[0]["score"] == 86
     assert rows[-1]["id"] == "edwards-afb-ca"
 
 
@@ -71,7 +70,9 @@ def test_ap1000_air_force_rflp_provenance_is_emitted(page: Page, base_url: str) 
 def test_ap1000_tab_renders_ranking_and_rflp_badge(page: Page, base_url: str) -> None:
     _ready(page, base_url)
     page.get_by_role("tab", name="AP1000").click()
-    page.get_by_role("cell", name="Joint Base Lewis-McChord").wait_for(timeout=10_000)
+    page.get_by_role("cell", name="Fort Benning (Fort Moore)").wait_for(timeout=10_000)
+    assert page.locator("#export-csv").is_hidden()
+    assert page.locator("#ap1000-export-csv").is_visible()
     assert page.locator(".ap1000-row").count() == 14
     assert page.locator(".ap1000-rflp").count() == 5
     assert page.locator(".ap1000-row .ap1000-cell-src").count() >= 14 * 8
@@ -80,18 +81,22 @@ def test_ap1000_tab_renders_ranking_and_rflp_badge(page: Page, base_url: str) ->
     assert page.locator(".ap1000-detail:not([hidden])").get_by_text(
         "Air Force AI data-center RFLP"
     ).is_visible()
+    page.get_by_role("tab", name="Table").click()
+    assert page.locator("#export-csv").is_visible()
 
 
 def test_ap1000_csv_exports_values_with_source_urls(page: Page, base_url: str) -> None:
     _ready(page, base_url)
     page.get_by_role("tab", name="AP1000").click()
-    page.get_by_role("cell", name="Joint Base Lewis-McChord").wait_for(timeout=10_000)
+    page.get_by_role("cell", name="Fort Benning (Fort Moore)").wait_for(timeout=10_000)
     csv = page.evaluate("window.__buildAp1000Csv()")
     lines = csv.split("\n")
     header = lines[0].split(",")
     assert len(lines) == 15
     for col in [
         "score",
+        "acreage_threshold_acres",
+        "acreage_threshold_met",
         "water",
         "water_reason",
         "developable_acreage",
@@ -106,7 +111,8 @@ def test_ap1000_csv_exports_values_with_source_urls(page: Page, base_url: str) -
     ]:
         assert col in header
         assert f"{col}_source_url" in header
+    assert "score_acreage_points" not in header
     hood_line = next(line for line in lines if "Fort Hood" in line)
-    assert "marginal" in hood_line
-    assert "water-constrained" in hood_line
+    assert "poor" in hood_line
+    assert "poor water fit" in hood_line
     assert "https://" in hood_line
