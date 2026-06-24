@@ -4,6 +4,11 @@ Ideas and enhancements. Priorities: **high** = next, **med** = soon, **low** = n
 
 ---
 
+## Session checkpoint — 2026-06-24
+
+**Completed this session:**
+- **Consolidated flood backfill from `feat/rau-status-land-readiness` onto `main`.** Data-aware merge kept current `main`'s newer parcel-owner / retired-site schema and copied the final FEMA NFHL fields from the flood branch record-by-record. `docs/data/infra-proximity.json` remains 46,760 records; `flood_zone` coverage is now 14,814 records (~31.7%). This supersedes the branch-local 2026-06-23 checkpoint while preserving later `main` work.
+
 ## Session checkpoint — 2026-06-19
 
 **Completed this session:**
