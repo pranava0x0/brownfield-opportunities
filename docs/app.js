@@ -817,6 +817,7 @@ fetch(PRIMARY_DATA_URL)
     wireKpiClicks();
     wireNearbyClicks();
     wireExportCsv();
+    wireAp1000ExportCsv();
     wireShareLink();
     wireThemeToggle();
     wireKpiDisclosure();
@@ -3083,6 +3084,30 @@ function _ap1000ScoreTier(score) {
 
 const _ap1000Src = (url, label) =>
   url ? ` <a href="${escapeHtml(url)}" target="_blank" rel="noopener">${label} ↗</a>` : "";
+const _AP1000_SCORE_SOURCE = "https://github.com/pranava0x0/brownfield-opportunities/blob/main/docs/ap1000-score.js";
+const _AP1000_DATA_SOURCE = "https://github.com/pranava0x0/brownfield-opportunities/blob/main/docs/data/ap1000-sites.json";
+const _AP1000_INFRA_SOURCE = "https://pranava0x0.github.io/brownfield-opportunities/data/infra-proximity.json";
+const _AP1000_TRANSMISSION_SOURCE = "https://hifld-geoplatform.opendata.arcgis.com/datasets/geoplatform::electric-power-transmission-lines/about";
+const _AP1000_SUBSTATION_SOURCE = "https://overpass-turbo.eu/";
+const _AP1000_GEOHAZARD_SOURCE = "https://www.fema.gov/flood-maps/tools-resources/flood-map-products/national-flood-hazard-layer";
+
+function _ap1000CellSrc(url, label = "source") {
+  return url ? ` <a class="ap1000-cell-src" href="${escapeHtml(url)}" target="_blank" rel="noopener">${label}</a>` : "";
+}
+
+function _ap1000SourceFor(s, field) {
+  if (!s) return "";
+  if (field === "score") return _AP1000_SCORE_SOURCE;
+  if (field === "water") return s.water_source_url || "";
+  if (field === "acreage") return s.acreage_source || "";
+  if (field === "transmission") return _AP1000_TRANSMISSION_SOURCE;
+  if (field === "substation") return _AP1000_SUBSTATION_SOURCE;
+  if (field === "workforce") return s.workforce_source_url || s.acreage_source || "";
+  if (field === "fiber") return s.fiber_source_url || s.acreage_source || "";
+  if (field === "flags") return s.geohazard_source_url || _AP1000_GEOHAZARD_SOURCE;
+  if (field === "rank" || field === "installation") return _AP1000_DATA_SOURCE;
+  return "";
+}
 const _ap1000KvMi = (mi, kv) =>
   `${fmt.miles(mi)} · ${kv != null ? kv + " kV" : "kV N/A"}`;
 
@@ -3097,9 +3122,7 @@ function buildAp1000View() {
     return;
   }
   const W = window.AP1000_WEIGHTS || {};
-  const scored = ap1000Sites
-    .map((s) => ({ s, score: window.computeAp1000Score(s), bd: window.computeAp1000Breakdown(s) }))
-    .sort((a, b) => (b.score ?? -1) - (a.score ?? -1));
+  const scored = ap1000ScoredRows();
 
   const rows = scored.map((row, i) => {
     const { s, score, bd } = row;
@@ -3134,15 +3157,15 @@ function buildAp1000View() {
     const dataRow =
       `<tr class="ap1000-row" data-ap1000-row="${rank}" tabindex="0" role="button" aria-expanded="false" aria-controls="ap1000-detail-${rank}">` +
         `<td class="num ap1000-rank-cell">${rank}<span class="ap1000-caret" aria-hidden="true">▸</span></td>` +
-        `<td class="ap1000-name-cell"><span class="ap1000-name">${escapeHtml(s.name)}</span><span class="ap1000-meta">${escapeHtml(s.branch || "")} · ${escapeHtml(s.state || "")}${janus}${afRflp}</span></td>` +
-        `<td class="num ap1000-score-cell"><span class="ap1000-score-chip ap1000-tier-${tier.cls}">${score == null ? "—" : score}</span></td>` +
-        `<td><span class="ap1000-tag ${waterCls}">${escapeHtml(s.water_adequacy || "—")}</span></td>` +
-        `<td class="num" title="${escapeHtml(s.developable_basis || "")}">${s.developable_acreage != null ? s.developable_acreage.toLocaleString() : "—"}</td>` +
-        `<td class="num ap1000-kvmi">${_ap1000KvMi(s.transmission_mi, s.transmission_kv)}</td>` +
-        `<td class="num ap1000-kvmi">${_ap1000KvMi(s.substation_mi, s.substation_kv)}</td>` +
-        `<td><span class="ap1000-tag ${wfCls}" title="${escapeHtml(s.workforce_metro || "")}">${escapeHtml(s.workforce || "—")}</span></td>` +
-        `<td><span class="ap1000-tag ${fiberCls}">${escapeHtml(s.fiber || "—")}</span></td>` +
-        `<td class="ap1000-flags-cell">${flagCell}</td>` +
+        `<td class="ap1000-name-cell"><span class="ap1000-name">${escapeHtml(s.name)}</span><span class="ap1000-meta">${escapeHtml(s.branch || "")} · ${escapeHtml(s.state || "")}${janus}${afRflp}</span>${_ap1000CellSrc(_ap1000SourceFor(s, "installation"))}</td>` +
+        `<td class="num ap1000-score-cell"><span class="ap1000-score-chip ap1000-tier-${tier.cls}">${score == null ? "—" : score}</span>${_ap1000CellSrc(_ap1000SourceFor(s, "score"))}</td>` +
+        `<td><span class="ap1000-tag ${waterCls}">${escapeHtml(s.water_adequacy || "—")}</span>${_ap1000CellSrc(_ap1000SourceFor(s, "water"))}</td>` +
+        `<td class="num" title="${escapeHtml(s.developable_basis || "")}">${s.developable_acreage != null ? s.developable_acreage.toLocaleString() : "—"}${_ap1000CellSrc(_ap1000SourceFor(s, "acreage"))}</td>` +
+        `<td class="num ap1000-kvmi">${_ap1000KvMi(s.transmission_mi, s.transmission_kv)}${_ap1000CellSrc(_ap1000SourceFor(s, "transmission"))}</td>` +
+        `<td class="num ap1000-kvmi">${_ap1000KvMi(s.substation_mi, s.substation_kv)}${_ap1000CellSrc(_ap1000SourceFor(s, "substation"))}</td>` +
+        `<td class="ap1000-workforce-cell"><span class="ap1000-tag ${wfCls}">${escapeHtml(s.workforce || "—")}</span><span class="ap1000-workforce-area">${escapeHtml(s.workforce_metro || "Area TBD")}</span>${_ap1000CellSrc(_ap1000SourceFor(s, "workforce"))}</td>` +
+        `<td><span class="ap1000-tag ${fiberCls}">${escapeHtml(s.fiber || "—")}</span>${_ap1000CellSrc(_ap1000SourceFor(s, "fiber"))}</td>` +
+        `<td class="ap1000-flags-cell">${flagCell}${_ap1000CellSrc(_ap1000SourceFor(s, "flags"))}</td>` +
       `</tr>`;
 
     const detailRow =
@@ -3198,6 +3221,86 @@ function buildAp1000View() {
       if (rowEl) { e.preventDefault(); toggle(rowEl); }
     });
   }
+}
+
+const AP1000_CSV_COLUMNS = [
+  { label: "rank", value: (r) => r.rank, source: (r) => _ap1000SourceFor(r.s, "rank") },
+  { label: "installation", value: (r) => r.s.name, source: (r) => _ap1000SourceFor(r.s, "installation") },
+  { label: "state", value: (r) => r.s.state, source: (r) => _ap1000SourceFor(r.s, "installation") },
+  { label: "score", value: (r) => r.score, source: (r) => _ap1000SourceFor(r.s, "score") },
+  { label: "score_acreage_points", value: (r) => r.bd.acreage, source: (r) => _ap1000SourceFor(r.s, "score") },
+  { label: "score_water_points", value: (r) => r.bd.water, source: (r) => _ap1000SourceFor(r.s, "score") },
+  { label: "score_transmission_points", value: (r) => r.bd.transmission, source: (r) => _ap1000SourceFor(r.s, "score") },
+  { label: "score_substation_points", value: (r) => r.bd.substation, source: (r) => _ap1000SourceFor(r.s, "score") },
+  { label: "score_workforce_points", value: (r) => r.bd.workforce, source: (r) => _ap1000SourceFor(r.s, "score") },
+  { label: "score_fiber_points", value: (r) => r.bd.fiber, source: (r) => _ap1000SourceFor(r.s, "score") },
+  { label: "water", value: (r) => r.s.water_adequacy, source: (r) => _ap1000SourceFor(r.s, "water") },
+  { label: "water_reason", value: (r) => r.s.water_note, source: (r) => _ap1000SourceFor(r.s, "water") },
+  { label: "water_source", value: (r) => r.s.water_source, source: (r) => _ap1000SourceFor(r.s, "water") },
+  { label: "developable_acreage", value: (r) => r.s.developable_acreage, source: (r) => _ap1000SourceFor(r.s, "acreage") },
+  { label: "developable_acreage_reason", value: (r) => r.s.developable_basis, source: (r) => _ap1000SourceFor(r.s, "acreage") },
+  { label: "installation_acreage", value: (r) => r.s.installation_acreage, source: (r) => _ap1000SourceFor(r.s, "acreage") },
+  { label: "transmission_mi", value: (r) => r.s.transmission_mi, source: (r) => _ap1000SourceFor(r.s, "transmission") },
+  { label: "transmission_kv", value: (r) => r.s.transmission_kv, source: (r) => _ap1000SourceFor(r.s, "transmission") },
+  { label: "substation_mi", value: (r) => r.s.substation_mi, source: (r) => _ap1000SourceFor(r.s, "substation") },
+  { label: "substation_kv", value: (r) => r.s.substation_kv, source: (r) => _ap1000SourceFor(r.s, "substation") },
+  { label: "workforce", value: (r) => r.s.workforce, source: (r) => _ap1000SourceFor(r.s, "workforce") },
+  { label: "workforce_reason", value: (r) => r.s.workforce_note, source: (r) => _ap1000SourceFor(r.s, "workforce") },
+  { label: "workforce_metro", value: (r) => r.s.workforce_metro, source: (r) => _ap1000SourceFor(r.s, "workforce") },
+  { label: "fiber", value: (r) => r.s.fiber, source: (r) => _ap1000SourceFor(r.s, "fiber") },
+  { label: "fiber_reason", value: (r) => r.s.fiber_note, source: (r) => _ap1000SourceFor(r.s, "fiber") },
+  { label: "seismic_flag", value: (r) => r.s.seismic_flag, source: (r) => _ap1000SourceFor(r.s, "flags") },
+  { label: "flood_flag", value: (r) => r.s.flood_flag, source: (r) => _ap1000SourceFor(r.s, "flags") },
+  { label: "janus_site", value: (r) => r.s.janus_site, source: (r) => r.s.janus_source_url || _ap1000SourceFor(r.s, "installation") },
+  { label: "af_rflp_site", value: (r) => r.s.af_rflp_site, source: (r) => r.s.af_rflp_source_url || "" },
+  { label: "af_rflp_acres", value: (r) => r.s.af_rflp_acres, source: (r) => r.s.af_rflp_source_url || "" },
+];
+
+function ap1000ScoredRows() {
+  return ap1000Sites
+    .map((s) => ({ s, score: window.computeAp1000Score(s), bd: window.computeAp1000Breakdown(s) }))
+    .sort((a, b) => (b.score ?? -1) - (a.score ?? -1))
+    .map((r, i) => ({ ...r, rank: i + 1 }));
+}
+
+function buildAp1000Csv() {
+  const headers = [];
+  for (const c of AP1000_CSV_COLUMNS) {
+    headers.push(c.label, `${c.label}_source_url`);
+  }
+  const rows = [headers];
+  for (const r of ap1000ScoredRows()) {
+    const row = [];
+    for (const c of AP1000_CSV_COLUMNS) {
+      const v = c.value(r);
+      const src = c.source(r);
+      row.push(v == null ? "" : v, src || "");
+    }
+    rows.push(row);
+  }
+  return rows.map(csvRow).join("\n");
+}
+
+function downloadAp1000Csv() {
+  const csv = buildAp1000Csv();
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `ap1000-siting-${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function wireAp1000ExportCsv() {
+  const btn = el("ap1000-export-csv");
+  if (!btn) return;
+  btn.addEventListener("click", () => {
+    ensureAp1000Loaded().then(() => downloadAp1000Csv());
+  });
+  window.__buildAp1000Csv = buildAp1000Csv;
 }
 
 // ----- DC Candidates view -----
