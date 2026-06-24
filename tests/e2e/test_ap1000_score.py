@@ -44,7 +44,7 @@ def test_ap1000_ranking_is_deterministic(page: Page, base_url: str) -> None:
     assert len(rows) == 14
     assert rows[0]["id"] == "jblm-wa"
     assert rows[0]["score"] == 88
-    assert rows[-1]["id"] == "davis-monthan-afb-az"
+    assert rows[-1]["id"] == "edwards-afb-ca"
 
 
 def test_ap1000_air_force_rflp_provenance_is_emitted(page: Page, base_url: str) -> None:
@@ -74,7 +74,39 @@ def test_ap1000_tab_renders_ranking_and_rflp_badge(page: Page, base_url: str) ->
     page.get_by_role("cell", name="Joint Base Lewis-McChord").wait_for(timeout=10_000)
     assert page.locator(".ap1000-row").count() == 14
     assert page.locator(".ap1000-rflp").count() == 5
+    assert page.locator(".ap1000-row .ap1000-cell-src").count() >= 14 * 8
+    assert page.locator(".ap1000-workforce-area", has_text="Tacoma + Seattle metro (~4M) within ~1 hr").is_visible()
     page.get_by_role("cell", name="Arnold AFB (AEDC)").click()
     assert page.locator(".ap1000-detail:not([hidden])").get_by_text(
         "Air Force AI data-center RFLP"
     ).is_visible()
+
+
+def test_ap1000_csv_exports_values_with_source_urls(page: Page, base_url: str) -> None:
+    _ready(page, base_url)
+    page.get_by_role("tab", name="AP1000").click()
+    page.get_by_role("cell", name="Joint Base Lewis-McChord").wait_for(timeout=10_000)
+    csv = page.evaluate("window.__buildAp1000Csv()")
+    lines = csv.split("\n")
+    header = lines[0].split(",")
+    assert len(lines) == 15
+    for col in [
+        "score",
+        "water",
+        "water_reason",
+        "developable_acreage",
+        "developable_acreage_reason",
+        "transmission_mi",
+        "substation_mi",
+        "workforce",
+        "workforce_reason",
+        "fiber",
+        "fiber_reason",
+        "seismic_flag",
+    ]:
+        assert col in header
+        assert f"{col}_source_url" in header
+    hood_line = next(line for line in lines if "Fort Hood" in line)
+    assert "marginal" in hood_line
+    assert "water-constrained" in hood_line
+    assert "https://" in hood_line
