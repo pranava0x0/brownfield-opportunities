@@ -22,6 +22,7 @@ const RETIRED_PLANTS_URL = "data/eia-retired-plants.json";
 const REFERENCE_CAMPUSES_URL = "data/reference-campuses.json";
 const RETIRED_INDUSTRIAL_URL = "data/retired-industrial.json";
 const IRA_EC_URL = "data/ira-energy-community.json";
+const AP1000_SITES_URL = "data/ap1000-sites.json";
 const FEMA_NRI_URL = "data/fema-nri.json";
 // Vector basemap: US states (always) + US counties (lazy at zoom ≥ COUNTY_MIN_ZOOM).
 // No tiles — Canada/Mexico literally don't exist on the map. Choropleth-style
@@ -576,6 +577,8 @@ let retiredPlantsLoadingPromise = null;
 let referenceCampusesLoadingPromise = null;
 let retiredIndustrialLoadingPromise = null;
 let retiredIndustrialSites = []; // raw payload, for the Retired Sites stats tab
+let ap1000LoadingPromise = null;
+let ap1000Sites = []; // raw payload, for the AP1000 siting tab
 let iraEcLoadingPromise = null;
 let femaNriLoadingPromise = null;
 
@@ -2919,16 +2922,19 @@ function wireTabs() {
   const tableTab = el("tab-table");
   const candidatesTab = el("tab-candidates");
   const retiredTab = el("tab-retired");
+  const ap1000Tab = el("tab-ap1000");
   const aboutTab = el("tab-about");
   const setView = (which) => {
     const onMap = which === "map";
     const onTable = which === "table";
     const onCandidates = which === "candidates";
     const onRetired = which === "retired";
+    const onAp1000 = which === "ap1000";
     const onAbout = which === "about";
     for (const [tab, active] of [
       [mapTab, onMap], [tableTab, onTable],
-      [candidatesTab, onCandidates], [retiredTab, onRetired], [aboutTab, onAbout],
+      [candidatesTab, onCandidates], [retiredTab, onRetired],
+      [ap1000Tab, onAp1000], [aboutTab, onAbout],
     ]) {
       if (!tab) continue;
       tab.classList.toggle("active", active);
@@ -2938,15 +2944,18 @@ function wireTabs() {
     const tableView = el("view-table");
     const candidatesView = el("view-candidates");
     const retiredView = el("view-retired");
+    const ap1000View = el("view-ap1000");
     const aboutView = el("view-about");
     if (mapView)        { mapView.classList.toggle("active", onMap);               mapView.hidden = !onMap; }
     if (tableView)      { tableView.classList.toggle("active", onTable);           tableView.hidden = !onTable; }
     if (candidatesView) { candidatesView.classList.toggle("active", onCandidates); candidatesView.hidden = !onCandidates; }
     if (retiredView)    { retiredView.classList.toggle("active", onRetired);       retiredView.hidden = !onRetired; }
+    if (ap1000View)     { ap1000View.classList.toggle("active", onAp1000);         ap1000View.hidden = !onAp1000; }
     if (aboutView)      { aboutView.classList.toggle("active", onAbout);           aboutView.hidden = !onAbout; }
     if (onMap) setTimeout(() => map.invalidateSize(), 50);
     if (onCandidates) buildCandidatesView();
     if (onRetired) { ensureRetiredIndustrialLoaded(); buildRetiredView(); }
+    if (onAp1000) { ensureAp1000Loaded(); buildAp1000View(); }
     if (onAbout) {
       const d = el("about-refresh-date");
       if (d && window.__refreshedAt) d.textContent = window.__refreshedAt;
@@ -2956,6 +2965,7 @@ function wireTabs() {
   tableTab.addEventListener("click", () => setView("table"));
   if (candidatesTab) candidatesTab.addEventListener("click", () => setView("candidates"));
   if (retiredTab) retiredTab.addEventListener("click", () => setView("retired"));
+  if (ap1000Tab) ap1000Tab.addEventListener("click", () => setView("ap1000"));
   if (aboutTab) aboutTab.addEventListener("click", () => setView("about"));
 }
 
@@ -3017,6 +3027,177 @@ function buildRetiredView() {
     + `<section class="retired-col"><h3>Top states</h3><div class="retired-bars">${stateRows}</div></section>`
     + `</div>`
     + `<p class="retired-foot muted">Source: EPA GHGRP facilities that ceased reporting (closed, idled, or below threshold). This is a screening signal for reusable grid infrastructure — verify ownership, interconnection, and closure before treating any site as available. Use the rust ◆ markers on the Map to locate them.</p>`;
+}
+
+// ----- AP1000 reactor-siting view -----
+// Self-contained card view over docs/data/ap1000-sites.json (a curated
+// overlay, NOT SiteRecords) scored by ap1000-score.js. Lazy-loaded on first
+// tab activation; no map markers (these are off the main brownfield corpus).
+function ensureAp1000Loaded() {
+  if (ap1000LoadingPromise) return ap1000LoadingPromise;
+  ap1000LoadingPromise = fetch(AP1000_SITES_URL, { priority: "low" })
+    .then((r) => {
+      if (r.status === 404) return { sites: [] };
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then((payload) => {
+      ap1000Sites = payload.sites || [];
+      maybeRefreshAp1000();
+      return ap1000Sites;
+    })
+    .catch((err) => {
+      console.error("AP1000 load failed", err);
+      ap1000LoadingPromise = null; // allow retry
+      return [];
+    });
+  return ap1000LoadingPromise;
+}
+
+function maybeRefreshAp1000() {
+  const v = el("view-ap1000");
+  if (v && v.classList.contains("active")) buildAp1000View();
+}
+
+// Ordered for the breakdown bar + chips; keys match computeAp1000Breakdown.
+const AP1000_FACTORS = [
+  { key: "acreage",      label: "Acreage" },
+  { key: "water",        label: "Water" },
+  { key: "transmission", label: "Transmission" },
+  { key: "substation",   label: "Substation" },
+  { key: "workforce",    label: "Workforce" },
+  { key: "fiber",        label: "Fiber" },
+];
+const AP1000_WATER_CLASS = { abundant: "ok", adequate: "ok", marginal: "warn", poor: "bad" };
+const AP1000_FIBER_CLASS = { excellent: "ok", good: "ok", moderate: "warn", limited: "bad" };
+const AP1000_WORKFORCE_CLASS = { strong: "ok", good: "ok", moderate: "warn", limited: "bad" };
+const AP1000_FLAG_CLASS = { none: "ok", low: "ok", moderate: "warn", elevated: "warn", high: "bad" };
+
+function _ap1000ScoreTier(score) {
+  if (score == null) return { label: "—", cls: "weak" };
+  if (score >= 75) return { label: "Strong", cls: "strong" };
+  if (score >= 60) return { label: "Moderate", cls: "moderate" };
+  if (score >= 45) return { label: "Marginal", cls: "marginal" };
+  return { label: "Weak", cls: "weak" };
+}
+
+const _ap1000Src = (url, label) =>
+  url ? ` <a href="${escapeHtml(url)}" target="_blank" rel="noopener">${label} ↗</a>` : "";
+const _ap1000KvMi = (mi, kv) =>
+  `${fmt.miles(mi)} · ${kv != null ? kv + " kV" : "kV N/A"}`;
+
+// Concise, sortable-feeling table; each row expands to a detail row with the
+// full per-factor breakdown, analyst notes, sources, and unscored geohazard
+// flags. Built once on tab activation (the dataset is a static 14 rows).
+function buildAp1000View() {
+  const host = el("ap1000-cards");
+  if (!host) return;
+  if (!ap1000Sites.length) {
+    host.innerHTML = '<p class="muted">Loading AP1000 siting data…</p>';
+    return;
+  }
+  const W = window.AP1000_WEIGHTS || {};
+  const scored = ap1000Sites
+    .map((s) => ({ s, score: window.computeAp1000Score(s), bd: window.computeAp1000Breakdown(s) }))
+    .sort((a, b) => (b.score ?? -1) - (a.score ?? -1));
+
+  const rows = scored.map((row, i) => {
+    const { s, score, bd } = row;
+    const tier = _ap1000ScoreTier(score);
+    const rank = i + 1;
+
+    const waterCls = AP1000_WATER_CLASS[(s.water_adequacy || "").toLowerCase()] || "warn";
+    const fiberCls = AP1000_FIBER_CLASS[(s.fiber || "").toLowerCase()] || "warn";
+    const wfCls = AP1000_WORKFORCE_CLASS[(s.workforce || "").toLowerCase()] || "warn";
+
+    const janus = s.janus_site
+      ? `<span class="ap1000-janus" title="On the U.S. Army Janus microreactor shortlist (Nov 2025)">★ Janus</span>` : "";
+    const afRflp = s.af_rflp_site
+      ? `<span class="ap1000-rflp" title="Named in the Air Force AFCEC-26-R-0002 AI data-center lease solicitation">AF RFLP</span>` : "";
+
+    // Unscored geohazard flags — only surface the notable ones.
+    const flags = [];
+    if (s.seismic_flag && s.seismic_flag !== "low" && s.seismic_flag !== "none")
+      flags.push(`<span class="ap1000-flag ${AP1000_FLAG_CLASS[s.seismic_flag] || "warn"}" title="Seismic risk (not scored)">⚠ Seismic ${escapeHtml(s.seismic_flag)}</span>`);
+    if (s.flood_flag && s.flood_flag !== "low" && s.flood_flag !== "none")
+      flags.push(`<span class="ap1000-flag ${AP1000_FLAG_CLASS[s.flood_flag] || "warn"}" title="Flood exposure (not scored)">⚠ Flood ${escapeHtml(s.flood_flag)}</span>`);
+    const flagCell = flags.length ? flags.join(" ") : '<span class="muted-cell">—</span>';
+
+    // Expandable detail: per-factor breakdown bar + chips + notes + sources.
+    const seg = AP1000_FACTORS.map((f) =>
+      `<span class="ap1000-seg ap1000-seg-${f.key}" style="flex:${bd[f.key] || 0} 0 0" title="${f.label}: ${bd[f.key] || 0}/${W[f.key] || 0}"></span>`
+    ).join("") + `<span class="ap1000-seg ap1000-seg-rest" style="flex:${Math.max(0, 100 - score)} 0 0"></span>`;
+    const chips = AP1000_FACTORS.map((f) =>
+      `<span class="ap1000-chip"><span class="ap1000-chip-k">${f.label}</span><span class="ap1000-chip-v">${bd[f.key] || 0}<span class="ap1000-chip-cap">/${W[f.key] || 0}</span></span></span>`
+    ).join("");
+
+    const dataRow =
+      `<tr class="ap1000-row" data-ap1000-row="${rank}" tabindex="0" role="button" aria-expanded="false" aria-controls="ap1000-detail-${rank}">` +
+        `<td class="num ap1000-rank-cell">${rank}<span class="ap1000-caret" aria-hidden="true">▸</span></td>` +
+        `<td class="ap1000-name-cell"><span class="ap1000-name">${escapeHtml(s.name)}</span><span class="ap1000-meta">${escapeHtml(s.branch || "")} · ${escapeHtml(s.state || "")}${janus}${afRflp}</span></td>` +
+        `<td class="num ap1000-score-cell"><span class="ap1000-score-chip ap1000-tier-${tier.cls}">${score == null ? "—" : score}</span></td>` +
+        `<td><span class="ap1000-tag ${waterCls}">${escapeHtml(s.water_adequacy || "—")}</span></td>` +
+        `<td class="num" title="${escapeHtml(s.developable_basis || "")}">${s.developable_acreage != null ? s.developable_acreage.toLocaleString() : "—"}</td>` +
+        `<td class="num ap1000-kvmi">${_ap1000KvMi(s.transmission_mi, s.transmission_kv)}</td>` +
+        `<td class="num ap1000-kvmi">${_ap1000KvMi(s.substation_mi, s.substation_kv)}</td>` +
+        `<td><span class="ap1000-tag ${wfCls}" title="${escapeHtml(s.workforce_metro || "")}">${escapeHtml(s.workforce || "—")}</span></td>` +
+        `<td><span class="ap1000-tag ${fiberCls}">${escapeHtml(s.fiber || "—")}</span></td>` +
+        `<td class="ap1000-flags-cell">${flagCell}</td>` +
+      `</tr>`;
+
+    const detailRow =
+      `<tr class="ap1000-detail" id="ap1000-detail-${rank}" hidden><td colspan="10">` +
+        `<div class="ap1000-bar" role="img" aria-label="Score ${score} of 100">${seg}</div>` +
+        `<div class="ap1000-chips">${chips}</div>` +
+        `<dl class="ap1000-facts">` +
+          `<div><dt>Cooling water</dt><dd><span class="ap1000-tag ${waterCls}">${escapeHtml(s.water_adequacy || "—")}</span> ${escapeHtml(s.water_source || "")}${_ap1000Src(s.water_source_url, "source")}<p class="ap1000-note">${escapeHtml(s.water_note || "")}</p></dd></div>` +
+          `<div><dt>Developable acreage</dt><dd><strong>${fmt.acres(s.developable_acreage)}</strong> <span class="muted">of ${fmt.acres(s.installation_acreage)} installation</span>${_ap1000Src(s.acreage_source, "source")}<p class="ap1000-note">${escapeHtml(s.developable_basis || "")}</p></dd></div>` +
+          `<div><dt>Construction workforce</dt><dd><span class="ap1000-tag ${wfCls}">${escapeHtml(s.workforce || "—")}</span> ${escapeHtml(s.workforce_metro || "")}${_ap1000Src(s.workforce_source_url, "source")}<p class="ap1000-note">${escapeHtml(s.workforce_note || "")}</p></dd></div>` +
+          `<div><dt>Fiber</dt><dd><span class="ap1000-tag ${fiberCls}">${escapeHtml(s.fiber || "—")}</span><p class="ap1000-note">${escapeHtml(s.fiber_note || "")}</p></dd></div>` +
+        `</dl>` +
+        (s.siting_note ? `<p class="ap1000-siting"><span class="ap1000-siting-label">Siting note (geohazards not scored):</span> ${escapeHtml(s.siting_note)}</p>` : "") +
+        (s.af_rflp_site ? `<p class="ap1000-nuke muted"><strong>Air Force AI data-center RFLP:</strong> ${fmt.acres(s.af_rflp_acres)} offered as underutilized land (${escapeHtml(s.af_rflp_detail || "")}). This is shown as provenance for active-base energy/data-center siting interest, not substituted for total developable acreage. ${_ap1000Src(s.af_rflp_source_url, "SAM.gov")} ${_ap1000Src(s.af_rflp_article_url, "public Q&A")}</p>` : "") +
+        (s.nuclear_notes ? `<p class="ap1000-nuke muted">${escapeHtml(s.nuclear_notes)}</p>` : "") +
+      `</td></tr>`;
+
+    return dataRow + detailRow;
+  }).join("");
+
+  host.innerHTML =
+    `<div class="ap1000-table-wrap"><table class="ap1000-table">` +
+      `<thead><tr>` +
+        `<th class="num">#</th><th>Installation</th>` +
+        `<th class="num" title="${escapeHtml(window.AP1000_SCORE_TOOLTIP || "AP1000 suitability 0–100")}">Score</th>` +
+        `<th>Water</th><th class="num">Dev. acres</th>` +
+        `<th class="num">Transmission</th><th class="num">Substation</th>` +
+        `<th>Workforce</th><th>Fiber</th><th>Flags (not scored)</th>` +
+      `</tr></thead>` +
+      `<tbody>${rows}</tbody>` +
+    `</table></div>`;
+
+  // Delegated expand/collapse — click or Enter/Space on a data row toggles its
+  // paired detail row.
+  const tbody = host.querySelector(".ap1000-table tbody");
+  if (tbody && !tbody._ap1000Wired) {
+    tbody._ap1000Wired = true;
+    const toggle = (rowEl) => {
+      const detail = rowEl.nextElementSibling;
+      if (!detail || !detail.classList.contains("ap1000-detail")) return;
+      const open = detail.hidden;
+      detail.hidden = !open;
+      rowEl.setAttribute("aria-expanded", String(open));
+      rowEl.classList.toggle("ap1000-open", open);
+    };
+    tbody.addEventListener("click", (e) => {
+      const rowEl = e.target.closest(".ap1000-row");
+      if (rowEl && !e.target.closest("a")) toggle(rowEl);
+    });
+    tbody.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      const rowEl = e.target.closest(".ap1000-row");
+      if (rowEl) { e.preventDefault(); toggle(rowEl); }
+    });
+  }
 }
 
 // ----- DC Candidates view -----
