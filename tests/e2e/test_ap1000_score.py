@@ -72,7 +72,7 @@ def test_ap1000_tab_renders_ranking_and_rflp_badge(page: Page, base_url: str) ->
     page.get_by_role("tab", name="AP1000").click()
     page.get_by_role("cell", name="Fort Benning (Fort Moore)").wait_for(timeout=10_000)
     assert page.locator("#export-csv").is_hidden()
-    assert page.locator("#ap1000-export-csv").is_visible()
+    assert page.get_by_role("button", name="Download AP1000 table as CSV").is_visible()
     assert page.locator(".ap1000-row").count() == 14
     assert page.locator(".ap1000-rflp").count() == 5
     assert page.locator(".ap1000-row .ap1000-cell-src").count() >= 14 * 8
