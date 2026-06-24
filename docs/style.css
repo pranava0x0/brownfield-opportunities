@@ -2303,6 +2303,7 @@ main {
 }
 .ap1000-export:hover { border-color: var(--accent); }
 .ap1000-export:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+#export-csv[hidden] { display: none; }
 .ap1000-janus-key { color: var(--suit-amber); font-weight: 600; white-space: nowrap; }
 .ap1000-flag-amber { color: var(--suit-amber); font-weight: 600; }
 .ap1000-flag-red { color: var(--status-final); font-weight: 600; }
