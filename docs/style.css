@@ -2290,6 +2290,101 @@ main {
 [data-theme="dark"] .retired-bar-fill { background: #cf9b6a; }
 .retired-bar-num { text-align: right; font-variant-numeric: tabular-nums; color: var(--text-soft); }
 .retired-foot { margin-top: 24px; font-size: 12px; line-height: 1.5; max-width: 70ch; }
+
+/* ----- AP1000 reactor-siting view ----- */
+.ap1000-view { overflow: auto; }
+.ap1000-wrap { max-width: 1180px; margin: 0 auto; padding: 28px 24px 64px; }
+.ap1000-lead h2 { margin: 0 0 6px; font-family: var(--font-serif); font-size: 24px; }
+.ap1000-lead p { margin: 0 0 14px; color: var(--text-soft); max-width: 84ch; line-height: 1.55; font-size: 13px; }
+.ap1000-janus-key { color: var(--suit-amber); font-weight: 600; white-space: nowrap; }
+.ap1000-flag-amber { color: var(--suit-amber); font-weight: 600; }
+.ap1000-flag-red { color: var(--status-final); font-weight: 600; }
+.ap1000-help { margin: 0 0 18px; font-size: 12.5px; }
+.ap1000-help > summary { cursor: pointer; color: var(--accent); font-weight: 600; width: fit-content; }
+.ap1000-help-body { margin-top: 8px; padding-left: 2px; max-width: 86ch; }
+.ap1000-help-body p { margin: 0 0 8px; color: var(--text-soft); line-height: 1.55; }
+
+.ap1000-table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; }
+.ap1000-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.ap1000-table thead th {
+  position: sticky; top: 0; z-index: 1;
+  background: var(--surface-2); color: var(--muted);
+  text-align: left; font-weight: 600; font-size: 11px;
+  text-transform: uppercase; letter-spacing: 0.03em;
+  padding: 9px 10px; white-space: nowrap; border-bottom: 1px solid var(--border);
+}
+.ap1000-table th.num, .ap1000-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.ap1000-table td { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.ap1000-row { cursor: pointer; }
+.ap1000-row:hover { background: var(--surface-2); }
+.ap1000-row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.ap1000-row.ap1000-open { background: var(--surface-2); }
+.ap1000-rank-cell { color: var(--muted); white-space: nowrap; }
+.ap1000-caret { display: inline-block; margin-left: 4px; color: var(--muted); transition: transform 0.15s ease; }
+.ap1000-row.ap1000-open .ap1000-caret { transform: rotate(90deg); }
+.ap1000-name-cell { line-height: 1.25; }
+.ap1000-name { display: block; font-weight: 600; color: var(--text); }
+.ap1000-meta { display: block; font-size: 11px; color: var(--muted); margin-top: 1px; }
+.ap1000-janus { margin-left: 6px; color: var(--suit-amber); font-weight: 600; white-space: nowrap; }
+.ap1000-rflp { margin-left: 6px; color: var(--accent); font-weight: 600; white-space: nowrap; }
+.ap1000-kvmi { white-space: nowrap; font-size: 12px; }
+
+.ap1000-score-cell { white-space: nowrap; }
+.ap1000-score-chip {
+  display: inline-block; min-width: 30px; text-align: center;
+  padding: 3px 8px; border-radius: 6px; font-weight: 700;
+  font-variant-numeric: tabular-nums; color: #fff;
+}
+.ap1000-tier-strong   { background: var(--readiness-ready); }
+.ap1000-tier-moderate { background: var(--accent); }
+.ap1000-tier-marginal { background: var(--suit-amber); }
+.ap1000-tier-weak     { background: var(--muted); }
+
+.ap1000-tag {
+  display: inline-block; padding: 2px 8px; border-radius: 999px;
+  font-size: 11.5px; font-weight: 600; text-transform: capitalize;
+  border: 1px solid transparent; white-space: nowrap;
+}
+.ap1000-tag.ok   { color: var(--readiness-ready); border-color: var(--readiness-ready); background: color-mix(in srgb, var(--readiness-ready) 12%, transparent); }
+.ap1000-tag.warn { color: var(--suit-amber); border-color: var(--suit-amber); background: color-mix(in srgb, var(--suit-amber) 12%, transparent); }
+.ap1000-tag.bad  { color: var(--status-final); border-color: var(--status-final); background: color-mix(in srgb, var(--status-final) 12%, transparent); }
+
+.ap1000-flags-cell { font-size: 11px; line-height: 1.5; }
+.ap1000-flag { white-space: nowrap; }
+.ap1000-flag.warn { color: var(--suit-amber); }
+.ap1000-flag.bad  { color: var(--status-final); }
+.ap1000-flags-cell .muted-cell { color: var(--muted); font-style: italic; }
+
+/* Expandable detail row */
+.ap1000-detail[hidden] { display: none; }
+.ap1000-detail > td { background: var(--surface-2); padding: 14px 16px 18px; }
+.ap1000-bar { display: flex; height: 10px; border-radius: 5px; overflow: hidden; background: var(--border); margin-bottom: 10px; max-width: 640px; }
+.ap1000-seg { display: block; min-width: 0; }
+.ap1000-seg-water        { background: var(--accent); }
+.ap1000-seg-acreage      { background: var(--readiness-ready); }
+.ap1000-seg-transmission { background: var(--suit-amber); }
+.ap1000-seg-substation   { background: var(--program-fuds); }
+.ap1000-seg-workforce    { background: #3a8fa0; }
+.ap1000-seg-fiber        { background: var(--muted); }
+.ap1000-seg-rest         { background: transparent; }
+.ap1000-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.ap1000-chip {
+  display: inline-flex; align-items: baseline; gap: 5px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 6px; padding: 3px 8px; font-size: 11.5px;
+}
+.ap1000-chip-k { color: var(--muted); }
+.ap1000-chip-v { font-weight: 700; font-variant-numeric: tabular-nums; }
+.ap1000-chip-cap { color: var(--muted); font-weight: 400; }
+.ap1000-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 24px; margin: 0 0 6px; }
+@media (max-width: 760px) { .ap1000-facts { grid-template-columns: 1fr; } }
+.ap1000-facts > div { min-width: 0; }
+.ap1000-facts dt { font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--muted); margin-bottom: 3px; }
+.ap1000-facts dd { margin: 0; font-size: 12.5px; line-height: 1.5; }
+.ap1000-note { margin: 3px 0 0; color: var(--text-soft); font-size: 12px; line-height: 1.5; }
+.ap1000-siting { margin: 8px 0 0; font-size: 12.5px; line-height: 1.5; }
+.ap1000-siting-label { color: var(--suit-amber); font-weight: 600; }
+.ap1000-nuke { margin: 6px 0 0; font-size: 12px; line-height: 1.5; }
 .about-lead {
   margin-bottom: 40px;
   padding-bottom: 28px;
