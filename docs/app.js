@@ -2953,6 +2953,8 @@ function wireTabs() {
     if (retiredView)    { retiredView.classList.toggle("active", onRetired);       retiredView.hidden = !onRetired; }
     if (ap1000View)     { ap1000View.classList.toggle("active", onAp1000);         ap1000View.hidden = !onAp1000; }
     if (aboutView)      { aboutView.classList.toggle("active", onAbout);           aboutView.hidden = !onAbout; }
+    const globalExportCsv = el("export-csv");
+    if (globalExportCsv) globalExportCsv.hidden = onAp1000;
     if (onMap) setTimeout(() => map.invalidateSize(), 50);
     if (onCandidates) buildCandidatesView();
     if (onRetired) { ensureRetiredIndustrialLoaded(); buildRetiredView(); }
@@ -3062,14 +3064,13 @@ function maybeRefreshAp1000() {
 
 // Ordered for the breakdown bar + chips; keys match computeAp1000Breakdown.
 const AP1000_FACTORS = [
-  { key: "acreage",      label: "Acreage" },
   { key: "water",        label: "Water" },
   { key: "transmission", label: "Transmission" },
   { key: "substation",   label: "Substation" },
   { key: "workforce",    label: "Workforce" },
   { key: "fiber",        label: "Fiber" },
 ];
-const AP1000_WATER_CLASS = { abundant: "ok", adequate: "ok", marginal: "warn", poor: "bad" };
+const AP1000_WATER_CLASS = { abundant: "ok", adequate: "ok", marginal: "warn", poor: "bad", severe: "bad" };
 const AP1000_FIBER_CLASS = { excellent: "ok", good: "ok", moderate: "warn", limited: "bad" };
 const AP1000_WORKFORCE_CLASS = { strong: "ok", good: "ok", moderate: "warn", limited: "bad" };
 const AP1000_FLAG_CLASS = { none: "ok", low: "ok", moderate: "warn", elevated: "warn", high: "bad" };
@@ -3228,7 +3229,6 @@ const AP1000_CSV_COLUMNS = [
   { label: "installation", value: (r) => r.s.name, source: (r) => _ap1000SourceFor(r.s, "installation") },
   { label: "state", value: (r) => r.s.state, source: (r) => _ap1000SourceFor(r.s, "installation") },
   { label: "score", value: (r) => r.score, source: (r) => _ap1000SourceFor(r.s, "score") },
-  { label: "score_acreage_points", value: (r) => r.bd.acreage, source: (r) => _ap1000SourceFor(r.s, "score") },
   { label: "score_water_points", value: (r) => r.bd.water, source: (r) => _ap1000SourceFor(r.s, "score") },
   { label: "score_transmission_points", value: (r) => r.bd.transmission, source: (r) => _ap1000SourceFor(r.s, "score") },
   { label: "score_substation_points", value: (r) => r.bd.substation, source: (r) => _ap1000SourceFor(r.s, "score") },
@@ -3237,6 +3237,8 @@ const AP1000_CSV_COLUMNS = [
   { label: "water", value: (r) => r.s.water_adequacy, source: (r) => _ap1000SourceFor(r.s, "water") },
   { label: "water_reason", value: (r) => r.s.water_note, source: (r) => _ap1000SourceFor(r.s, "water") },
   { label: "water_source", value: (r) => r.s.water_source, source: (r) => _ap1000SourceFor(r.s, "water") },
+  { label: "acreage_threshold_acres", value: () => window.AP1000_MIN_DEVELOPABLE_ACRES || 500, source: (r) => _ap1000SourceFor(r.s, "acreage") },
+  { label: "acreage_threshold_met", value: (r) => window.ap1000MeetsAcreageThreshold ? window.ap1000MeetsAcreageThreshold(r.s) : "", source: (r) => _ap1000SourceFor(r.s, "acreage") },
   { label: "developable_acreage", value: (r) => r.s.developable_acreage, source: (r) => _ap1000SourceFor(r.s, "acreage") },
   { label: "developable_acreage_reason", value: (r) => r.s.developable_basis, source: (r) => _ap1000SourceFor(r.s, "acreage") },
   { label: "installation_acreage", value: (r) => r.s.installation_acreage, source: (r) => _ap1000SourceFor(r.s, "acreage") },
