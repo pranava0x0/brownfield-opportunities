@@ -1,0 +1,74 @@
+#
+#
+# US Geological Survey
+# retrieved: 2026-06-25 07:51:38 -04:00	(sdas01)
+#
+# The Site File stores location and general information about groundwater,
+# surface water, and meteorological sites
+# for sites in USA.
+#
+# File-format description:  http://help.waterdata.usgs.gov/faq/about-tab-delimited-output
+# Automated-retrieval info: http://waterservices.usgs.gov/rest/Site-Service.html
+#
+# Contact:   gs-w_support_nwisweb@usgs.gov
+#
+# The following selected fields are included in this output:
+#
+#  agency_cd       -- Agency
+#  site_no         -- Site identification number
+#  station_nm      -- Site name
+#  site_tp_cd      -- Site type
+#  lat_va          -- DMS latitude
+#  long_va         -- DMS longitude
+#  dec_lat_va      -- Decimal latitude
+#  dec_long_va     -- Decimal longitude
+#  coord_meth_cd   -- Latitude-longitude method
+#  coord_acy_cd    -- Latitude-longitude accuracy
+#  coord_datum_cd  -- Latitude-longitude datum
+#  dec_coord_datum_cd -- Decimal Latitude-longitude datum
+#  district_cd     -- District code
+#  state_cd        -- State code
+#  county_cd       -- County code
+#  country_cd      -- Country code
+#  land_net_ds     -- Land net location description
+#  map_nm          -- Name of location map
+#  map_scale_fc    -- Scale of location map
+#  alt_va          -- Altitude of Gage/land surface
+#  alt_meth_cd     -- Method altitude determined
+#  alt_acy_va      -- Altitude accuracy
+#  alt_datum_cd    -- Altitude datum
+#  huc_cd          -- Hydrologic unit code
+#  basin_cd        -- Drainage basin code
+#  topo_cd         -- Topographic setting code
+#  instruments_cd  -- Flags for instruments at site
+#  construction_dt -- Date of first construction
+#  inventory_dt    -- Date site established or inventoried
+#  drain_area_va   -- Drainage area
+#  contrib_drain_area_va -- Contributing drainage area
+#  tz_cd           -- Time Zone abbreviation
+#  local_time_fg   -- Site honors Daylight Savings Time
+#  reliability_cd  -- Data reliability code
+#  gw_file_cd      -- Data-other GW files
+#  nat_aqfr_cd     -- National aquifer code
+#  aqfr_cd         -- Local aquifer code
+#  aqfr_type_cd    -- Local aquifer type code
+#  well_depth_va   -- Well depth
+#  hole_depth_va   -- Hole depth
+#  depth_src_cd    -- Source of depth data
+#  project_no      -- Project number
+#
+agency_cd	site_no	station_nm	site_tp_cd	lat_va	long_va	dec_lat_va	dec_long_va	coord_meth_cd	coord_acy_cd	coord_datum_cd	dec_coord_datum_cd	district_cd	state_cd	county_cd	country_cd	land_net_ds	map_nm	map_scale_fc	alt_va	alt_meth_cd	alt_acy_va	alt_datum_cd	huc_cd	basin_cd	topo_cd	instruments_cd	construction_dt	inventory_dt	drain_area_va	contrib_drain_area_va	tz_cd	local_time_fg	reliability_cd	gw_file_cd	nat_aqfr_cd	aqfr_cd	aqfr_type_cd	well_depth_va	hole_depth_va	depth_src_cd	project_no
+5s	15s	50s	7s	16s	16s	16s	16s	1s	1s	10s	10s	3s	2s	3s	2s	23s	20s	7s	8s	1s	3s	10s	16s	2s	1s	30s	8s	8s	8s	8s	6s	1s	1s	30s	10s	8s	1s	8s	8s	1s	12s
+USGS	02102500	CAPE FEAR RIVER AT LILLINGTON, NC	ST	352422	0784848	35.4061111	-78.8133333	G	S	NAD83	NAD83	37	37	085	US		LILLINGTON		 103.63	L	.01	NAVD88	03030004	07		NNNNYNNNNNNNNNNNNNNNNNNNNNNNNN			3464		EST	Y		NYNNNNNN							
+USGS	02103000	LITTLE RIVER AT MANCHESTER, NC	ST	351136	0785908	35.1933333	-78.9855556	G	1	NAD83	NAD83	37	37	051	US		MANCHESTER		 122.83	D	.13	NAVD88	03030004	07		NNNNYNNNNNNNNNNNNNNNNNNNNNNNNN			348		EST	Y		NYNNNNNN							
+USGS	02213000	OCMULGEE RIVER AT MACON, GA	ST	325019	0833714	32.8386111	-83.6205556	M	S	NAD83	NAD83	13	13	021	US		MACON EAST		269.35	X	.21	NAVD88	03070103			YNNNYNNNNNYNNNNNNNNNNNNNNNNNNN			2240		EST	Y		NNNNNNNN							
+USGS	02213700	OCMULGEE RIVER NEAR WARNER ROBINS, GA	ST	324017	0833611	32.6715317	-83.6029603	M	S	NAD27	NAD83	13	13	021	US		WARNER ROBINS N.E.		 244	M	  1	NGVD29	03070103			NNNNNNNNNNNNNNNNNNNNNNNNNNNNNN			2690		EST	Y		NNNNNNNN							AL-169A
+USGS	02341460	CHATTAHOOCHEE RIVER AT 14TH ST, AT COLUMBUS, GA	ST	322822	0845948	32.47277778	-84.9966667	M	S	NAD83	NAD83	13	13	215	US		COLUMBUS, GA	  24000	 190.0	F	 01	NAVD88	03130003		C	YNNNYNNNNNNNNYNNNNNNNNNNNNNNNN	20130722	20130722	4630		EST	Y									CH-233A
+USGS	03431500	CUMBERLAND RIVER AT NASHVILLE, TN	ST	360941.19	0864621.64	36.1614984	-86.7726764	M	U	NAD27	NAD83	47	47	037	US				 367.45	U	 .1	NAVD88	05130202			NNNNYNNNNNNNNNNNNNNNNNNNNNNNNN			12856.00		CST	Y		NNNNNNNN							
+USGS	03487500	SOUTH FORK HOLSTON RIVER AT KINGSPORT, TN	ST	363122.91	0823245.00	36.5231318	-82.5457063	M	U	NAD27	NAD83	47	47	163	US				 1175.84	U	 .1	NGVD29	06010102			NNNNNNNNNNNNNNNNNNNNNNNNNNNNNN			1935.00		EST	Y		NNNNNNNN							
+USGS	03575500	TENNESSEE RIVER AT WHITESBURG AL	ST	343418	0863329	34.57175806	-86.5580466	M	U	NAD27	NAD83	01	01	089	US				 549.00	U	.01	NGVD29	06030002			YNNNYNNNNNNNNYNNNNNNNNNNNNNNNN			25610.00	25610	CST	Y		NNNNNNNN							
+USGS	03579100	ELK RIVER NEAR ESTILL SPRINGS, TN	ST	351709.54	0860619.62	35.28606458	-86.1054356	M	U	NAD27	NAD83	47	47	051	US				 886.43	U	 .1	NGVD29	06030003			NNNNNNNNNNNNNNNNNNNNNNNNNNNNNN			275.00		CST	Y		NNNNNNNN							
+USGS	04260500	BLACK RIVER AT WATERTOWN NY	ST	435909.0	0755528.6	43.9858333	-75.9246111	N	1	NAD83	NAD83	36	36	045	US		WATERTOWN, NY	  24000	 374.09	X	.01	NAVD88	04150101			YNNNYNNNNNNNNNNNNNNNNNNNNNNNNN			1864		EST	N		NNNNNNNN							
+USGS	12089500	NISQUALLY RIVER AT MCKENNA, WA	ST	465601	1223335	46.93340268	-122.5609345	M	S	NAD27	NAD83	53	53	067	US	  SENWS28 T17N  R02E  W			289.41	L	.02	NAVD88	17110015			NNNNYNNNNNNNNNNNNNNNNNNNNNNNNN			517		PST	Y		NNNNNNNN							
+USGS	15514000	CHENA R AT FAIRBANKS AK	ST	645045	1474204	64.8453948	-147.7035724	M	T	NAD27	NAD83	02	02	090	US	    NWS11 T001S R001W F	FAIRBANKS D-2	  63360	428.0	X	0.1	NAVD88	19080306			NNNNYNNNNNNNNNNNNNNNNNNNNNNNNN			1990		AKST	Y		NYNNNNNN							
+USGS	15515500	TANANA R AT NENANA AK	ST	643353.8	1490538.4	64.5649444	-149.094	Y	1	NAD83	NAD83	02	02	290	US	    SES14 T004S R008W F	FAIRBANKS C-5	  63360	343.7	X	0.1	NAVD88	19080307			NNNNYNNNNNNNNNNNNNNNNNNNNNNNNN			25560		AKST	Y		NYNNNNNN							
