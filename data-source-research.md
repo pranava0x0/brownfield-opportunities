@@ -228,8 +228,52 @@ megasites and ACRES address-geocodes are the structural miss classes.
 
 ---
 
+## 2026-06-25 — AP1000 water-availability validation (14 installations)
+
+Full per-site validation with verbatim quotes + verdicts lives in
+[`ap1000-water-validation.md`](ap1000-water-validation.md). Reusable findings:
+
+### 16. USGS NWIS streamflow — use the RDB endpoints, NOT the JS portal — **WORKS**
+- `waterdata.usgs.gov/monitoring-location/<id>/` is JavaScript-rendered → returns
+  nothing to WebFetch/curl. Five separate agents each burned tokens rediscovering
+  this. Use the machine-readable RDB endpoints instead:
+  - Drainage area + site metadata: `https://waterservices.usgs.gov/nwis/site/?format=rdb&sites=<GAUGE>&siteOutput=expanded` (field `drain_area_va`).
+  - Annual mean discharge (cfs): `https://waterservices.usgs.gov/nwis/stat/?format=rdb&sites=<GAUGE>&statReportType=annual&statTypeCd=mean&parameterCd=00060`.
+  Plain tab-delimited text — scriptable, exact, **no LLM needed** for the numbers.
+- **Regulated rivers often publish stage-only at the convenient gauge** (Cape Fear
+  @ Fayetteville 02104000; Cumberland @ Clarksville 03436500) → step to the
+  nearest discharge gauge (Lillington 02102500; Nashville 03431500) and reason
+  about drainage-area scaling.
+- Gauge IDs validated (site → USGS gauge): Holston AAP `03487500`; Redstone
+  `03575500`/`03575750`; Benning `02341460`; Robins `02213700`/`02213000`; Drum
+  `04260500`; Wainwright `15514000`/`15515500`; JBLM `12089500`; Bragg `02102500`
+  (Cape Fear) / `02103000` (Little R, too small); Campbell `03431500`; Arnold
+  `03579100`/`03580750`.
+
+### 17. AP1000 water demand — Vogtle 3&4 EIS; NRC servers time out, use the DOE mirror
+- Per AP1000 unit (natural-draft cooling tower): **~26.8 MGD (41.5 cfs) withdrawal;
+  ~20.1 MGD (31.1 cfs / ~22,400 acre-ft/yr) consumptive.** Two units: 53.6 / 40.2
+  MGD; max 83.2 MGD (129 cfs); Georgia EPD permit cap 74 MGD. Main cooling is
+  **natural-draft**, not mechanical-draft (mechanical is the auxiliary SWS only).
+- **`nrc.gov/docs` times out frequently** — the DOE EIS-0476 mirror reproduces the
+  NUREG-1872 text verbatim and is reliable:
+  https://www.energy.gov/sites/default/files/EIS-0476-FEIS_Part1-2012.pdf
+  (AP1000 DCD Ch 9.2: https://www.nrc.gov/docs/ML0715/ML071580932.pdf).
+
+### Agent-efficiency post-mortem (token spend)
+- 5 research agents (~520K tokens total; ~186K for the 2 the user flagged)
+  validated 14 sites + the AP1000 spec. The result was high-value (4 source/rating
+  corrections, citation-grade), so the spend was largely warranted — but **~25–30%
+  was avoidable**: each agent independently rediscovered the USGS RDB endpoints +
+  the DOE mirror. Now that §16/§17 log the gauge IDs + endpoints, the flow/drainage
+  numbers are deterministically fetchable with `curl` — a future validation should
+  script those and reserve a single agent for qualitative quote-finding only.
+
+---
+
 ## Reusable probe patterns
 
+- USGS streamflow without the JS portal: `waterservices.usgs.gov/nwis/site/?format=rdb&sites=<id>&siteOutput=expanded` (drainage area) + `…/nwis/stat/?format=rdb&sites=<id>&statReportType=annual&statTypeCd=mean&parameterCd=00060` (annual mean cfs). A federal PDF that NRC serves slowly often has a DOE/energy.gov mirror.
 - Parcel owner by point (ArcGIS): `<parcels_layer>/query?geometry=<lon>,<lat>&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=false&f=json` — use the POLYGON layer, not a centroid/point layer.
 - ArcGIS service inventory: `https://<host>/arcgis/rest/services?f=json`
   (+ `/​<folder>?f=json`); layer schema: `…/FeatureServer/<n>?f=json`;

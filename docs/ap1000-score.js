@@ -6,8 +6,9 @@
 // water, electrical infrastructure (transmission + substation), construction
 // workforce, and fiber. Water remains heavily weighted because a Westinghouse
 // AP1000 (1,117 MWe net, ~3,400 MWth) rejects ~2,300 MWth and, on a
-// closed-cycle cooling tower, needs ~30–40 MGD makeup withdrawal / ~15–20 MGD
-// consumptive — a binding physical constraint for a thermal reactor.
+// closed-cycle natural-draft cooling tower, needs ~26.8 MGD makeup withdrawal /
+// ~20.1 MGD consumptive (per unit; Vogtle 3&4 NRC EIS) — a binding physical
+// constraint for a thermal reactor. See ap1000-water-validation.md.
 //
 // NOT in the score: acreage beyond the threshold, seismic, and flood. The
 // geohazards are genuinely deal-affecting for a nuclear build — Edwards, Fort

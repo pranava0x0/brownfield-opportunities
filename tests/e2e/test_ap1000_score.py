@@ -70,14 +70,14 @@ def test_ap1000_air_force_rflp_provenance_is_emitted(page: Page, base_url: str) 
 def test_ap1000_tab_renders_ranking_and_rflp_badge(page: Page, base_url: str) -> None:
     _ready(page, base_url)
     page.get_by_role("tab", name="AP1000").click()
-    page.get_by_role("cell", name="Fort Benning (Fort Moore)").wait_for(timeout=10_000)
+    page.get_by_text("Fort Benning (Fort Moore)", exact=True).wait_for(timeout=10_000)
     assert page.locator("#export-csv").is_hidden()
     assert page.get_by_role("button", name="Download AP1000 table as CSV").is_visible()
     assert page.locator(".ap1000-row").count() == 14
     assert page.locator(".ap1000-rflp").count() == 5
     assert page.locator(".ap1000-row .ap1000-cell-src").count() >= 14 * 8
     assert page.locator(".ap1000-workforce-area", has_text="Tacoma + Seattle metro (~4M) within ~1 hr").is_visible()
-    page.get_by_role("cell", name="Arnold AFB (AEDC)").click()
+    page.get_by_text("Arnold AFB (AEDC)", exact=True).click()
     assert page.locator(".ap1000-detail:not([hidden])").get_by_text(
         "Air Force AI data-center RFLP"
     ).is_visible()
@@ -88,7 +88,7 @@ def test_ap1000_tab_renders_ranking_and_rflp_badge(page: Page, base_url: str) ->
 def test_ap1000_csv_exports_values_with_source_urls(page: Page, base_url: str) -> None:
     _ready(page, base_url)
     page.get_by_role("tab", name="AP1000").click()
-    page.get_by_role("cell", name="Fort Benning (Fort Moore)").wait_for(timeout=10_000)
+    page.get_by_text("Fort Benning (Fort Moore)", exact=True).wait_for(timeout=10_000)
     csv = page.evaluate("window.__buildAp1000Csv()")
     lines = csv.split("\n")
     header = lines[0].split(",")
@@ -114,5 +114,28 @@ def test_ap1000_csv_exports_values_with_source_urls(page: Page, base_url: str) -
     assert "score_acreage_points" not in header
     hood_line = next(line for line in lines if "Fort Hood" in line)
     assert "poor" in hood_line
-    assert "poor water fit" in hood_line
+    # water_reason carries the validated firm-yield rationale (Belton Lake)
+    assert "Belton" in hood_line
     assert "https://" in hood_line
+
+
+def test_ap1000_table_is_accessible(page: Page, base_url: str) -> None:
+    _ready(page, base_url)
+    page.get_by_role("tab", name="AP1000").click()
+    page.get_by_text("Fort Benning (Fort Moore)", exact=True).wait_for(timeout=10_000)
+    # The table has an accessible name (caption) and every column header carries scope.
+    assert page.locator(".ap1000-table caption").count() == 1
+    assert page.locator(".ap1000-table thead th").count() == 10
+    assert page.locator(".ap1000-table thead th:not([scope='col'])").count() == 0
+    # The expand affordance is a real <button> with aria-expanded — not a
+    # nested-interactive role="button" row containing links.
+    assert page.locator(".ap1000-row[role='button']").count() == 0
+    assert page.locator(".ap1000-row .ap1000-expand[aria-expanded]").count() == 14
+    # Per-factor accessible names on the source links (not nine identical "source").
+    assert page.get_by_role("link", name="Water source").count() == 14
+    # Keyboard activation of the expand button opens the paired detail row.
+    first = page.locator(".ap1000-row .ap1000-expand").first
+    first.focus()
+    page.keyboard.press("Enter")
+    assert first.get_attribute("aria-expanded") == "true"
+    assert page.locator(".ap1000-detail:not([hidden])").count() >= 1
