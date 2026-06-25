@@ -370,6 +370,11 @@ def main() -> None:
         rec["workforce_note"] = w["note"]
         if w.get("source"):
             rec["workforce_source_url"] = w["source"]
+        # Every site belongs to exactly one source program: the Army Janus
+        # microreactor shortlist or the Air Force AI-data-center RFLP.
+        if rec["janus_site"] == bool(rec.get("af_rflp_site")):
+            raise SystemExit(f"{s['id']} must be exactly one of Janus / AF-RFLP "
+                             f"(janus={rec['janus_site']}, af_rflp={rec.get('af_rflp_site')})")
         src = infra_by_id.get(s["infra_source_id"])
         if not src:
             raise SystemExit(f"infra_source_id not found in infra-proximity.json: {s['infra_source_id']} ({s['id']})")
