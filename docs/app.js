@@ -3091,6 +3091,30 @@ const AP1000_FIBER_CLASS = { excellent: "ok", good: "ok", moderate: "warn", limi
 const AP1000_WORKFORCE_CLASS = { strong: "ok", good: "ok", moderate: "warn", limited: "bad" };
 const AP1000_FLAG_CLASS = { none: "ok", low: "ok", moderate: "warn", elevated: "warn", high: "bad" };
 
+// Matches the radius used in build_ap1000_sites.py.
+const RETIRED_PLANT_RADIUS_MI_LABEL = "25 mi";
+
+// EIA-860M fuel code → short display label (for retired plant).
+const _EIA_FUEL = {
+  BIT: "coal", SUB: "coal", LIG: "coal", WC: "waste coal",
+  NG:  "natural gas", DFO: "fuel oil", RFO: "fuel oil", OIL: "petroleum",
+  NUC: "nuclear", PC: "pet. coke", RC: "refined coal", SC: "syngas",
+};
+// HIFLD active-plant text fuel → short label.
+function _ap1000ActiveFuelLabel(f) {
+  if (!f) return "—";
+  const fl = f.toLowerCase();
+  if (fl.includes("coal")) return "coal";
+  if (fl.includes("gas"))  return "gas";
+  if (fl.includes("nuclear")) return "nuclear";
+  if (fl.includes("hydro"))   return "hydro";
+  if (fl.includes("solar"))   return "solar";
+  if (fl.includes("wind"))    return "wind";
+  if (fl.includes("pet") || fl.includes("oil")) return "petroleum";
+  if (fl.includes("batter"))  return "battery";
+  return f;
+}
+
 function _ap1000ScoreTier(score) {
   if (score == null) return { label: "—", cls: "weak" };
   if (score >= 75) return { label: "Strong", cls: "strong" };
@@ -3116,6 +3140,9 @@ function _ap1000CellSrc(url, ariaLabel) {
   return ` <a class="ap1000-cell-src" href="${escapeHtml(url)}" target="_blank" rel="noopener"${al}>source</a>`;
 }
 
+const _AP1000_HIFLD_PLANT_SOURCE = "https://hifld-geoplatform.opendata.arcgis.com/datasets/geoplatform::power-plants/about";
+const _AP1000_EIA_RETIRED_SOURCE = "https://www.eia.gov/electricity/data/eia860m/";
+
 function _ap1000SourceFor(s, field) {
   if (!s) return "";
   if (field === "score") return _AP1000_SCORE_SOURCE;
@@ -3126,6 +3153,8 @@ function _ap1000SourceFor(s, field) {
   if (field === "workforce") return s.workforce_source_url || s.acreage_source || "";
   if (field === "fiber") return s.fiber_source_url || s.acreage_source || "";
   if (field === "flags") return s.geohazard_source_url || _AP1000_GEOHAZARD_SOURCE;
+  if (field === "active_plant") return _AP1000_HIFLD_PLANT_SOURCE;
+  if (field === "retired_plant") return _AP1000_EIA_RETIRED_SOURCE;
   if (field === "rank" || field === "installation") return _AP1000_DATA_SOURCE;
   return "";
 }
@@ -3167,6 +3196,23 @@ function buildAp1000View() {
       flags.push(`<span class="ap1000-flag ${AP1000_FLAG_CLASS[s.flood_flag] || "warn"}" title="Flood exposure (not scored)">⚠ Flood ${escapeHtml(s.flood_flag)}</span>`);
     const flagCell = flags.length ? flags.join(" ") : '<span class="muted-cell">—</span>';
 
+    // Grid context badges — notable active or retired plant signals for the
+    // Installation cell meta line (informational, not scored).
+    const gridBadges = [];
+    if (s.power_plant_mw != null && s.power_plant_mw >= 500) {
+      const fuel = _ap1000ActiveFuelLabel(s.power_plant_fuel);
+      gridBadges.push(
+        `<span class="ap1000-grid-badge active" title="${Math.round(s.power_plant_mw).toLocaleString()} MW ${escapeHtml(s.power_plant_fuel || "—")} plant ${fmt.miles(s.power_plant_mi)} away (HIFLD active generators)">⚡ ${Math.round(s.power_plant_mw).toLocaleString()} MW ${escapeHtml(fuel)}</span>`
+      );
+    }
+    if (s.retired_plant_mw != null && s.retired_plant_mi <= 15) {
+      const rFuel = _EIA_FUEL[s.retired_plant_fuel] || (s.retired_plant_fuel || "").toLowerCase();
+      gridBadges.push(
+        `<span class="ap1000-grid-badge retired" title="${Math.round(s.retired_plant_mw).toLocaleString()} MW retired ${escapeHtml(rFuel)} — ${escapeHtml(s.retired_plant_name || "")} (${s.retired_plant_year || "—"}) ${fmt.miles(s.retired_plant_mi)} away (EIA-860M)">♻ ${Math.round(s.retired_plant_mw).toLocaleString()} MW ${escapeHtml(rFuel)} retired</span>`
+      );
+    }
+    const gridBadgeHtml = gridBadges.join("");
+
     // Expandable detail: per-factor breakdown bar + chips + notes + sources.
     const seg = AP1000_FACTORS.map((f) =>
       `<span class="ap1000-seg ap1000-seg-${f.key}" style="flex:${bd[f.key] || 0} 0 0" title="${f.label}: ${bd[f.key] || 0}/${W[f.key] || 0}"></span>`
@@ -3178,7 +3224,7 @@ function buildAp1000View() {
     const dataRow =
       `<tr class="ap1000-row" data-ap1000-row="${rank}">` +
         `<td class="num ap1000-rank-cell"><button type="button" class="ap1000-expand" aria-expanded="false" aria-controls="ap1000-detail-${rank}" aria-label="Toggle siting detail for ${escapeHtml(s.name)}"><span class="ap1000-rank-num">${rank}</span><span class="ap1000-caret" aria-hidden="true">▸</span></button></td>` +
-        `<td class="ap1000-name-cell"><span class="ap1000-name">${escapeHtml(s.name)}</span><span class="ap1000-meta">${escapeHtml(s.branch || "")} · ${escapeHtml(s.state || "")}${janus}${afRflp}</span>${_ap1000CellSrc(_ap1000SourceFor(s, "installation"), "Installation data")}</td>` +
+        `<td class="ap1000-name-cell"><span class="ap1000-name">${escapeHtml(s.name)}</span><span class="ap1000-meta">${escapeHtml(s.branch || "")} · ${escapeHtml(s.state || "")}${janus}${afRflp}${gridBadgeHtml}</span>${_ap1000CellSrc(_ap1000SourceFor(s, "installation"), "Installation data")}</td>` +
         `<td class="num ap1000-score-cell"><span class="ap1000-score-chip ap1000-tier-${tier.cls}">${score == null ? "—" : score}</span>${_ap1000CellSrc(_ap1000SourceFor(s, "score"), "Score methodology")}</td>` +
         `<td><span class="ap1000-tag ${waterCls}">${escapeHtml(s.water_adequacy || "—")}</span>${_ap1000CellSrc(_ap1000SourceFor(s, "water"), "Water")}</td>` +
         `<td class="num" title="${escapeHtml(s.developable_basis || "")}">${s.developable_acreage != null ? s.developable_acreage.toLocaleString() : "—"}${_ap1000CellSrc(_ap1000SourceFor(s, "acreage"), "Acreage")}</td>` +
@@ -3188,6 +3234,22 @@ function buildAp1000View() {
         `<td><span class="ap1000-tag ${fiberCls}">${escapeHtml(s.fiber || "—")}</span>${_ap1000CellSrc(_ap1000SourceFor(s, "fiber"), "Fiber")}</td>` +
         `<td class="ap1000-flags-cell">${flagCell}${_ap1000CellSrc(_ap1000SourceFor(s, "flags"), "Geohazard data")}</td>` +
       `</tr>`;
+
+    // Grid context block — active + retired plant details (informational, not scored).
+    const activeBlock = s.power_plant_mw != null
+      ? `<div><dt>Nearest active generating plant${_ap1000CellSrc(_ap1000SourceFor(s, "active_plant"), "HIFLD active plants source")}</dt><dd>` +
+          `<strong>${Math.round(s.power_plant_mw).toLocaleString()} MW</strong> ${escapeHtml(_ap1000ActiveFuelLabel(s.power_plant_fuel))} · ${fmt.miles(s.power_plant_mi)} away` +
+          `<p class="ap1000-note muted">Source: HIFLD Power_Plants_in_the_US (active generators only). Large active plants indicate existing grid load served by nearby transmission, but do not imply stranded interconnect.</p></dd></div>`
+      : `<div><dt>Nearest active generating plant</dt><dd><span class="muted-cell">None found in range</span></dd></div>`;
+
+    const retiredBlock = s.retired_plant_mw != null
+      ? `<div><dt>Nearest large retired plant (≥100 MW dispatchable)${_ap1000CellSrc(_ap1000SourceFor(s, "retired_plant"), "EIA-860M retired plants source")}</dt><dd>` +
+          `<strong>${Math.round(s.retired_plant_mw).toLocaleString()} MW</strong> ` +
+          `${escapeHtml(_EIA_FUEL[s.retired_plant_fuel] || (s.retired_plant_fuel || "").toLowerCase())} · ` +
+          `${escapeHtml(s.retired_plant_name || "—")} · retired ${s.retired_plant_year || "—"} · ${fmt.miles(s.retired_plant_mi)} away` +
+          `<p class="ap1000-note">Retired plants often leave stranded high-voltage interconnects, industrial-grade cooling infrastructure, and brownfield zoning — the Conesville / Widows Creek / Susquehanna pattern for large campus energy deals. Verify interconnect status and site availability independently.</p></dd></div>`
+      : `<div><dt>Nearest large retired plant (≥100 MW dispatchable)${_ap1000CellSrc(_ap1000SourceFor(s, "retired_plant"), "EIA-860M retired plants source")}</dt><dd>` +
+          `<span class="muted-cell">None found within ${RETIRED_PLANT_RADIUS_MI_LABEL}</span></dd></div>`;
 
     const detailRow =
       `<tr class="ap1000-detail" id="ap1000-detail-${rank}" hidden><td colspan="10">` +
@@ -3199,6 +3261,9 @@ function buildAp1000View() {
           `<div><dt>Construction workforce</dt><dd><span class="ap1000-tag ${wfCls}">${escapeHtml(s.workforce || "—")}</span> ${escapeHtml(s.workforce_metro || "")}${_ap1000Src(s.workforce_source_url, "source")}<p class="ap1000-note">${escapeHtml(s.workforce_note || "")}</p></dd></div>` +
           `<div><dt>Fiber</dt><dd><span class="ap1000-tag ${fiberCls}">${escapeHtml(s.fiber || "—")}</span><p class="ap1000-note">${escapeHtml(s.fiber_note || "")}</p></dd></div>` +
         `</dl>` +
+        `<details class="ap1000-grid-ctx" open><summary class="ap1000-grid-summary">Grid context <span class="ap1000-grid-note">(informational — not scored)</span></summary>` +
+          `<dl class="ap1000-facts ap1000-grid-facts">${activeBlock}${retiredBlock}</dl>` +
+        `</details>` +
         (s.siting_note ? `<p class="ap1000-siting"><span class="ap1000-siting-label">Siting note (geohazards not scored):</span> ${escapeHtml(s.siting_note)}</p>` : "") +
         (s.af_rflp_site ? `<p class="ap1000-nuke muted"><strong>Air Force AI data-center RFLP:</strong> ${fmt.acres(s.af_rflp_acres)} offered as underutilized land (${escapeHtml(s.af_rflp_detail || "")}). This is shown as provenance for active-base energy/data-center siting interest, not substituted for total developable acreage. ${_ap1000Src(s.af_rflp_source_url, "SAM.gov")} ${_ap1000Src(s.af_rflp_article_url, "public Q&A")}</p>` : "") +
         (s.nuclear_notes ? `<p class="ap1000-nuke muted">${escapeHtml(s.nuclear_notes)}</p>` : "") +
