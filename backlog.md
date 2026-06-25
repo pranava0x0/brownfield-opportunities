@@ -4,6 +4,16 @@ Ideas and enhancements. Priorities: **high** = next, **med** = soon, **low** = n
 
 ---
 
+## AP1000 tab — next steps (2026-06-25)
+
+- **[high] Add `power_plant_*` / `retired_plant_*` to AP1000 CSV export.** Six columns missing from `AP1000_CSV_COLUMNS` in `app.js` — nearest active plant MW/fuel/mi and nearest retired plant name/MW/fuel/year/mi. Quick fix, high user value (downloaded table currently has no grid context).
+
+- **[high] ISO/RTO field per AP1000 site.** Which grid operator serves each installation matters enormously for a 1,117 MW interconnection queue. PJM (JBMDL, Fort Campbell, Fort Benning) vs. TVA (Holston, Arnold) vs. WECC (Edwards, Davis-Monthan) have radically different timelines. Hand-curated string field + note in `build_ap1000_sites.py`, rendered in the Grid context section. Changes the narrative for JBMDL (PJM queue is brutal) and Holston (inside TVA territory — no auction-based queue).
+
+- **[med] USGS quantitative seismic hazard** replacing the analyst-assessed `seismic_flag`. USGS Unified Hazard Tool API returns PGA at 2%/50yr for any lat/lon — 14 queries, no spatial index. Turns "⚠ Seismic moderate" into "PGA 0.15g (USGS, 2%/50yr)" with a citation link. AP1000 has regulatory seismic design criteria (SSE = 0.3g) so the exact number matters.
+
+---
+
 ## Session checkpoint — 2026-06-24
 
 **Completed this session:**
