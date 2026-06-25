@@ -1,0 +1,77 @@
+#
+#
+# US Geological Survey, Water Resources Data
+# retrieved: 2026-06-25 07:52:32 -04:00	(natwebcaas01)
+#
+# This file contains USGS Annual Statistics
+#
+# Note:The statistics generated are based on approved daily-mean data and may not match those published by the USGS in official publications.
+# The user is responsible for assessment and use of statistics from this site.
+# For more details on why the statistics may not match, visit http://help.waterdata.usgs.gov/faq/about-statistics.
+#
+# Data heading explanations.
+# agency_cd       -- agency code
+# site_no         -- Site identification number
+# parameter_cd    -- Parameter code
+# station_nm      -- Site name
+# loc_web_ds      -- Additional measurement description
+#
+# Data for the following 1 site(s) are contained in this file
+# agency_cd   site_no      parameter_cd   station_nm (loc_web_ds)
+# USGS        02102500     00060          CAPE FEAR RIVER AT LILLINGTON, NC
+#
+# Explanation of Parameter Codes
+# parameter_cd	Parameter Name
+# 00060         Discharge, cubic feet per second
+#
+# Data heading explanations.
+# year_nu     ... Calendar year for value.
+# mean_va     ... Mean of daily mean values for this month.
+# count_nu    ... Number of values used in the calculation.
+#
+agency_cd	site_no	parameter_cd	ts_id	loc_web_ds	year_nu	mean_va
+5s	15s	5s	10n	15s	4s	12n
+USGS	02102500	00060	86514		1982	4291
+USGS	02102500	00060	86514		1983	4328
+USGS	02102500	00060	86514		1984	5468
+USGS	02102500	00060	86514		1985	3259
+USGS	02102500	00060	86514		1986	1304
+USGS	02102500	00060	86514		1987	3302
+USGS	02102500	00060	86514		1988	1625
+USGS	02102500	00060	86514		1989	5135
+USGS	02102500	00060	86514		1990	3660
+USGS	02102500	00060	86514		1991	2837
+USGS	02102500	00060	86514		1992	2582
+USGS	02102500	00060	86514		1993	4003
+USGS	02102500	00060	86514		1994	2473
+USGS	02102500	00060	86514		1995	4272
+USGS	02102500	00060	86514		1996	4337
+USGS	02102500	00060	86514		1997	3027
+USGS	02102500	00060	86514		1998	4740
+USGS	02102500	00060	86514		1999	2790
+USGS	02102500	00060	86514		2000	2272
+USGS	02102500	00060	86514		2001	1665
+USGS	02102500	00060	86514		2002	2422
+USGS	02102500	00060	86514		2003	6084
+USGS	02102500	00060	86514		2004	2549
+USGS	02102500	00060	86514		2005	2305
+USGS	02102500	00060	86514		2006	2379
+USGS	02102500	00060	86514		2007	1969
+USGS	02102500	00060	86514		2008	1984
+USGS	02102500	00060	86514		2009	2938
+USGS	02102500	00060	86514		2010	2600
+USGS	02102500	00060	86514		2011	1351
+USGS	02102500	00060	86514		2012	1316
+USGS	02102500	00060	86514		2013	3014
+USGS	02102500	00060	86514		2014	3048
+USGS	02102500	00060	86514		2015	3644
+USGS	02102500	00060	86514		2016	3555
+USGS	02102500	00060	86514		2017	1924
+USGS	02102500	00060	86514		2018	5669
+USGS	02102500	00060	86514		2019	4649
+USGS	02102500	00060	86514		2020	5470
+USGS	02102500	00060	86514		2021	3471
+USGS	02102500	00060	86514		2022	2397
+USGS	02102500	00060	86514		2023	2723
+USGS	02102500	00060	86514		2024	4007
+USGS	02102500	00060	86514		2025	3020
