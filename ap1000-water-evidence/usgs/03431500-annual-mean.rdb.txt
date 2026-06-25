@@ -1,0 +1,47 @@
+#
+#
+# US Geological Survey, Water Resources Data
+# retrieved: 2026-06-25 07:52:34 -04:00	(natwebvaas01)
+#
+# This file contains USGS Annual Statistics
+#
+# Note:The statistics generated are based on approved daily-mean data and may not match those published by the USGS in official publications.
+# The user is responsible for assessment and use of statistics from this site.
+# For more details on why the statistics may not match, visit http://help.waterdata.usgs.gov/faq/about-statistics.
+#
+# Data heading explanations.
+# agency_cd       -- agency code
+# site_no         -- Site identification number
+# parameter_cd    -- Parameter code
+# station_nm      -- Site name
+# loc_web_ds      -- Additional measurement description
+#
+# Data for the following 1 site(s) are contained in this file
+# agency_cd   site_no      parameter_cd   station_nm (loc_web_ds)
+# USGS        03431500     00060          CUMBERLAND RIVER AT NASHVILLE, TN
+#
+# Explanation of Parameter Codes
+# parameter_cd	Parameter Name
+# 00060         Discharge, cubic feet per second
+#
+# Data heading explanations.
+# year_nu     ... Calendar year for value.
+# mean_va     ... Mean of daily mean values for this month.
+# count_nu    ... Number of values used in the calculation.
+#
+agency_cd	site_no	parameter_cd	ts_id	loc_web_ds	year_nu	mean_va
+5s	15s	5s	10n	15s	4s	12n
+USGS	03431500	00060	129903		2011	25830
+USGS	03431500	00060	129903		2012	15890
+USGS	03431500	00060	129903		2013	25140
+USGS	03431500	00060	129903		2014	21530
+USGS	03431500	00060	129903		2015	25270
+USGS	03431500	00060	129903		2016	17920
+USGS	03431500	00060	129903		2017	21170
+USGS	03431500	00060	129903		2018	29410
+USGS	03431500	00060	129903		2019	35150
+USGS	03431500	00060	129903		2020	33590
+USGS	03431500	00060	129903		2021	25150
+USGS	03431500	00060	129903		2022	23810
+USGS	03431500	00060	129903		2023	14610
+USGS	03431500	00060	129903		2024	18240
