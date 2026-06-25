@@ -50,7 +50,10 @@
       "substation_kv": 161.0,
       "gas_pipeline_mi": 4.5,
       "rail_mi": 0.1,
-      "highway_mi": 10.9
+      "highway_mi": 10.9,
+      "power_plant_mi": 12.5,
+      "power_plant_mw": 40.2,
+      "power_plant_fuel": "hydroelectric"
     },
     {
       "id": "davis-monthan-afb-az",
@@ -90,7 +93,15 @@
       "substation_kv": 46.0,
       "gas_pipeline_mi": 2.7,
       "rail_mi": 0.5,
-      "highway_mi": 2.5
+      "highway_mi": 2.5,
+      "power_plant_mi": 1.2,
+      "power_plant_mw": 3.0,
+      "power_plant_fuel": "solar",
+      "retired_plant_mi": 2.78,
+      "retired_plant_mw": 162.0,
+      "retired_plant_fuel": "NG",
+      "retired_plant_year": 2019,
+      "retired_plant_name": "H Wilson Sundt Generating Station"
     },
     {
       "id": "edwards-afb-ca",
@@ -130,7 +141,10 @@
       "substation_kv": null,
       "gas_pipeline_mi": 2.6,
       "rail_mi": 4.2,
-      "highway_mi": 8.0
+      "highway_mi": 8.0,
+      "power_plant_mi": 4.3,
+      "power_plant_mw": 1.0,
+      "power_plant_fuel": "solar"
     },
     {
       "id": "robins-afb-ga",
@@ -170,7 +184,15 @@
       "substation_kv": 115.0,
       "gas_pipeline_mi": 12.8,
       "rail_mi": 0.9,
-      "highway_mi": 7.2
+      "highway_mi": 7.2,
+      "power_plant_mi": 2.6,
+      "power_plant_mw": 160.0,
+      "power_plant_fuel": "petroleum",
+      "retired_plant_mi": 22.5,
+      "retired_plant_mw": 194.0,
+      "retired_plant_fuel": "BIT",
+      "retired_plant_year": 2002,
+      "retired_plant_name": "Arkwright"
     },
     {
       "id": "fort-benning-ga",
@@ -207,7 +229,10 @@
       "substation_kv": 115.0,
       "gas_pipeline_mi": 5.6,
       "rail_mi": 1.4,
-      "highway_mi": 4.7
+      "highway_mi": 4.7,
+      "power_plant_mi": 2.6,
+      "power_plant_mw": 30.0,
+      "power_plant_fuel": "solar"
     },
     {
       "id": "fort-bragg-nc",
@@ -243,7 +268,10 @@
       "substation_kv": 230.0,
       "gas_pipeline_mi": 18.3,
       "rail_mi": 0.2,
-      "highway_mi": 0.0
+      "highway_mi": 0.0,
+      "power_plant_mi": 7.2,
+      "power_plant_mw": 2.5,
+      "power_plant_fuel": "batteries"
     },
     {
       "id": "fort-campbell-ky",
@@ -279,7 +307,10 @@
       "substation_kv": 161.0,
       "gas_pipeline_mi": 29.9,
       "rail_mi": 7.6,
-      "highway_mi": 22.8
+      "highway_mi": 22.8,
+      "power_plant_mi": 7.3,
+      "power_plant_mw": 2470.0,
+      "power_plant_fuel": "coal"
     },
     {
       "id": "fort-drum-ny",
@@ -316,7 +347,10 @@
       "substation_kv": 23.0,
       "gas_pipeline_mi": 13.3,
       "rail_mi": 0.9,
-      "highway_mi": 8.1
+      "highway_mi": 8.1,
+      "power_plant_mi": 0.3,
+      "power_plant_mw": 10.8,
+      "power_plant_fuel": "hydroelectric"
     },
     {
       "id": "fort-hood-tx",
@@ -352,7 +386,10 @@
       "substation_kv": 138.0,
       "gas_pipeline_mi": 7.7,
       "rail_mi": 7.1,
-      "highway_mi": 5.2
+      "highway_mi": 5.2,
+      "power_plant_mi": 6.1,
+      "power_plant_mw": 1.2,
+      "power_plant_fuel": "natural gas"
     },
     {
       "id": "fort-wainwright-ak",
@@ -388,7 +425,10 @@
       "substation_kv": 69.0,
       "gas_pipeline_mi": null,
       "rail_mi": 8.7,
-      "highway_mi": null
+      "highway_mi": null,
+      "power_plant_mi": 9.2,
+      "power_plant_mw": 145.0,
+      "power_plant_fuel": "petroleum"
     },
     {
       "id": "jblm-wa",
@@ -424,7 +464,15 @@
       "substation_kv": 115.0,
       "gas_pipeline_mi": 7.2,
       "rail_mi": 0.8,
-      "highway_mi": 0.8
+      "highway_mi": 0.8,
+      "power_plant_mi": 8.4,
+      "power_plant_mw": 246.0,
+      "power_plant_fuel": "natural gas",
+      "retired_plant_mi": 8.54,
+      "retired_plant_mw": 130.9,
+      "retired_plant_fuel": "NG",
+      "retired_plant_year": 2002,
+      "retired_plant_name": "Pierce Power Station"
     },
     {
       "id": "jbmdl-nj",
@@ -464,7 +512,15 @@
       "substation_kv": 34.5,
       "gas_pipeline_mi": 9.1,
       "rail_mi": 10.4,
-      "highway_mi": 8.7
+      "highway_mi": 8.7,
+      "power_plant_mi": 1.9,
+      "power_plant_mw": 8.3,
+      "power_plant_fuel": "solar",
+      "retired_plant_mi": 12.87,
+      "retired_plant_mw": 747.0,
+      "retired_plant_fuel": "BIT",
+      "retired_plant_year": 2017,
+      "retired_plant_name": "PSEG Mercer Generating Station"
     },
     {
       "id": "holston-aap-tn",
@@ -500,7 +556,15 @@
       "substation_kv": 138.0,
       "gas_pipeline_mi": 1.9,
       "rail_mi": 0.9,
-      "highway_mi": 0.5
+      "highway_mi": 0.5,
+      "power_plant_mi": 1.2,
+      "power_plant_mw": 194.3,
+      "power_plant_fuel": "coal",
+      "retired_plant_mi": 24.27,
+      "retired_plant_mw": 704.0,
+      "retired_plant_fuel": "BIT",
+      "retired_plant_year": 2014,
+      "retired_plant_name": "John Sevier"
     },
     {
       "id": "redstone-arsenal-al",
@@ -536,7 +600,10 @@
       "substation_kv": 46.0,
       "gas_pipeline_mi": 4.2,
       "rail_mi": 1.7,
-      "highway_mi": 5.2
+      "highway_mi": 5.2,
+      "power_plant_mi": 2.7,
+      "power_plant_mw": 8.2,
+      "power_plant_fuel": "solar"
     }
   ]
 }
