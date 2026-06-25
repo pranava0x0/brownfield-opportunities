@@ -10,10 +10,14 @@ ranking differentiates sites by cooling water; electrical infrastructure
 (transmission + substation); construction workforce; and fiber.
 
 Provenance, by field:
-  • lat/lon + transmission_* + substation_* + gas/rail/highway: REAL, joined
-    from docs/data/infra-proximity.json (the project's own spatial-index
-    computation) by `infra_source_id` — the best whole-installation record in
-    the dataset, or an on-base proxy (Fort Benning uses Lawson AAF).
+  • lat/lon + transmission_* + substation_* + gas/rail/highway + power_plant_*:
+    REAL, joined from docs/data/infra-proximity.json (the project's own
+    spatial-index computation) by `infra_source_id` — the best whole-installation
+    record in the dataset, or an on-base proxy (Fort Benning uses Lawson AAF).
+  • retired_plant_*: REAL, from EIA Form EIA-860M April 2026 ("Retired" sheet),
+    computed by this script at build time by finding the nearest ≥100 MW
+    dispatchable plant within RETIRED_PLANT_RADIUS_MI for each installation's
+    lat/lon. Same source as the eia-retired-plants connector.
   • installation_acreage + developable_acreage + water_* + fiber: ANALYST-
     researched from public sources (cited in *_source / *_note). These are NOT
     federal GIS layers — the project has no water or fiber layer — so they are
@@ -30,12 +34,49 @@ derivation.
 
 Run:  python3 scripts/build_ap1000_sites.py
 """
+import hashlib
+import io
 import json
+import math
+import sys
+import urllib.request
+from collections import defaultdict
 from pathlib import Path
 
 DATA = Path(__file__).resolve().parent.parent / "docs" / "data"
 INFRA_PATH = DATA / "infra-proximity.json"
 OUT_PATH = DATA / "ap1000-sites.json"
+
+# ---- EIA-860M retired plant enrichment ------------------------------------
+# Same source and column schema as connectors/eia_retired_plants.py.
+# April 2026 is now in the archive; use that stable URL so the data matches
+# what the eia-retired-plants connector last pulled.
+EIA_860M_URL = (
+    "https://www.eia.gov/electricity/data/eia860m/archive/xls/april_generator2026.xlsx"
+)
+_EIA_CACHE_KEY = "ap1000_eia_860m_apr2026"
+_EIA_CACHE_HASH = hashlib.sha256(_EIA_CACHE_KEY.encode()).hexdigest()[:16]
+_EIA_CACHE_FILENAME = f"{_EIA_CACHE_HASH}.bin"
+
+# Search within 25 mi — wider than the connector's 5 mi so we surface context
+# for "nearby but not on-site" retired plants useful for nuclear siting.
+RETIRED_PLANT_RADIUS_MI = 25.0
+MIN_PLANT_MW = 100.0
+
+# Dispatchable EIA fuel codes that imply stranded grid infrastructure.
+_DISPATCHABLE = frozenset({
+    "BIT", "SUB", "LIG", "NG", "DFO", "RFO", "JF", "KER",
+    "NUC", "PC", "RC", "SC", "WC", "SGC", "OIL",
+})
+
+# EIA-860M Retired sheet column indices (0-based); rows[3:] = data.
+_COL_PLANT_ID   = 2
+_COL_PLANT_NAME = 3
+_COL_MW         = 13
+_COL_FUEL       = 16
+_COL_RET_YEAR   = 21
+_COL_LAT        = 24
+_COL_LON        = 25
 
 # Generated date is fixed (not Date.now) — this is a static, hand-curated
 # overlay; bump it by hand when the curated research is refreshed.
@@ -348,10 +389,154 @@ SITES = [
 ]
 
 
+def _haversine_mi(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    R = 3958.8
+    phi1, phi2 = math.radians(lat1), math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dl = math.radians(lon2 - lon1)
+    a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dl / 2) ** 2
+    return 2 * R * math.asin(min(1.0, math.sqrt(a)))
+
+
+def _get_eia_bytes():
+    """Return EIA-860M April 2026 bytes from the connector's binary cache or
+    download fresh. Returns None on failure (retired-plant data is optional)."""
+    # Walk up from this script looking for the connector's binary cache.
+    candidate = Path(__file__).resolve().parent
+    for _ in range(8):
+        bin_path = candidate / "data" / "cache" / _EIA_CACHE_FILENAME
+        if bin_path.exists():
+            print(f"EIA-860M: cache hit {bin_path}")
+            return bin_path.read_bytes()
+        candidate = candidate.parent
+
+    # Not cached — download and store next to the connector cache if possible.
+    print(f"EIA-860M: downloading {EIA_860M_URL} …")
+    try:
+        req = urllib.request.Request(
+            EIA_860M_URL,
+            headers={"User-Agent": "BrownfieldOpportunities/0.2 (research; static dashboard)"},
+        )
+        with urllib.request.urlopen(req, timeout=120) as resp:
+            data = resp.read()
+    except Exception as exc:
+        print(f"EIA-860M: download failed ({exc}) — skipping retired-plant data", file=sys.stderr)
+        return None
+
+    # Try to cache where the connector would look next run.
+    for base in [Path(__file__).resolve().parent.parent.parent.parent.parent / "data" / "cache",
+                 DATA.parent]:
+        try:
+            base.mkdir(parents=True, exist_ok=True)
+            (base / _EIA_CACHE_FILENAME).write_bytes(data)
+            print(f"EIA-860M: cached {len(data)//1024}KB → {base / _EIA_CACHE_FILENAME}")
+            break
+        except OSError:
+            continue
+
+    return data
+
+
+def _load_retired_plants() -> list[dict]:
+    """Parse EIA-860M Retired sheet into a list of qualifying plant dicts."""
+    try:
+        import openpyxl  # type: ignore
+    except ImportError:
+        print("WARNING: openpyxl not installed — skipping retired plant data", file=sys.stderr)
+        return []
+
+    raw = _get_eia_bytes()
+    if not raw:
+        return []
+
+    wb = openpyxl.load_workbook(io.BytesIO(raw), read_only=True)
+    ws = wb["Retired"]
+    rows = list(ws.iter_rows(values_only=True))
+    # rows[0] = banner, rows[1] = blank, rows[2] = header; data from rows[3:]
+    data_rows = rows[3:]
+
+    plants: dict[int, dict] = defaultdict(lambda: {
+        "name": None, "lat": None, "lon": None,
+        "total_mw": 0.0, "primary_fuel_mw": 0.0,
+        "fuel": None, "ret_year": None,
+    })
+
+    for row in data_rows:
+        plant_id = row[_COL_PLANT_ID]
+        if not plant_id:
+            continue
+        try:
+            plant_id = int(plant_id)
+        except (TypeError, ValueError):
+            continue
+
+        p = plants[plant_id]
+        if p["name"] is None and row[_COL_PLANT_NAME]:
+            p["name"] = str(row[_COL_PLANT_NAME])
+
+        try:
+            mw = float(row[_COL_MW]) if row[_COL_MW] is not None else 0.0
+        except (TypeError, ValueError):
+            mw = 0.0
+        p["total_mw"] += mw
+
+        fuel_raw = row[_COL_FUEL]
+        fuel = str(fuel_raw).strip().upper() if fuel_raw else None
+        if fuel and mw >= p["primary_fuel_mw"]:
+            p["fuel"] = fuel
+            p["primary_fuel_mw"] = mw
+
+        try:
+            yr = int(row[_COL_RET_YEAR]) if row[_COL_RET_YEAR] is not None else None
+        except (TypeError, ValueError):
+            yr = None
+        if yr is not None and (p["ret_year"] is None or yr > p["ret_year"]):
+            p["ret_year"] = yr
+
+        try:
+            lat = float(row[_COL_LAT]) if row[_COL_LAT] is not None else None
+            lon = float(row[_COL_LON]) if row[_COL_LON] is not None else None
+        except (TypeError, ValueError):
+            lat = lon = None
+        if lat is not None and lon is not None:
+            p["lat"] = lat
+            p["lon"] = lon
+
+    result = []
+    for p in plants.values():
+        if p["lat"] is None or p["lon"] is None:
+            continue
+        if p["total_mw"] < MIN_PLANT_MW:
+            continue
+        if (p["fuel"] or "").upper() not in _DISPATCHABLE:
+            continue
+        result.append(p)
+
+    print(f"EIA-860M: {len(result)} qualifying retired plants loaded")
+    return result
+
+
+def _nearest_retired_plant(lat, lon, plants, radius_mi):
+    """Return (distance_mi, plant) dict for closest plant within radius, or None."""
+    best_d = radius_mi + 1
+    best_p = None
+    for p in plants:
+        d = _haversine_mi(lat, lon, p["lat"], p["lon"])
+        if d < best_d:
+            best_d = d
+            best_p = p
+    if best_p is None:
+        return None
+    return {"dist_mi": round(best_d, 2), "plant": best_p}
+
+
 def main() -> None:
     infra = json.loads(INFRA_PATH.read_text())
     infra_rows = infra.get("sites", infra) if isinstance(infra, dict) else infra
     infra_by_id = {r["id"]: r for r in infra_rows}
+
+    # Load EIA-860M retired plants once (optional — gracefully absent).
+    retired_plants = _load_retired_plants()
 
     out = []
     for s in SITES:
@@ -386,8 +571,22 @@ def main() -> None:
         rec["lat"] = _site_latlon(s["infra_source_id"])[0]
         rec["lon"] = _site_latlon(s["infra_source_id"])[1]
         for k in ("transmission_mi", "transmission_kv", "substation_mi",
-                  "substation_kv", "gas_pipeline_mi", "rail_mi", "highway_mi"):
+                  "substation_kv", "gas_pipeline_mi", "rail_mi", "highway_mi",
+                  "power_plant_mi", "power_plant_mw", "power_plant_fuel"):
             rec[k] = src.get(k)
+
+        # Nearest large retired plant from EIA-860M (within RETIRED_PLANT_RADIUS_MI).
+        if retired_plants:
+            hit = _nearest_retired_plant(rec["lat"], rec["lon"], retired_plants,
+                                         RETIRED_PLANT_RADIUS_MI)
+            if hit:
+                p = hit["plant"]
+                rec["retired_plant_mi"]   = hit["dist_mi"]
+                rec["retired_plant_mw"]   = round(p["total_mw"], 1)
+                rec["retired_plant_fuel"] = p["fuel"]
+                rec["retired_plant_year"] = p["ret_year"]
+                rec["retired_plant_name"] = p["name"]
+
         out.append(rec)
 
     payload = {
