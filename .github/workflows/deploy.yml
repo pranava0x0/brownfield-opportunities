@@ -4,8 +4,9 @@ name: Deploy docs/ to GitHub Pages
 # `push: [main]` and the Tests workflow run in parallel — Pages can publish
 # a green build that turns out to fail tests minutes later.
 #
-# `workflow_run` fires when Tests completes (any conclusion); the inner
-# `if:` short-circuits anything that wasn't a successful main-branch push.
+# `workflow_run` fires when Tests completes (any conclusion); the inner `if:`
+# short-circuits anything that wasn't a successful main-branch push, and also
+# skips stale test runs that finish after a newer main commit has landed.
 # `workflow_dispatch` keeps the manual-redeploy path available even when
 # CI is red (for emergencies / data-only refreshes that bypass tests).
 on:
@@ -30,7 +31,8 @@ jobs:
     if: >-
       github.event_name == 'workflow_dispatch' ||
       (github.event.workflow_run.conclusion == 'success' &&
-       github.event.workflow_run.head_branch == 'main')
+       github.event.workflow_run.head_branch == 'main' &&
+       github.event.workflow_run.head_sha == github.sha)
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

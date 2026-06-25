@@ -4,8 +4,9 @@
 This is a hand-curated analysis overlay (like reference-campuses.json /
 retired-industrial.json), NOT a connector / SiteRecord set, so it stays out of
 schema.py and refresh.py. It screens 14 named U.S. military installations for
-siting a Westinghouse AP1000 (1,117 MWe net, ~3,400 MWth) across the requested
-priority order: developable acreage; cooling water; electrical infrastructure
+siting a Westinghouse AP1000 (1,117 MWe net, ~3,400 MWth). Developable acreage
+is retained as an eligibility threshold / context field, while the requested
+ranking differentiates sites by cooling water; electrical infrastructure
 (transmission + substation); construction workforce; and fiber.
 
 Provenance, by field:
@@ -17,12 +18,12 @@ Provenance, by field:
     researched from public sources (cited in *_source / *_note). These are NOT
     federal GIS layers — the project has no water or fiber layer — so they are
     explicitly flagged as analyst assessment in the UI.
-  • seismic_flag / flood_flag: informational only; NOT part of the score (the
-    user scoped scoring to the five factors above). Nuclear-relevant, so shown.
+  • seismic_flag / flood_flag: informational only; NOT part of the score.
+    Nuclear-relevant, so shown.
 
 AP1000 cooling context (closed-cycle tower, inland): ~30-40 MGD withdrawal,
 ~15-20 MGD consumptive makeup — a binding constraint, hence water is the
-second-highest-weighted factor in docs/ap1000-score.js.
+highest-weighted factor in docs/ap1000-score.js.
 
 Run:  python3 scripts/build_ap1000_sites.py
 """
@@ -139,8 +140,8 @@ SITES = [
         "developable_basis": "Heavily built airfield + ~2,600-ac AMARG 'boneyard' consume most of the footprint; remaining open land is constrained. No EUL land record found.",
         "acreage_source": "https://en.wikipedia.org/wiki/309th_Aerospace_Maintenance_and_Regeneration_Group",
         "water_source": "Tucson AMA aquifer / CAP (Colorado River) delivery",
-        "water_distance_mi": 7, "water_adequacy": "poor",
-        "water_note": "Sonoran Desert; Tucson is a single-source-aquifer city on a strained CAP allocation facing shortage cuts. A wet-cooled AP1000 (~15-20 MGD consumptive) is impractical here — dry-cooling would be required.",
+        "water_distance_mi": 7, "water_adequacy": "severe",
+        "water_note": "Sonoran Desert; Tucson is a single-source-aquifer city on a strained CAP allocation facing shortage cuts. A wet-cooled AP1000 (~15-20 MGD consumptive) is not a credible base-case assumption here — dry-cooling would be required.",
         "water_source_url": "https://www.tucsonaz.gov/Departments/Water",
         "fiber": "excellent",
         "fiber_note": "DISN plus dense Tucson metro carrier fiber.",
@@ -155,8 +156,8 @@ SITES = [
         "developable_basis": "~301,000 ac is largely undeveloped / semi-improved test-range and dry-lake land; vast contiguous open parcels away from the lakebeds and flight lines. Land is the least-constrained resource.",
         "acreage_source": "https://en.wikipedia.org/wiki/Edwards_Air_Force_Base",
         "water_source": "Antelope Valley groundwater basin / AVEK (State Water Project)",
-        "water_distance_mi": 0, "water_adequacy": "marginal",
-        "water_note": "Mojave Desert; AV basin in chronic overdraft with documented land subsidence (>1 ft over 292 sq mi). No major river/reservoir — base buys finished water from AVEK. Dry-cooling effectively required.",
+        "water_distance_mi": 0, "water_adequacy": "severe",
+        "water_note": "Mojave Desert; AV basin in chronic overdraft with documented land subsidence (>1 ft over 292 sq mi). No major river/reservoir — base buys finished water from AVEK. A wet-cooled AP1000 is not a credible base-case assumption here; dry-cooling is effectively required.",
         "water_source_url": "https://ca.water.usgs.gov/projects/antelope-valley/antelope-valley-study-area.html",
         "fiber": "good",
         "fiber_note": "DISN + AFRL/test-range data infrastructure; Lancaster-Palmdale metro ~30+ mi.",
@@ -204,8 +205,8 @@ SITES = [
         "developable_basis": "~142,000+ ac of training land, but explicitly described as 'every acre at a premium' — real siting competition. No EUL acreage published.",
         "acreage_source": "https://www.globalsecurity.org/military/facility/fort-bragg.htm",
         "water_source": "Little River / Cape Fear basin",
-        "water_distance_mi": 4, "water_adequacy": "adequate",
-        "water_note": "Fayetteville PWC supplies the post; Little River is moderate-flow and the Cape Fear basin is withdrawal-stressed — a dedicated 30-40 MGD AP1000 intake would likely need its own Cape Fear River tap ~10 mi south.",
+        "water_distance_mi": 4, "water_adequacy": "marginal",
+        "water_note": "Fayetteville PWC supplies the post; Little River is moderate-flow and the Cape Fear basin is withdrawal-stressed — a dedicated 30-40 MGD AP1000 intake would likely need its own Cape Fear River tap ~10 mi south. That makes water developable but not comfortably adequate.",
         "water_source_url": "https://www.faypwc.com/",
         "fiber": "excellent",
         "fiber_note": "World's largest Army installation; dense DISN backbone, airborne/SOCOM C2 infrastructure, Fayetteville metro carriers.",
@@ -252,9 +253,9 @@ SITES = [
         "developable_basis": "One of 4 Army posts in the 2026 commercial data-center EUL RFP (50-yr leases on underutilized land); peer site Fort Bliss listed 1,384 ac after culling and Fort Hood is a larger 'multi-modal' site. Already hosts a 132-ac on-post solar field.",
         "acreage_source": "https://defensescoop.com/2026/02/06/trump-military-bases-army-lease-land-data-centers/",
         "water_source": "Belton Lake (Leon River)",
-        "water_distance_mi": 8, "water_adequacy": "adequate",
-        "water_note": "Belton Lake (~210,600 ac-ft) supplies the post via Bell County WCID #1, but semi-arid central TX means an AP1000's ~15-20 MGD consumptive makeup is a meaningful share of basin yield. The Leon River itself is small/seasonal.",
-        "water_source_url": "https://www.tshaonline.org/handbook/entries/belton-lake",
+        "water_distance_mi": 8, "water_adequacy": "poor",
+        "water_note": "Belton Lake supplies the post, but USACE documentation identifies 12,000 acre-ft of water-supply storage for Fort Hood / adjacent installations — roughly 10.7 MGD annualized, before competing municipal/drought demands. A wet-cooled AP1000's ~15-20 MGD consumptive makeup would exceed that order of magnitude, so this is a poor water fit unless a much larger new regional allocation is secured.",
+        "water_source_url": "https://water.usace.army.mil/cda/documents/wc/3328/BELTON%20DAM%20AND%20LAKE.pdf",
         "fiber": "good",
         "fiber_note": "Regional DISN integration hub on the I-35 Austin-Waco-DFW corridor (dense long-haul/metro fiber).",
         "seismic_flag": "low", "flood_flag": "low",
@@ -284,8 +285,8 @@ SITES = [
         "developable_basis": "~80,000 ac of ranges, but constrained by rare prairie/oak ecosystems, wetlands, and a Real Property Master Plan / Joint Land Use review. Realistically several thousand acres of non-sensitive land; no published AP1000-parcel figure.",
         "acreage_source": "https://installations.militaryonesource.mil/in-depth-overview/joint-base-lewis-mcchord",
         "water_source": "Nisqually River + glacial-outwash aquifer (Puget Sound ~12 mi N)",
-        "water_distance_mi": 1, "water_adequacy": "abundant",
-        "water_note": "JBLM runs its own large groundwater system (21 wells) on a prolific glacial-outwash aquifer; the Nisqually River borders the south and Puget Sound is ~10-15 mi N. Abundant supply.",
+        "water_distance_mi": 1, "water_adequacy": "adequate",
+        "water_note": "JBLM runs a substantial groundwater system (21 wells) on a glacial-outwash aquifer, with the Nisqually River nearby and Puget Sound ~10-15 mi N. That is enough to keep it viable, but the public record does not prove spare 30-40 MGD wet-cooling capacity without new water-rights and intake analysis.",
         "water_source_url": "https://www.amwater.com/corp/Products-Services/Military-Services/jblm",
         "fiber": "excellent",
         "fiber_note": "Seattle-Tacoma I-5 metro corridor, dense carrier + long-haul fiber; new JBLM Information Systems Facility (2024).",
@@ -300,9 +301,9 @@ SITES = [
         "developable_basis": "Substantial undeveloped land (former Fort Dix ranges, Pinelands buffer) but heavily constrained by Pinelands National Reserve regulation + PFAS groundwater plumes. Realistically a few thousand acres of non-sensitive land.",
         "acreage_source": "https://en.wikipedia.org/wiki/Joint_Base_McGuire%E2%80%93Dix%E2%80%93Lakehurst",
         "water_source": "Kirkwood-Cohansey aquifer (on-site)",
-        "water_distance_mi": 0, "water_adequacy": "adequate",
-        "water_note": "The Kirkwood-Cohansey is a huge high-yield aquifer, but PFAS contamination + NJ Pinelands water-allocation limits would complicate a 30-40 MGD withdrawal, and there is no large river adjacent.",
-        "water_source_url": "https://pubs.usgs.gov/publication/sir20215107/full",
+        "water_distance_mi": 0, "water_adequacy": "poor",
+        "water_note": "The Kirkwood-Cohansey aquifer is locally important but environmentally sensitive; Pinelands sources warn even modest withdrawals can harm wetlands and streamflow. With PFAS cleanup constraints and no large adjacent river, a 30-40 MGD wet-cooling withdrawal is a poor fit absent a major alternative supply.",
+        "water_source_url": "https://pinelandsalliance.org/water-supply-aquifer/",
         "fiber": "excellent",
         "fiber_note": "Central NJ between the Philadelphia and NYC metros — the densest fiber corridor in the US.",
         "seismic_flag": "low", "flood_flag": "low",
