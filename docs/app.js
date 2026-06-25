@@ -2963,6 +2963,10 @@ function wireTabs() {
       const d = el("about-refresh-date");
       if (d && window.__refreshedAt) d.textContent = window.__refreshedAt;
     }
+    // Update URL hash so the active tab can be bookmarked / shared.
+    // Map is the default; omit its hash to keep URLs clean.
+    const newHash = which === "map" ? "" : "#" + which;
+    history.replaceState(null, "", location.pathname + location.search + newHash);
   };
   mapTab.addEventListener("click", () => setView("map"));
   tableTab.addEventListener("click", () => setView("table"));
@@ -2970,6 +2974,18 @@ function wireTabs() {
   if (retiredTab) retiredTab.addEventListener("click", () => setView("retired"));
   if (ap1000Tab) ap1000Tab.addEventListener("click", () => setView("ap1000"));
   if (aboutTab) aboutTab.addEventListener("click", () => setView("about"));
+
+  // Honor hash on initial load (e.g. shared URL with #ap1000).
+  const VALID_TABS = new Set(["map", "table", "candidates", "retired", "ap1000", "about"]);
+  const initialHash = location.hash.replace(/^#/, "").toLowerCase();
+  if (VALID_TABS.has(initialHash)) setView(initialHash);
+
+  // Handle manual hash edits in the address bar (browser back/forward not
+  // relevant since we use replaceState, but covers direct hash navigation).
+  window.addEventListener("hashchange", () => {
+    const tab = location.hash.replace(/^#/, "").toLowerCase();
+    if (VALID_TABS.has(tab)) setView(tab);
+  });
 }
 
 // ----- Retired Sites stats view -----
@@ -4595,8 +4611,9 @@ function syncUrl() {
     if (candidatesState.lens !== "dc") p.set("lens", candidatesState.lens);
     if (selectedId) p.set("site", selectedId);
     const qs = p.toString();
-    const newUrl = qs ? `${location.pathname}?${qs}` : location.pathname;
-    if (newUrl !== location.pathname + location.search) {
+    const hash = location.hash; // preserve active-tab hash (e.g. "#ap1000")
+    const newUrl = (qs ? `${location.pathname}?${qs}` : location.pathname) + hash;
+    if (newUrl !== location.pathname + location.search + location.hash) {
       history.replaceState(null, "", newUrl);
     }
   }, 200);
