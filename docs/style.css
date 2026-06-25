@@ -2296,6 +2296,14 @@ main {
 .ap1000-wrap { max-width: 1180px; margin: 0 auto; padding: 28px 24px 64px; }
 .ap1000-lead h2 { margin: 0 0 6px; font-family: var(--font-serif); font-size: 24px; }
 .ap1000-lead p { margin: 0 0 14px; color: var(--text-soft); max-width: 84ch; line-height: 1.55; font-size: 13px; }
+.ap1000-export {
+  border: 1px solid var(--border); background: var(--surface-2); color: var(--text);
+  border-radius: 6px; padding: 6px 10px; font: inherit; font-size: 12px;
+  cursor: pointer; margin: 0 0 14px;
+}
+.ap1000-export:hover { border-color: var(--accent); }
+.ap1000-export:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+#export-csv[hidden] { display: none; }
 .ap1000-janus-key { color: var(--suit-amber); font-weight: 600; white-space: nowrap; }
 .ap1000-rflp-key { color: var(--accent); font-weight: 600; white-space: nowrap; }
 .ap1000-flag-amber { color: var(--suit-amber); font-weight: 600; }
@@ -2329,6 +2337,9 @@ main {
 .ap1000-janus { margin-left: 6px; color: var(--suit-amber); font-weight: 600; white-space: nowrap; }
 .ap1000-rflp { margin-left: 6px; color: var(--accent); font-weight: 600; white-space: nowrap; }
 .ap1000-kvmi { white-space: nowrap; font-size: 12px; }
+.ap1000-cell-src { display: block; margin-top: 2px; font-size: 10px; font-weight: 600; text-transform: none; }
+.ap1000-workforce-cell { min-width: 180px; }
+.ap1000-workforce-area { display: block; margin-top: 3px; color: var(--text-soft); font-size: 11px; line-height: 1.3; max-width: 24ch; }
 
 .ap1000-score-cell { white-space: nowrap; }
 .ap1000-score-chip {
