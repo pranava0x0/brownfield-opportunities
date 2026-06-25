@@ -2406,6 +2406,21 @@ main {
 .ap1000-siting { margin: 8px 0 0; font-size: 12.5px; line-height: 1.5; }
 .ap1000-siting-label { color: var(--suit-amber); font-weight: 600; }
 .ap1000-nuke { margin: 6px 0 0; font-size: 12px; line-height: 1.5; }
+
+/* Grid context section */
+.ap1000-grid-ctx { margin: 10px 0 0; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+.ap1000-grid-summary { cursor: pointer; font-size: 12.5px; font-weight: 600; padding: 7px 10px; background: var(--surface); user-select: none; list-style: none; }
+.ap1000-grid-summary::-webkit-details-marker { display: none; }
+.ap1000-grid-note { font-weight: 400; color: var(--muted); margin-left: 4px; }
+.ap1000-grid-facts { margin: 0; padding: 10px 12px 12px; background: var(--surface); border-top: 1px solid var(--border); }
+/* Active-plant badge (⚡): warm amber highlight */
+.ap1000-grid-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 11.5px; font-weight: 600; padding: 1px 7px; border-radius: 10px; margin: 2px 3px 0 0; white-space: nowrap; }
+.ap1000-grid-badge.active { color: #7a5c00; background: color-mix(in srgb, #f0b429 20%, transparent); border: 1px solid color-mix(in srgb, #f0b429 50%, transparent); }
+[data-theme="dark"] .ap1000-grid-badge.active { color: #f0c85a; background: color-mix(in srgb, #f0b429 18%, transparent); border-color: color-mix(in srgb, #f0b429 35%, transparent); }
+/* Retired-plant badge (♻): teal/slate — stranded grid signal */
+.ap1000-grid-badge.retired { color: #1a5a6e; background: color-mix(in srgb, #3a9cb8 15%, transparent); border: 1px solid color-mix(in srgb, #3a9cb8 40%, transparent); }
+[data-theme="dark"] .ap1000-grid-badge.retired { color: #7ecfe8; background: color-mix(in srgb, #3a9cb8 15%, transparent); border-color: color-mix(in srgb, #3a9cb8 35%, transparent); }
+
 .about-lead {
   margin-bottom: 40px;
   padding-bottom: 28px;
