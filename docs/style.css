@@ -2297,6 +2297,7 @@ main {
 .ap1000-lead h2 { margin: 0 0 6px; font-family: var(--font-serif); font-size: 24px; }
 .ap1000-lead p { margin: 0 0 14px; color: var(--text-soft); max-width: 84ch; line-height: 1.55; font-size: 13px; }
 .ap1000-janus-key { color: var(--suit-amber); font-weight: 600; white-space: nowrap; }
+.ap1000-rflp-key { color: var(--accent); font-weight: 600; white-space: nowrap; }
 .ap1000-flag-amber { color: var(--suit-amber); font-weight: 600; }
 .ap1000-flag-red { color: var(--status-final); font-weight: 600; }
 .ap1000-help { margin: 0 0 18px; font-size: 12.5px; }
