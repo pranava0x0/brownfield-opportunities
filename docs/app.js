@@ -3092,8 +3092,12 @@ const _AP1000_TRANSMISSION_SOURCE = "https://hifld-geoplatform.opendata.arcgis.c
 const _AP1000_SUBSTATION_SOURCE = "https://overpass-turbo.eu/";
 const _AP1000_GEOHAZARD_SOURCE = "https://www.fema.gov/flood-maps/tools-resources/flood-map-products/national-flood-hazard-layer";
 
-function _ap1000CellSrc(url, label = "source") {
-  return url ? ` <a class="ap1000-cell-src" href="${escapeHtml(url)}" target="_blank" rel="noopener">${label}</a>` : "";
+function _ap1000CellSrc(url, ariaLabel) {
+  if (!url) return "";
+  // Per-factor accessible name so a screen-reader link list reads "Water source",
+  // "Acreage source", … instead of nine identical "source" links per row.
+  const al = ariaLabel ? ` aria-label="${escapeHtml(ariaLabel)} source"` : "";
+  return ` <a class="ap1000-cell-src" href="${escapeHtml(url)}" target="_blank" rel="noopener"${al}>source</a>`;
 }
 
 function _ap1000SourceFor(s, field) {
@@ -3156,17 +3160,17 @@ function buildAp1000View() {
     ).join("");
 
     const dataRow =
-      `<tr class="ap1000-row" data-ap1000-row="${rank}" tabindex="0" role="button" aria-expanded="false" aria-controls="ap1000-detail-${rank}">` +
-        `<td class="num ap1000-rank-cell">${rank}<span class="ap1000-caret" aria-hidden="true">▸</span></td>` +
-        `<td class="ap1000-name-cell"><span class="ap1000-name">${escapeHtml(s.name)}</span><span class="ap1000-meta">${escapeHtml(s.branch || "")} · ${escapeHtml(s.state || "")}${janus}${afRflp}</span>${_ap1000CellSrc(_ap1000SourceFor(s, "installation"))}</td>` +
-        `<td class="num ap1000-score-cell"><span class="ap1000-score-chip ap1000-tier-${tier.cls}">${score == null ? "—" : score}</span>${_ap1000CellSrc(_ap1000SourceFor(s, "score"))}</td>` +
-        `<td><span class="ap1000-tag ${waterCls}">${escapeHtml(s.water_adequacy || "—")}</span>${_ap1000CellSrc(_ap1000SourceFor(s, "water"))}</td>` +
-        `<td class="num" title="${escapeHtml(s.developable_basis || "")}">${s.developable_acreage != null ? s.developable_acreage.toLocaleString() : "—"}${_ap1000CellSrc(_ap1000SourceFor(s, "acreage"))}</td>` +
-        `<td class="num ap1000-kvmi">${_ap1000KvMi(s.transmission_mi, s.transmission_kv)}${_ap1000CellSrc(_ap1000SourceFor(s, "transmission"))}</td>` +
-        `<td class="num ap1000-kvmi">${_ap1000KvMi(s.substation_mi, s.substation_kv)}${_ap1000CellSrc(_ap1000SourceFor(s, "substation"))}</td>` +
-        `<td class="ap1000-workforce-cell"><span class="ap1000-tag ${wfCls}">${escapeHtml(s.workforce || "—")}</span><span class="ap1000-workforce-area">${escapeHtml(s.workforce_metro || "Area TBD")}</span>${_ap1000CellSrc(_ap1000SourceFor(s, "workforce"))}</td>` +
-        `<td><span class="ap1000-tag ${fiberCls}">${escapeHtml(s.fiber || "—")}</span>${_ap1000CellSrc(_ap1000SourceFor(s, "fiber"))}</td>` +
-        `<td class="ap1000-flags-cell">${flagCell}${_ap1000CellSrc(_ap1000SourceFor(s, "flags"))}</td>` +
+      `<tr class="ap1000-row" data-ap1000-row="${rank}">` +
+        `<td class="num ap1000-rank-cell"><button type="button" class="ap1000-expand" aria-expanded="false" aria-controls="ap1000-detail-${rank}" aria-label="Toggle siting detail for ${escapeHtml(s.name)}"><span class="ap1000-rank-num">${rank}</span><span class="ap1000-caret" aria-hidden="true">▸</span></button></td>` +
+        `<td class="ap1000-name-cell"><span class="ap1000-name">${escapeHtml(s.name)}</span><span class="ap1000-meta">${escapeHtml(s.branch || "")} · ${escapeHtml(s.state || "")}${janus}${afRflp}</span>${_ap1000CellSrc(_ap1000SourceFor(s, "installation"), "Installation data")}</td>` +
+        `<td class="num ap1000-score-cell"><span class="ap1000-score-chip ap1000-tier-${tier.cls}">${score == null ? "—" : score}</span>${_ap1000CellSrc(_ap1000SourceFor(s, "score"), "Score methodology")}</td>` +
+        `<td><span class="ap1000-tag ${waterCls}">${escapeHtml(s.water_adequacy || "—")}</span>${_ap1000CellSrc(_ap1000SourceFor(s, "water"), "Water")}</td>` +
+        `<td class="num" title="${escapeHtml(s.developable_basis || "")}">${s.developable_acreage != null ? s.developable_acreage.toLocaleString() : "—"}${_ap1000CellSrc(_ap1000SourceFor(s, "acreage"), "Acreage")}</td>` +
+        `<td class="num ap1000-kvmi">${_ap1000KvMi(s.transmission_mi, s.transmission_kv)}${_ap1000CellSrc(_ap1000SourceFor(s, "transmission"), "Transmission")}</td>` +
+        `<td class="num ap1000-kvmi">${_ap1000KvMi(s.substation_mi, s.substation_kv)}${_ap1000CellSrc(_ap1000SourceFor(s, "substation"), "Substation")}</td>` +
+        `<td class="ap1000-workforce-cell"><span class="ap1000-tag ${wfCls}">${escapeHtml(s.workforce || "—")}</span><span class="ap1000-workforce-area">${escapeHtml(s.workforce_metro || "Area TBD")}</span>${_ap1000CellSrc(_ap1000SourceFor(s, "workforce"), "Workforce")}</td>` +
+        `<td><span class="ap1000-tag ${fiberCls}">${escapeHtml(s.fiber || "—")}</span>${_ap1000CellSrc(_ap1000SourceFor(s, "fiber"), "Fiber")}</td>` +
+        `<td class="ap1000-flags-cell">${flagCell}${_ap1000CellSrc(_ap1000SourceFor(s, "flags"), "Geohazard data")}</td>` +
       `</tr>`;
 
     const detailRow =
@@ -3189,18 +3193,20 @@ function buildAp1000View() {
 
   host.innerHTML =
     `<div class="ap1000-table-wrap"><table class="ap1000-table">` +
+      `<caption class="sr-only">AP1000 reactor-siting suitability for 14 named U.S. military installations, ranked best-first. Use each row's expand button for the full per-factor breakdown, sources, and unscored geohazard flags.</caption>` +
       `<thead><tr>` +
-        `<th class="num">#</th><th>Installation</th>` +
-        `<th class="num" title="${escapeHtml(window.AP1000_SCORE_TOOLTIP || "AP1000 suitability 0–100")}">Score</th>` +
-        `<th>Water</th><th class="num">Dev. acres</th>` +
-        `<th class="num">Transmission</th><th class="num">Substation</th>` +
-        `<th>Workforce</th><th>Fiber</th><th>Flags (not scored)</th>` +
+        `<th class="num" scope="col">#</th><th scope="col">Installation</th>` +
+        `<th class="num" scope="col" title="${escapeHtml(window.AP1000_SCORE_TOOLTIP || "AP1000 suitability 0–100")}">Score</th>` +
+        `<th scope="col">Water</th><th class="num" scope="col">Dev. acres</th>` +
+        `<th class="num" scope="col">Transmission</th><th class="num" scope="col">Substation</th>` +
+        `<th scope="col">Workforce</th><th scope="col">Fiber</th><th scope="col">Flags (not scored)</th>` +
       `</tr></thead>` +
       `<tbody>${rows}</tbody>` +
     `</table></div>`;
 
-  // Delegated expand/collapse — click or Enter/Space on a data row toggles its
-  // paired detail row.
+  // Expand/collapse. The focusable control is the per-row <button> in the rank
+  // cell (it carries aria-expanded / aria-controls and handles Enter/Space
+  // natively); a click anywhere else on the row is a mouse-only convenience.
   const tbody = host.querySelector(".ap1000-table tbody");
   if (tbody && !tbody._ap1000Wired) {
     tbody._ap1000Wired = true;
@@ -3209,17 +3215,15 @@ function buildAp1000View() {
       if (!detail || !detail.classList.contains("ap1000-detail")) return;
       const open = detail.hidden;
       detail.hidden = !open;
-      rowEl.setAttribute("aria-expanded", String(open));
+      const btn = rowEl.querySelector(".ap1000-expand");
+      if (btn) btn.setAttribute("aria-expanded", String(open));
       rowEl.classList.toggle("ap1000-open", open);
     };
     tbody.addEventListener("click", (e) => {
       const rowEl = e.target.closest(".ap1000-row");
+      // Ignore clicks on the source links; the expand button (not an <a>) and
+      // bare-cell clicks both bubble here and toggle once.
       if (rowEl && !e.target.closest("a")) toggle(rowEl);
-    });
-    tbody.addEventListener("keydown", (e) => {
-      if (e.key !== "Enter" && e.key !== " ") return;
-      const rowEl = e.target.closest(".ap1000-row");
-      if (rowEl) { e.preventDefault(); toggle(rowEl); }
     });
   }
 }
