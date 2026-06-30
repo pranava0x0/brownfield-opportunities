@@ -53,7 +53,10 @@
       "highway_mi": 10.9,
       "power_plant_mi": 12.5,
       "power_plant_mw": 40.2,
-      "power_plant_fuel": "hydroelectric"
+      "power_plant_fuel": "hydroelectric",
+      "iso_rto": "TVA",
+      "iso_rto_note": "Tennessee Valley Authority \u2014 vertically integrated, no competitive queue. Interconnection via bilateral agreement. TVA's Clinch River BWRX-300 project makes it the most nuclear-receptive large utility in the US.",
+      "iso_rto_source_url": "https://www.tva.com/energy/our-power-system/transmission/request-for-transmission-service"
     },
     {
       "id": "davis-monthan-afb-az",
@@ -101,7 +104,10 @@
       "retired_plant_mw": 162.0,
       "retired_plant_fuel": "NG",
       "retired_plant_year": 2019,
-      "retired_plant_name": "H Wilson Sundt Generating Station"
+      "retired_plant_name": "H Wilson Sundt Generating Station",
+      "iso_rto": "Non-RTO/WECC (Tucson Electric Power)",
+      "iso_rto_note": "Tucson Electric Power (TEP) balancing authority \u2014 WECC region, no ISO/RTO queue. Vertically integrated IOU; large interconnections require bilateral negotiations. No organized capacity market.",
+      "iso_rto_source_url": "https://www.tucsonelectric.com/energy/transmission"
     },
     {
       "id": "edwards-afb-ca",
@@ -144,7 +150,10 @@
       "highway_mi": 8.0,
       "power_plant_mi": 4.3,
       "power_plant_mw": 1.0,
-      "power_plant_fuel": "solar"
+      "power_plant_fuel": "solar",
+      "iso_rto": "CAISO (Southern California Edison)",
+      "iso_rto_note": "California ISO balancing authority (SCE distribution territory). CAISO interconnection queue exceeds 300 GW; post-FERC Order 2023 reforms target 5-year median timelines, but 1,117 MW nuclear would be a novel CAISO category with multi-year study periods.",
+      "iso_rto_source_url": "https://www.caiso.com/generation/Pages/InterconnectionProcesses/default.aspx"
     },
     {
       "id": "robins-afb-ga",
@@ -192,7 +201,10 @@
       "retired_plant_mw": 194.0,
       "retired_plant_fuel": "BIT",
       "retired_plant_year": 2002,
-      "retired_plant_name": "Arkwright"
+      "retired_plant_name": "Arkwright",
+      "iso_rto": "Non-RTO/SERC (Georgia Power / Southern Company)",
+      "iso_rto_note": "Southern Company (Georgia Power) service territory \u2014 SERC region, no ISO/RTO queue. Southern Company has direct AP1000 experience (Vogtle 3 & 4) in this territory. Bilateral agreements; typically faster than PJM/NYISO for large nuclear.",
+      "iso_rto_source_url": "https://www.southerncompany.com/transmission"
     },
     {
       "id": "fort-benning-ga",
@@ -232,7 +244,10 @@
       "highway_mi": 4.7,
       "power_plant_mi": 2.6,
       "power_plant_mw": 30.0,
-      "power_plant_fuel": "solar"
+      "power_plant_fuel": "solar",
+      "iso_rto": "Non-RTO/SERC (Georgia Power / Southern Company)",
+      "iso_rto_note": "Same Georgia Power / Southern Company territory as Robins AFB \u2014 SERC region, bilateral interconnection. Southern Company's Vogtle AP1000 experience makes this the most nuclear-familiar BA of the 14.",
+      "iso_rto_source_url": "https://www.southerncompany.com/transmission"
     },
     {
       "id": "fort-bragg-nc",
@@ -271,7 +286,10 @@
       "highway_mi": 0.0,
       "power_plant_mi": 7.2,
       "power_plant_mw": 2.5,
-      "power_plant_fuel": "batteries"
+      "power_plant_fuel": "batteries",
+      "iso_rto": "Non-RTO/SERC (Duke Energy Carolinas)",
+      "iso_rto_note": "Duke Energy Carolinas service territory \u2014 SERC region, no ISO/RTO queue. Duke is vertically integrated in the Carolinas; bilateral interconnect. Duke has SMR interest in the Carolinas but no active AP1000 program.",
+      "iso_rto_source_url": "https://www.dukeenergy.com/home/products/electric-transmission"
     },
     {
       "id": "fort-campbell-ky",
@@ -310,7 +328,10 @@
       "highway_mi": 22.8,
       "power_plant_mi": 7.3,
       "power_plant_mw": 2470.0,
-      "power_plant_fuel": "coal"
+      "power_plant_fuel": "coal",
+      "iso_rto": "TVA",
+      "iso_rto_note": "Fort Campbell straddles the TN/KY border (cantonment primarily Clarksville, TN); served by Tennessee Valley Authority. Same bilateral-agreement interconnection path as Arnold AFB and Holston AAP \u2014 no organized capacity queue.",
+      "iso_rto_source_url": "https://www.tva.com/energy/our-power-system/transmission/request-for-transmission-service"
     },
     {
       "id": "fort-drum-ny",
@@ -350,7 +371,10 @@
       "highway_mi": 8.1,
       "power_plant_mi": 0.3,
       "power_plant_mw": 10.8,
-      "power_plant_fuel": "hydroelectric"
+      "power_plant_fuel": "hydroelectric",
+      "iso_rto": "NYISO (National Grid / Zone C)",
+      "iso_rto_note": "New York ISO, Zone C (Central NY / National Grid territory). NYISO has a structured interconnection queue; NY's Climate Leadership and Community Protection Act creates demand for carbon-free baseload. Queue timelines typically 3-5 years for large projects.",
+      "iso_rto_source_url": "https://www.nyiso.com/generation-interconnection"
     },
     {
       "id": "fort-hood-tx",
@@ -389,7 +413,10 @@
       "highway_mi": 5.2,
       "power_plant_mi": 6.1,
       "power_plant_mw": 1.2,
-      "power_plant_fuel": "natural gas"
+      "power_plant_fuel": "natural gas",
+      "iso_rto": "ERCOT",
+      "iso_rto_note": "Electric Reliability Council of Texas \u2014 self-contained, no FERC jurisdiction. ERCOT's interconnection queue (~350 GW pending) has moved faster than PJM historically. Texas's deregulated market offers competitive PPA pricing.",
+      "iso_rto_source_url": "https://www.ercot.com/mktrules/guides/interconnection"
     },
     {
       "id": "fort-wainwright-ak",
@@ -428,7 +455,10 @@
       "highway_mi": null,
       "power_plant_mi": 9.2,
       "power_plant_mw": 145.0,
-      "power_plant_fuel": "petroleum"
+      "power_plant_fuel": "petroleum",
+      "iso_rto": "ASEA Railbelt (GVEA \u2014 no RTO)",
+      "iso_rto_note": "Golden Valley Electric Association (GVEA) on the Railbelt grid \u2014 a ~400-mi isolated AC system. No ISO/RTO; project-by-project bilateral. An AP1000's 1,117 MW dwarfs the Railbelt's ~700 MW peak load \u2014 would require behind-the-fence configuration.",
+      "iso_rto_source_url": "https://www.gvea.com/about/our-grid"
     },
     {
       "id": "jblm-wa",
@@ -472,7 +502,10 @@
       "retired_plant_mw": 130.9,
       "retired_plant_fuel": "NG",
       "retired_plant_year": 2002,
-      "retired_plant_name": "Pierce Power Station"
+      "retired_plant_name": "Pierce Power Station",
+      "iso_rto": "Non-RTO/WECC (Puget Sound Energy / BPA)",
+      "iso_rto_note": "Puget Sound Energy (PSE) retail territory, Bonneville Power Administration (BPA) transmission grid. WECC without ISO/RTO \u2014 BPA manages bulk transmission. BPA's Columbia River hydro provides abundant balancing reserves. Bilateral process with BPA typically 3-4 years for large projects.",
+      "iso_rto_source_url": "https://www.bpa.gov/energy-and-services/transmission/generator-interconnection"
     },
     {
       "id": "jbmdl-nj",
@@ -520,7 +553,10 @@
       "retired_plant_mw": 747.0,
       "retired_plant_fuel": "BIT",
       "retired_plant_year": 2017,
-      "retired_plant_name": "PSEG Mercer Generating Station"
+      "retired_plant_name": "PSEG Mercer Generating Station",
+      "iso_rto": "PJM (PSE&G / JCP&L)",
+      "iso_rto_note": "PJM Interconnection \u2014 largest RTO in the US (13 states + DC). Queue exceeds 1,200 GW; median timelines now approaching 7 years post-reform. A 1,117 MW AP1000 would enter the most congested interconnection queue in North America. NJ's ZEC program could reduce revenue risk.",
+      "iso_rto_source_url": "https://www.pjm.com/planning/interconnection-agreements"
     },
     {
       "id": "holston-aap-tn",
@@ -564,7 +600,10 @@
       "retired_plant_mw": 704.0,
       "retired_plant_fuel": "BIT",
       "retired_plant_year": 2014,
-      "retired_plant_name": "John Sevier"
+      "retired_plant_name": "John Sevier",
+      "iso_rto": "TVA",
+      "iso_rto_note": "Tennessee Valley Authority \u2014 same bilateral path as Arnold AFB and Fort Campbell. Holston sits in TVA's East Tennessee territory adjacent to the Clinch River BWRX-300 site, making TVA the most institutionally prepared BA on this list for licensing and interconnecting new nuclear generation.",
+      "iso_rto_source_url": "https://www.tva.com/energy/our-power-system/transmission/request-for-transmission-service"
     },
     {
       "id": "redstone-arsenal-al",
@@ -603,7 +642,10 @@
       "highway_mi": 5.2,
       "power_plant_mi": 2.7,
       "power_plant_mw": 8.2,
-      "power_plant_fuel": "solar"
+      "power_plant_fuel": "solar",
+      "iso_rto": "TVA",
+      "iso_rto_note": "Tennessee Valley Authority \u2014 Wheeler Reservoir on-site is a TVA-managed impoundment, reinforcing the operational relationship. NASA Marshall / Space Command mission tenants provide a high-value load anchor for a potential PPP structure with TVA.",
+      "iso_rto_source_url": "https://www.tva.com/energy/our-power-system/transmission/request-for-transmission-service"
     }
   ]
 }

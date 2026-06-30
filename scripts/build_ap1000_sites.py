@@ -388,6 +388,147 @@ SITES = [
     },
 ]
 
+# ISO/RTO grid operator per installation. 1,117 MW interconnection context
+# matters enormously: PJM (7-yr queue) vs TVA (bilateral, faster) vs ERCOT
+# (no federal jurisdiction) vs isolated ASEA (Railbelt) are radically different.
+# Source: EIA ISO/RTO overview + each BA's published tariff / interconnection guide.
+_EIA_ISO_RTO_SOURCE = "https://www.eia.gov/electricity/wholesale/"
+GRID_OPERATOR = {
+    "arnold-afb-tn": {
+        "rto": "TVA",
+        "note": (
+            "Tennessee Valley Authority — vertically integrated, no competitive queue. "
+            "Interconnection via bilateral agreement. TVA's Clinch River BWRX-300 project "
+            "makes it the most nuclear-receptive large utility in the US."
+        ),
+        "source": "https://www.tva.com/energy/our-power-system/transmission/request-for-transmission-service",
+    },
+    "davis-monthan-afb-az": {
+        "rto": "Non-RTO/WECC (Tucson Electric Power)",
+        "note": (
+            "Tucson Electric Power (TEP) balancing authority — WECC region, no ISO/RTO queue. "
+            "Vertically integrated IOU; large interconnections require bilateral negotiations. "
+            "No organized capacity market."
+        ),
+        "source": "https://www.tucsonelectric.com/energy/transmission",
+    },
+    "edwards-afb-ca": {
+        "rto": "CAISO (Southern California Edison)",
+        "note": (
+            "California ISO balancing authority (SCE distribution territory). "
+            "CAISO interconnection queue exceeds 300 GW; post-FERC Order 2023 reforms "
+            "target 5-year median timelines, but 1,117 MW nuclear would be a novel "
+            "CAISO category with multi-year study periods."
+        ),
+        "source": "https://www.caiso.com/generation/Pages/InterconnectionProcesses/default.aspx",
+    },
+    "robins-afb-ga": {
+        "rto": "Non-RTO/SERC (Georgia Power / Southern Company)",
+        "note": (
+            "Southern Company (Georgia Power) service territory — SERC region, no ISO/RTO queue. "
+            "Southern Company has direct AP1000 experience (Vogtle 3 & 4) in this territory. "
+            "Bilateral agreements; typically faster than PJM/NYISO for large nuclear."
+        ),
+        "source": "https://www.southerncompany.com/transmission",
+    },
+    "fort-benning-ga": {
+        "rto": "Non-RTO/SERC (Georgia Power / Southern Company)",
+        "note": (
+            "Same Georgia Power / Southern Company territory as Robins AFB — "
+            "SERC region, bilateral interconnection. Southern Company's Vogtle AP1000 "
+            "experience makes this the most nuclear-familiar BA of the 14."
+        ),
+        "source": "https://www.southerncompany.com/transmission",
+    },
+    "fort-bragg-nc": {
+        "rto": "Non-RTO/SERC (Duke Energy Carolinas)",
+        "note": (
+            "Duke Energy Carolinas service territory — SERC region, no ISO/RTO queue. "
+            "Duke is vertically integrated in the Carolinas; bilateral interconnect. "
+            "Duke has SMR interest in the Carolinas but no active AP1000 program."
+        ),
+        "source": "https://www.dukeenergy.com/home/products/electric-transmission",
+    },
+    "fort-campbell-ky": {
+        "rto": "TVA",
+        "note": (
+            "Fort Campbell straddles the TN/KY border (cantonment primarily Clarksville, TN); "
+            "served by Tennessee Valley Authority. Same bilateral-agreement interconnection "
+            "path as Arnold AFB and Holston AAP — no organized capacity queue."
+        ),
+        "source": "https://www.tva.com/energy/our-power-system/transmission/request-for-transmission-service",
+    },
+    "fort-drum-ny": {
+        "rto": "NYISO (National Grid / Zone C)",
+        "note": (
+            "New York ISO, Zone C (Central NY / National Grid territory). "
+            "NYISO has a structured interconnection queue; NY's Climate Leadership and "
+            "Community Protection Act creates demand for carbon-free baseload. "
+            "Queue timelines typically 3-5 years for large projects."
+        ),
+        "source": "https://www.nyiso.com/generation-interconnection",
+    },
+    "fort-hood-tx": {
+        "rto": "ERCOT",
+        "note": (
+            "Electric Reliability Council of Texas — self-contained, no FERC jurisdiction. "
+            "ERCOT's interconnection queue (~350 GW pending) has moved faster than PJM "
+            "historically. Texas's deregulated market offers competitive PPA pricing."
+        ),
+        "source": "https://www.ercot.com/mktrules/guides/interconnection",
+    },
+    "fort-wainwright-ak": {
+        "rto": "ASEA Railbelt (GVEA — no RTO)",
+        "note": (
+            "Golden Valley Electric Association (GVEA) on the Railbelt grid — a ~400-mi "
+            "isolated AC system. No ISO/RTO; project-by-project bilateral. "
+            "An AP1000's 1,117 MW dwarfs the Railbelt's ~700 MW peak load — "
+            "would require behind-the-fence configuration."
+        ),
+        "source": "https://www.gvea.com/about/our-grid",
+    },
+    "jblm-wa": {
+        "rto": "Non-RTO/WECC (Puget Sound Energy / BPA)",
+        "note": (
+            "Puget Sound Energy (PSE) retail territory, Bonneville Power Administration (BPA) "
+            "transmission grid. WECC without ISO/RTO — BPA manages bulk transmission. "
+            "BPA's Columbia River hydro provides abundant balancing reserves. "
+            "Bilateral process with BPA typically 3-4 years for large projects."
+        ),
+        "source": "https://www.bpa.gov/energy-and-services/transmission/generator-interconnection",
+    },
+    "jbmdl-nj": {
+        "rto": "PJM (PSE&G / JCP&L)",
+        "note": (
+            "PJM Interconnection — largest RTO in the US (13 states + DC). "
+            "Queue exceeds 1,200 GW; median timelines now approaching 7 years post-reform. "
+            "A 1,117 MW AP1000 would enter the most congested interconnection queue in "
+            "North America. NJ's ZEC program could reduce revenue risk."
+        ),
+        "source": "https://www.pjm.com/planning/interconnection-agreements",
+    },
+    "holston-aap-tn": {
+        "rto": "TVA",
+        "note": (
+            "Tennessee Valley Authority — same bilateral path as Arnold AFB and Fort Campbell. "
+            "Holston sits in TVA's East Tennessee territory adjacent to the Clinch River "
+            "BWRX-300 site, making TVA the most institutionally prepared BA on this list "
+            "for licensing and interconnecting new nuclear generation."
+        ),
+        "source": "https://www.tva.com/energy/our-power-system/transmission/request-for-transmission-service",
+    },
+    "redstone-arsenal-al": {
+        "rto": "TVA",
+        "note": (
+            "Tennessee Valley Authority — Wheeler Reservoir on-site is a TVA-managed "
+            "impoundment, reinforcing the operational relationship. "
+            "NASA Marshall / Space Command mission tenants provide a high-value load "
+            "anchor for a potential PPP structure with TVA."
+        ),
+        "source": "https://www.tva.com/energy/our-power-system/transmission/request-for-transmission-service",
+    },
+}
+
 
 def _haversine_mi(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     R = 3958.8
@@ -586,6 +727,14 @@ def main() -> None:
                 rec["retired_plant_fuel"] = p["fuel"]
                 rec["retired_plant_year"] = p["ret_year"]
                 rec["retired_plant_name"] = p["name"]
+
+        # ISO/RTO grid operator — affects 1,117 MW interconnection timeline.
+        go = GRID_OPERATOR.get(s["id"])
+        if not go:
+            raise SystemExit(f"no GRID_OPERATOR entry for {s['id']}")
+        rec["iso_rto"]            = go["rto"]
+        rec["iso_rto_note"]       = go["note"]
+        rec["iso_rto_source_url"] = go["source"]
 
         out.append(rec)
 
