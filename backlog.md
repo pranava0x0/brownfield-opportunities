@@ -6,11 +6,11 @@ Ideas and enhancements. Priorities: **high** = next, **med** = soon, **low** = n
 
 ## AP1000 tab — next steps (2026-06-25)
 
-- **[high] Add `power_plant_*` / `retired_plant_*` to AP1000 CSV export.** Six columns missing from `AP1000_CSV_COLUMNS` in `app.js` — nearest active plant MW/fuel/mi and nearest retired plant name/MW/fuel/year/mi. Quick fix, high user value (downloaded table currently has no grid context).
+- ~~**[high] Add `power_plant_*` / `retired_plant_*` to AP1000 CSV export.**~~ **Done 2026-06-30 (PR #15).** Added `iso_rto`, `iso_rto_note`, `power_plant_mi/mw/fuel`, `retired_plant_mi/mw/fuel/year/name` to `AP1000_CSV_COLUMNS`.
 
-- **[high] ISO/RTO field per AP1000 site.** Which grid operator serves each installation matters enormously for a 1,117 MW interconnection queue. PJM (JBMDL, Fort Campbell, Fort Benning) vs. TVA (Holston, Arnold) vs. WECC (Edwards, Davis-Monthan) have radically different timelines. Hand-curated string field + note in `build_ap1000_sites.py`, rendered in the Grid context section. Changes the narrative for JBMDL (PJM queue is brutal) and Holston (inside TVA territory — no auction-based queue).
+- ~~**[high] ISO/RTO field per AP1000 site.**~~ **Done 2026-06-30 (PR #15).** `GRID_OPERATOR` dict in `build_ap1000_sites.py`; emits `iso_rto` / `iso_rto_note` / `iso_rto_source_url`; Grid context block leads with the ISO/RTO row. Correct assignments: TVA ×5 (Arnold, Campbell, Holston, Redstone, Fort Campbell), PJM ×1 (JBMDL), ERCOT ×1 (Fort Hood), NYISO ×1 (Fort Drum), CAISO ×1 (Edwards), Non-RTO/SERC ×3 (Robins, Benning, Bragg), Non-RTO/WECC ×2 (Davis-Monthan, JBLM), ASEA ×1 (Fort Wainwright).
 
-- **[med] USGS quantitative seismic hazard** replacing the analyst-assessed `seismic_flag`. USGS Unified Hazard Tool API returns PGA at 2%/50yr for any lat/lon — 14 queries, no spatial index. Turns "⚠ Seismic moderate" into "PGA 0.15g (USGS, 2%/50yr)" with a citation link. AP1000 has regulatory seismic design criteria (SSE = 0.3g) so the exact number matters.
+- ~~**[med] USGS quantitative seismic hazard**~~ **Done 2026-06-30.** `USGS_SEISMIC` lookup dict embedded in `build_ap1000_sites.py` (ASCE 7-22, Risk Cat. IV, Site Class C). Emits `usgs_pgam` / `usgs_ss` / `usgs_sdc` / `usgs_exceeds_sse` / `usgs_api_source` on every site. Flags cell now shows "⚡ Seismic PGA 0.59g · SDC D" with source link; color-coded by exceedance of AP1000 SSE threshold (0.30g): `bad` ≥0.30g (JBLM 0.59, Wainwright 0.46, Edwards 0.45, Campbell 0.37), `warn` ≥0.15g, `ok` otherwise. 4 CSV columns added. 1 new e2e test (`test_ap1000_seismic_flag_shows_usgs_pga`).
 
 ---
 

@@ -3143,6 +3143,7 @@ function _ap1000CellSrc(url, ariaLabel) {
 const _AP1000_HIFLD_PLANT_SOURCE = "https://hifld-geoplatform.opendata.arcgis.com/datasets/geoplatform::power-plants/about";
 const _AP1000_EIA_RETIRED_SOURCE = "https://www.eia.gov/electricity/data/eia860m/";
 const _EIA_ISO_RTO_SOURCE = "https://www.eia.gov/electricity/wholesale/";
+const _AP1000_USGS_SEISMIC_SOURCE = "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json";
 
 function _ap1000SourceFor(s, field) {
   if (!s) return "";
@@ -3157,6 +3158,7 @@ function _ap1000SourceFor(s, field) {
   if (field === "active_plant") return _AP1000_HIFLD_PLANT_SOURCE;
   if (field === "retired_plant") return _AP1000_EIA_RETIRED_SOURCE;
   if (field === "grid_operator") return s.iso_rto_source_url || _EIA_ISO_RTO_SOURCE;
+  if (field === "seismic_usgs") return s.usgs_api_source || _AP1000_USGS_SEISMIC_SOURCE;
   if (field === "rank" || field === "installation") return _AP1000_DATA_SOURCE;
   return "";
 }
@@ -3192,8 +3194,22 @@ function buildAp1000View() {
 
     // Unscored geohazard flags — only surface the notable ones.
     const flags = [];
-    if (s.seismic_flag && s.seismic_flag !== "low" && s.seismic_flag !== "none")
+    if (s.usgs_pgam != null) {
+      // Quantitative USGS ASCE 7-22 seismic hazard replaces the qualitative flag.
+      const pgam = s.usgs_pgam;
+      const exceedsCls = pgam > 0.30 ? "bad" : pgam >= 0.15 ? "warn" : "ok";
+      const exceedsTip = pgam > 0.30
+        ? ` — exceeds AP1000 SSE threshold (0.30g); site-specific seismic analysis required`
+        : "";
+      const seismicLabel = `PGA ${pgam.toFixed(2)}g · SDC ${escapeHtml(s.usgs_sdc || "?")}`;
+      flags.push(
+        `<span class="ap1000-flag ${exceedsCls}" title="USGS ASCE 7-22 seismic hazard (Risk Cat. IV, Site Class C)${exceedsTip}">` +
+        `⚠ Seismic ${seismicLabel}</span>` +
+        _ap1000CellSrc(_ap1000SourceFor(s, "seismic_usgs"), "USGS seismic API")
+      );
+    } else if (s.seismic_flag && s.seismic_flag !== "low" && s.seismic_flag !== "none") {
       flags.push(`<span class="ap1000-flag ${AP1000_FLAG_CLASS[s.seismic_flag] || "warn"}" title="Seismic risk (not scored)">⚠ Seismic ${escapeHtml(s.seismic_flag)}</span>`);
+    }
     if (s.flood_flag && s.flood_flag !== "low" && s.flood_flag !== "none")
       flags.push(`<span class="ap1000-flag ${AP1000_FLAG_CLASS[s.flood_flag] || "warn"}" title="Flood exposure (not scored)">⚠ Flood ${escapeHtml(s.flood_flag)}</span>`);
     const flagCell = flags.length ? flags.join(" ") : '<span class="muted-cell">—</span>';
@@ -3342,6 +3358,10 @@ const AP1000_CSV_COLUMNS = [
   { label: "fiber", value: (r) => r.s.fiber, source: (r) => _ap1000SourceFor(r.s, "fiber") },
   { label: "fiber_reason", value: (r) => r.s.fiber_note, source: (r) => _ap1000SourceFor(r.s, "fiber") },
   { label: "seismic_flag", value: (r) => r.s.seismic_flag, source: (r) => _ap1000SourceFor(r.s, "flags") },
+  { label: "usgs_pgam_g", value: (r) => r.s.usgs_pgam, source: (r) => _ap1000SourceFor(r.s, "seismic_usgs") },
+  { label: "usgs_ss_g", value: (r) => r.s.usgs_ss, source: (r) => _ap1000SourceFor(r.s, "seismic_usgs") },
+  { label: "usgs_sdc", value: (r) => r.s.usgs_sdc, source: (r) => _ap1000SourceFor(r.s, "seismic_usgs") },
+  { label: "usgs_exceeds_sse_0.30g", value: (r) => r.s.usgs_exceeds_sse, source: (r) => _ap1000SourceFor(r.s, "seismic_usgs") },
   { label: "flood_flag", value: (r) => r.s.flood_flag, source: (r) => _ap1000SourceFor(r.s, "flags") },
   { label: "janus_site", value: (r) => r.s.janus_site, source: (r) => r.s.janus_source_url || _ap1000SourceFor(r.s, "installation") },
   { label: "af_rflp_site", value: (r) => r.s.af_rflp_site, source: (r) => r.s.af_rflp_source_url || "" },
