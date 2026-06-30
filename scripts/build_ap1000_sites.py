@@ -530,6 +530,36 @@ GRID_OPERATOR = {
 }
 
 
+# USGS ASCE 7-22 seismic hazard — prefetched from the USGS Design Maps API
+# (earthquake.usgs.gov/ws/designmaps/asce7-22.json) at Risk Category IV /
+# Site Class C. Values are stable reference data; re-fetch only if coordinates
+# change. AP1000 SSE threshold = 0.30g PGA — sites above need site-specific
+# seismic analysis. Three of 14 sites exceed it: JBLM (2×), Fort Wainwright,
+# Fort Campbell (marginally). Edwards AFB also above at 0.45g.
+USGS_SEISMIC = {
+    # pgam = design PGA (g), ss = MCE_R 0.2s spectral accel (g), sdc = Seismic Design Category
+    "arnold-afb-tn":        {"pgam": 0.18, "ss": 0.39, "sdc": "C"},
+    "davis-monthan-afb-az": {"pgam": 0.13, "ss": 0.28, "sdc": "C"},
+    "edwards-afb-ca":       {"pgam": 0.45, "ss": 1.00, "sdc": "D"},
+    "robins-afb-ga":        {"pgam": 0.11, "ss": 0.23, "sdc": "C"},
+    "fort-benning-ga":      {"pgam": 0.07, "ss": 0.17, "sdc": "C"},
+    "fort-bragg-nc":        {"pgam": 0.10, "ss": 0.23, "sdc": "C"},
+    "fort-campbell-ky":     {"pgam": 0.37, "ss": 0.79, "sdc": "D"},
+    "fort-drum-ny":         {"pgam": 0.12, "ss": 0.23, "sdc": "A"},
+    "fort-hood-tx":         {"pgam": 0.03, "ss": 0.07, "sdc": "A"},
+    "fort-wainwright-ak":   {"pgam": 0.46, "ss": 1.05, "sdc": "D"},
+    "jblm-wa":              {"pgam": 0.59, "ss": 1.50, "sdc": "D"},
+    "jbmdl-nj":             {"pgam": 0.12, "ss": 0.20, "sdc": "A"},
+    "holston-aap-tn":       {"pgam": 0.20, "ss": 0.34, "sdc": "C"},
+    "redstone-arsenal-al":  {"pgam": 0.18, "ss": 0.38, "sdc": "C"},
+}
+
+# AP1000 NRC-licensed seismic design basis (SSE = Safe Shutdown Earthquake).
+# Sites with pgam > this need site-specific probabilistic seismic hazard
+# analysis; the AP1000's certified design can accommodate up to 0.3g.
+AP1000_SSE_THRESHOLD_G = 0.30
+
+
 def _haversine_mi(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     R = 3958.8
     phi1, phi2 = math.radians(lat1), math.radians(lat2)
@@ -735,6 +765,20 @@ def main() -> None:
         rec["iso_rto"]            = go["rto"]
         rec["iso_rto_note"]       = go["note"]
         rec["iso_rto_source_url"] = go["source"]
+
+        # USGS ASCE 7-22 quantitative seismic hazard (prefetched stable values).
+        usgs = USGS_SEISMIC.get(s["id"])
+        if not usgs:
+            raise SystemExit(f"no USGS_SEISMIC entry for {s['id']}")
+        rec["usgs_pgam"]              = usgs["pgam"]
+        rec["usgs_ss"]                = usgs["ss"]
+        rec["usgs_sdc"]               = usgs["sdc"]
+        rec["usgs_exceeds_sse"]       = usgs["pgam"] > AP1000_SSE_THRESHOLD_G
+        rec["usgs_api_source"]        = (
+            f"https://earthquake.usgs.gov/ws/designmaps/asce7-22.json"
+            f"?latitude={rec['lat']}&longitude={rec['lon']}"
+            f"&riskCategory=IV&siteClass=C"
+        )
 
         out.append(rec)
 
