@@ -4,6 +4,13 @@ Ideas and enhancements. Priorities: **high** = next, **med** = soon, **low** = n
 
 ---
 
+## Session checkpoint — 2026-06-30 (scheduled data-maintenance run)
+
+- **FEMA flood-zone backfill: 31.7% → 36.8%** (`e09453d`) — `--infra-flood-budget 2500`, `flood_zone` 14,814 → 17,197 (`in_sfha` 1,632). Overlaid only the new flood values onto main (no OSM substation re-fetch drift); all 46,760 records preserved. ~27,895 sites still deferred — ~12 more runs at this budget to finish. See [[project-flood-backfill-resumable]] / CLAUDE.md "Resumable flood backfill."
+- The three AP1000 backlog items below were landed in parallel via PR #15 / #16 during this same run. Next obvious data work: keep running the flood backfill; the producer datasets (`sites.json`, `epa-acres`, `dod-fuds`, `dod-brac`) are from 2026-05-12 (~7 wk old) and are the next freshness item — but a producer refresh re-fetches whole datasets + triggers downstream re-enrichment, so it's best run supervised (watch the ECHO-style truncation/merge gotchas).
+
+---
+
 ## AP1000 tab — next steps (2026-06-25)
 
 - ~~**[high] Add `power_plant_*` / `retired_plant_*` to AP1000 CSV export.**~~ **Done 2026-06-30 (PR #15).** Added `iso_rto`, `iso_rto_note`, `power_plant_mi/mw/fuel`, `retired_plant_mi/mw/fuel/year/name` to `AP1000_CSV_COLUMNS`.
