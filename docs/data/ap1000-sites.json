@@ -56,7 +56,12 @@
       "power_plant_fuel": "hydroelectric",
       "iso_rto": "TVA",
       "iso_rto_note": "Tennessee Valley Authority \u2014 vertically integrated, no competitive queue. Interconnection via bilateral agreement. TVA's Clinch River BWRX-300 project makes it the most nuclear-receptive large utility in the US.",
-      "iso_rto_source_url": "https://www.tva.com/energy/our-power-system/transmission/request-for-transmission-service"
+      "iso_rto_source_url": "https://www.tva.com/energy/our-power-system/transmission/request-for-transmission-service",
+      "usgs_pgam": 0.18,
+      "usgs_ss": 0.39,
+      "usgs_sdc": "C",
+      "usgs_exceeds_sse": false,
+      "usgs_api_source": "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=35.371111&longitude=-86.215556&riskCategory=IV&siteClass=C"
     },
     {
       "id": "davis-monthan-afb-az",
@@ -107,7 +112,12 @@
       "retired_plant_name": "H Wilson Sundt Generating Station",
       "iso_rto": "Non-RTO/WECC (Tucson Electric Power)",
       "iso_rto_note": "Tucson Electric Power (TEP) balancing authority \u2014 WECC region, no ISO/RTO queue. Vertically integrated IOU; large interconnections require bilateral negotiations. No organized capacity market.",
-      "iso_rto_source_url": "https://www.tucsonelectric.com/energy/transmission"
+      "iso_rto_source_url": "https://www.tucsonelectric.com/energy/transmission",
+      "usgs_pgam": 0.13,
+      "usgs_ss": 0.28,
+      "usgs_sdc": "C",
+      "usgs_exceeds_sse": false,
+      "usgs_api_source": "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=32.165&longitude=-110.8575&riskCategory=IV&siteClass=C"
     },
     {
       "id": "edwards-afb-ca",
@@ -153,7 +163,12 @@
       "power_plant_fuel": "solar",
       "iso_rto": "CAISO (Southern California Edison)",
       "iso_rto_note": "California ISO balancing authority (SCE distribution territory). CAISO interconnection queue exceeds 300 GW; post-FERC Order 2023 reforms target 5-year median timelines, but 1,117 MW nuclear would be a novel CAISO category with multi-year study periods.",
-      "iso_rto_source_url": "https://www.caiso.com/generation/Pages/InterconnectionProcesses/default.aspx"
+      "iso_rto_source_url": "https://www.caiso.com/generation/Pages/InterconnectionProcesses/default.aspx",
+      "usgs_pgam": 0.45,
+      "usgs_ss": 1.0,
+      "usgs_sdc": "D",
+      "usgs_exceeds_sse": true,
+      "usgs_api_source": "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=34.889945&longitude=-117.83243&riskCategory=IV&siteClass=C"
     },
     {
       "id": "robins-afb-ga",
@@ -204,7 +219,12 @@
       "retired_plant_name": "Arkwright",
       "iso_rto": "Non-RTO/SERC (Georgia Power / Southern Company)",
       "iso_rto_note": "Southern Company (Georgia Power) service territory \u2014 SERC region, no ISO/RTO queue. Southern Company has direct AP1000 experience (Vogtle 3 & 4) in this territory. Bilateral agreements; typically faster than PJM/NYISO for large nuclear.",
-      "iso_rto_source_url": "https://www.southerncompany.com/transmission"
+      "iso_rto_source_url": "https://www.southerncompany.com/transmission",
+      "usgs_pgam": 0.11,
+      "usgs_ss": 0.23,
+      "usgs_sdc": "C",
+      "usgs_exceeds_sse": false,
+      "usgs_api_source": "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=32.616522&longitude=-83.582508&riskCategory=IV&siteClass=C"
     },
     {
       "id": "fort-benning-ga",
@@ -247,7 +267,12 @@
       "power_plant_fuel": "solar",
       "iso_rto": "Non-RTO/SERC (Georgia Power / Southern Company)",
       "iso_rto_note": "Same Georgia Power / Southern Company territory as Robins AFB \u2014 SERC region, bilateral interconnection. Southern Company's Vogtle AP1000 experience makes this the most nuclear-familiar BA of the 14.",
-      "iso_rto_source_url": "https://www.southerncompany.com/transmission"
+      "iso_rto_source_url": "https://www.southerncompany.com/transmission",
+      "usgs_pgam": 0.07,
+      "usgs_ss": 0.17,
+      "usgs_sdc": "C",
+      "usgs_exceeds_sse": false,
+      "usgs_api_source": "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=32.341389&longitude=-84.993611&riskCategory=IV&siteClass=C"
     },
     {
       "id": "fort-bragg-nc",
@@ -289,7 +314,12 @@
       "power_plant_fuel": "batteries",
       "iso_rto": "Non-RTO/SERC (Duke Energy Carolinas)",
       "iso_rto_note": "Duke Energy Carolinas service territory \u2014 SERC region, no ISO/RTO queue. Duke is vertically integrated in the Carolinas; bilateral interconnect. Duke has SMR interest in the Carolinas but no active AP1000 program.",
-      "iso_rto_source_url": "https://www.dukeenergy.com/home/products/electric-transmission"
+      "iso_rto_source_url": "https://www.dukeenergy.com/home/products/electric-transmission",
+      "usgs_pgam": 0.1,
+      "usgs_ss": 0.23,
+      "usgs_sdc": "C",
+      "usgs_exceeds_sse": false,
+      "usgs_api_source": "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=35.133333&longitude=-78.983333&riskCategory=IV&siteClass=C"
     },
     {
       "id": "fort-campbell-ky",
@@ -331,7 +361,12 @@
       "power_plant_fuel": "coal",
       "iso_rto": "TVA",
       "iso_rto_note": "Fort Campbell straddles the TN/KY border (cantonment primarily Clarksville, TN); served by Tennessee Valley Authority. Same bilateral-agreement interconnection path as Arnold AFB and Holston AAP \u2014 no organized capacity queue.",
-      "iso_rto_source_url": "https://www.tva.com/energy/our-power-system/transmission/request-for-transmission-service"
+      "iso_rto_source_url": "https://www.tva.com/energy/our-power-system/transmission/request-for-transmission-service",
+      "usgs_pgam": 0.37,
+      "usgs_ss": 0.79,
+      "usgs_sdc": "D",
+      "usgs_exceeds_sse": true,
+      "usgs_api_source": "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=36.463333&longitude=-87.750278&riskCategory=IV&siteClass=C"
     },
     {
       "id": "fort-drum-ny",
@@ -374,7 +409,12 @@
       "power_plant_fuel": "hydroelectric",
       "iso_rto": "NYISO (National Grid / Zone C)",
       "iso_rto_note": "New York ISO, Zone C (Central NY / National Grid territory). NYISO has a structured interconnection queue; NY's Climate Leadership and Community Protection Act creates demand for carbon-free baseload. Queue timelines typically 3-5 years for large projects.",
-      "iso_rto_source_url": "https://www.nyiso.com/generation-interconnection"
+      "iso_rto_source_url": "https://www.nyiso.com/generation-interconnection",
+      "usgs_pgam": 0.12,
+      "usgs_ss": 0.23,
+      "usgs_sdc": "A",
+      "usgs_exceeds_sse": false,
+      "usgs_api_source": "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=44.038333&longitude=-75.675556&riskCategory=IV&siteClass=C"
     },
     {
       "id": "fort-hood-tx",
@@ -416,7 +456,12 @@
       "power_plant_fuel": "natural gas",
       "iso_rto": "ERCOT",
       "iso_rto_note": "Electric Reliability Council of Texas \u2014 self-contained, no FERC jurisdiction. ERCOT's interconnection queue (~350 GW pending) has moved faster than PJM historically. Texas's deregulated market offers competitive PPA pricing.",
-      "iso_rto_source_url": "https://www.ercot.com/mktrules/guides/interconnection"
+      "iso_rto_source_url": "https://www.ercot.com/mktrules/guides/interconnection",
+      "usgs_pgam": 0.03,
+      "usgs_ss": 0.07,
+      "usgs_sdc": "A",
+      "usgs_exceeds_sse": false,
+      "usgs_api_source": "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=31.001944&longitude=-97.711111&riskCategory=IV&siteClass=C"
     },
     {
       "id": "fort-wainwright-ak",
@@ -458,7 +503,12 @@
       "power_plant_fuel": "petroleum",
       "iso_rto": "ASEA Railbelt (GVEA \u2014 no RTO)",
       "iso_rto_note": "Golden Valley Electric Association (GVEA) on the Railbelt grid \u2014 a ~400-mi isolated AC system. No ISO/RTO; project-by-project bilateral. An AP1000's 1,117 MW dwarfs the Railbelt's ~700 MW peak load \u2014 would require behind-the-fence configuration.",
-      "iso_rto_source_url": "https://www.gvea.com/about/our-grid"
+      "iso_rto_source_url": "https://www.gvea.com/about/our-grid",
+      "usgs_pgam": 0.46,
+      "usgs_ss": 1.05,
+      "usgs_sdc": "D",
+      "usgs_exceeds_sse": true,
+      "usgs_api_source": "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=64.605399&longitude=-147.414442&riskCategory=IV&siteClass=C"
     },
     {
       "id": "jblm-wa",
@@ -505,7 +555,12 @@
       "retired_plant_name": "Pierce Power Station",
       "iso_rto": "Non-RTO/WECC (Puget Sound Energy / BPA)",
       "iso_rto_note": "Puget Sound Energy (PSE) retail territory, Bonneville Power Administration (BPA) transmission grid. WECC without ISO/RTO \u2014 BPA manages bulk transmission. BPA's Columbia River hydro provides abundant balancing reserves. Bilateral process with BPA typically 3-4 years for large projects.",
-      "iso_rto_source_url": "https://www.bpa.gov/energy-and-services/transmission/generator-interconnection"
+      "iso_rto_source_url": "https://www.bpa.gov/energy-and-services/transmission/generator-interconnection",
+      "usgs_pgam": 0.59,
+      "usgs_ss": 1.5,
+      "usgs_sdc": "D",
+      "usgs_exceeds_sse": true,
+      "usgs_api_source": "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=47.114818&longitude=-122.538348&riskCategory=IV&siteClass=C"
     },
     {
       "id": "jbmdl-nj",
@@ -556,7 +611,12 @@
       "retired_plant_name": "PSEG Mercer Generating Station",
       "iso_rto": "PJM (PSE&G / JCP&L)",
       "iso_rto_note": "PJM Interconnection \u2014 largest RTO in the US (13 states + DC). Queue exceeds 1,200 GW; median timelines now approaching 7 years post-reform. A 1,117 MW AP1000 would enter the most congested interconnection queue in North America. NJ's ZEC program could reduce revenue risk.",
-      "iso_rto_source_url": "https://www.pjm.com/planning/interconnection-agreements"
+      "iso_rto_source_url": "https://www.pjm.com/planning/interconnection-agreements",
+      "usgs_pgam": 0.12,
+      "usgs_ss": 0.2,
+      "usgs_sdc": "A",
+      "usgs_exceeds_sse": false,
+      "usgs_api_source": "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=40.029445&longitude=-74.589115&riskCategory=IV&siteClass=C"
     },
     {
       "id": "holston-aap-tn",
@@ -603,7 +663,12 @@
       "retired_plant_name": "John Sevier",
       "iso_rto": "TVA",
       "iso_rto_note": "Tennessee Valley Authority \u2014 same bilateral path as Arnold AFB and Fort Campbell. Holston sits in TVA's East Tennessee territory adjacent to the Clinch River BWRX-300 site, making TVA the most institutionally prepared BA on this list for licensing and interconnecting new nuclear generation.",
-      "iso_rto_source_url": "https://www.tva.com/energy/our-power-system/transmission/request-for-transmission-service"
+      "iso_rto_source_url": "https://www.tva.com/energy/our-power-system/transmission/request-for-transmission-service",
+      "usgs_pgam": 0.2,
+      "usgs_ss": 0.34,
+      "usgs_sdc": "C",
+      "usgs_exceeds_sse": false,
+      "usgs_api_source": "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=36.51&longitude=-82.56&riskCategory=IV&siteClass=C"
     },
     {
       "id": "redstone-arsenal-al",
@@ -645,7 +710,12 @@
       "power_plant_fuel": "solar",
       "iso_rto": "TVA",
       "iso_rto_note": "Tennessee Valley Authority \u2014 Wheeler Reservoir on-site is a TVA-managed impoundment, reinforcing the operational relationship. NASA Marshall / Space Command mission tenants provide a high-value load anchor for a potential PPP structure with TVA.",
-      "iso_rto_source_url": "https://www.tva.com/energy/our-power-system/transmission/request-for-transmission-service"
+      "iso_rto_source_url": "https://www.tva.com/energy/our-power-system/transmission/request-for-transmission-service",
+      "usgs_pgam": 0.18,
+      "usgs_ss": 0.38,
+      "usgs_sdc": "C",
+      "usgs_exceeds_sse": false,
+      "usgs_api_source": "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=34.629981&longitude=-86.653678&riskCategory=IV&siteClass=C"
     }
   ]
 }
