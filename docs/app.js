@@ -3142,6 +3142,7 @@ function _ap1000CellSrc(url, ariaLabel) {
 
 const _AP1000_HIFLD_PLANT_SOURCE = "https://hifld-geoplatform.opendata.arcgis.com/datasets/geoplatform::power-plants/about";
 const _AP1000_EIA_RETIRED_SOURCE = "https://www.eia.gov/electricity/data/eia860m/";
+const _EIA_ISO_RTO_SOURCE = "https://www.eia.gov/electricity/wholesale/";
 
 function _ap1000SourceFor(s, field) {
   if (!s) return "";
@@ -3155,6 +3156,7 @@ function _ap1000SourceFor(s, field) {
   if (field === "flags") return s.geohazard_source_url || _AP1000_GEOHAZARD_SOURCE;
   if (field === "active_plant") return _AP1000_HIFLD_PLANT_SOURCE;
   if (field === "retired_plant") return _AP1000_EIA_RETIRED_SOURCE;
+  if (field === "grid_operator") return s.iso_rto_source_url || _EIA_ISO_RTO_SOURCE;
   if (field === "rank" || field === "installation") return _AP1000_DATA_SOURCE;
   return "";
 }
@@ -3262,7 +3264,10 @@ function buildAp1000View() {
           `<div><dt>Fiber</dt><dd><span class="ap1000-tag ${fiberCls}">${escapeHtml(s.fiber || "—")}</span><p class="ap1000-note">${escapeHtml(s.fiber_note || "")}</p></dd></div>` +
         `</dl>` +
         `<details class="ap1000-grid-ctx" open><summary class="ap1000-grid-summary">Grid context <span class="ap1000-grid-note">(informational — not scored)</span></summary>` +
-          `<dl class="ap1000-facts ap1000-grid-facts">${activeBlock}${retiredBlock}</dl>` +
+          `<dl class="ap1000-facts ap1000-grid-facts">` +
+            (s.iso_rto ? `<div><dt>Grid operator (ISO/RTO)${_ap1000CellSrc(_ap1000SourceFor(s, "grid_operator"), "ISO/RTO source")}</dt><dd><strong>${escapeHtml(s.iso_rto)}</strong><p class="ap1000-note">${escapeHtml(s.iso_rto_note || "")}</p></dd></div>` : "") +
+            activeBlock + retiredBlock +
+          `</dl>` +
         `</details>` +
         (s.siting_note ? `<p class="ap1000-siting"><span class="ap1000-siting-label">Siting note (geohazards not scored):</span> ${escapeHtml(s.siting_note)}</p>` : "") +
         (s.af_rflp_site ? `<p class="ap1000-nuke muted"><strong>Air Force AI data-center RFLP:</strong> ${fmt.acres(s.af_rflp_acres)} offered as underutilized land (${escapeHtml(s.af_rflp_detail || "")}). This is shown as provenance for active-base energy/data-center siting interest, not substituted for total developable acreage. ${_ap1000Src(s.af_rflp_source_url, "SAM.gov")} ${_ap1000Src(s.af_rflp_article_url, "public Q&A")}</p>` : "") +
@@ -3341,6 +3346,16 @@ const AP1000_CSV_COLUMNS = [
   { label: "janus_site", value: (r) => r.s.janus_site, source: (r) => r.s.janus_source_url || _ap1000SourceFor(r.s, "installation") },
   { label: "af_rflp_site", value: (r) => r.s.af_rflp_site, source: (r) => r.s.af_rflp_source_url || "" },
   { label: "af_rflp_acres", value: (r) => r.s.af_rflp_acres, source: (r) => r.s.af_rflp_source_url || "" },
+  { label: "iso_rto", value: (r) => r.s.iso_rto, source: (r) => _ap1000SourceFor(r.s, "grid_operator") },
+  { label: "iso_rto_note", value: (r) => r.s.iso_rto_note, source: (r) => _ap1000SourceFor(r.s, "grid_operator") },
+  { label: "power_plant_mi", value: (r) => r.s.power_plant_mi, source: (r) => _ap1000SourceFor(r.s, "active_plant") },
+  { label: "power_plant_mw", value: (r) => r.s.power_plant_mw, source: (r) => _ap1000SourceFor(r.s, "active_plant") },
+  { label: "power_plant_fuel", value: (r) => r.s.power_plant_fuel, source: (r) => _ap1000SourceFor(r.s, "active_plant") },
+  { label: "retired_plant_mi", value: (r) => r.s.retired_plant_mi, source: (r) => _ap1000SourceFor(r.s, "retired_plant") },
+  { label: "retired_plant_mw", value: (r) => r.s.retired_plant_mw, source: (r) => _ap1000SourceFor(r.s, "retired_plant") },
+  { label: "retired_plant_fuel", value: (r) => r.s.retired_plant_fuel, source: (r) => _ap1000SourceFor(r.s, "retired_plant") },
+  { label: "retired_plant_year", value: (r) => r.s.retired_plant_year, source: (r) => _ap1000SourceFor(r.s, "retired_plant") },
+  { label: "retired_plant_name", value: (r) => r.s.retired_plant_name, source: (r) => _ap1000SourceFor(r.s, "retired_plant") },
 ];
 
 function ap1000ScoredRows() {
