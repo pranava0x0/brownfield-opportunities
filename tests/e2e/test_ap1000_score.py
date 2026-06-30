@@ -108,6 +108,10 @@ def test_ap1000_csv_exports_values_with_source_urls(page: Page, base_url: str) -
         "fiber",
         "fiber_reason",
         "seismic_flag",
+        "usgs_pgam_g",
+        "usgs_ss_g",
+        "usgs_sdc",
+        "usgs_exceeds_sse_0.30g",
     ]:
         assert col in header
         assert f"{col}_source_url" in header
@@ -117,6 +121,22 @@ def test_ap1000_csv_exports_values_with_source_urls(page: Page, base_url: str) -
     # water_reason carries the validated firm-yield rationale (Belton Lake)
     assert "Belton" in hood_line
     assert "https://" in hood_line
+
+
+def test_ap1000_seismic_flag_shows_usgs_pga(page: Page, base_url: str) -> None:
+    """Flags cell renders quantitative USGS PGA / SDC; high sites flagged 'bad'."""
+    _ready(page, base_url)
+    page.get_by_role("tab", name="AP1000").click()
+    page.get_by_text("Fort Benning (Fort Moore)", exact=True).wait_for(timeout=10_000)
+    # JBLM has the highest PGA (0.59g) — exceeds 0.30g SSE threshold → 'bad' class.
+    jblm_row = page.locator(".ap1000-row").filter(has_text="Joint Base Lewis-McChord")
+    jblm_flags_text = jblm_row.locator(".ap1000-flags-cell").inner_text()
+    assert "0.59g" in jblm_flags_text
+    assert "SDC D" in jblm_flags_text
+    # Fort Hood has low PGA (0.03g) — 'ok' class, still shown.
+    hood_row = page.locator(".ap1000-row").filter(has_text="Fort Hood")
+    hood_flags_text = hood_row.locator(".ap1000-flags-cell").inner_text()
+    assert "0.03g" in hood_flags_text
 
 
 def test_ap1000_table_is_accessible(page: Page, base_url: str) -> None:
