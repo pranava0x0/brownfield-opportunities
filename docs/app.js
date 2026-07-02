@@ -1579,6 +1579,14 @@ function ensureRetiredIndustrialLoaded() {
         const reason = s.reporting_status === "valid_reason"
           ? "ceased GHGRP reporting (a reason was stated)"
           : "ceased GHGRP reporting (reason unknown — could be closed, idled, or below threshold)";
+        // Stable per-facility citation page, derivable from the GHGRP id
+        // (verified 200 as of 2026-07-02): EPA Envirofacts GHG facility detail.
+        const efUrl = `https://enviro.epa.gov/envirofacts/ghg/facility-detail/${encodeURIComponent(String(s.id).replace("GHGRP-", ""))}`;
+        // Parcel availability: when the same ground is a tracked brownfield
+        // record, that record carries owner / SWRAU / cleanup-status evidence.
+        const trackedHtml = s.tracked_site_id
+          ? `<div class="ref-campus-prev" style="margin-top:6px"><strong>Availability evidence:</strong> tracked ${escapeHtml(s.tracked_site_program || "brownfield")} record ${fmt.miles(s.tracked_site_mi)} away — <a href="?site=${encodeURIComponent(s.tracked_site_id)}">${escapeHtml(s.tracked_site_name || s.tracked_site_id)} →</a> (owner, land-readiness, cleanup status live on that record)</div>`
+          : `<div class="ref-campus-prev" style="margin-top:6px">No tracked brownfield record within 1 mi — check the county assessor / state parcel layer for ownership and listing status.</div>`;
         marker.bindPopup(
           `<div class="ref-campus-popup">` +
           `<strong>${escapeHtml(s.name)}</strong>` +
@@ -1588,7 +1596,8 @@ function ensureRetiredIndustrialLoaded() {
             (s.last_report_year ? `<span>Last reported ${escapeHtml(String(s.last_report_year))}</span>` : "") +
             (s.parent_company ? `<span>${escapeHtml(s.parent_company)}</span>` : "") +
           `</div>` +
-          `<div class="ref-campus-prev" style="margin-top:6px">Screening signal — ${escapeHtml(reason)}. A former large-load facility may retain reusable grid infrastructure worth diligence; not a confirmed-available or still-connected site.</div>` +
+          `<div class="ref-campus-prev" style="margin-top:6px">Screening signal — ${escapeHtml(reason)}. A former large-load facility may retain reusable grid infrastructure worth diligence; not a confirmed-available or still-connected site. <a href="${efUrl}" target="_blank" rel="noopener">EPA facility record →</a></div>` +
+          trackedHtml +
           `</div>`,
           { maxWidth: 280 }
         );
@@ -3112,7 +3121,7 @@ function buildRetiredView() {
     + `<section class="retired-col"><h3>Top prior uses</h3><div class="retired-bars">${sectorRows}</div></section>`
     + `<section class="retired-col"><h3>Top states</h3><div class="retired-bars">${stateRows}</div></section>`
     + `</div>`
-    + `<p class="retired-foot muted">Source: EPA GHGRP facilities that ceased reporting (closed, idled, or below threshold). This is a screening signal for reusable grid infrastructure — verify ownership, interconnection, and closure before treating any site as available. Use the rust ◆ markers on the Map to locate them.</p>`;
+    + `<p class="retired-foot muted">Source: <a href="https://www.epa.gov/ghgreporting" target="_blank" rel="noopener">EPA Greenhouse Gas Reporting Program</a> facilities that ceased reporting (closed, idled, or below threshold), queried by <code>reporting_status</code> via the <a href="https://www.epa.gov/enviro/envirofacts-data-service-api" target="_blank" rel="noopener">Envirofacts data service</a>; every ◆ marker's popup deep-links to that facility's <a href="https://enviro.epa.gov/envirofacts/ghg/search" target="_blank" rel="noopener">EPA Envirofacts GHG record</a>. This is a screening signal for reusable grid infrastructure — verify ownership, interconnection, and closure before treating any site as available. <strong>Parcel availability:</strong> ${retiredIndustrialSites.filter((s) => s.tracked_site_id).length.toLocaleString()} of these sites sit within 1 mi of a tracked brownfield record (linked in the popup) whose owner, EPA land-readiness (SWRAU), and cleanup status supply the availability evidence; for the rest, ownership lives in county assessor / state parcel layers. Use the rust ◆ markers on the Map to locate them.</p>`;
 }
 
 // ----- AP1000 reactor-siting view -----
@@ -3343,6 +3352,19 @@ function buildAp1000View() {
         `<dl class="ap1000-facts">` +
           `<div><dt>Cooling water</dt><dd><span class="ap1000-tag ${waterCls}">${escapeHtml(s.water_adequacy || "—")}</span> ${escapeHtml(s.water_source || "")}${_ap1000Src(s.water_source_url, "source")}<p class="ap1000-note">${escapeHtml(s.water_note || "")}</p></dd></div>` +
           (s.water_rights_regime ? `<div><dt>Water rights</dt><dd><span class="ap1000-tag ${s.water_rights_class === "obtainable" ? "ok" : s.water_rights_class === "contested" ? "warn" : "bad"}">${escapeHtml((s.water_rights_class || "").replace("_", "-"))}</span> ${escapeHtml(s.water_rights_regime)}${_ap1000Src(s.water_rights_source_url, "source")}<p class="ap1000-note">${escapeHtml(s.water_rights_note || "")}</p></dd></div>` : "") +
+          // Parcel availability — which land at this installation is actually
+          // OFFERED. Military land sits outside county parcel cadastres, so the
+          // only real availability signals are the federal offering vehicles:
+          // the AF RFLP names concrete parcels; Janus makes the installation
+          // available through a negotiated site-use agreement.
+          `<div><dt>Parcel availability</dt><dd>` +
+            (s.af_rflp_site
+              ? `<span class="ap1000-tag ok">offered</span> <strong>${fmt.acres(s.af_rflp_acres)}</strong> in named parcels via the Air Force AI-data-center RFLP (AFCEC-26-R-0002)${_ap1000Src(s.af_rflp_source_url, "SAM.gov solicitation")}${_ap1000Src(s.af_rflp_article_url, "public Q&A")}<p class="ap1000-note">${escapeHtml(s.af_rflp_detail || "")}. The named parcels are the only land formally offered; siting outside them needs a separate lease action.</p>`
+              : s.janus_site
+              ? `<span class="ap1000-tag warn">program vehicle</span> No standalone parcel offering published — the Army's Janus program is the availability path here: the installation is made available to the selected vendor through a negotiated site-use agreement rather than a pre-surveyed parcel.${_ap1000Src(s.janus_source_url, "Army Janus announcement")}<p class="ap1000-note">Track SAM.gov for the installation-specific solicitation; military land does not appear in county parcel cadastres.</p>`
+              : `<span class="ap1000-tag warn">none published</span> No public offering identified.<p class="ap1000-note">Military land does not appear in county parcel cadastres; availability arises only via DoD lease actions (EUL/RFLP) or GSA disposal.</p>`) +
+            `<p class="ap1000-note">Other federal availability channels: <a href="https://sam.gov/search/?index=opp&keywords=${encodeURIComponent((s.name || "").split(" (")[0])}" target="_blank" rel="noopener">SAM.gov lease/EUL solicitations</a> · <a href="https://disposal.gsa.gov/" target="_blank" rel="noopener">GSA real-property disposals</a></p>` +
+          `</dd></div>` +
           `<div><dt>Developable acreage</dt><dd><strong>${fmt.acres(s.developable_acreage)}</strong> <span class="muted">of ${fmt.acres(s.installation_acreage)} installation</span>${_ap1000Src(s.acreage_source, "source")}<p class="ap1000-note">${escapeHtml(s.developable_basis || "")}</p></dd></div>` +
           `<div><dt>Construction workforce</dt><dd><span class="ap1000-tag ${wfCls}">${escapeHtml(s.workforce || "—")}</span> ${escapeHtml(s.workforce_metro || "")}${_ap1000Src(s.workforce_source_url, "source")}<p class="ap1000-note">${escapeHtml(s.workforce_note || "")}</p></dd></div>` +
           `<div><dt>Fiber</dt><dd><span class="ap1000-tag ${fiberCls}">${escapeHtml(s.fiber || "—")}</span><p class="ap1000-note">${escapeHtml(s.fiber_note || "")}</p></dd></div>` +
@@ -3371,10 +3393,22 @@ function buildAp1000View() {
   const clsNote = (RC[ap1000State.cls] || {}).group === "Large PWR"
     ? ""
     : `<span class="cand-filter-note">SMR / microreactor classes soften the water screen (smaller demand, dry-cooling-viable) and lower the acreage threshold — the same 14 sites re-ranked, not a new site list.</span>`;
+  // Per-class provenance line — cites the design spec and the basis of the
+  // class's water-demand figure (Vogtle 3&4 FEIS for the wet-cooled classes).
+  const activeCls = RC[ap1000State.cls] || {};
+  const clsProv = activeCls.spec_source
+    ? `<p class="ap1000-cls-prov muted">${escapeHtml(activeCls.label || "")}: ` +
+      `${escapeHtml(activeCls.mwe ? activeCls.mwe.toLocaleString() + " MWe" : "")}` +
+      `${activeCls.consumptive_cfs ? ` · ~${activeCls.consumptive_cfs} cfs consumptive` : " · air-cooled"}` +
+      ` · ≥${(activeCls.min_acres || 0).toLocaleString()} developable ac threshold. ` +
+      `${escapeHtml(activeCls.water_basis || "")} ` +
+      `${_ap1000Src(activeCls.spec_source, "design spec")} ${_ap1000Src(activeCls.water_source, "water basis")}</p>`
+    : "";
 
   host.innerHTML =
     `<div class="candidates-filters ap1000-class-row" role="group" aria-label="Reactor class">` +
       `<span class="cand-filter-label">Reactor class</span>${clsButtons}${clsNote}</div>` +
+    clsProv +
     `<div class="ap1000-table-wrap"><table class="ap1000-table">` +
       `<caption class="sr-only">AP1000 reactor-siting suitability for 14 named U.S. military installations, ranked best-first. Use each row's expand button for the full per-factor breakdown, sources, and unscored geohazard flags.</caption>` +
       `<thead><tr>` +

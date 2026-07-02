@@ -241,3 +241,30 @@ def test_reactor_class_selector_reranks_view(page: Page, base_url: str) -> None:
                .map((n) => Number(n.textContent))"""
     )
     assert scores and all(s > 0 for s in scores)
+
+
+def test_nuclear_tab_cites_class_basis_and_parcel_availability(page: Page, base_url: str) -> None:
+    """The Nuclear Siting tab carries citations for the selected reactor
+    class (design spec + water basis) and every expanded row has a Parcel
+    availability block naming the offering vehicle (AF RFLP parcels or the
+    Army Janus program) with source links."""
+    _ready(page, base_url)
+    page.locator("#tab-ap1000").click()
+    page.wait_for_selector(".ap1000-row")
+    prov = page.locator(".ap1000-cls-prov")
+    assert prov.is_visible()
+    assert "Vogtle" in (prov.text_content() or "")
+    # Expand an AF RFLP row (Arnold) and a Janus row (Redstone).
+    for name, needle in [("Arnold", "AI-data-center RFLP"), ("Redstone", "Janus program")]:
+        row = page.locator(".ap1000-row").filter(has_text=name).first
+        row.locator(".ap1000-expand").click()
+        detail = row.locator("xpath=following-sibling::tr[1]")
+        txt = detail.text_content() or ""
+        assert "Parcel availability" in txt
+        assert needle in txt, f"{name} should name its offering vehicle"
+    # Class citations exist for every class.
+    srcs = page.evaluate(
+        "() => Object.fromEntries(Object.entries(window.REACTOR_CLASSES)"
+        ".map(([k, c]) => [k, !!(c.spec_source && c.water_source && c.water_basis)]))"
+    )
+    assert all(srcs.values()), f"missing class citations: {srcs}"

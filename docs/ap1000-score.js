@@ -50,26 +50,44 @@ const AP1000_MIN_DEVELOPABLE_ACRES = 500;
 // Consumptive cfs scales from the Vogtle 3&4 record (31.1 cfs per 1,117 MWe
 // unit — ap1000-water-validation.md §1) by nameplate; APR1400 uses linear
 // MWe scaling (comparable thermal efficiency) pending a US APR1400 EIS.
+// Each class carries its own citations: `spec_source` (nameplate/design) and
+// `water_source` (basis of the consumptive figure). AP1000 water is the
+// as-built Vogtle 3&4 environmental record; APR1400 and AP300 are linear
+// per-MWe scalings of that record (stated in the note — no US EIS exists yet
+// for either); the microreactor figure reflects air-cooled designs per the
+// Army Janus program materials.
 const REACTOR_CLASSES = Object.freeze({
   ap1000: Object.freeze({
     label: "AP1000", group: "Large PWR", mwe: 1117,
     consumptive_cfs: 31.1, withdrawal_cfs: 41.5,
     min_acres: 500, volt_profile: "large", dry_cooling_viable: false,
+    spec_source: "https://westinghousenuclear.com/new-plants/ap1000-pwr/overview/",
+    water_source: "https://www.energy.gov/sites/default/files/EIS-0476-FEIS_Part1-2012.pdf",
+    water_basis: "Vogtle 3&4 FEIS as-built record: 26.8 MGD withdrawal / 20.1 MGD (31.1 cfs) consumptive per unit, natural-draft towers",
   }),
   apr1400: Object.freeze({
     label: "APR1400", group: "Large PWR", mwe: 1400,
     consumptive_cfs: 39.0, withdrawal_cfs: 52.0,
     min_acres: 500, volt_profile: "large", dry_cooling_viable: false,
+    spec_source: "https://www.nrc.gov/reactors/new-reactors/large-lwr/design-cert/apr1400.html",
+    water_source: "https://www.energy.gov/sites/default/files/EIS-0476-FEIS_Part1-2012.pdf",
+    water_basis: "Linear per-MWe scaling of the Vogtle 3&4 record (31.1 cfs × 1400/1117) — no US APR1400 EIS exists; comparable thermal efficiency",
   }),
   ap300: Object.freeze({
     label: "AP300-class SMR", group: "SMR", mwe: 330,
     consumptive_cfs: 9.2, withdrawal_cfs: 12.3,
     min_acres: 100, volt_profile: "smr", dry_cooling_viable: true,
+    spec_source: "https://westinghousenuclear.com/new-plants/ap300-smr/",
+    water_source: "https://www.energy.gov/sites/default/files/EIS-0476-FEIS_Part1-2012.pdf",
+    water_basis: "Linear per-MWe scaling of the Vogtle 3&4 record (31.1 cfs × 330/1117); AP300 reuses AP1000 passive-plant technology and supports hybrid/dry cooling",
   }),
   micro: Object.freeze({
     label: "Microreactor (Janus-class)", group: "Microreactor", mwe: 10,
     consumptive_cfs: 0, withdrawal_cfs: 0,   // typically air-cooled
     min_acres: 20, volt_profile: "micro", dry_cooling_viable: true,
+    spec_source: "https://www.army.mil/article/289074/army_announces_next_steps_on_janus_program_for_next_generation_nuclear_energy",
+    water_source: "https://www.army.mil/article/289074/army_announces_next_steps_on_janus_program_for_next_generation_nuclear_energy",
+    water_basis: "Janus-class microreactors (≤20 MWe) are air-cooled designs — no cooling-water makeup requirement",
   }),
 });
 

@@ -2617,3 +2617,37 @@ def test_intersection_observer_appends_when_user_scrolls(page, base_url):
         f"document.querySelectorAll('#sites-table tbody tr').length > {initial}",
         timeout=5000,
     )
+
+
+def test_retired_popup_carries_citation_and_availability_link(page, base_url):
+    """Every ◆ popup cites the EPA Envirofacts GHG facility record, and
+    joined sites (tracked brownfield within 1 mi) deep-link to the tracked
+    record that carries the parcel-availability evidence."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30_000)
+    page.wait_for_function(
+        "() => document.querySelectorAll('.retired-industrial-icon').length > 0",
+        timeout=15_000,
+    )
+    r = page.evaluate(
+        """() => {
+          const layers = [];
+          window.__map.eachLayer((l) => {
+            if (l.getPopup && l.getPopup()
+                && String(l.getPopup().getContent()).includes('facility-detail')) layers.push(l);
+          });
+          const contents = [];
+          window.__map.eachLayer((l) => {
+            const p = l.getPopup && l.getPopup();
+            if (p && String(p.getContent()).includes('Screening signal')) contents.push(String(p.getContent()));
+          });
+          return {
+            cited: layers.length,
+            total: contents.length,
+            withTracked: contents.filter((c) => c.includes('?site=')).length,
+          };
+        }"""
+    )
+    assert r["total"] > 500
+    assert r["cited"] == r["total"], "every retired popup must cite Envirofacts"
+    assert r["withTracked"] > 100  # 214 joined as of 2026-07-02

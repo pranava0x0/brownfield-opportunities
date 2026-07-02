@@ -12,6 +12,11 @@ Ideas and enhancements. Priorities: **high** = next, **med** = soon, **low** = n
 
 **Evaluation doc (2026-07-02, same session):** `unified-rankings-and-pwr-siting-plan.md` — (1) Table + DC Candidates merge evaluation → recommend renaming to "Rankings" + third Manufacturing lens now, full config-driven table merge later; manufacturing v0 weights proposed (rail 22 / acreage-peaked 18 / transmission 16 / substation 12 / gas 12 / highway 10 / readiness 10). (2) AP1000 → PWR generalization: `REACTOR_CLASSES` parameterization (AP1000 / 2-unit / AP300 SMR / microreactor — water demand + acreage threshold + voltage anchor per class), water margin computed from **7Q10 low flow ÷ class consumptive demand** (replacing annual-mean anchoring), NEW **water-rights** dimension (`water_rights_regime` riparian/prior-appropriation/hybrid + site-level gatekeeper notes: TVA §26a, ACF compact, Tucson AMA, CA SWRCB; multiplier 1.0/0.6/0.2 on the water component), `dry_cooling_viable` flag, NRC 10 CFR 100.21 population flag. Sequenced: rankings-lens PR → water rights + 7Q10 pass → reactor-class PR → full table merge.
 
+**Addendum 2026-07-02 (citations + parcel availability):** Envirofacts per-facility citation in every retired ◆ popup; `_join_tracked_corpus()` + `--join-only` in `build_retired_industrial.py` (214/658 sites linked to a tracked record carrying owner/SWRAU/cleanup evidence); `REACTOR_CLASSES` spec/water citations + provenance line; Parcel-availability block on every Nuclear Siting row (AF RFLP parcels / Janus program vehicle / SAM.gov + GSA disposal links).
+
+- **[med] Retired-industrial owner backfill via parcel-owner connector.** The 444 unjoined retired sites have no availability evidence; extend `STATE_PARCEL_SOURCES` (NC proven) and point-in-polygon the retired overlay coordinates to fill owner + parcel id per site.
+- **[low] GSA disposal / SAM.gov lease-offering connector.** Scrape disposal.gsa.gov listings + SAM.gov RLP/EUL notices into a small overlay so "actually offered" federal parcels become a first-class data layer instead of per-row links.
+
 **New backlog items from this session:**
 
 - ~~**[high] Rankings tab rename + Manufacturing lens v0**~~ **Done 2026-07-02.** Tab renamed, `computeManufacturingScore` lens shipped (`?lens=mfg`).
