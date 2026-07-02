@@ -4,15 +4,7 @@
     {
       "name": "dashboard",
       "runtimeExecutable": "npx",
-      "runtimeArgs": [
-        "-y",
-        "http-server",
-        "/Users/pranava/Projects/Brownfield Opportunities/.claude/worktrees/sleepy-rhodes-f1bd4b/docs",
-        "-p",
-        "8765",
-        "-c-1",
-        "--silent"
-      ],
+      "runtimeArgs": ["-y", "http-server", "/Users/pranava/Projects/Brownfield Opportunities/docs", "-p", "8765", "-c-1", "--silent"],
       "port": 8765
     }
   ]

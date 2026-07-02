@@ -3388,7 +3388,7 @@ function buildAp1000View() {
   const RC = window.REACTOR_CLASSES || {};
   const clsButtons = Object.keys(RC).map((k) => {
     const c = RC[k];
-    return `<button type="button" class="cand-filter${k === ap1000State.cls ? " active" : ""}" data-reactor-class="${k}" title="${escapeAttr(c.group)} · ${c.mwe.toLocaleString()} MWe · ~${c.consumptive_cfs} cfs consumptive · ≥${c.min_acres.toLocaleString()} developable ac">${escapeHtml(c.label)}</button>`;
+    return `<button type="button" class="cand-filter${k === ap1000State.cls ? " active" : ""}" data-reactor-class="${k}" title="${escapeAttr(c.group)} · ${c.mwe.toLocaleString()} MWe · ${c.consumptive_cfs ? `~${c.consumptive_cfs} cfs consumptive` : "air-cooled"} · ≥${c.min_acres.toLocaleString()} developable ac">${escapeHtml(c.label)}</button>`;
   }).join("");
   const clsNote = (RC[ap1000State.cls] || {}).group === "Large PWR"
     ? ""
