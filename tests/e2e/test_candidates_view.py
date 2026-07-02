@@ -65,7 +65,7 @@ def test_duplicate_filter_groups_removed(page, base_url):
     )
     assert counts["tier"] == 0
     assert counts["ready"] == 0
-    assert counts["lens"] == 2
+    assert counts["lens"] == 3
     assert counts["note"] is True
 
 
@@ -257,3 +257,24 @@ def test_zoning_badge_renders_for_restrictive_state(page, base_url):
         ".map((b) => b.textContent.trim())"
     )
     assert "Zoning" in labels, "expected a Zoning badge for the restrictive-state site"
+
+
+def test_manufacturing_lens_button_sorts_by_mfg(page, base_url):
+    """The Rankings tab's third lens: clicking Manufacturing re-sorts by
+    computeManufacturingScore, updates the stats line, and round-trips
+    ?lens=mfg through the URL."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30_000)
+    page.locator("#tab-candidates").click()
+    page.wait_for_selector("[data-cand-lens='mfg']")
+    page.locator("[data-cand-lens='mfg']").click()
+    page.wait_for_function(
+        "() => document.getElementById('candidates-stats').textContent.includes('manufacturing score')",
+        timeout=10_000,
+    )
+    assert "lens=mfg" in page.url
+    # Reload from the URL: the lens must be restored.
+    page.goto(page.url)
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30_000)
+    page.locator("#tab-candidates").click()
+    page.wait_for_selector("[data-cand-lens='mfg'].active", timeout=10_000)

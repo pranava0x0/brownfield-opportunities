@@ -151,6 +151,76 @@ def _pretty_name(raw: str) -> str:
     return " ".join(out)
 
 
+def _join_tracked_corpus(sites: list[dict]) -> None:
+    """Annotate each retired-industrial site with the nearest TRACKED corpus
+    record (Superfund / ACRES / FUDS / BRAC) within 1 mile, in place.
+
+    Why: the GHGRP overlay says "a large facility stopped reporting here" but
+    carries no availability signal. When the same ground is also a tracked
+    brownfield record, THAT record carries the parcel-availability evidence —
+    current owner (parcel-owner enrichment), EPA SWRAU land-readiness, NPL
+    cleanup status, acreage — so the popup deep-links to it (?site=<id>).
+    """
+    import math
+
+    corpus: list[tuple[float, float, str, str, str]] = []
+    data_dir = OUT_PATH.parent
+    for fname in ("sites.json", "epa-acres.json", "dod-fuds.json", "dod-brac.json"):
+        p = data_dir / fname
+        if not p.exists():
+            log.warning("join: %s missing — skipping", fname)
+            continue
+        payload = json.loads(p.read_text())
+        for r in payload.get("sites", []):
+            lat, lon = r.get("lat"), r.get("lon")
+            if lat is None or lon is None:
+                continue
+            corpus.append((lat, lon, r["id"], r.get("name") or "", r.get("program") or ""))
+    log.info("join: %d tracked corpus records loaded", len(corpus))
+
+    lat_delta = 1.0 / 69.0  # ~1 mile in degrees latitude
+    joined = 0
+    for s in sites:
+        best = None
+        lon_delta = lat_delta / max(0.2, math.cos(math.radians(s["lat"])))
+        for (lat, lon, rid, name, program) in corpus:
+            if abs(lat - s["lat"]) > lat_delta or abs(lon - s["lon"]) > lon_delta:
+                continue
+            dlat = math.radians(lat - s["lat"])
+            dlon = math.radians(lon - s["lon"])
+            a = (math.sin(dlat / 2) ** 2
+                 + math.cos(math.radians(s["lat"])) * math.cos(math.radians(lat))
+                 * math.sin(dlon / 2) ** 2)
+            mi = 2 * 3958.8 * math.asin(min(1.0, math.sqrt(a)))
+            if mi <= 1.0 and (best is None or mi < best[0]):
+                best = (mi, rid, name, program)
+        if best:
+            s["tracked_site_mi"] = round(best[0], 2)
+            s["tracked_site_id"] = best[1]
+            s["tracked_site_name"] = best[2]
+            s["tracked_site_program"] = best[3]
+            joined += 1
+    log.info("join: %d / %d retired sites have a tracked record within 1 mi",
+             joined, len(sites))
+
+
+def rejoin_only() -> int:
+    """Re-run only the tracked-corpus join over the existing overlay JSON —
+    no GHGRP refetch. Use after a corpus data refresh, or to backfill the
+    join onto an overlay built before this feature existed."""
+    payload = json.loads(OUT_PATH.read_text())
+    sites = payload.get("sites", [])
+    for s in sites:  # clear stale join fields before recomputing
+        for k in ("tracked_site_mi", "tracked_site_id",
+                  "tracked_site_name", "tracked_site_program"):
+            s.pop(k, None)
+    _join_tracked_corpus(sites)
+    payload["generated_at"] = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    OUT_PATH.write_text(json.dumps(payload, separators=(",", ":")))
+    log.info("rewrote %s (%d sites, join refreshed)", OUT_PATH, len(sites))
+    return 0
+
+
 def main() -> int:
     # Collect every facility-year row carrying a stopped-reporting status, then
     # dedupe to the most-recent year per facility.
@@ -204,6 +274,7 @@ def main() -> int:
              len(by_id), dict(sect_counts.most_common()))
 
     sites = sorted(by_id.values(), key=lambda s: (s.get("state") or "", s["name"]))
+    _join_tracked_corpus(sites)
     payload = {
         "generated_at": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "source": "EPA Greenhouse Gas Reporting Program (GHGRP) — facilities that ceased reporting",
@@ -218,4 +289,7 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    import sys
+    if "--join-only" in sys.argv:
+        raise SystemExit(rejoin_only())
     raise SystemExit(main())
