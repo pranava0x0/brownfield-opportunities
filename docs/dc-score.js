@@ -459,6 +459,112 @@ function computeGenerationScore(site) {
 }
 
 // ---------------------------------------------------------------------------
+// Lens 3 — MANUFACTURING reuse suitability. Positive caps sum to 100; flood
+// and climate penalties subtract; clamped to [0,100]. Rationale in
+// manufacturing-reuse-opportunities.md: manufacturing inverts two DC
+// assumptions — rail becomes the primary logistics signal (scrap/coil/
+// materials move by railcar) and MID-SIZE acreage is the sweet spot, so the
+// acreage curve is PEAKED (plateau ~100–500 ac, gentle decay past 2,000)
+// rather than monotonic. No voltage component: a 50–300 MW process load is
+// servable from 69–138 kV, so distance to the grid matters but line class
+// barely differentiates. No regulatory penalty: DC moratoriums don't
+// constrain a factory. v0 uses only signals already on disk; when the Census
+// LEHD/LODES workforce layer lands, a 20-point workforce component takes
+// rail −4 / acreage −4 / transmission −4 / gas −2 / highway −2 / readiness −4
+// (pre-agreed in unified-rankings-and-pwr-siting-plan.md).
+// ---------------------------------------------------------------------------
+
+const MANUFACTURING_SCORE_WEIGHTS = Object.freeze({
+  rail:                  22,   // spur economics — the primary mfg logistics signal
+  acreage:               18,   // peaked: 100–500 ac plateau, decays past 2,000
+  transmission_distance: 16,   // process load needs grid, tolerates lower class
+  substation:            12,   // interconnection point, as the other lenses
+  gas_pipeline:          12,   // process heat (steel, chemicals, e-fuels)
+  highway:               10,   // inbound/outbound trucking
+  readiness:             10,   // developable / clean / incentivized (45X/48C stack)
+});
+
+const MANUFACTURING_SCORE_TOOLTIP =
+  "Manufacturing reuse suitability (0–100). Weighted for siting a plant " +
+  "(battery, EAF steel, hydrogen/e-fuels, components): rail spur access " +
+  "(22), acreage (18 — peaked at 100–500 ac; mega-sites score lower), " +
+  "transmission distance (16), substation (12), gas pipeline for process " +
+  "heat (12), highway (10), readiness (10: cleanup status, SWRAU, OZ, IRA " +
+  "energy community — 45X/48C-relevant). A Special Flood Hazard Area " +
+  "subtracts 18; Very-High wildfire/drought subtracts up to 10. Workforce " +
+  "scoring arrives with the Census LEHD/LODES layer. Sites without " +
+  "transmission data score N/A.";
+
+// Rail — the load-bearing mfg logistics component. ≤0.5 mi is spur-buildable
+// as a routine site cost; value decays through 5 mi and a 20-mile spur is
+// not a thing.
+function _scoreRail(mi, cap) {
+  if (mi == null) return 0;
+  return Math.round(_interp(mi, [[0.5, 1.0], [2, 0.75], [5, 0.45], [10, 0.15], [20, 0]]) * cap);
+}
+
+// Highway — trucking access, gentler than rail (interchanges are dense).
+function _scoreHighway(mi, cap) {
+  if (mi == null) return 0;
+  return Math.round(_interp(mi, [[1, 1.0], [5, 0.6], [15, 0.2], [30, 0]]) * cap);
+}
+
+// Peaked manufacturing acreage curve — a 20-ac parcel is tight, 100–500 ac
+// is the gigafactory/mill sweet spot, and value decays slowly past 2,000
+// (a mega-site is assemblage overhead, not an asset, for a single plant).
+function _scoreAcreageMfg(acres, cap) {
+  if (acres == null) return 0;
+  return Math.round(_interp(acres,
+    [[0, 0], [20, 0.4], [100, 1.0], [500, 1.0], [2000, 0.6], [10000, 0.35]]) * cap);
+}
+
+// Manufacturing transmission distance — between the DC cliff (2 mi) and the
+// gen-tie reach (10 mi): a factory can pay for a short interconnect but not
+// a transmission project.
+function _scoreTransmissionDistanceMfg(mi, cap) {
+  if (mi == null) return 0;
+  return Math.round(_interp(mi, [[0.05, 1.0], [2, 0.7], [5, 0.3], [10, 0]]) * cap);
+}
+
+// readiness for a manufacturing build: clean, developable, incentivized.
+// IRA energy community earns as much as it does on the generation lens —
+// 45X (advanced manufacturing production) and 48C (qualifying advanced
+// energy project, energy-community bonus-eligible) apply directly to plants.
+// Like the generation lens, does NOT credit `in_reuse` (occupied land).
+function _scoreReadinessMfg(site) {
+  let s = 0;
+  if (site.npl_status_code === "D") s += 3;       // cleanup complete
+  if (typeof site.rau_status === "string" && /^Meets the Measure/i.test(site.rau_status)) s += 3;
+  if (site.in_energy_community === true) s += 3;  // 45X/48C energy-community stack
+  if (site.in_opportunity_zone === true) s += site.oz_rural === true ? 3 : 2;
+  return Math.min(s, MANUFACTURING_SCORE_WEIGHTS.readiness);
+}
+
+function computeManufacturingScoreBreakdown(site) {
+  if (!site) return null;
+  if (site.transmission_mi == null) return null;
+  const W = MANUFACTURING_SCORE_WEIGHTS;
+  return {
+    rail:                  _scoreRail(site.rail_mi, W.rail),
+    acreage:               _scoreAcreageMfg(site.acreage, W.acreage),
+    transmission_distance: _scoreTransmissionDistanceMfg(site.transmission_mi, W.transmission_distance),
+    substation:            _scoreSubstation(site.substation_mi, site.substation_kv, W.substation),
+    gas_pipeline:          _scoreGasPipeline(site.gas_pipeline_mi, W.gas_pipeline),
+    highway:               _scoreHighway(site.highway_mi, W.highway),
+    readiness:             _scoreReadinessMfg(site),
+    flood_penalty:        -_floodPenalty(site),
+    climate_penalty:      -_climatePenalty(site),
+  };
+}
+
+function computeManufacturingScore(site) {
+  const bd = computeManufacturingScoreBreakdown(site);
+  if (bd == null) return null;
+  const total = Object.values(bd).reduce((a, b) => a + b, 0);
+  return Math.max(0, Math.min(100, total));
+}
+
+// ---------------------------------------------------------------------------
 
 window.computeDcCompositeScore = computeDcCompositeScore;
 window.computeDcScoreBreakdown = computeDcScoreBreakdown;
@@ -468,6 +574,10 @@ window.DC_SCORE_WEIGHTS = DC_SCORE_WEIGHTS;
 window.DC_SCORE_TOOLTIP = DC_SCORE_TOOLTIP;
 window.GENERATION_SCORE_WEIGHTS = GENERATION_SCORE_WEIGHTS;
 window.GENERATION_SCORE_TOOLTIP = GENERATION_SCORE_TOOLTIP;
+window.computeManufacturingScore = computeManufacturingScore;
+window.computeManufacturingScoreBreakdown = computeManufacturingScoreBreakdown;
+window.MANUFACTURING_SCORE_WEIGHTS = MANUFACTURING_SCORE_WEIGHTS;
+window.MANUFACTURING_SCORE_TOOLTIP = MANUFACTURING_SCORE_TOOLTIP;
 window.FLOOD_SFHA_PENALTY = FLOOD_SFHA_PENALTY;
 window.CLIMATE_PENALTY_VERY_HIGH = CLIMATE_PENALTY_VERY_HIGH;
 window.REGULATORY_PENALTY_RESTRICTIVE = REGULATORY_PENALTY_RESTRICTIVE;
