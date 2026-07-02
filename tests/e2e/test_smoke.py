@@ -134,6 +134,22 @@ def test_retired_industrial_overlay_loads(page, base_url):
     assert "Retired industrial" in legend
 
 
+def test_planned_retirements_overlay_loads(page, base_url):
+    """The EIA-860M announced-retirement overlay lazy-loads teal ⬢ markers
+    and adds a 'Retiring plant' legend row (interconnects freeing up on a
+    known future date)."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30_000)
+    page.wait_for_function(
+        "() => document.querySelectorAll('.planned-retirement-icon').length > 0",
+        timeout=15_000,
+    )
+    count = page.evaluate("() => document.querySelectorAll('.planned-retirement-icon').length")
+    assert count > 50  # 90 plants ≥100 MW as of April 2026 EIA-860M
+    legend = page.locator(".legend").text_content()
+    assert "Retiring plant" in legend
+
+
 def test_retired_sites_stats_tab(page, base_url):
     """The Retired Sites tab renders a by-prior-use stats breakdown
     (KPI cards + sector/state bars) from the retired-industrial overlay."""
@@ -610,7 +626,7 @@ def test_refresh_date_reflects_freshest_data_file(page, base_url):
             'opportunity-zone.json', 'climate-zone.json', 'iso-rto.json',
             'epa-echo.json', 'ai-summary.json', 'eia-retired-plants.json',
             'ira-energy-community.json', 'fema-nri.json', 'parcel-owner.json',
-            'retired-industrial.json',
+            'retired-industrial.json', 'planned-retirements.json',
           ];
           const fmt = (s) => new Date(Date.parse(s)).toISOString().slice(0, 10);
           let coreDate = null;
