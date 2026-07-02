@@ -88,17 +88,47 @@ def test_module_exposes_both_lenses(page, base_url):
 
 
 def test_weight_tables_each_sum_to_100(page, base_url):
-    """Both lenses are designed so the positive component caps sum to
+    """All three lenses are designed so the positive component caps sum to
     exactly 100; the flood penalty (a separate negative) pushes below."""
     _ready(page, base_url)
     sums = page.evaluate(
         "() => ({"
         "  dc: Object.values(window.DC_SCORE_WEIGHTS).reduce((a,b)=>a+b,0),"
-        "  gen: Object.values(window.GENERATION_SCORE_WEIGHTS).reduce((a,b)=>a+b,0)"
+        "  gen: Object.values(window.GENERATION_SCORE_WEIGHTS).reduce((a,b)=>a+b,0),"
+        "  mfg: Object.values(window.MANUFACTURING_SCORE_WEIGHTS).reduce((a,b)=>a+b,0)"
         "})"
     )
     assert sums["dc"] == 100, f"DC weights sum {sums['dc']} != 100"
     assert sums["gen"] == 100, f"generation weights sum {sums['gen']} != 100"
+    assert sums["mfg"] == 100, f"manufacturing weights sum {sums['mfg']} != 100"
+
+
+def test_manufacturing_lens_inverts_dc_assumptions(page, base_url):
+    """The manufacturing lens's two design departures from the DC lens:
+    (a) acreage is PEAKED — a 300-ac parcel outscores a 10,000-ac one;
+    (b) rail is the primary logistics signal — rail-adjacent beats
+    rail-remote on otherwise identical records."""
+    _ready(page, base_url)
+    r = page.evaluate(
+        """() => {
+          const base = { transmission_mi: 0.5, transmission_kv: 138,
+                         substation_mi: 1, gas_pipeline_mi: 2, highway_mi: 1 };
+          const mid  = window.computeManufacturingScore({...base, acreage: 300,   rail_mi: 0.3 });
+          const mega = window.computeManufacturingScore({...base, acreage: 10000, rail_mi: 0.3 });
+          const far  = window.computeManufacturingScore({...base, acreage: 300,   rail_mi: 25 });
+          return { mid, mega, far };
+        }"""
+    )
+    assert r["mid"] > r["mega"], f"peaked acreage: 300 ac {r['mid']} should beat 10k ac {r['mega']}"
+    assert r["mid"] > r["far"], f"rail-adjacent {r['mid']} should beat rail-remote {r['far']}"
+
+
+def test_manufacturing_lens_gates_on_transmission(page, base_url):
+    """Like the other lenses: no transmission data → null, not 0."""
+    _ready(page, base_url)
+    assert page.evaluate(
+        "() => window.computeManufacturingScore({ acreage: 300, rail_mi: 0.3 })"
+    ) is None
 
 
 # -- Gate (null transmission) ----------------------------------------------
