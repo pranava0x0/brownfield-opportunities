@@ -14,9 +14,9 @@ Ideas and enhancements. Priorities: **high** = next, **med** = soon, **low** = n
 
 **New backlog items from this session:**
 
-- **[high] Rankings tab rename + Manufacturing lens v0** — Part 1C of `unified-rankings-and-pwr-siting-plan.md`.
-- **[high] AP1000 water-rights + 7Q10 curation pass** — Part 2b/2c; USGS RDB fetch is scriptable (see `data-source-research.md` §16).
-- **[med] Reactor-class parameterization of the nuclear siting score** — Part 2a/2d/2e; rename tab "Nuclear Siting".
+- ~~**[high] Rankings tab rename + Manufacturing lens v0**~~ **Done 2026-07-02.** Tab renamed, `computeManufacturingScore` lens shipped (`?lens=mfg`).
+- ~~**[high] AP1000 water-rights + 7Q10 curation pass**~~ **Done 2026-07-02** (rights: all 14 sites curated + multiplier; low-flow margin machinery shipped, populated for Robins). **Remaining [med]: script the USGS 7Q10 backfill** for the other river-supplied sites (daily-values RDB fetch → 7-day rolling annual minima → 10-yr recurrence) and fill `water_low_flow_cfs`.
+- ~~**[med] Reactor-class parameterization**~~ **Done 2026-07-02.** `REACTOR_CLASSES` (AP1000/APR1400 large PWRs distinct from AP300 SMR and Janus micro), tab renamed "Nuclear Siting", per-class water/acreage/voltage. Remaining [low]: `dry_cooling_viable` UI flag chip + NRC 10 CFR 100.21 population-proximity flag.
 - **[med] Full Table/Rankings merge (config-driven column presets)** — Part 1A; last, own PR.
 
 - **[high] Workforce enrichment via Census LEHD/LODES.** Manufacturing-sector employment (WAC files, free bulk CSV, no key) within a ~30-mi commute radius of each site, pre-indexed with the pure-Python `PointIndex` pattern. The single missing layer for a manufacturing lens; also strengthens the AP1000 workforce factor with quantitative data.

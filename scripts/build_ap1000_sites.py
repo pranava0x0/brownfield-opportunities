@@ -217,6 +217,10 @@ SITES = [
         "acreage_source": "https://en.wikipedia.org/wiki/Robins_Air_Force_Base",
         "water_source": "Ocmulgee River (forms the eastern boundary)",
         "water_distance_mi": 0.5, "water_adequacy": "adequate",
+        # Documented drought-of-record flow (Macon gauge 02213000, 2012 drought)
+        # — used by the scorer's computed-margin path in preference to the
+        # adequacy bucket. 854 ÷ 31.1 cfs ≈ 27× margin for one AP1000.
+        "water_low_flow_cfs": 854,
         "water_note": "Ocmulgee on the eastern boundary (USGS 02213700, drainage 2,690 sq mi); mean annual ~2,680 cfs (via upstream Macon gauge 02213000) comfortably covers a ~42 cfs AP1000 withdrawal. Downgraded from abundant: the smallest of the big-river sites, it fell to 854 cfs in the 2012 drought (withdrawal ~7.3% of that), so a non-interruptible nuclear load is drought-exposed.",
         "water_source_url": "https://waterdata.usgs.gov/monitoring-location/USGS-02213700/",
         "fiber": "excellent",
@@ -559,6 +563,88 @@ USGS_SEISMIC = {
 # analysis; the AP1000's certified design can accommodate up to 0.3g.
 AP1000_SSE_THRESHOLD_G = 0.30
 
+# Water RIGHTS per site — availability ≠ obtainability (curated 2026-07-02;
+# re-audit annually alongside STATE_DC_INCENTIVES, western basins are actively
+# re-adjudicating). `regime` is the state doctrine; `cls` is the obtainability
+# class the scorer multiplies by (obtainable ×1.0 / contested ×0.6 /
+# fully_appropriated ×0.2 — a new ~22,400 acre-ft/yr consumptive right).
+# Every row cites its gatekeeper. Companion low-flow figures go on the site
+# dict as `water_low_flow_cfs` where a documented drought/low value exists
+# (only Robins today — see ap1000-water-validation.md; scripting the full
+# USGS 7Q10 backfill is a logged backlog item).
+WATER_RIGHTS = {
+    "arnold-afb-tn": {
+        "regime": "riparian (regulated)", "cls": "obtainable",
+        "note": "Woods Reservoir is an Air Force-owned impoundment purpose-built for AEDC cooling; Elk River is in the Tennessee River watershed, so new intake/discharge structures need TVA §26a approval (routinely granted for existing federal users). TN withdrawal registration under the Inter-Basin Water Transfer Act.",
+        "source": "https://www.tva.com/environment/shoreline-construction-permits",
+    },
+    "davis-monthan-afb-az": {
+        "regime": "prior appropriation + AZ groundwater code", "cls": "fully_appropriated",
+        "note": "Inside the Tucson Active Management Area: groundwater is managed to safe-yield, surface water is fully appropriated, and a new ~22,400 acre-ft/yr consumptive right is effectively unobtainable. CAP allocation transfers are the only theoretical path and are politically contested.",
+        "source": "https://www.azwater.gov/ama/tucson-ama",
+    },
+    "edwards-afb-ca": {
+        "regime": "hybrid (CA) — adjudicated basin", "cls": "fully_appropriated",
+        "note": "Antelope Valley groundwater basin was adjudicated (2015 judgment, physical solution caps pumping); no surface supply exists on the high desert. A new large consumptive right would require purchasing adjudicated allocations plus SWRCB process.",
+        "source": "https://www.avek.org/adjudication",
+    },
+    "robins-afb-ga": {
+        "regime": "regulated riparian (GA permit)", "cls": "obtainable",
+        "note": "GA EPD surface-water withdrawal permit; Ocmulgee is in the Altamaha basin — NOT part of the ACF/ACT interstate compact litigation — so the permit path is ordinary, though drought-of-record flow (854 cfs, 2012) is the binding constraint, not the permit.",
+        "source": "https://epd.georgia.gov/watershed-protection-branch/water-withdrawal-permits",
+    },
+    "fort-benning-ga": {
+        "regime": "regulated riparian (GA permit)", "cls": "contested",
+        "note": "Chattahoochee River is the ACF basin — the GA/AL/FL 'water wars' reach: allocations litigated to the Supreme Court (Florida v. Georgia, 2021) and managed under the ACF Master Water Control Manual. A large new consumptive use would draw interstate scrutiny even though Georgia prevailed.",
+        "source": "https://www.supremecourt.gov/opinions/20pdf/142orig_1qm2.pdf",
+    },
+    "fort-bragg-nc": {
+        "regime": "regulated riparian (NC)", "cls": "obtainable",
+        "note": "Cape Fear River basin; NC DEQ water-withdrawal registration + capacity-use rules. Harnett County/PWC intake precedent at Lillington. No interstate compact; basin has competing municipal growth but a workable regulatory path.",
+        "source": "https://www.deq.nc.gov/about/divisions/water-resources/water-planning/water-supply-planning",
+    },
+    "fort-campbell-ky": {
+        "regime": "riparian (regulated, KY/TN)", "cls": "obtainable",
+        "note": "Cumberland River (USACE-managed, not TVA): KY Division of Water withdrawal permit; USACE real-estate/intake easement at Lake Barkley reach. Volume is trivial vs. flow (~23,800 cfs at Nashville); the 12-mi conveyance is the real cost, not the right.",
+        "source": "https://eec.ky.gov/Environmental-Protection/Water/Pages/default.aspx",
+    },
+    "fort-drum-ny": {
+        "regime": "regulated riparian (NY DEC permit)", "cls": "obtainable",
+        "note": "NY DEC water-withdrawal permit (ECL Art. 15); Black River flow is regulated/augmented by the Hudson River–Black River Regulating District. Great Lakes Compact applies to the Lake Ontario basin but permits within-basin consumptive use with review.",
+        "source": "https://dec.ny.gov/environmental-protection/water/water-withdrawals",
+    },
+    "fort-hood-tx": {
+        "regime": "hybrid (TX) — appropriated surface water", "cls": "contested",
+        "note": "Texas surface water is state-owned and the Brazos basin is essentially fully appropriated with a watermaster; the practical path is a raw-water supply CONTRACT from the Brazos River Authority's Belton Lake storage, not a new appropriation — available but negotiated and drought-curtailable.",
+        "source": "https://www.brazos.org/About-Us/Water-Supply",
+    },
+    "fort-wainwright-ak": {
+        "regime": "prior appropriation (AK)", "cls": "obtainable",
+        "note": "Alaska DNR water-right appropriation; the Tanana River (~41,000 cfs mean, ~7,100 cfs under winter ice) is essentially unappropriated at this scale. Glacial silt and ice engineering, not rights, are the binding water issues.",
+        "source": "https://dnr.alaska.gov/mlw/water/wrfact/",
+    },
+    "jblm-wa": {
+        "regime": "prior appropriation (WA)", "cls": "fully_appropriated",
+        "note": "The Nisqually basin is closed to new consumptive surface appropriations by the instream-flow rule (WAC 173-511), and Puget Sound groundwater is hydraulically continuous (Postema doctrine) — a new ~22,400 acre-ft/yr right would face near-certain denial or decades of mitigation banking.",
+        "source": "https://ecology.wa.gov/water-shorelines/water-supply/protecting-stream-flows",
+    },
+    "jbmdl-nj": {
+        "regime": "regulated riparian (NJDEP allocation)", "cls": "contested",
+        "note": "NJDEP water-allocation permit PLUS a Delaware River Basin Commission docket (consumptive use >100,000 gpd triggers DRBC review and drought-emergency curtailment provisions; Salem/Hope Creek precedent shows the path works but adds a compact-level gate).",
+        "source": "https://www.nj.gov/drbc/programs/project/",
+    },
+    "holston-aap-tn": {
+        "regime": "riparian (regulated, TN)", "cls": "obtainable",
+        "note": "Holston River is TVA-regulated (Cherokee/Fort Patrick Henry dams upstream): TVA §26a approval for intake structures + TN ARAP; the plant already operates industrial withdrawals at scale.",
+        "source": "https://www.tva.com/environment/shoreline-construction-permits",
+    },
+    "redstone-arsenal-al": {
+        "regime": "riparian (AL — registration only)", "cls": "obtainable",
+        "note": "Alabama has no comprehensive withdrawal-permit program (Certificate-of-Use registration via ADECA OWR); Wheeler Reservoir is the TVA mainstem, so TVA §26a governs the intake. The Tennessee River at ~40,000+ cfs makes the volume trivial.",
+        "source": "https://adeca.alabama.gov/water/",
+    },
+}
+
 
 def _haversine_mi(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     R = 3958.8
@@ -779,6 +865,15 @@ def main() -> None:
             f"?latitude={rec['lat']}&longitude={rec['lon']}"
             f"&riskCategory=IV&siteClass=C"
         )
+
+        # Water rights — obtainability of a new large consumptive right.
+        wr = WATER_RIGHTS.get(s["id"])
+        if not wr:
+            raise SystemExit(f"no WATER_RIGHTS entry for {s['id']}")
+        rec["water_rights_regime"]     = wr["regime"]
+        rec["water_rights_class"]      = wr["cls"]
+        rec["water_rights_note"]       = wr["note"]
+        rec["water_rights_source_url"] = wr["source"]
 
         out.append(rec)
 

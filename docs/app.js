@@ -3342,6 +3342,7 @@ function buildAp1000View() {
         `<div class="ap1000-chips">${chips}</div>` +
         `<dl class="ap1000-facts">` +
           `<div><dt>Cooling water</dt><dd><span class="ap1000-tag ${waterCls}">${escapeHtml(s.water_adequacy || "—")}</span> ${escapeHtml(s.water_source || "")}${_ap1000Src(s.water_source_url, "source")}<p class="ap1000-note">${escapeHtml(s.water_note || "")}</p></dd></div>` +
+          (s.water_rights_regime ? `<div><dt>Water rights</dt><dd><span class="ap1000-tag ${s.water_rights_class === "obtainable" ? "ok" : s.water_rights_class === "contested" ? "warn" : "bad"}">${escapeHtml((s.water_rights_class || "").replace("_", "-"))}</span> ${escapeHtml(s.water_rights_regime)}${_ap1000Src(s.water_rights_source_url, "source")}<p class="ap1000-note">${escapeHtml(s.water_rights_note || "")}</p></dd></div>` : "") +
           `<div><dt>Developable acreage</dt><dd><strong>${fmt.acres(s.developable_acreage)}</strong> <span class="muted">of ${fmt.acres(s.installation_acreage)} installation</span>${_ap1000Src(s.acreage_source, "source")}<p class="ap1000-note">${escapeHtml(s.developable_basis || "")}</p></dd></div>` +
           `<div><dt>Construction workforce</dt><dd><span class="ap1000-tag ${wfCls}">${escapeHtml(s.workforce || "—")}</span> ${escapeHtml(s.workforce_metro || "")}${_ap1000Src(s.workforce_source_url, "source")}<p class="ap1000-note">${escapeHtml(s.workforce_note || "")}</p></dd></div>` +
           `<div><dt>Fiber</dt><dd><span class="ap1000-tag ${fiberCls}">${escapeHtml(s.fiber || "—")}</span><p class="ap1000-note">${escapeHtml(s.fiber_note || "")}</p></dd></div>` +
@@ -3360,7 +3361,20 @@ function buildAp1000View() {
     return dataRow + detailRow;
   }).join("");
 
+  // Reactor-class selector — grouped so large PWRs read as a separate
+  // category from SMR / microreactor, not points on one slider.
+  const RC = window.REACTOR_CLASSES || {};
+  const clsButtons = Object.keys(RC).map((k) => {
+    const c = RC[k];
+    return `<button type="button" class="cand-filter${k === ap1000State.cls ? " active" : ""}" data-reactor-class="${k}" title="${escapeAttr(c.group)} · ${c.mwe.toLocaleString()} MWe · ~${c.consumptive_cfs} cfs consumptive · ≥${c.min_acres.toLocaleString()} developable ac">${escapeHtml(c.label)}</button>`;
+  }).join("");
+  const clsNote = (RC[ap1000State.cls] || {}).group === "Large PWR"
+    ? ""
+    : `<span class="cand-filter-note">SMR / microreactor classes soften the water screen (smaller demand, dry-cooling-viable) and lower the acreage threshold — the same 14 sites re-ranked, not a new site list.</span>`;
+
   host.innerHTML =
+    `<div class="candidates-filters ap1000-class-row" role="group" aria-label="Reactor class">` +
+      `<span class="cand-filter-label">Reactor class</span>${clsButtons}${clsNote}</div>` +
     `<div class="ap1000-table-wrap"><table class="ap1000-table">` +
       `<caption class="sr-only">AP1000 reactor-siting suitability for 14 named U.S. military installations, ranked best-first. Use each row's expand button for the full per-factor breakdown, sources, and unscored geohazard flags.</caption>` +
       `<thead><tr>` +
@@ -3372,6 +3386,15 @@ function buildAp1000View() {
       `</tr></thead>` +
       `<tbody>${rows}</tbody>` +
     `</table></div>`;
+
+  // Reactor-class switch — rebuild the whole view (14 static rows, cheap).
+  host.querySelectorAll("[data-reactor-class]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (ap1000State.cls === btn.dataset.reactorClass) return;
+      ap1000State.cls = btn.dataset.reactorClass;
+      buildAp1000View();
+    });
+  });
 
   // Expand/collapse. The focusable control is the per-row <button> in the rank
   // cell (it carries aria-expanded / aria-controls and handles Enter/Space
@@ -3410,8 +3433,13 @@ const AP1000_CSV_COLUMNS = [
   { label: "water", value: (r) => r.s.water_adequacy, source: (r) => _ap1000SourceFor(r.s, "water") },
   { label: "water_reason", value: (r) => r.s.water_note, source: (r) => _ap1000SourceFor(r.s, "water") },
   { label: "water_source", value: (r) => r.s.water_source, source: (r) => _ap1000SourceFor(r.s, "water") },
-  { label: "acreage_threshold_acres", value: () => window.AP1000_MIN_DEVELOPABLE_ACRES || 500, source: (r) => _ap1000SourceFor(r.s, "acreage") },
-  { label: "acreage_threshold_met", value: (r) => window.ap1000MeetsAcreageThreshold ? window.ap1000MeetsAcreageThreshold(r.s) : "", source: (r) => _ap1000SourceFor(r.s, "acreage") },
+  { label: "water_rights_class", value: (r) => r.s.water_rights_class, source: (r) => r.s.water_rights_source_url },
+  { label: "water_rights_regime", value: (r) => r.s.water_rights_regime, source: (r) => r.s.water_rights_source_url },
+  { label: "water_rights_reason", value: (r) => r.s.water_rights_note, source: (r) => r.s.water_rights_source_url },
+  { label: "water_low_flow_cfs", value: (r) => r.s.water_low_flow_cfs, source: (r) => _ap1000SourceFor(r.s, "water") },
+  { label: "reactor_class", value: () => ap1000State.cls, source: (r) => _ap1000SourceFor(r.s, "score") },
+  { label: "acreage_threshold_acres", value: () => ((window.REACTOR_CLASSES || {})[ap1000State.cls] || {}).min_acres ?? (window.AP1000_MIN_DEVELOPABLE_ACRES || 500), source: (r) => _ap1000SourceFor(r.s, "acreage") },
+  { label: "acreage_threshold_met", value: (r) => window.ap1000MeetsAcreageThreshold ? window.ap1000MeetsAcreageThreshold(r.s, ap1000State.cls) : "", source: (r) => _ap1000SourceFor(r.s, "acreage") },
   { label: "developable_acreage", value: (r) => r.s.developable_acreage, source: (r) => _ap1000SourceFor(r.s, "acreage") },
   { label: "developable_acreage_reason", value: (r) => r.s.developable_basis, source: (r) => _ap1000SourceFor(r.s, "acreage") },
   { label: "installation_acreage", value: (r) => r.s.installation_acreage, source: (r) => _ap1000SourceFor(r.s, "acreage") },
@@ -3445,9 +3473,20 @@ const AP1000_CSV_COLUMNS = [
   { label: "retired_plant_name", value: (r) => r.s.retired_plant_name, source: (r) => _ap1000SourceFor(r.s, "retired_plant") },
 ];
 
+// Reactor class selected in the Nuclear Siting tab. AP1000 / APR1400 are
+// large Gen III+ PWRs — a different CATEGORY from SMRs and microreactors
+// (see REACTOR_CLASSES in ap1000-score.js); the selector regroups the same
+// 14 sites under each class's water demand / acreage threshold / voltage
+// expectations. Default stays "ap1000" so deep links and tests are stable.
+const ap1000State = { cls: "ap1000" };
+
 function ap1000ScoredRows() {
   return ap1000Sites
-    .map((s) => ({ s, score: window.computeAp1000Score(s), bd: window.computeAp1000Breakdown(s) }))
+    .map((s) => ({
+      s,
+      score: window.computeAp1000Score(s, ap1000State.cls),
+      bd: window.computeAp1000Breakdown(s, ap1000State.cls),
+    }))
     .sort((a, b) => (b.score ?? -1) - (a.score ?? -1))
     .map((r, i) => ({ ...r, rank: i + 1 }));
 }
@@ -3512,12 +3551,14 @@ const CANDIDATES_PAGE = 200;
 const candidatesState = {
   sorted:   [],
   rendered: 0,
-  lens:     "dc",   // "dc" | "gen" — URL state ?lens=
+  lens:     "dc",   // "dc" | "gen" | "mfg" — URL state ?lens=
 };
 let _candidatesObserver = null;
 
 function _candidateScoreFn() {
-  return candidatesState.lens === "gen" ? computeGenerationScore : computeDcCompositeScore;
+  if (candidatesState.lens === "gen") return computeGenerationScore;
+  if (candidatesState.lens === "mfg") return computeManufacturingScore;
+  return computeDcCompositeScore;
 }
 
 // Returns true when the site has a large dispatchable plant nearby that
@@ -3719,7 +3760,7 @@ function buildCandidatesView() {
   if (statsEl) {
     const filtered = filtersActive() || filterState.q !== "";
     statsEl.textContent = total > 0
-      ? `${total.toLocaleString()} sites scored · ${parts.join(" · ")} · sorted by ${candidatesState.lens === "gen" ? "generation" : "data-center"} score${filtered ? " · global filters applied" : ""}`
+      ? `${total.toLocaleString()} sites scored · ${parts.join(" · ")} · sorted by ${candidatesState.lens === "gen" ? "generation" : candidatesState.lens === "mfg" ? "manufacturing" : "data-center"} score${filtered ? " · global filters applied" : ""}`
       : (filtered ? "No scored sites match the current filters — adjust them via the ⚙ Filters strip." : "No candidates match current filters.");
   }
 
@@ -3782,8 +3823,9 @@ function wireCandidatesFilters() {
   // `?lens=` is parsed here, NOT in loadInitialFiltersFromUrl() — that
   // runs at top level before `const candidatesState` initializes (TDZ).
   // wireCandidatesFilters runs from the boot .then(), safely after.
-  if (new URLSearchParams(location.search).get("lens") === "gen") {
-    candidatesState.lens = "gen";
+  const urlLens = new URLSearchParams(location.search).get("lens");
+  if (urlLens === "gen" || urlLens === "mfg") {
+    candidatesState.lens = urlLens;
   }
   document.querySelectorAll("[data-cand-lens]").forEach((btn) => {
     btn.addEventListener("click", () => {

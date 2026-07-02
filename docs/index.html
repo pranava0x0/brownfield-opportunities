@@ -67,9 +67,9 @@
     <div class="tabs" role="tablist" aria-label="View">
       <button id="tab-map" class="tab active" role="tab" aria-selected="true" aria-controls="view-map">Map</button>
       <button id="tab-table" class="tab" role="tab" aria-selected="false" aria-controls="view-table">Table</button>
-      <button id="tab-candidates" class="tab" role="tab" aria-selected="false" aria-controls="view-candidates">DC Candidates</button>
+      <button id="tab-candidates" class="tab" role="tab" aria-selected="false" aria-controls="view-candidates">Rankings</button>
       <button id="tab-retired" class="tab" role="tab" aria-selected="false" aria-controls="view-retired">Retired Sites</button>
-      <button id="tab-ap1000" class="tab" role="tab" aria-selected="false" aria-controls="view-ap1000">AP1000</button>
+      <button id="tab-ap1000" class="tab" role="tab" aria-selected="false" aria-controls="view-ap1000">Nuclear Siting</button>
       <button id="tab-about" class="tab" role="tab" aria-selected="false" aria-controls="view-about">About</button>
     </div>
   </nav>
@@ -209,11 +209,12 @@
 
   <section id="view-candidates" class="view" role="tabpanel" aria-labelledby="tab-candidates" hidden>
     <div class="candidates-header">
-      <div class="candidates-filters" role="group" aria-label="DC candidates filters">
+      <div class="candidates-filters" role="group" aria-label="Rankings filters">
         <div class="cand-filter-group">
           <span class="cand-filter-label">Lens</span>
           <button class="cand-filter active" data-cand-lens="dc">Data Center</button>
           <button class="cand-filter" data-cand-lens="gen">Generation</button>
+          <button class="cand-filter" data-cand-lens="mfg">Manufacturing</button>
         </div>
         <span class="cand-filter-note">Narrow with the global filters (⚙) — search, state, program, tier, and acreage all apply here too.</span>
       </div>
@@ -221,7 +222,7 @@
       <details class="cand-help">
         <summary>How this ranking works</summary>
         <div class="cand-help-body">
-          <p>Every site gets a <strong>0–100 suitability score</strong> from the data already on its record — no opinions, just public federal signals. Pick a <strong>lens</strong> above: <em>Data Center</em> (siting a compute load) or <em>Generation</em> (siting new power). The table is sorted best-first for the chosen lens.</p>
+          <p>Every site gets a <strong>0–100 suitability score</strong> from the data already on its record — no opinions, just public federal signals. Pick a <strong>lens</strong> above: <em>Data Center</em> (siting a compute load), <em>Generation</em> (siting new power), or <em>Manufacturing</em> (siting a plant — rail-weighted, mid-size-acreage sweet spot). The table is sorted best-first for the chosen lens.</p>
           <p>The score is a weighted sum of <strong>power access</strong> (transmission distance &amp; voltage, substation, grid inheritance), <strong>land</strong> (acreage), <strong>gas</strong>, <strong>logistics</strong> (highway/rail), and <strong>readiness</strong> (cleanup status, reuse, EPA flag, incentives) — minus penalties for <strong>flood zones</strong>, <strong>climate risk</strong>, and (Data Center lens only) a <strong>restrictive state regulatory climate</strong>. Sites with no transmission data show “—”.</p>
           <p class="cand-help-tiers"><strong>Tier</strong> is a quick capacity bucket: Edge → Colo → Hyperscale → Mega, driven by acreage and grid headroom.</p>
           <p><strong>Signals</strong> badges explain the score at a glance — <span class="cand-help-pos">green/blue = upside</span> (Land Ready, OZ, IRA, EPA DC, Grid Inherit, Nuclear, Fed Fast Lane, Water), <span class="cand-help-neg">red = risk/drag</span> (Flood, Climate, Zoning). Open any row for the full per-component breakdown.</p>
@@ -263,8 +264,8 @@
   <section id="view-ap1000" class="view ap1000-view" role="tabpanel" aria-labelledby="tab-ap1000" hidden>
     <div class="ap1000-wrap">
       <div class="ap1000-lead">
-        <h2>AP1000 reactor siting — 14 military installations</h2>
-        <p>A screening of named DoD installations for hosting a <strong>Westinghouse AP1000</strong> (1,117&nbsp;MWe net, ~3,400&nbsp;MWth). Acreage is treated as an eligibility threshold, while each base scores 0–100 across <strong>cooling water</strong>, <strong>electrical infrastructure</strong> (transmission + substation), <strong>construction workforce</strong>, and <strong>fiber</strong>. Click any row for the full breakdown, sources, and unscored geohazard flags. <span class="ap1000-janus-key">★ Janus</span> marks the 9 sites on the U.S.&nbsp;Army's Nov&nbsp;2025 microreactor shortlist; the other 5 (all Air&nbsp;Force-led) come from the Air&nbsp;Force's AI-data-center <strong>Request for Lease</strong> (AFCEC-26-R-0002), marked <span class="ap1000-rflp-key">AF&nbsp;RFLP</span>.</p>
+        <h2>Nuclear reactor siting — 14 military installations</h2>
+        <p>A screening of named DoD installations for hosting a nuclear plant, by <strong>reactor class</strong>: large Gen&nbsp;III+ PWRs (<strong>AP1000</strong> 1,117&nbsp;MWe / <strong>APR1400</strong> 1,400&nbsp;MWe — wet-cooled, certified designs) are a separate category from <strong>SMRs</strong> (AP300-class) and <strong>microreactors</strong> (Janus-class), whose 3–300× smaller water demand and dry-cooling options change which sites are viable at all. Acreage is treated as a per-class eligibility threshold, while each base scores 0–100 across <strong>cooling water</strong> (availability × <em>rights obtainability</em>), <strong>electrical infrastructure</strong> (transmission + substation), <strong>construction workforce</strong>, and <strong>fiber</strong>. Click any row for the full breakdown, sources, and unscored geohazard flags. <span class="ap1000-janus-key">★ Janus</span> marks the 9 sites on the U.S.&nbsp;Army's Nov&nbsp;2025 microreactor shortlist; the other 5 (all Air&nbsp;Force-led) come from the Air&nbsp;Force's AI-data-center <strong>Request for Lease</strong> (AFCEC-26-R-0002), marked <span class="ap1000-rflp-key">AF&nbsp;RFLP</span>.</p>
         <button id="ap1000-export-csv" class="ap1000-export" type="button" aria-label="Download AP1000 table as CSV" title="Download only the AP1000 table as CSV with source URLs">
           <span aria-hidden="true">↓</span> Download AP1000 table CSV
         </button>
@@ -424,8 +425,8 @@
             <dt>Filters</dt>
             <dd>The gear (⚙) button opens filters: program, NPL status, state, acreage, DC tier persona, Opportunity Zone, and DC candidate toggle. All filters round-trip via the URL — share a filtered view with the ⎘ button.</dd>
 
-            <dt>DC Candidates tab</dt>
-            <dd>Ranked table of all scored sites. Switch between the Data Center and Generation lenses. Filter by minimum tier or readiness signal.</dd>
+            <dt>Rankings tab</dt>
+            <dd>Ranked table of all scored sites. Switch between the Data Center, Generation, and Manufacturing lenses; the global filters apply here too.</dd>
 
             <dt>KPI cells</dt>
             <dd>The Datacenter-ready and Hyperscale-ready cells are clickable — they toggle a filter to show only those sites.</dd>
