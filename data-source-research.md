@@ -271,6 +271,18 @@ Full per-site validation with verbatim quotes + verdicts lives in
 
 ---
 
+## 2026-07-02 — GHGRP per-facility citation URLs + EIA-860M planned retirements
+
+| Query | Finding | Verdict |
+|---|---|---|
+| `ghgdata.epa.gov/ghgp/service/facilityDetail/<year>?id=<fid>&ds=E&et=&popup=true` | HTTP **404** with both the latest GHGRP year and the facility's own last-report year — the FLIGHT detail service is not addressable this way. | ✗ don't use |
+| `enviro.epa.gov/envirofacts/ghg/facility-detail/<facility_id>` | HTTP **200**, human-readable Envirofacts GHG facility page, keyed by the same `facility_id` our `GHGRP-<id>` overlay ids carry. | ✓ canonical per-facility citation link |
+| EIA-860M **Operating** sheet, `Planned Retirement Year/Month` columns | 134 dispatchable generators with announced retirement dates; grouped by Plant ID and filtered ≥100 MW → **90 plants / 75,573 MW**, 2026–2043, with lat/lon + BA code. Same cached workbook as the Retired sheet (`51f37f3890e1b51e.bin`, archive URL). | ✓ powers `planned-retirements.json` |
+
+Also verified: joining the retired-industrial overlay to the tracked corpus by
+1-mile Haversine (bbox prefilter) links 214/658 sites — enough to make the
+tracked record the default parcel-availability evidence surface.
+
 ## Reusable probe patterns
 
 - USGS streamflow without the JS portal: `waterservices.usgs.gov/nwis/site/?format=rdb&sites=<id>&siteOutput=expanded` (drainage area) + `…/nwis/stat/?format=rdb&sites=<id>&statReportType=annual&statTypeCd=mean&parameterCd=00060` (annual mean cfs). A federal PDF that NRC serves slowly often has a DOE/energy.gov mirror.

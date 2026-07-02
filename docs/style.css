@@ -875,6 +875,37 @@ main {
   text-align: center;
 }
 [data-theme="dark"] .legend-diamond { color: #cf9b6a; }
+
+/* Announced-retirement power plants — teal hexagon, distinct from the rust
+   retired-industrial diamonds (already dark) and gold stars (done deals):
+   these interconnects free up on a KNOWN future date. */
+.legend-hex {
+  color: #0f766e;
+  font-size: 12px;
+  line-height: 1;
+  display: inline-block;
+  width: 12px;
+  text-align: center;
+}
+[data-theme="dark"] .legend-hex { color: #5eead4; }
+.planned-retirement-icon {
+  background: none !important;
+  border: none !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.planned-retirement-icon span {
+  font-size: 15px;
+  color: #0f766e;
+  text-shadow: 0 0 3px rgba(0,0,0,0.55);
+  cursor: pointer;
+  line-height: 1;
+}
+[data-theme="dark"] .planned-retirement-icon span {
+  color: #5eead4;
+  text-shadow: 0 0 4px rgba(0,0,0,0.8);
+}
 .retired-industrial-icon {
   background: none !important;
   border: none !important;

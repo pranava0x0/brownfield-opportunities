@@ -4,6 +4,33 @@ Ideas and enhancements. Priorities: **high** = next, **med** = soon, **low** = n
 
 ---
 
+## Session checkpoint — 2026-07-02 (generation opportunities + manufacturing reuse)
+
+**Completed this session:**
+- **Planned-retirements overlay (NEW).** `scripts/build_planned_retirements.py` → `docs/data/planned-retirements.json` (27 KB): 90 operating plants ≥100 MW / 75,573 MW with ANNOUNCED retirement dates (EIA-860M "Operating" sheet, `Planned Retirement Year` — the forward-looking counterpart to `eia-retired-plants`). Teal ⬢ markers via `ensurePlannedRetirementsLoaded()`, "Retiring plant" legend row, popup with MW/fuel/retirement window/BA/operator. Re-run alongside EIA-860M refreshes.
+- **Manufacturing-reuse sector analysis** — `manufacturing-reuse-opportunities.md`: taxonomy of 7 manufacturing sectors that plausibly site on brownfields (battery/gigafactory, BESS, EAF green steel, hydrogen/e-fuels/ammonia, semiconductor fab, defense industrial, cleantech components) with per-sector power/water/acreage/rail/workforce requirements, mapped to existing dashboard signals. Key gap identified: workforce data.
+
+**Evaluation doc (2026-07-02, same session):** `unified-rankings-and-pwr-siting-plan.md` — (1) Table + DC Candidates merge evaluation → recommend renaming to "Rankings" + third Manufacturing lens now, full config-driven table merge later; manufacturing v0 weights proposed (rail 22 / acreage-peaked 18 / transmission 16 / substation 12 / gas 12 / highway 10 / readiness 10). (2) AP1000 → PWR generalization: `REACTOR_CLASSES` parameterization (AP1000 / 2-unit / AP300 SMR / microreactor — water demand + acreage threshold + voltage anchor per class), water margin computed from **7Q10 low flow ÷ class consumptive demand** (replacing annual-mean anchoring), NEW **water-rights** dimension (`water_rights_regime` riparian/prior-appropriation/hybrid + site-level gatekeeper notes: TVA §26a, ACF compact, Tucson AMA, CA SWRCB; multiplier 1.0/0.6/0.2 on the water component), `dry_cooling_viable` flag, NRC 10 CFR 100.21 population flag. Sequenced: rankings-lens PR → water rights + 7Q10 pass → reactor-class PR → full table merge.
+
+**Addendum 2026-07-02 (citations + parcel availability):** Envirofacts per-facility citation in every retired ◆ popup; `_join_tracked_corpus()` + `--join-only` in `build_retired_industrial.py` (214/658 sites linked to a tracked record carrying owner/SWRAU/cleanup evidence); `REACTOR_CLASSES` spec/water citations + provenance line; Parcel-availability block on every Nuclear Siting row (AF RFLP parcels / Janus program vehicle / SAM.gov + GSA disposal links).
+
+- **[med] Retired-industrial owner backfill via parcel-owner connector.** The 444 unjoined retired sites have no availability evidence; extend `STATE_PARCEL_SOURCES` (NC proven) and point-in-polygon the retired overlay coordinates to fill owner + parcel id per site.
+- **[low] GSA disposal / SAM.gov lease-offering connector.** Scrape disposal.gsa.gov listings + SAM.gov RLP/EUL notices into a small overlay so "actually offered" federal parcels become a first-class data layer instead of per-row links.
+
+**New backlog items from this session:**
+
+- ~~**[high] Rankings tab rename + Manufacturing lens v0**~~ **Done 2026-07-02.** Tab renamed, `computeManufacturingScore` lens shipped (`?lens=mfg`).
+- ~~**[high] AP1000 water-rights + 7Q10 curation pass**~~ **Done 2026-07-02** (rights: all 14 sites curated + multiplier; low-flow margin machinery shipped, populated for Robins). **Remaining [med]: script the USGS 7Q10 backfill** for the other river-supplied sites (daily-values RDB fetch → 7-day rolling annual minima → 10-yr recurrence) and fill `water_low_flow_cfs`.
+- ~~**[med] Reactor-class parameterization**~~ **Done 2026-07-02.** `REACTOR_CLASSES` (AP1000/APR1400 large PWRs distinct from AP300 SMR and Janus micro), tab renamed "Nuclear Siting", per-class water/acreage/voltage. Remaining [low]: `dry_cooling_viable` UI flag chip + NRC 10 CFR 100.21 population-proximity flag.
+- **[med] Full Table/Rankings merge (config-driven column presets)** — Part 1A; last, own PR.
+
+- **[high] Workforce enrichment via Census LEHD/LODES.** Manufacturing-sector employment (WAC files, free bulk CSV, no key) within a ~30-mi commute radius of each site, pre-indexed with the pure-Python `PointIndex` pattern. The single missing layer for a manufacturing lens; also strengthens the AP1000 workforce factor with quantitative data.
+- **[med] Third scoring lens: "Manufacturing fit" in dc-score.js.** Gated on the workforce layer. Proposed weights (sum 100): rail 20, workforce 20, transmission 15, acreage 15 (peaked at 100–500 ac, NOT monotonic — mid-size sites are valuable here), water/climate 10, gas 10, readiness/incentives 10. Surfaces the 20–300 ac ACRES universe that fails every DC screen.
+- **[med] Join planned-retirements into scoring.** Distance-join the 90 announced-retirement plants onto sites like `eia-retired-plants` (new `planned_retirement_*` fields) and credit `grid_reuse` in the generation lens with a date-proximity multiplier (retiring ≤3 yr ≈ retired-recent credit; the deal window is BEFORE shutdown — Homer City pattern).
+- **[low] Port proximity layer.** Ammonia/e-fuels exports anchor on ports; no current signal. Census TIGER or USACE port shapefiles → `port_mi` via existing `SegmentIndex`/`PointIndex` machinery.
+
+---
+
 ## Session checkpoint — 2026-06-30 (nuclear civilian sites + INL study)
 
 **Completed this session:**

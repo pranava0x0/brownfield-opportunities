@@ -61,7 +61,11 @@
       "usgs_ss": 0.39,
       "usgs_sdc": "C",
       "usgs_exceeds_sse": false,
-      "usgs_api_source": "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=35.371111&longitude=-86.215556&riskCategory=IV&siteClass=C"
+      "usgs_api_source": "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=35.371111&longitude=-86.215556&riskCategory=IV&siteClass=C",
+      "water_rights_regime": "riparian (regulated)",
+      "water_rights_class": "obtainable",
+      "water_rights_note": "Woods Reservoir is an Air Force-owned impoundment purpose-built for AEDC cooling; Elk River is in the Tennessee River watershed, so new intake/discharge structures need TVA \u00a726a approval (routinely granted for existing federal users). TN withdrawal registration under the Inter-Basin Water Transfer Act.",
+      "water_rights_source_url": "https://www.tva.com/environment/shoreline-construction-permits"
     },
     {
       "id": "davis-monthan-afb-az",
@@ -117,7 +121,11 @@
       "usgs_ss": 0.28,
       "usgs_sdc": "C",
       "usgs_exceeds_sse": false,
-      "usgs_api_source": "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=32.165&longitude=-110.8575&riskCategory=IV&siteClass=C"
+      "usgs_api_source": "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=32.165&longitude=-110.8575&riskCategory=IV&siteClass=C",
+      "water_rights_regime": "prior appropriation + AZ groundwater code",
+      "water_rights_class": "fully_appropriated",
+      "water_rights_note": "Inside the Tucson Active Management Area: groundwater is managed to safe-yield, surface water is fully appropriated, and a new ~22,400 acre-ft/yr consumptive right is effectively unobtainable. CAP allocation transfers are the only theoretical path and are politically contested.",
+      "water_rights_source_url": "https://www.azwater.gov/ama/tucson-ama"
     },
     {
       "id": "edwards-afb-ca",
@@ -168,7 +176,11 @@
       "usgs_ss": 1.0,
       "usgs_sdc": "D",
       "usgs_exceeds_sse": true,
-      "usgs_api_source": "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=34.889945&longitude=-117.83243&riskCategory=IV&siteClass=C"
+      "usgs_api_source": "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=34.889945&longitude=-117.83243&riskCategory=IV&siteClass=C",
+      "water_rights_regime": "hybrid (CA) \u2014 adjudicated basin",
+      "water_rights_class": "fully_appropriated",
+      "water_rights_note": "Antelope Valley groundwater basin was adjudicated (2015 judgment, physical solution caps pumping); no surface supply exists on the high desert. A new large consumptive right would require purchasing adjudicated allocations plus SWRCB process.",
+      "water_rights_source_url": "https://www.avek.org/adjudication"
     },
     {
       "id": "robins-afb-ga",
@@ -183,6 +195,7 @@
       "water_source": "Ocmulgee River (forms the eastern boundary)",
       "water_distance_mi": 0.5,
       "water_adequacy": "adequate",
+      "water_low_flow_cfs": 854,
       "water_note": "Ocmulgee on the eastern boundary (USGS 02213700, drainage 2,690 sq mi); mean annual ~2,680 cfs (via upstream Macon gauge 02213000) comfortably covers a ~42 cfs AP1000 withdrawal. Downgraded from abundant: the smallest of the big-river sites, it fell to 854 cfs in the 2012 drought (withdrawal ~7.3% of that), so a non-interruptible nuclear load is drought-exposed.",
       "water_source_url": "https://waterdata.usgs.gov/monitoring-location/USGS-02213700/",
       "fiber": "excellent",
@@ -224,7 +237,11 @@
       "usgs_ss": 0.23,
       "usgs_sdc": "C",
       "usgs_exceeds_sse": false,
-      "usgs_api_source": "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=32.616522&longitude=-83.582508&riskCategory=IV&siteClass=C"
+      "usgs_api_source": "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=32.616522&longitude=-83.582508&riskCategory=IV&siteClass=C",
+      "water_rights_regime": "regulated riparian (GA permit)",
+      "water_rights_class": "obtainable",
+      "water_rights_note": "GA EPD surface-water withdrawal permit; Ocmulgee is in the Altamaha basin \u2014 NOT part of the ACF/ACT interstate compact litigation \u2014 so the permit path is ordinary, though drought-of-record flow (854 cfs, 2012) is the binding constraint, not the permit.",
+      "water_rights_source_url": "https://epd.georgia.gov/watershed-protection-branch/water-withdrawal-permits"
     },
     {
       "id": "fort-benning-ga",
@@ -272,7 +289,11 @@
       "usgs_ss": 0.17,
       "usgs_sdc": "C",
       "usgs_exceeds_sse": false,
-      "usgs_api_source": "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=32.341389&longitude=-84.993611&riskCategory=IV&siteClass=C"
+      "usgs_api_source": "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=32.341389&longitude=-84.993611&riskCategory=IV&siteClass=C",
+      "water_rights_regime": "regulated riparian (GA permit)",
+      "water_rights_class": "contested",
+      "water_rights_note": "Chattahoochee River is the ACF basin \u2014 the GA/AL/FL 'water wars' reach: allocations litigated to the Supreme Court (Florida v. Georgia, 2021) and managed under the ACF Master Water Control Manual. A large new consumptive use would draw interstate scrutiny even though Georgia prevailed.",
+      "water_rights_source_url": "https://www.supremecourt.gov/opinions/20pdf/142orig_1qm2.pdf"
     },
     {
       "id": "fort-bragg-nc",
@@ -319,7 +340,11 @@
       "usgs_ss": 0.23,
       "usgs_sdc": "C",
       "usgs_exceeds_sse": false,
-      "usgs_api_source": "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=35.133333&longitude=-78.983333&riskCategory=IV&siteClass=C"
+      "usgs_api_source": "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=35.133333&longitude=-78.983333&riskCategory=IV&siteClass=C",
+      "water_rights_regime": "regulated riparian (NC)",
+      "water_rights_class": "obtainable",
+      "water_rights_note": "Cape Fear River basin; NC DEQ water-withdrawal registration + capacity-use rules. Harnett County/PWC intake precedent at Lillington. No interstate compact; basin has competing municipal growth but a workable regulatory path.",
+      "water_rights_source_url": "https://www.deq.nc.gov/about/divisions/water-resources/water-planning/water-supply-planning"
     },
     {
       "id": "fort-campbell-ky",
@@ -366,7 +391,11 @@
       "usgs_ss": 0.79,
       "usgs_sdc": "D",
       "usgs_exceeds_sse": true,
-      "usgs_api_source": "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=36.463333&longitude=-87.750278&riskCategory=IV&siteClass=C"
+      "usgs_api_source": "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=36.463333&longitude=-87.750278&riskCategory=IV&siteClass=C",
+      "water_rights_regime": "riparian (regulated, KY/TN)",
+      "water_rights_class": "obtainable",
+      "water_rights_note": "Cumberland River (USACE-managed, not TVA): KY Division of Water withdrawal permit; USACE real-estate/intake easement at Lake Barkley reach. Volume is trivial vs. flow (~23,800 cfs at Nashville); the 12-mi conveyance is the real cost, not the right.",
+      "water_rights_source_url": "https://eec.ky.gov/Environmental-Protection/Water/Pages/default.aspx"
     },
     {
       "id": "fort-drum-ny",
@@ -414,7 +443,11 @@
       "usgs_ss": 0.23,
       "usgs_sdc": "A",
       "usgs_exceeds_sse": false,
-      "usgs_api_source": "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=44.038333&longitude=-75.675556&riskCategory=IV&siteClass=C"
+      "usgs_api_source": "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=44.038333&longitude=-75.675556&riskCategory=IV&siteClass=C",
+      "water_rights_regime": "regulated riparian (NY DEC permit)",
+      "water_rights_class": "obtainable",
+      "water_rights_note": "NY DEC water-withdrawal permit (ECL Art. 15); Black River flow is regulated/augmented by the Hudson River\u2013Black River Regulating District. Great Lakes Compact applies to the Lake Ontario basin but permits within-basin consumptive use with review.",
+      "water_rights_source_url": "https://dec.ny.gov/environmental-protection/water/water-withdrawals"
     },
     {
       "id": "fort-hood-tx",
@@ -461,7 +494,11 @@
       "usgs_ss": 0.07,
       "usgs_sdc": "A",
       "usgs_exceeds_sse": false,
-      "usgs_api_source": "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=31.001944&longitude=-97.711111&riskCategory=IV&siteClass=C"
+      "usgs_api_source": "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=31.001944&longitude=-97.711111&riskCategory=IV&siteClass=C",
+      "water_rights_regime": "hybrid (TX) \u2014 appropriated surface water",
+      "water_rights_class": "contested",
+      "water_rights_note": "Texas surface water is state-owned and the Brazos basin is essentially fully appropriated with a watermaster; the practical path is a raw-water supply CONTRACT from the Brazos River Authority's Belton Lake storage, not a new appropriation \u2014 available but negotiated and drought-curtailable.",
+      "water_rights_source_url": "https://www.brazos.org/About-Us/Water-Supply"
     },
     {
       "id": "fort-wainwright-ak",
@@ -508,7 +545,11 @@
       "usgs_ss": 1.05,
       "usgs_sdc": "D",
       "usgs_exceeds_sse": true,
-      "usgs_api_source": "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=64.605399&longitude=-147.414442&riskCategory=IV&siteClass=C"
+      "usgs_api_source": "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=64.605399&longitude=-147.414442&riskCategory=IV&siteClass=C",
+      "water_rights_regime": "prior appropriation (AK)",
+      "water_rights_class": "obtainable",
+      "water_rights_note": "Alaska DNR water-right appropriation; the Tanana River (~41,000 cfs mean, ~7,100 cfs under winter ice) is essentially unappropriated at this scale. Glacial silt and ice engineering, not rights, are the binding water issues.",
+      "water_rights_source_url": "https://dnr.alaska.gov/mlw/water/wrfact/"
     },
     {
       "id": "jblm-wa",
@@ -560,7 +601,11 @@
       "usgs_ss": 1.5,
       "usgs_sdc": "D",
       "usgs_exceeds_sse": true,
-      "usgs_api_source": "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=47.114818&longitude=-122.538348&riskCategory=IV&siteClass=C"
+      "usgs_api_source": "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=47.114818&longitude=-122.538348&riskCategory=IV&siteClass=C",
+      "water_rights_regime": "prior appropriation (WA)",
+      "water_rights_class": "fully_appropriated",
+      "water_rights_note": "The Nisqually basin is closed to new consumptive surface appropriations by the instream-flow rule (WAC 173-511), and Puget Sound groundwater is hydraulically continuous (Postema doctrine) \u2014 a new ~22,400 acre-ft/yr right would face near-certain denial or decades of mitigation banking.",
+      "water_rights_source_url": "https://ecology.wa.gov/water-shorelines/water-supply/protecting-stream-flows"
     },
     {
       "id": "jbmdl-nj",
@@ -616,7 +661,11 @@
       "usgs_ss": 0.2,
       "usgs_sdc": "A",
       "usgs_exceeds_sse": false,
-      "usgs_api_source": "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=40.029445&longitude=-74.589115&riskCategory=IV&siteClass=C"
+      "usgs_api_source": "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=40.029445&longitude=-74.589115&riskCategory=IV&siteClass=C",
+      "water_rights_regime": "regulated riparian (NJDEP allocation)",
+      "water_rights_class": "contested",
+      "water_rights_note": "NJDEP water-allocation permit PLUS a Delaware River Basin Commission docket (consumptive use >100,000 gpd triggers DRBC review and drought-emergency curtailment provisions; Salem/Hope Creek precedent shows the path works but adds a compact-level gate).",
+      "water_rights_source_url": "https://www.nj.gov/drbc/programs/project/"
     },
     {
       "id": "holston-aap-tn",
@@ -668,7 +717,11 @@
       "usgs_ss": 0.34,
       "usgs_sdc": "C",
       "usgs_exceeds_sse": false,
-      "usgs_api_source": "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=36.51&longitude=-82.56&riskCategory=IV&siteClass=C"
+      "usgs_api_source": "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=36.51&longitude=-82.56&riskCategory=IV&siteClass=C",
+      "water_rights_regime": "riparian (regulated, TN)",
+      "water_rights_class": "obtainable",
+      "water_rights_note": "Holston River is TVA-regulated (Cherokee/Fort Patrick Henry dams upstream): TVA \u00a726a approval for intake structures + TN ARAP; the plant already operates industrial withdrawals at scale.",
+      "water_rights_source_url": "https://www.tva.com/environment/shoreline-construction-permits"
     },
     {
       "id": "redstone-arsenal-al",
@@ -715,7 +768,11 @@
       "usgs_ss": 0.38,
       "usgs_sdc": "C",
       "usgs_exceeds_sse": false,
-      "usgs_api_source": "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=34.629981&longitude=-86.653678&riskCategory=IV&siteClass=C"
+      "usgs_api_source": "https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=34.629981&longitude=-86.653678&riskCategory=IV&siteClass=C",
+      "water_rights_regime": "riparian (AL \u2014 registration only)",
+      "water_rights_class": "obtainable",
+      "water_rights_note": "Alabama has no comprehensive withdrawal-permit program (Certificate-of-Use registration via ADECA OWR); Wheeler Reservoir is the TVA mainstem, so TVA \u00a726a governs the intake. The Tennessee River at ~40,000+ cfs makes the volume trivial.",
+      "water_rights_source_url": "https://adeca.alabama.gov/water/"
     }
   ]
 }
