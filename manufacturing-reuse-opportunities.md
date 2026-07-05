@@ -39,7 +39,8 @@ counterpart to `eia-retired-plants` / `retired-industrial`.
 1. **The signals already on disk cover most of the screen.** Power
    (`transmission_mi/kv`, `substation_mi/kv`), water-adjacent proxies (flood
    zone, NRI drought), logistics (`rail_mi`, `highway_mi`,
-   `gas_pipeline_mi`), incentives (OZ, IRA energy community), and land
+   `gas_pipeline_mi`), incentives (OZ and 48C energy-community allocation
+   priority), and land
    (`acreage`). What manufacturing adds that DC/generation don't weigh:
    **rail becomes primary** (steel, batteries, ammonia), **workforce becomes
    scored** (semi/battery/steel), and mid-size sites (20–300 ac) become
@@ -49,11 +50,11 @@ counterpart to `eia-retired-plants` / `retired-industrial`.
    radius of any lat/lon — one pre-indexed pass, same pure-Python spatial
    pattern as `connectors/spatial.py`. This is the single highest-value new
    connector for a manufacturing lens (backlog item added).
-3. **A third scoring lens ("Manufacturing fit") is cheap once workforce
-   exists** — reweight existing components: rail 20, transmission 15,
-   acreage 15 (peaking at 100–500 ac, not monotonic), workforce 20, water/
-   climate 10, gas 10, readiness/incentives 10. Sums to 100 per the
-   weight-table contract in `dc-score.js`.
+3. **The Manufacturing v0 lens now ships without workforce.** Its readiness
+   score treats energy-community location only as a 48C allocation priority.
+   It is not a 45X bonus: 45X is location-neutral, and a facility that claimed
+   48C cannot also claim 45X. Add the quantitative workforce component before
+   treating this cross-sector screen as a sector-specific feasibility model.
 4. **Generation-side counterpart landed now:** the planned-retirements
    overlay surfaces the ~90 dated interconnect hand-offs (Cumberland 2.6 GW
    2026, Monroe 3.3 GW 2028, Rockport 2.6 GW 2028 …) that DOE's
@@ -74,3 +75,5 @@ counterpart to `eia-retired-plants` / `retired-industrial`.
 - [DOE — Coal-to-nuclear transitions (145 sites, 128–174 GW)](https://www.energy.gov/ne/articles/doe-report-finds-hundreds-retiring-coal-plant-sites-could-convert-nuclear)
 - [Utility Dive — 269 GWe potential at nuclear + coal sites](https://www.utilitydive.com/news/us-nuclear-coal-power-sites-could-host-up-to-269-gwe-of-new-nuclear-capaci/727066/)
 - [EIA-860M Preliminary Monthly Electric Generator Inventory](https://www.eia.gov/electricity/data/eia860m/)
+- [IRS — Advanced Manufacturing Production Credit (45X)](https://www.irs.gov/credits-deductions/advanced-manufacturing-production-credit)
+- [DOE — Qualifying Advanced Energy Project Credit (48C)](https://www.energy.gov/infrastructure/qualifying-advanced-energy-project-credit-48c-program)

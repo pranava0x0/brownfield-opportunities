@@ -164,7 +164,7 @@ def test_ap1000_table_is_accessible(page: Page, base_url: str) -> None:
 def test_water_rights_multiplier_discounts_fully_appropriated(page: Page, base_url: str) -> None:
     """Availability ≠ obtainability: a fully-appropriated basin multiplies
     the water component by 0.2 (JBLM: adequate 0.62 × 0.2 × 40 ≈ 5), a
-    contested basin by 0.6, and a missing water_rights_class is NOT charged."""
+    contested basin by 0.6, and a missing assessment cannot receive a score."""
     _ready(page, base_url)
     r = page.evaluate(
         """() => {
@@ -174,11 +174,13 @@ def test_water_rights_multiplier_discounts_fully_appropriated(page: Page, base_u
             full: window.computeAp1000Breakdown({...base, water_rights_class: 'fully_appropriated'}).water,
             contested: window.computeAp1000Breakdown({...base, water_rights_class: 'contested'}).water,
             unassessed: window.computeAp1000Breakdown(base).water,
+            unassessedScore: window.computeAp1000Score(base),
           };
         }"""
     )
     assert r["mults"] == {"obtainable": 1.0, "contested": 0.6, "fully_appropriated": 0.2}
-    assert r["unassessed"] == 25          # 0.62 × 40, no rights charge
+    assert r["unassessed"] is None
+    assert r["unassessedScore"] is None
     assert r["contested"] == 15           # 0.62 × 0.6 × 40
     assert r["full"] == 5                 # 0.62 × 0.2 × 40
 
@@ -199,8 +201,8 @@ def test_reactor_classes_distinguish_large_pwr_from_smr(page: Page, base_url: st
     """AP1000/APR1400 are large PWRs — a separate category from SMR / micro.
     The class table encodes that: both large PWRs share the 500-ac threshold
     and 'Large PWR' group; the SMR and micro classes shrink water demand and
-    acreage. A severe-water desert site scores 0 water as an AP1000 but a
-    meaningful fraction as an air-coolable microreactor."""
+    acreage. Janus has not selected designs, so the microreactor screen carries
+    no invented output/cooling values and holds water constant across sites."""
     _ready(page, base_url)
     r = page.evaluate(
         """() => {
@@ -210,7 +212,11 @@ def test_reactor_classes_distinguish_large_pwr_from_smr(page: Page, base_url: st
             groups: Object.fromEntries(Object.entries(RC).map(([k, c]) => [k, c.group])),
             acres: Object.fromEntries(Object.entries(RC).map(([k, c]) => [k, c.min_acres])),
             ap1000Water: window.computeAp1000Breakdown(desert, 'ap1000').water,
-            microWater: window.computeAp1000Breakdown(desert, 'micro').water,
+            microDry: window.computeAp1000Breakdown(desert, 'micro').water,
+            microWet: window.computeAp1000Breakdown(
+              {water_adequacy: 'abundant', water_rights_class: 'obtainable'}, 'micro').water,
+            microMeta: {mwe: RC.micro.mwe, consumptive: RC.micro.consumptive_cfs,
+                        dryCooling: RC.micro.dry_cooling_viable},
           };
         }"""
     )
@@ -219,7 +225,8 @@ def test_reactor_classes_distinguish_large_pwr_from_smr(page: Page, base_url: st
     assert r["acres"]["ap1000"] == r["acres"]["apr1400"] == 500
     assert r["acres"]["ap300"] < 500 and r["acres"]["micro"] < r["acres"]["ap300"]
     assert r["ap1000Water"] == 0
-    assert r["microWater"] > 0  # air-coolable: water is not the binding screen
+    assert r["microMeta"] == {"mwe": None, "consumptive": None, "dryCooling": None}
+    assert r["microDry"] == r["microWet"] == 20
 
 
 def test_reactor_class_selector_reranks_view(page: Page, base_url: str) -> None:
@@ -232,6 +239,8 @@ def test_reactor_class_selector_reranks_view(page: Page, base_url: str) -> None:
     before = page.locator(".ap1000-row .ap1000-name").first.text_content()
     page.locator("[data-reactor-class='micro']").click()
     page.wait_for_selector("[data-reactor-class='micro'].active")
+    assert "unassessed" in (page.locator(".ap1000-cls-prov").text_content() or "").lower()
+    assert page.locator(".ap1000-row td:nth-child(4)", has_text="unassessed").count() == 14
     after = page.locator(".ap1000-row .ap1000-name").first.text_content()
     assert before and after  # both render; ordering may legitimately differ
     # Water-starved desert sites must not be pinned to the bottom under micro:

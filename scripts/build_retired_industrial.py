@@ -45,8 +45,10 @@ from __future__ import annotations
 import datetime as dt
 import json
 import logging
+import math
 import time
 import urllib.request
+from collections import defaultdict
 from pathlib import Path
 
 log = logging.getLogger("build_retired_industrial")
@@ -56,6 +58,8 @@ OUT_PATH = Path(__file__).resolve().parent.parent / "docs" / "data" / "retired-i
 EFSERVICE = "https://data.epa.gov/efservice/PUB_DIM_FACILITY/REPORTING_STATUS/{status}/ROWS/{a}:{b}/JSON"
 PAGE = 1000
 USER_AGENT = "brownfield-opportunities/retired-industrial (data.epa.gov GHGRP)"
+TRACKED_PROXIMITY_MI = 1.0
+TRACKED_INDEX_CELL_DEG = 0.02
 
 STOPPED_STATUSES = ("STOPPED_REPORTING_VALID_REASON", "STOPPED_REPORTING_UNKNOWN_REASON")
 
@@ -151,19 +155,55 @@ def _pretty_name(raw: str) -> str:
     return " ".join(out)
 
 
-def _join_tracked_corpus(sites: list[dict]) -> None:
-    """Annotate each retired-industrial site with the nearest TRACKED corpus
-    record (Superfund / ACRES / FUDS / BRAC) within 1 mile, in place.
+def _tracked_bucket(lat: float, lon: float) -> tuple[int, int]:
+    """Return a stable grid cell for the proximity-only tracked-site index."""
+    return (
+        math.floor(lat / TRACKED_INDEX_CELL_DEG),
+        math.floor(lon / TRACKED_INDEX_CELL_DEG),
+    )
 
-    Why: the GHGRP overlay says "a large facility stopped reporting here" but
-    carries no availability signal. When the same ground is also a tracked
-    brownfield record, THAT record carries the parcel-availability evidence —
-    current owner (parcel-owner enrichment), EPA SWRAU land-readiness, NPL
-    cleanup status, acreage — so the popup deep-links to it (?site=<id>).
+
+def _nearest_tracked_record(
+    site: dict,
+    buckets: dict[tuple[int, int], list[tuple[float, float, str, str, str]]],
+) -> tuple[float, str, str, str] | None:
+    """Return the nearest tracked record within the screening radius.
+
+    This is point proximity only. It must never be treated as proof that two
+    records identify the same parcel, owner, or available property.
     """
-    import math
+    lat0, lon0 = float(site["lat"]), float(site["lon"])
+    lat_delta = TRACKED_PROXIMITY_MI / 69.0
+    lon_delta = lat_delta / max(0.2, math.cos(math.radians(lat0)))
+    lat_min, lon_min = _tracked_bucket(lat0 - lat_delta, lon0 - lon_delta)
+    lat_max, lon_max = _tracked_bucket(lat0 + lat_delta, lon0 + lon_delta)
+    best = None
+    for lat_cell in range(lat_min, lat_max + 1):
+        for lon_cell in range(lon_min, lon_max + 1):
+            for lat, lon, rid, name, program in buckets.get((lat_cell, lon_cell), ()):
+                if abs(lat - lat0) > lat_delta or abs(lon - lon0) > lon_delta:
+                    continue
+                dlat = math.radians(lat - lat0)
+                dlon = math.radians(lon - lon0)
+                a = (math.sin(dlat / 2) ** 2
+                     + math.cos(math.radians(lat0)) * math.cos(math.radians(lat))
+                     * math.sin(dlon / 2) ** 2)
+                mi = 2 * 3958.8 * math.asin(min(1.0, math.sqrt(a)))
+                if mi <= TRACKED_PROXIMITY_MI and (best is None or mi < best[0]):
+                    best = (mi, rid, name, program)
+    return best
 
-    corpus: list[tuple[float, float, str, str, str]] = []
+
+def _join_tracked_corpus(sites: list[dict]) -> None:
+    """Attach the nearest tracked record within one mile as nearby context.
+
+    The join intentionally makes no parcel-identity or availability claim:
+    source points are centroids/geocodes, and unrelated properties can be less
+    than a mile apart. The frontend labels these links as proximity-only.
+    """
+
+    buckets: dict[tuple[int, int], list[tuple[float, float, str, str, str]]] = defaultdict(list)
+    corpus_count = 0
     data_dir = OUT_PATH.parent
     for fname in ("sites.json", "epa-acres.json", "dod-fuds.json", "dod-brac.json"):
         p = data_dir / fname
@@ -175,25 +215,14 @@ def _join_tracked_corpus(sites: list[dict]) -> None:
             lat, lon = r.get("lat"), r.get("lon")
             if lat is None or lon is None:
                 continue
-            corpus.append((lat, lon, r["id"], r.get("name") or "", r.get("program") or ""))
-    log.info("join: %d tracked corpus records loaded", len(corpus))
+            record = (float(lat), float(lon), r["id"], r.get("name") or "", r.get("program") or "")
+            buckets[_tracked_bucket(record[0], record[1])].append(record)
+            corpus_count += 1
+    log.info("join: %d tracked corpus records indexed in %d cells", corpus_count, len(buckets))
 
-    lat_delta = 1.0 / 69.0  # ~1 mile in degrees latitude
     joined = 0
     for s in sites:
-        best = None
-        lon_delta = lat_delta / max(0.2, math.cos(math.radians(s["lat"])))
-        for (lat, lon, rid, name, program) in corpus:
-            if abs(lat - s["lat"]) > lat_delta or abs(lon - s["lon"]) > lon_delta:
-                continue
-            dlat = math.radians(lat - s["lat"])
-            dlon = math.radians(lon - s["lon"])
-            a = (math.sin(dlat / 2) ** 2
-                 + math.cos(math.radians(s["lat"])) * math.cos(math.radians(lat))
-                 * math.sin(dlon / 2) ** 2)
-            mi = 2 * 3958.8 * math.asin(min(1.0, math.sqrt(a)))
-            if mi <= 1.0 and (best is None or mi < best[0]):
-                best = (mi, rid, name, program)
+        best = _nearest_tracked_record(s, buckets)
         if best:
             s["tracked_site_mi"] = round(best[0], 2)
             s["tracked_site_id"] = best[1]

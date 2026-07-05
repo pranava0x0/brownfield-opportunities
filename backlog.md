@@ -14,7 +14,7 @@ Ideas and enhancements. Priorities: **high** = next, **med** = soon, **low** = n
 
 **Addendum 2026-07-02 (citations + parcel availability):** Envirofacts per-facility citation in every retired ◆ popup; `_join_tracked_corpus()` + `--join-only` in `build_retired_industrial.py` (214/658 sites linked to a tracked record carrying owner/SWRAU/cleanup evidence); `REACTOR_CLASSES` spec/water citations + provenance line; Parcel-availability block on every Nuclear Siting row (AF RFLP parcels / Janus program vehicle / SAM.gov + GSA disposal links).
 
-- **[med] Retired-industrial owner backfill via parcel-owner connector.** The 444 unjoined retired sites have no availability evidence; extend `STATE_PARCEL_SOURCES` (NC proven) and point-in-polygon the retired overlay coordinates to fill owner + parcel id per site.
+- **[med] Retired-industrial parcel verification via parcel polygons.** All 658 overlay points remain availability-unverified; the 214 nearby tracked-program links are proximity context only. Extend verified `STATE_PARCEL_SOURCES` coverage and use point-in-polygon to attach owner + parcel id without inferring parcel identity from distance.
 - **[low] GSA disposal / SAM.gov lease-offering connector.** Scrape disposal.gsa.gov listings + SAM.gov RLP/EUL notices into a small overlay so "actually offered" federal parcels become a first-class data layer instead of per-row links.
 
 **New backlog items from this session:**
@@ -25,7 +25,7 @@ Ideas and enhancements. Priorities: **high** = next, **med** = soon, **low** = n
 - **[med] Full Table/Rankings merge (config-driven column presets)** — Part 1A; last, own PR.
 
 - **[high] Workforce enrichment via Census LEHD/LODES.** Manufacturing-sector employment (WAC files, free bulk CSV, no key) within a ~30-mi commute radius of each site, pre-indexed with the pure-Python `PointIndex` pattern. The single missing layer for a manufacturing lens; also strengthens the AP1000 workforce factor with quantitative data.
-- **[med] Third scoring lens: "Manufacturing fit" in dc-score.js.** Gated on the workforce layer. Proposed weights (sum 100): rail 20, workforce 20, transmission 15, acreage 15 (peaked at 100–500 ac, NOT monotonic — mid-size sites are valuable here), water/climate 10, gas 10, readiness/incentives 10. Surfaces the 20–300 ac ACRES universe that fails every DC screen.
+- ~~**[med] Third scoring lens: "Manufacturing fit" in dc-score.js.**~~ **Done 2026-07-02 (v0).** Workforce remains the next quantitative upgrade; do not treat the current cross-sector screen as a sector-specific feasibility model.
 - **[med] Join planned-retirements into scoring.** Distance-join the 90 announced-retirement plants onto sites like `eia-retired-plants` (new `planned_retirement_*` fields) and credit `grid_reuse` in the generation lens with a date-proximity multiplier (retiring ≤3 yr ≈ retired-recent credit; the deal window is BEFORE shutdown — Homer City pattern).
 - **[low] Port proximity layer.** Ammonia/e-fuels exports anchor on ports; no current signal. Census TIGER or USACE port shapefiles → `port_mi` via existing `SegmentIndex`/`PointIndex` machinery.
 

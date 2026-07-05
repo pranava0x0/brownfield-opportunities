@@ -1582,11 +1582,11 @@ function ensureRetiredIndustrialLoaded() {
         // Stable per-facility citation page, derivable from the GHGRP id
         // (verified 200 as of 2026-07-02): EPA Envirofacts GHG facility detail.
         const efUrl = `https://enviro.epa.gov/envirofacts/ghg/facility-detail/${encodeURIComponent(String(s.id).replace("GHGRP-", ""))}`;
-        // Parcel availability: when the same ground is a tracked brownfield
-        // record, that record carries owner / SWRAU / cleanup-status evidence.
+        // Nearby tracked-program context. This is centroid/geocode proximity,
+        // not proof of parcel identity, ownership, or availability.
         const trackedHtml = s.tracked_site_id
-          ? `<div class="ref-campus-prev" style="margin-top:6px"><strong>Availability evidence:</strong> tracked ${escapeHtml(s.tracked_site_program || "brownfield")} record ${fmt.miles(s.tracked_site_mi)} away — <a href="?site=${encodeURIComponent(s.tracked_site_id)}">${escapeHtml(s.tracked_site_name || s.tracked_site_id)} →</a> (owner, land-readiness, cleanup status live on that record)</div>`
-          : `<div class="ref-campus-prev" style="margin-top:6px">No tracked brownfield record within 1 mi — check the county assessor / state parcel layer for ownership and listing status.</div>`;
+          ? `<div class="ref-campus-prev" style="margin-top:6px"><strong>Nearby tracked record (proximity only):</strong> ${escapeHtml(s.tracked_site_program || "brownfield")} record ${fmt.miles(s.tracked_site_mi)} away — <a href="?site=${encodeURIComponent(s.tracked_site_id)}">${escapeHtml(s.tracked_site_name || s.tracked_site_id)} →</a>. This point match does not establish that the records share a parcel; verify boundaries and ownership independently.</div>`
+          : `<div class="ref-campus-prev" style="margin-top:6px">No Superfund, ACRES, FUDS, or BRAC record found within 1 mi. Parcel availability remains unverified.</div>`;
         marker.bindPopup(
           `<div class="ref-campus-popup">` +
           `<strong>${escapeHtml(s.name)}</strong>` +
@@ -3121,7 +3121,7 @@ function buildRetiredView() {
     + `<section class="retired-col"><h3>Top prior uses</h3><div class="retired-bars">${sectorRows}</div></section>`
     + `<section class="retired-col"><h3>Top states</h3><div class="retired-bars">${stateRows}</div></section>`
     + `</div>`
-    + `<p class="retired-foot muted">Source: <a href="https://www.epa.gov/ghgreporting" target="_blank" rel="noopener">EPA Greenhouse Gas Reporting Program</a> facilities that ceased reporting (closed, idled, or below threshold), queried by <code>reporting_status</code> via the <a href="https://www.epa.gov/enviro/envirofacts-data-service-api" target="_blank" rel="noopener">Envirofacts data service</a>; every ◆ marker's popup deep-links to that facility's <a href="https://enviro.epa.gov/envirofacts/ghg/search" target="_blank" rel="noopener">EPA Envirofacts GHG record</a>. This is a screening signal for reusable grid infrastructure — verify ownership, interconnection, and closure before treating any site as available. <strong>Parcel availability:</strong> ${retiredIndustrialSites.filter((s) => s.tracked_site_id).length.toLocaleString()} of these sites sit within 1 mi of a tracked brownfield record (linked in the popup) whose owner, EPA land-readiness (SWRAU), and cleanup status supply the availability evidence; for the rest, ownership lives in county assessor / state parcel layers. Use the rust ◆ markers on the Map to locate them.</p>`;
+    + `<p class="retired-foot muted">Source: <a href="https://www.epa.gov/ghgreporting" target="_blank" rel="noopener">EPA Greenhouse Gas Reporting Program</a> facilities that ceased reporting (closed, idled, or below threshold), queried by <code>reporting_status</code> via the <a href="https://www.epa.gov/enviro/envirofacts-data-service-api" target="_blank" rel="noopener">Envirofacts data service</a>; every ◆ marker's popup deep-links to that facility's <a href="https://enviro.epa.gov/envirofacts/ghg/search" target="_blank" rel="noopener">EPA Envirofacts GHG record</a>. This is a screening signal for reusable grid infrastructure — verify ownership, interconnection, and closure before treating any site as available. <strong>Nearby records:</strong> ${retiredIndustrialSites.filter((s) => s.tracked_site_id).length.toLocaleString()} sites have a Superfund, ACRES, FUDS, or BRAC point within 1 mi. Those links are proximity context only, not parcel matches or availability evidence. Use the rust ◆ markers on the Map to locate them.</p>`;
 }
 
 // ----- AP1000 reactor-siting view -----
@@ -3252,6 +3252,9 @@ function buildAp1000View() {
     return;
   }
   const W = window.AP1000_WEIGHTS || {};
+  const RC = window.REACTOR_CLASSES || {};
+  const activeCls = RC[ap1000State.cls] || {};
+  const waterUnassessed = activeCls.group === "Microreactor";
   const scored = ap1000ScoredRows();
 
   const rows = scored.map((row, i) => {
@@ -3259,7 +3262,10 @@ function buildAp1000View() {
     const tier = _ap1000ScoreTier(score);
     const rank = i + 1;
 
-    const waterCls = AP1000_WATER_CLASS[(s.water_adequacy || "").toLowerCase()] || "warn";
+    const waterLabel = waterUnassessed ? "unassessed" : (s.water_adequacy || "—");
+    const waterCls = waterUnassessed
+      ? "warn"
+      : (AP1000_WATER_CLASS[(s.water_adequacy || "").toLowerCase()] || "warn");
     const fiberCls = AP1000_FIBER_CLASS[(s.fiber || "").toLowerCase()] || "warn";
     const wfCls = AP1000_WORKFORCE_CLASS[(s.workforce || "").toLowerCase()] || "warn";
 
@@ -3320,7 +3326,7 @@ function buildAp1000View() {
         `<td class="num ap1000-rank-cell"><button type="button" class="ap1000-expand" aria-expanded="false" aria-controls="ap1000-detail-${rank}" aria-label="Toggle siting detail for ${escapeHtml(s.name)}"><span class="ap1000-rank-num">${rank}</span><span class="ap1000-caret" aria-hidden="true">▸</span></button></td>` +
         `<td class="ap1000-name-cell"><span class="ap1000-name">${escapeHtml(s.name)}</span><span class="ap1000-meta">${escapeHtml(s.branch || "")} · ${escapeHtml(s.state || "")}${janus}${afRflp}${gridBadgeHtml}</span>${_ap1000CellSrc(_ap1000SourceFor(s, "installation"), "Installation data")}</td>` +
         `<td class="num ap1000-score-cell"><span class="ap1000-score-chip ap1000-tier-${tier.cls}">${score == null ? "—" : score}</span>${_ap1000CellSrc(_ap1000SourceFor(s, "score"), "Score methodology")}</td>` +
-        `<td><span class="ap1000-tag ${waterCls}">${escapeHtml(s.water_adequacy || "—")}</span>${_ap1000CellSrc(_ap1000SourceFor(s, "water"), "Water")}</td>` +
+        `<td><span class="ap1000-tag ${waterCls}">${escapeHtml(waterLabel)}</span>${_ap1000CellSrc(waterUnassessed ? activeCls.water_source : _ap1000SourceFor(s, "water"), "Water")}</td>` +
         `<td class="num" title="${escapeHtml(s.developable_basis || "")}">${s.developable_acreage != null ? s.developable_acreage.toLocaleString() : "—"}${_ap1000CellSrc(_ap1000SourceFor(s, "acreage"), "Acreage")}</td>` +
         `<td class="num ap1000-kvmi">${_ap1000KvMi(s.transmission_mi, s.transmission_kv)}${_ap1000CellSrc(_ap1000SourceFor(s, "transmission"), "Transmission")}</td>` +
         `<td class="num ap1000-kvmi">${_ap1000KvMi(s.substation_mi, s.substation_kv)}${_ap1000CellSrc(_ap1000SourceFor(s, "substation"), "Substation")}</td>` +
@@ -3350,7 +3356,9 @@ function buildAp1000View() {
         `<div class="ap1000-bar" role="img" aria-label="Score ${score} of 100">${seg}</div>` +
         `<div class="ap1000-chips">${chips}</div>` +
         `<dl class="ap1000-facts">` +
-          `<div><dt>Cooling water</dt><dd><span class="ap1000-tag ${waterCls}">${escapeHtml(s.water_adequacy || "—")}</span> ${escapeHtml(s.water_source || "")}${_ap1000Src(s.water_source_url, "source")}<p class="ap1000-note">${escapeHtml(s.water_note || "")}</p></dd></div>` +
+          (waterUnassessed
+            ? `<div><dt>Cooling water</dt><dd><span class="ap1000-tag warn">unassessed</span>${_ap1000Src(activeCls.water_source, "Janus program source")}<p class="ap1000-note">${escapeHtml(activeCls.water_basis || "Vendor-specific cooling design has not been selected.")} Water is held constant in this screening score and does not affect relative site rank.</p></dd></div>`
+            : `<div><dt>Cooling water</dt><dd><span class="ap1000-tag ${waterCls}">${escapeHtml(waterLabel)}</span> ${escapeHtml(s.water_source || "")}${_ap1000Src(s.water_source_url, "source")}<p class="ap1000-note">${escapeHtml(s.water_note || "")}</p></dd></div>`) +
           (s.water_rights_regime ? `<div><dt>Water rights</dt><dd><span class="ap1000-tag ${s.water_rights_class === "obtainable" ? "ok" : s.water_rights_class === "contested" ? "warn" : "bad"}">${escapeHtml((s.water_rights_class || "").replace("_", "-"))}</span> ${escapeHtml(s.water_rights_regime)}${_ap1000Src(s.water_rights_source_url, "source")}<p class="ap1000-note">${escapeHtml(s.water_rights_note || "")}</p></dd></div>` : "") +
           // Parcel availability — which land at this installation is actually
           // OFFERED. Military land sits outside county parcel cadastres, so the
@@ -3385,21 +3393,23 @@ function buildAp1000View() {
 
   // Reactor-class selector — grouped so large PWRs read as a separate
   // category from SMR / microreactor, not points on one slider.
-  const RC = window.REACTOR_CLASSES || {};
   const clsButtons = Object.keys(RC).map((k) => {
     const c = RC[k];
-    return `<button type="button" class="cand-filter${k === ap1000State.cls ? " active" : ""}" data-reactor-class="${k}" title="${escapeAttr(c.group)} · ${c.mwe.toLocaleString()} MWe · ${c.consumptive_cfs ? `~${c.consumptive_cfs} cfs consumptive` : "air-cooled"} · ≥${c.min_acres.toLocaleString()} developable ac">${escapeHtml(c.label)}</button>`;
+    const output = c.mwe == null ? "output TBD" : `${c.mwe.toLocaleString()} MWe`;
+    const water = c.consumptive_cfs == null ? "water demand TBD" : `~${c.consumptive_cfs} cfs consumptive`;
+    return `<button type="button" class="cand-filter${k === ap1000State.cls ? " active" : ""}" data-reactor-class="${k}" title="${escapeAttr(c.group)} · ${escapeAttr(output)} · ${escapeAttr(water)} · ≥${c.min_acres.toLocaleString()} developable ac">${escapeHtml(c.label)}</button>`;
   }).join("");
   const clsNote = (RC[ap1000State.cls] || {}).group === "Large PWR"
     ? ""
-    : `<span class="cand-filter-note">SMR / microreactor classes soften the water screen (smaller demand, dry-cooling-viable) and lower the acreage threshold — the same 14 sites re-ranked, not a new site list.</span>`;
+    : waterUnassessed
+      ? `<span class="cand-filter-note">Janus has not selected reactor designs. Water is unassessed and held constant; this is a relative infrastructure screen, not a design-feasibility finding.</span>`
+      : `<span class="cand-filter-note">The AP300 screen uses a Vogtle-scaled wet-cooling estimate and a lower acreage/voltage profile — the same 14 sites re-ranked, not a new site list.</span>`;
   // Per-class provenance line — cites the design spec and the basis of the
   // class's water-demand figure (Vogtle 3&4 FEIS for the wet-cooled classes).
-  const activeCls = RC[ap1000State.cls] || {};
   const clsProv = activeCls.spec_source
     ? `<p class="ap1000-cls-prov muted">${escapeHtml(activeCls.label || "")}: ` +
-      `${escapeHtml(activeCls.mwe ? activeCls.mwe.toLocaleString() + " MWe" : "")}` +
-      `${activeCls.consumptive_cfs ? ` · ~${activeCls.consumptive_cfs} cfs consumptive` : " · air-cooled"}` +
+      `${escapeHtml(activeCls.mwe != null ? activeCls.mwe.toLocaleString() + " MWe" : "output TBD")}` +
+      `${activeCls.consumptive_cfs != null ? ` · ~${activeCls.consumptive_cfs} cfs consumptive` : " · water demand TBD"}` +
       ` · ≥${(activeCls.min_acres || 0).toLocaleString()} developable ac threshold. ` +
       `${escapeHtml(activeCls.water_basis || "")} ` +
       `${_ap1000Src(activeCls.spec_source, "design spec")} ${_ap1000Src(activeCls.water_source, "water basis")}</p>`
@@ -3410,10 +3420,10 @@ function buildAp1000View() {
       `<span class="cand-filter-label">Reactor class</span>${clsButtons}${clsNote}</div>` +
     clsProv +
     `<div class="ap1000-table-wrap"><table class="ap1000-table">` +
-      `<caption class="sr-only">AP1000 reactor-siting suitability for 14 named U.S. military installations, ranked best-first. Use each row's expand button for the full per-factor breakdown, sources, and unscored geohazard flags.</caption>` +
+      `<caption class="sr-only">${escapeHtml(activeCls.label || "Nuclear")} siting screen for 14 named U.S. military installations, ranked best-first. Use each row's expand button for the full per-factor breakdown, sources, and unscored geohazard flags.</caption>` +
       `<thead><tr>` +
         `<th class="num" scope="col">#</th><th scope="col">Installation</th>` +
-        `<th class="num" scope="col" title="${escapeHtml(window.AP1000_SCORE_TOOLTIP || "AP1000 suitability 0–100")}">Score</th>` +
+        `<th class="num" scope="col" title="${escapeHtml(activeCls.group === "Microreactor" ? "Relative infrastructure screen; reactor design and water demand are unassessed" : (window.AP1000_SCORE_TOOLTIP || "Nuclear siting suitability 0–100"))}">Score</th>` +
         `<th scope="col">Water</th><th class="num" scope="col">Dev. acres</th>` +
         `<th class="num" scope="col">Transmission</th><th class="num" scope="col">Substation</th>` +
         `<th scope="col">Workforce</th><th scope="col">Fiber</th><th scope="col">Flags (not scored)</th>` +
@@ -3649,7 +3659,7 @@ function makeCandidateRow(s, rank) {
 
   const scoreFn = _candidateScoreFn();
   const score   = scoreFn(s);
-  const tier    = computeDcScore(s);
+  const tier    = candidatesState.lens === "dc" ? computeDcScore(s) : null;
 
   // Score cell — reuse existing .suit-score[data-tier] coloring
   const scoreTier = score == null ? null
@@ -3778,11 +3788,13 @@ function buildCandidatesView() {
     .filter((s) => scoreFn(s) != null)
     .sort((a, b) => (scoreFn(b) || 0) - (scoreFn(a) || 0));
 
-  // Tier distribution for the stats line
+  // DC capacity tiers only describe the Data Center lens.
   const counts = { mega: 0, hyperscale: 0, colo: 0, edge: 0 };
-  for (const s of candidatesState.sorted) {
-    const t = computeDcScore(s);
-    if (t && t in counts) counts[t]++;
+  if (candidatesState.lens === "dc") {
+    for (const s of candidatesState.sorted) {
+      const t = computeDcScore(s);
+      if (t && t in counts) counts[t]++;
+    }
   }
   const total = candidatesState.sorted.length;
   const parts = [];
@@ -3790,11 +3802,12 @@ function buildCandidatesView() {
   if (counts.hyperscale) parts.push(`${counts.hyperscale.toLocaleString()} Hyperscale`);
   if (counts.colo)       parts.push(`${counts.colo.toLocaleString()} Colo`);
   if (counts.edge)       parts.push(`${counts.edge.toLocaleString()} Edge`);
+  const tierSummary = parts.length ? ` · ${parts.join(" · ")}` : "";
   const statsEl = el("candidates-stats");
   if (statsEl) {
     const filtered = filtersActive() || filterState.q !== "";
     statsEl.textContent = total > 0
-      ? `${total.toLocaleString()} sites scored · ${parts.join(" · ")} · sorted by ${candidatesState.lens === "gen" ? "generation" : candidatesState.lens === "mfg" ? "manufacturing" : "data-center"} score${filtered ? " · global filters applied" : ""}`
+      ? `${total.toLocaleString()} sites scored${tierSummary} · sorted by ${candidatesState.lens === "gen" ? "generation" : candidatesState.lens === "mfg" ? "manufacturing" : "data-center"} score${filtered ? " · global filters applied" : ""}`
       : (filtered ? "No scored sites match the current filters — adjust them via the ⚙ Filters strip." : "No candidates match current filters.");
   }
 
