@@ -344,6 +344,22 @@ class SiteRecord(BaseModel):
         description="Provenance label for current_owner (e.g. 'USACE FUDS', "
                     "'EPA ACRES PPF') so the UI can cite without ambiguity.",
     )
+    parcel_acreage: Optional[float] = Field(
+        default=None,
+        description="GIS acreage of the cadastral parcel the site falls on, "
+                    "from the matched statewide parcel layer (parcel-owner "
+                    "connector). Answers 'how many acres are actually available "
+                    "for development' at the parcel level — and is the ONLY "
+                    "land-size signal for ACRES brownfields, whose source has no "
+                    "acreage column at all (see CLAUDE.md gap #1). Distinct from "
+                    "`acreage` (the program's own reported site boundary area).",
+    )
+    parcel_id: Optional[str] = Field(
+        default=None,
+        description="Parcel identifier (APN / PIN) from the matched statewide "
+                    "parcel layer, for provenance / cross-reference to the "
+                    "county assessor record.",
+    )
     historical_owners: Optional[list[str]] = None
     encumbrances: Optional[list[str]] = None
     remediation_detail: Optional[dict] = None
