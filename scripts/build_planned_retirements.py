@@ -29,6 +29,7 @@ Re-run monthly-ish alongside EIA-860M releases:
 from __future__ import annotations
 
 import datetime as dt
+import hashlib
 import io
 import json
 import logging
@@ -42,12 +43,16 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(mess
 
 OUT_PATH = Path(__file__).resolve().parent.parent / "docs" / "data" / "planned-retirements.json"
 
-# Same workbook + cache file as connectors/eia_retired_plants.py — the archive
+# Same workbook + cache key as connectors/eia_retired_plants.py — the archive
 # URL is the working one (the primary /xls/ path returns an HTML page).
 EIA_860M_URL = (
     "https://www.eia.gov/electricity/data/eia860m/archive/xls/april_generator2026.xlsx"
 )
-_EIA_CACHE_FILENAME = "51f37f3890e1b51e.bin"
+_EIA_CACHE_KEY = {"src": "eia_860m_retired"}
+_EIA_CACHE_FILENAME = (
+    hashlib.sha256(json.dumps(_EIA_CACHE_KEY, sort_keys=True).encode()).hexdigest()[:16]
+    + ".bin"
+)
 
 MIN_PLANT_MW = 100.0
 
@@ -83,10 +88,15 @@ def _get_eia_bytes() -> bytes | None:
             headers={"User-Agent": "BrownfieldOpportunities/0.2 (research; static dashboard)"},
         )
         with urllib.request.urlopen(req, timeout=120) as resp:
-            return resp.read()
+            data = resp.read()
     except Exception as exc:  # noqa: BLE001 — log + abort, nothing to salvage
         log.error("EIA-860M: download failed (%s)", exc)
         return None
+    cache_path = OUT_PATH.parents[2] / "data" / "cache" / _EIA_CACHE_FILENAME
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    cache_path.write_bytes(data)
+    log.info("EIA-860M: cached %d bytes → %s", len(data), cache_path)
+    return data
 
 
 def main() -> int:

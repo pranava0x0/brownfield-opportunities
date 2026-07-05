@@ -272,6 +272,11 @@ def test_manufacturing_lens_button_sorts_by_mfg(page, base_url):
         "() => document.getElementById('candidates-stats').textContent.includes('manufacturing score')",
         timeout=10_000,
     )
+    stats = page.locator("#candidates-stats").text_content() or ""
+    assert all(label not in stats for label in ("Mega", "Hyperscale", "Colo", "Edge"))
+    tier_cells = page.locator("#candidates-table tbody tr td:nth-child(6)")
+    assert tier_cells.count() > 0
+    assert all((tier_cells.nth(i).text_content() or "").strip() == "—" for i in range(tier_cells.count()))
     assert "lens=mfg" in page.url
     # Reload from the URL: the lens must be restored.
     page.goto(page.url)

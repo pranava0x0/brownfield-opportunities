@@ -1,5 +1,6 @@
 {
-  "generated_at": "2026-06-24",
+  "generated_at": "2026-07-05T21:08:10Z",
+  "analysis_verified_at": "2026-07-02",
   "source": "Curated AP1000-siting analysis overlay (analyst-researched land/water/fiber; transmission/substation joined from infra-proximity.json)",
   "source_urls": {
     "ap1000_specs": "https://westinghousenuclear.com/new-plants/ap1000-pwr/overview/",
