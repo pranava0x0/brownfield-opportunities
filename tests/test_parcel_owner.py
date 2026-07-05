@@ -18,6 +18,17 @@ def _args(state=None, limit=200):
     return argparse.Namespace(parcel_state=state, parcel_limit=limit)
 
 
+def test_registry_states_are_well_formed():
+    """Every registered state must carry the four keys the query relies on so a
+    new state can't be half-added. NC/MT/WI/NJ/VT/CT are the verified set."""
+    required = {"base", "owner_field", "acreage_field", "parcel_id_field", "source"}
+    assert {"NC", "MT", "WI", "NJ", "VT", "CT"} <= set(STATE_PARCEL_SOURCES)
+    for st, src in STATE_PARCEL_SOURCES.items():
+        assert required <= set(src), f"{st} missing keys: {required - set(src)}"
+        assert src["base"].startswith("https://") and src["base"].rstrip("/")[-1].isdigit(), \
+            f"{st} base must be an https layer URL ending in a layer index"
+
+
 def _conn(tmp_path, sites, existing=None, response_for=None):
     c = ParcelOwner(tmp_path)
     c._load_sites = lambda: sites  # type: ignore
