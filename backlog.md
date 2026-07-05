@@ -12,8 +12,11 @@ Ideas and enhancements. Priorities: **high** = next, **med** = soon, **low** = n
 - **Scoring uses parcel acreage as a fallback.** `_effectiveAcreage(site)` in `dc-score.js` (`acreage ?? parcel_acreage`) feeds the acreage component of all three lenses, so ACRES / parcel-matched sites stop scoring 0 on land — biggest lift to the **Manufacturing** lens (mid-size parcels are its sweet spot). Conservative floor: reported `acreage` always wins.
 - **Tests:** +4 unit (`test_parcel_owner.py`, now 10) + 2 e2e (`test_dc_score.py`, now 157). AGENTS.md mirror regenerated.
 
+**State registry expanded this session — NJ, VT, CT added (6 states now).** Verified via ArcGIS-Online search + live field/point probes (`data-source-research.md` §18): NJ = NJOGIS Parcels/MOD-IV composite (`OWNER_NAME`/`CALC_ACRE`/`PAMS_PIN` — owner often blank → acreage-only, exactly the new path), VT = VCGI standardized parcels (`OWNER1`/`ACRESGL`/`MAPID`), CT = CT GIS Office CAMA layer (`Owner`/`Land_Acres`/`Parcel_ID`). ~1,830 new candidate sites (NJ 808 / CT 562 / VT 460); first bounded batch run this session, resumable for the rest.
+
 **Follow-ons opened this session:**
-- **[high] Extend `STATE_PARCEL_SOURCES` now that acreage flows.** Each verified state now fills BOTH owner AND developable-acres. NC/MT/WI proven; confirm TX StratMap in deploy, then add high-brownfield states (PA, OH, NJ, CA county aggregates). This is the single lever that grows both the owner AND the developable-acreage coverage.
+- **[med] Continue the NJ/VT/CT backfill** (resumable `--parcel-limit N` runs) and add the free acreage-upgrade for the ~2,058 NC/MT/WI owner records once run where the cache lives.
+- **[med] MA MassGIS parcels — needs `LOT_UNITS` handling.** Owner (`OWNER1`) is there but lot size is `LOT_SIZE` + a per-record `LOT_UNITS` (A=acres/S=sq ft). Add a per-record unit-aware acreage path to the connector, then register MA. PA has no statewide layer (county-by-county); NY public parcels carry no owner.
 - **[low] Table "Parcel acres" column + sort.** Surface `parcel_acreage` as an optional table column so users can rank by actually-available land, distinct from program-reported `acreage`.
 
 ---

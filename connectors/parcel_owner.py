@@ -94,6 +94,40 @@ STATE_PARCEL_SOURCES: dict[str, dict[str, Any]] = {
         "parcel_id_field": "PARCELID",
         "source": "WI V8 Statewide Parcels (WI DOA)",
     },
+    # Verified 2026-07-05 — NJ Parcels & MOD-IV Composite (NJOGIS). Point query
+    # at a Camden ACRES site hit CALC_ACRE 1.92 / PAMS_PIN 0408_1279.01_8. Owner
+    # (OWNER_NAME) is frequently blank in the composite, so many NJ records land
+    # as acreage-only (which the parcel_acreage-without-owner path handles).
+    "NJ": {
+        "base": "https://services2.arcgis.com/XVOqAjTOJ5P6ngMu/arcgis/rest/services/Parcels_Composite_NJ_WM/FeatureServer/0",
+        "owner_field": "OWNER_NAME",
+        "acreage_field": "CALC_ACRE",
+        "parcel_id_field": "PAMS_PIN",
+        "source": "NJOGIS (Parcels & MOD-IV Composite of NJ)",
+    },
+    # Verified 2026-07-05 — VT Statewide Standardized Parcels (VCGI). Sample
+    # owner "WEST NANCY"; acreage is ACRESGL (grand-list acres, 0 → dropped).
+    "VT": {
+        "base": "https://services1.arcgis.com/BkFxaEFNwHqX3tAw/arcgis/rest/services/FS_VCGI_OPENDATA_Cadastral_VTPARCELS_poly_standardized_parcels_SP_v1/FeatureServer/0",
+        "owner_field": "OWNER1",
+        "acreage_field": "ACRESGL",
+        "parcel_id_field": "MAPID",
+        "source": "VCGI (VT Statewide Standardized Parcels)",
+    },
+    # Verified 2026-07-05 — CT CAMA & Parcel Layer 2024 (CT GIS Office). Sample
+    # owner "CACCHIONE ROBERT" / Land_Acres 1.13 / Parcel_ID 134-41A.
+    "CT": {
+        "base": "https://services3.arcgis.com/3FL1kr7L4LvwA2Kb/arcgis/rest/services/Connecticut_CAMA_and_Parcel_Layer_2024/FeatureServer/0",
+        "owner_field": "Owner",
+        "acreage_field": "Land_Acres",
+        "parcel_id_field": "Parcel_ID",
+        "source": "CT GIS Office (Connecticut CAMA & Parcel Layer 2024)",
+    },
+    # MA MassGIS statewide parcels HAS owner (OWNER1) but its lot size is
+    # LOT_SIZE + a per-record LOT_UNITS (A=acres / S=sq ft) — mixed units the
+    # connector's single acreage_field can't scale correctly. Deferred until
+    # the query layer handles LOT_UNITS. NY "Tax Parcels Public" layer 0 is
+    # municipal boundaries and the public parcels carry no owner — dropped.
     # TX StratMap (TxGIO). Endpoint CONFIRMED current as of 2026-06-19
     # (tnris.org/stratmap/land-parcels.html) but `feature.tnris.org` was
     # unreachable from BOTH the dev sandbox socket and WebFetch — a network
@@ -273,11 +307,15 @@ class ParcelOwner(Connector):
             rec: dict[str, Any] = {"id": sid, "program": s.get("program")}
             if res.get("owner"):
                 rec["current_owner"] = res["owner"]
-                rec["current_owner_source"] = src["source"]
                 hits += 1
             if res.get("parcel_acreage") is not None:
                 rec["parcel_acreage"] = res["parcel_acreage"]
                 rec["parcel_id"] = res.get("parcel_id")
+            # Cite the state layer whenever we got ANY parcel data — owner OR
+            # acreage-only (NJ's composite is frequently owner-blank) — so the
+            # detail panel shows a precise source, not the generic fallback.
+            if "current_owner" in rec or "parcel_acreage" in rec:
+                rec["current_owner_source"] = src["source"]
             seeded[sid] = rec
 
         log.info("parcel-owner: %d new queries, %d owner hits, %d acreage upgrades "
