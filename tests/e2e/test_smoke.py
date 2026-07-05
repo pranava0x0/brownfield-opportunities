@@ -2619,10 +2619,9 @@ def test_intersection_observer_appends_when_user_scrolls(page, base_url):
     )
 
 
-def test_retired_popup_carries_citation_and_availability_link(page, base_url):
-    """Every ◆ popup cites the EPA Envirofacts GHG facility record, and
-    joined sites (tracked brownfield within 1 mi) deep-link to the tracked
-    record that carries the parcel-availability evidence."""
+def test_retired_popup_carries_citation_and_proximity_disclaimer(page, base_url):
+    """Every ◆ popup cites Envirofacts; nearby tracked links are explicitly
+    proximity-only and never presented as parcel-availability evidence."""
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("window.__APP_READY__ === true", timeout=30_000)
     page.wait_for_function(
@@ -2645,9 +2644,13 @@ def test_retired_popup_carries_citation_and_availability_link(page, base_url):
             cited: layers.length,
             total: contents.length,
             withTracked: contents.filter((c) => c.includes('?site=')).length,
+            proximityOnly: contents.filter((c) => c.includes('proximity only')).length,
+            falseAvailabilityClaims: contents.filter((c) => c.includes('Availability evidence')).length,
           };
         }"""
     )
     assert r["total"] > 500
     assert r["cited"] == r["total"], "every retired popup must cite Envirofacts"
     assert r["withTracked"] > 100  # 214 joined as of 2026-07-02
+    assert r["proximityOnly"] == r["withTracked"]
+    assert r["falseAvailabilityClaims"] == 0

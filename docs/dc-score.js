@@ -481,7 +481,7 @@ const MANUFACTURING_SCORE_WEIGHTS = Object.freeze({
   substation:            12,   // interconnection point, as the other lenses
   gas_pipeline:          12,   // process heat (steel, chemicals, e-fuels)
   highway:               10,   // inbound/outbound trucking
-  readiness:             10,   // developable / clean / incentivized (45X/48C stack)
+  readiness:             10,   // developable / clean / incentivized
 });
 
 const MANUFACTURING_SCORE_TOOLTIP =
@@ -489,8 +489,8 @@ const MANUFACTURING_SCORE_TOOLTIP =
   "(battery, EAF steel, hydrogen/e-fuels, components): rail spur access " +
   "(22), acreage (18 — peaked at 100–500 ac; mega-sites score lower), " +
   "transmission distance (16), substation (12), gas pipeline for process " +
-  "heat (12), highway (10), readiness (10: cleanup status, SWRAU, OZ, IRA " +
-  "energy community — 45X/48C-relevant). A Special Flood Hazard Area " +
+  "heat (12), highway (10), readiness (10: cleanup status, SWRAU, OZ, and " +
+  "48C energy-community allocation priority). A Special Flood Hazard Area " +
   "subtracts 18; Very-High wildfire/drought subtracts up to 10. Workforce " +
   "scoring arrives with the Census LEHD/LODES layer. Sites without " +
   "transmission data score N/A.";
@@ -527,15 +527,15 @@ function _scoreTransmissionDistanceMfg(mi, cap) {
 }
 
 // readiness for a manufacturing build: clean, developable, incentivized.
-// IRA energy community earns as much as it does on the generation lens —
-// 45X (advanced manufacturing production) and 48C (qualifying advanced
-// energy project, energy-community bonus-eligible) apply directly to plants.
+// Energy-community location is a 48C allocation priority, not a per-project
+// bonus. Section 45X is location-neutral, and the same facility cannot claim
+// both 45X and 48C. Keep this below the direct cleanup/readiness signals.
 // Like the generation lens, does NOT credit `in_reuse` (occupied land).
 function _scoreReadinessMfg(site) {
   let s = 0;
   if (site.npl_status_code === "D") s += 3;       // cleanup complete
   if (typeof site.rau_status === "string" && /^Meets the Measure/i.test(site.rau_status)) s += 3;
-  if (site.in_energy_community === true) s += 3;  // 45X/48C energy-community stack
+  if (site.in_energy_community === true) s += 2;  // 48C allocation priority
   if (site.in_opportunity_zone === true) s += site.oz_rural === true ? 3 : 2;
   return Math.min(s, MANUFACTURING_SCORE_WEIGHTS.readiness);
 }
