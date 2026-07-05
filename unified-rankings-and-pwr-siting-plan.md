@@ -75,7 +75,7 @@ spot** (a peaked curve, not monotonic):
 | substation | 12 | as DC lens |
 | gas | 12 | process heat (steel, chemicals, e-fuels) |
 | highway | 10 | inbound/outbound trucking |
-| readiness/incentives | 10 | SWRAU + OZ + IRA (IRA weighs more — mfg qualifies for 45X/48C) |
+| readiness/incentives | 10 | SWRAU + OZ + 48C energy-community allocation priority (45X is location-neutral; no “stack”) |
 | **Total** | **100** | flood/climate/regulatory stay subtractive, per the existing pattern |
 
 When the **Census LEHD/LODES workforce layer** (already top of backlog)
@@ -107,6 +107,11 @@ efficiency) and **land/export needs**:
 | Large PWR ×2 units | 2,234 | ~62 cfs | 800 | 500 kV |
 | AP300-class SMR | 330 | ~9 cfs | ~100 | 138–230 kV fine |
 | Microreactor (Janus) | 1–20 | ≪1 cfs (often air-cooled) | <20 | distribution-level |
+
+> **Source-audit correction (2026-07-05):** the Army Janus announcement is
+> vendor-neutral and does not specify output, cooling technology, or water
+> demand. The implementation therefore leaves those fields unassessed and
+> holds water constant so it cannot affect relative site rank.
 
 Concretely: a `REACTOR_CLASSES` table in `ap1000-score.js` (renamed
 `nuclear-score.js`), each entry `{mwe, consumptive_cfs, min_acres,

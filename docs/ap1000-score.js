@@ -42,11 +42,10 @@ const AP1000_MIN_DEVELOPABLE_ACRES = 500;
 // ---------------------------------------------------------------------------
 // Reactor classes. AP1000 / APR1400 are LARGE Gen III+ PWRs — a different
 // CATEGORY from SMRs (AP300-class) and microreactors (Janus-class), not
-// points on one continuum: the certified large designs are wet-cooled with a
-// fixed design basis, while SMR/micro designs shrink water demand 3–300× and
-// several are air-coolable, which changes which sites are viable at all (a
-// desert base that is `severe` water for an AP1000 can host an air-cooled
-// microreactor — exactly the Army Janus premise at 9 of these 14 sites).
+// points on one continuum. Large designs have a documented wet-cooling basis;
+// AP300 water is an explicit Vogtle-scaled estimate. Janus is vendor-neutral
+// and has not selected reactor designs, so this model does not infer cooling
+// technology or water demand from the Army program announcement.
 // Consumptive cfs scales from the Vogtle 3&4 record (31.1 cfs per 1,117 MWe
 // unit — ap1000-water-validation.md §1) by nameplate; APR1400 uses linear
 // MWe scaling (comparable thermal efficiency) pending a US APR1400 EIS.
@@ -54,8 +53,7 @@ const AP1000_MIN_DEVELOPABLE_ACRES = 500;
 // `water_source` (basis of the consumptive figure). AP1000 water is the
 // as-built Vogtle 3&4 environmental record; APR1400 and AP300 are linear
 // per-MWe scalings of that record (stated in the note — no US EIS exists yet
-// for either); the microreactor figure reflects air-cooled designs per the
-// Army Janus program materials.
+// for either). The microreactor entry is a program screen, not a design claim.
 const REACTOR_CLASSES = Object.freeze({
   ap1000: Object.freeze({
     label: "AP1000", group: "Large PWR", mwe: 1117,
@@ -76,18 +74,18 @@ const REACTOR_CLASSES = Object.freeze({
   ap300: Object.freeze({
     label: "AP300-class SMR", group: "SMR", mwe: 330,
     consumptive_cfs: 9.2, withdrawal_cfs: 12.3,
-    min_acres: 100, volt_profile: "smr", dry_cooling_viable: true,
+    min_acres: 100, volt_profile: "smr", dry_cooling_viable: null,
     spec_source: "https://westinghousenuclear.com/new-plants/ap300-smr/",
     water_source: "https://www.energy.gov/sites/default/files/EIS-0476-FEIS_Part1-2012.pdf",
-    water_basis: "Linear per-MWe scaling of the Vogtle 3&4 record (31.1 cfs × 330/1117); AP300 reuses AP1000 passive-plant technology and supports hybrid/dry cooling",
+    water_basis: "Screening estimate: linear per-MWe scaling of the Vogtle 3&4 wet-cooling record (31.1 cfs × 330/1117); no design-specific US operating water record is available",
   }),
   micro: Object.freeze({
-    label: "Microreactor (Janus-class)", group: "Microreactor", mwe: 10,
-    consumptive_cfs: 0, withdrawal_cfs: 0,   // typically air-cooled
-    min_acres: 20, volt_profile: "micro", dry_cooling_viable: true,
+    label: "Microreactor (Janus program)", group: "Microreactor", mwe: null,
+    consumptive_cfs: null, withdrawal_cfs: null,
+    min_acres: 20, volt_profile: "micro", dry_cooling_viable: null,
     spec_source: "https://www.army.mil/article/289074/army_announces_next_steps_on_janus_program_for_next_generation_nuclear_energy",
     water_source: "https://www.army.mil/article/289074/army_announces_next_steps_on_janus_program_for_next_generation_nuclear_energy",
-    water_basis: "Janus-class microreactors (≤20 MWe) are air-cooled designs — no cooling-water makeup requirement",
+    water_basis: "Unassessed: the Army is soliciting commercial concepts and has not paired reactor designs with installations; cooling technology and water demand remain vendor-specific",
   }),
 });
 
@@ -97,9 +95,9 @@ const REACTOR_CLASSES = Object.freeze({
 // at any reasonable price; a compact-/watermaster-gated basin (ACF, DRBC
 // docket, Brazos watermaster) adds a real but passable gate. Multiplicative
 // on the water component because rights without water and water without
-// rights are both worthless. Missing (unassessed) → 1.0: absence of
-// evidence isn't evidence. Micro class ignores the multiplier — an
-// air-cooled unit needs no new consumptive right.
+// rights are both worthless. Missing is unassessed, not implicitly best.
+// The vendor-neutral Janus program screen holds water constant across sites
+// so unsupported cooling assumptions cannot change relative ranking.
 const AP1000_WATER_RIGHTS_MULT = Object.freeze({
   obtainable: 1.0,
   contested: 0.6,
@@ -108,7 +106,7 @@ const AP1000_WATER_RIGHTS_MULT = Object.freeze({
 
 function _ap1000RightsMult(site) {
   const m = AP1000_WATER_RIGHTS_MULT[(site.water_rights_class || "").toLowerCase()];
-  return m == null ? 1.0 : m;
+  return m == null ? null : m;
 }
 
 // Positive caps sum to exactly 100. Acreage is deliberately not a point score:
@@ -136,14 +134,12 @@ const AP1000_SCORE_TOOLTIP =
 // Cooling-water adequacy → fraction, per class GROUP. The large-PWR table is
 // the original calibration (the analyst rating already folds in source type
 // and reach — Fort Campbell is "marginal" precisely because its abundant
-// river is 12+ mi away and downhill). SMRs soften every bucket because the
-// demand is ~3.4× smaller and hybrid/dry cooling is design-viable; the
-// microreactor table barely differentiates because an air-cooled unit needs
-// essentially no cooling makeup.
+// river is 12+ mi away and downhill). Until design-specific low-flow analysis
+// exists, AP300 uses the same conservative fallback buckets; its smaller
+// demand only improves a site through the quantitative low-flow path.
 const _AP1000_WATER_FRAC_BY_GROUP = Object.freeze({
   "Large PWR":    { abundant: 1.0, adequate: 0.62, marginal: 0.33, poor: 0.12, severe: 0.0 },
-  "SMR":          { abundant: 1.0, adequate: 0.85, marginal: 0.6,  poor: 0.35, severe: 0.1 },
-  "Microreactor": { abundant: 1.0, adequate: 1.0,  marginal: 0.9,  poor: 0.75, severe: 0.6 },
+  "SMR":          { abundant: 1.0, adequate: 0.62, marginal: 0.33, poor: 0.12, severe: 0.0 },
 });
 const _AP1000_WATER_FRAC = _AP1000_WATER_FRAC_BY_GROUP["Large PWR"]; // legacy alias
 
@@ -155,9 +151,11 @@ const _AP1000_MARGIN_ANCHORS = [[1, 0.2], [3, 0.5], [10, 0.8], [30, 1.0]];
 
 function _ap1000ScoreWater(site, cap, cls) {
   const c = cls || REACTOR_CLASSES.ap1000;
-  const rights = c.group === "Microreactor" ? 1.0 : _ap1000RightsMult(site);
-  // Air-cooled class: water is not a binding constraint; score the residual
-  // service-water need off the softened adequacy table only.
+  // Janus has not selected a reactor/cooling design. Hold water at a neutral
+  // midpoint so it cannot influence relative site order or receive full credit.
+  if (c.group === "Microreactor") return Math.round(cap * 0.5);
+  const rights = _ap1000RightsMult(site);
+  if (rights == null) return null;
   let frac;
   if (site.water_low_flow_cfs != null && c.consumptive_cfs > 0) {
     // Computed margin from a DOCUMENTED low/drought flow (preferred over the
@@ -168,7 +166,7 @@ function _ap1000ScoreWater(site, cap, cls) {
   } else {
     frac = _AP1000_WATER_FRAC_BY_GROUP[c.group][(site.water_adequacy || "").toLowerCase()];
   }
-  return frac == null ? 0 : Math.round(frac * rights * cap);
+  return frac == null ? null : Math.round(frac * rights * cap);
 }
 
 // Fiber connectivity → fraction.
@@ -259,6 +257,7 @@ function computeAp1000Breakdown(site, classKey) {
 function computeAp1000Score(site, classKey) {
   const bd = computeAp1000Breakdown(site, classKey);
   if (bd == null) return null;
+  if (bd.water == null) return null;
   const total = Object.values(bd).reduce((a, b) => a + b, 0);
   return Math.max(0, Math.min(100, total));
 }

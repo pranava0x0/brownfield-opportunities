@@ -34,6 +34,7 @@ derivation.
 
 Run:  python3 scripts/build_ap1000_sites.py
 """
+import datetime as dt
 import hashlib
 import io
 import json
@@ -78,9 +79,9 @@ _COL_RET_YEAR   = 21
 _COL_LAT        = 24
 _COL_LON        = 25
 
-# Generated date is fixed (not Date.now) — this is a static, hand-curated
-# overlay; bump it by hand when the curated research is refreshed.
-GENERATED_AT = "2026-06-24"
+# Separate build freshness from the date the analyst-curated claims were last
+# verified. Rebuilding must not leave `generated_at` pinned to an older file.
+ANALYSIS_VERIFIED_AT = "2026-07-02"
 AP1000_SOURCE = "https://westinghousenuclear.com/new-plants/ap1000-pwr/overview/"
 VOGTLE_WORKFORCE_SOURCE = "https://www.energy.gov/ne/articles/5-things-you-should-know-about-plant-vogtle"
 
@@ -878,7 +879,8 @@ def main() -> None:
         out.append(rec)
 
     payload = {
-        "generated_at": GENERATED_AT,
+        "generated_at": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "analysis_verified_at": ANALYSIS_VERIFIED_AT,
         "source": "Curated AP1000-siting analysis overlay (analyst-researched land/water/fiber; transmission/substation joined from infra-proximity.json)",
         "source_urls": {
             "ap1000_specs": AP1000_SOURCE,
