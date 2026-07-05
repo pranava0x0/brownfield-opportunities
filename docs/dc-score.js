@@ -221,6 +221,21 @@ function _scoreGasPipeline(mi, cap) {
   return Math.round(_interp(mi, [[0.05, 1.0], [1, 0.8], [5, 0.55], [15, 0.27], [30, 0]]) * cap);
 }
 
+// Effective developable land size: the program's own reported site-boundary
+// acreage, falling back to the matched cadastral parcel acreage (parcel-owner
+// connector) when the program ships none. This is the ONLY land-size signal
+// for ACRES brownfields (their source has no acreage column — see CLAUDE.md
+// gap #1), so without the fallback every one of the ~36k ACRES sites scored 0
+// on land in all three lenses — most damaging to the Manufacturing lens, where
+// mid-size parcels are the sweet spot. The parcel is a conservative floor
+// (never larger than the reported boundary is expected to be), so it can only
+// lift a null, never inflate a program-reported value.
+function _effectiveAcreage(site) {
+  if (site.acreage != null) return site.acreage;
+  if (site.parcel_acreage != null) return site.parcel_acreage;
+  return null;
+}
+
 // DC acreage curve — footprint matters but saturates at the hyperscale
 // threshold (~500 ac); a 50,000-acre parcel is no better than a 500-acre
 // one for a single campus.
@@ -375,7 +390,7 @@ function computeDcScoreBreakdown(site) {
     voltage:               _scoreVoltage(site.transmission_kv, W.voltage),
     substation:            _scoreSubstation(site.substation_mi, site.substation_kv, W.substation),
     grid_inheritance:      _scoreGridInheritance(site, W.grid_inheritance),
-    acreage:               _scoreAcreageDc(site.acreage, W.acreage),
+    acreage:               _scoreAcreageDc(_effectiveAcreage(site), W.acreage),
     gas_pipeline:          _scoreGasPipeline(site.gas_pipeline_mi, W.gas_pipeline),
     logistics:             _scoreLogistics(site.highway_mi, site.rail_mi, W.logistics),
     readiness:             _scoreReadinessDc(site),
@@ -438,7 +453,7 @@ function computeGenerationScoreBreakdown(site) {
   if (site.transmission_mi == null) return null;
   const W = GENERATION_SCORE_WEIGHTS;
   return {
-    acreage:               _scoreAcreageGen(site.acreage, W.acreage),
+    acreage:               _scoreAcreageGen(_effectiveAcreage(site), W.acreage),
     transmission_distance: _scoreTransmissionDistanceGen(site.transmission_mi, W.transmission_distance),
     substation:            _scoreSubstation(site.substation_mi, site.substation_kv, W.substation),
     voltage:               _scoreVoltage(site.transmission_kv, W.voltage),
@@ -546,7 +561,7 @@ function computeManufacturingScoreBreakdown(site) {
   const W = MANUFACTURING_SCORE_WEIGHTS;
   return {
     rail:                  _scoreRail(site.rail_mi, W.rail),
-    acreage:               _scoreAcreageMfg(site.acreage, W.acreage),
+    acreage:               _scoreAcreageMfg(_effectiveAcreage(site), W.acreage),
     transmission_distance: _scoreTransmissionDistanceMfg(site.transmission_mi, W.transmission_distance),
     substation:            _scoreSubstation(site.substation_mi, site.substation_kv, W.substation),
     gas_pipeline:          _scoreGasPipeline(site.gas_pipeline_mi, W.gas_pipeline),

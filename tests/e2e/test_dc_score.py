@@ -368,6 +368,34 @@ def test_dc_acreage_component(page, base_url, acres, expected):
     assert bd["acreage"] == expected
 
 
+def test_parcel_acreage_fills_null_program_acreage(page, base_url):
+    """ACRES sites ship acreage == null. The parcel-owner connector's
+    parcel_acreage is their only land-size signal — it must feed the acreage
+    component of all three lenses when the program reports none."""
+    _ready(page, base_url)
+    # acreage null + parcel_acreage 100 scores the SAME as acreage 100.
+    fallback = _dc_bd(page, {"transmission_mi": 0.5, "acreage": None, "parcel_acreage": 100})
+    direct = _dc_bd(page, {"transmission_mi": 0.5, "acreage": 100})
+    assert fallback["acreage"] == direct["acreage"] == 16
+    # All three lenses honor the fallback.
+    mfg = page.evaluate(
+        "() => window.computeManufacturingScoreBreakdown("
+        "{transmission_mi: 0.5, acreage: null, parcel_acreage: 300}).acreage")
+    mfg_direct = page.evaluate(
+        "() => window.computeManufacturingScoreBreakdown("
+        "{transmission_mi: 0.5, acreage: 300}).acreage")
+    assert mfg == mfg_direct and mfg > 0
+
+
+def test_parcel_acreage_never_overrides_reported_acreage(page, base_url):
+    """The parcel is a floor, not a replacement — a program-reported acreage
+    always wins so parcel data can only lift a null, never inflate."""
+    _ready(page, base_url)
+    bd = _dc_bd(page, {"transmission_mi": 0.5, "acreage": 100, "parcel_acreage": 50_000})
+    direct = _dc_bd(page, {"transmission_mi": 0.5, "acreage": 100})
+    assert bd["acreage"] == direct["acreage"] == 16
+
+
 @pytest.mark.parametrize("mi,expected", [
     (None, 0), (0.0, 10), (1.0, 8), (5.0, 6), (15.0, 3), (30.0, 0),
     # v1.20: interpolated between anchors; tail tapers to 0 at 30 mi
