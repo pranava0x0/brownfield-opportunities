@@ -283,6 +283,24 @@ Also verified: joining the retired-industrial overlay to the tracked corpus by
 1-mile Haversine (bbox prefilter) links 214/658 sites — enough to make the
 tracked record the default parcel-availability evidence surface.
 
+---
+
+## 2026-07-05 — parcel registry expansion (owner + developable acreage)
+
+### 18. Statewide parcel layers — NJ / VT / CT added; NY / MA rejected
+
+Discovery via the ArcGIS-Online search API (`arcgis.com/sharing/rest/search?q=<state>+statewide+parcels+owner&f=json`, filter results to `Feature Service` owned by the state GIS org), then confirmed each candidate by reading `<layer>?f=json` field metadata + a live point-intersect and a `where=<owner> IS NOT NULL` sample. All queryable with **no token**.
+
+| State | Service (official owner) | owner / acreage / id fields | Verdict |
+|---|---|---|---|
+| NJ | NJOGIS `Parcels_Composite_NJ_WM/FeatureServer/0` | `OWNER_NAME` / `CALC_ACRE` / `PAMS_PIN` | ✓ added. Point HIT at a Camden site: CALC_ACRE 1.92, PIN `0408_1279.01_8`. **Owner is frequently BLANK** in the MOD-IV composite → many NJ records are acreage-only (the parcel_acreage-without-owner path). |
+| VT | VCGI `FS_VCGI_OPENDATA_Cadastral_VTPARCELS_poly_standardized_parcels_SP_v1/FeatureServer/0` | `OWNER1` / `ACRESGL` / `MAPID` | ✓ added. Sample owner "WEST NANCY". ACRESGL = grand-list acres (0 → dropped by the >0 guard). |
+| CT | CT GIS Office `Connecticut_CAMA_and_Parcel_Layer_2024/FeatureServer/0` | `Owner` / `Land_Acres` / `Parcel_ID` | ✓ added. Sample "CACCHIONE ROBERT" / 1.13 ac / `134-41A`. |
+| NY | NYSGIS_GPO `NYS_Tax_Parcels_Public/FeatureServer/0` | — | ✗ rejected. Layer 0 is **municipal boundaries** (NAME/GNIS/POP/SWIS), not parcels; the public NY parcel product carries **no owner name** (owner is county-restricted). |
+| MA | MassGIS `Massachusetts_Property_Tax_Parcels/FeatureServer/0` | `OWNER1` / `LOT_SIZE`+`LOT_UNITS` / `LOC_ID` | ✗ deferred. Owner present, but lot size is `LOT_SIZE` with a **per-record `LOT_UNITS` (A=acres / S=sq ft)** — mixed units the connector's single `acreage_field` can't scale. Add only after the query handles LOT_UNITS. |
+
+Point misses on the ACRES address-geocodes are the documented off-parcel class (same as NC) — Superfund/FUDS polygon-derived coords hit more reliably. PA has **no** statewide parcel layer (county-by-county) — search returned only unrelated services.
+
 ## Reusable probe patterns
 
 - USGS streamflow without the JS portal: `waterservices.usgs.gov/nwis/site/?format=rdb&sites=<id>&siteOutput=expanded` (drainage area) + `…/nwis/stat/?format=rdb&sites=<id>&statReportType=annual&statTypeCd=mean&parameterCd=00060` (annual mean cfs). A federal PDF that NRC serves slowly often has a DOE/energy.gov mirror.
