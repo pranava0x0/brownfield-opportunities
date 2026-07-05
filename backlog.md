@@ -4,6 +4,20 @@ Ideas and enhancements. Priorities: **high** = next, **med** = soon, **low** = n
 
 ---
 
+## Session checkpoint — 2026-07-05 (parcel developable-acreage + scoring fallback)
+
+**Completed this session:**
+- **Brought in the stray provenance-fix commit.** Cherry-picked `fe48dc2` (`codex/pr18-review-fixes`, the post-merge trust/provenance audit from the PR #18 comment) onto this branch. `sleepy-rhodes` was already fully squash-merged as PR #18 (empty diff); `frosty` is behind main (an old pre-merge AP1000 branch — skipped).
+- **Parcel developable-acreage (answers "how many acres are actually available for development").** `connectors/parcel_owner.py` already fetched `gisacres`/parcel-id in `outFields` but discarded them — now emits `parcel_acreage` + `parcel_id` (two new `SiteRecord` fields). This is the ONLY land-size signal for the ~36k ACRES brownfields (their source has no acreage column — gap #1). A parcel with acreage but a blank owner is now a real record (not a tombstone); 0/neg acreage dropped as bad geometry. Detail-panel "Parcel area" row + 2 CSV columns.
+- **Scoring uses parcel acreage as a fallback.** `_effectiveAcreage(site)` in `dc-score.js` (`acreage ?? parcel_acreage`) feeds the acreage component of all three lenses, so ACRES / parcel-matched sites stop scoring 0 on land — biggest lift to the **Manufacturing** lens (mid-size parcels are its sweet spot). Conservative floor: reported `acreage` always wins.
+- **Tests:** +4 unit (`test_parcel_owner.py`, now 10) + 2 e2e (`test_dc_score.py`, now 157). AGENTS.md mirror regenerated.
+
+**Follow-ons opened this session:**
+- **[high] Extend `STATE_PARCEL_SOURCES` now that acreage flows.** Each verified state now fills BOTH owner AND developable-acres. NC/MT/WI proven; confirm TX StratMap in deploy, then add high-brownfield states (PA, OH, NJ, CA county aggregates). This is the single lever that grows both the owner AND the developable-acreage coverage.
+- **[low] Table "Parcel acres" column + sort.** Surface `parcel_acreage` as an optional table column so users can rank by actually-available land, distinct from program-reported `acreage`.
+
+---
+
 ## Session checkpoint — 2026-07-02 (generation opportunities + manufacturing reuse)
 
 **Completed this session:**

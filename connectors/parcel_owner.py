@@ -32,9 +32,17 @@ Run narrow first: `python3 refresh.py --source parcel-owner --parcel-state NC
 --parcel-limit 50`. The base-class disk cache makes re-runs cheap.
 
 Output: docs/data/parcel-owner.json — [{id, program, current_owner,
-current_owner_source}]. Schema-clean (both fields are on SiteRecord). Parcel
-acreage / parcel id are NOT emitted yet (would need schema fields) — noted as a
-follow-on (the parcel acreage could partially fill the ACRES acreage gap).
+current_owner_source, parcel_acreage, parcel_id}]. All schema-clean. The parcel
+acreage answers "how many acres are actually available for development" at the
+parcel level and is the ONLY land-size signal for ACRES brownfields, whose
+source ships no acreage column at all (CLAUDE.md gap #1). A site can now be
+emitted with a parcel_acreage even when the parcel carries no owner name.
+
+Records resolved in runs BEFORE parcel_acreage was emitted are backfilled for
+free: their parcel response is already cached (it always contained the acreage,
+we just discarded it), so a cache-only "acreage upgrade" pass fills them in
+without a new query, without spending `--parcel-limit`, and without touching
+the network. Only owner-resolved records qualify; tombstones stay untouched.
 """
 from __future__ import annotations
 
@@ -133,6 +141,18 @@ class ParcelOwner(Connector):
                     out.append(r)
         return out
 
+    # ---- cache key (shared by the query + the free acreage-upgrade pass) ---
+    @staticmethod
+    def _cache_key(src: dict[str, Any], lat: float, lon: float) -> dict[str, Any]:
+        # Stable cache key on rounded coords so tiny float drift still hits cache.
+        return {"src": src["source"], "lat": round(lat, 6), "lon": round(lon, 6)}
+
+    def _cache_exists(self, src: dict[str, Any], lat: float, lon: float) -> bool:
+        """True when this coord's parcel response is already on disk — the
+        acreage-upgrade pass only touches cached responses so it never spends
+        the query budget or hits the network."""
+        return self.cache_path(self._cache_key(src, lat, lon)).exists()
+
     # ---- per-site parcel query -------------------------------------------
     def _query_owner(self, src: dict[str, Any], lat: float, lon: float,
                      use_cache: bool) -> dict[str, Any] | None:
@@ -147,17 +167,32 @@ class ParcelOwner(Connector):
             "returnGeometry": "false",
             "f": "json",
         }
-        # Stable cache key on rounded coords so tiny float drift still hits cache.
-        cache_key = {"src": src["source"], "lat": round(lat, 6), "lon": round(lon, 6)}
-        data = self.http_get_json(f"{src['base']}/query", params, use_cache=use_cache, cache_key=cache_key)
+        data = self.http_get_json(f"{src['base']}/query", params, use_cache=use_cache,
+                                  cache_key=self._cache_key(src, lat, lon))
         feats = data.get("features") or []
         if not feats:
             return None
         attrs = feats[0].get("attributes") or {}
         owner = attrs.get(src["owner_field"])
-        if not owner or not str(owner).strip():
+        owner = str(owner).strip() if owner and str(owner).strip() else None
+        # Parcel acreage answers "how many acres are actually available for
+        # development" and is the only land-size signal for ACRES sites.
+        acreage: float | None = None
+        af = src.get("acreage_field")
+        if af and attrs.get(af) is not None:
+            try:
+                a = round(float(attrs[af]), 2)
+                acreage = a if a > 0 else None
+            except (TypeError, ValueError):
+                acreage = None
+        pid: str | None = None
+        pf = src.get("parcel_id_field")
+        if pf and attrs.get(pf) not in (None, ""):
+            pid = str(attrs[pf]).strip() or None
+        # A feature with neither an owner name nor parcel acreage is no signal.
+        if owner is None and acreage is None:
             return None
-        return {"owner": str(owner).strip()}
+        return {"owner": owner, "parcel_acreage": acreage, "parcel_id": pid}
 
     # ---- main -------------------------------------------------------------
     def fetch_records(self, args: argparse.Namespace, use_cache: bool) -> list[dict[str, Any]]:
@@ -180,6 +215,7 @@ class ParcelOwner(Connector):
 
         new_queries = 0
         hits = 0
+        upgraded = 0
         for s in sites:
             sid = s.get("id")
             if not sid:
@@ -193,6 +229,28 @@ class ParcelOwner(Connector):
             # for tombstones, so every known no-match re-consumed the budget
             # on every run. Guarded by test_seeded_null_owner_is_not_requeried.
             if sid in seeded:
+                # FREE acreage-upgrade: owner-resolved records from runs before
+                # parcel_acreage was emitted lack it, but their parcel response
+                # is already cached (with gisacres). Backfill from cache only —
+                # never a new query, never the budget, never the network. Only
+                # owner-resolved records qualify; tombstones (no parcel) are left
+                # untouched so they stay un-requeried.
+                rec = seeded[sid]
+                if rec.get("current_owner") and rec.get("parcel_acreage") is None:
+                    src = STATE_PARCEL_SOURCES.get(s.get("state"))
+                    try:
+                        latf, lonf = float(s["lat"]), float(s["lon"])
+                    except (TypeError, ValueError):
+                        continue
+                    if src and self._cache_exists(src, latf, lonf):
+                        try:
+                            res = self._query_owner(src, latf, lonf, use_cache=True)
+                        except (requests.ConnectionError, requests.Timeout, requests.HTTPError):
+                            res = None
+                        if res and res.get("parcel_acreage") is not None:
+                            rec["parcel_acreage"] = res["parcel_acreage"]
+                            rec["parcel_id"] = res.get("parcel_id")
+                            upgraded += 1
                 continue
             if limit and new_queries >= limit:
                 break
@@ -212,15 +270,18 @@ class ParcelOwner(Connector):
                 seeded[sid] = {"id": sid, "program": s.get("program"),
                                "current_owner": None, "current_owner_source": None}
                 continue
-            seeded[sid] = {
-                "id": sid,
-                "program": s.get("program"),
-                "current_owner": res["owner"],
-                "current_owner_source": src["source"],
-            }
-            hits += 1
+            rec: dict[str, Any] = {"id": sid, "program": s.get("program")}
+            if res.get("owner"):
+                rec["current_owner"] = res["owner"]
+                rec["current_owner_source"] = src["source"]
+                hits += 1
+            if res.get("parcel_acreage") is not None:
+                rec["parcel_acreage"] = res["parcel_acreage"]
+                rec["parcel_id"] = res.get("parcel_id")
+            seeded[sid] = rec
 
-        log.info("parcel-owner: %d new queries, %d owner hits this run; %d total records",
-                 new_queries, hits, len(seeded))
+        log.info("parcel-owner: %d new queries, %d owner hits, %d acreage upgrades "
+                 "(from cache) this run; %d total records",
+                 new_queries, hits, upgraded, len(seeded))
         # Emit every record; null-owner tombstones keep the resumable set honest.
         return list(seeded.values())

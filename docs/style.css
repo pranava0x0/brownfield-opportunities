@@ -1158,6 +1158,10 @@ main {
 .kv dt { color: var(--muted); font-size: 12px; padding-top: 1px; }
 .kv dd { margin: 0; word-wrap: break-word; color: var(--text-soft); }
 .kv dd.muted-cell { color: var(--muted); font-style: italic; }
+/* [hidden] trap belt-and-suspenders: keep optional rows (e.g. Parcel area)
+   out of the grid when hidden even if a display override is ever added. */
+.kv dt[hidden], .kv dd[hidden] { display: none; }
+.kv dd .muted-cell { color: var(--muted); font-style: italic; margin-left: 2px; }
 /* Same muted treatment for table cells when a column doesn't apply to the
    record's program — e.g. STATUS column for ACRES/BRAC (UAT-009). */
 #sites-table td .muted-cell { color: var(--muted); font-style: italic; }

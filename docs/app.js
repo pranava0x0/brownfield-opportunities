@@ -1135,10 +1135,23 @@ function ensureParcelOwnerLoaded() {
       recordRefreshDate(payload.generated_at);
       for (const rec of payload.sites || []) {
         const existing = sitesById.get(rec.id);
-        if (!existing || !rec.current_owner) continue;
-        if (existing.current_owner) continue; // don't overwrite a source-provided owner
-        existing.current_owner = rec.current_owner;
-        existing.current_owner_source = rec.current_owner_source || "Public parcel records";
+        if (!existing) continue;
+        // Owner: fill-if-empty (don't clobber a source-provided owner, e.g. FUDS).
+        if (rec.current_owner && !existing.current_owner) {
+          existing.current_owner = rec.current_owner;
+          existing.current_owner_source = rec.current_owner_source || "Public parcel records";
+        }
+        // Parcel acreage / id: the actual developable land size from the
+        // cadastral parcel. The only land-size signal for ACRES sites
+        // (acreage == null). Fill-if-empty so a program-reported parcel value
+        // (none today) would win.
+        if (rec.parcel_acreage != null && existing.parcel_acreage == null) {
+          existing.parcel_acreage = rec.parcel_acreage;
+          existing.parcel_id = rec.parcel_id || null;
+          if (!existing.current_owner_source) {
+            existing.current_owner_source = rec.current_owner_source || "Public parcel records";
+          }
+        }
       }
       // Re-render an already-open detail panel so the owner row goes live the
       // moment this lazy load lands (matches the docs / summary / infra loaders).
@@ -4023,6 +4036,21 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
       acreageNote.hidden = true;
     }
   }
+  // Parcel area — the actual cadastral parcel size (parcel-owner connector).
+  // Shown when known; it's the only land-size signal for ACRES sites, whose
+  // program `acreage` is always null.
+  const parcelRow = el("d-parcel-acreage-row");
+  const parcelEl = el("d-parcel-acreage");
+  if (parcelRow && parcelEl) {
+    const has = s.parcel_acreage != null;
+    parcelRow.hidden = !has;
+    parcelEl.hidden = !has;
+    if (has) {
+      const src = s.current_owner_source ? ` · ${escapeHtml(s.current_owner_source)}` : "";
+      const pid = s.parcel_id ? ` · parcel ${escapeHtml(String(s.parcel_id))}` : "";
+      parcelEl.innerHTML = `${escapeHtml(fmt.acres(s.parcel_acreage))}<span class="muted-cell">${src}${pid}</span>`;
+    }
+  }
 
   // Status / ID labels vary by program.
   const statusEl = el("d-status");
@@ -4596,6 +4624,8 @@ const CSV_COLUMNS = [
   // Owner provenance
   { key: "current_owner", label: "current_owner" },
   { key: "current_owner_source", label: "current_owner_source" },
+  { key: "parcel_acreage", label: "parcel_acreage" },
+  { key: "parcel_id", label: "parcel_id" },
   // Universal infra-proximity (v1.10 + v1.13 gas pipelines + v1.13.3 substation/power-plant/flood)
   { key: "transmission_mi", label: "transmission_mi" },
   { key: "transmission_kv", label: "transmission_kv" },
