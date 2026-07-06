@@ -22,7 +22,7 @@ def test_registry_states_are_well_formed():
     """Every registered state must carry the four keys the query relies on so a
     new state can't be half-added. NC/MT/WI/NJ/VT/CT are the verified set."""
     required = {"base", "owner_field", "acreage_field", "parcel_id_field", "source"}
-    assert {"NC", "MT", "WI", "NJ", "VT", "CT"} <= set(STATE_PARCEL_SOURCES)
+    assert {"NC", "MT", "WI", "NJ", "VT", "CT", "MA"} <= set(STATE_PARCEL_SOURCES)
     for st, src in STATE_PARCEL_SOURCES.items():
         assert required <= set(src), f"{st} missing keys: {required - set(src)}"
         assert src["base"].startswith("https://") and src["base"].rstrip("/")[-1].isdigit(), \
@@ -94,6 +94,28 @@ def test_no_parcel_emits_null_tombstone(tmp_path):
     assert len(out) == 1
     assert out[0]["id"] == "NCD2"
     assert out[0]["current_owner"] is None  # tombstone so we don't re-query forever
+
+
+def test_mixed_unit_acreage_converts_sqft_to_acres(tmp_path):
+    """MA reports LOT_SIZE in per-record LOT_UNITS ('Acres' | 'Sq. Ft.'). A
+    square-feet value must be converted to acres; an 'Acres' value passes
+    through; an UNKNOWN unit yields no acreage (never a wrong number)."""
+    src = STATE_PARCEL_SOURCES["MA"]
+    def feat(size, units):
+        return {"features": [{"attributes": {"OWNER1": "ACME LLC", "LOT_SIZE": size,
+                                             "LOT_UNITS": units, "LOC_ID": "M_1_2"}}]}
+    # 43,560 sq ft == 1 acre
+    sites = [{"id": "MA1", "program": "brownfield", "state": "MA", "lat": 42.3, "lon": -71.1}]
+    c = _conn(tmp_path, sites, response_for={(42.3, -71.1): feat(43560, "Sq. Ft.")})
+    out = c.fetch_records(_args(), use_cache=False)
+    assert out[0]["parcel_acreage"] == 1.0
+    # 'Acres' passes through
+    c = _conn(tmp_path, sites, response_for={(42.3, -71.1): feat(5.5, "Acres")})
+    assert c.fetch_records(_args(), use_cache=False)[0]["parcel_acreage"] == 5.5
+    # unknown unit → no acreage, but owner still emitted
+    c = _conn(tmp_path, sites, response_for={(42.3, -71.1): feat(100, "Hectares")})
+    r = c.fetch_records(_args(), use_cache=False)[0]
+    assert r.get("parcel_acreage") is None and r["current_owner"] == "ACME LLC"
 
 
 def test_uncovered_state_is_skipped(tmp_path):
