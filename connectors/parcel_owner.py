@@ -123,11 +123,20 @@ STATE_PARCEL_SOURCES: dict[str, dict[str, Any]] = {
         "parcel_id_field": "Parcel_ID",
         "source": "CT GIS Office (Connecticut CAMA & Parcel Layer 2024)",
     },
-    # MA MassGIS statewide parcels HAS owner (OWNER1) but its lot size is
-    # LOT_SIZE + a per-record LOT_UNITS (A=acres / S=sq ft) — mixed units the
-    # connector's single acreage_field can't scale correctly. Deferred until
-    # the query layer handles LOT_UNITS. NY "Tax Parcels Public" layer 0 is
-    # municipal boundaries and the public parcels carry no owner — dropped.
+    # Verified 2026-07-05 — MassGIS Standardized Property Tax Parcels. Lot size
+    # is LOT_SIZE + a per-record LOT_UNITS ("Acres" 2.28M / "Sq. Ft." 264k), so
+    # it uses the acreage_units_field/_map conversion below. Owner OWNER1.
+    "MA": {
+        "base": "https://services1.arcgis.com/hGdibHYSPO59RG1h/arcgis/rest/services/Massachusetts_Property_Tax_Parcels/FeatureServer/0",
+        "owner_field": "OWNER1",
+        "acreage_field": "LOT_SIZE",
+        "acreage_units_field": "LOT_UNITS",
+        "acreage_units_map": {"ACRES": 1.0, "SQ. FT.": 1.0 / 43560.0},
+        "parcel_id_field": "LOC_ID",
+        "source": "MassGIS (Standardized Property Tax Parcels)",
+    },
+    # NY "Tax Parcels Public" layer 0 is municipal boundaries and the public
+    # parcels carry no owner — dropped.
     # TX StratMap (TxGIO). Endpoint CONFIRMED current as of 2026-06-19
     # (tnris.org/stratmap/land-parcels.html) but `feature.tnris.org` was
     # unreachable from BOTH the dev sandbox socket and WebFetch — a network
@@ -196,7 +205,8 @@ class ParcelOwner(Connector):
             "inSR": "4326",
             "spatialRel": "esriSpatialRelIntersects",
             "outFields": ",".join(
-                f for f in (src["owner_field"], src.get("acreage_field"), src.get("parcel_id_field")) if f
+                f for f in (src["owner_field"], src.get("acreage_field"),
+                            src.get("acreage_units_field"), src.get("parcel_id_field")) if f
             ),
             "returnGeometry": "false",
             "f": "json",
@@ -215,8 +225,23 @@ class ParcelOwner(Connector):
         af = src.get("acreage_field")
         if af and attrs.get(af) is not None:
             try:
-                a = round(float(attrs[af]), 2)
-                acreage = a if a > 0 else None
+                raw = float(attrs[af])
+                # Some layers report lot size in mixed units per-record (e.g.
+                # MassGIS LOT_SIZE + LOT_UNITS = "Acres" | "Sq. Ft."). When an
+                # acreage_units_field is configured, convert to acres via the
+                # source's multiplier map; an UNKNOWN unit code yields None
+                # rather than a silently-wrong number.
+                mult: float | None = 1.0
+                uf = src.get("acreage_units_field")
+                if uf:
+                    umap = src.get("acreage_units_map") or {}
+                    ucode = str(attrs.get(uf) or "").strip().upper()
+                    mult = umap.get(ucode)
+                if mult is None:
+                    acreage = None
+                else:
+                    a = round(raw * mult, 2)
+                    acreage = a if a > 0 else None
             except (TypeError, ValueError):
                 acreage = None
         pid: str | None = None
