@@ -4,6 +4,20 @@ Ideas and enhancements. Priorities: **high** = next, **med** = soon, **low** = n
 
 ---
 
+## Session checkpoint — 2026-07-10 (branch consolidation + flood backfill)
+
+**Branch/main hygiene (origin/main was force-rewritten `5a7dbac`→`595dda4`, identical trees).** Reset local main to origin, then made sure ALL unmerged work from this + prior sessions landed on main and cleaned up every stray branch:
+- Deleted `claude/sleepy-rhodes-f1bd4b` (identical to main) and `claude/frosty-kowalevski-7e3ecf` (superseded PR #17) + worktree.
+- Cherry-picked the 4 unique commits off `claude/intelligent-cannon-540b3d` (superset of `codex/pr18-review-fixes`) onto main — **zero conflicts** (branches sat on the pre-rewrite base but tree content matched current main). These were genuinely missing from main: `fix: harden siting evidence and scoring provenance` (PR #18 review fixes) + the NJ/VT/CT/MA statewide parcel expansion + `parcel_acreage`/`parcel_id` schema + scoring land fallback. Deleted both branches (local + remote) after confirming main is a strict superset.
+- Full suite green before landing: **429 unit + 282 e2e**.
+- Added a Git Discipline note to CLAUDE.md + AGENTS.md: `git fetch --prune` and check the newest of {`origin/main`, open PRs, newest feature branches} before starting; documented the force-rewrite recovery (identical-tree check → `git reset --hard`; rebase specific commits, not raw merge).
+
+**FEMA flood-zone backfill: 36.8% → 43.9%** (`757dd0e`) — `--infra-flood-budget 3000`, `flood_zone` 17,197 → 20,508 (`in_sfha` 1,632 → 1,771). Full connector (all six infra layers recomputed, all 46,760 records preserved). **26,252 sites still deferred** — ~9 more runs at budget 3000 to finish. See [[project-flood-backfill-resumable]] / CLAUDE.md "Resumable flood backfill."
+
+**Missing-data survey (all datasets):** flood is the only large non-structural gap remaining. Confirmed dead-ends (source-side, not backfillable): ACRES acreage (100% missing — no source column), FUDS acreage (66% — undigitized USACE polygons), FEMA-NRI (24% — AK/HI/territories). Owner data is expandable via parcel-owner (NJ/VT/CT/MA now added; the [med] retired-industrial owner backfill item below is the next parcel target). Producer files still 2026-05-12 (~8 wk) — best refreshed supervised.
+
+---
+
 ## Session checkpoint — 2026-07-05 (parcel developable-acreage + scoring fallback)
 
 **Completed this session:**
