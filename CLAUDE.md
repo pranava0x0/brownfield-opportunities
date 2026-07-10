@@ -82,6 +82,7 @@ Never blindly write code. Always follow this loop:
 
 ## Git Discipline
 
+- **Before starting ANY work, find the latest thing to pull from — don't assume local `main` is current.** Run `git fetch origin --prune` first, then check for the newest state across three places: (1) the latest commit on `origin/main` (`git log --oneline -5 origin/main`), (2) any open PRs (`gh pr list --state open`), and (3) any newer feature branches (`git branch -a --sort=-committerdate | head`). Base new work on whichever is authoritative — usually `origin/main`, but sometimes an in-flight PR branch. This repo's `origin/main` history has been **force-rewritten** at least once (2026-07-09: `5a7dbac` → `595dda4`, identical trees, every hash changed all the way back), which leaves local `main` "diverged" even though content matches. When that happens, confirm the tip trees are identical (`git diff --stat <local> origin/main` → empty) and `git reset --hard origin/main`. Feature branches created before a rewrite sit on the *old* base, so their "N commits behind" count is rewrite noise — the real unmerged work is only their commits whose *content* isn't in `origin/main` (verify with `git diff origin/main..<branch>`, and rebase/cherry-pick those specific commits onto current `origin/main` rather than a raw `git merge`).
 - **Commit often** at natural checkpoints — small, focused commits over large monolithic ones.
   - After each new module/feature is built
   - After fixing a bug or resolving a failing test
