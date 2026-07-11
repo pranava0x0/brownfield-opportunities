@@ -721,6 +721,55 @@ def test_gen_grid_reuse_component(page, base_url, fuel, mw, mi, year, expected):
     assert bd["grid_reuse"] == expected
 
 
+@pytest.mark.parametrize("fuel,mw,mi,year,expected", [
+    ("coal",        1200, 0.5, 2027, 8),  # ≥1 GW, ≤1 mi, retiring ≤3 yr — full deal-window credit
+    ("coal",        1200, 0.5, 2032, 5),  # mid-horizon (≤2033) → ×0.6 → round(4.8)
+    ("coal",        1200, 0.5, 2040, 2),  # far-future retirement → ×0.3 → round(2.4)
+    ("coal",        1200, 2.0, 2027, 4),  # 1–3 mi band → ×0.5
+    ("natural gas",  100, 0.5, 2027, 4),  # MW floor → ×0.5
+    ("solar",        500, 0.5, 2027, 0),  # non-dispatchable — no firm interconnect
+])
+def test_gen_grid_reuse_planned_retirement(page, base_url, fuel, mw, mi, year, expected):
+    """The generation lens credits an OPERATING plant with an ANNOUNCED
+    retirement (planned_retirement_*) via grid_reuse, scaled by a
+    date-proximity multiplier: retiring ≤3 yr out is as good as a
+    recently-retired plant (the Homer City deal-before-shutdown pattern);
+    a 2040 retirement earns only a quarter."""
+    _ready(page, base_url)
+    bd = _gen_bd(page, {
+        "transmission_mi": 0.5,
+        "planned_retirement_mi": mi,
+        "planned_retirement_mw": mw,
+        "planned_retirement_fuel": fuel,
+        "planned_retirement_year": year,
+    })
+    assert bd["grid_reuse"] == expected
+
+
+def test_gen_grid_reuse_takes_stronger_of_retired_or_planned(page, base_url):
+    """grid_reuse is the MAX of the retired-plant and planned-retirement
+    pathways — a nearer, sooner signal wins; the weaker one never drags it
+    down. Also confirms the planned path does NOT feed the DC lens (scoped
+    to generation per the backlog item)."""
+    _ready(page, base_url)
+    # Stale retired plant (×0.5) but an imminent ≥1 GW planned retirement (×1.0).
+    record = {
+        "transmission_mi": 0.5,
+        "retired_plant_mi": 0.5, "retired_plant_mw": 1200,
+        "retired_plant_fuel": "BIT", "retired_plant_year": 2003,   # stale → 4
+        "planned_retirement_mi": 0.5, "planned_retirement_mw": 1200,
+        "planned_retirement_fuel": "coal", "planned_retirement_year": 2027,  # fresh → 8
+    }
+    assert _gen_bd(page, record)["grid_reuse"] == 8
+    # DC lens's grid_inheritance must be unaffected by the planned field.
+    only_planned = {
+        "transmission_mi": 0.5,
+        "planned_retirement_mi": 0.5, "planned_retirement_mw": 1200,
+        "planned_retirement_fuel": "coal", "planned_retirement_year": 2027,
+    }
+    assert _dc_bd(page, only_planned)["grid_inheritance"] == 0
+
+
 def test_lenses_diverge_on_same_record(page, base_url):
     """A big remote parcel (lots of land, in an RTO, far from existing
     plants, modest grid) should score notably higher for generation than
