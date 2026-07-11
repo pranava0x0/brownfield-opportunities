@@ -217,6 +217,38 @@ class SiteRecord(BaseModel):
         description="Name of the nearest retired power plant.",
     )
 
+    # EIA-860M PLANNED-retirement proximity (planned-retirements enrichment
+    # connector). Source: EIA Preliminary Monthly Electric Generator Inventory
+    # "Operating" sheet, `Planned Retirement Year` column — plants ≥100 MW
+    # dispatchable with an ANNOUNCED shutdown date. The forward-looking
+    # counterpart to retired_plant_*: the interconnect frees on a KNOWN date,
+    # and repowering / co-location deals are struck BEFORE shutdown (the
+    # Homer City pattern). Populated when such a plant exists within 5 mi.
+    planned_retirement_mi: Optional[float] = Field(
+        default=None,
+        description="Miles to the nearest large (≥100 MW) dispatchable OPERATING "
+                    "plant with an announced retirement year (EIA-860M). Within "
+                    "1 mi = the plant property itself frees up on a known date.",
+    )
+    planned_retirement_mw: Optional[float] = Field(
+        default=None,
+        description="Total MW retiring at the nearest planned-retirement plant.",
+    )
+    planned_retirement_fuel: Optional[str] = Field(
+        default=None,
+        description="Fuel of the nearest planned-retirement plant (e.g. 'coal', "
+                    "'natural gas'). Non-dispatchable plants are excluded.",
+    )
+    planned_retirement_year: Optional[int] = Field(
+        default=None,
+        description="Announced retirement year of the nearest planned-retirement "
+                    "plant (the LAST retiring unit's year at multi-unit plants).",
+    )
+    planned_retirement_name: Optional[str] = Field(
+        default=None,
+        description="Name of the nearest planned-retirement power plant.",
+    )
+
     flood_zone: Optional[str] = Field(
         default=None,
         description="FEMA NFHL flood-zone code at the site (`A`, `AE`, `V`, `VE`, "
