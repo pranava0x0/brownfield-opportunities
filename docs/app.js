@@ -1520,8 +1520,18 @@ function ensurePlannedRetireProxLoaded() {
       if (!r.ok) throw new Error("HTTP " + r.status);
       return r.json();
     })
-    .then((payload) => {
+    .then(async (payload) => {
       recordRefreshDate(payload.generated_at);
+      // This file is tiny (~130 KB) and can resolve BEFORE the much larger
+      // ACRES / FUDS / BRAC program files finish ingesting into sitesById.
+      // Without waiting, the `!existing` guard below would silently drop
+      // every brownfield / FUDS / BRAC join (the majority of the 614
+      // records). Wait on the in-flight program loads first — the same
+      // guard applyUrlSelection() uses for ?site= deep-links. Promises are
+      // null for programs skipped via ?program=, so filter them out.
+      await Promise.allSettled(
+        [acresLoadingPromise, fudsLoadingPromise, bracLoadingPromise].filter(Boolean)
+      );
       for (const rec of payload.sites || []) {
         const existing = sitesById.get(rec.id);
         if (!existing) continue;

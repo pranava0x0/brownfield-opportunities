@@ -341,6 +341,54 @@ def test_detail_panel_planned_retirement_row_renders(page, base_url):
     assert "ret. 2028" in cell
 
 
+def test_planned_retirement_join_covers_all_programs(page, base_url):
+    """Regression (PR #19 / Codex P1): the tiny planned-retirements-proximity
+    file can resolve before the large ACRES/FUDS program files ingest, so the
+    join's `!existing` guard would silently drop the brownfield/FUDS records
+    (the majority of the 614). After full load, EVERY record in the file whose
+    id is present in the loaded set must be joined — not just Superfund.
+
+    The race is timing-dependent (on a fast local server ACRES can win), so we
+    FORCE it: delay the ACRES + FUDS responses so the tiny proximity file lands
+    first. Without the await-guard fix, this deterministically drops the
+    non-Superfund joins; with it, the loader waits for the program promises."""
+    def _slow(route):
+        import time as _t
+        _t.sleep(0.8)
+        route.continue_()
+    page.route("**/epa-acres.json", _slow)
+    page.route("**/dod-fuds.json", _slow)
+    _ready(page, base_url)  # __APP_READY__ fires after all program + enrichment loads settle
+    stats = page.evaluate(
+        """async () => {
+          const byId = new Map(window.__sites.map(s => [s.id, s]));
+          const r = await fetch('data/planned-retirements-proximity.json');
+          const j = await r.json();
+          let present = 0, joined = 0, joinedNonSuperfund = 0;
+          for (const rec of j.sites) {
+            const s = byId.get(rec.id);
+            if (!s) continue;             // program not loaded (all four are on by default)
+            present++;
+            if (s.planned_retirement_mi != null) {
+              joined++;
+              if (s.program !== 'superfund') joinedNonSuperfund++;
+            }
+          }
+          return { total: j.sites.length, present, joined, joinedNonSuperfund };
+        }"""
+    )
+    # Every present record is joined (no silent drops from the load-order race).
+    assert stats["joined"] == stats["present"], (
+        f"{stats['present'] - stats['joined']} of {stats['present']} present "
+        f"records were dropped by the load-order race"
+    )
+    # And the join genuinely reaches non-Superfund programs (proves the race fix,
+    # not just that Superfund — eagerly loaded — happened to be present).
+    assert stats["joinedNonSuperfund"] > 50, (
+        f"expected many ACRES/FUDS joins, got {stats['joinedNonSuperfund']}"
+    )
+
+
 def test_manufacturing_lens_button_sorts_by_mfg(page, base_url):
     """The Rankings tab's third lens: clicking Manufacturing re-sorts by
     computeManufacturingScore, updates the stats line, and round-trips
