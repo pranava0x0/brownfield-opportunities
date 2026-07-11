@@ -259,6 +259,136 @@ def test_zoning_badge_renders_for_restrictive_state(page, base_url):
     assert "Zoning" in labels, "expected a Zoning badge for the restrictive-state site"
 
 
+def test_water_badge_renders_for_npdes_permit(page, base_url):
+    """A site with an active CWA/NPDES permit (EPA ECHO `has_npdes_permit`)
+    shows the "Water" signal badge in the candidates Signals column — the
+    water-access proxy surfaced after the ECHO NPDES re-enrichment. Inject
+    the enforcement flag onto one scored site so it's guaranteed to render."""
+    _ready(page, base_url)
+    state = page.evaluate(
+        "() => {"
+        "  const byState = {};"
+        "  for (const s of window.__sites) {"
+        "    if (s.transmission_mi != null && s.state) (byState[s.state] ||= []).push(s);"
+        "  }"
+        "  for (const [st, arr] of Object.entries(byState)) {"
+        "    if (arr.length >= 1 && arr.length <= 200) {"
+        "      arr[0].enforcement = Object.assign({}, arr[0].enforcement, {has_npdes_permit: true});"
+        "      return st;"
+        "    }"
+        "  }"
+        "  return null;"
+        "}"
+    )
+    assert state, "expected a state with 1..200 scored sites"
+    _set_state_filter(page, state)
+    _open_candidates(page)
+    labels = page.evaluate(
+        "() => Array.from(document.querySelectorAll('#candidates-table .cand-signals .sig-water'))"
+        ".map((b) => b.textContent.trim())"
+    )
+    assert "Water" in labels, "expected a Water badge for the NPDES-permit site"
+
+
+def test_detail_panel_npdes_row_renders(page, base_url):
+    """The detail panel's "Water permit (NPDES)" row (#d-echo-npdes) reflects
+    the ECHO `has_npdes_permit` flag with the ready-tinted affirmative text."""
+    _ready(page, base_url)
+    site_id = page.evaluate(
+        "() => {"
+        "  const s = window.__sites.find(s => s.transmission_mi != null);"
+        "  if (!s) return null;"
+        "  s.enforcement = Object.assign({}, s.enforcement, {has_npdes_permit: true});"
+        "  window.__selectSite(s.id);"
+        "  return s.id;"
+        "}"
+    )
+    assert site_id, "expected a scored site to select"
+    page.wait_for_selector("#detail:not([hidden])", timeout=5000)
+    row = page.evaluate(
+        "() => { const n = document.getElementById('d-echo-npdes');"
+        " return { text: n.textContent.trim(), cls: n.className }; }"
+    )
+    assert "Yes" in row["text"], f"expected affirmative NPDES text, got {row['text']!r}"
+    assert "ready" in row["cls"], f"expected ready tint, got {row['cls']!r}"
+
+
+def test_detail_panel_planned_retirement_row_renders(page, base_url):
+    """The detail panel's "Retiring plant" row (#d-planned-retire-mi) renders
+    the distance + a name/MW/fuel/year chip when a planned-retirement plant is
+    joined onto the site."""
+    _ready(page, base_url)
+    site_id = page.evaluate(
+        "() => {"
+        "  const s = window.__sites.find(s => s.transmission_mi != null);"
+        "  if (!s) return null;"
+        "  s.planned_retirement_mi = 0.4;"
+        "  s.planned_retirement_mw = 2600;"
+        "  s.planned_retirement_fuel = 'coal';"
+        "  s.planned_retirement_year = 2028;"
+        "  s.planned_retirement_name = 'Cumberland';"
+        "  window.__selectSite(s.id);"
+        "  return s.id;"
+        "}"
+    )
+    assert site_id, "expected a scored site to select"
+    page.wait_for_selector("#detail:not([hidden])", timeout=5000)
+    cell = page.evaluate(
+        "() => document.getElementById('d-planned-retire-mi').textContent"
+    )
+    assert "Cumberland" in cell, f"expected the plant name in the cell, got {cell!r}"
+    assert "2,600 MW" in cell
+    assert "ret. 2028" in cell
+
+
+def test_planned_retirement_join_covers_all_programs(page, base_url):
+    """Regression (PR #19 / Codex P1): the tiny planned-retirements-proximity
+    file can resolve before the large ACRES/FUDS program files ingest, so the
+    join's `!existing` guard would silently drop the brownfield/FUDS records
+    (the majority of the 614). After full load, EVERY record in the file whose
+    id is present in the loaded set must be joined — not just Superfund.
+
+    The race is timing-dependent (on a fast local server ACRES can win), so we
+    FORCE it: delay the ACRES + FUDS responses so the tiny proximity file lands
+    first. Without the await-guard fix, this deterministically drops the
+    non-Superfund joins; with it, the loader waits for the program promises."""
+    def _slow(route):
+        import time as _t
+        _t.sleep(0.8)
+        route.continue_()
+    page.route("**/epa-acres.json", _slow)
+    page.route("**/dod-fuds.json", _slow)
+    _ready(page, base_url)  # __APP_READY__ fires after all program + enrichment loads settle
+    stats = page.evaluate(
+        """async () => {
+          const byId = new Map(window.__sites.map(s => [s.id, s]));
+          const r = await fetch('data/planned-retirements-proximity.json');
+          const j = await r.json();
+          let present = 0, joined = 0, joinedNonSuperfund = 0;
+          for (const rec of j.sites) {
+            const s = byId.get(rec.id);
+            if (!s) continue;             // program not loaded (all four are on by default)
+            present++;
+            if (s.planned_retirement_mi != null) {
+              joined++;
+              if (s.program !== 'superfund') joinedNonSuperfund++;
+            }
+          }
+          return { total: j.sites.length, present, joined, joinedNonSuperfund };
+        }"""
+    )
+    # Every present record is joined (no silent drops from the load-order race).
+    assert stats["joined"] == stats["present"], (
+        f"{stats['present'] - stats['joined']} of {stats['present']} present "
+        f"records were dropped by the load-order race"
+    )
+    # And the join genuinely reaches non-Superfund programs (proves the race fix,
+    # not just that Superfund — eagerly loaded — happened to be present).
+    assert stats["joinedNonSuperfund"] > 50, (
+        f"expected many ACRES/FUDS joins, got {stats['joinedNonSuperfund']}"
+    )
+
+
 def test_manufacturing_lens_button_sorts_by_mfg(page, base_url):
     """The Rankings tab's third lens: clicking Manufacturing re-sorts by
     computeManufacturingScore, updates the stats line, and round-trips

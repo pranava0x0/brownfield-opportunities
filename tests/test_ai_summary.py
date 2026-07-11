@@ -12,6 +12,7 @@ from connectors.ai_summary import (
     AiSummary,
     _fingerprint,
     _fmt_distance,
+    _pretty_text,
     build_static_summary,
     build_user_prompt,
 )
@@ -272,3 +273,52 @@ def test_static_summary_omits_dc_clause_when_false():
     site = _base_site(data_center_reuse_candidate=False)
     out = build_static_summary(site)
     assert "data-center reuse candidate" not in out
+
+
+# ---- _pretty_text: title-case regressions (backlog 440-448, v1.11.3) ----
+
+def test_pretty_text_apostrophe_possessive_not_uppercased():
+    """str.title() produced "Beck'S Lake" — the 's after the apostrophe must
+    stay lowercase (regex lookbehind excludes apostrophe)."""
+    assert _pretty_text("BECK'S LAKE") == "Beck's Lake"
+    assert _pretty_text("SIGMON'S SEPTIC TANK SERVICE") == "Sigmon's Septic Tank Service"
+
+
+def test_pretty_text_prepositions_lowercased():
+    """The old <=2-char keep-upper rule preserved OF/IN mid-string; stop words
+    must be lowercased so we get "University of Minnesota", not "OF"."""
+    assert _pretty_text("UNIVERSITY OF MINNESOTA") == "University of Minnesota"
+    assert _pretty_text("TOWN OF BEDFORD") == "Town of Bedford"
+
+
+def test_pretty_text_company_abbrev_not_state_code():
+    """"CO." (Company) must title-case to "Co.", not stay uppercase like the
+    Colorado postal code — the trailing period is the disambiguator."""
+    assert _pretty_text("SMITH CO. DUMP") == "Smith Co. Dump"
+
+
+def test_static_summary_lead_uses_an_for_vowel_program_label():
+    """Grammar: "is a EPA Superfund" → "is an EPA Superfund" when no acreage
+    fronts the label and the program starts with a vowel sound."""
+    site = _base_site(acreage=None)
+    out = build_static_summary(site)
+    assert "is an EPA Superfund" in out
+    assert "is a EPA" not in out
+
+
+def test_static_summary_suppresses_clean_compliance_noise():
+    """A clean ECHO record (no formal actions, no penalties, no violation date)
+    must not surface an enforcement sentence — "No Violation Identified" is not
+    a risk signal and read as noise on 80 sites."""
+    site = _base_site(
+        enforcement={
+            "formal_actions_5yr": 0,
+            "penalties_5yr_usd": 0,
+            "last_violation_date": None,
+            "current_compliance": "No Violation Identified",
+        }
+    )
+    out = build_static_summary(site)
+    assert "No Violation" not in out
+    assert "compliance" not in out.lower()
+    assert "EPA ECHO records show" not in out
