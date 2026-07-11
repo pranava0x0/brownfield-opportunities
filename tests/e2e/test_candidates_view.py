@@ -259,6 +259,60 @@ def test_zoning_badge_renders_for_restrictive_state(page, base_url):
     assert "Zoning" in labels, "expected a Zoning badge for the restrictive-state site"
 
 
+def test_water_badge_renders_for_npdes_permit(page, base_url):
+    """A site with an active CWA/NPDES permit (EPA ECHO `has_npdes_permit`)
+    shows the "Water" signal badge in the candidates Signals column — the
+    water-access proxy surfaced after the ECHO NPDES re-enrichment. Inject
+    the enforcement flag onto one scored site so it's guaranteed to render."""
+    _ready(page, base_url)
+    state = page.evaluate(
+        "() => {"
+        "  const byState = {};"
+        "  for (const s of window.__sites) {"
+        "    if (s.transmission_mi != null && s.state) (byState[s.state] ||= []).push(s);"
+        "  }"
+        "  for (const [st, arr] of Object.entries(byState)) {"
+        "    if (arr.length >= 1 && arr.length <= 200) {"
+        "      arr[0].enforcement = Object.assign({}, arr[0].enforcement, {has_npdes_permit: true});"
+        "      return st;"
+        "    }"
+        "  }"
+        "  return null;"
+        "}"
+    )
+    assert state, "expected a state with 1..200 scored sites"
+    _set_state_filter(page, state)
+    _open_candidates(page)
+    labels = page.evaluate(
+        "() => Array.from(document.querySelectorAll('#candidates-table .cand-signals .sig-water'))"
+        ".map((b) => b.textContent.trim())"
+    )
+    assert "Water" in labels, "expected a Water badge for the NPDES-permit site"
+
+
+def test_detail_panel_npdes_row_renders(page, base_url):
+    """The detail panel's "Water permit (NPDES)" row (#d-echo-npdes) reflects
+    the ECHO `has_npdes_permit` flag with the ready-tinted affirmative text."""
+    _ready(page, base_url)
+    site_id = page.evaluate(
+        "() => {"
+        "  const s = window.__sites.find(s => s.transmission_mi != null);"
+        "  if (!s) return null;"
+        "  s.enforcement = Object.assign({}, s.enforcement, {has_npdes_permit: true});"
+        "  window.__selectSite(s.id);"
+        "  return s.id;"
+        "}"
+    )
+    assert site_id, "expected a scored site to select"
+    page.wait_for_selector("#detail:not([hidden])", timeout=5000)
+    row = page.evaluate(
+        "() => { const n = document.getElementById('d-echo-npdes');"
+        " return { text: n.textContent.trim(), cls: n.className }; }"
+    )
+    assert "Yes" in row["text"], f"expected affirmative NPDES text, got {row['text']!r}"
+    assert "ready" in row["cls"], f"expected ready tint, got {row['cls']!r}"
+
+
 def test_manufacturing_lens_button_sorts_by_mfg(page, base_url):
     """The Rankings tab's third lens: clicking Manufacturing re-sorts by
     computeManufacturingScore, updates the stats line, and round-trips
