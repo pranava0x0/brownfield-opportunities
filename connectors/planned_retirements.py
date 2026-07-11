@@ -121,7 +121,11 @@ class PlannedRetirements(Connector):
         idx = self._build_plant_index()
         if idx.point_count == 0:
             log.error("planned-retirement index empty — aborting")
-            return []
+            # Under --missing-only, never truncate the on-disk join to empty
+            # just because the overlay went missing/corrupt this run — return
+            # what's already written (the ECHO/truncation gotcha; see CLAUDE.md
+            # "verify len before commit"). A full run legitimately writes empty.
+            return self.existing_records() if missing_only else []
         log.info("[planned-retirements] indexed %d plants", idx.point_count)
 
         records: list[dict[str, Any]] = []

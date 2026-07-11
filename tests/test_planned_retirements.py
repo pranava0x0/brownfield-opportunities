@@ -178,6 +178,37 @@ def test_missing_only_merges_existing(tmp_path):
     assert "SF-NEW" in ids
 
 
+def test_missing_only_empty_index_does_not_truncate(tmp_path):
+    """Under --missing-only, an empty/missing overlay must NOT wipe the
+    existing join file — the connector returns the on-disk records instead of
+    []. (The ECHO/epa-echo truncation-to-18 gotcha, generalized.)"""
+    # Empty overlay → empty index.
+    conn = _make_connector(tmp_path, [])
+    # A previously-written join with real records.
+    existing = {"sites": [
+        {"id": "SF-KEEP", "program": "superfund", "planned_retirement_mi": 0.4,
+         "planned_retirement_mw": 800.0, "planned_retirement_fuel": "coal",
+         "planned_retirement_year": 2028},
+    ]}
+    (conn.OUTPUT_DIR / f"{conn.slug}.json").write_text(json.dumps(existing))
+    _stub_load_sites(conn, [
+        {"id": "SF-NEW", "program": "superfund", "lat": 40.0, "lon": -82.0},
+    ])
+    records = conn.fetch_records(_args(missing_only=True), use_cache=False)
+    # The prior record survives; nothing is truncated.
+    assert {r["id"] for r in records} == {"SF-KEEP"}
+
+
+def test_full_run_empty_index_returns_empty(tmp_path):
+    """A NON-missing-only run with an empty index legitimately returns [] —
+    the truncation guard is scoped to --missing-only only."""
+    conn = _make_connector(tmp_path, [])
+    _stub_load_sites(conn, [
+        {"id": "SF-NEW", "program": "superfund", "lat": 40.0, "lon": -82.0},
+    ])
+    assert conn.fetch_records(_args(missing_only=False), use_cache=False) == []
+
+
 def test_slug_does_not_collide_with_overlay(tmp_path):
     """The connector's output slug must differ from the overlay filename it
     reads, or a run would clobber the 90-plant overlay."""
