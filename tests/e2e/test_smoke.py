@@ -301,7 +301,16 @@ def test_table_is_paginated(page, base_url):
 
 def test_dom_size_under_5k_nodes(page, base_url):
     """Page weight regression test: total DOM nodes must stay under ~5k.
-    UAT measured ~265k (37,911 rows × 7 cells); pagination drops it to ~3k."""
+    UAT measured ~265k (37,911 rows × 7 cells); pagination drops it to ~4.9k.
+
+    Measured first-paint breakdown (2026-07-11): total ~4,876 —
+    view-table ~2,617 (the 250-row main Table, TABLE_PAGE_SIZE), view-map
+    ~1,576 (Leaflet panes/markers), view-about ~171, and the *hidden* tab
+    views are already lazy (view-candidates ~49, view-ap1000 ~39: skeleton
+    only, their tables build on first activation). The dominant cost is the
+    main Table + map, NOT the hidden tab views — so there's only ~124 nodes
+    of headroom. A new always-rendered column/section can trip this cap;
+    lazy-building the hidden tab views would reclaim <90 nodes."""
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
     nodes = page.evaluate("document.querySelectorAll('*').length")
