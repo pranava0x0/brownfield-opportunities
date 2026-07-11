@@ -203,13 +203,55 @@ function _scoreGridInheritance(site, cap) {
   return 0;
 }
 
-// "Grid reuse" signal — generation lens. Repowering a RETIRED plant's
-// interconnection position (coal-to-solar / coal-to-storage / coal-to-
-// gas) is the canonical way a new-generation build skips the queue —
-// distinct from active-plant co-location, which is worthless when you
-// ARE the plant, and so intentionally not credited here.
+// Date-proximity multiplier for an ANNOUNCED (not-yet-executed) plant
+// retirement. The generation-lens value of a planned retirement is "can I
+// repower this interconnection position?" — and the deal window is BEFORE
+// shutdown (the Homer City pattern: the site is contracted while the plant
+// still runs so the switchyard / ROW / network upgrades transfer without a
+// fresh queue study). A retirement ≤3 yr out is as actionable as a
+// recently-retired plant (full credit); a 2040 retirement keeps the
+// corridor on the map but the interconnect stays occupied for a decade, so
+// planning a build against it now is premature (quarter credit).
+// Absolute-year buckets keep the score deterministic (no Date.now());
+// re-baseline them on the annual audit pass — same rhythm as
+// _retirementRecency and STATE_DC_INCENTIVES. Baseline: 2026.
+const _PLANNED_RETIRE_SOON_YEAR = 2029;  // ≤~3 yr from the 2026 baseline
+const _PLANNED_RETIRE_MID_YEAR  = 2033;  // ≤~7 yr
+
+function _plannedRetirementProximity(year) {
+  if (year == null)                      return 0;   // no announced date = no signal
+  if (year <= _PLANNED_RETIRE_SOON_YEAR) return 1.0; // deal window open now
+  if (year <= _PLANNED_RETIRE_MID_YEAR)  return 0.6; // plan-ahead horizon
+  return 0.3;                                         // corridor known, deal premature
+}
+
+// 0..1 fraction of grid-reuse value from an EIA-860M ANNOUNCED-retirement
+// plant. Same distance / capacity / dispatchability gating as
+// _retiredPlantFrac (≤1 mi full, 1–3 mi half, ≥100 MW, dispatchable), but
+// the recency multiplier is replaced by the forward-looking
+// date-proximity one.
+function _plannedRetirementFrac(site) {
+  const mi = site.planned_retirement_mi, mw = site.planned_retirement_mw;
+  if (mi == null || mi > 3 || mw == null || mw < 100) return 0;
+  const fuel = (site.planned_retirement_fuel || "").toLowerCase();
+  if (/^(sun|wnd|geo|lfg|msw|obs|wds|ab|blq|slw|tdf)$/.test(fuel)
+      || /solar|wind|geothermal/i.test(fuel)) return 0;
+  let frac = _mwFrac(mw) * _plannedRetirementProximity(site.planned_retirement_year);
+  if (mi > 1) frac *= 0.5;
+  return frac;
+}
+
+// "Grid reuse" signal — generation lens. Repowering a plant's
+// interconnection position (coal-to-solar / coal-to-storage / coal-to-gas)
+// is the canonical way a new-generation build skips the queue — distinct
+// from active-plant co-location, which is worthless when you ARE the plant
+// and so intentionally not credited here. Two pathways, whichever is
+// stronger: (1) an already-RETIRED plant (stranded interconnect), and
+// (2) an OPERATING plant with an announced retirement date (the interconnect
+// frees on a known date, scaled by how soon).
 function _scoreGridReuse(site, cap) {
-  return Math.round(cap * _retiredPlantFrac(site));
+  const frac = Math.max(_retiredPlantFrac(site), _plannedRetirementFrac(site));
+  return Math.round(cap * frac);
 }
 
 // Distance to the nearest natural-gas pipeline. Enables behind-the-meter

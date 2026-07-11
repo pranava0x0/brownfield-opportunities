@@ -636,6 +636,7 @@ def test_refresh_date_reflects_freshest_data_file(page, base_url):
             'epa-echo.json', 'ai-summary.json', 'eia-retired-plants.json',
             'ira-energy-community.json', 'fema-nri.json', 'parcel-owner.json',
             'retired-industrial.json', 'planned-retirements.json',
+            'planned-retirements-proximity.json',
           ];
           const fmt = (s) => new Date(Date.parse(s)).toISOString().slice(0, 10);
           let coreDate = null;

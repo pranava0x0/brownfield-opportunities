@@ -22,6 +22,7 @@ const RETIRED_PLANTS_URL = "data/eia-retired-plants.json";
 const REFERENCE_CAMPUSES_URL = "data/reference-campuses.json";
 const RETIRED_INDUSTRIAL_URL = "data/retired-industrial.json";
 const PLANNED_RETIREMENTS_URL = "data/planned-retirements.json";
+const PLANNED_RETIRE_PROX_URL = "data/planned-retirements-proximity.json";
 const IRA_EC_URL = "data/ira-energy-community.json";
 const AP1000_SITES_URL = "data/ap1000-sites.json";
 const FEMA_NRI_URL = "data/fema-nri.json";
@@ -575,6 +576,7 @@ let parcelOwnerLoadingPromise = null;
 let summariesLoadingPromise = null;
 let acresCleanupLoadingPromise = null;
 let retiredPlantsLoadingPromise = null;
+let plannedRetireProxLoadingPromise = null;
 let referenceCampusesLoadingPromise = null;
 let retiredIndustrialLoadingPromise = null;
 let retiredIndustrialSites = []; // raw payload, for the Retired Sites stats tab
@@ -870,6 +872,7 @@ fetch(PRIMARY_DATA_URL)
     lazyLoads.push(ensureSummariesLoaded());
     lazyLoads.push(ensureAcresCleanupLoaded());
     lazyLoads.push(ensureRetiredPlantsLoaded());
+    lazyLoads.push(ensurePlannedRetireProxLoaded());
     lazyLoads.push(ensureReferenceCampusesLoaded());
     lazyLoads.push(ensureRetiredIndustrialLoaded());
     lazyLoads.push(ensurePlannedRetirementsLoaded());
@@ -1502,6 +1505,42 @@ function ensureRetiredPlantsLoaded() {
       retiredPlantsLoadingPromise = null;
     });
   return retiredPlantsLoadingPromise;
+}
+
+// Lazy-load the planned-retirements proximity join (planned-retirements-
+// proximity.json) and copy the `planned_retirement_*` fields onto matching
+// records. Feeds the generation lens's grid_reuse component (a plant with
+// an ANNOUNCED retirement frees its interconnect on a known date — the
+// forward-looking counterpart to eia-retired-plants) and the detail panel.
+function ensurePlannedRetireProxLoaded() {
+  if (plannedRetireProxLoadingPromise) return plannedRetireProxLoadingPromise;
+  plannedRetireProxLoadingPromise = fetch(PLANNED_RETIRE_PROX_URL, { priority: "low" })
+    .then((r) => {
+      if (r.status === 404) return { sites: [] };
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then((payload) => {
+      recordRefreshDate(payload.generated_at);
+      for (const rec of payload.sites || []) {
+        const existing = sitesById.get(rec.id);
+        if (!existing) continue;
+        if (rec.planned_retirement_mi   != null) existing.planned_retirement_mi   = rec.planned_retirement_mi;
+        if (rec.planned_retirement_mw   != null) existing.planned_retirement_mw   = rec.planned_retirement_mw;
+        if (rec.planned_retirement_fuel)         existing.planned_retirement_fuel  = rec.planned_retirement_fuel;
+        if (rec.planned_retirement_year != null) existing.planned_retirement_year = rec.planned_retirement_year;
+        if (rec.planned_retirement_name)         existing.planned_retirement_name  = rec.planned_retirement_name;
+      }
+      if (typeof applyFilter === "function") applyFilter();
+      if (selectedId && sitesById.has(selectedId)) {
+        try { selectSite(selectedId); } catch {}
+      }
+    })
+    .catch((err) => {
+      console.error("Planned-retirements proximity load failed:", err);
+      plannedRetireProxLoadingPromise = null;
+    });
+  return plannedRetireProxLoadingPromise;
 }
 
 function ensureReferenceCampusesLoaded() {
@@ -4129,6 +4168,9 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
   setPowerPlantSuffix("d-power-plant-mi", s.power_plant_mw, s.power_plant_fuel);
   // Retired plant row (EIA-860M). Shown when within MAX_DISTANCE_MI (5 mi).
   setRetiredPlantCell("d-retired-plant-mi", s);
+  // Planned-retirement plant row — an operating plant with an announced
+  // shutdown date (the interconnect frees on a known future date).
+  setPlannedRetireCell("d-planned-retire-mi", s);
   setMileCell("d-rail-mi", s.rail_mi, { offConus });
   setMileCell("d-highway-mi", s.highway_mi, { offConus });
   setMileCell("d-gas-pipeline-mi", s.gas_pipeline_mi, { offConus });
@@ -5009,6 +5051,35 @@ function setRetiredPlantCell(id, s) {
     span.className = "pp-chip sig-plant";
     span.textContent = parts.join(" · ");
     span.title = "Retired plant — inherited transmission + stranded interconnect (Conesville/Widows Creek pattern)";
+    node.appendChild(document.createTextNode(" "));
+    node.appendChild(span);
+  }
+}
+
+// Planned-retirement plant cell — an OPERATING plant with an announced
+// shutdown date. Follows the safe setMileCell pattern ("Not available"
+// muted when out of range, never touching the shared <dl>'s hidden attr),
+// then appends a "name · MW · fuel · ret. YEAR" chip when in range.
+function setPlannedRetireCell(id, s) {
+  const node = el(id);
+  if (!node) return;
+  if (s.planned_retirement_mi == null) {
+    node.textContent = "Not available";
+    node.classList.add("muted-cell");
+    return;
+  }
+  node.classList.remove("muted-cell");
+  node.textContent = fmt.miles(s.planned_retirement_mi);
+  const parts = [];
+  if (s.planned_retirement_name) parts.push(s.planned_retirement_name);
+  if (s.planned_retirement_mw != null) parts.push(`${Math.round(s.planned_retirement_mw).toLocaleString()} MW`);
+  if (s.planned_retirement_fuel) parts.push(s.planned_retirement_fuel);
+  if (s.planned_retirement_year) parts.push(`ret. ${s.planned_retirement_year}`);
+  if (parts.length) {
+    const span = document.createElement("span");
+    span.className = "pp-chip sig-plant";
+    span.textContent = parts.join(" · ");
+    span.title = "Operating plant with an announced retirement — interconnect frees on a known date; repowering/co-location deals close before shutdown (Homer City pattern)";
     node.appendChild(document.createTextNode(" "));
     node.appendChild(span);
   }

@@ -313,6 +313,34 @@ def test_detail_panel_npdes_row_renders(page, base_url):
     assert "ready" in row["cls"], f"expected ready tint, got {row['cls']!r}"
 
 
+def test_detail_panel_planned_retirement_row_renders(page, base_url):
+    """The detail panel's "Retiring plant" row (#d-planned-retire-mi) renders
+    the distance + a name/MW/fuel/year chip when a planned-retirement plant is
+    joined onto the site."""
+    _ready(page, base_url)
+    site_id = page.evaluate(
+        "() => {"
+        "  const s = window.__sites.find(s => s.transmission_mi != null);"
+        "  if (!s) return null;"
+        "  s.planned_retirement_mi = 0.4;"
+        "  s.planned_retirement_mw = 2600;"
+        "  s.planned_retirement_fuel = 'coal';"
+        "  s.planned_retirement_year = 2028;"
+        "  s.planned_retirement_name = 'Cumberland';"
+        "  window.__selectSite(s.id);"
+        "  return s.id;"
+        "}"
+    )
+    assert site_id, "expected a scored site to select"
+    page.wait_for_selector("#detail:not([hidden])", timeout=5000)
+    cell = page.evaluate(
+        "() => document.getElementById('d-planned-retire-mi').textContent"
+    )
+    assert "Cumberland" in cell, f"expected the plant name in the cell, got {cell!r}"
+    assert "2,600 MW" in cell
+    assert "ret. 2028" in cell
+
+
 def test_manufacturing_lens_button_sorts_by_mfg(page, base_url):
     """The Rankings tab's third lens: clicking Manufacturing re-sorts by
     computeManufacturingScore, updates the stats line, and round-trips
