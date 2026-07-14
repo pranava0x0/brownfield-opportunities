@@ -4,6 +4,17 @@ Ideas and enhancements. Priorities: **high** = next, **med** = soon, **low** = n
 
 ---
 
+## Session checkpoint — 2026-07-14 (scheduled data-maintenance run)
+
+Two resumable missing-data backfills, run in parallel (separate output files + hosts, no conflict), committed separately and pushed to `origin/main` (`3ea5e99`, `33e35d4`):
+
+- **FEMA flood-zone backfill: 43.9% → 50.4%** (`3ea5e99`) — `--infra-flood-budget 3000` full connector (all six infra layers recomputed, all 46,760 records preserved). `flood_zone` 20,508 → 23,564; `in_sfha` 1,771 → 2,033. **23,196 sites still deferred** — ~8 more runs at budget 3000 to finish. Halfway mark passed. See CLAUDE.md "Resumable flood backfill" / [[project-flood-backfill-resumable]].
+- **Parcel-owner backfill: +710 owners, +980 parcel acreages** (`33e35d4`) — `--parcel-limit 1700` (1,648 new queries, 710 owner hits). Covered the remaining NJ/MA/VT/CT gaps. Owner 2,863 → 3,573; `parcel_acreage` 906 → 1,886. VT 14 → 329, CT 265 → 304, MA 526 → 881 owner-resolved; NJ lands acreage-only (blank MOD-IV owner, as documented). NC/MT/WI already complete. Both files re-validated against the Pydantic `Payload` schema post-write.
+
+**Remaining parcel gap after this run:** all 7 registered states (CT/MA/MT/NC/NJ/VT/WI) are now essentially exhausted for owner-resolvable sites — the next parcel lift is **adding new states** to `STATE_PARCEL_SOURCES` (the [med] retired-industrial parcel-verification item + extending coverage), not re-running the current set. **Producer files still 2026-05-12** (~9 wk old) — a supervised producer refresh (sites/acres/fuds/brac + downstream re-enrichment) is the next big freshness item; deferred out of unattended runs per the ECHO-style truncation/merge gotchas.
+
+---
+
 ## Session checkpoint — 2026-07-10 (branch consolidation + flood backfill)
 
 **Branch/main hygiene (origin/main was force-rewritten `5a7dbac`→`595dda4`, identical trees).** Reset local main to origin, then made sure ALL unmerged work from this + prior sessions landed on main and cleaned up every stray branch:
