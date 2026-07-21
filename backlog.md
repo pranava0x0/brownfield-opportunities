@@ -4,6 +4,20 @@ Ideas and enhancements. Priorities: **high** = next, **med** = soon, **low** = n
 
 ---
 
+## Session checkpoint — 2026-07-21 (scheduled data-maintenance run)
+
+Flood-only run (parcel confirmed exhausted, no producer work), committed to `main` (`52d385f`):
+
+- **FEMA flood-zone backfill: 50.4% → 52.6%** (`52d385f`) — `--infra-flood-budget 3000` full connector (all six infra layers recomputed, all 46,760 records preserved). `flood_zone` 23,564 → 24,614 (+1,050); `in_sfha` 2,033 → 2,170. **22,146 sites still deferred.** Ran short of the 3,000 budget: **FEMA's NFHL endpoint wobbled mid-run** — a burst of `ConnectionError`s tripped the connector's `25 consecutive FEMA errors — aborting` guard at **1,018 fetches** (~08:47). Designed resumable behavior: the 1,018 are cached/durable, the run still completed the CPU-bound spatial-index pass and wrote all records, and the unused budget rolls to the next run. Schema-validated post-write. Expect FEMA reliability — not budget — to be the limiter on future runs; if it aborts early, commit the partial gain and resume next run.
+- **Parcel-owner: skipped (exhausted).** Verified 0 of 6,207 sites remaining across all 7 registered states (CT/MA/MT/NC/NJ/VT/WI). Re-running yields ~0 new owners; next parcel lift is **adding a new state** to `STATE_PARCEL_SOURCES` (code work — deferred to a supervised session).
+- **Watcher/polling hardening (user ask, this session).** For long backfills, don't fire-and-wait on one self-terminating watcher — poll `kill -0 <PID>` + `ps -o stat,%cpu,etime` + `grep -c 'INFO fetching' <log>` between turns so a dropped/hung job is caught early. **Key gotcha:** after the flood abort the process kept running the CPU-bound spatial-index pass (rail 2.77M segs) with **no per-site logging** for ~8 min — a quiet log is NOT a dead job; verify liveness via `ps STAT=RN`/`%cpu>0`, not log tail alone. Recorded in the scheduled-task SKILL Learnings log + a `feedback-watcher-hardening-polling` memory.
+
+**Branch hygiene:** only `main` exists (local + remote); PRs #15–#19 all MERGED; no stray branches, worktrees, or open PRs — `main` is the single source of truth, nothing to consolidate.
+
+**Producer files still 2026-05-12** (~10 wk old) — supervised producer refresh remains the next big freshness item (deferred out of unattended runs per the ECHO-style truncation/merge gotchas).
+
+---
+
 ## Session checkpoint — 2026-07-14 (scheduled data-maintenance run)
 
 Two resumable missing-data backfills, run in parallel (separate output files + hosts, no conflict), committed separately and pushed to `origin/main` (`3ea5e99`, `33e35d4`):
