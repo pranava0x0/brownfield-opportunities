@@ -61,7 +61,7 @@ SITES = [
         "owner_operator": "Holtec International",
         "market": "Regulated / PJM",
         "iso_rto": "MISO",
-        "notes": "Focus on restart of existing reactor. Not an AP1000 deployment.",
+        "notes": "Restart of existing reactor (~800 MW), not an AP1000 deployment. Last major restart project closed out Jul 2, 2026 (Holtec); restart expected 2026, ahead of the contractual March 2027 supply date. No firm grid-reconnection date announced.",
         "nrc_url": "https://www.nrc.gov/reactors/operating/list-power-reactor-units.html",
     },
     {
@@ -69,7 +69,7 @@ SITES = [
         "name": "Three Mile Island Unit 1",
         "state": "PA", "county": "Dauphin", "city": "Middletown",
         "lat": 40.1532, "lon": -76.7272,
-        "status": "possible_restart",
+        "status": "restarting",
         "inl_category": "blue",
         "reactor_type": "PWR",
         "units_planned": 1,
@@ -78,7 +78,7 @@ SITES = [
         "owner_operator": "Constellation Energy",
         "market": "PJM",
         "iso_rto": "PJM",
-        "notes": "Focus on restart. Microsoft PPA signed. Not an AP1000 deployment.",
+        "notes": "Crane Clean Energy Center restart, Microsoft PPA. NRC draft EA/FONSI Jun 8 2026 (final expected Sep 2026); 760 MW of Eddystone capacity-interconnection rights transferred Jun 2026; ahead of schedule, targeting power in 2027.",
         "nrc_url": None,
     },
     {
@@ -146,8 +146,27 @@ SITES = [
         "owner_operator": "TVA / GE-Hitachi",
         "market": "Regulated",
         "iso_rto": "non-RTO/TVA",
-        "notes": "NRC Early Site Permit approved. TVA pursuing BWRX-300 SMR. AP1000 feasible but SMR is current plan.",
+        "notes": "NRC ESP approved; TVA pursuing BWRX-300 SMR. Jun 2026: NRC staff issued a safety evaluation recommending the construction permit — the FIRST advanced-reactor CP to reach this stage; uncontested hearing Aug 13, 2026. AP1000 feasible but SMR is current plan.",
         "nrc_url": "https://www.nrc.gov/reactors/new-reactors/esp/clinch-river.html",
+    },
+    {
+        # Added 2026-07-26 (post-study): Duke's first new nuclear siting move
+        # since Lee — a technology-neutral ESP at the Belews Creek coal plant.
+        "id": "belews-creek-nc",
+        "name": "Belews Creek (Duke ESP)",
+        "state": "NC", "county": "Stokes", "city": "Belews Creek",
+        "lat": 36.2810, "lon": -80.0592,
+        "status": "esp_under_review",
+        "inl_category": "post_study",
+        "reactor_type": "SMR (technology-neutral ESP)",
+        "units_planned": 1,
+        "mwe_per_unit": 600,
+        "col_status": "esp_under_review",
+        "owner_operator": "Duke Energy Carolinas",
+        "market": "Regulated",
+        "iso_rto": "non-RTO/SERC",
+        "notes": "ESP filed Dec 30 2025 at the Belews Creek coal-plant site (accepted by NRC Feb 8 2026); final SER + EIS targeted May 2027. If confirmed best-value: first SMR online 2036, 600 MW plant by 2037. Coal-to-nuclear pattern on an operating coal site.",
+        "nrc_url": "https://www.federalregister.gov/documents/2026/02/11/2026-02689/duke-energy-carolinas-llc-belews-creek-early-site-permit-application",
     },
     {
         "id": "inl-cfpp-id",
@@ -205,8 +224,8 @@ SITES = [
         "iso_rto": "non-RTO/SERC",
         "water_source": "Broad River",
         "construction_pct_complete": 40,
-        "fid_expected": "2027-2028",
-        "notes": "Fastest AP1000 deployment path given prior licensing and ~40% construction. COL issued then terminated. Brookfield/Nuclear Company selected Oct 2025.",
+        "fid_expected": "2028 (disclosed by 2028-03-31)",
+        "notes": "Fastest AP1000 deployment path given prior licensing and ~40% construction. COL issued then terminated. Brookfield MOU Dec 2025 ($2.7B); The Nuclear Company joined the JV May 2026. Milestones: DOE loan application by end-2026, operator selection by Feb 2027, FID disclosed by 2028-03-31 (SC Daily Gazette, Jul 2026).",
         "nrc_url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/virgil-c-summer.html",
         "reference_url": "https://www.world-nuclear-news.org/articles/brookfield-and-the-nuclear-company-target-vcsummer",
     },
@@ -1116,12 +1135,13 @@ def main():
 
     # Write nuclear-civilian-sites.json
     payload = {
-        "generated_at": "2026-06-30",
+        "generated_at": "2026-07-26",
         "sources": [
             "INL/MIS-24-80216 Rev 0 (Aug 2024): Opportunities for AP1000 Deployment at Existing and Planned Nuclear Sites — docs/data/references/INL-AP1000-Opportunities-Sort128167.pdf",
             "Idaho Advanced Nuclear Strategic Framework (Sep 2025) — docs/data/references/Idaho-Advanced-Nuclear-Strategic-Framework.pdf",
             "NRC Combined Operating License database",
             "Utility 2025 Integrated Resource Plans and press releases",
+            "Jul-2026 status refresh: V.C. Summer FID timeline (SC Daily Gazette 2026-07-07), Palisades/Crane restart milestones, TVA Clinch River CP recommendation (ANS Jun 2026), Duke Belews Creek ESP (Federal Register 2026-02-11)",
         ],
         "sites": SITES,
         "site_count": len(SITES),
@@ -1140,7 +1160,7 @@ def main():
     # Write nuclear-brownfield-proximity.json
     proximity_path = DATA / "nuclear-brownfield-proximity.json"
     proximity_payload = {
-        "generated_at": "2026-06-30",
+        "generated_at": "2026-07-26",
         "radius_mi": PROXIMITY_RADIUS_MI,
         "brownfield_dataset": "docs/data/sites.json (EPA Superfund NPL sites)",
         "records": proximity_records,
