@@ -25,6 +25,8 @@ const PLANNED_RETIREMENTS_URL = "data/planned-retirements.json";
 const PLANNED_RETIRE_PROX_URL = "data/planned-retirements-proximity.json";
 const IRA_EC_URL = "data/ira-energy-community.json";
 const AP1000_SITES_URL = "data/ap1000-sites.json";
+const NUCLEAR_SITES_URL = "data/nuclear-civilian-sites.json";
+const NUCLEAR_BROWNFIELD_PROX_URL = "data/nuclear-brownfield-proximity.json";
 const FEMA_NRI_URL = "data/fema-nri.json";
 // Vector basemap: US states (always) + US counties (lazy at zoom ≥ COUNTY_MIN_ZOOM).
 // No tiles — Canada/Mexico literally don't exist on the map. Choropleth-style
@@ -429,13 +431,13 @@ const STATE_DC_INCENTIVES = {
   GA: { tier: 1, program: "Data Center Sales & Use Tax Exemption", min_investment_usd: 100_000_000, min_jobs: 20, sunset: 2033, status: "active", verified_at: "2026-05-08", url: "https://dor.georgia.gov/data-centers-sales-use-tax-exemption-aggregate-expenditures-county" },
   IA: { tier: 1, program: "Data Center Sales & Use Tax Exemption", min_investment_usd: 1_000_000, min_jobs: null, sunset: null, status: "under_reform", verified_at: "2026-05-08", url: "https://www.ncsl.org/fiscal/policy-snapshot-data-center-incentives" },
   OH: { tier: 1, program: "Data Center Tax Abatement ($1.5M/yr payroll required)", min_investment_usd: 100_000_000, min_jobs: null, sunset: null, status: "active", verified_at: "2026-05-08", url: "https://codes.ohio.gov/ohio-revised-code/section-122.175" },
-  AZ: { tier: 1, program: "Computer Data Center Program (A.R.S. § 41-1519)", min_investment_usd: 25_000_000, min_jobs: null, sunset: null, status: "active", verified_at: "2026-05-08", url: "https://www.azleg.gov/ars/41/01519.htm" },
+  AZ: { tier: 3, program: "Computer Data Center exemption (A.R.S. § 41-1519) PAUSED for new applicants 2026-07-01 → 2029-06-30; existing agreements honored", min_investment_usd: 25_000_000, min_jobs: null, sunset: null, status: "paused", verified_at: "2026-07-26", url: "https://azcapitoltimes.com/news/2026/07/09/data-centers-dominated-2026-session-lawmakers-answered-with-3-year-tax-incentive-pause/" },
   NV: { tier: 1, program: "Data Center Abatement (10yr / 20yr tiers, NRS § 360.754)", min_investment_usd: 25_000_000, min_jobs: 10, sunset: 2056, status: "active", verified_at: "2026-05-08", url: "https://law.justia.com/codes/nevada/chapter-360/statute-360-754/" },
   NC: { tier: 1, program: "Qualifying Data Center Sales Tax Exemption", min_investment_usd: 75_000_000, min_jobs: null, sunset: null, status: "active", verified_at: "2026-05-08", url: "https://edpnc.com/incentives/data-centers-sales-use-tax-exemptions/" },
   TN: { tier: 1, program: "Qualified Data Center Sales Tax Exemption (Tenn. Code § 67-6-206(c))", min_investment_usd: 100_000_000, min_jobs: 15, sunset: null, status: "active", verified_at: "2026-05-08", url: "https://www.tn.gov/content/dam/tn/revenue/documents/forms/sales/f1325001.pdf" },
 
   // Tier 2 — moderate
-  IL: { tier: 2, program: "Data Center Investment Program (20yr cert + 5yr renewals)", min_investment_usd: 250_000_000, min_jobs: 20, sunset: 2056, status: "active", verified_at: "2026-05-08", url: "https://dceo.illinois.gov/expandrelocate/incentives/datacenters.html" },
+  IL: { tier: 3, program: "Data Center Investment Program PAUSED for new applications 2026-07-01 → 2028-07-01 (Gov. directive; existing agreements honored)", min_investment_usd: 250_000_000, min_jobs: 20, sunset: 2056, status: "paused", verified_at: "2026-07-26", url: "https://capitolnewsillinois.com/news/gov-jb-pritzker-to-suspend-tax-breaks-for-data-centers-urging-more-discussion/" },
   MI: { tier: 2, program: "Enterprise DC Sales & Use Tax Exemption (sunset 2065 for brownfield sites)", min_investment_usd: 250_000_000, min_jobs: 30, sunset: 2050, status: "expanded", verified_at: "2026-05-08", url: "https://legislature.mi.gov/documents/2023-2024/billanalysis/Senate/htm/2023-SFA-0237-U.htm" },
   WI: { tier: 2, program: "Qualified DC Sales Tax Exemption (pop-tiered, $50M floor, Wis. Stat. § 238.40)", min_investment_usd: 50_000_000, min_jobs: null, sunset: null, status: "active", verified_at: "2026-05-08", url: "https://wedc.org/programs/data-center-sales-and-use-tax-exemption/" },
   IN: { tier: 2, program: "DC Gross Retail & Use Tax Exemption (county-pop tiered, $25M floor, IC 6-2.5-15-16)", min_investment_usd: 25_000_000, min_jobs: null, sunset: null, status: "active", verified_at: "2026-05-08", url: "https://iedc.in.gov/indiana-advantages/investments/data-center-sales-tax-exemption/overview" },
@@ -493,10 +495,17 @@ const STATE_DC_INCENTIVES = {
 // Sources are 2026 trackers; re-audit quarterly — this space moves monthly.
 // See CLAUDE.md "STATE_DC_REGULATION audit history."
 const STATE_DC_REGULATION = {
-  VA: { climate: "restrictive", note: "Loudoun County repealed by-right data-center zoning (Mar 2025); all new projects require public hearings, and the state is debating sunsetting the DC tax exemption.", verified_at: "2026-06-19", url: "https://www.multistate.us/resources/state-data-center-policy-101" },
-  OK: { climate: "restrictive", note: "SB 1488 (moratorium on new data-center construction to Nov 2029) advancing; HB 2992 imposes data-center cost-allocation / ratepayer-protection rules.", verified_at: "2026-06-19", url: "https://goodjobsfirst.org/data-center-moratorium-bills-are-spreading-in-2026/" },
-  VT: { climate: "cautionary", note: "S.205 would pause data-center facilities above 10 MW until July 2030 (advancing, not enacted).", verified_at: "2026-06-19", url: "https://goodjobsfirst.org/data-center-moratorium-bills-are-spreading-in-2026/" },
-  FL: { climate: "cautionary", note: "SB 484 bars utilities from passing data-center costs onto residential / small-business ratepayers — a cost-allocation friction (state is otherwise pro-DC).", verified_at: "2026-06-19", url: "https://www.multistate.us/resources/state-data-center-policy-101" },
+  NY: { climate: "restrictive", note: "Executive Order 62 (2026-07-14) pauses DEC environmental permits for new 50 MW+ hyperscale data centers for up to a year — the first in-force statewide pause; the legislature's 20 MW+ Responsible Data Center Development Act passed both chambers and awaits signature.", verified_at: "2026-07-26", url: "https://www.governor.ny.gov/executive-order/no-62-establishing-temporary-moratorium-data-centers-new-york-while-state-develops" },
+  VA: { climate: "cautionary", note: "Downgraded from restrictive 2026-07-26: the statewide moratorium (HB1515) failed and carried to 2027. What's live is friction, not a block — HB153/SB94 require a noise/sound-profile assessment before local rezoning/SUP approval of high-energy-use facilities and HB507 sets generator standards (both eff. 2026-07-01).", verified_at: "2026-07-26", url: "https://www.multistate.us/insider/2026/3/30/virginia-lawmakers-pass-15-data-center-bills-as-tax-exemption-fight-looms" },
+  VT: { climate: "cautionary", note: "H.727 (data-center pause) passed tripartisan but died on a failed veto override (2026-05-29); S.205 (10 MW+ pause to July 2030) remains pending in Senate Finance — restriction appetite is clearly live.", verified_at: "2026-07-26", url: "https://legislature.vermont.gov/bill/status/2026/S.205" },
+  FL: { climate: "cautionary", note: "SB 484 (eff. 2026-07-01) bars shifting data-center grid costs to other ratepayers AND affirmatively empowers localities to set stricter standards or deny projects outright; the state is otherwise pro-DC.", verified_at: "2026-07-26", url: "https://www.flsenate.gov/Session/Bill/2026/484" },
+  // OK removed 2026-07-26 (was restrictive): its enacted law (HB2992) is a
+  // cost-causation tariff — the deliberately-excluded category (protective of
+  // ratepayers, not a siting block) — and the actual moratorium (SB1488)
+  // missed deadlines, dead for 2026. WATCH for next quarter's audit: OK
+  // re-attempts; MI statewide bills reintroduced Jun 2026 (no committee
+  // action, Gov. opposed); OH AEP 85%-minimum-demand tariff under OMA legal
+  // challenge (briefing closed 2026-03-24, decision pending).
 };
 const TAX_TIER_LABEL = {
   1: "Tier 1 incentive (most attractive)",
@@ -511,13 +520,14 @@ const TAX_STATUS_NOTE = {
   restrictive: " · restrictive policy",
   partially_repealed: " · partially repealed (2025)",
   pending_legislation: " · DC bill pending",
+  paused: " · new applications paused",
   none: "",
   no_state_sales_tax: " · no state sales tax (neutral)",
 };
 
 // ----- State -----
 let sites = [];
-let map, markerLayer, referenceCampusLayer, retiredIndustrialLayer, plannedRetirementLayer;
+let map, markerLayer, referenceCampusLayer, retiredIndustrialLayer, plannedRetirementLayer, nuclearSiteLayer;
 const markersById = new Map(); // id -> Leaflet marker
 const tableRowsById = new Map(); // id -> tr
 const sitesById = new Map();
@@ -583,6 +593,10 @@ let retiredIndustrialSites = []; // raw payload, for the Retired Sites stats tab
 let plannedRetirementsLoadingPromise = null;
 let ap1000LoadingPromise = null;
 let ap1000Sites = []; // raw payload, for the AP1000 siting tab
+let nuclearSitesLoadingPromise = null;
+let nuclearCivilianSites = [];        // raw payload, for the Nuclear Siting tab
+let nuclearProximityById = new Map(); // nuclear_site_id -> nearby Superfund records
+let nuclearMarkersById = new Map();   // nuclear_site_id -> Leaflet marker
 let iraEcLoadingPromise = null;
 let femaNriLoadingPromise = null;
 
@@ -792,8 +806,66 @@ function colorForRecord(s) {
   return cssColor(cssVar);
 }
 
+// ----- JTBD quick-start strip -----
+//
+// "What are you siting?" → one click routes to the view + lens that answers
+// it. Routing deliberately CLICKS the real tab / lens buttons rather than
+// duplicating their logic, so lens state, the active-button classes, the
+// rebuild, and the ?lens= URL sync all stay on one code path.
+const JTBD_ROUTES = {
+  dc:      { lens: "dc",  tab: "tab-candidates" },
+  gen:     { lens: "gen", tab: "tab-candidates" },
+  mfg:     { lens: "mfg", tab: "tab-candidates" },
+  reactor: { lens: null,  tab: "tab-ap1000" },
+};
+const JTBD_DISMISS_KEY = "jtbdDismissed";
+
+function jtbdIsDismissed() {
+  try {
+    return localStorage.getItem(JTBD_DISMISS_KEY) === "1";
+  } catch {
+    return false; // private mode / storage disabled — show the strip
+  }
+}
+
+// Runs at top level (alongside loadInitialTheme) rather than inside the boot
+// .then() so a dismissed strip never flashes before the data fetch resolves.
+function hideJtbdIfDismissed() {
+  if (!jtbdIsDismissed()) return;
+  const strip = el("jtbd-strip");
+  if (strip) strip.hidden = true;
+}
+
+function wireJtbdStrip() {
+  const strip = el("jtbd-strip");
+  if (!strip) return;
+  for (const btn of strip.querySelectorAll("[data-jtbd]")) {
+    btn.addEventListener("click", () => {
+      const route = JTBD_ROUTES[btn.dataset.jtbd];
+      if (!route) return;
+      // Lens first, then tab: setting the lens while the view is inactive
+      // skips a throwaway build, and the tab activation then renders once
+      // with the right lens.
+      if (route.lens) {
+        const lensBtn = document.querySelector(`[data-cand-lens="${route.lens}"]`);
+        if (lensBtn) lensBtn.click();
+      }
+      const tabBtn = el(route.tab);
+      if (tabBtn) tabBtn.click();
+    });
+  }
+  const dismiss = el("jtbd-dismiss");
+  if (dismiss) {
+    dismiss.addEventListener("click", () => {
+      try { localStorage.setItem(JTBD_DISMISS_KEY, "1"); } catch { /* storage disabled */ }
+      strip.hidden = true;
+    });
+  }
+}
+
 // ----- Boot -----
 loadInitialTheme();
+hideJtbdIfDismissed();
 loadInitialFiltersFromUrl();
 fetch(PRIMARY_DATA_URL)
   .then((r) => {
@@ -813,6 +885,7 @@ fetch(PRIMARY_DATA_URL)
     populateIsoRtoFilter();
     rebuildTable();
     wireTabs();
+    wireJtbdStrip();
     wireCandidatesFilters();
     wireDetailPanel();
     wireSearch();
@@ -876,6 +949,7 @@ fetch(PRIMARY_DATA_URL)
     lazyLoads.push(ensureReferenceCampusesLoaded());
     lazyLoads.push(ensureRetiredIndustrialLoaded());
     lazyLoads.push(ensurePlannedRetirementsLoaded());
+    lazyLoads.push(ensureNuclearSitesLoaded());
     applyUrlSelection();
     if (lazyLoads.length === 0) {
       markAppReady();
@@ -1728,6 +1802,155 @@ function ensurePlannedRetirementsLoaded() {
   return plannedRetirementsLoadingPromise;
 }
 
+// ----- Civilian nuclear pipeline overlay -----
+//
+// docs/data/nuclear-civilian-sites.json — existing and planned CIVILIAN
+// nuclear sites, tiered by Idaho National Laboratory's Aug-2024 AP1000
+// deployment study (INL/MIS-24-80216) and extended with announced restarts
+// and post-study entrants. Like reference-campuses / retired-industrial /
+// planned-retirements this is an OVERLAY, not a SiteRecord set — it never
+// joins into `sitesById`, so the enrichment load-order race rule doesn't
+// apply. The companion proximity file lists the tracked Superfund sites
+// within 50 mi of each nuclear site (rendered in the popup).
+//
+// Only the four promising tiers get markers; the yellow / red tiers stay
+// data-only (29 markers vs 68 rows keeps the map readable).
+const NUCLEAR_CATEGORIES = {
+  dark_green:  { label: "AP1000 ready",              cls: "nuclear-cat-ready",    chip: "cat-ready",    order: 0 },
+  light_green: { label: "AP1000 feasible",           cls: "nuclear-cat-feasible", chip: "cat-feasible", order: 1 },
+  blue:        { label: "Restart / SMR",             cls: "nuclear-cat-restart",  chip: "cat-restart",  order: 2 },
+  post_study:  { label: "New entrant (post-2024 study)", cls: "nuclear-cat-restart", chip: "cat-restart", order: 3 },
+};
+// Iterate this — never hardcode the member list or a count (same drift rule
+// as PROGRAM_LEGEND / UAT-007). A new promising tier only needs an entry in
+// NUCLEAR_CATEGORIES plus its slug here.
+const NUCLEAR_MAPPED_CATEGORIES = ["dark_green", "light_green", "blue", "post_study"];
+
+function nuclearIsMapped(site) {
+  return NUCLEAR_MAPPED_CATEGORIES.includes(site && site.inl_category);
+}
+
+// Source vocabularies are snake_case slugs (`col_issued`, `esp_approved`,
+// `nrc_pre_application`). Render them as prose without a hardcoded label
+// table that would go stale when the source adds a value.
+const NUCLEAR_ACRONYMS = new Set(["nrc", "col", "cola", "esp", "smr", "inl", "tva", "ser", "eis", "noi"]);
+function nuclearLabel(v) {
+  if (!v) return "—";
+  const words = String(v).split("_").filter(Boolean);
+  return words
+    .map((w, i) => {
+      if (NUCLEAR_ACRONYMS.has(w)) return w.toUpperCase();
+      if (i === 0) return w.charAt(0).toUpperCase() + w.slice(1);
+      return w;
+    })
+    .join(" ");
+}
+
+function nuclearCapacityText(s) {
+  if (s.units_planned == null && s.mwe_per_unit == null) return null;
+  const units = s.units_planned != null ? s.units_planned : "?";
+  const mwe = s.mwe_per_unit != null ? s.mwe_per_unit.toLocaleString() : "?";
+  return `${units} × ${mwe} MWe`;
+}
+
+function nuclearPopupHtml(s) {
+  const cat = NUCLEAR_CATEGORIES[s.inl_category] || { label: s.inl_category, chip: "cat-restart" };
+  const capacity = nuclearCapacityText(s);
+  const place = [s.city, s.county ? `${s.county} County` : null, s.state].filter(Boolean).join(", ");
+  const notes = s.notes && s.notes.length > 200 ? s.notes.slice(0, 197).trimEnd() + "…" : s.notes;
+  const sourceUrl = s.nrc_url || s.reference_url;
+  const nearby = (nuclearProximityById.get(s.id) || []).slice(0, 3);
+  const nearbyHtml = nearby.length
+    ? `<div class="nuke-pop-near"><strong>Nearby tracked brownfields</strong><ul>` +
+      nearby
+        .map(
+          (n) =>
+            `<li><a href="?site=${encodeURIComponent(n.id)}">${escapeHtml(prettyName(n.name) || n.id)}</a>` +
+            ` · ${fmt.miles(n.distance_mi)}</li>`
+        )
+        .join("") +
+      `</ul></div>`
+    : `<div class="nuke-pop-near">No tracked Superfund site within 50 mi.</div>`;
+  return (
+    `<div class="ref-campus-popup">` +
+    `<strong>${escapeHtml(s.name)}</strong>` +
+    `<div class="nuke-pop-cat ${cat.chip}">${escapeHtml(cat.label)}</div>` +
+    (place ? `<div class="ref-campus-company">${escapeHtml(place)}</div>` : "") +
+    `<div class="ref-campus-meta">` +
+      `<span>${escapeHtml(nuclearLabel(s.status))}</span>` +
+      `<span>COL: ${escapeHtml(nuclearLabel(s.col_status))}</span>` +
+      (capacity ? `<span>${escapeHtml(capacity)}</span>` : "") +
+      (s.iso_rto ? `<span>${escapeHtml(s.iso_rto)}</span>` : "") +
+    `</div>` +
+    (s.owner_operator ? `<div class="ref-campus-prev">${escapeHtml(s.owner_operator)}</div>` : "") +
+    (notes ? `<div class="ref-campus-prev" style="font-style:normal">${escapeHtml(notes)}</div>` : "") +
+    nearbyHtml +
+    (sourceUrl
+      ? `<a href="${escapeHtml(sourceUrl)}" target="_blank" rel="noopener" class="ref-campus-link">Source ↗</a>`
+      : "") +
+    `</div>`
+  );
+}
+
+function ensureNuclearSitesLoaded() {
+  if (nuclearSitesLoadingPromise) return nuclearSitesLoadingPromise;
+  const grab = (url, empty) =>
+    fetch(url, { priority: "low" })
+      .then((r) => {
+        if (r.status === 404) return empty;
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.json();
+      });
+  nuclearSitesLoadingPromise = Promise.all([
+    grab(NUCLEAR_SITES_URL, { sites: [] }),
+    // Small (~180 KB) and needed the moment a popup opens, so it rides along
+    // with the main file rather than paying a second round-trip on click.
+    grab(NUCLEAR_BROWNFIELD_PROX_URL, { records: [] }).catch((err) => {
+      console.error("Nuclear brownfield-proximity load failed:", err);
+      return { records: [] };
+    }),
+  ])
+    .then(([payload, prox]) => {
+      // Both files carry generated_at and can be the freshest artifact on
+      // disk — see CLAUDE.md "Last-update date".
+      recordRefreshDate(payload.generated_at);
+      recordRefreshDate(prox.generated_at);
+      nuclearCivilianSites = payload.sites || [];
+      for (const rec of prox.records || []) {
+        nuclearProximityById.set(rec.nuclear_site_id, rec.nearby_brownfields || []);
+      }
+      maybeRefreshNuclearCivilian();
+      if (!nuclearSiteLayer) return; // map not yet initialized
+      for (const s of nuclearCivilianSites) {
+        if (s.lat == null || s.lon == null) continue;
+        if (!nuclearIsMapped(s)) continue;
+        const cat = NUCLEAR_CATEGORIES[s.inl_category];
+        const icon = L.divIcon({
+          // Glyph goes straight in the icon div — no inner <span> like the
+          // older overlays. 29 markers × 1 node instead of 2 keeps the
+          // first-paint DOM budget (see CLAUDE.md "Paginated table").
+          className: `nuclear-site-icon ${cat.cls}`,
+          // U+FE0E forces TEXT presentation — without it the atom renders as
+          // a pale color emoji that ignores the CSS tier color.
+          html: "⚛︎",
+          iconSize: [22, 22],
+          iconAnchor: [11, 11],
+          popupAnchor: [0, -12],
+        });
+        const marker = L.marker([s.lat, s.lon], { icon, zIndexOffset: 450 });
+        marker.bindPopup(nuclearPopupHtml(s), { maxWidth: 300 });
+        nuclearSiteLayer.addLayer(marker);
+        nuclearMarkersById.set(s.id, marker);
+      }
+      rerenderLegend();
+    })
+    .catch((err) => {
+      console.error("Civilian nuclear overlay load failed:", err);
+      nuclearSitesLoadingPromise = null;
+    });
+  return nuclearSitesLoadingPromise;
+}
+
 // ----- Map -----
 function initMap() {
   const renderer = L.canvas({ padding: 0.5 });
@@ -1768,6 +1991,8 @@ function initMap() {
   retiredIndustrialLayer = L.layerGroup().addTo(map);
   // Announced-retirement power plants (interconnects freeing up 2026+).
   plannedRetirementLayer = L.layerGroup().addTo(map);
+  // Civilian nuclear pipeline (⚛) — existing/planned reactor sites.
+  nuclearSiteLayer = L.layerGroup().addTo(map);
 
   fitUsBoundsSafely();
 
@@ -2061,8 +2286,17 @@ function addLegend() {
         `<span class="legend-num">${plannedRetirementLayer.getLayers().length}</span>` +
         `</div>`
       : "";
+    // Civilian nuclear pipeline — ONE row (the readiness tier lives in the
+    // popup; three sub-rows would overwhelm a five-row legend).
+    const nukeRow = (nuclearSiteLayer && nuclearSiteLayer.getLayers().length > 0)
+      ? `<div class="legend-row legend-row-ref">` +
+        `<span class="legend-atom">⚛︎</span>` +
+        `<span class="legend-label">Nuclear pipeline site</span>` +
+        `<span class="legend-num">${nuclearSiteLayer.getLayers().length}</span>` +
+        `</div>`
+      : "";
     div.innerHTML =
-      `<div class="legend-title"><span>Program</span></div>${rows}${refRow}${retRow}${plannedRow}` +
+      `<div class="legend-title"><span>Program</span></div>${rows}${refRow}${retRow}${plannedRow}${nukeRow}` +
       `<div class="legend-foot">Marker size ∝ acreage (log)</div>`;
     L.DomEvent.disableClickPropagation(div);
     return div;
@@ -3096,7 +3330,10 @@ function wireTabs() {
     if (onMap) setTimeout(() => map.invalidateSize(), 50);
     if (onCandidates) buildCandidatesView();
     if (onRetired) { ensureRetiredIndustrialLoaded(); buildRetiredView(); }
-    if (onAp1000) { ensureAp1000Loaded(); buildAp1000View(); }
+    if (onAp1000) {
+      ensureAp1000Loaded(); buildAp1000View();
+      ensureNuclearSitesLoaded(); buildNuclearCivilianView();
+    }
     if (onAbout) {
       const d = el("about-refresh-date");
       if (d && window.__refreshedAt) d.textContent = window.__refreshedAt;
@@ -3526,6 +3763,120 @@ function buildAp1000View() {
   }
 }
 
+// ----- Civilian nuclear pipeline (Nuclear Siting tab, below the military
+// screen) -----
+//
+// Built lazily on tab activation (and again when the overlay data lands) so
+// it costs nothing at first paint — the same skeleton pattern the AP1000 and
+// Rankings tables use. Lists only the promising INL tiers; the remaining
+// yellow / red rows stay in the data file.
+function maybeRefreshNuclearCivilian() {
+  const v = el("view-ap1000");
+  if (v && v.classList.contains("active")) buildNuclearCivilianView();
+}
+
+function nuclearSortedPromisingSites() {
+  return nuclearCivilianSites
+    .filter(nuclearIsMapped)
+    .slice()
+    .sort((a, b) => {
+      const oa = NUCLEAR_CATEGORIES[a.inl_category].order;
+      const ob = NUCLEAR_CATEGORIES[b.inl_category].order;
+      if (oa !== ob) return oa - ob;
+      return String(a.name).localeCompare(String(b.name));
+    });
+}
+
+function buildNuclearCivilianView() {
+  const host = el("nuclear-civilian");
+  if (!host) return;
+  if (!nuclearCivilianSites.length) {
+    host.replaceChildren();
+    host.insertAdjacentHTML("beforeend", '<p class="muted">Loading civilian nuclear pipeline…</p>');
+    return;
+  }
+  const promising = nuclearSortedPromisingSites();
+  const total = nuclearCivilianSites.length;
+  const remainder = total - promising.length;
+
+  // Every interpolated value is escaped; the rest of the string is static.
+  const rows = promising
+    .map((s) => {
+      const cat = NUCLEAR_CATEGORIES[s.inl_category];
+      const capacity = nuclearCapacityText(s);
+      return (
+        `<tr data-nuke-id="${escapeAttr(s.id)}">` +
+        `<td><span class="nuke-civ-name">${escapeHtml(s.name)}</span></td>` +
+        `<td>${escapeHtml(s.state || "—")}</td>` +
+        `<td><span class="nuke-civ-cat ${cat.chip}">${escapeHtml(cat.label)}</span></td>` +
+        `<td>${escapeHtml(nuclearLabel(s.status))}</td>` +
+        `<td>${escapeHtml(nuclearLabel(s.col_status))}</td>` +
+        `<td class="nuke-civ-owner">${escapeHtml(s.owner_operator || "—")}</td>` +
+        `<td class="num">${escapeHtml(capacity || "—")}</td>` +
+        `<td>${escapeHtml(s.iso_rto || "—")}</td>` +
+        `<td>` +
+          (s.lat != null && s.lon != null
+            ? `<button type="button" class="nuke-civ-map" data-nuke-map="${escapeAttr(s.id)}" aria-label="Show ${escapeAttr(s.name)} on the map">map →</button>`
+            : '<span class="muted-cell">—</span>') +
+        `</td>` +
+        `</tr>`
+      );
+    })
+    .join("");
+
+  host.replaceChildren();
+  host.insertAdjacentHTML(
+    "beforeend",
+    `<h3>Civilian nuclear pipeline — ${total.toLocaleString()} tracked sites</h3>` +
+    `<p class="nuke-civ-lead">Base list from Idaho National Laboratory's August 2024 study ` +
+      `<a href="data/references/INL-AP1000-Opportunities-Sort128167.pdf" target="_blank" rel="noopener"><em>Opportunities for AP1000 Deployment at Existing and Planned Nuclear Sites</em></a> ` +
+      `(INL/MIS-24-80216), which screened existing and planned civilian nuclear sites and sorted them into readiness tiers — ` +
+      `extended here with announced restarts and post-study entrants (2025–26 NRC filings). ` +
+      `The ${promising.length.toLocaleString()} sites in the promising tiers are listed below and carry a ⚛ marker on the Map; ` +
+      `each marker's popup also lists the tracked Superfund sites within 50 mi.</p>` +
+    `<div class="nuke-civ-table-wrap"><table class="nuke-civ-table">` +
+      `<caption class="sr-only">Civilian nuclear sites in the promising INL readiness tiers, grouped by tier then name.</caption>` +
+      `<thead><tr>` +
+        `<th scope="col">Site</th><th scope="col">ST</th><th scope="col">Tier</th>` +
+        `<th scope="col">Status</th><th scope="col">COL status</th>` +
+        `<th scope="col">Owner / operator</th><th class="num" scope="col">Units × MWe</th>` +
+        `<th scope="col">ISO/RTO</th><th scope="col"><span class="sr-only">Map</span></th>` +
+      `</tr></thead>` +
+      `<tbody>${rows}</tbody>` +
+    `</table></div>` +
+    `<p class="nuke-civ-foot">${remainder.toLocaleString()} further sites tracked in the source data ` +
+      `(yellow / red tiers) — present in ` +
+      `<a href="data/nuclear-civilian-sites.json" target="_blank" rel="noopener">nuclear-civilian-sites.json</a>, ` +
+      `not shown in this table or on the map.</p>`
+  );
+
+  if (!host._nukeWired) {
+    host._nukeWired = true;
+    host.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-nuke-map]");
+      if (btn) focusNuclearSiteOnMap(btn.dataset.nukeMap);
+    });
+  }
+}
+
+// Jump from a civilian-pipeline row to its ⚛ marker. Routes through the real
+// Map tab button so tab state, hash, and invalidateSize all follow the one
+// existing code path.
+function focusNuclearSiteOnMap(id) {
+  const s = nuclearCivilianSites.find((x) => x.id === id);
+  if (!s || s.lat == null || s.lon == null) return;
+  const mapTab = el("tab-map");
+  if (mapTab) mapTab.click();
+  // The Map tab defers invalidateSize() by 50 ms; recenter after that so the
+  // view math runs against the real container size.
+  setTimeout(() => {
+    if (!map) return;
+    map.setView([s.lat, s.lon], 9);
+    const marker = nuclearMarkersById.get(id);
+    if (marker) marker.openPopup();
+  }, 80);
+}
+
 const AP1000_CSV_COLUMNS = [
   { label: "rank", value: (r) => r.rank, source: (r) => _ap1000SourceFor(r.s, "rank") },
   { label: "installation", value: (r) => r.s.name, source: (r) => _ap1000SourceFor(r.s, "installation") },
@@ -3793,7 +4144,7 @@ function makeCandidateRow(s, rank) {
   if (_hasRetiredPlant(s)) {
     badges.push('<span class="sig-badge sig-plant" title="Retired power plant ≤1 mi — inherited transmission connection and stranded interconnection agreement (Conesville / Widows Creek pattern)">Ret. Plant</span>');
   } else if (_hasGridInheritance(s)) {
-    badges.push('<span class="sig-badge sig-grid" title="Large coal/gas plant ≤1 mi — potential inherited grid interconnection">Grid Inherit</span>');
+    badges.push('<span class="sig-badge sig-grid" title="Existing interconnection nearby — potential to skip the ~4.5-year median grid-connection queue (LBNL Queued Up 2025)">Grid Inherit</span>');
   } else if (_hasNuclearAdjacency(s)) {
     badges.push('<span class="sig-badge sig-grid" title="Operating nuclear ≥500 MW within 5 mi — 24/7 carbon-free baseload via PPA (AWS/Talen Susquehanna pattern)">Nuclear</span>');
   }
