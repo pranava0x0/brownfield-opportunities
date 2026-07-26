@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-30",
+  "generated_at": "2026-07-26",
   "radius_mi": 50,
   "brownfield_dataset": "docs/data/sites.json (EPA Superfund NPL sites)",
   "records": [
@@ -400,6 +400,53 @@
           "npl_status": "Currently on the Final NPL",
           "acreage": 24.2,
           "distance_mi": 32.0
+        }
+      ],
+      "nearby_count": 3
+    },
+    {
+      "nuclear_site_id": "belews-creek-nc",
+      "nuclear_site_name": "Belews Creek (Duke ESP)",
+      "state": "NC",
+      "lat": 36.281,
+      "lon": -80.0592,
+      "inl_category": "post_study",
+      "nearby_brownfields": [
+        {
+          "id": "NCD000648402",
+          "name": "BATTERY TECH (DURACELL-LEXINGTON)",
+          "city": "LEXINGTON",
+          "state": "NC",
+          "lat": 35.831763,
+          "lon": -80.231503,
+          "program": "superfund",
+          "npl_status": "Not on the NPL",
+          "acreage": 27.3,
+          "distance_mi": 32.5
+        },
+        {
+          "id": "NCD024900987",
+          "name": "HOLCOMB CREOSOTE CO",
+          "city": "YADKINVILLE",
+          "state": "NC",
+          "lat": 36.157047,
+          "lon": -80.671722,
+          "program": "superfund",
+          "npl_status": "Currently on the Final NPL",
+          "acreage": 75.2,
+          "distance_mi": 35.2
+        },
+        {
+          "id": "VAD980554984",
+          "name": "FIRST PIEDMONT CORP. ROCK QUARRY (ROUTE 719)",
+          "city": "PITTSYLVANIA COUNTY",
+          "state": "VA",
+          "lat": 36.666455,
+          "lon": -79.349528,
+          "program": "superfund",
+          "npl_status": "Deleted from the Final NPL",
+          "acreage": 12.9,
+          "distance_mi": 47.6
         }
       ],
       "nearby_count": 3
