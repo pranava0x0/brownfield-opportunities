@@ -63,6 +63,10 @@ log = logging.getLogger("connector.parcel_owner")
 #   base        — FeatureServer/MapServer layer URL (…/<n>)
 #   owner_field — attribute holding the owner name
 #   acreage_field / parcel_id_field — for validation / provenance (optional)
+#   acreage_multiplier — OPTIONAL fixed to-acres factor when the layer reports
+#       area in a single non-acre unit with NO per-record units column (FL's
+#       DOR NAL convention is always sq ft). For per-record mixed units use
+#       acreage_units_field/_map instead (the MA pattern).
 #   source      — provenance label written to current_owner_source
 # ADD A STATE: verify its endpoint + field names with a point query, then drop
 # one entry here. That is the only change needed to extend coverage.
@@ -135,20 +139,71 @@ STATE_PARCEL_SOURCES: dict[str, dict[str, Any]] = {
         "parcel_id_field": "LOC_ID",
         "source": "MassGIS (Standardized Property Tax Parcels)",
     },
+    # Verified 2026-07-26 — Florida FDOR/FGIO Statewide Cadastral (all 67 county
+    # appraisers' NAL tax-roll submissions in one DOR schema). Sample owner
+    # "GSI OPA LOCKA OWNER LLC" (Opa-locka ACRES site). LND_SQFOOT is ALWAYS
+    # square feet (fixed DOR NAL convention — no per-record units column), so
+    # it uses acreage_multiplier. OWN_NAME is length-33 — long trust/multi-party
+    # names may truncate.
+    "FL": {
+        "base": "https://services9.arcgis.com/Gh9awoU677aKree0/arcgis/rest/services/Florida_Statewide_Cadastral/FeatureServer/0",
+        "owner_field": "OWN_NAME",
+        "acreage_field": "LND_SQFOOT",
+        "acreage_multiplier": 1.0 / 43560.0,
+        "parcel_id_field": "PARCEL_ID",
+        "source": "Florida FDOR/FGIO Statewide Cadastral",
+    },
+    # Verified 2026-07-26 — Colorado Public Parcel Composite (Governor's OIT,
+    # all 64 county assessors). Cleanest schema of the 2026-07 batch: native
+    # acres, no conversions. Sample owner "DE JESUS PASILLAS MARIA AND" at the
+    # Chemical Sales Co. Superfund site area. Govt-exempt parcels can carry
+    # null landAcres (routine None-guard handles it).
+    "CO": {
+        "base": "https://gis.colorado.gov/public/rest/services/Address_and_Parcel/Colorado_Public_Parcels/FeatureServer/0",
+        "owner_field": "owner",
+        "acreage_field": "landAcres",
+        "parcel_id_field": "parcel_id",
+        "source": "Colorado OIT (Public Parcel Composite)",
+    },
+    # Verified 2026-07-26 — Iowa HSEMD Statewide Parcels, 2017 vintage (9 yr
+    # stale; deed ownership will have drifted for some parcels — the source
+    # label carries the vintage so the UI provenance is honest). NO acreage
+    # field: only Shape__Area in Web Mercator, which distorts area ~sec(lat)^2
+    # — unusable without a cos(lat) correction this connector doesn't do.
+    # Owner-only state. DEEDHOLDER casing/whitespace is inconsistent.
+    "IA": {
+        "base": "https://services3.arcgis.com/kd9gaiUExYqUbnoq/arcgis/rest/services/Iowa_Parcels_2017/FeatureServer/0",
+        "owner_field": "DEEDHOLDER",
+        "parcel_id_field": "STATEPARID",
+        "source": "Iowa HSEMD Statewide Parcels (2017 vintage)",
+    },
+    # Verified 2026-07-26 — MnGeo/MPCA "Parcels — Opt-In Open Data Counties".
+    # TWO documented caveats: (1) coverage is PARTIAL by design (only opt-in
+    # counties of the 87; non-covered counties tombstone like any no-match);
+    # (2) the ArcGIS item states "intended for non-commercial use" — this
+    # dashboard is a free, non-revenue public-interest tool, which fits, but
+    # revisit if the project's posture ever changes. acres_deed is frequently
+    # 0/unset — acres_poly (GIS-computed) is the reliable field, same pattern
+    # as NC gisacres / MT GISAcres.
+    "MN": {
+        "base": "https://pca-gis02.pca.state.mn.us/arcgis/rest/services/base/parcels_open_data_counties/MapServer/0",
+        "owner_field": "owner_name",
+        "acreage_field": "acres_poly",
+        "parcel_id_field": "state_pin",
+        "source": "MnGeo/MPCA Parcels (opt-in counties)",
+    },
     # NY "Tax Parcels Public" layer 0 is municipal boundaries and the public
     # parcels carry no owner — dropped.
-    # TX StratMap (TxGIO). Endpoint CONFIRMED current as of 2026-06-19
-    # (tnris.org/stratmap/land-parcels.html) but `feature.tnris.org` was
-    # unreachable from BOTH the dev sandbox socket and WebFetch — a network
-    # restriction here, not a dead host. Enable + verify the owner field name
-    # in the deploy environment (best guess OWNER_NAME, unconfirmed).
-    # "TX": {
-    #     "base": "https://feature.tnris.org/arcgis/rest/services/Parcels/stratmap25_land_parcels_48/MapServer/0",
-    #     "owner_field": "OWNER_NAME",
-    #     "acreage_field": "GIS_ACRES",
-    #     "parcel_id_field": "PROP_ID",
-    #     "source": "TX StratMap (TxGIO statewide land parcels)",
-    # },
+    # TX StratMap (TxGIO): RE-PROBED 2026-07-26. Old host feature.tnris.org is
+    # dead (real retirement); new host feature.geographic.texas.gov is live and
+    # the schema is ideal (owner_name / gis_area+gis_area_unit / prop_id at
+    # Parcels/stratmap_land_parcels_48_most_recent/MapServer/0) — but anonymous
+    # Query is rejected ("operation is not supported" / sibling service says
+    # "Token Required") despite advertised capabilities. Blocked on a TxGIO
+    # token; don't re-attempt without one. See data-source-research.md §24.
+    # Also probed & rejected 2026-07-26 (no statewide owner layer): MI, IL, MO,
+    # KS, AZ (trust land only), OH + IN (statewide layers exist but carry no
+    # owner-name field). See data-source-research.md §19-§30.
 }
 
 _PROGRAM_FILES = ["superfund-npl", "epa-acres", "dod-fuds", "dod-brac"]
@@ -230,8 +285,10 @@ class ParcelOwner(Connector):
                 # MassGIS LOT_SIZE + LOT_UNITS = "Acres" | "Sq. Ft."). When an
                 # acreage_units_field is configured, convert to acres via the
                 # source's multiplier map; an UNKNOWN unit code yields None
-                # rather than a silently-wrong number.
-                mult: float | None = 1.0
+                # rather than a silently-wrong number. A source-level fixed
+                # acreage_multiplier (FL: always sq ft) applies when there is
+                # no per-record units column.
+                mult: float | None = src.get("acreage_multiplier", 1.0)
                 uf = src.get("acreage_units_field")
                 if uf:
                     umap = src.get("acreage_units_map") or {}
@@ -275,9 +332,18 @@ class ParcelOwner(Connector):
         new_queries = 0
         hits = 0
         upgraded = 0
+        # Consecutive API-error streak per state. A single pathological parcel
+        # (e.g. FL's Davie Landfill point, which 400s/hangs the FL server —
+        # 2026-07-26) must skip-and-continue, but a state that fails EVERY
+        # query (wrong field name, layer moved) should be dropped for the run
+        # rather than burn the whole candidate list on errors.
+        API_ERROR_STREAK_LIMIT = 15
+        api_fail_streak: dict[str, int] = {}
         for s in sites:
             sid = s.get("id")
             if not sid:
+                continue
+            if s.get("state") not in covered:  # state dropped mid-run (streak guard)
                 continue
             # Skip any site already ATTEMPTED in a prior run — whether it
             # resolved to an owner OR is a null-owner tombstone. Keying on
@@ -317,11 +383,24 @@ class ParcelOwner(Connector):
             try:
                 res = self._query_owner(src, float(s["lat"]), float(s["lon"]), use_cache)
                 new_queries += 1
+                api_fail_streak[s["state"]] = 0
             except (requests.ConnectionError, requests.Timeout) as e:
                 log.warning("[%s] network error (%s) — skipping", sid, type(e).__name__)
                 continue
-            except requests.HTTPError as e:
-                log.warning("[%s] HTTP error (%s) — skipping", sid, e)
+            except (requests.HTTPError, RuntimeError) as e:
+                # RuntimeError = ArcGIS error payload from http_get_json (e.g.
+                # code 400 "Invalid query parameters" on a pathological parcel).
+                # Skip WITHOUT a tombstone — the site stays retryable — and
+                # track the per-state streak so a systemically-broken state
+                # config aborts that state instead of erroring 1,900 times.
+                st = s["state"]
+                streak = api_fail_streak.get(st, 0) + 1
+                api_fail_streak[st] = streak
+                log.warning("[%s] API error (%s) — skipping site", sid, e)
+                if streak >= API_ERROR_STREAK_LIMIT:
+                    covered.discard(st)
+                    log.error("[%s] %d consecutive API errors — dropping state "
+                              "for the rest of this run", st, streak)
                 continue
             if res is None:
                 # Record the attempt with a null owner so we don't re-query it

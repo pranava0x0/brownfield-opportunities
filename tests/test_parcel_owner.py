@@ -19,12 +19,22 @@ def _args(state=None, limit=200):
 
 
 def test_registry_states_are_well_formed():
-    """Every registered state must carry the four keys the query relies on so a
-    new state can't be half-added. NC/MT/WI/NJ/VT/CT are the verified set."""
-    required = {"base", "owner_field", "acreage_field", "parcel_id_field", "source"}
-    assert {"NC", "MT", "WI", "NJ", "VT", "CT", "MA"} <= set(STATE_PARCEL_SOURCES)
+    """Every registered state must carry the keys the query relies on so a new
+    state can't be half-added. NC/MT/WI/NJ/VT/CT/MA are the 2026-06/07 set;
+    FL/CO/IA/MN were verified 2026-07-26. acreage_field is optional ONLY for
+    owner-only states (IA: the 2017 layer has no usable area field); everywhere
+    else it must be present so acreage keeps flowing."""
+    required = {"base", "owner_field", "parcel_id_field", "source"}
+    assert {"NC", "MT", "WI", "NJ", "VT", "CT", "MA", "FL", "CO", "IA", "MN"} <= set(STATE_PARCEL_SOURCES)
+    owner_only_ok = {"IA"}
     for st, src in STATE_PARCEL_SOURCES.items():
         assert required <= set(src), f"{st} missing keys: {required - set(src)}"
+        if st not in owner_only_ok:
+            assert "acreage_field" in src, f"{st} must carry acreage_field"
+        if "acreage_multiplier" in src:
+            assert "acreage_field" in src, f"{st}: multiplier without acreage_field"
+            assert "acreage_units_field" not in src, \
+                f"{st}: fixed multiplier and per-record units are mutually exclusive"
         assert src["base"].startswith("https://") and src["base"].rstrip("/")[-1].isdigit(), \
             f"{st} base must be an https layer URL ending in a layer index"
 
@@ -116,6 +126,81 @@ def test_mixed_unit_acreage_converts_sqft_to_acres(tmp_path):
     c = _conn(tmp_path, sites, response_for={(42.3, -71.1): feat(100, "Hectares")})
     r = c.fetch_records(_args(), use_cache=False)[0]
     assert r.get("parcel_acreage") is None and r["current_owner"] == "ACME LLC"
+
+
+def test_fixed_multiplier_converts_fl_sqft_to_acres(tmp_path):
+    """FL's LND_SQFOOT is ALWAYS square feet (DOR NAL convention) with no
+    per-record units column — the source-level acreage_multiplier must convert
+    it. 43,560 sq ft == 1 acre."""
+    def feat(sqft):
+        return {"features": [{"attributes": {"OWN_NAME": "GSI OPA LOCKA OWNER LLC",
+                                             "LND_SQFOOT": sqft, "PARCEL_ID": "0821280040031"}}]}
+    sites = [{"id": "FL1", "program": "brownfield", "state": "FL", "lat": 25.89, "lon": -80.24}]
+    c = _conn(tmp_path, sites, response_for={(25.89, -80.24): feat(43560)})
+    out = c.fetch_records(_args(), use_cache=False)
+    assert out[0]["parcel_acreage"] == 1.0
+    assert out[0]["current_owner"] == "GSI OPA LOCKA OWNER LLC"
+    assert out[0]["current_owner_source"] == STATE_PARCEL_SOURCES["FL"]["source"]
+    # half an acre, rounded to 2dp
+    c = _conn(tmp_path, sites, response_for={(25.89, -80.24): feat(21780)})
+    assert c.fetch_records(_args(), use_cache=False)[0]["parcel_acreage"] == 0.5
+
+
+def test_owner_only_state_emits_owner_without_acreage(tmp_path):
+    """IA has no usable acreage field (Web-Mercator Shape__Area only) — the
+    registry row omits acreage_field and the record must still emit the owner
+    with the vintage-carrying source label, and no parcel_acreage."""
+    resp = {"features": [{"attributes": {"DEEDHOLDER": "IOWA CONCRETE PRODS CO",
+                                         "STATEPARID": "77-32000524002002"}}]}
+    sites = [{"id": "IA1", "program": "superfund", "state": "IA", "lat": 41.56, "lon": -93.72}]
+    c = _conn(tmp_path, sites, response_for={(41.56, -93.72): resp})
+    out = c.fetch_records(_args(), use_cache=False)
+    assert out[0]["current_owner"] == "IOWA CONCRETE PRODS CO"
+    assert "parcel_acreage" not in out[0]
+    assert "2017" in out[0]["current_owner_source"]
+
+
+def test_api_error_skips_site_without_tombstone_or_crash(tmp_path):
+    """An ArcGIS error payload (http_get_json raises RuntimeError) on one site
+    must not crash the run OR tombstone the site (it stays retryable) — the
+    2026-07-26 FL Davie Landfill crash. Later sites still process."""
+    sites = [
+        {"id": "FL_BAD", "program": "superfund", "state": "FL", "lat": 26.07, "lon": -80.34},
+        {"id": "FL_OK", "program": "brownfield", "state": "FL", "lat": 25.89, "lon": -80.24},
+    ]
+    ok = {"features": [{"attributes": {"OWN_NAME": "ACME", "LND_SQFOOT": 43560,
+                                       "PARCEL_ID": "P1"}}]}
+    c = _conn(tmp_path, sites)
+    def fake_get(url, params, use_cache=True, cache_key=None):
+        if cache_key["lat"] == 26.07:
+            raise RuntimeError("API error: code 400 Invalid query parameters")
+        return ok
+    c.http_get_json = fake_get  # type: ignore
+    out = c.fetch_records(_args(), use_cache=False)
+    ids = {r["id"] for r in out}
+    assert "FL_OK" in ids          # the run continued past the error
+    assert "FL_BAD" not in ids     # no tombstone — retryable next run
+
+
+def test_consecutive_api_errors_drop_state_not_run(tmp_path):
+    """15 consecutive API errors in one state drop THAT state for the run
+    (systemically-broken config guard) while other states keep processing."""
+    fl = [{"id": f"FL{i}", "program": "brownfield", "state": "FL",
+           "lat": 26.0 + i / 1000, "lon": -80.3} for i in range(20)]
+    co = [{"id": "CO_OK", "program": "superfund", "state": "CO", "lat": 39.82, "lon": -104.9}]
+    ok = {"features": [{"attributes": {"owner": "CITY OF DENVER", "landAcres": 2.0,
+                                       "parcel_id": "C1"}}]}
+    calls = {"fl": 0}
+    c = _conn(tmp_path, fl + co)
+    def fake_get(url, params, use_cache=True, cache_key=None):
+        if "Florida" in url:
+            calls["fl"] += 1
+            raise RuntimeError("API error: code 400")
+        return ok
+    c.http_get_json = fake_get  # type: ignore
+    out = c.fetch_records(_args(), use_cache=False)
+    assert calls["fl"] == 15                      # dropped at the streak limit
+    assert {r["id"] for r in out} == {"CO_OK"}    # CO unaffected
 
 
 def test_uncovered_state_is_skipped(tmp_path):
