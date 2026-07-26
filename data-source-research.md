@@ -313,3 +313,160 @@ Point misses on the ACRES address-geocodes are the documented off-parcel class (
   across `json.load(open('docs/data/<file>.json'))['sites']`.
 - When fanning out discovery agents: give each ONE host/org to enumerate and
   this file's table format to return — and have them check this log first.
+
+## 2026-07-26 — parcel registry expansion round 2 (FL / CO / IA / MN added; 8 states rejected/blocked)
+
+Worked the priority list ranked by count of owner-less sites: MI, FL, IL, MO, OH,
+IN, TX (retry), AZ, MN, IA, KS, CO. 4 verified, 8 rejected/blocked — list
+exhausted. Discovery via ArcGIS Online sharing search
+(`arcgis.com/sharing/rest/search?f=json&q=...`) and targeted web search, then
+confirmed each candidate by reading `<layer>?f=json` field metadata + a live
+point-intersect query against a real site coordinate from this repo's own
+`docs/data/sites.json` / `epa-acres.json`. (Probes run by a Sonnet research
+agent, 2026-07-26; registry rows landed in `connectors/parcel_owner.py` the
+same day with an `acreage_multiplier` extension for FL's fixed sq-ft units.)
+
+### 19. Michigan — REJECTED, no statewide ownership layer
+
+`https://www.mcgi.state.mi.us/arcgis/rest/services?f=json` → 22 folders
+(BaseMap, BOE, DCH, DEQ, DHHS, DHS, DNR, DTMB, E911, EGLE, LEO, MDCR, MDE,
+MDOS, MDOT, MEDC, MPSCS, MSHDA, MSP, TAMC, Utilities, WAMC), none contain
+parcels. `https://gis-michigan.opendata.arcgis.com/api/feed/dcat-us/1.1.json`
+→ 731 datasets, 30 "parcel"-titled, all DNR public-land management
+(Commercial Forest Parcels, Mineral Leases, Mineral Lease Nominations, DNR
+Parcels) — zero general private-ownership coverage. **Verdict:** no statewide
+source exists publicly; don't re-probe without new evidence.
+
+### 20. Florida — WORKS, statewide, no token
+
+`https://services9.arcgis.com/Gh9awoU677aKree0/arcgis/rest/services/Florida_Statewide_Cadastral/FeatureServer/0?f=json`
+→ FDOR Cadastral 2025, 121 fields, `OWN_NAME` (owner), `LND_SQFOOT` (land area
+in **square feet**, DOR NAL fixed convention — not acres), `PARCEL_ID`. Point
+query at ACRES-233121 (Opa-locka) → `OWN_NAME`="GSI OPA LOCKA OWNER LLC",
+`LND_SQFOOT`=16834; ACRES-13489 (Clearwater) → "CLEARWATER, CITY OF". Two of
+five test points landed off-parcel (same ACRES address-geocode miss class as
+NC/NJ). **Verdict:** added to `STATE_PARCEL_SOURCES["FL"]` with
+`acreage_multiplier = 1/43560` (new optional registry key for layers with a
+fixed non-acre unit and NO per-record units column; the MA
+`acreage_units_field` mechanism can't express this).
+
+### 21. Colorado — WORKS, statewide, no token, cleanest schema of the batch
+
+`https://gis.colorado.gov/public/rest/services/Address_and_Parcel/Colorado_Public_Parcels/FeatureServer/0?f=json`
+→ "Colorado_Public_Parcel_Composite" (Governor's OIT), 34 fields, `owner`,
+`landAcres` (native acres, no conversion needed), `parcel_id`, `countyName`.
+3/3 live point queries hit: Denver-area Superfund site → owner "DE JESUS
+PASILLAS MARIA AND" / 0.73 ac; Lakewood ACRES site → "DEPARTMENT OF
+TRANSPORTATION" / 0.277 ac; Fort Collins → "CITY OF FORT COLLINS" (landAcres
+null for this one — govt-exempt parcel, same null pattern as VT). **Verdict:**
+added to `STATE_PARCEL_SOURCES["CO"]` — no caveats beyond the routine
+null-guard already in the connector.
+
+### 22. Iowa — WORKS but data is 2017 vintage; no clean acreage field
+
+`https://www.arcgis.com/sharing/rest/content/items/d653c8836f344d17af8ee45d2176760f?f=json`
+→ "Iowa Statewide Parcel Data, 2017" (Iowa Dept. of Homeland Security &
+Emergency Management, mirrored by a U. Iowa ArcGIS account), service:
+`https://services3.arcgis.com/kd9gaiUExYqUbnoq/arcgis/rest/services/Iowa_Parcels_2017/FeatureServer/0`.
+Fields: `DEEDHOLDER` (owner), `STATEPARID`, `COUNTYNAME`, only `Shape__Area`
+for size (service SR is Web Mercator wkid 3857 — area is distorted by
+~sec(lat)^2, unusable as acreage without a cos(lat) correction this connector
+doesn't do). 3/3 live point queries hit: West Des Moines → "IOWA CONCRETE
+PRODS CO"; Waterloo → "RITTER GARY C"; Ottumwa → "Carpenter  Gary" (note
+double-space in source data). **Verdict:** added to
+`STATE_PARCEL_SOURCES["IA"]` owner+parcel_id only (no acreage_field); the
+source label carries the 2017 vintage so UI provenance is honest.
+
+### 23. Kansas — BLOCKED, county-fragmented (+ host 503 at probe time)
+
+ArcGIS Online title search `title:"Kansas" AND title:"Parcels"` → only
+individual county accounts (`ckcoks`=Cherokee, `oscoks`=Osage, `sucoks`
+=Sumner, `ursgis_coffeycountyks`=Coffey), plus a DASC-owned "County GIS
+Websites" resource pointer confirming the state delegates to counties.
+`https://services.kansasgis.org/arcgis1/rest/services?f=json` → HTTP 503
+(Service Unavailable) on 2 attempts 3s apart — transient outage, doesn't
+change the fragmentation finding. **Verdict:** no statewide source; same class
+as PA/IL/MO/AZ.
+
+### 24. Texas — retry: host migrated, schema great, Query token-walled
+
+DNS/reachability retest: `feature.tnris.org` → `curl` HTTP 000 (dead — real
+retirement, not a sandbox artifact); new host `feature.geographic.texas.gov`
+→ HTTP 200, live service directory with a `Parcels` folder containing
+`stratmap_land_parcels_48_most_recent` (MapServer). Metadata
+(`.../Parcels/stratmap_land_parcels_48_most_recent/MapServer/0?f=json`) shows
+`owner_name`, `gis_area`+`gis_area_unit` (real per-record units field),
+`prop_id`, `capabilities: Query,Map`. Live query
+(`.../MapServer/0/query?where=1=1&outFields=owner_name&resultRecordCount=1&f=json`)
+→ `{"error":{"code":400,...,"message":"Requested operation is not supported
+by this service."}}` on 3 separate attempts (point-intersect, count-only,
+plain list; with and without browser UA/Referer headers). A sibling versioned
+service (`stratmap25_land_parcels_48`) returns `"Token Required"` (code 499)
+for the same call. **Verdict:** still blocked — TxGIO now requires an
+authenticated token for anonymous Query despite advertising the capability
+publicly. This SUPERSEDES the 2026-06-19 "host didn't resolve" theory; the
+host is fine now, the access policy is the blocker.
+
+### 25. Minnesota — WORKS but opt-in coverage + non-commercial license caveat
+
+`https://www.arcgis.com/sharing/rest/content/items/dac59d514baf4d2c84491cd8ce4d2bf9?f=json`
+→ "Minnesota parcels open data counties" (MPCA account), service
+`https://pca-gis02.pca.state.mn.us/arcgis/rest/services/base/parcels_open_data_counties/MapServer/0`.
+Item snippet: "compilation of county parcel data from Minnesota counties that
+have opted-in... intended for non-commercial use." Schema follows the MN GAC
+Parcel Data Standard: `owner_name`, `acres_poly` (GIS-computed, reliable),
+`acres_deed` (legal-recorded, frequently 0), `state_pin`. 3/3 live point
+queries hit: Minneapolis → "Hennepin Co Regional Rr Auth" / 2.03 ac; South St.
+Paul → "Schadegg Properties Ii Llc" / 5.515 ac; St. Cloud → "Sanvik
+Development Llc" (acres_poly null this time). **Verdict:** added to
+`STATE_PARCEL_SOURCES["MN"]` — this dashboard is a free non-revenue
+public-interest tool, which fits the "non-commercial use" term; revisit if the
+project's posture ever changes. Opt-in coverage means non-covered counties
+tombstone like any other no-match.
+
+### 26. Ohio — statewide layer exists, REJECTED for no owner field
+
+`https://services2.arcgis.com/MlJ0G8iWUyC7jAmu/arcgis/rest/services/OhioStatewidePacels_full_view/FeatureServer/0`
+(OGRIP "Ohio Statewide Parcels Public View"): 21-field schema has
+`MailAddressAll` but NO discrete owner-name field. Live query at 3 sites
+confirmed the conflation: Painesville → "5 GREENWAY PL | SUITE #10 HOUSTON
+77046" (address, no name); New Straitsville → "KNAPP GARY L JR NEW
+STRAITSVILLE 43766" (name, no street); Elyria → "100 CAMPUS DRIVE FLORHAM
+PARK 07932" (address only). **Verdict:** unusable as owner_field —
+inconsistent format, no separate name attribute in the public view.
+
+### 27. Indiana — statewide layer exists, REJECTED for no owner field
+
+`https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_Current/FeatureServer/0?f=json`
+→ 31 fields, all geometry/address/tax-district (prop_add,
+dlgf_prop_class_code, tax_county/township/city/school/library/special), zero
+owner attribute. Checked the full `Hosted` folder (29 parcel/assessment-
+adjacent services) and a second layer (`Parcels_2023`, 10 fields) — both
+owner-less. **Verdict:** Indiana's public spatial layer is boundaries-only;
+owner/CAMA data isn't joined in.
+
+### 28. Illinois — REJECTED, no statewide layer
+
+`https://clearinghouse.isgs.illinois.edu/arcgis/rest/services?f=json` → HTTP
+404 (no live ArcGIS REST directory at the state clearinghouse). ArcGIS Online
+title search → only scattered municipal/county services (Cook County, DeKalb,
+Valmeyer test datasets), no state-level consolidation. **Verdict:** no
+statewide source; consistent with Illinois's historically county-protective
+parcel-data policy (Cook County commercial-resale litigation history).
+
+### 29. Missouri — REJECTED, no statewide layer
+
+MSDIS (University of Missouri) hosts imagery/PLSS/administrative boundaries,
+not parcels-with-owner. Only owner-bearing statewide service found:
+`https://ogi.oa.mo.gov/arcgis/rest/services/OA/FMDCrealEstate_StateOwnedParcels/MapServer`
+— Missouri STATE-OWNED real estate only (Office of Administration). General
+parcel-owner access is via paid aggregators only (Regrid, AcreValue,
+Acres.com). **Verdict:** no statewide source.
+
+### 30. Arizona — REJECTED, only state trust land is statewide
+
+`https://azgeo.az.gov/arcgis/rest/services/asld/StateTrustParcels/FeatureServer/0`
+— Arizona State Land Department Trust land only (~9% of AZ land area), not
+general private ownership. Counties (Maricopa, Pinal, etc.) run independent
+servers with inconsistent schemas and no state-level aggregator was found.
+**Verdict:** no general statewide source; county-fragmented like PA/IL/MO/KS.
