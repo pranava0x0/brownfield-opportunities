@@ -594,6 +594,7 @@ let plannedRetirementsLoadingPromise = null;
 let ap1000LoadingPromise = null;
 let ap1000Sites = []; // raw payload, for the AP1000 siting tab
 let nuclearSitesLoadingPromise = null;
+let nuclearSitesLoadFailed = false;   // drives the tab section's error state
 let nuclearCivilianSites = [];        // raw payload, for the Nuclear Siting tab
 let nuclearProximityById = new Map(); // nuclear_site_id -> nearby Superfund records
 let nuclearMarkersById = new Map();   // nuclear_site_id -> Leaflet marker
@@ -1894,6 +1895,7 @@ function nuclearPopupHtml(s) {
 
 function ensureNuclearSitesLoaded() {
   if (nuclearSitesLoadingPromise) return nuclearSitesLoadingPromise;
+  nuclearSitesLoadFailed = false; // a fresh attempt clears any prior error state
   const grab = (url, empty) =>
     fetch(url, { priority: "low" })
       .then((r) => {
@@ -1946,7 +1948,11 @@ function ensureNuclearSitesLoaded() {
     })
     .catch((err) => {
       console.error("Civilian nuclear overlay load failed:", err);
+      // Reset for retry AND surface the failure — without this the tab
+      // section sits on "Loading…" forever (Codex review, PR #20).
       nuclearSitesLoadingPromise = null;
+      nuclearSitesLoadFailed = true;
+      maybeRefreshNuclearCivilian();
     });
   return nuclearSitesLoadingPromise;
 }
@@ -3792,7 +3798,23 @@ function buildNuclearCivilianView() {
   if (!host) return;
   if (!nuclearCivilianSites.length) {
     host.replaceChildren();
-    host.insertAdjacentHTML("beforeend", '<p class="muted">Loading civilian nuclear pipeline…</p>');
+    if (nuclearSitesLoadFailed) {
+      host.insertAdjacentHTML(
+        "beforeend",
+        '<p class="muted">Couldn’t load the civilian nuclear pipeline data. ' +
+          '<button type="button" id="nuke-civ-retry" class="text-btn">Retry</button></p>'
+      );
+      const retry = el("nuke-civ-retry");
+      if (retry) {
+        retry.addEventListener("click", () => {
+          host.replaceChildren();
+          host.insertAdjacentHTML("beforeend", '<p class="muted">Loading civilian nuclear pipeline…</p>');
+          ensureNuclearSitesLoaded(); // promise was reset on failure — this refetches
+        });
+      }
+    } else {
+      host.insertAdjacentHTML("beforeend", '<p class="muted">Loading civilian nuclear pipeline…</p>');
+    }
     return;
   }
   const promising = nuclearSortedPromisingSites();

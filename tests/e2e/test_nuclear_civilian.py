@@ -144,3 +144,33 @@ def test_nuclear_popup_shows_category_and_nearby_brownfields(page, base_url):
     assert hrefs, "expected at least one nearby-brownfield link"
     assert all(h.startswith("?site=") for h in hrefs), hrefs
     assert any(data["sample"]["neighbour"] in h for h in hrefs), hrefs
+
+
+def test_load_failure_shows_error_state_with_working_retry(page: Page, base_url: str) -> None:
+    """A failed nuclear-civilian-sites.json fetch must NOT leave the tab
+    section on "Loading…" forever (Codex review, PR #20): the section shows an
+    explicit error + Retry, and Retry refetches successfully once the source
+    recovers (the loader resets its promise on failure)."""
+    fail = {"on": True}
+
+    def route_nuclear(route):
+        if fail["on"]:
+            route.abort()
+        else:
+            route.fallback()
+
+    page.route("**/nuclear-civilian-sites.json", route_nuclear)
+    _ready(page, base_url)  # allSettled tolerates the abort; app still readies
+
+    page.click("#tab-ap1000")
+    err = page.locator("#nuclear-civilian p.muted")
+    err.wait_for(state="visible", timeout=10_000)
+    assert "Couldn’t load" in err.text_content()
+    retry = page.locator("#nuke-civ-retry")
+    assert retry.count() == 1
+
+    fail["on"] = False  # source recovers
+    retry.click()
+    page.wait_for_selector("#nuclear-civilian table tbody tr", timeout=15_000)
+    rows = page.locator("#nuclear-civilian tbody tr").count()
+    assert rows > 0, "retry did not rebuild the civilian table"
