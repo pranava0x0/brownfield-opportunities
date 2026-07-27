@@ -1,4 +1,4 @@
-data/cache/
+data/cache
 logs/
 __pycache__/
 *.pyc

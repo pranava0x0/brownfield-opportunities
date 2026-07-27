@@ -4,6 +4,28 @@ Ideas and enhancements. Priorities: **high** = next, **med** = soon, **low** = n
 
 ---
 
+## Session checkpoint — 2026-07-25/26 (reactor + DC siting comprehensive review; supervised, crossed two usage-window resets)
+
+Full session review in [siting-review-2026-07-26.md](siting-review-2026-07-26.md); UX spec in [jtbd-ux-plan.md](jtbd-ux-plan.md). Commits `e8878e2`→`02c3bc9`+docs; 4 Sonnet research agents + 1 Opus coding agent.
+
+- **FEMA flood backfill 52.6% → 72.5% committed** (`e8878e2` +3,140; `2e04e7e` +6,133 — both pushed to main). **Final budget-10100 tranche launched** targeting all remaining 10,015 deferred sites (FEMA ran ~2.4s/fetch, finishes overnight; the guarded 23:55 janitor task commits it, rescheduling itself +90 min if the run is still live). When it lands, the flood layer is COMPLETE for every FEMA-reachable site.
+- **Parcel registry round 2** (`f4094d2`): +FL/CO/IA/MN (11 states), `acreage_multiplier` mechanism, API-error skip + 15-consecutive-failure state guard (first run crashed on one pathological FL parcel — issues.md 2026-07-26), probe log §19-30, 19 unit tests. Backfill for the 4 new states relaunched hardened (~4.7k candidates; resumable; commit its parcel-owner.json when it lands).
+- **Civilian nuclear pipeline: refreshed + finally rendered** (`596e033`, `02c3bc9`): 68 sites (V.C. Summer FID by 2028-03-31; TMI/Crane + Palisades restarting; Clinch River first-ever advanced-reactor CP recommendation, hearing 2026-08-13; NEW Belews Creek Duke ESP), ⚛ map overlay (29 promising-tier markers + legend row + popups with top-3 nearby-brownfield ?site= links), Nuclear Siting tab civilian table with map→ fly-to. Closes the [high] "Frontend Nuclear Sites tab" item below.
+- **JTBD quick-start strip** (`02c3bc9`): "What are you siting?" → Data center / Power generation / Nuclear reactor / Factory, one-click routing to the right view+lens; dismissible. DOM first-paint 4,938/5,000 (headroom ~62).
+- **Jul-2026 regulation/incentive audit applied** (`02c3bc9`): STATE_DC_REGULATION now restrictive {NY — EO 62 permit pause}, cautionary {VA (downgraded), VT, FL}; OK removed (cost-causation tariff = excluded category). STATE_DC_INCENTIVES: AZ + IL → tier 3 `paused` (new-application freezes eff. 2026-07-01). **Next quarterly audit due ~2026-10** — also re-check the OH AEP tariff legal challenge, OK/MI re-attempts, and NY's unsigned Responsible Data Center Development Act.
+- **Copy/framing from market research**: Grid Inherit = queue-skip (LBNL 55-month median), DOE coal-to-nuclear numbers in Retired Sites, AFCEC-26-R-0002 "selection pending" + Alaska expansion + ANPI vendor pairings + DOE/Amentum SRS note.
+
+**New items from the 2026-07-26 research pass:**
+
+- **[high] WRI Aqueduct water-stress penalty for the DC + Generation lenses.** Water is now the #2 siting constraint (JLL/DCF 2026; ~2/3 of planned DCs sit in drought-affected areas) and these lenses carry no water-availability signal (only the FEMA-NRI drought *rating* penalty). HydroBASINS polygons + `PolygonIndex`, subtractive term like flood/climate. Supersedes/absorbs the older Tier-2 WRI item.
+- **[med] Recalibrate `DC_TIERS` for the gigawatt-campus era.** 2026 norm: 250+ MW single-parcel, 500 MW–1 GW+ hyperscale (CBRE/JLL). The mega tier's thresholds date to the 100–300 MW mental model.
+- **[med] OZ + IRA combined "deal economics" filter.** Research JTBD #5 ("make the IRR work") is the least-surfaced job the data already supports — combinable headline filter for `in_opportunity_zone` + `in_energy_community` (+ state incentive tier), not just scoring bonuses.
+- **[med] DOE federal AI-DC sites + ANPI bases as first-class rows.** SRS (Amentum, 1 GW DC + ~2 GW gen), INL/ORNL/Paducah (pending) + ANPI's Buckley/Malmstrom/JBSA (vendors paired Apr 2026) deserve scored Nuclear-Siting rows or a small curated overlay; currently a copy note only. Needs infra joins + analyst water/workforce fields per site.
+- **[med] PJM/ERCOT queue-reform context chip.** PJM's new Cycle process (spring 2026, 1–2 yr target) and ERCOT Batch Zero (Jun 2026) make the flat "4.5-yr median queue" framing pessimistic in the two biggest DC markets — add an ISO-aware note chip in Rankings rows.
+- **[low] Event tracking:** AFCEC-26-R-0002 award (was due Jan 2026, still unannounced); Army Janus vendor awards ("this summer" 2026); Clinch River CP hearing outcome (2026-08-13); Palisades grid reconnection; V.C. Summer operator selection (by Feb 2027).
+
+---
+
 ## Session checkpoint — 2026-07-21 (scheduled data-maintenance run)
 
 Flood-only run (parcel confirmed exhausted, no producer work), committed to `main` (`52d385f`):
@@ -129,7 +151,7 @@ Two resumable missing-data backfills, run in parallel (separate output files + h
 
 Curated data is in `docs/data/nuclear-civilian-sites.json` (67 sites, INL Table 1 + Matador + Kewaunee). The brownfield proximity is in `docs/data/nuclear-brownfield-proximity.json`. Items below are frontend + analysis work not yet implemented.
 
-- **[high] Frontend "Nuclear Sites" tab (or overlay layer).** Display the 18 "promising" civilian AP1000 sites (dark_green + light_green INL categories) on the map — a new `L.divIcon` layer (blue ◉ for dark_green, light_blue ◉ for light_green, teal ◉ for blue restart). Click → popup with name, category, COL status, owner, units planned, and a "View nearby brownfields" button that loads the proximity list. `ensureNuclearSitesLoaded()` lazy-loads the JSON. **Don't** use the same marker shape as reference-campuses (★) or retired-industrial (◆) — pick a distinctive nuclear symbol (⚛ or ◉).
+- ~~**[high] Frontend "Nuclear Sites" tab (or overlay layer).**~~ **Done 2026-07-26** (`02c3bc9`) — ⚛ overlay for 29 promising-tier sites (incl. blue restarts + post-study entrants), legend row, popups with nearby-brownfield links, civilian table in the Nuclear Siting tab. Original scope follows: Display the 18 "promising" civilian AP1000 sites (dark_green + light_green INL categories) on the map — a new `L.divIcon` layer (blue ◉ for dark_green, light_blue ◉ for light_green, teal ◉ for blue restart). Click → popup with name, category, COL status, owner, units planned, and a "View nearby brownfields" button that loads the proximity list. `ensureNuclearSitesLoaded()` lazy-loads the JSON. **Don't** use the same marker shape as reference-campuses (★) or retired-industrial (◆) — pick a distinctive nuclear symbol (⚛ or ◉).
   - **Legend row** per category when the layer is populated (dark_green = "AP1000 ready", light_green = "AP1000 feasible", blue = "Restart / SMR").
   - **Tab implementation** could be a fourth overlay toggle button next to the legend rows, OR a separate tab (lower priority — the overlay is lighter-weight).
 
