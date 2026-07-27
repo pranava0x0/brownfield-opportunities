@@ -191,3 +191,46 @@ def test_missing_primary_dataset_404_shows_error_not_forever_loading(page: Page,
     err.wait_for(state="visible", timeout=10_000)
     assert "Couldn’t load" in err.text_content()
     assert page.locator("#nuke-civ-retry").count() == 1
+
+
+def test_proximity_failure_shows_unavailable_not_false_negative(page: Page, base_url: str) -> None:
+    """A failed proximity fetch must render 'unavailable' in popups — never
+    the definitive 'No tracked Superfund site within 50 mi' claim (Codex
+    review #4, PR #20: a fetch failure must not become a false negative)."""
+    page.route("**/nuclear-brownfield-proximity.json", lambda route: route.abort())
+    _ready(page, base_url)
+    # _dataset() would also hit the aborted route — fetch just the sites file.
+    target = page.evaluate(
+        """async () => {
+          const sites = (await (await fetch('data/nuclear-civilian-sites.json')).json()).sites;
+          return sites.find((s) => s.inl_category === 'dark_green').id;
+        }"""
+    )
+    page.locator("#tab-ap1000").click()
+    page.wait_for_selector(".nuke-civ-table tbody tr")
+    page.locator(f"[data-nuke-map='{target}']").click()
+    page.wait_for_selector(".leaflet-popup", timeout=10_000)
+    popup = page.locator(".leaflet-popup").text_content() or ""
+    assert "Nearby-brownfield data unavailable" in popup, popup
+    assert "No tracked Superfund site" not in popup, popup
+
+
+def test_empty_primary_dataset_shows_empty_state_not_loading(page: Page, base_url: str) -> None:
+    """A successfully-loaded but EMPTY primary dataset (broken regeneration)
+    renders an explicit empty state — not eternal 'Loading…' and not the
+    error/Retry path, since a successful empty isn't retryable (Codex review
+    #3, PR #20)."""
+    page.route(
+        "**/nuclear-civilian-sites.json",
+        lambda route: route.fulfill(
+            status=200,
+            content_type="application/json",
+            body='{"generated_at": "2026-01-01", "sites": []}',
+        ),
+    )
+    _ready(page, base_url)
+    page.click("#tab-ap1000")
+    msg = page.locator("#nuclear-civilian p.muted")
+    msg.wait_for(state="visible", timeout=10_000)
+    assert "No civilian nuclear pipeline data available" in msg.text_content()
+    assert page.locator("#nuke-civ-retry").count() == 0

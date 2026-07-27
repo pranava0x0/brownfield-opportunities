@@ -595,6 +595,8 @@ let ap1000LoadingPromise = null;
 let ap1000Sites = []; // raw payload, for the AP1000 siting tab
 let nuclearSitesLoadingPromise = null;
 let nuclearSitesLoadFailed = false;   // drives the tab section's error state
+let nuclearSitesLoadSettled = false;  // distinguishes "still loading" from "loaded empty"
+let nuclearProxFailed = false;        // proximity fetch failed — popups must not claim "none nearby"
 let nuclearCivilianSites = [];        // raw payload, for the Nuclear Siting tab
 let nuclearProximityById = new Map(); // nuclear_site_id -> nearby Superfund records
 let nuclearMarkersById = new Map();   // nuclear_site_id -> Leaflet marker
@@ -1861,6 +1863,9 @@ function nuclearPopupHtml(s) {
   const notes = s.notes && s.notes.length > 200 ? s.notes.slice(0, 197).trimEnd() + "…" : s.notes;
   const sourceUrl = s.nrc_url || s.reference_url;
   const nearby = (nuclearProximityById.get(s.id) || []).slice(0, 3);
+  // An unavailable proximity file must render as UNAVAILABLE — the definitive
+  // "No tracked Superfund site within 50 mi" claim is reserved for data we
+  // actually loaded (never turn a fetch failure into a false negative).
   const nearbyHtml = nearby.length
     ? `<div class="nuke-pop-near"><strong>Nearby tracked brownfields</strong><ul>` +
       nearby
@@ -1871,6 +1876,8 @@ function nuclearPopupHtml(s) {
         )
         .join("") +
       `</ul></div>`
+    : nuclearProxFailed
+    ? `<div class="nuke-pop-near muted">Nearby-brownfield data unavailable.</div>`
     : `<div class="nuke-pop-near">No tracked Superfund site within 50 mi.</div>`;
   return (
     `<div class="ref-campus-popup">` +
@@ -1913,7 +1920,11 @@ function ensureNuclearSitesLoaded() {
     // Small (~180 KB) and needed the moment a popup opens, so it rides along
     // with the main file rather than paying a second round-trip on click.
     grab(NUCLEAR_BROWNFIELD_PROX_URL, { records: [] }).catch((err) => {
+      // Tolerated (the overlay still works) but FLAGGED: popups must render
+      // "unavailable", never the false-negative "No tracked Superfund site
+      // within 50 mi" (Codex review #4, PR #20).
       console.error("Nuclear brownfield-proximity load failed:", err);
+      nuclearProxFailed = true;
       return { records: [] };
     }),
   ])
@@ -1923,6 +1934,7 @@ function ensureNuclearSitesLoaded() {
       recordRefreshDate(payload.generated_at);
       recordRefreshDate(prox.generated_at);
       nuclearCivilianSites = payload.sites || [];
+      nuclearSitesLoadSettled = true;
       for (const rec of prox.records || []) {
         nuclearProximityById.set(rec.nuclear_site_id, rec.nearby_brownfields || []);
       }
@@ -3803,6 +3815,16 @@ function buildNuclearCivilianView() {
   if (!host) return;
   if (!nuclearCivilianSites.length) {
     host.replaceChildren();
+    if (nuclearSitesLoadSettled && !nuclearSitesLoadFailed) {
+      // Loaded successfully but genuinely empty — an explicit empty state,
+      // not eternal "Loading…" (can only happen on a broken regeneration of
+      // the data file; a successful empty is not retryable).
+      host.insertAdjacentHTML(
+        "beforeend",
+        '<p class="muted">No civilian nuclear pipeline data available.</p>'
+      );
+      return;
+    }
     if (nuclearSitesLoadFailed) {
       host.insertAdjacentHTML(
         "beforeend",
