@@ -115,6 +115,18 @@
       </div>
     </div>
   </details>
+  <!-- Jobs-to-be-done quick start. One click routes to the view + lens that
+       answers "what are you siting?". Stays visible after a pick (users try
+       several jobs); only the × dismisses it, persisted in localStorage and
+       applied before first paint by hideJtbdIfDismissed() in app.js. -->
+  <nav id="jtbd-strip" class="jtbd-strip" aria-label="Quick start">
+    <span class="jtbd-lead">What are you siting?</span>
+    <button type="button" class="jtbd-chip" data-jtbd="dc">🖥 Data center</button>
+    <button type="button" class="jtbd-chip" data-jtbd="gen">⚡ Power generation</button>
+    <button type="button" class="jtbd-chip" data-jtbd="reactor">⚛ Nuclear reactor</button>
+    <button type="button" class="jtbd-chip" data-jtbd="mfg">🏭 Factory</button>
+    <button type="button" id="jtbd-dismiss" class="jtbd-dismiss" aria-label="Hide quick start" title="Hide quick start">×</button>
+  </nav>
 </header>
 
 <div id="filters-backdrop" class="filters-backdrop" hidden aria-hidden="true"></div>
@@ -222,8 +234,8 @@
       <details class="cand-help">
         <summary>How this ranking works</summary>
         <div class="cand-help-body">
-          <p>Every site gets a <strong>0–100 suitability score</strong> from the data already on its record — no opinions, just public federal signals. Pick a <strong>lens</strong> above: <em>Data Center</em> (siting a compute load), <em>Generation</em> (siting new power), or <em>Manufacturing</em> (siting a plant — rail-weighted, mid-size-acreage sweet spot). The table is sorted best-first for the chosen lens.</p>
-          <p>The score is a weighted sum of <strong>power access</strong> (transmission distance &amp; voltage, substation, grid inheritance), <strong>land</strong> (acreage), <strong>gas</strong>, <strong>logistics</strong> (highway/rail), and <strong>readiness</strong> (cleanup status, reuse, EPA flag, incentives) — minus penalties for <strong>flood zones</strong>, <strong>climate risk</strong>, and (Data Center lens only) a <strong>restrictive state regulatory climate</strong>. Sites with no transmission data show “—”.</p>
+          <p>Every site gets a <strong>0–100 suitability score</strong> from the data already on its record — no opinions, just public federal signals. Pick a <strong>lens</strong> above: <em>Data Center</em> (siting a compute load), <em>Generation</em> (siting new power), or <em>Manufacturing</em> (siting a plant — rail access is a gate for heavy-materials plants, then a mid-size-acreage sweet spot). The table is sorted best-first for the chosen lens.</p>
+          <p><strong>Power access leads the weighting</strong> because speed-to-power is the #1 site-selection screen in 2026 — the median new interconnection request now waits about <strong>55 months</strong> (<a href="https://emp.lbl.gov/queues" target="_blank" rel="noopener">LBNL, “Queued Up” 2025</a>), so a site next to a retired or retiring plant that can inherit an existing interconnection skips years of queue. The score is a weighted sum of <strong>power access</strong> (transmission distance &amp; voltage, substation, grid inheritance), <strong>land</strong> (acreage), <strong>gas</strong>, <strong>logistics</strong> (highway/rail), and <strong>readiness</strong> (cleanup status, reuse, EPA flag, incentives) — minus penalties for <strong>flood zones</strong>, <strong>climate risk</strong>, and (Data Center lens only) a <strong>restrictive state regulatory climate</strong>. Sites with no transmission data show “—”.</p>
           <p class="cand-help-tiers"><strong>Tier</strong> is a quick capacity bucket: Edge → Colo → Hyperscale → Mega, driven by acreage and grid headroom.</p>
           <p><strong>Signals</strong> badges explain the score at a glance — <span class="cand-help-pos">green/blue = upside</span> (Land Ready, OZ, IRA, EPA DC, Grid Inherit, Nuclear, Fed Fast Lane, Water), <span class="cand-help-neg">red = risk/drag</span> (Flood, Climate, Zoning). Open any row for the full per-component breakdown.</p>
         </div>
@@ -255,7 +267,7 @@
     <div class="retired-wrap">
       <div class="retired-lead">
         <h2>Retired industrial sites — by prior use</h2>
-        <p>Large facilities that ceased EPA GHGRP reporting — which can mean closed, idled, <em>or</em> simply dropping below the reporting threshold. Treat it as a <strong>screening signal</strong>: a former smelter, mill, refinery, or mine may retain reusable grid infrastructure worth investigating for data-center or generation reuse. It does not by itself confirm the site is available or still connected. Counts by the facility's prior use.</p>
+        <p>Large facilities that ceased EPA GHGRP reporting — which can mean closed, idled, <em>or</em> simply dropping below the reporting threshold. Treat it as a <strong>screening signal</strong>: a former smelter, mill, refinery, or mine may retain reusable grid infrastructure worth investigating for data-center or generation reuse. It does not by itself confirm the site is available or still connected. Counts by the facility's prior use. The reuse case has a federal precedent: DOE's coal-to-nuclear study screened 394 retiring and recently retired coal sites and found <strong>roughly 80% suitable for an SMR</strong> (33 for a large reactor), with <strong>15–35% construction savings</strong> from reusing the existing grid, cooling, and civil infrastructure (<a href="https://www.energy.gov/ne/articles/doe-report-finds-hundreds-retiring-coal-plant-sites-could-convert-nuclear" target="_blank" rel="noopener">DOE Office of Nuclear Energy</a>).</p>
       </div>
       <div id="retired-stats" aria-live="polite"><p class="muted">Loading retired-site data…</p></div>
     </div>
@@ -265,7 +277,7 @@
     <div class="ap1000-wrap">
       <div class="ap1000-lead">
         <h2>Nuclear reactor siting — 14 military installations</h2>
-        <p>A screening of named DoD installations for hosting a nuclear plant, by <strong>reactor class</strong>: large Gen&nbsp;III+ PWRs (<strong>AP1000</strong> 1,117&nbsp;MWe / <strong>APR1400</strong> 1,400&nbsp;MWe — wet-cooled, certified designs) are a separate category from <strong>SMRs</strong> (AP300-class) and <strong>microreactors</strong> (Janus-class), whose 3–300× smaller water demand and dry-cooling options change which sites are viable at all. Acreage is treated as a per-class eligibility threshold, while each base scores 0–100 across <strong>cooling water</strong> (availability × <em>rights obtainability</em>), <strong>electrical infrastructure</strong> (transmission + substation), <strong>construction workforce</strong>, and <strong>fiber</strong>. Click any row for the full breakdown, sources, and unscored geohazard flags. <span class="ap1000-janus-key">★ Janus</span> marks the 9 sites on the U.S.&nbsp;Army's Nov&nbsp;2025 microreactor shortlist; the other 5 (all Air&nbsp;Force-led) come from the Air&nbsp;Force's AI-data-center <strong>Request for Lease</strong> (AFCEC-26-R-0002), marked <span class="ap1000-rflp-key">AF&nbsp;RFLP</span>.</p>
+        <p>A screening of named DoD installations for hosting a nuclear plant, by <strong>reactor class</strong>: large Gen&nbsp;III+ PWRs (<strong>AP1000</strong> 1,117&nbsp;MWe / <strong>APR1400</strong> 1,400&nbsp;MWe — wet-cooled, certified designs) are a separate category from <strong>SMRs</strong> (AP300-class) and <strong>microreactors</strong> (Janus-class), whose 3–300× smaller water demand and dry-cooling options change which sites are viable at all. Acreage is treated as a per-class eligibility threshold, while each base scores 0–100 across <strong>cooling water</strong> (availability × <em>rights obtainability</em>), <strong>electrical infrastructure</strong> (transmission + substation), <strong>construction workforce</strong>, and <strong>fiber</strong>. Click any row for the full breakdown, sources, and unscored geohazard flags. <span class="ap1000-janus-key">★ Janus</span> marks the 9 sites on the U.S.&nbsp;Army's Nov&nbsp;2025 microreactor shortlist; the other 5 (all Air&nbsp;Force-led) come from the Air&nbsp;Force's AI-data-center <strong>Request for Lease</strong> (AFCEC-26-R-0002) — <strong>selection still pending as of July&nbsp;2026</strong> (the original January&nbsp;2026 target passed with no public award), and the program has since <strong>expanded to Alaska</strong> under <strong>AFCEC-26-R-0006</strong> (JBER, Eielson&nbsp;AFB, and Clear&nbsp;SFS, ~4,700&nbsp;ac, proposals due June&nbsp;29&nbsp;2026) — marked <span class="ap1000-rflp-key">AF&nbsp;RFLP</span>.</p>
         <button id="ap1000-export-csv" class="ap1000-export" type="button" aria-label="Download AP1000 table as CSV" title="Download only the AP1000 table as CSV with source URLs">
           <span aria-hidden="true">↓</span> Download AP1000 table CSV
         </button>
@@ -279,7 +291,16 @@
           <p><strong>Not in the score: acreage beyond threshold, seismic &amp; flood.</strong> Acreage is shown with source context but is not a differentiating score once the site clears the land threshold. Geohazards aren't folded into the number either — but they're genuinely deal-affecting for a reactor (Edwards, Fort Campbell, JBLM and Fort Wainwright all carry real flags), so each row surfaces them as <span class="ap1000-flag-amber">amber</span>/<span class="ap1000-flag-red">red</span> context chips. The Army's Janus interest is a microreactor (≤20&nbsp;MWe) signal — a permitting/intent precedent, not a like-for-like for a gigawatt-class AP1000.</p>
         </div>
       </details>
+      <details class="ap1000-help ap1000-adjacent">
+        <summary>Adjacent DoD &amp; DOE programs (2026)</summary>
+        <div class="ap1000-help-body">
+          <p>The Air Force / Space Force <strong>ANPI</strong> microreactor program has already paired vendors to three bases — Radiant at Buckley&nbsp;SFB&nbsp;CO, Westinghouse eVinci at Malmstrom&nbsp;AFB&nbsp;MT, and Antares at Joint&nbsp;Base&nbsp;San&nbsp;Antonio&nbsp;TX (April&nbsp;2026; <a href="https://www.ans.org/news/2026-04-13/article-7930/" target="_blank" rel="noopener">ANS</a>, <a href="https://www.powermag.com/air-force-anpi-picks-put-radiant-antares-westinghouse-on-track-for-first-on%E2%80%91base-microreactors-by-2028/" target="_blank" rel="noopener">POWER</a>) — so vendor-to-base pairing is now happening ahead of any Janus award. On the DOE side, NNSA selected Amentum in July&nbsp;2026 for a <strong>1&nbsp;GW AI data center with ~2&nbsp;GW of on-site generation at the Savannah&nbsp;River&nbsp;Site</strong> (<a href="https://www.energy.gov/nnsa/articles/nnsa-selects-amentum-ai-data-center-and-energy-project-savannah-river-site" target="_blank" rel="noopener">NNSA</a>), the clearest federal-land precedent yet for co-locating compute with new generation.</p>
+        </div>
+      </details>
       <div id="ap1000-cards" aria-live="polite"><p class="muted">Loading AP1000 siting data…</p></div>
+      <!-- Civilian nuclear pipeline — built lazily by buildNuclearCivilianView()
+           on first Nuclear Siting tab activation (first-paint DOM budget). -->
+      <div id="nuclear-civilian" class="nuke-civ" aria-live="polite"><p class="muted">Loading civilian nuclear pipeline…</p></div>
     </div>
   </section>
 

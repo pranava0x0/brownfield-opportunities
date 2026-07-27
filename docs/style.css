@@ -38,6 +38,14 @@
   --program-brownfield: #1c5e9e;
   --program-fuds: #6f3691;
   --program-brac: #c46a14;
+  /* Civilian nuclear pipeline overlay (⚛ markers + legend + category chips).
+     Mirrors the INL AP1000-study readiness tiers: dark green = ready,
+     light green = feasible, blue = restart / SMR / new entrant. Deliberately
+     distinct from the gold ★ (confirmed deals), rust ◆ (retired industrial)
+     and teal ⬢ (retiring plants) overlay palettes. */
+  --nuclear-ready: #14663c;
+  --nuclear-feasible: #3f8a4a;
+  --nuclear-restart: #1f7ba8;
   /* Vector basemap palette */
   --map-ocean: #dde3ec;
   --map-land: #f5f7fa;
@@ -84,6 +92,9 @@
   --program-brownfield: #7eb6e8;
   --program-fuds: #b47ad8;
   --program-brac: #e6a040;
+  --nuclear-ready: #5fd39b;
+  --nuclear-feasible: #9fd7a4;
+  --nuclear-restart: #6fc8ee;
   --map-ocean: #0a0f17;
   --map-land: #1d2531;
   --map-state-stroke: #5a6577;
@@ -517,6 +528,74 @@ main:focus { outline: none; }
 .kpi-disclosure > .kpi-summary { display: none; }
 .kpi-disclosure[open] > .kpi-deck { margin-top: 0; }
 
+/* ============================================================
+   JTBD quick-start strip — "what are you siting?" in one click.
+   Chips borrow the .cand-filter visual language (small pills) so the
+   header doesn't grow a second button vocabulary. `[hidden]` guard is
+   mandatory: the strip sets `display: flex`, which would otherwise beat
+   the hidden attribute (see CLAUDE.md "the [hidden] trap").
+   ============================================================ */
+.jtbd-strip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 24px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-elev);
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+.jtbd-strip[hidden] { display: none; }
+.jtbd-lead {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+  padding-right: 2px;
+}
+.jtbd-chip {
+  padding: 3px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-soft);
+  font-size: 11.5px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  touch-action: manipulation;
+  transition: background 80ms, border-color 80ms, color 80ms;
+}
+.jtbd-chip:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+.jtbd-chip:focus-visible,
+.jtbd-dismiss:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.jtbd-dismiss {
+  margin-left: auto;
+  flex: none;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.jtbd-dismiss:hover { color: var(--text); background: var(--surface-2); }
+@media (max-width: 640px) {
+  .jtbd-strip { padding: 6px 12px; }
+  .jtbd-lead { display: none; }
+  .jtbd-dismiss { margin-left: 4px; }
+}
+
 @media (max-width: 1024px) {
   .hero-inner { grid-template-columns: 1fr; gap: 16px; }
   .hero h2 { font-size: 22px; }
@@ -924,6 +1003,35 @@ main {
   color: #cf9b6a;
   text-shadow: 0 0 4px rgba(0,0,0,0.8);
 }
+
+/* Civilian nuclear pipeline — ⚛ atom glyph, colored by INL readiness tier
+   from the --nuclear-* token pairs (theme-safe without a JS repaint). */
+.legend-atom {
+  color: var(--nuclear-ready);
+  font-size: 15px;
+  line-height: 1;
+  display: inline-block;
+  width: 12px;
+  text-align: center;
+}
+.nuclear-site-icon {
+  background: none !important;
+  border: none !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* The atom is a fine, intricate glyph — it needs a couple more pixels than
+     the solid ◆ / ⬢ / ★ overlay marks to stay legible on the basemap. */
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--nuclear-ready);
+  text-shadow: 0 0 3px rgba(0,0,0,0.55);
+}
+[data-theme="dark"] .nuclear-site-icon { text-shadow: 0 0 4px rgba(0,0,0,0.8); }
+.nuclear-cat-ready    { color: var(--nuclear-ready); }
+.nuclear-cat-feasible { color: var(--nuclear-feasible); }
+.nuclear-cat-restart  { color: var(--nuclear-restart); }
 
 /* Reference campus popup */
 .ref-campus-popup {
@@ -2455,6 +2563,70 @@ main {
 /* Retired-plant badge (♻): teal/slate — stranded grid signal */
 .ap1000-grid-badge.retired { color: #1a5a6e; background: color-mix(in srgb, #3a9cb8 15%, transparent); border: 1px solid color-mix(in srgb, #3a9cb8 40%, transparent); }
 [data-theme="dark"] .ap1000-grid-badge.retired { color: #7ecfe8; background: color-mix(in srgb, #3a9cb8 15%, transparent); border-color: color-mix(in srgb, #3a9cb8 35%, transparent); }
+
+/* ============================================================
+   Civilian nuclear pipeline (Nuclear Siting tab, below the military
+   screen) + the ⚛ map-marker popup. Reuses the .ap1000-table chrome so
+   the two tables read as one view.
+   ============================================================ */
+.nuke-civ { margin-top: 28px; }
+.nuke-civ h3 {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 6px;
+  color: var(--text);
+}
+.nuke-civ-lead {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-soft);
+  max-width: 78ch;
+  margin: 0 0 12px;
+}
+.nuke-civ-lead a { color: var(--accent); }
+.nuke-civ-table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; }
+.nuke-civ-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.nuke-civ-table thead th {
+  position: sticky; top: 0; z-index: 1;
+  background: var(--surface-2); color: var(--muted);
+  text-align: left; font-weight: 600; font-size: 11px;
+  text-transform: uppercase; letter-spacing: 0.03em;
+  padding: 9px 10px; white-space: nowrap; border-bottom: 1px solid var(--border);
+}
+.nuke-civ-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.nuke-civ-table tbody tr:hover { background: var(--surface-2); }
+.nuke-civ-table td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.nuke-civ-name { font-weight: 600; color: var(--text); }
+.nuke-civ-owner { color: var(--text-soft); max-width: 26ch; }
+.nuke-civ-cat {
+  display: inline-block; padding: 2px 8px; border-radius: 999px;
+  font-size: 11px; font-weight: 600; white-space: nowrap;
+  border: 1px solid currentColor;
+}
+.nuke-civ-cat.cat-ready    { color: var(--nuclear-ready); }
+.nuke-civ-cat.cat-feasible { color: var(--nuclear-feasible); }
+.nuke-civ-cat.cat-restart  { color: var(--nuclear-restart); }
+.nuke-civ-map {
+  border: 0; background: none; padding: 2px 4px; margin: -2px -4px;
+  font: inherit; font-size: 11.5px; font-weight: 600;
+  color: var(--accent); cursor: pointer; white-space: nowrap;
+  touch-action: manipulation; border-radius: 4px;
+}
+.nuke-civ-map:hover { text-decoration: underline; }
+.nuke-civ-map:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.nuke-civ-foot { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
+.nuke-civ-foot a { color: var(--accent); }
+
+/* ⚛ popup extras — layered on the shared .ref-campus-popup chrome. */
+.nuke-pop-cat { font-weight: 600; font-size: 11.5px; margin-bottom: 4px; }
+.nuke-pop-cat.cat-ready    { color: var(--nuclear-ready); }
+.nuke-pop-cat.cat-feasible { color: var(--nuclear-feasible); }
+.nuke-pop-cat.cat-restart  { color: var(--nuclear-restart); }
+.nuke-pop-near { margin-top: 6px; font-size: 11.5px; color: var(--text-soft); }
+.nuke-pop-near strong { display: block; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.nuke-pop-near ul { margin: 3px 0 0; padding-left: 16px; }
+.nuke-pop-near li { margin-bottom: 1px; }
 
 .about-lead {
   margin-bottom: 40px;
