@@ -193,11 +193,22 @@ def test_missing_primary_dataset_404_shows_error_not_forever_loading(page: Page,
     assert page.locator("#nuke-civ-retry").count() == 1
 
 
-def test_proximity_failure_shows_unavailable_not_false_negative(page: Page, base_url: str) -> None:
-    """A failed proximity fetch must render 'unavailable' in popups — never
-    the definitive 'No tracked Superfund site within 50 mi' claim (Codex
-    review #4, PR #20: a fetch failure must not become a false negative)."""
-    page.route("**/nuclear-brownfield-proximity.json", lambda route: route.abort())
+import pytest
+
+
+@pytest.mark.parametrize("failure_mode", ["abort", "404"])
+def test_proximity_failure_shows_unavailable_not_false_negative(page: Page, base_url: str, failure_mode: str) -> None:
+    """A failed OR MISSING proximity fetch must render 'unavailable' in
+    popups — never the definitive 'No tracked Superfund site within 50 mi'
+    claim (Codex reviews #4 + #5, PR #20: neither a fetch failure nor a
+    partial-deployment 404 may become a false negative)."""
+    if failure_mode == "abort":
+        page.route("**/nuclear-brownfield-proximity.json", lambda route: route.abort())
+    else:
+        page.route(
+            "**/nuclear-brownfield-proximity.json",
+            lambda route: route.fulfill(status=404, body="not found"),
+        )
     _ready(page, base_url)
     # _dataset() would also hit the aborted route — fetch just the sites file.
     target = page.evaluate(
@@ -234,3 +245,46 @@ def test_empty_primary_dataset_shows_empty_state_not_loading(page: Page, base_ur
     msg.wait_for(state="visible", timeout=10_000)
     assert "No civilian nuclear pipeline data available" in msg.text_content()
     assert page.locator("#nuke-civ-retry").count() == 0
+
+
+def test_retry_after_total_outage_restores_verified_negative(page: Page, base_url: str) -> None:
+    """After BOTH files fail and the user retries into a recovered source,
+    a site with a legitimately-empty proximity list must show the verified
+    'No tracked Superfund site within 50 mi' — not a stale 'unavailable'
+    (Codex review #6, PR #20: the retry must clear the proximity flag)."""
+    fail = {"on": True}
+
+    def route_both(route):
+        if fail["on"]:
+            route.abort()
+        else:
+            route.fallback()
+
+    page.route("**/nuclear-civilian-sites.json", route_both)
+    page.route("**/nuclear-brownfield-proximity.json", route_both)
+    _ready(page, base_url)
+    page.click("#tab-ap1000")
+    page.wait_for_selector("#nuke-civ-retry", timeout=10_000)
+
+    fail["on"] = False  # both sources recover
+    page.click("#nuke-civ-retry")
+    page.wait_for_selector(".nuke-civ-table tbody tr", timeout=15_000)
+
+    # A mapped site with zero neighbours in the recovered proximity data.
+    lonely = page.evaluate(
+        """async (mapped) => {
+          const sites = (await (await fetch('data/nuclear-civilian-sites.json')).json()).sites;
+          const prox = (await (await fetch('data/nuclear-brownfield-proximity.json')).json()).records;
+          const near = new Map(prox.map((r) => [r.nuclear_site_id, r.nearby_brownfields || []]));
+          const s = sites.find((x) => mapped.includes(x.inl_category) && (near.get(x.id) || []).length === 0);
+          return s ? s.id : null;
+        }""",
+        MAPPED_CATEGORIES,
+    )
+    if lonely is None:
+        pytest.skip("every mapped site currently has neighbours in the proximity data")
+    page.locator(f"[data-nuke-map='{lonely}']").click()
+    page.wait_for_selector(".leaflet-popup", timeout=10_000)
+    popup = page.locator(".leaflet-popup").text_content() or ""
+    assert "No tracked Superfund site within 50 mi" in popup, popup
+    assert "unavailable" not in popup, popup
