@@ -174,3 +174,20 @@ def test_load_failure_shows_error_state_with_working_retry(page: Page, base_url:
     page.wait_for_selector("#nuclear-civilian table tbody tr", timeout=15_000)
     rows = page.locator("#nuclear-civilian tbody tr").count()
     assert rows > 0, "retry did not rebuild the civilian table"
+
+
+def test_missing_primary_dataset_404_shows_error_not_forever_loading(page: Page, base_url: str) -> None:
+    """A 404 on the PRIMARY dataset (partial static-site deployment) must hit
+    the same error + Retry state as a network failure — not silently succeed
+    as an empty list and strand the section on "Loading…" (Codex review #2,
+    PR #20). The secondary proximity file keeps its 404 tolerance."""
+    page.route(
+        "**/nuclear-civilian-sites.json",
+        lambda route: route.fulfill(status=404, body="not found"),
+    )
+    _ready(page, base_url)
+    page.click("#tab-ap1000")
+    err = page.locator("#nuclear-civilian p.muted")
+    err.wait_for(state="visible", timeout=10_000)
+    assert "Couldn’t load" in err.text_content()
+    assert page.locator("#nuke-civ-retry").count() == 1

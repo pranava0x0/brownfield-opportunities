@@ -1896,15 +1896,20 @@ function nuclearPopupHtml(s) {
 function ensureNuclearSitesLoaded() {
   if (nuclearSitesLoadingPromise) return nuclearSitesLoadingPromise;
   nuclearSitesLoadFailed = false; // a fresh attempt clears any prior error state
-  const grab = (url, empty) =>
+  // 404 tolerance is only for the SECONDARY file (popups just lose their
+  // nearby-brownfields block). A missing PRIMARY dataset means the section
+  // can never render — that must route through the error state, not succeed
+  // as empty (Codex review #2, PR #20: the 404-as-success path bypassed the
+  // error handling on partial deployments).
+  const grab = (url, emptyOn404) =>
     fetch(url, { priority: "low" })
       .then((r) => {
-        if (r.status === 404) return empty;
+        if (r.status === 404 && emptyOn404 !== undefined) return emptyOn404;
         if (!r.ok) throw new Error("HTTP " + r.status);
         return r.json();
       });
   nuclearSitesLoadingPromise = Promise.all([
-    grab(NUCLEAR_SITES_URL, { sites: [] }),
+    grab(NUCLEAR_SITES_URL),
     // Small (~180 KB) and needed the moment a popup opens, so it rides along
     // with the main file rather than paying a second round-trip on click.
     grab(NUCLEAR_BROWNFIELD_PROX_URL, { records: [] }).catch((err) => {
