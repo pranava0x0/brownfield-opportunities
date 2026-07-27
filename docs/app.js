@@ -597,6 +597,7 @@ let nuclearSitesLoadingPromise = null;
 let nuclearSitesLoadFailed = false;   // drives the tab section's error state
 let nuclearSitesLoadSettled = false;  // distinguishes "still loading" from "loaded empty"
 let nuclearProxFailed = false;        // proximity fetch failed — popups must not claim "none nearby"
+let nuclearLoadAttempt = 0;           // generation token: a superseded attempt's late failure must not stamp state
 let nuclearCivilianSites = [];        // raw payload, for the Nuclear Siting tab
 let nuclearProximityById = new Map(); // nuclear_site_id -> nearby Superfund records
 let nuclearMarkersById = new Map();   // nuclear_site_id -> Leaflet marker
@@ -1907,6 +1908,7 @@ function ensureNuclearSitesLoaded() {
   // again, not a stale "unavailable" (Codex review #6, PR #20).
   nuclearSitesLoadFailed = false;
   nuclearProxFailed = false;
+  const attempt = ++nuclearLoadAttempt;
   // Any non-OK response (404 included) throws. For the PRIMARY dataset that
   // routes to the section's error state; for the SECONDARY proximity file the
   // catch below tolerates the failure but flags it, so popups say
@@ -1926,8 +1928,12 @@ function ensureNuclearSitesLoaded() {
       // Tolerated (the overlay still works) but FLAGGED: popups must render
       // "unavailable", never the false-negative "No tracked Superfund site
       // within 50 mi" (Codex reviews #4 + #5, PR #20 — includes 404s).
+      // Guard on the attempt token: a superseded attempt's zombie fetch
+      // failing late must not stamp stale failure state onto a newer,
+      // successful attempt (Codex review #7 — defensive: bound popups are
+      // static HTML and were already immune, but the flag stays honest).
       console.error("Nuclear brownfield-proximity load failed:", err);
-      nuclearProxFailed = true;
+      if (attempt === nuclearLoadAttempt) nuclearProxFailed = true;
       return { records: [] };
     }),
   ])
