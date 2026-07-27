@@ -110,14 +110,15 @@ def test_dismiss_hides_strip_and_persists_across_reload(page, base_url):
 
 
 def test_strip_stays_within_dom_budget(page, base_url):
-    """First-paint DOM budget: the strip is ~20 nodes at most and the page
-    stays under the 5,000-node cap enforced by test_dom_size_under_5k_nodes."""
+    """The strip's own DOM cost stays ~20 nodes. The global 5,000-node cap is
+    deliberately NOT re-asserted here — test_dom_size_under_5k_nodes is the
+    single canonical guard for it, and duplicating a near-cap total count in a
+    second file doubles the flake surface (total node counts wobble
+    transiently under machine load; observed 2026-07-26 when the full suite
+    ran alongside two network backfills — this test flaked while the
+    canonical one passed in the same run)."""
     _ready(page, base_url)
-    counts = page.evaluate(
-        "() => ({"
-        "  strip: document.getElementById('jtbd-strip').querySelectorAll('*').length + 1,"
-        "  total: document.querySelectorAll('*').length,"
-        "})"
+    strip_nodes = page.evaluate(
+        "() => document.getElementById('jtbd-strip').querySelectorAll('*').length + 1"
     )
-    assert counts["strip"] <= 20, counts
-    assert counts["total"] < 5000, counts
+    assert strip_nodes <= 20, f"jtbd-strip grew to {strip_nodes} nodes"
