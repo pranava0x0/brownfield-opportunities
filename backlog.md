@@ -4,6 +4,29 @@ Ideas and enhancements. Priorities: **high** = next, **med** = soon, **low** = n
 
 ---
 
+## Session checkpoint — 2026-07-28 (scheduled data-maintenance run)
+
+**Both standing backfills were already done** — flood COMPLETE (91.1%, verified this run: `flood_zone` 42,576/46,760, `in_sfha` true 4,422) and parcel exhausted across all 11 registered states. So this run pivoted to the **next real gap: the Superfund enrichments were silently capped at NPL status F/D**, leaving the 121 non-Final/Deleted records (70 Not-on-NPL, 36 Proposed, 10 Removed, 3 A, 2 S) unattempted since those connectors shipped. Three commits (`8e222e9`, `ab3807b`, `796c355`), all schema-validated:
+
+- **`ai-summary`: 1,787 → 1,908 (+121), 19 reconciled** (`796c355`). Ran `--ai-static --ai-status all --ai-limit 0`, instant. Beyond coverage this surfaced a **staleness class of bug**: ai-summary derives its narrative from four OTHER enrichment files, but was last built 2026-06-05 — before the 2026-06-19 `epa-echo` refresh. 19 summaries described superseded enforcement (8 dropped a now-absent clause — ECHO counters are rolling 5-yr windows so actions age out; 4 gained one). `epa-echo.json` verified byte-identical to HEAD, so the deltas are purely re-reading current data. **Deliberately did NOT use `--missing-only` here** — it would have preserved exactly the stale rows the pass needed to fix.
+- **`epa-superfund-docs`: 1,772 → 1,781 (+9)** (`ab3807b`). Only 9 of 136 landed: EPA cumulis/semspub were at **~60 s per request** (documented off-hours spike) → **~3.8 min/site**, so a full pass would be ~10 h. Stopped the unbounded run at 12 sites and replayed `--docs-limit 12`, which writes from cache in <1 s. **127 still uncovered**, cache-cold.
+- **`parcel-owner`: +26 records / +19 owners / +19 parcel acreages** (`8e222e9`). Closed 26 of the 38 FL sites left unqueried after the 2026-07-26 round-2 run.
+
+**Dead-ends confirmed this run (don't re-attempt):**
+- **`epa-echo` is complete.** The 2 uncovered Superfund records return "no ECHO match" — those facilities aren't in ECHO. Ran to exhaustion; output was byte-identical, so the write was **reverted rather than committed** (a timestamp-only bump would falsely advance the UI's "Refreshed" date, which reads `max(generated_at)` across files — same principle as `diff.py` not committing on timestamp alone).
+- **`iso-rto`'s 1,708-record gap is structurally correct** — it is 100% AK/HI/PR/GU/MP/AS/VI/FM/PW, none of which sit in an organized market. Not a backfill candidate.
+- **12 FL parcel sites are permanently unresolvable by re-running** — every one fails `Florida_Statewide_Cadastral` with HTTP 400 "Invalid query parameters" on point-intersect (all FUDS, pathological geometry; root cause logged issues.md 2026-07-26). Needs a connector-side query fix, not more budget.
+
+**New items found this run:**
+
+- **[med] `climate-zone` has a 764-site CONUS gap that IS closable (nearest-polygon fallback).** Total gap is 1,216, but only 452 are the expected AK/GU/HI/MP structural misses — the other **764 are in CONUS states** (FL 139, TX 86, WA 60, CA 59, MA 58, NY 58, ME 53, NJ 46 …) and every sampled one is a coastal/riverine point that falls just *outside* the climate-zone polygons: Fox River, Saginaw River, Tyndall AFB, New Bedford harbor, Parris Island, Whidbey Island, NASA Wallops. All have valid lat/lon. Same coastal-edge failure mode as FEMA-NRI. Fix is a bounded nearest-polygon snap (e.g. ≤5 mi) in the `PolygonIndex` containment path, mirroring how the parcel connector tolerates near-misses — code + tests, so supervised.
+- **[med] Enrichment freshness is not tracked anywhere, and derived layers go stale silently.** `ai-summary` sat 6 weeks behind `epa-echo` with no signal; nothing in the repo asserts "derived file must be newer than its inputs." A cheap guard: a test (or a `refresh.py --check-staleness` mode) that compares each derived file's `generated_at` against the `generated_at` of every file it reads and fails/warns when a dependency is newer. Would have caught this class immediately. Dependency edges: `ai-summary` ← {superfund-npl, epa-redev, infra-proximity, epa-superfund-docs, epa-echo}; `planned-retirements-proximity` ← planned-retirements; `retired-industrial` join ← the four producer files.
+- **[low] `epa-superfund-docs` should default to a small `--docs-limit` in unattended runs.** At ~3.8 min/site an unbounded run can never write (the connector only writes on successful completion), so an interrupted pass loses the merge even though the cache survives. Either bound it at the call site or make the connector checkpoint-write every N sites.
+
+**Producer files still 2026-05-12** (~11 wk old) — supervised producer refresh remains the top freshness item; still deliberately out of scope for unattended runs.
+
+---
+
 ## Session checkpoint — 2026-07-25/26 (reactor + DC siting comprehensive review; supervised, crossed two usage-window resets)
 
 Full session review in [siting-review-2026-07-26.md](siting-review-2026-07-26.md); UX spec in [jtbd-ux-plan.md](jtbd-ux-plan.md). Commits `e8878e2`→`02c3bc9`+docs; 4 Sonnet research agents + 1 Opus coding agent.
