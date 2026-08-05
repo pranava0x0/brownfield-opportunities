@@ -4,6 +4,42 @@ Ideas and enhancements. Priorities: **high** = next, **med** = soon, **low** = n
 
 ---
 
+## Session checkpoint — 2026-08-04/05 (scheduled data-maintenance run)
+
+**Headline: the "EPA is slow" finding from 2026-07-28 was a misdiagnosis — it's broken IPv6 on this machine, and it has been taxing every connector for months.** Fixing it at runtime took the docs backfill from a projected **6.6 hours to 21 minutes** and closed the gap that had been carried for two sessions. Two commits (`1e9b576`, `21bcab4`), both schema-validated; 449 unit tests green.
+
+- **`epa-superfund-docs`: 1,781 → 1,888 (+107 sites, +603 documents), 99.0% coverage** (`1e9b576`). This was the only remaining record-level gap in the whole dataset.
+- **`ai-summary`: full static regen, 94 summaries changed** (`21bcab4`). All 94 gained the federal-documents clause they previously had no data for (85 plural + 9 singular); zero lost one. Sites citing documents 1,464 → 1,549. Ran last, without `--missing-only`, per the playbook.
+
+### Root cause: IPv6 blackhole + urllib3's serial address walk
+
+Every EPA host (`www.epa.gov`, `cumulis.epa.gov`, `semspub.epa.gov`) resolves **AAAA-first**. This machine's IPv6 path is blackholed — a SYN to any IPv6 address times out silently (verified: 10 s hard timeout, no RST; the IPv4 address for the same host connects in 0.01 s). `requests`/urllib3 walks `getaddrinfo()` results **serially, spending the full 60 s socket timeout on the IPv6 address** before falling back to IPv4. `curl` is unaffected because it implements Happy Eyeballs (RFC 8305).
+
+Measured on the identical URL, same User-Agent, no proxy: **`curl` 0.59 s vs `requests` 60.3 s**, both HTTP 200.
+
+**This is not EPA-specific.** Of the hosts this project uses, these are all AAAA-first and therefore paying ~60 s per uncached request: `www.epa.gov`, `cumulis.epa.gov`, `semspub.epa.gov`, `data.epa.gov`, `echodata.epa.gov`, `services{,1,2}.arcgis.com`, `tigerweb.geo.census.gov`, `overpass-api.de`. Only `hazards.fema.gov` and `gis.fdot.gov` are A-first — **which is exactly why the FEMA flood backfill always ran at normal speed while the EPA connectors crawled.** That asymmetry is the tell, and it was hiding in plain sight across every prior checkpoint.
+
+Workaround used this run (scratch-only, not committed): `scratch_logs/run_ipv4.py`, which sets `urllib3.util.connection.allowed_gai_family = lambda: socket.AF_INET` before invoking `refresh.py`.
+
+- **[high] Land the IPv4/Happy-Eyeballs fix in `connectors/base.py`.** Deliberately left as code work for a supervised session because it touches the shared HTTP layer for *every* connector and a blanket `AF_INET` force would break anyone on an IPv6-only network. Preferred shape: try IPv4 first with a short connect timeout and fall back to IPv6, or make the family preference an env-var/CLI knob defaulting to "prefer IPv4". Needs a unit test that asserts the resolver preference. **Payoff is large and repo-wide** — a 40–120× speedup on every uncached fetch, which retroactively un-blocks several items previously written off as "too slow to run unattended."
+- **[med] Re-fetch documents for the 1,781 already-covered sites.** `--missing-only` never revisits them, so their document lists are as old as the run that first covered them (some date to the original F/D pass). A full re-fetch is ~1,781 sites × ~3 requests × 1.5 s ≈ **2.2 h now that IPv6 isn't taxing it** — previously ~4.5 days, which is why it was never proposed. Worth doing supervised once the base.py fix lands.
+
+### Residual 20 docs sites — source-side defects, stable across two consecutive runs
+
+Not closable by re-running; every one reproduced identically on an immediate retry:
+- **9 have bespoke EPA microsites** instead of the standard profile template — New Bedford (`/superfund/newbedford` → `/new-bedford-harbor`), Bonita Peak, San Jacinto River, Silver Bow/Butte, Wyckoff-Eagle Harbor, Colorado Smelter, USS Lead, Lower Neponset, GE. These pages carry **no `csitinfo.cfm?id=` link at all**, so the EPA_ID → SF_SITE_ID hop has no bridge.
+- **5 return HTTP 404** on their `profile_url`. One is **malformed in the source data**: `IAN000706042` → `https://www.epa.gov/superfund/www.epa.gov/superfund/highway3pce` (doubled path).
+- **4 carry a cumulis URL as `profile_url`, and it is truncated** — `csitinfo.cfm?id=COD00706353` is missing the final character of `COD007063530`. Separately verified that **cumulis does not accept an EPA_ID as `id`** anyway: it returns HTTP 200 with an empty profile shell (blank `<title>`, no docdata links), so this is a dead end even with the untruncated ID.
+- **1 SSLError** (`NYD980763841`, Hudson River PCBs) and **1 HTTP 500** (`CA2570024453`, George AFB) — both genuine server-side, not the IPv6 timeout (they now fail in ~1.7 s).
+
+Closing these needs a corrected `profile_url` from a producer refresh, or a second SF_SITE_ID resolution path — **[low]**, 20 sites out of 1,908.
+
+### Verified unchanged this run (cheap assertions only, per playbook §1)
+
+flood **91.1%** (42,576/46,760 — COMPLETE, residual unmapped in NFHL); parcel **11,463 records / 7,270 owners / 4,621 acreages** (all 11 states exhausted); `epa-echo` **1,906/1,908** (the 2 aren't in ECHO). No producer work — files still 2026-05-12 (~12 wk), still the top supervised freshness item.
+
+---
+
 ## Session checkpoint — 2026-07-28 (scheduled data-maintenance run)
 
 **Both standing backfills were already done** — flood COMPLETE (91.1%, verified this run: `flood_zone` 42,576/46,760, `in_sfha` true 4,422) and parcel exhausted across all 11 registered states. So this run pivoted to the **next real gap: the Superfund enrichments were silently capped at NPL status F/D**, leaving the 121 non-Final/Deleted records (70 Not-on-NPL, 36 Proposed, 10 Removed, 3 A, 2 S) unattempted since those connectors shipped. Three commits (`8e222e9`, `ab3807b`, `796c355`), all schema-validated:
