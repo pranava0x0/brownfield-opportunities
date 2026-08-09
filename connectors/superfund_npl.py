@@ -10,6 +10,7 @@ from typing import Any
 
 from connectors.base import Connector
 from connectors.geom import polygon_acreage
+from connectors.text import collapse_sentinel
 
 log = logging.getLogger("connector.superfund_npl")
 
@@ -357,9 +358,9 @@ class SuperfundNPL(Connector):
             "federal_facility": fed_label,
             "federal_facility_code": fed_code,
             "region": a.get("REGION_CODE"),
-            "address": a.get("STREET_ADDR_TXT"),
-            "city": a.get("CITY_NAME"),
-            "county": a.get("COUNTY"),
+            "address": collapse_sentinel(a.get("STREET_ADDR_TXT")),
+            "city": collapse_sentinel(a.get("CITY_NAME")),
+            "county": collapse_sentinel(a.get("COUNTY")),
             "state": a.get("STATE_CODE"),
             "zip": a.get("ZIP_CODE"),
             "lat": round(lat, 6),

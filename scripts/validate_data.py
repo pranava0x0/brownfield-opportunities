@@ -1197,8 +1197,9 @@ def c_infra_sub_vs_line(c: Corpus):
         "infra-substation-vs-line", "infra", verdict(bad, warn_only=True),
         checked, bad,
         "transmission_mi exceeds substation_mi by >2 mi — HIFLD line coverage "
-        "is sparser than OSM substations, so transmission_mi over-states grid "
-        "distance (deflates both scoring lenses)",
+        "is sparser than OSM substations. COMPENSATED in scoring since "
+        "2026-08-09 (dc-score.js _effectiveGridAccess); this stays visible as "
+        "a measure of the source gap, not an unhandled defect",
         examples,
         {"by_state": dict(by_state.most_common(15)),
          "gap_over_10mi": over_10, "gap_over_25mi": over_25,

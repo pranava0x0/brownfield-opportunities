@@ -147,6 +147,11 @@ LAYERS: dict[str, dict[str, Any]] = {
 # HIFLD null sentinel for missing voltage; ~12% of segments. Treat as null
 # so downstream consumers don't see "−999999 kV" anywhere.
 TRANSMISSION_NULL_KV = -999999.0
+# Below this an OSM `power=substation` is LV distribution / traction gear
+# rather than a transmission interconnection point. We keep the DISTANCE
+# (something electrical is genuinely there) but withhold the voltage, so
+# scoring can't mistake a 600 V rectifier for a switchyard.
+MIN_SUBSTATION_KV = 1.0
 # Map of HIFLD `VOLT_CLASS` strings to representative kV for the cases
 # where `VOLTAGE` is null but `VOLT_CLASS` is populated. Conservative —
 # we pick the lower bound of each class so the ≥230kV filter is strict.
@@ -474,9 +479,20 @@ class InfraProximity(Connector):
                 rec[DISTANCE_FIELD[layer]] = round(d, 1)
                 if isinstance(attr, dict):
                     if layer == "substation" and attr.get("kv") is not None:
-                        rec["substation_kv"] = round(float(attr["kv"]), 1)
+                        kv = round(float(attr["kv"]), 1)
+                        # Sub-1 kV OSM `power=substation` nodes are traction /
+                        # LV distribution gear (a 600 V trolley rectifier reads
+                        # as 0.6 kV), not a grid interconnection point. Emitting
+                        # the value made `_scoreSubstation` treat them as real
+                        # substations at a x0.5 discount. Absent is the honest
+                        # answer — the substation distance still stands, only
+                        # the misleading voltage is withheld.
+                        if kv >= MIN_SUBSTATION_KV:
+                            rec["substation_kv"] = kv
                     elif layer == "power_plant":
-                        if attr.get("mw") is not None:
+                        # HIFLD reports Total_MW = 0 for a handful of plants;
+                        # that is a missing value wearing a number's clothes.
+                        if attr.get("mw") is not None and float(attr["mw"]) > 0:
                             rec["power_plant_mw"] = round(float(attr["mw"]), 1)
                         if attr.get("fuel"):
                             rec["power_plant_fuel"] = str(attr["fuel"])

@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any
 
 from connectors.base import Connector
+from connectors.text import collapse_sentinel
 from connectors.county_lookup import CountyIndex
 
 log = logging.getLogger("connector.epa_acres")
@@ -216,9 +217,9 @@ class EpaAcres(Connector):
             "name": a.get("PROPERTY_NAME"),
             "region": a.get("RS_REGION_ID_1000"),
             "state": a.get("LABEL_STATE"),
-            "address": a.get("ADDRESS1"),
-            "city": a.get("CITY"),
-            "county": a.get("COUNTY"),
+            "address": collapse_sentinel(a.get("ADDRESS1")),
+            "city": collapse_sentinel(a.get("CITY")),
+            "county": collapse_sentinel(a.get("COUNTY")),
             "zip": a.get("ZIP_CODE"),
             "lat": round(lat_f, 6),
             "lon": round(lon_f, 6),

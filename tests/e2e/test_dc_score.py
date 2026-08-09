@@ -887,3 +887,105 @@ def test_suitability_block_is_above_owner_in_panel(page, base_url):
     assert suit_before_owner is True, (
         "suitability block must appear before the Owner section in the detail panel"
     )
+
+
+# -- Substation stands in for missing transmission-line coverage ------------
+#
+# Added 2026-08-09. HIFLD's public transmission layer is patchy on
+# sub-transmission, so 6,222 of 46,148 corpus sites (13.5%) report a
+# substation materially CLOSER than the nearest known line — impossible
+# unless the line layer is incomplete, since a substation is by definition
+# connected to the network. `_effectiveGridAccess()` substitutes the
+# substation as the interconnect point when the gap exceeds 2 mi.
+
+def _grid_site(**over):
+    """A site whose only interesting variables are the grid fields."""
+    base = {
+        "transmission_mi": 8.0, "transmission_kv": 500,
+        "substation_mi": 0.1, "substation_kv": 230,
+        "acreage": 200, "highway_mi": 1, "rail_mi": 1,
+        "gas_pipeline_mi": 1,
+    }
+    base.update(over)
+    return base
+
+
+def test_substation_substitutes_when_line_coverage_is_missing(page, base_url):
+    """A substation 0.1 mi away beats a "nearest line" 8 mi away."""
+    _ready(page, base_url)
+    far_line = _dc_bd(page, _grid_site())["transmission_distance"]
+    # Same site, but the line layer knows about the nearby line.
+    honest = _dc_bd(page, _grid_site(transmission_mi=0.1))["transmission_distance"]
+    assert far_line == honest, (
+        "with a substation 0.1 mi away the site should score as if the grid "
+        f"were 0.1 mi away, got {far_line} vs {honest}"
+    )
+
+
+def test_no_substitution_within_the_gap_threshold(page, base_url):
+    """A 1.5 mi gap is inside normal measurement spread — trust the line."""
+    _ready(page, base_url)
+    bd = _dc_bd(page, _grid_site(transmission_mi=2.0, substation_mi=0.5))
+    same = _dc_bd(page, _grid_site(transmission_mi=2.0, substation_mi=2.0))
+    assert bd["transmission_distance"] == same["transmission_distance"]
+
+
+def test_substitution_uses_the_substation_voltage(page, base_url):
+    """A line 8 mi away tells us nothing about capacity available here."""
+    _ready(page, base_url)
+    bd = _dc_bd(page, _grid_site(transmission_kv=500, substation_kv=69))
+    # 69 kV scores lower than 500 kV; the substituted (69) value must win.
+    low = _dc_bd(page, _grid_site(transmission_mi=0.1, transmission_kv=69,
+                                  substation_kv=69))
+    assert bd["voltage"] == low["voltage"]
+
+
+def test_substitution_falls_back_to_line_kv_when_substation_untagged(page, base_url):
+    """~27% of OSM substations lack a voltage tag — don't zero the component."""
+    _ready(page, base_url)
+    bd = _dc_bd(page, _grid_site(transmission_kv=230, substation_kv=None))
+    assert bd["voltage"] > 0
+
+
+def test_absent_substation_leaves_scoring_untouched(page, base_url):
+    """No substation data must not change a site's score at all."""
+    _ready(page, base_url)
+    a = _dc(page, _grid_site(substation_mi=None, substation_kv=None))
+    b = _dc(page, _grid_site(substation_mi=None, substation_kv=None))
+    assert a == b and a is not None
+
+
+def test_substitution_applies_to_generation_lens(page, base_url):
+    _ready(page, base_url)
+    far = _gen_bd(page, _grid_site())["transmission_distance"]
+    near = _gen_bd(page, _grid_site(transmission_mi=0.1))["transmission_distance"]
+    assert far == near
+
+
+def test_substitution_applies_to_manufacturing_lens(page, base_url):
+    _ready(page, base_url)
+    far = page.evaluate(
+        "(r) => window.computeManufacturingScoreBreakdown(r)", _grid_site()
+    )["transmission_distance"]
+    near = page.evaluate(
+        "(r) => window.computeManufacturingScoreBreakdown(r)",
+        _grid_site(transmission_mi=0.1),
+    )["transmission_distance"]
+    assert far == near
+
+
+def test_substitution_never_lowers_the_transmission_component(page, base_url):
+    """min()-like semantics: the correction can only ever help.
+
+    Isolate it by comparing against the SAME site with no substation data at
+    all — that is the only control that leaves every other component
+    untouched. (Holding substation_mi equal to the line distance instead
+    would move the substation component too, and measure nothing.)
+    """
+    _ready(page, base_url)
+    for line, sub in [(0.1, 9.0), (1.0, 5.0), (0.5, 0.4), (8.0, 0.1), (3.0, 0.5)]:
+        with_sub = _dc_bd(page, _grid_site(transmission_mi=line, substation_mi=sub))
+        no_sub = _dc_bd(page, _grid_site(transmission_mi=line, substation_mi=None,
+                                         substation_kv=None))
+        assert with_sub["transmission_distance"] >= no_sub["transmission_distance"], \
+            (line, sub)
