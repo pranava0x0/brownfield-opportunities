@@ -25,6 +25,7 @@ from connectors.parcel_owner import ParcelOwner
 from connectors.planned_retirements import PlannedRetirements
 from connectors.superfund_npl import SuperfundNPL
 from connectors.climate_zone import ClimateZone
+from connectors.coord_quality import CoordQuality
 
 REGISTRY: dict[str, type[Connector]] = {}
 
@@ -49,6 +50,7 @@ register("superfund-npl", SuperfundNPL)
 register("epa-acres", EpaAcres)
 register("dod-fuds", DodFuds)
 register("dod-brac", DodBrac)
+register("coord-quality", CoordQuality)
 register("epa-redev", EpaRedev)
 register("epa-superfund-docs", EpaSuperfundDocs)
 register("infra-proximity", InfraProximity)

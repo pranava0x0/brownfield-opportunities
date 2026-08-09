@@ -4,7 +4,15 @@
     {
       "name": "dashboard",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["-y", "http-server", "/Users/pranava/Projects/Brownfield Opportunities/.claude/worktrees/backlog-reduction-7df62f/docs", "-p", "8765", "-c-1", "--silent"],
+      "runtimeArgs": [
+        "-y",
+        "http-server",
+        "/Users/pranava/Projects/Brownfield Opportunities/.claude/worktrees/reactor-datacenter-siting-d9b716/docs",
+        "-p",
+        "8765",
+        "-c-1",
+        "--silent"
+      ],
       "port": 8765
     }
   ]
