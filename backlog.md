@@ -87,10 +87,13 @@ own claimed state** (13 of them >25 mi, two outside the US entirely).
   and the combined write; `dod_fuds` also dedupes at source.
 - ~~**[high] Coerce non-positive computed acreage to `None`.**~~ **DONE
   2026-08-09** — in `superfund_npl.normalize()`; shipped data repaired too.
-- **[high] Add a geometry-vs-state guard to the connectors.** Point-in-state
-  is cheap (`us-states.json` is already in the repo and
-  `connectors/spatial.PolygonIndex` already does containment). Flag at
-  refresh time rather than discovering it months later.
+- ~~**[high] Add a geometry-vs-state guard to the connectors.**~~ **DONE
+  2026-08-09** — `connectors/coord_quality.py` (slug `coord-quality`,
+  `run_order = 150`) runs offline against the shipped `us-states.json` and
+  emits `coord_flags` for the 3,991 affected records. Its counts match the
+  validator's independent implementation exactly (118 / 17 / 2 / 190 /
+  3,728), which is a useful cross-check of both. Surfaced in the detail
+  panel as a location-confidence note.
 - ~~**[med] Wire `scripts/validate_data.py` into CI.**~~ **DONE 2026-08-09** —
   new `data-integrity` job, `--fail-on FAIL`. Checks split into invariants we
   own (gate the build) and upstream data quality (report as WARN); the split

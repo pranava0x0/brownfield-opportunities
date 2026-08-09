@@ -370,6 +370,32 @@ class SiteRecord(BaseModel):
 
     # Ownership / transfer / history. Most are still None for most programs;
     # FUDS populates `current_owner` directly from the source.
+    # Coordinate-quality flags from the `coord-quality` connector. Absent
+    # means no known problem — the field only appears on records where the
+    # location is demonstrably less trustworthy than the marker implies.
+    coord_flags: Optional[list[str]] = Field(
+        default=None,
+        description="Any of: state_mismatch (point outside its own state's "
+                    "polygon), outside_us, placeholder (whole/half degree), "
+                    "shared_point (>=3 records on one coordinate — geocoder "
+                    "centroid), low_precision (<=2 decimal places).",
+    )
+    coord_actual_state: Optional[str] = Field(
+        default=None,
+        description="For state_mismatch: the state the coordinate actually "
+                    "falls in, per the us-states.json polygons.",
+    )
+    coord_state_gap_mi: Optional[float] = Field(
+        default=None,
+        description="For state_mismatch: miles from the point to the nearest "
+                    "boundary of the state the record claims.",
+    )
+    coord_shared_count: Optional[int] = Field(
+        default=None,
+        description="For shared_point: how many records sit on this exact "
+                    "coordinate.",
+    )
+
     current_owner: Optional[str] = None
     current_owner_source: Optional[str] = Field(
         default=None,

@@ -23,6 +23,7 @@ const REFERENCE_CAMPUSES_URL = "data/reference-campuses.json";
 const RETIRED_INDUSTRIAL_URL = "data/retired-industrial.json";
 const PLANNED_RETIREMENTS_URL = "data/planned-retirements.json";
 const PLANNED_RETIRE_PROX_URL = "data/planned-retirements-proximity.json";
+const COORD_QUALITY_URL = "data/coord-quality.json";
 const IRA_EC_URL = "data/ira-energy-community.json";
 const AP1000_SITES_URL = "data/ap1000-sites.json";
 const NUCLEAR_SITES_URL = "data/nuclear-civilian-sites.json";
@@ -587,6 +588,7 @@ let summariesLoadingPromise = null;
 let acresCleanupLoadingPromise = null;
 let retiredPlantsLoadingPromise = null;
 let plannedRetireProxLoadingPromise = null;
+let coordQualityLoadingPromise = null;
 let referenceCampusesLoadingPromise = null;
 let retiredIndustrialLoadingPromise = null;
 let retiredIndustrialSites = []; // raw payload, for the Retired Sites stats tab
@@ -950,6 +952,7 @@ fetch(PRIMARY_DATA_URL)
     lazyLoads.push(ensureAcresCleanupLoaded());
     lazyLoads.push(ensureRetiredPlantsLoaded());
     lazyLoads.push(ensurePlannedRetireProxLoaded());
+    lazyLoads.push(ensureCoordQualityLoaded());
     lazyLoads.push(ensureReferenceCampusesLoaded());
     lazyLoads.push(ensureRetiredIndustrialLoaded());
     lazyLoads.push(ensurePlannedRetirementsLoaded());
@@ -1590,6 +1593,48 @@ function ensureRetiredPlantsLoaded() {
 // records. Feeds the generation lens's grid_reuse component (a plant with
 // an ANNOUNCED retirement frees its interconnect on a known date — the
 // forward-looking counterpart to eia-retired-plants) and the detail panel.
+
+// Coordinate-quality flags. Only sites with a KNOWN location problem appear
+// in this file, so absence means "no issue found" — the join is additive and
+// the vast majority of records are untouched.
+//
+// Same load-order hazard as ensurePlannedRetireProxLoaded(): at ~390 KB this
+// resolves long before epa-acres.json (~10.9 MB), so without awaiting the
+// program loads the `!existing` guard would silently drop every ACRES / FUDS
+// / BRAC flag — which is most of them, since ACRES is where the bad
+// coordinates concentrate.
+function ensureCoordQualityLoaded() {
+  if (coordQualityLoadingPromise) return coordQualityLoadingPromise;
+  coordQualityLoadingPromise = fetch(COORD_QUALITY_URL, { priority: "low" })
+    .then((r) => {
+      if (r.status === 404) return { sites: [] };
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then(async (payload) => {
+      recordRefreshDate(payload.generated_at);
+      await Promise.allSettled(
+        [acresLoadingPromise, fudsLoadingPromise, bracLoadingPromise].filter(Boolean)
+      );
+      for (const rec of payload.sites || []) {
+        const existing = sitesById.get(rec.id);
+        if (!existing) continue;
+        if (rec.coord_flags)                  existing.coord_flags = rec.coord_flags;
+        if (rec.coord_actual_state)           existing.coord_actual_state = rec.coord_actual_state;
+        if (rec.coord_state_gap_mi != null)   existing.coord_state_gap_mi = rec.coord_state_gap_mi;
+        if (rec.coord_shared_count != null)   existing.coord_shared_count = rec.coord_shared_count;
+      }
+      if (selectedId && sitesById.has(selectedId)) {
+        try { selectSite(selectedId); } catch {}
+      }
+    })
+    .catch((err) => {
+      console.error("Coordinate-quality load failed:", err);
+      coordQualityLoadingPromise = null;
+    });
+  return coordQualityLoadingPromise;
+}
+
 function ensurePlannedRetireProxLoaded() {
   if (plannedRetireProxLoadingPromise) return plannedRetireProxLoadingPromise;
   plannedRetireProxLoadingPromise = fetch(PLANNED_RETIRE_PROX_URL, { priority: "low" })
@@ -4406,6 +4451,52 @@ function resetDetailTabs() {
   if (smp) smp.hidden = !summaryActive;
 }
 
+
+// Location-confidence note under the coordinate row.
+//
+// Every marker looks equally authoritative, but the corpus audit found 118
+// sites plotted outside their own state, 17 on typed-in whole degrees, and
+// 3,728 sharing a coordinate with two or more others (a geocoder falling
+// back to a city centroid). Saying so is the honest alternative to silently
+// correcting coordinates we have no better source for.
+//
+// Flags come from the `coord-quality` connector; the field is absent on
+// records with no known problem, so most sites show nothing at all.
+const COORD_FLAG_NOTES = {
+  outside_us: () => "Source coordinate falls outside the United States.",
+  state_mismatch: (s) => {
+    const where = s.coord_actual_state ? ` in ${s.coord_actual_state}` : "";
+    const gap = s.coord_state_gap_mi != null
+      ? ` (${fmt.miles(s.coord_state_gap_mi)} outside ${s.state})` : "";
+    return `Source places this${where}${gap}, not in ${s.state || "the listed state"}.`;
+  },
+  placeholder: () => "Coordinate looks like a placeholder, not a survey.",
+  shared_point: (s) =>
+    `Shares this exact coordinate with ${(s.coord_shared_count || 1) - 1} other `
+    + `site${(s.coord_shared_count || 2) - 1 === 1 ? "" : "s"} — likely a city centroid.`,
+  low_precision: () => "Low precision — about 1 km or coarser.",
+};
+
+// Most-severe first: a site outside its state is a bigger caveat than a
+// coarse decimal count, and we only show one line.
+const COORD_FLAG_ORDER = [
+  "outside_us", "state_mismatch", "placeholder", "shared_point", "low_precision",
+];
+
+function setCoordQualityNote(s) {
+  const note = el("d-coord-note");
+  if (!note) return;
+  const flags = Array.isArray(s.coord_flags) ? s.coord_flags : [];
+  const top = COORD_FLAG_ORDER.find((f) => flags.includes(f));
+  if (!top) {
+    note.hidden = true;
+    note.textContent = "";
+    return;
+  }
+  note.textContent = COORD_FLAG_NOTES[top](s);
+  note.hidden = false;
+}
+
 function selectSite(id, { fromMap = false, fromTable = false } = {}) {
   const s = sitesById.get(id);
   if (!s) return;
@@ -4646,8 +4737,18 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
   // remapped inset display coords for AK/HI/PR/Pacific records.
   const realLat = s.lat_real ?? s.lat;
   const realLon = s.lon_real ?? s.lon;
-  el("d-coord").textContent =
+  // Rewrite ONLY the leading text node — `#d-coord-note` is a sibling inside
+  // the same <dd>, and textContent= would delete it (the same trap the FUDS
+  // acreage note documents).
+  const coordCell = el("d-coord");
+  const coordText =
     realLat != null && realLon != null ? `${realLat.toFixed(4)}, ${realLon.toFixed(4)}` : "—";
+  if (coordCell.firstChild && coordCell.firstChild.nodeType === 3) {
+    coordCell.firstChild.nodeValue = coordText;
+  } else {
+    coordCell.insertBefore(document.createTextNode(coordText), coordCell.firstChild);
+  }
+  setCoordQualityNote(s);
 
   // Children block — only Superfund sites with rolled-up sub-sites.
   const childBlock = el("d-children-block");
