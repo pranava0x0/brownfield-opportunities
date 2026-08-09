@@ -67,6 +67,17 @@ own claimed state** (13 of them >25 mi, two outside the US entirely).
 
 ### Follow-ups
 
+- ~~**Chain of evidence for every claim.**~~ **DONE 2026-08-09** —
+  [`docs/provenance.js`](docs/provenance.js) is a field-level registry: publisher, dataset, layer,
+  how the value was derived, the as-of date of ITS source file, and a
+  verification URL that resolves to *this site* wherever the upstream service
+  allows it. Rendered as a "Sources & evidence" section in the detail panel,
+  built lazily on first expand (a full table is ~150 nodes against a
+  5,000-node first-paint budget). `validate_against_sources.py --only
+  evidence` exercises every link: 160/160 resolve, and each bbox link is
+  sized from the site's own stored distance so it always contains the feature
+  it evidences. Guards: [`tests/e2e/test_evidence_panel.py`](tests/e2e/test_evidence_panel.py) (10).
+
 - **[decision pending] Local history rewrite is staged but NOT published.**
   All 203 commits were rewritten to strip `Co-Authored-By:` trailers (99
   Claude, 8 self). Verified before parking it: the tip tree is byte-identical

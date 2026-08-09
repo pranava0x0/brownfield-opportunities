@@ -625,6 +625,13 @@
     <ul id="d-nearby-list" class="nearby-list" aria-label="Nearby sites within 25 miles"></ul>
   </details>
 
+  <details class="d-section" data-section="evidence" id="d-evidence-block">
+    <summary>Sources &amp; evidence <span id="d-evidence-count" class="muted-cell"></span></summary>
+    <p class="evidence-intro">Every value on this record, the agency that published it,
+      how it was derived, and a link to check it at the source.</p>
+    <div id="d-evidence-body"></div>
+  </details>
+
   <p class="source"><a id="d-profile" href="#" target="_blank" rel="noopener">Source profile</a></p>
   </section>
 </aside>
@@ -652,6 +659,7 @@
 <script defer src="https://unpkg.com/topojson-client@3.1.0/dist/topojson-client.min.js"
         integrity="sha256-Jc0CrkhsxQY+AhWk5M+xXeg3AMh6xIusTVfcaq8+u4k="
         crossorigin=""></script>
+<script defer src="provenance.js"></script>
 <script defer src="dc-score.js"></script>
 <script defer src="ap1000-score.js"></script>
 <script defer src="app.js"></script>

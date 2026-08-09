@@ -2746,3 +2746,61 @@ main {
   color: var(--readiness-ready);
   font-weight: 500;
 }
+
+/* --- Sources & evidence (detail panel) -------------------------------------
+   One row per claim: what published it, how it was derived, when it was
+   pulled, and a link that resolves to this site at the source. Built lazily
+   on first expand — see renderEvidence() in app.js. */
+.evidence-intro {
+  margin: 0 0 .6rem;
+  font-size: .78rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+.evidence-group {
+  margin: .85rem 0 .35rem;
+  font-size: .68rem;
+  font-weight: 600;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.evidence-group:first-child { margin-top: 0; }
+.evidence-row {
+  padding: .5rem 0;
+  border-top: 1px solid var(--border);
+}
+.evidence-label {
+  font-size: .82rem;
+  font-weight: 600;
+  margin-bottom: .15rem;
+}
+.evidence-source { font-size: .78rem; }
+.evidence-layer {
+  font-size: .72rem;
+  color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  word-break: break-word;
+}
+.evidence-derivation {
+  margin-top: .25rem;
+  font-size: .76rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+.evidence-foot {
+  margin-top: .3rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  align-items: baseline;
+  font-size: .72rem;
+}
+.evidence-asof { color: var(--muted); font-variant-numeric: tabular-nums; }
+.evidence-verify { color: var(--accent); text-decoration: none; }
+.evidence-verify:hover { text-decoration: underline; }
+.evidence-code {
+  color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  opacity: .8;
+}

@@ -11,6 +11,13 @@ Two families:
            and diff name / state / coordinates / acreage against what we
            shipped. Catches stale pulls and coordinate drift.
 
+  evidence — exercise the per-site verification links the UI publishes in its
+           "Sources & evidence" panel. A citation that 404s, errors, or comes
+           back empty is worse than no citation: it looks like proof and
+           reads as a contradiction. Every bbox link must return at least one
+           feature, because its radius is derived from the very distance it
+           is meant to evidence.
+
   infra  — independently recompute the nearest-infrastructure distances. For
            each sampled site we ask the SOURCE layer for the features inside
            a bounding box around the site, then compute the minimum distance
@@ -161,16 +168,48 @@ INFRA_LAYERS = {
 }
 
 
+# Enrichment files merged into the sampled records. The evidence check needs
+# these: `buildEvidence()` only emits a row for a field the site actually
+# carries, so a bare program record would produce identity rows and nothing
+# else — the infra and overlay citations, which are most of the value, would
+# never be exercised. (First cut of the evidence sweep did exactly that and
+# "passed" 40/40 while testing one field.)
+ENRICHMENT_FOR_EVIDENCE = (
+    "infra-proximity.json", "opportunity-zone.json", "ira-energy-community.json",
+    "fema-nri.json", "climate-zone.json", "iso-rto.json", "epa-echo.json",
+    "eia-retired-plants.json", "planned-retirements-proximity.json",
+    "coord-quality.json", "epa-redev.json", "epa-superfund-docs.json",
+    "parcel-owner.json", "ai-summary.json", "acres-cleanup.json",
+)
+
+
 def load_universe() -> dict[str, dict]:
     universe = {}
     for fname in ("superfund-npl.json", "epa-acres.json", "dod-fuds.json",
                   "dod-brac.json"):
         for rec in json.loads((DATA / fname).read_text())["sites"]:
             universe[rec["id"]] = rec
+
     infra = {r["id"]: r
              for r in json.loads((DATA / "infra-proximity.json").read_text())["sites"]}
     for sid, rec in universe.items():
         rec["_infra"] = infra.get(sid, {})
+
+    # Fill-if-empty, mirroring every ensure*Loaded() join in app.js so the
+    # sampled record matches what a browser actually holds.
+    for fname in ENRICHMENT_FOR_EVIDENCE:
+        path = DATA / fname
+        if not path.exists():
+            continue
+        for rec in json.loads(path.read_text()).get("sites", []):
+            target = universe.get(rec.get("id"))
+            if target is None:
+                continue
+            for key, val in rec.items():
+                if key in ("id", "program") or val is None:
+                    continue
+                if target.get(key) is None:
+                    target[key] = val
     return universe
 
 
@@ -425,13 +464,123 @@ def _measure(lat: float, lon: float, layer: dict,
 # Driver
 # --------------------------------------------------------------------------
 
+# --------------------------------------------------------------------------
+# Evidence-link integrity
+# --------------------------------------------------------------------------
+
+NODE_HARNESS = r"""
+const fs = require('fs');
+const src = fs.readFileSync(process.argv[2], 'utf8');
+// provenance.js is an IIFE that assigns onto `window`.
+const window = {};
+(new Function('window', src))(window);
+const sites = JSON.parse(process.argv[3]);
+const out = [];
+for (const s of sites) {
+  for (const row of window.buildEvidence(s)) {
+    if (row.verifyUrl) out.push({ id: s.id, key: row.key, url: row.verifyUrl,
+                                  expectsFeatures: row.expectsFeatures !== false });
+  }
+}
+process.stdout.write(JSON.stringify(out));
+"""
+
+
+def check_evidence(sites: list[dict]) -> list[dict]:
+    """Ask provenance.js for each site's verification links, then fetch them.
+
+    The registry lives in JavaScript because the browser renders it, so we
+    evaluate the real module with node rather than reimplementing it here —
+    a second copy of the URL-building logic would be the thing most likely
+    to drift out of agreement with what users actually click.
+    """
+    import subprocess
+    import tempfile
+
+    prov = ROOT / "docs" / "provenance.js"
+    if not prov.exists():
+        return [{"id": "-", "field": "-", "status": "ERROR",
+                 "detail": "docs/provenance.js not found"}]
+
+    with tempfile.NamedTemporaryFile("w", suffix=".js", delete=False) as fh:
+        fh.write(NODE_HARNESS)
+        harness = fh.name
+    try:
+        proc = subprocess.run(
+            ["node", harness, str(prov),
+             json.dumps([{k: v for k, v in s.items() if not k.startswith("_")}
+                         for s in sites])],
+            capture_output=True, text=True, timeout=120,
+        )
+    except FileNotFoundError:
+        return [{"id": "-", "field": "-", "status": "SKIP",
+                 "detail": "node not available"}]
+    if proc.returncode != 0:
+        return [{"id": "-", "field": "-", "status": "ERROR",
+                 "detail": f"node harness failed: {proc.stderr[:200]}"}]
+
+    links = json.loads(proc.stdout or "[]")
+    # One site's record-query link is identical across its identity fields;
+    # fetching it once per field would just burn rate limit.
+    seen: set[str] = set()
+    results = []
+    for link in links:
+        if link["url"] in seen:
+            continue
+        seen.add(link["url"])
+        if not link["url"].startswith("http"):
+            results.append({**link, "status": "ERROR", "detail": "not an http url"})
+            continue
+        # Landing pages (energycommunities.gov, FEMA NRI, OSM) are plain HTML
+        # portals with no queryable contract — reachability is all we can
+        # assert. Query URLs get the stronger "must return data" check.
+        is_query = "/query?" in link["url"]
+        try:
+            resp = requests.get(link["url"], timeout=TIMEOUT_S,
+                                headers={"User-Agent": USER_AGENT})
+        except Exception as exc:
+            results.append({**link, "status": "ERROR",
+                            "detail": f"{type(exc).__name__}: {str(exc)[:80]}"})
+            continue
+        if resp.status_code != 200:
+            results.append({**link, "status": "DEAD",
+                            "detail": f"HTTP {resp.status_code}"})
+            continue
+        if not is_query:
+            results.append({**link, "status": "OK", "detail": "reachable"})
+            continue
+        try:
+            payload = resp.json()
+        except Exception:
+            results.append({**link, "status": "DEAD",
+                            "detail": "query did not return JSON"})
+            continue
+        if isinstance(payload, dict) and "error" in payload:
+            results.append({**link, "status": "DEAD",
+                            "detail": f"service error {payload['error'].get('code')}"})
+            continue
+        n = len(payload.get("features") or [])
+        if n == 0 and not link.get("expectsFeatures", True):
+            # A negative claim is evidenced by an empty result.
+            results.append({**link, "status": "OK",
+                            "detail": "no features — correct for a negative claim"})
+            continue
+        if n == 0:
+            results.append({**link, "status": "EMPTY",
+                            "detail": "returned no features — the citation "
+                                      "contradicts the claim it supports"})
+            continue
+        results.append({**link, "status": "OK", "detail": f"{n} features"})
+    return results
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--sample", type=int, default=20, help="Sites per program.")
     ap.add_argument("--seed", type=int, default=20260809)
     ap.add_argument("--only", nargs="*", default=["attrs", "infra"],
-                    choices=["attrs", "infra"])
+                    choices=["attrs", "infra", "evidence"])
     ap.add_argument("--ids", default=None, help="Comma-separated ids instead of a sample.")
     ap.add_argument("--fields", nargs="*", default=list(INFRA_LAYERS))
     ap.add_argument("--json", type=Path, default=None)
@@ -472,6 +621,16 @@ def main() -> int:
         for r in res:
             if r["status"] not in ("OK", "SKIP"):
                 print(f"  [{r['status']:9}] {r['id']:<16} {r['field']:<17} {r['detail']}")
+        _tally(res)
+
+    if "evidence" in args.only:
+        print("\n── EVIDENCE-LINK INTEGRITY " + "─" * 43)
+        res = check_evidence(sample)
+        out["evidence"] = res
+        for r in res:
+            if r["status"] != "OK":
+                print(f"  [{r['status']:9}] {r.get('id', '-'):<16} "
+                      f"{r.get('key', '-'):<22} {r['detail']}")
         _tally(res)
 
     if args.json:
