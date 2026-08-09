@@ -314,6 +314,15 @@ class SuperfundNPL(Connector):
         else:
             acres = polygon_acreage(rings)
 
+        # A computed area of zero means the rings collapsed (degenerate or
+        # sub-precision geometry), not that the site occupies no land. Zero
+        # is a *claim*: it sorts as the smallest site in the table and feeds
+        # 0 into the acreage component of all three scoring lenses, whereas
+        # None correctly leaves the site unscored on land. 50 records shipped
+        # `acreage: 0.0` this way before it was caught on 2026-08-09.
+        if acres is not None and acres <= 0:
+            acres = None
+
         if acres is None and not include_no_acreage:
             return None
 

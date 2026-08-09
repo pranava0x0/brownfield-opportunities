@@ -223,7 +223,9 @@ class DodFuds(Connector):
 
         eligible_only = getattr(args, "fuds_eligible_only", False)
         records: list[dict[str, Any]] = []
+        seen_ids: set[str] = set()
         dropped = 0
+        duplicates = 0
         enriched_acreage = 0
         enriched_centroid = 0
         for feat in raw_features:
@@ -231,6 +233,13 @@ class DodFuds(Connector):
             if rec is None:
                 dropped += 1
                 continue
+            # Layer 1 returns the same property twice for at least one record
+            # (FUDS-H09PT0002, Palau) — byte-identical, so it is a source-side
+            # repeat rather than two real properties. Keep the first.
+            if rec["id"] in seen_ids:
+                duplicates += 1
+                continue
+            seen_ids.add(rec["id"])
             prop_id = rec["id"].removeprefix("FUDS-")
             if prop_id in polygon_acres:
                 rec["acreage"] = polygon_acres[prop_id]
@@ -241,6 +250,9 @@ class DodFuds(Connector):
                 rec["lon"] = round(lon, 6)
                 enriched_centroid += 1
             records.append(rec)
+
+        if duplicates:
+            log.info("dropped %d duplicate property id(s) from layer 1", duplicates)
 
         total = len(raw_features)
         if total > 0 and dropped / total > DROP_RATIO_WARN_THRESHOLD:

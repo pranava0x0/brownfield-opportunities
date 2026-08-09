@@ -9,6 +9,7 @@ import argparse
 import hashlib
 import json
 import logging
+import socket
 import time
 from abc import ABC, abstractmethod
 from pathlib import Path
@@ -21,6 +22,40 @@ REQUEST_TIMEOUT_S = 60
 REQUEST_DELAY_S = 1.5
 
 log = logging.getLogger("connector")
+
+
+def prefer_ipv4(enabled: bool = True) -> None:
+    """Restrict outbound DNS resolution to A records.
+
+    Every EPA host (`www.epa.gov`, `cumulis.epa.gov`, `semspub.epa.gov`) and
+    several ArcGIS / Census hosts resolve AAAA-first. On a network whose IPv6
+    path is blackholed — a SYN to the v6 address draws no RST, just silence —
+    urllib3 walks `getaddrinfo()` serially and burns the FULL
+    `REQUEST_TIMEOUT_S` on IPv6 before falling back to IPv4. Measured on an
+    identical URL: `curl` 0.59 s (it implements Happy Eyeballs, RFC 8305) vs
+    `requests` 60.3 s, both HTTP 200. That tax turned a 21-minute document
+    backfill into a projected 6.6 hours before it was root-caused on
+    2026-08-04/05.
+
+    This is opt-out via `--allow-ipv6` because it is a global, process-wide
+    monkeypatch: it is the right default for this project's hosts, but a
+    future IPv6-only endpoint would need it off.
+
+    Idempotent — calling it repeatedly will not stack wrappers.
+    """
+    if not enabled:
+        return
+    if getattr(socket.getaddrinfo, "_ipv4_pinned", False):
+        return
+    original = socket.getaddrinfo
+
+    def ipv4_only(host, port, family=0, type=0, proto=0, flags=0):
+        return original(host, port, socket.AF_INET, type, proto, flags)
+
+    ipv4_only._ipv4_pinned = True  # type: ignore[attr-defined]
+    ipv4_only._original = original  # type: ignore[attr-defined]
+    socket.getaddrinfo = ipv4_only
+    log.debug("DNS resolution pinned to IPv4")
 
 
 class Connector(ABC):

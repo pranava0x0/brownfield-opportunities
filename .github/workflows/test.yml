@@ -19,6 +19,24 @@ jobs:
       - name: Unit tests
         run: pytest tests/ --ignore=tests/e2e -v
 
+  # Validates the shipped docs/data/ corpus itself, not the code that builds
+  # it. Offline and ~5s, so it is nearly free. Gates on FAIL only: those are
+  # invariants WE own (schema, id uniqueness, join integrity, the Lipschitz
+  # property on every distance field). Upstream data-quality findings — bad
+  # source coordinates, sentinel strings — surface as WARN and are listed in
+  # the log without failing the build, because EPA and USACE control them.
+  data-integrity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements-dev.txt
+      - name: Validate docs/data corpus
+        run: python3 scripts/validate_data.py --fail-on FAIL
+
   e2e:
     runs-on: ubuntu-latest
     steps:

@@ -82,24 +82,24 @@ own claimed state** (13 of them >25 mi, two outside the US entirely).
     commit on top of the rewritten history makes the revert path messier.
   - Also worth doing either way: drop the `Co-Authored-By` line from the
     commit-message convention so the trailers stop accumulating.
-- **[high] Assert id uniqueness in `refresh.py` before write.** `schema.py`
-  validates each record but nothing validates the *set*. A one-line
-  `len(ids) == len(set(ids))` guard would have caught `FUDS-H09PT0002` at the
-  moment it shipped, and protects every future connector for free.
-- **[high] Coerce non-positive computed acreage to `None`** in
-  `superfund_npl.normalize()`. Zero currently reads as a measurement.
+- ~~**[high] Assert id uniqueness in `refresh.py` before write.**~~ **DONE
+  2026-08-09** — `assert_unique_ids()` runs before every per-connector write
+  and the combined write; `dod_fuds` also dedupes at source.
+- ~~**[high] Coerce non-positive computed acreage to `None`.**~~ **DONE
+  2026-08-09** — in `superfund_npl.normalize()`; shipped data repaired too.
 - **[high] Add a geometry-vs-state guard to the connectors.** Point-in-state
   is cheap (`us-states.json` is already in the repo and
   `connectors/spatial.PolygonIndex` already does containment). Flag at
   refresh time rather than discovering it months later.
-- **[med] Wire `scripts/validate_data.py` into CI** (`.github/workflows/test.yml`)
-  with `--fail-on FAIL`. It runs in ~5 s and needs no network, so it is
-  nearly free — and it turns every finding above into a regression guard.
-- **[med] Promote the IPv4 pin into `connectors/base.py`.** The 2026-08-04/05
-  session root-caused the IPv6 blackhole but the fix lives only in
-  session-local runs; `validate_against_sources.py:force_ipv4()` is a
-  ready-made 6-line implementation. Every connector pays the 60 s tax until
-  this lands.
+- ~~**[med] Wire `scripts/validate_data.py` into CI.**~~ **DONE 2026-08-09** —
+  new `data-integrity` job, `--fail-on FAIL`. Checks split into invariants we
+  own (gate the build) and upstream data quality (report as WARN); the split
+  lives in `UPSTREAM_QUALITY_CHECKS`. Corpus is currently 22 pass / 13 warn /
+  0 fail.
+- ~~**[med] Promote the IPv4 pin into `connectors/base.py`.**~~ **DONE
+  2026-08-09** — `connectors.base.prefer_ipv4()`, called from `refresh.main()`
+  before any socket opens, opt-out via `--allow-ipv6`. Idempotent. Every
+  connector now gets the fix for free.
 - **[med] 20 Superfund sites exist in EPA RE-Powering but not in the
   boundaries layer** — verified against the live service, so this is an
   upstream coverage gap, not a connector bug. Several are Final NPL
