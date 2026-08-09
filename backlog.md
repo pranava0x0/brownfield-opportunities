@@ -4,6 +4,104 @@ Ideas and enhancements. Priorities: **high** = next, **med** = soon, **low** = n
 
 ---
 
+## Session checkpoint — 2026-08-09 (comprehensive data validation + branch cleanup)
+
+Built two runnable validators and pointed them at the whole corpus. **The
+infrastructure distances and the spatial index came out clean; the
+coordinates did not.**
+
+**New tooling (both re-runnable, both token-cheap to read):**
+- [`scripts/validate_data.py`](scripts/validate_data.py) — 33 offline checks over all 24 data files
+  in ~5 s. Families: `struct` (envelope, Pydantic schema, id uniqueness and
+  namespace, enrichment→universe join, value domains, numeric ranges, dates,
+  URLs), `geo` (coordinate range/region/placeholder, point-in-state,
+  point-in-county, duplicate and low-precision coordinates, sentinel strings),
+  `infra` (Lipschitz, co-located agreement, substation-vs-line, tombstones,
+  exact recompute of the three joins whose source geometry we hold locally),
+  `derived` (DC-candidate re-derivation, cross-layer coordinate/acreage
+  agreement, AI-summary consistency, OZ/IRA rollups, freshness). One line per
+  check; `--json` for the offending ids. `--only <family|check>` to scope.
+- [`scripts/validate_against_sources.py`](scripts/validate_against_sources.py) — sampled ground truth against the
+  live services. Re-queries each site's owning FeatureServer and, crucially,
+  **independently re-measures the infra distances** by pulling the source
+  layer's features inside a box around the site and computing the minimum
+  locally — never touching our own index. IPv4-pinned (see the 2026-08-04/05
+  IPv6 entry below), disk-cached, 1.5 s rate limit.
+- [`tests/test_spatial_fuzz.py`](tests/test_spatial_fuzz.py) — 11 tests fuzzing `SegmentIndex` /
+  `PointIndex` / `PolygonIndex` against brute force across four latitude
+  bands. This is the guard the project never had on its most load-bearing
+  correctness dependency.
+
+**What is verified healthy — worth knowing so nobody re-audits it:**
+- The spatial index is *correct*. Nearest-segment and nearest-point search
+  match an exhaustive scan exactly at 25°N through 64°N; the Chebyshev
+  ring-expansion early exit is a sound bound.
+- `infra-lipschitz` passes across **511,927 near-pairs**: for every pair of
+  sites within 2 mi, `|d(A) − d(B)| ≤ dist(A,B)` holds for all six distance
+  fields. Nearest-feature distance is 1-Lipschitz in position, so this is a
+  proof (not a heuristic) that no distance is internally inconsistent.
+- Live re-measurement reproduced the stored distances on the sample
+  (transmission / highway / rail / gas), and the `planned-retirements`,
+  `nuclear-brownfield-proximity` and `retired-industrial` joins recompute
+  **exactly** from their local source geometry.
+- Schema conformance is 100% across 351,803 records; `sites.json` is a
+  byte-exact mirror of `superfund-npl.json`; no file is stale or future-dated.
+
+**What is broken** — seven entries logged in [`issues.md`](issues.md) dated 2026-08-09.
+Headline: a duplicate FUDS record, 50 Superfund `acreage: 0.0` where null is
+meant, and **118 sites whose coordinates fall more than a mile outside their
+own claimed state** (13 of them >25 mi, two outside the US entirely).
+
+### Follow-ups
+
+- **[high] Assert id uniqueness in `refresh.py` before write.** `schema.py`
+  validates each record but nothing validates the *set*. A one-line
+  `len(ids) == len(set(ids))` guard would have caught `FUDS-H09PT0002` at the
+  moment it shipped, and protects every future connector for free.
+- **[high] Coerce non-positive computed acreage to `None`** in
+  `superfund_npl.normalize()`. Zero currently reads as a measurement.
+- **[high] Add a geometry-vs-state guard to the connectors.** Point-in-state
+  is cheap (`us-states.json` is already in the repo and
+  `connectors/spatial.PolygonIndex` already does containment). Flag at
+  refresh time rather than discovering it months later.
+- **[med] Wire `scripts/validate_data.py` into CI** (`.github/workflows/test.yml`)
+  with `--fail-on FAIL`. It runs in ~5 s and needs no network, so it is
+  nearly free — and it turns every finding above into a regression guard.
+- **[med] Promote the IPv4 pin into `connectors/base.py`.** The 2026-08-04/05
+  session root-caused the IPv6 blackhole but the fix lives only in
+  session-local runs; `validate_against_sources.py:force_ipv4()` is a
+  ready-made 6-line implementation. Every connector pays the 60 s tax until
+  this lands.
+- **[med] 20 Superfund sites exist in EPA RE-Powering but not in the
+  boundaries layer** — verified against the live service, so this is an
+  upstream coverage gap, not a connector bug. Several are Final NPL
+  (Norfolk Naval Shipyard, Puget Sound Naval Shipyard, Wright-Patterson AFB,
+  Gelman Sciences, Upper Columbia River). `epa-redev` ships name / state /
+  coords / status for all 20 — it could *emit* them as records rather than
+  being enrichment-only, growing the Superfund set ~1%.
+- **[med] Collapse source sentinels connector-side** (`NO CITY`, `n/a`,
+  `-- Not Defined --`). `prettyPlace()` only fixes the browser; CSV export and
+  `llms.txt` consumers see the raw strings.
+- **[med] `transmission_mi` systematically over-states grid distance for ~13%
+  of sites.** 6,222 records have a substation closer than the nearest HIFLD
+  transmission line by more than 2 mi (median gap 4.2 mi; 1,210 over 10 mi;
+  368 over 25 mi), spread across states — MI 941, CA 524, FL 406, AZ 285,
+  ME 280 — so it isn't just the known HI/PR/AK coverage holes. A substation
+  is by definition connected to the network, so these are lines HIFLD's
+  public layer doesn't carry (mostly sub-transmission: 69/46/34.5 kV).
+  Transmission distance is worth 16 points on the DC lens and 18 on
+  generation, so this quietly deflates the score of one site in eight.
+  Options: treat `min(transmission_mi, substation_mi)` as the effective
+  interconnect distance, or credit the substation path directly when the gap
+  is large. Detected by `infra-substation-vs-line`.
+- **[low] 3,728 sites share a coordinate with at least two others**, the
+  largest cluster being 97 ACRES sites on one point. Almost certainly
+  geocoder centroid fallback. Not wrong exactly, but a "precision unknown"
+  flag would stop the detail panel implying survey accuracy.
+- **[low] Re-measure infra distances at larger sample sizes periodically.**
+  The sampler is cached and resumable; a few hundred sites per run would
+  build a coverage record over time.
+
 ## Session checkpoint — 2026-08-04/05 (scheduled data-maintenance run)
 
 **Headline: the "EPA is slow" finding from 2026-07-28 was a misdiagnosis — it's broken IPv6 on this machine, and it has been taxing every connector for months.** Fixing it at runtime took the docs backfill from a projected **6.6 hours to 21 minutes** and closed the gap that had been carried for two sessions. Two commits (`1e9b576`, `21bcab4`), both schema-validated; 449 unit tests green.

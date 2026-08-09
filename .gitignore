@@ -9,3 +9,5 @@ __pycache__/
 .claude/settings.local.json
 .claude/scheduled_tasks.lock
 scratch_logs/
+# Local HTTP cache for scripts/validate_against_sources.py
+.cache/
