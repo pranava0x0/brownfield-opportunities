@@ -642,8 +642,17 @@ function setHeroRefresh(dateStr) {
 // freshness whenever an enrichment file was newer. Basemap files
 // (us-states / us-counties) carry no generated_at and are ignored.
 let _freshestRefreshTs = -Infinity;
-function recordRefreshDate(generatedAt) {
+// Per-data-file as-of dates, keyed by the file's URL. Feeds the
+// "Sources & evidence" panel so each claim reports when ITS file was
+// refreshed rather than the global max across all files.
+window.__sourceDates = {};
+function recordRefreshDate(generatedAt, sourceFile) {
   if (!generatedAt) return;
+  // Per-file as-of dates. The hero/footer show the freshest date across all
+  // files, but the evidence panel needs to say when EACH claim was pulled —
+  // infra-proximity and epa-superfund-docs refresh on different cadences,
+  // so one global date would misdate most rows.
+  if (sourceFile) window.__sourceDates[sourceFile] = fmt.date(generatedAt);
   const ts = Date.parse(generatedAt);
   if (isNaN(ts) || ts <= _freshestRefreshTs) return;
   _freshestRefreshTs = ts;
@@ -880,7 +889,7 @@ fetch(PRIMARY_DATA_URL)
   })
   .then((payload) => {
     ingestSites(payload.sites || []);
-    recordRefreshDate(payload.generated_at);
+    recordRefreshDate(payload.generated_at, PRIMARY_DATA_URL);
     updateMetaText({
       loadingLabel: filterState.programs.has("brownfield") ? "brownfields" : null,
     });
@@ -898,6 +907,7 @@ fetch(PRIMARY_DATA_URL)
     wireFilters();
     wirePersonaButtons();
     wireKpiClicks();
+    wireEvidenceDisclosure();
     wireNearbyClicks();
     wireExportCsv();
     wireAp1000ExportCsv();
@@ -1026,7 +1036,7 @@ function ensureAcresLoaded() {
       return r.json();
     })
     .then((payload) => {
-      recordRefreshDate(payload.generated_at);
+      recordRefreshDate(payload.generated_at, ACRES_DATA_URL);
       ingestSites(payload.sites || []);
       updateMetaText();
       populateStateFilter();
@@ -1060,7 +1070,7 @@ function ensureFudsLoaded() {
       return r.json();
     })
     .then((payload) => {
-      recordRefreshDate(payload.generated_at);
+      recordRefreshDate(payload.generated_at, FUDS_DATA_URL);
       ingestSites(payload.sites || []);
       updateMetaText();
       populateStateFilter();
@@ -1087,7 +1097,7 @@ function ensureBracLoaded() {
       return r.json();
     })
     .then((payload) => {
-      recordRefreshDate(payload.generated_at);
+      recordRefreshDate(payload.generated_at, BRAC_DATA_URL);
       ingestSites(payload.sites || []);
       updateMetaText();
       populateStateFilter();
@@ -1112,7 +1122,7 @@ function ensureRedevLoaded() {
       return r.json();
     })
     .then((payload) => {
-      recordRefreshDate(payload.generated_at);
+      recordRefreshDate(payload.generated_at, REDEV_DATA_URL);
       const truthyKeys = [
         "near_electric_transmission", "near_highway", "near_railroad",
         "near_water_supply", "near_wastewater", "pop_density",
@@ -1152,7 +1162,7 @@ function ensureSuperfundDocsLoaded() {
       return r.json();
     })
     .then((payload) => {
-      recordRefreshDate(payload.generated_at);
+      recordRefreshDate(payload.generated_at, SUPERFUND_DOCS_URL);
       for (const rec of payload.sites || []) {
         const existing = sitesById.get(rec.id || rec.epa_id);
         if (!existing) continue;
@@ -1186,7 +1196,7 @@ function ensureEchoLoaded() {
       return r.json();
     })
     .then((payload) => {
-      recordRefreshDate(payload.generated_at);
+      recordRefreshDate(payload.generated_at, ECHO_DATA_URL);
       for (const rec of payload.sites || []) {
         const existing = sitesById.get(rec.id || rec.epa_id);
         if (!existing) continue;
@@ -1216,7 +1226,7 @@ function ensureParcelOwnerLoaded() {
       return r.json();
     })
     .then((payload) => {
-      recordRefreshDate(payload.generated_at);
+      recordRefreshDate(payload.generated_at, PARCEL_OWNER_URL);
       for (const rec of payload.sites || []) {
         const existing = sitesById.get(rec.id);
         if (!existing) continue;
@@ -1262,7 +1272,7 @@ function ensureSummariesLoaded() {
       return r.json();
     })
     .then((payload) => {
-      recordRefreshDate(payload.generated_at);
+      recordRefreshDate(payload.generated_at, AI_SUMMARY_URL);
       for (const rec of payload.sites || []) {
         const existing = sitesById.get(rec.id);
         if (!existing) continue;
@@ -1348,7 +1358,7 @@ function ensureInfraLoaded() {
       return r.json();
     })
     .then((payload) => {
-      recordRefreshDate(payload.generated_at);
+      recordRefreshDate(payload.generated_at, INFRA_DATA_URL);
       for (const rec of payload.sites || []) {
         const existing = sitesById.get(rec.id);
         if (!existing) continue;
@@ -1395,7 +1405,7 @@ function ensureOppZoneLoaded() {
       return r.json();
     })
     .then((payload) => {
-      recordRefreshDate(payload.generated_at);
+      recordRefreshDate(payload.generated_at, OPP_ZONE_URL);
       for (const rec of payload.sites || []) {
         const existing = sitesById.get(rec.id);
         if (!existing) continue;
@@ -1434,7 +1444,7 @@ function ensureIraEnergyCommunityLoaded() {
       return r.json();
     })
     .then((payload) => {
-      recordRefreshDate(payload.generated_at);
+      recordRefreshDate(payload.generated_at, IRA_EC_URL);
       for (const rec of payload.sites || []) {
         const existing = sitesById.get(rec.id);
         if (!existing) continue;
@@ -1471,7 +1481,7 @@ function ensureFemaNriLoaded() {
       return r.json();
     })
     .then((payload) => {
-      recordRefreshDate(payload.generated_at);
+      recordRefreshDate(payload.generated_at, FEMA_NRI_URL);
       for (const rec of payload.sites || []) {
         const existing = sitesById.get(rec.id);
         if (!existing) continue;
@@ -1506,7 +1516,7 @@ function ensureClimateZoneLoaded() {
       return r.json();
     })
     .then((payload) => {
-      recordRefreshDate(payload.generated_at);
+      recordRefreshDate(payload.generated_at, CLIMATE_ZONE_URL);
       for (const rec of payload.sites || []) {
         const existing = sitesById.get(rec.id);
         if (!existing) continue;
@@ -1534,7 +1544,7 @@ function ensureIsoRtoLoaded() {
       return r.json();
     })
     .then((payload) => {
-      recordRefreshDate(payload.generated_at);
+      recordRefreshDate(payload.generated_at, ISO_RTO_URL);
       for (const rec of payload.sites || []) {
         const existing = sitesById.get(rec.id);
         if (!existing) continue;
@@ -1566,7 +1576,7 @@ function ensureRetiredPlantsLoaded() {
       return r.json();
     })
     .then((payload) => {
-      recordRefreshDate(payload.generated_at);
+      recordRefreshDate(payload.generated_at, RETIRED_PLANTS_URL);
       for (const rec of payload.sites || []) {
         const existing = sitesById.get(rec.id);
         if (!existing) continue;
@@ -1612,7 +1622,7 @@ function ensureCoordQualityLoaded() {
       return r.json();
     })
     .then(async (payload) => {
-      recordRefreshDate(payload.generated_at);
+      recordRefreshDate(payload.generated_at, COORD_QUALITY_URL);
       await Promise.allSettled(
         [acresLoadingPromise, fudsLoadingPromise, bracLoadingPromise].filter(Boolean)
       );
@@ -1644,7 +1654,7 @@ function ensurePlannedRetireProxLoaded() {
       return r.json();
     })
     .then(async (payload) => {
-      recordRefreshDate(payload.generated_at);
+      recordRefreshDate(payload.generated_at, PLANNED_RETIRE_PROX_URL);
       // This file is tiny (~130 KB) and can resolve BEFORE the much larger
       // ACRES / FUDS / BRAC program files finish ingesting into sitesById.
       // Without waiting, the `!existing` guard below would silently drop
@@ -1746,7 +1756,7 @@ function ensureRetiredIndustrialLoaded() {
       return r.json();
     })
     .then((payload) => {
-      recordRefreshDate(payload.generated_at); // this can be the freshest artifact in a GHGRP refresh
+      recordRefreshDate(payload.generated_at, RETIRED_INDUSTRIAL_URL); // can be the freshest artifact in a GHGRP refresh
       retiredIndustrialSites = payload.sites || []; // feed the Retired Sites tab
       maybeRefreshRetired();
       if (!retiredIndustrialLayer) return; // map not yet initialized
@@ -1811,7 +1821,7 @@ function ensurePlannedRetirementsLoaded() {
       return r.json();
     })
     .then((payload) => {
-      recordRefreshDate(payload.generated_at);
+      recordRefreshDate(payload.generated_at, PLANNED_RETIREMENTS_URL);
       if (!plannedRetirementLayer) return; // map not yet initialized
       for (const s of payload.sites || []) {
         if (s.lat == null || s.lon == null) continue;
@@ -1985,8 +1995,8 @@ function ensureNuclearSitesLoaded() {
     .then(([payload, prox]) => {
       // Both files carry generated_at and can be the freshest artifact on
       // disk — see CLAUDE.md "Last-update date".
-      recordRefreshDate(payload.generated_at);
-      recordRefreshDate(prox.generated_at);
+      recordRefreshDate(payload.generated_at, NUCLEAR_SITES_URL);
+      recordRefreshDate(prox.generated_at, NUCLEAR_BROWNFIELD_PROX_URL);
       nuclearCivilianSites = payload.sites || [];
       nuclearSitesLoadSettled = true;
       for (const rec of prox.records || []) {
@@ -4497,6 +4507,133 @@ function setCoordQualityNote(s) {
   note.hidden = false;
 }
 
+// ---- Sources & evidence -----------------------------------------------
+//
+// Renders one row per claim on the record: publisher, dataset + layer, how
+// the value was derived, when that file was last refreshed, and a link that
+// resolves to THIS site at the source wherever the upstream service allows
+// it. The registry lives in provenance.js.
+//
+// Built LAZILY on first expand. The panel is in the DOM at first paint, and
+// a full evidence table for a well-enriched site is ~150 nodes — enough to
+// matter against the 5,000-node first-paint budget if it were eager. The
+// `_evidenceRenderedFor` guard also stops a re-render on every toggle.
+let _evidenceRenderedFor = null;
+
+function renderEvidence(site) {
+  const block = el("d-evidence-block");
+  if (!block) return;
+  const body = el("d-evidence-body");
+  const countEl = el("d-evidence-count");
+  if (typeof window.buildEvidence !== "function") {
+    block.hidden = true;
+    return;
+  }
+  const rows = window.buildEvidence(site);
+  block.hidden = rows.length === 0;
+  if (countEl) countEl.textContent = rows.length ? `· ${rows.length} fields` : "";
+  // Collapse on site change so the next site starts closed and unbuilt.
+  if (_evidenceRenderedFor !== site.id) {
+    block.open = false;
+    body.textContent = "";
+    _evidenceRenderedFor = null;
+  }
+  if (block.open) buildEvidenceBody(site);
+}
+
+function buildEvidenceBody(site) {
+  if (_evidenceRenderedFor === site.id) return;
+  const body = el("d-evidence-body");
+  const rows = window.buildEvidence(site);
+  body.textContent = "";
+
+  const groups = [];
+  for (const r of rows) {
+    let g = groups.find((x) => x.name === r.group);
+    if (!g) { g = { name: r.group, rows: [] }; groups.push(g); }
+    g.rows.push(r);
+  }
+
+  for (const group of groups) {
+    const h = document.createElement("h4");
+    h.className = "evidence-group";
+    h.textContent = group.name;
+    body.appendChild(h);
+
+    for (const r of group.rows) {
+      const item = document.createElement("div");
+      item.className = "evidence-row";
+
+      const label = document.createElement("div");
+      label.className = "evidence-label";
+      label.textContent = r.label;
+      item.appendChild(label);
+
+      const meta = document.createElement("div");
+      meta.className = "evidence-meta";
+
+      const pub = document.createElement("div");
+      pub.className = "evidence-source";
+      pub.textContent = r.dataset ? `${r.publisher} — ${r.dataset}` : r.publisher;
+      meta.appendChild(pub);
+
+      if (r.layer) {
+        const layer = document.createElement("div");
+        layer.className = "evidence-layer";
+        layer.textContent = r.layer;
+        meta.appendChild(layer);
+      }
+
+      if (r.derivation) {
+        const how = document.createElement("div");
+        how.className = "evidence-derivation";
+        how.textContent = r.derivation;
+        meta.appendChild(how);
+      }
+
+      const foot = document.createElement("div");
+      foot.className = "evidence-foot";
+      if (r.asOf) {
+        const asOf = document.createElement("span");
+        asOf.className = "evidence-asof";
+        asOf.textContent = `As of ${r.asOf}`;
+        foot.appendChild(asOf);
+      }
+      if (r.verifyUrl) {
+        const a = document.createElement("a");
+        a.href = r.verifyUrl;
+        a.target = "_blank";
+        a.rel = "noopener";
+        a.className = "evidence-verify";
+        a.textContent = r.verifyLabel + " \u2197";
+        foot.appendChild(a);
+      }
+      if (r.code) {
+        const code = document.createElement("span");
+        code.className = "evidence-code";
+        code.textContent = r.code;
+        foot.appendChild(code);
+      }
+      if (foot.childNodes.length) meta.appendChild(foot);
+
+      item.appendChild(meta);
+      body.appendChild(item);
+    }
+  }
+  _evidenceRenderedFor = site.id;
+}
+
+function wireEvidenceDisclosure() {
+  const block = el("d-evidence-block");
+  if (!block) return;
+  block.addEventListener("toggle", () => {
+    if (!block.open) return;
+    const site = selectedId ? sitesById.get(selectedId) : null;
+    if (site) buildEvidenceBody(site);
+  });
+}
+
+
 function selectSite(id, { fromMap = false, fromTable = false } = {}) {
   const s = sitesById.get(id);
   if (!s) return;
@@ -4749,6 +4886,7 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
     coordCell.insertBefore(document.createTextNode(coordText), coordCell.firstChild);
   }
   setCoordQualityNote(s);
+  renderEvidence(s);
 
   // Children block — only Superfund sites with rolled-up sub-sites.
   const childBlock = el("d-children-block");
