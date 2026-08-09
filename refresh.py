@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Any
 
 import connectors
-from connectors.base import Connector
+from connectors.base import Connector, prefer_ipv4
 from diff import diff_payloads, load_payload, render_markdown, short_summary
 from schema import Payload
 
@@ -60,6 +60,11 @@ def _build_parser() -> argparse.ArgumentParser:
                    help="Pretty-print JSON (default is minified — saves ~30%% on uncompressed size).")
     p.add_argument("--combined", action="store_true",
                    help="With --all: also write a combined sites.json with every program's records (~2 MB gzipped). Default off — frontend lazy-loads.")
+    p.add_argument("--allow-ipv6", action="store_true",
+                   help="Don't pin DNS to IPv4. Default is to pin, because "
+                        "every EPA host resolves AAAA-first and a blackholed "
+                        "v6 path costs a full 60s timeout per request before "
+                        "urllib3 falls back (see connectors.base.prefer_ipv4).")
     p.add_argument("--missing-only", action="store_true",
                    help="Enrichment connectors only: skip sites already in the existing "
                         "docs/data/<slug>.json and merge new records with what's on disk. "
@@ -80,6 +85,35 @@ def _resolve_output_path(slug: str, override: Path | None) -> Path:
     if slug == CANONICAL_SLUG:
         return DEFAULT_OUTPUT
     return OUTPUT_DIR / f"{slug}.json"
+
+
+def assert_unique_ids(slug: str, records: list[dict]) -> None:
+    """Fail loud if a connector emits the same `id` twice.
+
+    `schema.py` validates each record in isolation; nothing validated the
+    record *set*. That gap let `dod-fuds` ship a byte-identical duplicate of
+    `FUDS-H09PT0002` — inflating every universal enrichment file to 46,760
+    rows over a 46,759-id universe and drawing two stacked map markers.
+    Found 2026-08-09 by `scripts/validate_data.py`.
+
+    The check is O(n) on data we already hold, so it runs unconditionally for
+    every connector rather than being something each one remembers to do.
+    """
+    seen: set[str] = set()
+    dupes: dict[str, int] = {}
+    for rec in records:
+        sid = rec.get("id")
+        if sid in seen:
+            dupes[sid] = dupes.get(sid, 1) + 1
+        seen.add(sid)
+    if dupes:
+        listed = ", ".join(f"{k} x{v}" for k, v in sorted(dupes.items())[:10])
+        more = f" (+{len(dupes) - 10} more)" if len(dupes) > 10 else ""
+        raise ValueError(
+            f"[{slug}] duplicate ids in output: {listed}{more}. "
+            f"{len(records)} records, {len(seen)} unique. Deduplicate in the "
+            f"connector's fetch_records() before returning."
+        )
 
 
 def _serialize_payload(payload: Payload, pretty: bool) -> str:
@@ -128,6 +162,8 @@ def _run_one(
     # In --all mode the combined writer owns changes.md; per-source runs skip it.
     is_canonical_solo = slug == CANONICAL_SLUG and output_override is None
     prior = load_payload(out_path) if is_canonical_solo else None
+
+    assert_unique_ids(slug, records)
 
     generated_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     payload = Payload(
@@ -179,6 +215,10 @@ def _write_combined(
         )
     )
 
+    # Ids must be unique ACROSS programs too — that's the whole point of the
+    # `ACRES-` / `FUDS-` / `BRAC-` namespacing.
+    assert_unique_ids("combined", all_records)
+
     generated_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     payload = Payload(
         generated_at=generated_at,
@@ -206,6 +246,9 @@ def _write_combined(
 def main() -> int:
     parser = _build_parser()
     args = parser.parse_args()
+
+    # Pin before any connector opens a socket.
+    prefer_ipv4(enabled=not args.allow_ipv6)
 
     if args.list_sources:
         for name in connectors.names():
