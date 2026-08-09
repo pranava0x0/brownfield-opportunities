@@ -46,6 +46,19 @@ coordinates did not.**
   **exactly** from their local source geometry.
 - Schema conformance is 100% across 351,803 records; `sites.json` is a
   byte-exact mirror of `superfund-npl.json`; no file is stale or future-dated.
+- **Ground truth against the live services (117-site sample, 30 per program):
+  90/90 attribute round-trips clean** — every sampled Superfund / ACRES / FUDS
+  record's name, state, coordinates and acreage still match what the owning
+  FeatureServer returns today. **455/455 independently re-measured infra
+  distances matched**, zero mismatches; median deviation 0.020 mi, max
+  0.050 mi — i.e. every one agreed to within the 0.1 mi rounding granularity
+  the connector emits at. 13 were skipped because the stored distance was
+  large enough to need an impractically big query box (mostly `highway_mi`
+  in remote AL/MS/CO). A follow-up run added the BRAC branch and covered all
+  27 BRAC records: **108/108 attribute round-trips clean across all four
+  programs.** (Writing that branch surfaced a doc drift — CLAUDE.md documents
+  the BRAC namespace as `BRAC-<slugified SITE_NAME>`, but
+  `dod_brac.normalize()` actually keys on `OBJECTID`, e.g. `BRAC-619`.)
 
 **What is broken** — seven entries logged in [`issues.md`](issues.md) dated 2026-08-09.
 Headline: a duplicate FUDS record, 50 Superfund `acreage: 0.0` where null is
@@ -54,6 +67,21 @@ own claimed state** (13 of them >25 mi, two outside the US entirely).
 
 ### Follow-ups
 
+- **[decision pending] Local history rewrite is staged but NOT published.**
+  All 203 commits were rewritten to strip `Co-Authored-By:` trailers (99
+  Claude, 8 self). Verified before parking it: the tip tree is byte-identical
+  to the pre-rewrite tree (`git diff 56d4570 main` is empty), the commit count
+  is unchanged at 203, and `git log main --grep=co-authored -i` returns
+  nothing. Local `main` therefore reads as "ahead 204, behind 203" against
+  `origin/main` — that is rewrite noise, not divergent work, the same shape
+  as the 2026-07-09 rewrite already described in CLAUDE.md.
+  - To publish: `git push --force-with-lease origin main`.
+  - To abandon: `git reset --hard backup-pre-coauthor-strip` (that tag points
+    at the original tip `56d4570`), then cherry-pick the validation commit.
+  - Whichever way it goes, **decide before the next data refresh** — a new
+    commit on top of the rewritten history makes the revert path messier.
+  - Also worth doing either way: drop the `Co-Authored-By` line from the
+    commit-message convention so the trailers stop accumulating.
 - **[high] Assert id uniqueness in `refresh.py` before write.** `schema.py`
   validates each record but nothing validates the *set*. A one-line
   `len(ids) == len(set(ids))` guard would have caught `FUDS-H09PT0002` at the
