@@ -69,6 +69,48 @@ function _interp(x, pts) {
   return last[1];
 }
 
+// A substation is, by definition, connected to the transmission network —
+// and it is where you actually interconnect; you don't tap a line mid-span.
+// So when the nearest known substation is much closer than the nearest known
+// line, the LINE data is incomplete, not the site remote. HIFLD's public
+// transmission layer carries bulk lines well but is patchy on
+// sub-transmission (69/46/34.5 kV), which is exactly what feeds these
+// substations.
+//
+// Corpus-wide this affects 6,222 of 46,148 sites (13.5%) with a median gap
+// of 4.2 mi — spread across MI (941), CA (524), FL (406), AZ, ME — so it is
+// not just the known HI/PR/AK coverage holes. Left uncorrected it silently
+// deflates the score of one site in eight on a component worth 16 points
+// (DC) / 18 points (generation).
+//
+// Deliberately conservative: substitute ONLY when the gap exceeds
+// GRID_COVERAGE_GAP_MI, i.e. only where we have positive evidence the line
+// layer is missing something. Within the threshold the reported line
+// distance is trusted as-is, so the vast majority of sites are unaffected.
+const GRID_COVERAGE_GAP_MI = 2;
+
+function _effectiveGridAccess(site) {
+  const line = site.transmission_mi;
+  const lineKv = site.transmission_kv;
+  const sub = site.substation_mi;
+  const subKv = site.substation_kv;
+  if (sub == null) return { mi: line, kv: lineKv, viaSubstation: false };
+  // No known line at all, but a substation IS in reach. Unreachable from the
+  // three public entry points today — they all gate on `transmission_mi ==
+  // null` first, so the 180 corpus sites in this state score null rather than
+  // reaching here. Kept correct anyway: the helper is general, and relaxing
+  // that gate is an open backlog item (a substation 1.1 mi away disproves the
+  // gate's "no grid within reach" premise).
+  if (line == null) return { mi: sub, kv: subKv, viaSubstation: true };
+  if (line - sub > GRID_COVERAGE_GAP_MI) {
+    // The substation is the real interconnect point, so its voltage class is
+    // the relevant one too — a line 99 mi away tells us nothing about the
+    // capacity available here.
+    return { mi: sub, kv: subKv != null ? subKv : lineKv, viaSubstation: true };
+  }
+  return { mi: line, kv: lineKv, viaSubstation: false };
+}
+
 // Distance to the nearest transmission line, linear falloff 0.05→2 mi.
 // The load-bearing signal for both lenses — adjacent is full marks,
 // ≥2 mi is zero. (DC-lens shape: a compute load effectively has to sit
@@ -427,9 +469,10 @@ function computeDcScoreBreakdown(site) {
   if (!site) return null;
   if (site.transmission_mi == null) return null;
   const W = DC_SCORE_WEIGHTS;
+  const grid = _effectiveGridAccess(site);
   return {
-    transmission_distance: _scoreTransmissionDistance(site.transmission_mi, W.transmission_distance),
-    voltage:               _scoreVoltage(site.transmission_kv, W.voltage),
+    transmission_distance: _scoreTransmissionDistance(grid.mi, W.transmission_distance),
+    voltage:               _scoreVoltage(grid.kv, W.voltage),
     substation:            _scoreSubstation(site.substation_mi, site.substation_kv, W.substation),
     grid_inheritance:      _scoreGridInheritance(site, W.grid_inheritance),
     acreage:               _scoreAcreageDc(_effectiveAcreage(site), W.acreage),
@@ -494,11 +537,12 @@ function computeGenerationScoreBreakdown(site) {
   if (!site) return null;
   if (site.transmission_mi == null) return null;
   const W = GENERATION_SCORE_WEIGHTS;
+  const grid = _effectiveGridAccess(site);
   return {
     acreage:               _scoreAcreageGen(_effectiveAcreage(site), W.acreage),
-    transmission_distance: _scoreTransmissionDistanceGen(site.transmission_mi, W.transmission_distance),
+    transmission_distance: _scoreTransmissionDistanceGen(grid.mi, W.transmission_distance),
     substation:            _scoreSubstation(site.substation_mi, site.substation_kv, W.substation),
-    voltage:               _scoreVoltage(site.transmission_kv, W.voltage),
+    voltage:               _scoreVoltage(grid.kv, W.voltage),
     gas_pipeline:          _scoreGasPipeline(site.gas_pipeline_mi, W.gas_pipeline),
     grid_reuse:            _scoreGridReuse(site, W.grid_reuse),
     iso_rto:               _scoreIsoRto(site.iso_rto, W.iso_rto),
@@ -601,10 +645,11 @@ function computeManufacturingScoreBreakdown(site) {
   if (!site) return null;
   if (site.transmission_mi == null) return null;
   const W = MANUFACTURING_SCORE_WEIGHTS;
+  const grid = _effectiveGridAccess(site);
   return {
     rail:                  _scoreRail(site.rail_mi, W.rail),
     acreage:               _scoreAcreageMfg(_effectiveAcreage(site), W.acreage),
-    transmission_distance: _scoreTransmissionDistanceMfg(site.transmission_mi, W.transmission_distance),
+    transmission_distance: _scoreTransmissionDistanceMfg(grid.mi, W.transmission_distance),
     substation:            _scoreSubstation(site.substation_mi, site.substation_kv, W.substation),
     gas_pipeline:          _scoreGasPipeline(site.gas_pipeline_mi, W.gas_pipeline),
     highway:               _scoreHighway(site.highway_mi, W.highway),

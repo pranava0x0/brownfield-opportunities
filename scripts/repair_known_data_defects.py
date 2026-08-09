@@ -23,6 +23,7 @@ Each repair mirrors a specific connector change:
   zero-acreage       superfund_npl.normalize() now coerces acreage <= 0 to None
   zero-plant-mw      HIFLD Total_MW of 0 is a missing value, not a measurement
   low-voltage-subs   OSM sub-1 kV gear is not an interconnection candidate
+  text-sentinels     connectors now collapse "NO CITY" / "n/a" / etc to null
 
 Idempotent: running it twice changes nothing the second time.
 
@@ -34,6 +35,11 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from connectors.text import collapse_sentinel  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "docs" / "data"
@@ -123,6 +129,32 @@ def repair_infra_sentinels(changes: list[str], dry: bool) -> None:
         dump("infra-proximity.json", payload)
 
 
+def repair_text_sentinels(changes: list[str], dry: bool) -> None:
+    """Collapse source placeholder strings to absent, matching the connectors.
+
+    `NO CITY` and `Unknown` were not in the frontend's `PLACE_SENTINELS`, so
+    they rendered in the detail panel as "No City" — this is a user-visible
+    fix, not just a tidiness one.
+    """
+    from collections import Counter
+    for name in ("superfund-npl.json", "epa-acres.json", "dod-fuds.json",
+                 "dod-brac.json"):
+        payload, _ = load(name)
+        hits: Counter = Counter()
+        for rec in payload.get("sites") or []:
+            for field in ("city", "county", "address", "name", "current_owner"):
+                if field not in rec:
+                    continue
+                if collapse_sentinel(rec[field]) is None:
+                    hits[field] += 1
+                    del rec[field]
+        if hits:
+            detail = ", ".join(f"{k}={v}" for k, v in sorted(hits.items()))
+            changes.append(f"{name}: collapsed sentinel(s) to absent ({detail})")
+            if not dry:
+                dump(name, payload)
+
+
 def mirror_sites_json(changes: list[str], dry: bool) -> None:
     """sites.json must stay a byte-exact mirror of superfund-npl.json."""
     src = (DATA / "superfund-npl.json").read_text()
@@ -145,6 +177,7 @@ def main() -> int:
     repair_duplicate_ids(changes, args.dry_run)
     repair_zero_acreage(changes, args.dry_run)
     repair_infra_sentinels(changes, args.dry_run)
+    repair_text_sentinels(changes, args.dry_run)
     # Must run last: it copies the repaired superfund file.
     mirror_sites_json(changes, args.dry_run)
 

@@ -107,11 +107,29 @@ own claimed state** (13 of them >25 mi, two outside the US entirely).
   Gelman Sciences, Upper Columbia River). `epa-redev` ships name / state /
   coords / status for all 20 — it could *emit* them as records rather than
   being enrichment-only, growing the Superfund set ~1%.
-- **[med] Collapse source sentinels connector-side** (`NO CITY`, `n/a`,
-  `-- Not Defined --`). `prettyPlace()` only fixes the browser; CSV export and
-  `llms.txt` consumers see the raw strings.
-- **[med] `transmission_mi` systematically over-states grid distance for ~13%
-  of sites.** 6,222 records have a substation closer than the nearest HIFLD
+- ~~**[med] Collapse source sentinels connector-side.**~~ **DONE 2026-08-09**
+  — `connectors/text.py:collapse_sentinel()`, wired into the three
+  place-bearing connectors; 1,162 values repaired on disk. Turned out to be
+  user-visible, not just tidiness: `NO CITY` and `Unknown` were missing from
+  the frontend's `PLACE_SENTINELS`, so the detail panel showed "No City".
+- **[med] Relax the scoring gate when a substation is in reach but no line
+  is.** All three lenses return `null` when `transmission_mi == null`, on the
+  reasoning that a site with no grid in the 100-mi window can't be assessed.
+  But 180 sites have `transmission_mi == null` AND a substation within
+  reach — one at 1.1 mi — which disproves the premise for exactly those
+  records. `_effectiveGridAccess()` already handles the case correctly; only
+  the gate needs to move. Small blast radius (0.4% of the corpus) but it
+  makes previously-unscored sites appear in rankings, so it is a product
+  decision, not a pure bug fix.
+- ~~**[med] `transmission_mi` over-states grid distance for ~13% of sites.**~~
+  **DONE 2026-08-09** — `dc-score.js:_effectiveGridAccess()` substitutes the
+  substation as the interconnect point (distance AND voltage) when the line
+  is more than `GRID_COVERAGE_GAP_MI` (2 mi) further away, i.e. only where
+  there is positive evidence the line layer is incomplete. Measured impact:
+  **5,922 of 46,211 scored sites (12.8%) gain a mean +9.2 points, max +27**,
+  on all three lenses. 8 new e2e tests. Original finding kept below for
+  context.
+  <details><summary>original</summary> 6,222 records have a substation closer than the nearest HIFLD
   transmission line by more than 2 mi (median gap 4.2 mi; 1,210 over 10 mi;
   368 over 25 mi), spread across states — MI 941, CA 524, FL 406, AZ 285,
   ME 280 — so it isn't just the known HI/PR/AK coverage holes. A substation
@@ -121,7 +139,7 @@ own claimed state** (13 of them >25 mi, two outside the US entirely).
   generation, so this quietly deflates the score of one site in eight.
   Options: treat `min(transmission_mi, substation_mi)` as the effective
   interconnect distance, or credit the substation path directly when the gap
-  is large. Detected by `infra-substation-vs-line`.
+  is large. Detected by `infra-substation-vs-line`.</details>
 - **[low] 3,728 sites share a coordinate with at least two others**, the
   largest cluster being 97 ACRES sites on one point. Almost certainly
   geocoder centroid fallback. Not wrong exactly, but a "precision unknown"

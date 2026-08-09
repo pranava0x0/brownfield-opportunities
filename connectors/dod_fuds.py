@@ -24,6 +24,7 @@ import re
 from typing import Any
 
 from connectors.base import Connector
+from connectors.text import collapse_sentinel
 from connectors.geom import envelope_center, polygon_acreage
 
 log = logging.getLogger("connector.dod_fuds")
@@ -409,8 +410,8 @@ class DodFuds(Connector):
             "id": record_id,
             "program": "fuds",
             "name": a.get("FEATURENAME"),
-            "city": a.get("CLOSESTCITY"),
-            "county": a.get("COUNTY"),
+            "city": collapse_sentinel(a.get("CLOSESTCITY")),
+            "county": collapse_sentinel(a.get("COUNTY")),
             "state": state,
             "region": region,
             "lat": round(lat_f, 6),
