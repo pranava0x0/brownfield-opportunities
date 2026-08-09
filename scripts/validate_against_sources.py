@@ -128,6 +128,10 @@ FUDS_URL = (
     "https://services7.arcgis.com/n1YM8pTrFmm7L4hs/arcgis/rest/services/"
     "fuds/FeatureServer/1/query"
 )
+BRAC_URL = (
+    "https://services.arcgis.com/hRUr1F8lE8Jq2uJo/arcgis/rest/services/"
+    "milbases/FeatureServer/0/query"
+)
 
 # Polyline layers we can independently re-measure. `id_field` is only used
 # for reporting which feature won.
@@ -186,6 +190,8 @@ def check_attrs(sites: list[dict]) -> list[dict]:
                 got = _fetch_acres(rec["id"].removeprefix("ACRES-"))
             elif program == "fuds":
                 got = _fetch_fuds(rec["id"].removeprefix("FUDS-"))
+            elif program == "brac":
+                got = _fetch_brac(rec["id"].removeprefix("BRAC-"))
             else:
                 continue
         except Exception as exc:
@@ -308,6 +314,36 @@ def _fetch_fuds(prop_id: str) -> Optional[dict]:
     state = a.get("STATE")
     return {"state": state.upper() if state else None, "lat": lat, "lon": lon,
             "acreage": None, "name": a.get("FEATURENAME")}
+
+
+def _fetch_brac(objectid: str) -> Optional[dict]:
+    """BRAC ids are `BRAC-<OBJECTID>`.
+
+    Note this contradicts CLAUDE.md, which documents the namespace as
+    `BRAC-<slugified SITE_NAME>`; `dod_brac.normalize()` actually keys on
+    OBJECTID and only falls back to the name when OBJECTID is absent.
+    """
+    if not objectid.isdigit():
+        return None
+    payload = get_json(BRAC_URL, {
+        "where": f"OBJECTID={objectid} AND BRAC_SITE='YES'",
+        "outFields": "OBJECTID,SITE_NAME,STPOSTAL,COMPONENT",
+        "returnGeometry": "true", "outSR": "4326", "f": "json",
+    }, "brac")
+    feats = payload.get("features") or []
+    if not feats:
+        return None
+    a = feats[0]["attributes"]
+    rings = (feats[0].get("geometry") or {}).get("rings") or []
+    lat, lon = _envelope_center(rings)
+    acreage = None
+    if rings:
+        # Match dod_brac exactly: Shoelace + cos(lat), via the shared helper.
+        from connectors.geom import ACRES_PER_SQ_METER, polygon_area_sq_meters
+        area = polygon_area_sq_meters(rings)
+        acreage = round(area * ACRES_PER_SQ_METER, 1) if area > 0 else None
+    return {"state": a.get("STPOSTAL"), "lat": lat, "lon": lon,
+            "acreage": acreage, "name": a.get("SITE_NAME")}
 
 
 # --------------------------------------------------------------------------
