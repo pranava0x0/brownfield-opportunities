@@ -76,7 +76,10 @@ own claimed state** (13 of them >25 mi, two outside the US entirely).
   5,000-node first-paint budget). `validate_against_sources.py --only
   evidence` exercises every link: 160/160 resolve, and each bbox link is
   sized from the site's own stored distance so it always contains the feature
-  it evidences. Guards: [`tests/e2e/test_evidence_panel.py`](tests/e2e/test_evidence_panel.py) (10).
+  it evidences — **488/488 links verified across a 48-site sample**. Guards:
+  [`tests/e2e/test_evidence_panel.py`](tests/e2e/test_evidence_panel.py) (10) + [`tests/test_provenance_registry.py`](tests/test_provenance_registry.py) (6),
+  the latter failing CI if a field is rendered without a citation or a
+  registry key stops matching the schema.
 
 - **[decision pending] Local history rewrite is staged but NOT published.**
   All 203 commits were rewritten to strip `Co-Authored-By:` trailers (99
