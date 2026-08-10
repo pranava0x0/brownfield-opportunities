@@ -469,15 +469,13 @@ def _measure(lat: float, lon: float, layer: dict,
 # --------------------------------------------------------------------------
 
 NODE_HARNESS = r"""
-const fs = require('fs');
-const src = fs.readFileSync(process.argv[2], 'utf8');
-// provenance.js is an IIFE that assigns onto `window`.
-const window = {};
-(new Function('window', src))(window);
+// `require` the real module rather than eval-ing its source — provenance.js
+// exports for CommonJS precisely so a validation tool never has to.
+const prov = require(process.argv[2]);
 const sites = JSON.parse(process.argv[3]);
 const out = [];
 for (const s of sites) {
-  for (const row of window.buildEvidence(s)) {
+  for (const row of prov.buildEvidence(s)) {
     if (row.verifyUrl) out.push({ id: s.id, key: row.key, url: row.verifyUrl,
                                   expectsFeatures: row.expectsFeatures !== false });
   }

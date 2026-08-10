@@ -499,7 +499,11 @@
   // ---- assembly -----------------------------------------------------------
 
   function asOf(file) {
-    const dates = window.__sourceDates || {};
+    // Resolve the global lazily: in the browser this is `window`, under node
+    // (tests, the link checker) there is none and every row simply has no
+    // as-of date, which is correct — nothing has been fetched there.
+    const g = typeof window !== "undefined" ? window : globalThis;
+    const dates = (g && g.__sourceDates) || {};
     return (file && dates[file]) || null;
   }
 
@@ -575,6 +579,14 @@
     return rows;
   }
 
-  window.FIELD_PROVENANCE = FIELD_PROVENANCE;
-  window.buildEvidence = buildEvidence;
+  // Browser: attach to window, which is what app.js reads. Node: export
+  // normally so tests and the link checker can `require()` this file instead
+  // of eval-ing its source — a validation tool should not need `new
+  // Function` to read the module it is validating.
+  const root = typeof window !== "undefined" ? window : globalThis;
+  root.FIELD_PROVENANCE = FIELD_PROVENANCE;
+  root.buildEvidence = buildEvidence;
+  if (typeof module !== "undefined" && module.exports) {
+    module.exports = { FIELD_PROVENANCE, buildEvidence };
+  }
 })();
