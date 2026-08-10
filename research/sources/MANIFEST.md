@@ -2,12 +2,18 @@
 
 Primary documents behind [`../doe-lab-brownfield-reuse.md`](../doe-lab-brownfield-reuse.md), retrieved **2026-08-09**.
 
-The PDFs are **deliberately not committed** — ~14 MB of re-fetchable federal
-documents would violate the repo's no-large-binaries rule, and the findings
-that matter are extracted into the research note. This manifest makes the set
-reproducible: same URLs, same bytes, verifiable by checksum.
+The PDFs **are committed** (~14 MB), so the research is readable without a
+network round-trip and stays pinned to the exact bytes the findings were drawn
+from — federal documents get revised and withdrawn in place.
 
-Re-fetch everything:
+They live at the repo root, **outside `docs/`**, which is the only directory
+`.github/workflows/deploy.yml` publishes (`path: docs`). Nothing here is ever
+fetched by the site or counted in page weight; the guard for that is
+`tests/test_published_tree.py`. Keep them here — do not move them under
+`docs/`.
+
+This manifest keeps the set reproducible either way — same URLs, same bytes,
+verifiable by checksum. Re-fetch and verify:
 
 ```bash
 bash research/sources/fetch.sh
