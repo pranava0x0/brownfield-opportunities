@@ -470,3 +470,25 @@ Acres.com). **Verdict:** no statewide source.
 general private ownership. Counties (Maricopa, Pinal, etc.) run independent
 servers with inconsistent schemas and no state-level aggregator was found.
 **Verdict:** no general statewide source; county-fragmented like PA/IL/MO/KS.
+
+---
+
+## §31 — DOE national-lab document hosts (probed 2026-08-09)
+
+Logged while gathering [research/doe-lab-brownfield-reuse.md](research/doe-lab-brownfield-reuse.md). Host quirks
+only; the findings live in that note.
+
+| Host / URL | Result | Notes |
+|---|---|---|
+| `docs.nrel.gov`, `www.nrel.gov` | **DNS ENOTFOUND** | Did not resolve at all from this sandbox. Not a 404 — no A record returned. |
+| `docs.nlr.gov` | **200** | Serves the same NREL documents. NREL PDFs dated 2026 carry the footer "National Laboratory of the Rockies" and cite `maps.nlr.gov/speed-to-power` *or* `maps.nrel.gov/speed-to-power`. Treat `nlr.gov` as the working host; verify before hardcoding either. |
+| `eta-publications.lbl.gov` | **403 to WebFetch, 200 to curl** | Needs a browser User-Agent. Same class of bot-filtering as `hazards.fema.gov`. |
+| `orsage.ornl.gov` | 200 but **JS-rendered shell** | No content to scrape. The OR-SAGE siting criteria are in Appendix A of the C2N PDF (INL/RPT-22-67964) instead. |
+| `inl.gov/content/uploads/...` | **200** | Direct PDF, no UA needed. |
+| `osti.gov/biblio/<id>` | **200** | Reliable landing page for any lab report when the lab's own host is unreachable — use as the fallback citation. |
+| `energycommunities.gov` | **DNS: no answer** | Formerly cited in `provenance.js`; replaced with a point-containment query against the NETL Hosted FeatureServer we already call. |
+| `hazards.fema.gov/nri/` | **301 → fema.gov RAPT, then 403** | NRI landing page folded into the Resilience Analysis and Planning Tool and bot-filters. Replaced with a point query against the NRI county FeatureServer. |
+
+**Extraction note:** several of these PDFs come back as raw binary through
+WebFetch. `pypdf` is already available in this environment and extracts them
+fine (`pdftotext` is not installed) — decode locally rather than re-fetching.
