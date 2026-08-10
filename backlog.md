@@ -4,6 +4,78 @@ Ideas and enhancements. Priorities: **high** = next, **med** = soon, **low** = n
 
 ---
 
+## DOE national-lab research pass — 2026-08-09
+
+Read the current national-lab literature on brownfield reuse and large-load
+siting; findings and full citations in
+[research/doe-lab-brownfield-reuse.md](research/doe-lab-brownfield-reuse.md), sources reproducible via
+`bash research/sources/fetch.sh` (checksummed, PDFs gitignored).
+
+**The headline finding is about this project.** NREL's *Data Centers Gap
+Analysis* (Feb 2026) tabulates open data gaps for large-load integration and
+lists, verbatim: lever "Brownfield conversion projects", data needed
+"**Database of eligible brownfield conversion sites**", gap "Yes". That is
+what this dashboard is. The corpus is not the gap — **our screening criteria
+are homegrown while the labs have published, defensible ones**, and closing
+that is the highest-value work available.
+
+### Tier 1 — public data, pure-Python computable, big payoff
+
+- **[high] Adopt ORNL's OR-SAGE criteria corpus-wide.** Appendix A of the
+  INL/ANL/ORNL coal-to-nuclear study gives ten thresholded, GIS-computable
+  siting rules — population density >500/sq mi (4-mi buffer), seismic PGA
+  >0.5 g, fault standoff, landslide susceptibility, slope >18%, wetlands/open
+  water, 100-yr floodplain, cooling water ≥135,000 gpm within 20 mi, protected
+  lands, hazardous-facility proximity. **We already satisfy exactly one**
+  (floodplain, via FEMA NFHL). Each remaining one is a single public layer
+  plus the `PolygonIndex` / `SegmentIndex` we already have. Cheapest four
+  first: slope (USGS 3DEP), protected lands (USGS PAD-US), wetlands (FWS NWI —
+  liveness already probed in `data-source-research.md`), population density
+  (Census). Adopt their framing too: parameters are *flags to inform*, not
+  rules to rule a site in or out — the same posture as `coord_flags`.
+- **[high] Ingest EPA RE-Powering's 190,000-site screening dataset.** We
+  consume only the 1,905-record `RedevelopmentAppSitePoints` layer; EPA also
+  publishes a screened dataset of 190k+ sites (XLSX ~78 MB + geodatabase) with
+  acreage, renewable-energy capacity and **distance to nearest substation**.
+  A ~100x coverage increase from a source we already trust, and its substation
+  distances are an independent cross-check on `substation_mi` — precisely the
+  external validation the 2026-08-09 audit found we lack.
+- **[high] Population density.** OR-SAGE's most discriminating parameter and we
+  carry none. Does triple duty: nuclear exclusion screening, NREL's
+  "proximity to end users" latency proxy, and a community-opposition risk
+  signal alongside `STATE_DC_REGULATION`.
+
+### Tier 2
+
+- **[med] Cite the labs inside the scoring UI.** The `grid_reuse` /
+  `grid_inheritance` credit rests on INL's finding that reusing coal
+  infrastructure cuts nuclear overnight capital cost **15–35%** (reusable:
+  switchyard and transmission, office buildings, heat sink, steam cycle,
+  roads, water rights). The flood penalty matches an OR-SAGE exclusion. Extend
+  `FIELD_PROVENANCE` so scoring *components* cite a methodological basis, not
+  just data fields — turns the rubric from assertion into argument.
+- **[med] Site-level cooling-water demand estimate.** LBNL models WUE per
+  cooling-system type against TMY climate data; we already carry
+  `climate_zone` and an NRI drought rating per site. Water is also the gap
+  INL's Oct 2025 workshop named explicitly.
+- **[med] Join LBNL's county-level water-consumption and GHG intensity by
+  balancing authority.** Published, county-level, joins to what we have.
+- **[med] A flexibility lens.** LBNL: **76 GW of new load could interconnect
+  today if it can curtail 0.25% of maximum uptime.** Our model scores every
+  megawatt as if it must be firm. At minimum say so in the Rankings explainer.
+
+### Tier 3 — blocked or expensive
+
+- **[low] Interconnection queue position** (LBNL *Queued Up*). Highest buyer
+  value — speed to power is *the* criterion — but per-ISO and messy.
+- **[low] Noise constraints.** Named by INL as an open gap, now appearing in
+  state law (VA HB153/SB94). No national dataset; likely a per-state
+  regulatory field like `STATE_DC_REGULATION`, not a GIS layer.
+- **[low] Latency proxy.** Still no public national fiber backbone dataset.
+  But NREL derives latency from network infrastructure *and* proximity to end
+  users — the second half is computable from Census population centers. A
+  partial proxy beats the current nothing.
+
 ## Session checkpoint — 2026-08-09 (comprehensive data validation + branch cleanup)
 
 Built two runnable validators and pointed them at the whole corpus. **The
