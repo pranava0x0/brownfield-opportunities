@@ -12,5 +12,3 @@ scratch_logs/
 # Local HTTP cache for scripts/validate_against_sources.py
 .cache/
 
-# DOE lab source PDFs — re-fetchable via research/sources/fetch.sh, see MANIFEST.md
-research/sources/*.pdf
