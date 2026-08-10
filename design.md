@@ -640,6 +640,40 @@ new state to an existing inset = one entry in `INSETS[].states`.
 These are encoded in the codebase already; if you're tempted to undo them,
 read the rationale first.
 
+### 8.0 Disclose uncertainty; never silently correct it (2026-08-09)
+
+Two surfaces added after the corpus audit, both built on the same principle:
+**the interface must not present a value as more certain than it is, and must
+not invent a better value it cannot source.**
+
+- **Location-confidence note** (`#d-coord-note`, under Coordinates). 118 sites
+  plot more than a mile outside their own stated state, 17 sit on typed-in
+  whole degrees, 3,728 share a coordinate with two or more others. Every one
+  of them was drawn on the map looking exactly as authoritative as a surveyed
+  parcel. The note says so in plain language — *"Source places this in CT
+  (10.4 mi outside MA), not in MA."* We deliberately do **not** move or hide
+  the marker: the state attribute and the geometry come from independent paths
+  inside EPA ACRES / USACE FUDS, we have no better source, and a fabricated
+  coordinate would be worse than a flagged one.
+- **Sources & evidence** (`#d-evidence-block`). One row per claim the record
+  carries: publisher, dataset, layer, how the value was derived, the as-of
+  date of *that* file, and a link resolving to this site at the source.
+  Derived values (`coord_flags`, `summary`) are labelled "This project
+  (derived)" with the connector path, so computed fields never read as agency
+  data.
+
+Two implementation constraints worth keeping:
+
+1. **Both reuse the sibling-span pattern** (`d-acreage-note`) rather than
+   adding `<dt>/<dd>` pairs — `selectSite()` rewrites only the leading text
+   node so the span survives. ~1 node each against a 5,000-node first-paint
+   budget; the evidence table itself (~150 nodes) is built lazily on first
+   expand and torn down on site change.
+2. **Evidence must be sized to the claim.** A verification box smaller than
+   the distance it evidences returns nothing and reads as a refutation — see
+   `radiusFor()`. A negative claim ("not in an Opportunity Zone") is correctly
+   evidenced by an empty result and must say so via `expectsFeatures`.
+
 ### 8.1 The `[hidden]` trap
 
 `display: inline-flex | block | flex` on an element that also uses the
