@@ -105,7 +105,29 @@ records, <1 s, offline) and diffed the `summary` **text** field: **0 changed,
 2026-07-28 rule. Worth keeping: the regen-and-diff is the only reliable
 staleness test for this file, and it costs a second.
 
-### One new finding
+### The real finding — CI has been dead for 11 weeks
+
+**The scheduled "Refresh site data" workflow has failed 12/12 runs since
+2026-05-25.** Logged in [`issues.md`](issues.md). It was invisible to this routine because
+every prior run checked *data coverage* and never *CI health* — and coverage
+looked fine precisely because these agent sessions were doing the refresh work
+by hand.
+
+- **[high] Give `refresh.py --all` per-connector fault isolation.** One
+  unhandled transient network error kills the whole chain. Two distinct
+  triggers confirmed, so this is structural, not a flaky host: Overpass **504**
+  at `infra_proximity.py:792` (`raise_for_status()` with no transient
+  tolerance — while `FLOOD_TRANSIENT_HTTP_CODES` sits unused at line 251 of the
+  same file), and an `echodata.epa.gov` **ReadTimeout** at `epa_echo.py:360`.
+  `_run_one()` already returns a per-connector rc; honour it and continue.
+- **[high] Add CI health to this routine's §0 orientation.** `gh run list`
+  is one call and would have caught this 11 weeks ago. Checking that the data
+  *files* look right is not the same as checking that the pipeline *runs*.
+- **[med] Chunk + back off the Overpass substation queries.** A 504 on a
+  12°×25° bbox is the expected response from a free endpoint under load, not
+  an anomaly worth aborting on.
+
+### One new data finding
 
 - **[low] 38 static summaries omit acreage for sub-1-acre sites.** Surfaced by
   the validator's `ai-summary-consistency` check. All 38 have real acreage in
