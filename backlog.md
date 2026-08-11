@@ -76,6 +76,73 @@ that is the highest-value work available.
   users — the second half is computable from Census population centers. A
   partial proxy beats the current nothing.
 
+## Session checkpoint — 2026-08-11 (scheduled data-maintenance run)
+
+**Verified, found nothing to backfill, stopped.** The 2026-08-04/05 entry's
+closing instruction ("no data-only gap of any size remains — verify coverage,
+then stop rather than manufacture work") held on re-test. **No data commit
+this run; that is the correct outcome, not a failed one.**
+
+Coverage re-asserted, all matching the recorded state exactly:
+
+| dataset | state |
+|---|---|
+| flood (`infra-proximity`) | 42,576/46,759 = **91.1%**, 4,422 SFHA — complete |
+| `parcel-owner` | 11,463 records; **12 uncovered, all FL** — the known permanent HTTP-400 cadastral failures |
+| `epa-superfund-docs` | 1,888/1,908 = **99.0%**; residual 20 are the documented source-side dead ends |
+| `epa-echo` | 1,906/1,908 (last 2 return no ECHO match) |
+| `ai-summary` | 1,908 |
+
+**Corpus health — [`scripts/validate_data.py`](scripts/validate_data.py): 23 pass · 12 warn · 0 fail.**
+Every warn is in the known upstream-quality set; nothing new appeared since
+2026-08-09.
+
+**`ai-summary` is not stale — proven, not assumed.** Because its four input
+files were repaired in place on 2026-08-09 without a `generated_at` bump,
+staleness can't be read off the envelope. Ran the full static regen (1,908
+records, <1 s, offline) and diffed the `summary` **text** field: **0 changed,
+0 added, 0 removed.** Pure timestamp-only rewrite, so it was reverted per the
+2026-07-28 rule. Worth keeping: the regen-and-diff is the only reliable
+staleness test for this file, and it costs a second.
+
+### One new finding
+
+- **[low] 38 static summaries omit acreage for sub-1-acre sites.** Surfaced by
+  the validator's `ai-summary-consistency` check. All 38 have real acreage in
+  the 0.1–0.9 range (e.g. Amco Chemical 0.9 ac, Curcio Scrap Metal 0.9 ac),
+  but the lead sentence renders as "… is an EPA Superfund (NPL) in Oakland,
+  CA" with the acreage clause dropped entirely. This is a **formatter
+  behaviour in `build_static_summary()`, not staleness** — a regen reproduces
+  it byte-for-byte. Fix is code + tests in `connectors/ai_summary.py`
+  (render "a 0.9-acre" rather than suppressing), so it is left for a
+  supervised session per this routine's scope guardrails.
+
+### Blocking decision, now overdue — force-push or abandon
+
+The 2026-08-09 `[decision pending]` on the `Co-Authored-By` history rewrite is
+**still unmade, and it now blocks publishing.** Re-verified this run:
+
+- `git merge-base main origin/main` is **empty** — the rewrite went to the
+  root, so the two histories share no ancestor. This is why `main` reads
+  "ahead 213, behind 203"; it is rewrite noise, not divergent work.
+- `git diff origin/main e7c2638` is **empty** — `origin/main`'s tree is
+  byte-identical to a local commit. Local `main` therefore **strictly
+  contains** everything published, plus 10 commits of real unmerged work
+  (the validation, provenance, coord-quality and DOE-research session).
+- `backup-pre-coauthor-strip` is intact at `56d4570` (= `origin/main`), so the
+  abandon path is still fully open.
+
+**A scheduled run will not force-push**: rewriting 203 commits of published
+history is outward-facing and irreversible, and it is an explicitly parked
+decision. Consequence: **the last two sessions' work is committed locally but
+unpublished**, so GitHub Pages is serving the 2026-08-05 state.
+
+- Publish: `git push --force-with-lease origin main` (content-safe — purely
+  additive; nothing on origin is lost).
+- Abandon: `git reset --hard backup-pre-coauthor-strip`, then cherry-pick the
+  10 commits `e7c2638..main` (`23c84d0 e5cfc8e c2f0634 f0910ee cd1f46b
+  8945587 a0a8b87 d486efb 5a92288 827c0d3`, plus this checkpoint).
+
 ## Session checkpoint — 2026-08-09 (comprehensive data validation + branch cleanup)
 
 Built two runnable validators and pointed them at the whole corpus. **The
