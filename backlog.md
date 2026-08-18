@@ -76,6 +76,76 @@ that is the highest-value work available.
   users — the second half is computable from Census population centers. A
   partial proxy beats the current nothing.
 
+## Session checkpoint — 2026-08-18 (scheduled data-maintenance run)
+
+**No data gap to close; landed the CI fault-isolation fix instead.** Coverage
+re-asserted and identical to 2026-08-11 in every dataset — flood 42,576/46,759
+(**91.1%**, 4,422 SFHA), `parcel-owner` 11,463 (12 uncovered, the known
+permanent FL HTTP-400s), `epa-superfund-docs` 1,888/1,908 (**99.0%**),
+`epa-echo` 1,906, `ai-summary` 1,908. `scripts/validate_data.py`: **23 pass ·
+12 warn · 0 fail**, every warn in the documented upstream set, nothing new.
+
+### The one thing that changed: a 13th CI failure, and a third trigger
+
+The scheduled refresh failed again on **2026-08-17** — now **13/13 since
+2026-05-25**. The new log carries a trigger distinct from both previously
+recorded ones: `ConnectionError: Connection reset by peer` from ArcGIS at
+`infra_proximity.py:660` `_build_index`. Three different hosts, three different
+exceptions, one identical outcome — which is what finally settles that this is
+the orchestration and not a flaky endpoint.
+
+**The recorded diagnosis was slightly wrong, and the real defect is smaller.**
+The 2026-08-11 entry said "`_run_one()` already returns a per-connector rc;
+honour it and continue" — but the `--all` loop *was* already honouring it
+(`rc = sub_rc or rc`, then carry on). The actual defect: `_run_one` **raises**
+rather than returning nonzero, so the exception sailed straight past the loop
+and out of `main()`, taking every connector still queued behind it. With
+`--no-cache` in CI that discards a 30–50 minute run at whichever connector drew
+the short straw.
+
+Because the fix turned out to be ~8 lines in one function, it cleared this
+routine's "explicitly small and self-contained" bar and was done here rather
+than deferred: `refresh.py` now wraps the `_run_one` call in `--all`, logging
+the full traceback via `log.exception` and keeping the run's exit code nonzero.
+Fail-loud is preserved on purpose — isolation buys the remaining connectors
+their turn, it does not turn a broken run green. Scoped to `--all`; `--source X`
+still propagates, which is what the by-hand maintenance runs rely on. 8
+regression tests, **verified red without the fix** (5 fail, 3 controls stay
+green). Full suite 566 pass.
+
+### Necessary but not sufficient — read this before assuming CI is fixed
+
+The refresh step still exits nonzero, so GitHub Actions skips the downstream
+commit step and **the cron still publishes nothing**. What the fix buys today is
+diagnostic: one run now surfaces *every* failing connector instead of one per
+week of whack-a-mole. Restoring auto-commit needs a `continue-on-error`
+restructure of `refresh.yml`, and that was deliberately left supervised —
+
+- **[high] Guard the empty-payload write before re-enabling auto-commit.**
+  `_run_one` aborts on an empty record set only for `CANONICAL_SLUG`; every
+  other producer gets `log.warning` and an **empty payload written over the live
+  file**. Harmless today only because the commit step never runs. Re-enable
+  committing without fixing this and a source outage that returns HTTP 200 with
+  zero features blanks the dataset: **46,756 records exposed** — `epa-acres`
+  36,003, `dod-fuds` 8,821, `epa-redev` 1,905, `dod-brac` 27. A producer
+  returning zero rows is an outage, not a legitimate state; it should refuse the
+  write the way the canonical file already does.
+- **[high] Then restructure `refresh.yml`** so a partially-successful run still
+  commits what it refreshed: `id` + `continue-on-error: true` on the Refresh
+  step, commit, then a final step that fails the job if refresh failed. Order
+  matters — the guard above lands first.
+- **[med] Chunk + back off the Overpass substation queries** (carried forward).
+  A 504 on a 12°×25° bbox is the expected response from a free endpoint under
+  load, not an anomaly worth aborting on.
+
+### Carried forward unchanged
+
+- **[low] 38 static summaries omit acreage for sub-1-acre sites** (0.1–0.9 ac).
+  Formatter behaviour in `build_static_summary()`, not staleness — a regen
+  reproduces it byte-for-byte. Still code+tests, still supervised.
+- Producer files remain **2026-05-12** (three months old). Unchanged guardrail:
+  do not run producer refreshes unattended.
+
 ## Session checkpoint — 2026-08-11 (scheduled data-maintenance run)
 
 **Verified, found nothing to backfill, stopped.** The 2026-08-04/05 entry's
