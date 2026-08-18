@@ -279,10 +279,29 @@ def main() -> int:
         for slug in ordered_slugs:
             cls = connectors.get(slug)
             per_source_path = OUTPUT_DIR / f"{slug}.json"
-            sub_rc, records, label = _run_one(
-                slug, args, use_cache=use_cache,
-                output_override=per_source_path,
-            )
+            try:
+                sub_rc, records, label = _run_one(
+                    slug, args, use_cache=use_cache,
+                    output_override=per_source_path,
+                )
+            except Exception:
+                # Per-connector fault isolation. `--all` walks ~20 connectors
+                # over half a dozen federal hosts; a single transient network
+                # error (Overpass 504, ECHO ReadTimeout, ArcGIS connection
+                # reset) used to propagate out of `_run_one` and kill every
+                # connector still queued behind it. That is what broke the
+                # scheduled refresh 13 runs running from 2026-05-25.
+                #
+                # We log the full traceback (never swallow — see CLAUDE.md
+                # "fail loud") and keep the run's exit code nonzero, so CI
+                # still reports the failure; we just stop letting one host's
+                # bad minute cost us every downstream connector too.
+                log.exception(
+                    "[%s] connector raised — isolating and continuing with "
+                    "the remaining sources", slug,
+                )
+                rc = 1
+                continue
             rc = sub_rc or rc
             if records is not None and label is not None:
                 results[slug] = (records, label, cls.source_url)
