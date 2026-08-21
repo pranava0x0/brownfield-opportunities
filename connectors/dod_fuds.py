@@ -170,6 +170,7 @@ def _titlecase_owner(s: str) -> str:
 
 class DodFuds(Connector):
     slug = "dod-fuds"
+    authoritative_inventory = True
     source_label = "USACE Formerly Used Defense Sites (FUDS) FY24"
     source_url = (
         "https://geospatial-usace.opendata.arcgis.com/maps/"

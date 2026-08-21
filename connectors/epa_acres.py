@@ -54,6 +54,7 @@ DROP_RATIO_WARN_THRESHOLD = 0.5
 
 class EpaAcres(Connector):
     slug = "epa-acres"
+    authoritative_inventory = True
     source_label = "EPA ACRES Brownfield Properties"
     source_url = (
         "https://www.epa.gov/cleanups/"

@@ -66,6 +66,7 @@ DROP_RATIO_WARN_THRESHOLD = 0.5
 
 class SuperfundNPL(Connector):
     slug = "superfund-npl"
+    authoritative_inventory = True
     source_label = "EPA NPL Superfund Site Boundaries (Public)"
     source_url = (
         "https://hub.arcgis.com/datasets/EPA::"
