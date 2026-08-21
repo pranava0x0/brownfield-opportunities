@@ -78,6 +78,7 @@ ENRICHMENT_FILES = [
 # Overlay files: NOT SiteRecords, own shapes, validated separately.
 OVERLAY_FILES = [
     "ap1000-sites.json",
+    "microreactor-fleet.json",
     "nuclear-brownfield-proximity.json",
     "nuclear-civilian-sites.json",
     "planned-retirements.json",
