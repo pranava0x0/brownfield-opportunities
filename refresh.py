@@ -145,13 +145,13 @@ def _run_one(
         log.info("--fetch-only: skipping output write (%d records)", len(records))
         return 0, records, inst.source_label
     if not records:
-        # The canonical Superfund file going empty would be a real outage —
-        # abort so we don't corrupt the deployed dashboard. For enrichment
-        # connectors a sparse run is normal (small --docs-limit, partial
-        # coverage); write an empty payload so the file exists and the
-        # frontend's lazy-load 404 path doesn't trigger.
-        if slug == CANONICAL_SLUG:
-            log.error("[%s] no records normalized; aborting", slug)
+        # A complete program inventory going empty is a source outage even
+        # when the upstream returned HTTP 200. Never overwrite the deployed
+        # Superfund / ACRES / FUDS / BRAC file with that false empty state.
+        # Sparse enrichment runs remain valid and keep their existing empty-
+        # payload behavior so first-run files can still be created.
+        if inst.authoritative_inventory:
+            log.error("[%s] authoritative inventory returned no records; aborting", slug)
             return 1, None, inst.source_label
         log.warning("[%s] no records normalized; writing empty payload", slug)
 

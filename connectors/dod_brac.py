@@ -38,6 +38,7 @@ OUTFIELDS = [
 
 class DodBrac(Connector):
     slug = "dod-brac"
+    authoritative_inventory = True
     source_label = "DOD BRAC Military Installations"
     source_url = (
         "https://hub.arcgis.com/datasets/"

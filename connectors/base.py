@@ -72,6 +72,10 @@ class Connector(ABC):
     #: per-program JSON file (e.g. infra_proximity) override to 200/300 so
     #: they run after the files they depend on are written.
     run_order: int = 100
+    #: True only for connectors that own a complete program inventory. An
+    #: empty response from one of these sources is an outage, never a valid
+    #: payload to overwrite the deployed data file with.
+    authoritative_inventory: bool = False
 
     def __init__(self, cache_dir: Path):
         self.cache_dir = cache_dir
