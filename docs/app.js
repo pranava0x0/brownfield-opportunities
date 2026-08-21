@@ -12,6 +12,7 @@ const REDEV_DATA_URL = "data/epa-redev.json";
 const SUPERFUND_DOCS_URL = "data/epa-superfund-docs.json";
 const INFRA_DATA_URL = "data/infra-proximity.json";
 const OPP_ZONE_URL = "data/opportunity-zone.json";
+const TRIBAL_AREAS_URL = "data/tribal-areas.json";
 const CLIMATE_ZONE_URL = "data/climate-zone.json";
 const ISO_RTO_URL = "data/iso-rto.json";
 const ECHO_DATA_URL = "data/epa-echo.json";
@@ -29,6 +30,7 @@ const AP1000_SITES_URL = "data/ap1000-sites.json";
 const NUCLEAR_SITES_URL = "data/nuclear-civilian-sites.json";
 const NUCLEAR_BROWNFIELD_PROX_URL = "data/nuclear-brownfield-proximity.json";
 const MICRO_FLEET_URL = "data/microreactor-fleet.json";
+const JANUS_NEPA_URL = "data/janus-nepa.json";
 const FEMA_NRI_URL = "data/fema-nri.json";
 // Vector basemap: US states (always) + US counties (lazy at zoom ≥ COUNTY_MIN_ZOOM).
 // No tiles — Canada/Mexico literally don't exist on the map. Choropleth-style
@@ -581,6 +583,7 @@ let redevLoadingPromise = null;
 let superfundDocsLoadingPromise = null;
 let infraLoadingPromise = null;
 let oppZoneLoadingPromise = null;
+let tribalAreasLoadingPromise = null;
 let climateZoneLoadingPromise = null;
 let isoRtoLoadingPromise = null;
 let echoLoadingPromise = null;
@@ -608,6 +611,10 @@ let microFleetLoadingPromise = null;
 let microFleetLoadFailed = false;     // drives the Microreactors tab error state
 let microFleet = null;                // raw payload: vendors, commitments, sectors
 let microCommitmentLayer = null;      // ⬣ markers for the 24 sited commitments
+let janusNepaLoadingPromise = null;
+let janusNepaLoadFailed = false;
+let janusNepa = null;                 // PNNL nepa-mcp screen for 9 Army sites
+let janusNepaLayer = null;            // selected site's lazy GeoJSON overlay
 let iraEcLoadingPromise = null;
 let femaNriLoadingPromise = null;
 
@@ -957,6 +964,7 @@ fetch(PRIMARY_DATA_URL)
     lazyLoads.push(ensureSuperfundDocsLoaded());
     lazyLoads.push(ensureInfraLoaded());
     lazyLoads.push(ensureOppZoneLoaded());
+    lazyLoads.push(ensureTribalAreasLoaded());
     lazyLoads.push(ensureIraEnergyCommunityLoaded());
     lazyLoads.push(ensureFemaNriLoaded());
     lazyLoads.push(ensureClimateZoneLoaded());
@@ -1443,6 +1451,40 @@ function ensureOppZoneLoaded() {
       oppZoneLoadingPromise = null;
     });
   return oppZoneLoadingPromise;
+}
+
+// Census TIGERweb AIANNHA containment. This is consultation-planning context,
+// not title and not a determination of which governments must be consulted.
+function ensureTribalAreasLoaded() {
+  if (tribalAreasLoadingPromise) return tribalAreasLoadingPromise;
+  tribalAreasLoadingPromise = fetch(TRIBAL_AREAS_URL, { priority: "low" })
+    .then((r) => {
+      if (r.status === 404) return { sites: [] };
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then(async (payload) => {
+      recordRefreshDate(payload.generated_at, TRIBAL_AREAS_URL);
+      // This all-program enrichment often downloads before ACRES/FUDS. Wait
+      // so those joins are not silently discarded by the !existing guard.
+      await Promise.allSettled(
+        [acresLoadingPromise, fudsLoadingPromise, bracLoadingPromise].filter(Boolean)
+      );
+      for (const rec of payload.sites || []) {
+        const existing = sitesById.get(rec.id);
+        if (!existing) continue;
+        if (rec.in_aiannha_area != null) existing.in_aiannha_area = rec.in_aiannha_area;
+        if (rec.aiannha_area_count != null) existing.aiannha_area_count = rec.aiannha_area_count;
+        if (Array.isArray(rec.aiannha_areas)) existing.aiannha_areas = rec.aiannha_areas;
+      }
+      if (selectedId && sitesById.has(selectedId)) selectSite(selectedId);
+      buildCandidatesView();
+    })
+    .catch((err) => {
+      console.error("Tribal-area enrichment load failed:", err);
+      tribalAreasLoadingPromise = null;
+    });
+  return tribalAreasLoadingPromise;
 }
 
 // IRA Energy Community enrichment. Joins onto every program by `id` to add
@@ -3453,7 +3495,11 @@ function wireTabs() {
       ensureAp1000Loaded(); buildAp1000View();
       ensureNuclearSitesLoaded(); buildNuclearCivilianView();
     }
-    if (onMicro) { ensureMicroFleetLoaded(); buildMicroView(); }
+    if (onMicro) {
+      ensureMicroFleetLoaded();
+      ensureJanusNepaLoaded();
+      buildMicroView();
+    }
     if (onAbout) {
       const d = el("about-refresh-date");
       if (d && window.__refreshedAt) d.textContent = window.__refreshedAt;
@@ -4166,6 +4212,7 @@ const MICRO_DATA_SOURCE = "https://github.com/pranava0x0/brownfield-opportunitie
 const microState = {
   ranked: [],
   offGridOnly: false,   // hard-islanded sites only (no transmission within 100 mi)
+  janusSelectedId: null,
   built: false,
 };
 
@@ -4197,6 +4244,34 @@ function ensureMicroFleetLoaded() {
   return microFleetLoadingPromise;
 }
 
+function ensureJanusNepaLoaded() {
+  if (janusNepaLoadingPromise) return janusNepaLoadingPromise;
+  janusNepaLoadFailed = false;
+  janusNepaLoadingPromise = fetch(JANUS_NEPA_URL, { priority: "low" })
+    .then((r) => {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then((payload) => {
+      recordRefreshDate(payload.generated_at, JANUS_NEPA_URL);
+      janusNepa = payload;
+      const requested = new URLSearchParams(location.search).get("janus");
+      if (requested && (payload.sites || []).some((site) => site.id === requested)) {
+        microState.janusSelectedId = requested;
+      }
+      maybeRefreshMicro();
+      return payload;
+    })
+    .catch((err) => {
+      console.error("Janus NEPA screening load failed:", err);
+      janusNepaLoadingPromise = null;
+      janusNepaLoadFailed = true;
+      maybeRefreshMicro();
+      return null;
+    });
+  return janusNepaLoadingPromise;
+}
+
 function microCommitmentPopupHtml(c) {
   const band = (microFleet?.evidence_bands || []).find((b) => b.band === c.band);
   const srcs = (c.sources || []).slice(0, 2).map(
@@ -4218,6 +4293,9 @@ function microCommitmentPopupHtml(c) {
     `<div class="ref-campus-prev" style="font-style:normal">${escapeHtml(c.instrument)}</div>` +
     ((c.gaps || []).length
       ? `<div class="micro-pop-gap"><strong>Gap:</strong> ${escapeHtml(c.gaps[0])}</div>` : "") +
+    (c.janus && c.ap1000_ref
+      ? `<a href="?janus=${encodeURIComponent(c.ap1000_ref)}#micro" class="ref-campus-link">Open environmental screen →</a>`
+      : "") +
     srcs +
     `</div>`
   );
@@ -4380,6 +4458,194 @@ function _microCommitmentRows() {
     }
   }
   return html;
+}
+
+function _janusStatus(section, content) {
+  if (!section || section.status !== "ok") {
+    return '<span class="janus-unavailable">Unavailable</span>';
+  }
+  return content || '<span class="muted-cell">None returned</span>';
+}
+
+function _janusMatrixHtml() {
+  if (janusNepaLoadFailed) {
+    return '<p class="muted">Janus environmental screen could not be loaded. ' +
+      '<button type="button" id="janus-retry" class="text-btn">Retry</button></p>';
+  }
+  if (!janusNepa) return '<p class="muted">Loading Janus environmental evidence…</p>';
+
+  const rows = (janusNepa.sites || []).map((site) => {
+    const s = site.screening || {};
+    const ipac = s.ipac || {};
+    const ipacCounts = ipac.counts || {};
+    const wildlife = _janusStatus(ipac,
+      `<strong>${ipacCounts.listed_species || 0}</strong> ESA species` +
+      `<div class="micro-sub">${ipacCounts.critical_habitat || 0} critical-habitat records · ` +
+      `${ipacCounts.migratory_birds || 0} migratory birds</div>`);
+    const water = _janusStatus(ipac,
+      `<strong>${ipacCounts.wetland_types || 0}</strong> wetland types` +
+      '<div class="micro-sub">10-mi context; field delineation still required</div>');
+    const cultural = _janusStatus(s.nrhp,
+      `<strong>${s.nrhp.count || 0}</strong> NRHP records`) +
+      `<div class="micro-sub">${_janusStatus(s.tribal, `${s.tribal.count || 0} mapped tribal geographies`)}</div>`;
+    const protectedLand = _janusStatus(s.padus,
+      `<strong>${s.padus.count || 0}</strong> PAD-US records` +
+      '<div class="micro-sub">0.1-mi point context only</div>');
+    const districts = (s.usace?.districts || []).map((d) => d.district_abbreviation || d.district_name);
+    const agency = _janusStatus(s.usace,
+      districts.length ? escapeHtml(districts.join(" · ")) : '<span class="muted-cell">No district returned</span>');
+    const map = site.map_summary || {};
+    const mapText = map.feature_count == null
+      ? '<span class="janus-unavailable">Unavailable</span>'
+      : `<strong>${map.feature_count.toLocaleString()}</strong> features` +
+        `<div class="micro-sub">${map.layers_failed || 0} failed layer${map.layers_failed === 1 ? "" : "s"}</div>`;
+    const selected = microState.janusSelectedId === site.id;
+    return `<tr class="janus-row${selected ? " selected" : ""}">` +
+      `<td><button type="button" class="janus-site-button" data-janus="${escapeAttr(site.id)}" ` +
+        `aria-expanded="${selected}"><strong>${escapeHtml(site.name)}</strong>` +
+        `<span>${escapeHtml(site.location || site.state)}</span></button></td>` +
+      `<td>${wildlife}</td><td>${water}</td><td>${cultural}</td>` +
+      `<td>${protectedLand}</td><td>${agency}</td><td>${mapText}</td></tr>`;
+  }).join("");
+
+  return `<div class="micro-table-wrap"><table class="micro-table janus-table">` +
+    `<thead><tr><th scope="col">Installation</th><th scope="col">ESA / wildlife</th>` +
+    `<th scope="col">Water context</th><th scope="col">Cultural / tribal</th>` +
+    `<th scope="col">Protected land</th><th scope="col">USACE path</th>` +
+    `<th scope="col">Map package</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+function _janusNames(items, keys, limit = 8) {
+  const names = (items || []).map((item) => {
+    for (const key of keys) if (item?.[key]) return item[key];
+    return null;
+  }).filter(Boolean);
+  if (!names.length) return "None returned";
+  return names.slice(0, limit).join(" · ") + (names.length > limit ? ` · +${names.length - limit} more` : "");
+}
+
+function _janusDetailHtml() {
+  if (!janusNepa || !microState.janusSelectedId) {
+    return '<p class="janus-prompt">Choose an installation to inspect records, source links, limitations, and its map package.</p>';
+  }
+  const site = (janusNepa.sites || []).find((row) => row.id === microState.janusSelectedId);
+  if (!site) return "";
+  const s = site.screening || {};
+  const source = janusNepa.sources || {};
+  const pathway = janusNepa.deployment_pathway || {};
+  const cards = [
+    ["ipac", "Species and habitat", _janusNames(s.ipac?.species, ["common_name", "scientific_name"])],
+    ["tribal", "Mapped tribal geographies", _janusNames(s.tribal?.tribal_lands, ["name", "namelsad"])],
+    ["nrhp", "Listed historic properties", _janusNames(s.nrhp?.properties, ["property_name", "name"])],
+    ["padus", "Protected-land point context", _janusNames(s.padus?.largest_records, ["unit_name", "name"])],
+    ["usace", "Regulatory district and wetland method", _janusNames(s.usace?.districts, ["district_name"])],
+    ["nepa_assist", "EPA NEPAssist", s.nepa_assist?.status === "ok" ? "Interactive screening report available" : "Source unavailable"],
+  ].map(([key, heading, text]) => {
+    const section = s[key] || {};
+    const meta = source[key] || {};
+    const reportUrl = key === "nepa_assist" ? section.report_url : null;
+    return `<article class="janus-source-card">` +
+      `<div class="janus-card-head"><h4>${escapeHtml(heading)}</h4>` +
+      `<span class="janus-source-status status-${escapeAttr(section.status || "unavailable")}">` +
+        `${escapeHtml(section.status === "ok" ? "Available" : "Unavailable")}</span></div>` +
+      `<p>${escapeHtml(text)}</p>` +
+      `<p class="micro-note">${escapeHtml(meta.covers || "Coverage not documented")}</p>` +
+      `<div class="janus-card-links">` +
+        (meta.url ? `<a href="${escapeAttr(meta.url)}" target="_blank" rel="noopener">Source ↗</a>` : "") +
+        (reportUrl ? `<a href="${escapeAttr(reportUrl)}" target="_blank" rel="noopener">Open report ↗</a>` : "") +
+        (section.retrieved_at ? `<span>Retrieved ${escapeHtml(section.retrieved_at.slice(0, 10))}</span>` : "") +
+      `</div>` +
+      (section.error ? `<p class="janus-error">${escapeHtml(section.error)}</p>` : "") +
+      `</article>`;
+  }).join("");
+  const pathwayLinks = (pathway.sources || []).map((item) =>
+    `<a href="${escapeAttr(item.url)}" target="_blank" rel="noopener">${escapeHtml(item.label)} ↗</a>`
+  ).join("");
+  return `<div id="janus-detail" class="janus-detail" tabindex="-1">` +
+    `<div class="janus-detail-head"><div><p class="eyebrow">Installation context</p>` +
+      `<h3>${escapeHtml(site.name)}</h3><p>${escapeHtml(site.location)} · ` +
+      `${janusNepa.screening_buffer_miles}-mile screen around a reference point</p></div>` +
+      `<button type="button" class="ap1000-export janus-map-button" data-janus-map="${escapeAttr(site.id)}">` +
+      `Show ${site.map_summary?.feature_count?.toLocaleString() || "available"} features on map</button></div>` +
+    `<div class="janus-limit"><strong>Screening, not siting:</strong> installation point only; parcel unknown. ` +
+      `No count is a permit, agency, wetland-jurisdiction, or suitability conclusion. Unavailable is not no-hit.</div>` +
+    `<article class="janus-pathway"><div><p class="eyebrow">Announced deployment pathway</p>` +
+      `<h4>${escapeHtml(pathway.reactor_regulator || "Authorization path not published")}</h4>` +
+      `<p>${escapeHtml(pathway.acquisition || "Acquisition details unavailable")}</p>` +
+      `<p class="micro-note">${escapeHtml(pathway.nepa_status || "Project-specific NEPA pathway not published.")}</p>` +
+      `<p class="micro-note">${escapeHtml(pathway.limitations || "Confirm in award documents.")}</p></div>` +
+      `<div class="janus-card-links">${pathwayLinks}</div></article>` +
+    `<div class="janus-source-grid">${cards}</div></div>`;
+}
+
+function _remapJanusGeoJson(geojson, state) {
+  const inset = INSET_BY_STATE[state];
+  if (!inset) return geojson;
+  const copy = JSON.parse(JSON.stringify(geojson));
+  const remap = (coords) => {
+    if (typeof coords?.[0] === "number") {
+      const lon = Math.max(inset.src.west, Math.min(inset.src.east, coords[0]));
+      const lat = Math.max(inset.src.south, Math.min(inset.src.north, coords[1]));
+      const fLon = (lon - inset.src.west) / (inset.src.east - inset.src.west);
+      const fLat = (lat - inset.src.south) / (inset.src.north - inset.src.south);
+      coords[0] = inset.dst.west + fLon * (inset.dst.east - inset.dst.west);
+      coords[1] = inset.dst.south + fLat * (inset.dst.north - inset.dst.south);
+      return;
+    }
+    for (const child of coords || []) remap(child);
+  };
+  for (const feature of copy.features || []) remap(feature.geometry?.coordinates);
+  return copy;
+}
+
+function _janusLayerColor(layer) {
+  if (/nhd_|wetland/.test(layer)) return cssColor("--janus-water");
+  if (/critical_habitat|wildlife|tribal/.test(layer)) return cssColor("--janus-ecology");
+  if (/federal|nps|fire/.test(layer)) return cssColor("--janus-land");
+  return cssColor("--janus-context");
+}
+
+function showJanusMap(siteId) {
+  const site = (janusNepa?.sites || []).find((row) => row.id === siteId);
+  if (!site?.geojson_url) return;
+  const button = document.querySelector(`[data-janus-map="${CSS.escape(siteId)}"]`);
+  if (button) { button.disabled = true; button.textContent = "Loading map…"; }
+  fetch(site.geojson_url)
+    .then((r) => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .then((payload) => {
+      if (janusNepaLayer) map.removeLayer(janusNepaLayer);
+      const displayPayload = _remapJanusGeoJson(payload, site.state);
+      janusNepaLayer = L.geoJSON(displayPayload, {
+        style: (feature) => ({
+          color: _janusLayerColor(feature.properties?.layer || feature.properties?.type || "context"),
+          weight: feature.properties?.type === "Region of Interest" ? 2 : 1,
+          opacity: 0.8,
+          fillOpacity: feature.properties?.type === "Region of Interest" ? 0.03 : 0.12,
+        }),
+        pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
+          radius: feature.properties?.type === "Project Location" ? 6 : 3,
+          color: _janusLayerColor(feature.properties?.layer || "context"),
+          fillOpacity: 0.75,
+        }),
+        onEachFeature: (feature, layer) => {
+          const props = feature.properties || {};
+          const label = props.name || props.common_name || props.type || props.layer || "Mapped feature";
+          layer.bindPopup(`<strong>${escapeHtml(label)}</strong><br>` +
+            `<span class="micro-note">${escapeHtml(props.layer || "screening area")}</span>`);
+        },
+      }).addTo(map);
+      el("tab-map")?.click();
+      const bounds = janusNepaLayer.getBounds();
+      if (bounds.isValid()) map.fitBounds(bounds, { padding: [30, 30], maxZoom: 11 });
+      showToast(`${site.name}: NEPA screening layers shown. Not a project footprint.`);
+    })
+    .catch((err) => {
+      console.error("Janus GeoJSON load failed:", err);
+      showToast(`${site.name}: map package unavailable.`);
+    })
+    .finally(() => {
+      if (button) { button.disabled = false; button.textContent = "Show features on map"; }
+    });
 }
 
 function _microSectorHtml() {
@@ -4564,6 +4830,16 @@ function buildMicroView() {
       `</tr></thead><tbody>${_microCommitmentRows()}</tbody></table></div>` +
     `</section>` +
 
+    `<section class="micro-section janus-section" id="janus-screen">` +
+      `<div class="janus-section-head"><div><p class="eyebrow">Army Janus · NEPA MCP 0.1.1</p>` +
+      `<h3>Environmental and regulatory screen — 9 candidate installations</h3></div>` +
+      `<span class="micro-note">Federal evidence; no composite risk score</span></div>` +
+      `<p class="micro-note janus-intro">Click an installation for traceable ESA, water, historic, tribal, ` +
+      `protected-land, USACE, EPA, and geospatial evidence. Counts describe a 10-mile installation context, ` +
+      `except PAD-US at the reference point. They do not describe a proposed reactor footprint.</p>` +
+      `${_janusMatrixHtml()}${_janusDetailHtml()}` +
+    `</section>` +
+
     `<details class="ap1000-help micro-demand">` +
       `<summary>Demand ladder — ${counts.sector_loads || 0} load classes across ${counts.sectors || 0} sectors ` +
       `(${counts.sector_loads_full_fit || 0} fully served by a single ≤20&nbsp;MWe unit)</summary>` +
@@ -4613,6 +4889,9 @@ function exposeMicroTestHooks() {
   window.__buildMicroCsv = buildMicroCsv;
   window.__microRankedCount = () => microRankedSites().length;
   window.__microFleet = () => microFleet;
+  window.__janusNepa = () => janusNepa;
+  window.__showJanusMap = showJanusMap;
+  window.__janusMapFeatureCount = () => janusNepaLayer?.getLayers().length || 0;
   window.__fmtMiles = fmt.miles;
 }
 
@@ -4627,10 +4906,32 @@ function wireMicroControls() {
   }
   const csv = el("micro-export-csv");
   if (csv) csv.addEventListener("click", downloadMicroCsv);
+  const janusRetry = el("janus-retry");
+  if (janusRetry) {
+    janusRetry.addEventListener("click", () => {
+      janusNepaLoadFailed = false;
+      buildMicroView();
+      ensureJanusNepaLoaded();
+    });
+  }
   // Site links open the detail panel in place rather than reloading the page
   // with ?site= — same affordance the Rankings table gives.
   const host = el("micro-content");
   if (host) {
+    host.querySelectorAll("button.janus-site-button").forEach((button) => {
+      button.addEventListener("click", () => {
+        microState.janusSelectedId = button.dataset.janus;
+        const url = new URL(location.href);
+        url.searchParams.set("janus", button.dataset.janus);
+        url.hash = "micro";
+        history.replaceState(null, "", url.pathname + url.search + url.hash);
+        buildMicroView();
+        requestAnimationFrame(() => el("janus-detail")?.focus());
+      });
+    });
+    host.querySelectorAll("button.janus-map-button").forEach((button) => {
+      button.addEventListener("click", () => showJanusMap(button.dataset.janusMap));
+    });
     host.querySelectorAll("a.micro-site-link").forEach((a) => {
       a.addEventListener("click", (e) => {
         e.preventDefault();
@@ -5273,6 +5574,9 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
   const iraPill = s.in_energy_community === true
     ? ` <span class="pill ira-pill" title="IRA energy community (${escapeAttr(s.energy_community_type === "coal_closure" ? "coal closure" : "fossil-fuel employment")}${s.energy_community_detail ? " · " + escapeAttr(s.energy_community_detail) : ""}) — clean-energy projects earn a +10 percentage-point ITC/PTC bonus">${s.energy_community_type === "coal_closure" ? "IRA \xb7 Coal" : "IRA"}</span>`
     : "";
+  const tribalPill = s.in_aiannha_area === true
+    ? ` <span class="pill tribal-pill" title="Inside ${s.aiannha_area_count || 1} Census TIGERweb AIANNHA mapped area(s): ${escapeAttr((s.aiannha_areas || []).map((area) => area.name).join(" · "))}. Screening context only; not title or a consultation determination.">Tribal area context</span>`
+    : "";
   // EO 14318 "Federal Fast Lane" — policy signal. Meets EPA Jan 2026 criteria
   // for fast-tracked NEPA categorical exclusion + Army Corps Section 404 permits.
   const eo14318Pill = _hasEO14318(s)
@@ -5292,7 +5596,7 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
     else titleParts.push("transmission ≤1 mi");
     tierPill = ` <span class="pill ${cls}" title="${escapeAttr(titleParts.join(" \xb7 "))}">${escapeHtml(DC_TIER_LABEL[tier])}</span>`;
   }
-  el("d-program").innerHTML = programPill + cleanupPill + reusePill + landReadyPill + dcPill + ozPill + iraPill + eo14318Pill + tierPill;
+  el("d-program").innerHTML = programPill + cleanupPill + reusePill + landReadyPill + dcPill + ozPill + iraPill + tribalPill + eo14318Pill + tierPill;
   // The acreage `<dd>` carries an inline note `<span>` for FUDS records
   // missing acreage. Replace only the text node so the note span isn't
   // clobbered, then toggle the note for the FUDS-no-boundary case.

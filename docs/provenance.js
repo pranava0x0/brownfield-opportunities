@@ -49,6 +49,8 @@
     RETIRED: "data/eia-retired-plants.json",
     PLANNED: "data/planned-retirements-proximity.json",
     COORD: "data/coord-quality.json",
+    TRIBAL: "data/tribal-areas.json",
+    WORKFORCE: "data/census-workforce.json",
   };
 
   // ---- per-site verification link builders --------------------------------
@@ -405,6 +407,29 @@
         s),
       verifyLabel: "DOE NETL energy-community polygon at this point",
       expectsFeatures: (s) => s.in_energy_community === true,
+    },
+    in_aiannha_area: {
+      group: "Environmental", label: "Tribal-area context",
+      publisher: "US Census Bureau",
+      dataset: "TIGERweb American Indian, Alaska Native, and Native Hawaiian Areas",
+      file: D.TRIBAL, code: "connectors/tribal_areas.py",
+      derivation: "Point-in-polygon against six TIGERweb AIANNHA layers. "
+        + "This is mapped consultation-planning context, not land title and "
+        + "not a determination of which governments an agency must consult.",
+      url: "https://tigerweb.geo.census.gov/tigerwebmain/TIGERweb_restmapservice.html",
+      verifyLabel: "Census TIGERweb AIANNHA service",
+    },
+    county_construction_employment: {
+      group: "Community", label: "County workforce context",
+      publisher: "US Census Bureau",
+      dataset: "2024 ACS 5-Year Selected Economic Characteristics (DP03)",
+      file: D.WORKFORCE, code: "connectors/census_workforce.py",
+      derivation: "County civilian labor force (DP03_0003E), construction-industry "
+        + "employment (DP03_0034E), and median household income (DP03_0062E) "
+        + "joined by normalized state and county. County context is not a "
+        + "project labor-availability study.",
+      url: "https://www.census.gov/data/developers/data-sets/acs-5year.html",
+      verifyLabel: "Census ACS 5-Year API documentation",
     },
     nri_risk_rating: {
       group: "Risk", label: "Natural-hazard risk",

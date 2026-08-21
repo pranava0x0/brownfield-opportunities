@@ -287,6 +287,35 @@ class SiteRecord(BaseModel):
                     "OZs are a small subset (~700 tracts) but matter for "
                     "USDA-aligned investment programs.",
     )
+    in_aiannha_area: Optional[bool] = Field(
+        default=None,
+        description="True when the site point falls in a Census TIGERweb "
+                    "American Indian, Alaska Native, or Native Hawaiian Area. "
+                    "Screening context only; not land title or a consultation conclusion.",
+    )
+    aiannha_area_count: Optional[int] = Field(
+        default=None,
+        description="Number of overlapping TIGERweb AIANNHA mapped geographies.",
+    )
+    aiannha_areas: Optional[list[dict[str, Optional[str]]]] = Field(
+        default=None,
+        description="Compact name, GEOID, and category records for containing AIANNHA areas.",
+    )
+    county_labor_force: Optional[int] = Field(
+        default=None, description="ACS 5-Year county civilian labor force estimate."
+    )
+    county_construction_employment: Optional[int] = Field(
+        default=None, description="ACS 5-Year county construction-industry employment estimate."
+    )
+    county_median_household_income: Optional[int] = Field(
+        default=None, description="ACS 5-Year county median household income estimate."
+    )
+    workforce_county: Optional[str] = Field(
+        default=None, description="County name used for the ACS workforce join."
+    )
+    workforce_data_year: Optional[int] = Field(
+        default=None, description="ACS vintage used for county workforce estimates."
+    )
     in_energy_community: Optional[bool] = Field(
         default=None,
         description="True if the site sits inside an IRA (Inflation Reduction "
