@@ -638,7 +638,7 @@ def test_refresh_date_reflects_freshest_data_file(page, base_url):
             'retired-industrial.json', 'planned-retirements.json',
             'planned-retirements-proximity.json', 'coord-quality.json',
             'nuclear-civilian-sites.json', 'nuclear-brownfield-proximity.json',
-            'microreactor-fleet.json',
+            'microreactor-fleet.json', 'janus-nepa.json', 'tribal-areas.json',
           ];
           const fmt = (s) => new Date(Date.parse(s)).toISOString().slice(0, 10);
           let coreDate = null;

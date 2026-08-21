@@ -389,6 +389,37 @@ def test_planned_retirement_join_covers_all_programs(page, base_url):
     )
 
 
+def test_tribal_area_join_covers_lazy_programs(page, base_url):
+    """The all-program AIANNHA enrichment must wait for ACRES/FUDS ingest."""
+    def _slow(route):
+        import time as _t
+        _t.sleep(0.8)
+        route.continue_()
+
+    page.route("**/epa-acres.json", _slow)
+    page.route("**/dod-fuds.json", _slow)
+    _ready(page, base_url)
+    stats = page.evaluate(
+        """async () => {
+          const byId = new Map(window.__sites.map(s => [s.id, s]));
+          const payload = await (await fetch('data/tribal-areas.json')).json();
+          let present = 0, joined = 0, joinedNonSuperfund = 0;
+          for (const rec of payload.sites) {
+            const site = byId.get(rec.id);
+            if (!site) continue;
+            present++;
+            if (site.in_aiannha_area === rec.in_aiannha_area) {
+              joined++;
+              if (site.program !== 'superfund') joinedNonSuperfund++;
+            }
+          }
+          return { present, joined, joinedNonSuperfund };
+        }"""
+    )
+    assert stats["joined"] == stats["present"]
+    assert stats["joinedNonSuperfund"] > 1000
+
+
 def test_manufacturing_lens_button_sorts_by_mfg(page, base_url):
     """The Rankings tab's third lens: clicking Manufacturing re-sorts by
     computeManufacturingScore, updates the stats line, and round-trips

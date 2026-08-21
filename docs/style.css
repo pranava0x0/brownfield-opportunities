@@ -2380,6 +2380,14 @@ main {
   font-size: 9.5px;
   padding: 0 6px;
 }
+.pill.tribal-pill {
+  background: transparent;
+  color: var(--janus-ecology);
+  border: 1px solid var(--janus-ecology);
+  font-weight: 700;
+  font-size: 9.5px;
+  padding: 0 6px;
+}
 .sig-badge.sig-ira {
   background: rgba(47, 122, 77, 0.1);
   color: var(--readiness-ready);
@@ -2832,6 +2840,10 @@ main {
   --micro-contracted:    #8a5a12;
   --micro-framework:     #6b7480;
   --micro-commit:        #7a3fa8;   /* ⬣ overlay marker */
+  --janus-water:         #176b87;
+  --janus-ecology:       #667a24;
+  --janus-land:          #8a5a12;
+  --janus-context:       #5f6874;
 }
 [data-theme="dark"] {
   --micro-operational:   #5fd39b;
@@ -2841,6 +2853,10 @@ main {
   --micro-contracted:    #e0a94a;
   --micro-framework:     #9aa3ae;
   --micro-commit:        #c08ae8;
+  --janus-water:         #63c6df;
+  --janus-ecology:       #b0cf6a;
+  --janus-land:          #e0a94a;
+  --janus-context:       #aeb7c4;
 }
 
 /* The .view sections are absolutely positioned and clip by default — each
@@ -2968,8 +2984,78 @@ main {
 .micro-pop-band.band-framework    { color: var(--micro-framework); }
 .micro-pop-gap { font-size: 11px; color: var(--suit-amber); margin: 4px 0 2px; line-height: 1.4; }
 
+/* Janus NEPA screen. Evidence states stay neutral: count presence is context,
+   never a red/green suitability conclusion. */
+.janus-section {
+  padding: 18px; border: 1px solid var(--border-strong); border-radius: 12px;
+  background: var(--surface-2);
+}
+.janus-section-head, .janus-detail-head {
+  display: flex; justify-content: space-between; gap: 16px; align-items: flex-start;
+}
+.janus-section-head h3, .janus-detail-head h3 { margin: 0; font-family: var(--font-serif); }
+.janus-intro { max-width: 92ch; margin: 0 0 12px; }
+.janus-table { background: var(--surface); }
+.janus-table th:first-child, .janus-table td:first-child { min-width: 190px; }
+.janus-table td { min-width: 135px; }
+.janus-row.selected { background: var(--accent-soft); }
+.janus-site-button {
+  display: block; width: 100%; padding: 0; border: 0; background: transparent;
+  color: var(--text); text-align: left; cursor: pointer;
+}
+.janus-site-button strong, .janus-site-button span { display: block; }
+.janus-site-button span { margin-top: 2px; color: var(--muted); font-size: 11.5px; }
+.janus-site-button:hover strong { color: var(--accent); text-decoration: underline; }
+.janus-unavailable, .janus-error { color: var(--suit-amber); font-weight: 600; }
+.janus-prompt {
+  margin: 12px 0 0; padding: 14px; border: 1px dashed var(--border-strong);
+  border-radius: 8px; color: var(--muted);
+}
+.janus-detail {
+  margin-top: 14px; padding: 16px; border: 1px solid var(--border);
+  border-radius: 10px; background: var(--surface);
+}
+.janus-detail:focus { outline: 2px solid var(--accent); outline-offset: 2px; }
+.janus-detail-head p { margin: 3px 0 0; color: var(--muted); font-size: 12px; }
+.janus-limit {
+  margin: 12px 0; padding: 9px 11px; border-left: 3px solid var(--suit-amber);
+  background: var(--surface-2); font-size: 12px; line-height: 1.5;
+}
+.janus-pathway {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px;
+  margin: 12px 0; padding: 12px; border: 1px solid var(--border);
+  border-radius: 8px; background: var(--surface-2);
+}
+.janus-pathway h4, .janus-pathway p { margin: 4px 0; }
+.janus-pathway .janus-card-links { align-content: start; justify-items: end; }
+.janus-source-grid {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;
+}
+.janus-source-card { padding: 11px; border: 1px solid var(--border); border-radius: 8px; }
+.janus-card-head { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.janus-card-head h4 { margin: 0; font-size: 12.5px; }
+.janus-source-card > p { margin: 7px 0; font-size: 11.5px; line-height: 1.45; }
+.janus-source-status {
+  color: var(--muted); font-size: 9.5px; font-weight: 700; letter-spacing: .04em;
+  text-transform: uppercase; white-space: nowrap;
+}
+.janus-source-status.status-unavailable { color: var(--suit-amber); }
+.janus-card-links { display: flex; flex-wrap: wrap; gap: 8px; font-size: 10.5px; }
+.janus-card-links span { color: var(--muted); }
+.janus-map-button { white-space: nowrap; }
+
 @media (max-width: 640px) {
   .micro-wrap { padding: 14px 12px 32px; }
   .micro-table { font-size: 12px; }
   .micro-chips { max-width: none; }
+  .janus-section { padding: 12px; }
+  .janus-section-head, .janus-detail-head { display: block; }
+  .janus-map-button { margin-top: 10px; white-space: normal; }
+  .janus-pathway { grid-template-columns: 1fr; }
+  .janus-pathway .janus-card-links { justify-items: start; }
+  .janus-source-grid { grid-template-columns: 1fr; }
+}
+
+@media (min-width: 641px) and (max-width: 960px) {
+  .janus-source-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

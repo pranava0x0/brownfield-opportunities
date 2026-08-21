@@ -340,13 +340,38 @@ def _open_tab(page: Page, base_url: str) -> None:
 
 def test_tab_renders_fleet_commitments_and_ranking(page: Page, base_url: str):
     _open_tab(page, base_url)
+    page.wait_for_selector(".janus-table tbody tr", timeout=15_000)
     tables = page.locator("#micro-content table.micro-table")
-    assert tables.count() == 3
+    assert tables.count() == 4
     assert tables.nth(0).locator("tbody tr").count() >= 11        # the fleet
     assert tables.nth(1).locator("tbody tr").count() >= 30        # commitments + track headers
     assert page.locator(".micro-rank-table tbody tr").count() > 0  # the siting screen
     # Every fleet and commitment row must expose at least one source link.
     assert page.locator("#micro-content .micro-src a").count() >= 40
+
+
+def test_janus_screen_has_nine_traceable_installations(page: Page, base_url: str):
+    _open_tab(page, base_url)
+    page.wait_for_selector(".janus-table tbody tr", timeout=15_000)
+    assert page.locator(".janus-table tbody tr").count() == 9
+    page.locator("button.janus-site-button").first.click()
+    page.wait_for_selector("#janus-detail")
+    assert page.locator(".janus-source-card").count() == 6
+    assert page.locator(".janus-source-card a").count() >= 6
+    detail = page.locator("#janus-detail").inner_text()
+    assert "Screening, not siting" in detail
+    assert "Unavailable is not no-hit" in detail
+
+
+def test_janus_deep_link_and_lazy_map_package(page: Page, base_url: str):
+    _ready(page, base_url)
+    page.goto(f"{base_url}/index.html?janus=fort-benning-ga#micro")
+    page.wait_for_selector("#janus-detail", timeout=20_000)
+    assert "Fort Benning" in page.locator("#janus-detail").inner_text()
+    page.click("button.janus-map-button")
+    page.wait_for_selector("#view-map:not([hidden])", timeout=20_000)
+    page.wait_for_function("() => window.__janusMapFeatureCount() > 0", timeout=20_000)
+    assert page.evaluate("() => window.__janusMapFeatureCount()") > 1_000
 
 
 def test_tab_is_a_bookmarkable_hash_route(page: Page, base_url: str):
@@ -503,4 +528,5 @@ def test_fleet_load_failure_offers_a_retry_that_recovers(page: Page, base_url: s
     page.click("#micro-retry")
     page.wait_for_selector(".micro-rank-table tbody tr", timeout=30_000)
     assert state["attempts"] > before, "the retry never re-fetched"
-    assert page.locator("#micro-content table.micro-table").count() == 3
+    page.wait_for_selector(".janus-table", timeout=15_000)
+    assert page.locator("#micro-content table.micro-table").count() == 4

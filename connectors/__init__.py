@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from connectors.ai_summary import AiSummary
 from connectors.base import Connector
+from connectors.census_workforce import CensusWorkforce
 from connectors.eia_retired_plants import EiaRetiredPlants
 from connectors.dod_brac import DodBrac
 from connectors.epa_acres_cleanup import EpaAcresCleanup
@@ -24,6 +25,7 @@ from connectors.opportunity_zone import OpportunityZone
 from connectors.parcel_owner import ParcelOwner
 from connectors.planned_retirements import PlannedRetirements
 from connectors.superfund_npl import SuperfundNPL
+from connectors.tribal_areas import TribalAreas
 from connectors.climate_zone import ClimateZone
 from connectors.coord_quality import CoordQuality
 
@@ -65,3 +67,5 @@ register("epa-echo", EpaEcho)
 register("acres-cleanup", EpaAcresCleanup)
 register("ai-summary", AiSummary)
 register("parcel-owner", ParcelOwner)
+register("tribal-areas", TribalAreas)
+register("census-workforce", CensusWorkforce)
