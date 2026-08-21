@@ -1893,7 +1893,19 @@ main {
   .brand .sub { font-size: 10px; margin-top: 1px; }
   .icon-btn { width: 30px; height: 30px; }
   .tab { padding: 6px 12px; font-size: 13px; }
-  .tabs { padding: 2px; }
+  /* Seven tabs no longer fit a phone. Scroll the strip inside itself rather
+     than letting it push the page body wide — a horizontally scrolling body
+     breaks every other layout on the page. `flex-shrink: 0` stops the buttons
+     from compressing into unreadable slivers instead of scrolling. */
+  .tabs {
+    padding: 2px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { flex: 0 0 auto; scroll-snap-align: start; }
   .kv { grid-template-columns: 96px 1fr; gap: 6px 12px; }
   #sites-table { font-size: 12px; }
   #sites-table th, #sites-table td { padding: 9px 10px; }
@@ -2803,4 +2815,161 @@ main {
   color: var(--muted);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   opacity: .8;
+}
+
+/* ===== Microreactors tab =====================================================
+   The evidence-band palette is the load-bearing piece: one hue per band, in
+   the same strongest-first order the data file ships. Colours run warm (a
+   built, DOE-authorized reactor) to cool-muted (an announced MOU), so a
+   reader can rank the whole table at a glance without reading a single label.
+   Every band token is redefined under [data-theme="dark"] — never let a band
+   colour have its only definition in one theme. */
+:root {
+  --micro-operational:   #14663c;
+  --micro-construction:  #1f7ba8;
+  --micro-doe:           #2f7a4d;
+  --micro-review:        #1c5e9e;
+  --micro-contracted:    #8a5a12;
+  --micro-framework:     #6b7480;
+  --micro-commit:        #7a3fa8;   /* ⬣ overlay marker */
+}
+[data-theme="dark"] {
+  --micro-operational:   #5fd39b;
+  --micro-construction:  #6fc8ee;
+  --micro-doe:           #6cc18a;
+  --micro-review:        #7eb6e8;
+  --micro-contracted:    #e0a94a;
+  --micro-framework:     #9aa3ae;
+  --micro-commit:        #c08ae8;
+}
+
+/* The .view sections are absolutely positioned and clip by default — each
+   scrolling tab opts in explicitly, same as .ap1000-view / .retired-view. */
+.micro-view { overflow: auto; }
+.micro-wrap { max-width: 1180px; margin: 0 auto; padding: 28px 24px 64px; }
+.micro-lead h2 { margin: 0 0 6px; font-family: var(--font-serif); font-size: 22px; }
+.micro-lead p { margin: 0 0 12px; color: var(--text-soft); line-height: 1.6; max-width: 92ch; font-size: 13.5px; }
+
+.micro-section { margin: 0 0 26px; }
+.micro-section > h3 {
+  margin: 0 0 10px; font-size: 14px; font-weight: 700;
+  display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap;
+}
+.micro-note { color: var(--muted); font-weight: 400; font-size: 11.5px; line-height: 1.45; }
+.micro-gap { color: var(--suit-amber); }
+.micro-sub { color: var(--muted); font-size: 11.5px; margin-top: 2px; }
+
+/* Committed-MWe strip. Each cell is one band; they are deliberately laid out
+   as separate frames rather than a stacked bar, because summing across bands
+   is the exact error the band rules exist to prevent. */
+.micro-bandstrip { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 12px; }
+.micro-band-cell {
+  border: 1px solid var(--border); border-left-width: 3px; border-radius: 8px;
+  padding: 7px 12px; background: var(--surface-2); min-width: 130px;
+}
+.micro-band-mwe { display: block; font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.micro-band-label { display: block; font-size: 11.5px; font-weight: 600; }
+.micro-band-auth { display: block; font-size: 10.5px; color: var(--muted); }
+.micro-bandstrip-foot { flex-basis: 100%; margin: 2px 0 0; max-width: 86ch; }
+
+.micro-band {
+  display: inline-block; font-size: 10.5px; font-weight: 700;
+  letter-spacing: 0.02em; text-transform: uppercase; white-space: nowrap;
+}
+.micro-band-cell.band-operational,  .micro-band.band-operational  { border-left-color: var(--micro-operational); color: var(--micro-operational); }
+.micro-band-cell.band-construction, .micro-band.band-construction { border-left-color: var(--micro-construction); color: var(--micro-construction); }
+.micro-band-cell.band-doe-authorized, .micro-band.band-doe-authorized { border-left-color: var(--micro-doe); color: var(--micro-doe); }
+.micro-band-cell.band-review,       .micro-band.band-review       { border-left-color: var(--micro-review); color: var(--micro-review); }
+.micro-band-cell.band-contracted,   .micro-band.band-contracted   { border-left-color: var(--micro-contracted); color: var(--micro-contracted); }
+.micro-band-cell.band-framework,    .micro-band.band-framework    { border-left-color: var(--micro-framework); color: var(--micro-framework); }
+/* The band-cell values keep the neutral text colour; only the rule and the
+   inline pill carry the hue, so a 32.0 MWe figure never reads as a status. */
+.micro-band-cell .micro-band-mwe { color: var(--text); }
+
+.micro-table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; }
+.micro-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.micro-table thead th {
+  position: sticky; top: 0; z-index: 1;
+  background: var(--surface-2); color: var(--muted);
+  text-align: left; font-weight: 600; font-size: 11px;
+  text-transform: uppercase; letter-spacing: 0.03em;
+  padding: 9px 10px; white-space: nowrap; border-bottom: 1px solid var(--border);
+}
+.micro-table td { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.micro-table tbody tr:hover { background: var(--surface-2); }
+.micro-table .micro-mwe { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.micro-table .micro-specs { color: var(--text-soft); font-size: 12px; max-width: 34ch; }
+.micro-table .micro-src { white-space: nowrap; }
+/* Without a floor the name column collapses to the width of its longest
+   word and a six-word commitment title wraps to six lines. */
+.micro-table th:first-child, .micro-table td:first-child { min-width: 200px; }
+.micro-table .micro-note { max-width: 42ch; }
+.micro-table .micro-src a { text-decoration: none; color: var(--accent); padding: 0 1px; }
+.micro-adjacent { background: var(--surface-2); }
+.micro-adjacent td:first-child { border-left: 3px solid var(--micro-framework); }
+
+.micro-track-row th {
+  position: static; background: var(--surface); color: var(--text);
+  font-size: 12px; text-transform: none; letter-spacing: 0;
+  padding-top: 14px; border-bottom: 1px solid var(--border-strong);
+}
+.micro-mapped { color: var(--micro-commit); }
+
+.micro-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 0 0 10px; }
+.micro-controls .micro-note { max-width: 78ch; }
+.micro-filtered { color: var(--accent); }
+.micro-rank-table .micro-rank { color: var(--muted); font-variant-numeric: tabular-nums; }
+.micro-site-link { color: var(--text); text-decoration: none; font-weight: 600; }
+.micro-site-link:hover { color: var(--accent); text-decoration: underline; }
+.micro-offgrid { color: var(--suit-amber); font-weight: 700; white-space: nowrap; }
+.micro-chips { display: flex; flex-wrap: wrap; gap: 4px; max-width: 34ch; }
+.micro-chip {
+  font-size: 10.5px; border: 1px solid var(--border); border-radius: 4px;
+  padding: 1px 5px; color: var(--muted); font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Demand ladder. `full` = one unit covers the load; `block` = the load
+   exceeds the band, so a unit serves a slice of a larger campus. Filled vs
+   outlined carries that distinction without relying on colour alone. */
+.micro-sectors { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; margin-top: 10px; }
+.micro-sector h4 { margin: 0 0 6px; font-size: 12.5px; display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+.micro-loads { list-style: none; margin: 0; padding: 0; }
+.micro-loads li {
+  display: flex; justify-content: space-between; gap: 8px; align-items: baseline;
+  font-size: 11.5px; padding: 3px 0 3px 9px; border-left: 3px solid transparent;
+}
+.micro-loads li.fit-full { border-left-color: var(--accent); }
+.micro-loads li.fit-block { border-left-color: var(--border-strong); }
+.micro-load { color: var(--text-soft); }
+.micro-band-mw { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.fit-key { font-weight: 600; }
+.fit-key.fit-full { color: var(--accent); }
+.fit-key.fit-block { color: var(--muted); }
+
+/* Map overlay — ⬣ for a named commitment, sitting just above the ⚛ civilian
+   pipeline mark. Glyph goes straight in the icon div (no inner <span>), the
+   same halved-DOM pattern the nuclear overlay uses. */
+.micro-commit-icon {
+  background: none !important; border: none !important;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; line-height: 1; cursor: pointer;
+  color: var(--micro-commit);
+  text-shadow: 0 0 3px rgba(0,0,0,0.55);
+}
+.micro-commit-icon.band-framework { opacity: 0.72; }
+.legend-hexagon { color: var(--micro-commit); font-size: 12px; width: 14px; text-align: center; }
+.micro-pop-band { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; margin: 2px 0 4px; }
+.micro-pop-band.band-operational  { color: var(--micro-operational); }
+.micro-pop-band.band-construction { color: var(--micro-construction); }
+.micro-pop-band.band-doe-authorized { color: var(--micro-doe); }
+.micro-pop-band.band-review       { color: var(--micro-review); }
+.micro-pop-band.band-contracted   { color: var(--micro-contracted); }
+.micro-pop-band.band-framework    { color: var(--micro-framework); }
+.micro-pop-gap { font-size: 11px; color: var(--suit-amber); margin: 4px 0 2px; line-height: 1.4; }
+
+@media (max-width: 640px) {
+  .micro-wrap { padding: 14px 12px 32px; }
+  .micro-table { font-size: 12px; }
+  .micro-chips { max-width: none; }
 }

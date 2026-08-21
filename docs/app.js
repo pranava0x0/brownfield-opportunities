@@ -28,6 +28,7 @@ const IRA_EC_URL = "data/ira-energy-community.json";
 const AP1000_SITES_URL = "data/ap1000-sites.json";
 const NUCLEAR_SITES_URL = "data/nuclear-civilian-sites.json";
 const NUCLEAR_BROWNFIELD_PROX_URL = "data/nuclear-brownfield-proximity.json";
+const MICRO_FLEET_URL = "data/microreactor-fleet.json";
 const FEMA_NRI_URL = "data/fema-nri.json";
 // Vector basemap: US states (always) + US counties (lazy at zoom ≥ COUNTY_MIN_ZOOM).
 // No tiles — Canada/Mexico literally don't exist on the map. Choropleth-style
@@ -603,6 +604,10 @@ let nuclearLoadAttempt = 0;           // generation token: a superseded attempt'
 let nuclearCivilianSites = [];        // raw payload, for the Nuclear Siting tab
 let nuclearProximityById = new Map(); // nuclear_site_id -> nearby Superfund records
 let nuclearMarkersById = new Map();   // nuclear_site_id -> Leaflet marker
+let microFleetLoadingPromise = null;
+let microFleetLoadFailed = false;     // drives the Microreactors tab error state
+let microFleet = null;                // raw payload: vendors, commitments, sectors
+let microCommitmentLayer = null;      // ⬣ markers for the 24 sited commitments
 let iraEcLoadingPromise = null;
 let femaNriLoadingPromise = null;
 
@@ -967,6 +972,11 @@ fetch(PRIMARY_DATA_URL)
     lazyLoads.push(ensureRetiredIndustrialLoaded());
     lazyLoads.push(ensurePlannedRetirementsLoaded());
     lazyLoads.push(ensureNuclearSitesLoaded());
+    // Eager like every other map overlay — the 24 ⬣ commitment markers and
+    // their legend row belong on the map from first paint, not hidden behind
+    // a visit to the Microreactors tab. Only the tab's own tables are built
+    // lazily, and that is where the DOM cost actually is.
+    lazyLoads.push(ensureMicroFleetLoaded());
     applyUrlSelection();
     if (lazyLoads.length === 0) {
       markAppReady();
@@ -1375,6 +1385,11 @@ function ensureInfraLoaded() {
         if (rec.power_plant_fuel != null) patch.power_plant_fuel = rec.power_plant_fuel;
         if (rec.flood_zone != null) patch.flood_zone = rec.flood_zone;
         if (rec.in_sfha != null) patch.in_sfha = rec.in_sfha;
+        // Marker, not data: the microreactor lens treats a null transmission
+        // distance as "off-grid" (the connector emits a tombstone when nothing
+        // is within 100 mi), which is only a safe reading once the join has
+        // run. See microreactorScorable() in microreactor-score.js.
+        patch._infraChecked = true;
         Object.assign(existing, patch);
       }
       // Re-run KPI deck (hyperscale-ready count depends on transmission_kv)
@@ -2080,6 +2095,7 @@ function initMap() {
   plannedRetirementLayer = L.layerGroup().addTo(map);
   // Civilian nuclear pipeline (⚛) — existing/planned reactor sites.
   nuclearSiteLayer = L.layerGroup().addTo(map);
+  microCommitmentLayer = L.layerGroup().addTo(map);
 
   fitUsBoundsSafely();
 
@@ -2382,8 +2398,17 @@ function addLegend() {
         `<span class="legend-num">${nuclearSiteLayer.getLayers().length}</span>` +
         `</div>`
       : "";
+    // Named microreactor commitments — ANPI base pairings, Janus candidate
+    // installations, DOE pilot reactors, and sited commercial deals.
+    const microRow = (microCommitmentLayer && microCommitmentLayer.getLayers().length > 0)
+      ? `<div class="legend-row legend-row-ref">` +
+        `<span class="legend-hexagon">\u2b23</span>` +
+        `<span class="legend-label">Microreactor commitment</span>` +
+        `<span class="legend-num">${microCommitmentLayer.getLayers().length}</span>` +
+        `</div>`
+      : "";
     div.innerHTML =
-      `<div class="legend-title"><span>Program</span></div>${rows}${refRow}${retRow}${plannedRow}${nukeRow}` +
+      `<div class="legend-title"><span>Program</span></div>${rows}${refRow}${retRow}${plannedRow}${nukeRow}${microRow}` +
       `<div class="legend-foot">Marker size ∝ acreage (log)</div>`;
     L.DomEvent.disableClickPropagation(div);
     return div;
@@ -2505,6 +2530,9 @@ function applyFilter() {
   // The candidates view sources from tableState.filtered — rebuild it when
   // it's the active tab so global filter changes apply live there too.
   maybeRefreshCandidates();
+  // Same contract for the microreactor siting screen — it ranks
+  // tableState.filtered, so a filter change has to rebuild it live.
+  maybeRefreshMicro();
   syncUrl();
 }
 
@@ -3383,6 +3411,7 @@ function wireTabs() {
   const candidatesTab = el("tab-candidates");
   const retiredTab = el("tab-retired");
   const ap1000Tab = el("tab-ap1000");
+  const microTab = el("tab-micro");
   const aboutTab = el("tab-about");
   const setView = (which) => {
     const onMap = which === "map";
@@ -3390,11 +3419,12 @@ function wireTabs() {
     const onCandidates = which === "candidates";
     const onRetired = which === "retired";
     const onAp1000 = which === "ap1000";
+    const onMicro = which === "micro";
     const onAbout = which === "about";
     for (const [tab, active] of [
       [mapTab, onMap], [tableTab, onTable],
       [candidatesTab, onCandidates], [retiredTab, onRetired],
-      [ap1000Tab, onAp1000], [aboutTab, onAbout],
+      [ap1000Tab, onAp1000], [microTab, onMicro], [aboutTab, onAbout],
     ]) {
       if (!tab) continue;
       tab.classList.toggle("active", active);
@@ -3405,15 +3435,17 @@ function wireTabs() {
     const candidatesView = el("view-candidates");
     const retiredView = el("view-retired");
     const ap1000View = el("view-ap1000");
+    const microView = el("view-micro");
     const aboutView = el("view-about");
     if (mapView)        { mapView.classList.toggle("active", onMap);               mapView.hidden = !onMap; }
     if (tableView)      { tableView.classList.toggle("active", onTable);           tableView.hidden = !onTable; }
     if (candidatesView) { candidatesView.classList.toggle("active", onCandidates); candidatesView.hidden = !onCandidates; }
     if (retiredView)    { retiredView.classList.toggle("active", onRetired);       retiredView.hidden = !onRetired; }
     if (ap1000View)     { ap1000View.classList.toggle("active", onAp1000);         ap1000View.hidden = !onAp1000; }
+    if (microView)      { microView.classList.toggle("active", onMicro);           microView.hidden = !onMicro; }
     if (aboutView)      { aboutView.classList.toggle("active", onAbout);           aboutView.hidden = !onAbout; }
     const globalExportCsv = el("export-csv");
-    if (globalExportCsv) globalExportCsv.hidden = onAp1000;
+    if (globalExportCsv) globalExportCsv.hidden = onAp1000 || onMicro;
     if (onMap) setTimeout(() => map.invalidateSize(), 50);
     if (onCandidates) buildCandidatesView();
     if (onRetired) { ensureRetiredIndustrialLoaded(); buildRetiredView(); }
@@ -3421,6 +3453,7 @@ function wireTabs() {
       ensureAp1000Loaded(); buildAp1000View();
       ensureNuclearSitesLoaded(); buildNuclearCivilianView();
     }
+    if (onMicro) { ensureMicroFleetLoaded(); buildMicroView(); }
     if (onAbout) {
       const d = el("about-refresh-date");
       if (d && window.__refreshedAt) d.textContent = window.__refreshedAt;
@@ -3435,10 +3468,11 @@ function wireTabs() {
   if (candidatesTab) candidatesTab.addEventListener("click", () => setView("candidates"));
   if (retiredTab) retiredTab.addEventListener("click", () => setView("retired"));
   if (ap1000Tab) ap1000Tab.addEventListener("click", () => setView("ap1000"));
+  if (microTab) microTab.addEventListener("click", () => setView("micro"));
   if (aboutTab) aboutTab.addEventListener("click", () => setView("about"));
 
   // Honor hash on initial load (e.g. shared URL with #ap1000).
-  const VALID_TABS = new Set(["map", "table", "candidates", "retired", "ap1000", "about"]);
+  const VALID_TABS = new Set(["map", "table", "candidates", "retired", "ap1000", "micro", "about"]);
   const initialHash = location.hash.replace(/^#/, "").toLowerCase();
   if (VALID_TABS.has(initialHash)) setView(initialHash);
 
@@ -4099,6 +4133,560 @@ function wireAp1000ExportCsv() {
     ensureAp1000Loaded().then(() => downloadAp1000Csv());
   });
   window.__buildAp1000Csv = buildAp1000Csv;
+}
+
+
+// ===== Microreactors view =====
+//
+// Three surfaces on one tab, because they only make sense together:
+//
+//   1. THE FLEET — the 11 designs in the 1–20 MWe band plus one labelled
+//      adjacency, each carrying the evidence band its strongest documented
+//      state supports.
+//   2. THE COMMITMENTS — 32 named pairings of a buyer, a programme, or a
+//      site to capacity. 24 carry coordinates and render as ⬣ markers on the
+//      map; the Army Janus nine take their coordinates from the same
+//      ap1000-sites.json the Nuclear Siting tab uses, so the two nuclear
+//      surfaces can never disagree about where Fort Wainwright is.
+//   3. THE SITING SCREEN — the whole corpus ranked by computeMicroreactorScore
+//      (microreactor-score.js), which inverts the grid signal every other lens
+//      in this app uses.
+//
+// Data: docs/data/microreactor-fleet.json, built by
+// scripts/build_microreactor_fleet.py from two sibling research projects.
+//
+// The view is built ENTIRELY in JS on first tab activation. index.html ships
+// only a four-node skeleton because the first-paint DOM budget is 5,000 nodes
+// with roughly 60 to spare — see CLAUDE.md, "Paginated table".
+
+const MICRO_RANK_LIMIT = 100;
+const MICRO_SCORE_SOURCE = "https://github.com/pranava0x0/brownfield-opportunities/blob/main/docs/microreactor-score.js";
+const MICRO_DATA_SOURCE = "https://github.com/pranava0x0/brownfield-opportunities/blob/main/docs/data/microreactor-fleet.json";
+
+const microState = {
+  ranked: [],
+  offGridOnly: false,   // hard-islanded sites only (no transmission within 100 mi)
+  built: false,
+};
+
+function ensureMicroFleetLoaded() {
+  if (microFleetLoadingPromise) return microFleetLoadingPromise;
+  microFleetLoadFailed = false;
+  microFleetLoadingPromise = fetch(MICRO_FLEET_URL, { priority: "low" })
+    .then((r) => {
+      // A 404 is a failure, not an empty fleet. Rendering "0 designs" when
+      // the file simply didn't deploy would be a false negative about the
+      // industry, which is exactly the trap the nuclear overlay documents.
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then((payload) => {
+      recordRefreshDate(payload.generated_at, MICRO_FLEET_URL);
+      microFleet = payload;
+      addMicroCommitmentMarkers();
+      maybeRefreshMicro();
+      return payload;
+    })
+    .catch((err) => {
+      console.error("Microreactor fleet load failed:", err);
+      microFleetLoadingPromise = null;   // allow retry
+      microFleetLoadFailed = true;
+      maybeRefreshMicro();
+      return null;
+    });
+  return microFleetLoadingPromise;
+}
+
+function microCommitmentPopupHtml(c) {
+  const band = (microFleet?.evidence_bands || []).find((b) => b.band === c.band);
+  const srcs = (c.sources || []).slice(0, 2).map(
+    (s) => `<a href="${escapeAttr(s.url)}" target="_blank" rel="noopener" class="ref-campus-link">${escapeHtml(s.label)} ↗</a>`
+  ).join("");
+  return (
+    `<div class="ref-campus-popup">` +
+    `<strong>${escapeHtml(c.name)}</strong>` +
+    `<div class="micro-pop-band band-${escapeAttr(c.band)}">${escapeHtml(band ? band.label : c.band)}</div>` +
+    (c.location ? `<div class="ref-campus-company">${escapeHtml(c.location)}` +
+      (c._inset ? ` <span class="micro-note">· shown in the ${escapeHtml(c._inset)} inset ` +
+        `(${c.lat_real.toFixed(3)}, ${c.lon_real.toFixed(3)})</span>` : "") +
+      `</div>` : "") +
+    `<div class="ref-campus-meta">` +
+      `<span>${escapeHtml(c.vendor_name || "Vendor not assigned")}</span>` +
+      `<span>${escapeHtml(c.power_label || "Output not specified")}</span>` +
+    `</div>` +
+    `<div class="ref-campus-prev">${escapeHtml(c.owner)}</div>` +
+    `<div class="ref-campus-prev" style="font-style:normal">${escapeHtml(c.instrument)}</div>` +
+    ((c.gaps || []).length
+      ? `<div class="micro-pop-gap"><strong>Gap:</strong> ${escapeHtml(c.gaps[0])}</div>` : "") +
+    srcs +
+    `</div>`
+  );
+}
+
+function addMicroCommitmentMarkers() {
+  if (!microCommitmentLayer || !microFleet) return;   // map not yet initialized
+  if (microCommitmentLayer.getLayers().length) return; // already populated
+  for (const c of microFleet.commitments || []) {
+    if (c.lat == null || c.lon == null) continue;
+    // Alaska is the whole point of two of these rows — Eielson AFB and the
+    // Fort Wainwright Janus installation — and their real coordinates sit
+    // outside US_BOUNDS, so a raw marker would be unreachable behind
+    // maxBoundsViscosity. Remap into the ALASKA inset box the same way
+    // ingestSites() does for the corpus. Mutating in place is safe: the
+    // tables render `location` text, never coordinates, and applyInsetRemap
+    // preserves the originals on lat_real / lon_real.
+    applyInsetRemap(c);
+    const icon = L.divIcon({
+      // Glyph straight in the icon div — no inner <span>. Copies the pattern
+      // the ⚛ nuclear overlay uses to halve per-marker DOM cost.
+      className: "micro-commit-icon band-" + c.band,
+      html: "⬣",
+      iconSize: [20, 20],
+      iconAnchor: [10, 10],
+      popupAnchor: [0, -11],
+    });
+    const marker = L.marker([c.lat, c.lon], { icon, zIndexOffset: 460 });
+    marker.bindPopup(microCommitmentPopupHtml(c), { maxWidth: 300 });
+    microCommitmentLayer.addLayer(marker);
+  }
+  rerenderLegend();
+}
+
+function maybeRefreshMicro() {
+  const v = el("view-micro");
+  if (v && v.classList.contains("active")) buildMicroView();
+}
+
+// Ordered for the breakdown chips; keys match computeMicroreactorBreakdown.
+const MICRO_FACTORS = [
+  { key: "licensing_path", label: "Licensing path" },
+  { key: "grid_isolation", label: "Grid isolation" },
+  { key: "anchor_load",    label: "Anchor load" },
+  { key: "deliverability", label: "Deliverability" },
+  { key: "readiness",      label: "Readiness" },
+];
+
+// Tier breaks are anchored to THIS lens's own distribution, not copied from
+// the data-center lens's 75/50/25. The microreactor lens has a lower practical
+// ceiling by construction: grid isolation pulls against deliverability and
+// readiness, so no real site can max both halves of the rubric. Observed over
+// the 46,759-site corpus the scores run min 0 / median 37 / p90 50 / p99 61 /
+// max 73, so these breaks land at roughly the top 0.5%, top 5% and top 25%.
+// Reusing 75/50/25 here would paint the entire corpus one colour and the tier
+// would carry no information at all. Re-measure on a refresh that materially
+// shifts the distribution — computeMicroreactorScore over window.__sites is
+// the whole measurement.
+const MICRO_TIER_BREAKS = Object.freeze({ strong: 64, moderate: 55, marginal: 44 });
+
+function _microScoreTier(score) {
+  if (score == null) return "weak";
+  if (score >= MICRO_TIER_BREAKS.strong) return "strong";
+  if (score >= MICRO_TIER_BREAKS.moderate) return "moderate";
+  if (score >= MICRO_TIER_BREAKS.marginal) return "marginal";
+  return "weak";
+}
+
+// Rank the globally-filtered set. Sourcing from `tableState.filtered` — not
+// from `sites` — is what makes the search / state / program / acreage filters
+// carry onto this tab, the same unification the Rankings tab got in v1.21.
+function microRankedSites() {
+  const pool = (tableState.filtered && tableState.filtered.length)
+    ? tableState.filtered : sites;
+  const out = [];
+  for (const s of pool) {
+    const score = computeMicroreactorScore(s);
+    if (score == null) continue;
+    // Land is a threshold screen, not a ranked factor. `null` means the source
+    // ships no acreage at all (every ACRES brownfield, two-thirds of FUDS) —
+    // that is unknown, not too small, so those sites stay in the ranking with
+    // the gap disclosed in the Acres column.
+    if (microreactorMeetsAcreageThreshold(s) === false) continue;
+    if (microState.offGridOnly && !microreactorIsOffGrid(s)) continue;
+    out.push({ site: s, score });
+  }
+  out.sort((a, b) => b.score - a.score || String(a.site.id).localeCompare(String(b.site.id)));
+  return out;
+}
+
+function _microFleetRows() {
+  const bands = new Map((microFleet.evidence_bands || []).map((b) => [b.band, b]));
+  return (microFleet.vendors || []).map((v) => {
+    const band = bands.get(v.band);
+    const specs = [
+      v.coolant, v.fuel,
+      v.refuel_years ? `${v.refuel_years}-yr refuelling` : null,
+      v.footprint_acres ? `${v.footprint_acres} ac footprint` : null,
+      v.mass_tonnes ? `${v.mass_tonnes} t` : null,
+      v.transport,
+    ].filter(Boolean);
+    const srcs = (v.sources || []).map(
+      (s) => `<a href="${escapeAttr(s.url)}" target="_blank" rel="noopener" title="${escapeAttr(s.label)}">↗</a>`
+    ).join(" ");
+    return (
+      `<tr${v.adjacent ? ' class="micro-adjacent"' : ""}>` +
+      `<td><strong>${escapeHtml(v.design)}</strong>` +
+        `<div class="micro-sub">${escapeHtml(v.name)}${v.ticker ? ` · ${escapeHtml(v.ticker)}` : ""}</div>` +
+        (v.adjacent ? `<div class="micro-note">Adjacency — ${escapeHtml(v.adjacent_note)}</div>` : "") +
+      `</td>` +
+      `<td class="micro-mwe">${escapeHtml(v.mwe_label || "—")}</td>` +
+      `<td class="micro-specs">${specs.length ? escapeHtml(specs.join(" · ")) : '<span class="muted-cell">Not published</span>'}</td>` +
+      `<td><span class="micro-band band-${escapeAttr(v.band)}">${escapeHtml(band ? band.label : v.band)}</span>` +
+        `<div class="micro-note">${escapeHtml(v.band_basis)}</div></td>` +
+      `<td class="micro-src">${srcs}</td>` +
+      `</tr>`
+    );
+  }).join("");
+}
+
+const MICRO_TRACK_LABEL = {
+  "us-gov": "U.S. Government",
+  "us-commercial": "U.S. Commercial",
+  "intl": "International",
+};
+
+function _microCommitmentRows() {
+  const bands = new Map((microFleet.evidence_bands || []).map((b) => [b.band, b]));
+  const order = ["us-gov", "us-commercial", "intl"];
+  const byTrack = new Map(order.map((t) => [t, []]));
+  for (const c of microFleet.commitments || []) {
+    (byTrack.get(c.track) || byTrack.get("us-commercial")).push(c);
+  }
+  let html = "";
+  for (const track of order) {
+    const rows = byTrack.get(track) || [];
+    if (!rows.length) continue;
+    html += `<tr class="micro-track-row"><th colspan="6" scope="colgroup">` +
+            `${escapeHtml(MICRO_TRACK_LABEL[track])} <span class="micro-note">${rows.length}</span></th></tr>`;
+    for (const c of rows) {
+      const band = bands.get(c.band);
+      const srcs = (c.sources || []).map(
+        (s) => `<a href="${escapeAttr(s.url)}" target="_blank" rel="noopener" title="${escapeAttr(s.label)}">↗</a>`
+      ).join(" ");
+      html +=
+        `<tr>` +
+        `<td><strong>${escapeHtml(c.name)}</strong>` +
+          `<div class="micro-sub">${escapeHtml(c.owner)}</div>` +
+          ((c.gaps || []).length ? `<div class="micro-note micro-gap">Gap: ${escapeHtml(c.gaps[0])}</div>` : "") +
+        `</td>` +
+        `<td>${escapeHtml(c.vendor_name || "—")}</td>` +
+        `<td>${escapeHtml(c.location || "—")}` +
+          (c.lat != null ? ` <span class="micro-mapped" title="Shown on the map">⬣</span>` : "") +
+        `</td>` +
+        `<td class="micro-mwe">${escapeHtml(c.power_label || "—")}</td>` +
+        `<td><span class="micro-band band-${escapeAttr(c.band)}">${escapeHtml(band ? band.label : c.band)}</span>` +
+          `<div class="micro-note">${escapeHtml(c.status)}</div></td>` +
+        `<td class="micro-src">${srcs}</td>` +
+        `</tr>`;
+    }
+  }
+  return html;
+}
+
+function _microSectorHtml() {
+  return (microFleet.sectors || []).map((sec) => {
+    const full = sec.loads.filter((l) => l.fit === "full").length;
+    const items = sec.loads.map(
+      (l) =>
+        `<li class="fit-${escapeAttr(l.fit)}"><span class="micro-load">${escapeHtml(l.label)}</span>` +
+        `<span class="micro-band-mw">${escapeHtml(l.band)}</span></li>`
+    ).join("");
+    return (
+      `<div class="micro-sector">` +
+      `<h4>${escapeHtml(sec.sector)} <span class="micro-note">${full}/${sec.loads.length} fully served</span></h4>` +
+      `<ul class="micro-loads">${items}</ul>` +
+      `</div>`
+    );
+  }).join("");
+}
+
+function _microRankRows(ranked) {
+  return ranked.slice(0, MICRO_RANK_LIMIT).map((r, i) => {
+    const s = r.site;
+    const bd = computeMicroreactorBreakdown(s) || {};
+    const chips = MICRO_FACTORS.map(
+      (f) => `<span class="micro-chip" title="${escapeAttr(f.label)}">${escapeHtml(f.label.split(" ")[0])} ${bd[f.key] ?? 0}</span>`
+    ).join("");
+    const offGrid = microreactorIsOffGrid(s);
+    const acres = _microEffectiveAcreageDisplay(s);
+    // city/state are already prettified at ingest by prettyPlace().
+    const place = [s.city, s.state].filter(Boolean).join(", ");
+    return (
+      `<tr data-id="${escapeAttr(s.id)}">` +
+      `<td class="micro-rank">${i + 1}</td>` +
+      `<td><a href="?site=${encodeURIComponent(s.id)}" class="micro-site-link" data-site="${escapeAttr(s.id)}">` +
+        `${escapeHtml(prettyName(s.name) || s.id)}</a>` +
+        `<div class="micro-sub">${escapeHtml(place || "—")}</div></td>` +
+      `<td><span class="pill" data-program="${escapeAttr(s.program)}">${escapeHtml(PROGRAM_LABEL[s.program] || s.program)}</span></td>` +
+      `<td class="micro-mwe">${escapeHtml(acres)}</td>` +
+      `<td title="${escapeAttr(
+            `Line ${fmt.miles(s.transmission_mi)} · substation ${fmt.miles(s.substation_mi)}`)}">` +
+        `${offGrid
+          ? '<span class="micro-offgrid">Off-grid</span>'
+          : escapeHtml(fmt.miles(microreactorGridAccessMi(s)))}</td>` +
+      `<td><span class="suit-score" data-tier="${escapeAttr(_microScoreTier(r.score))}">${r.score}</span></td>` +
+      `<td class="micro-chips">${chips}</td>` +
+      `</tr>`
+    );
+  }).join("");
+}
+
+// Acreage display that keeps the parcel fallback and the structural gap
+// visible. `null` here is a source-side absence, never a filtered-out site.
+function _microEffectiveAcreageDisplay(s) {
+  if (s.acreage != null) return fmt.acres(s.acreage);
+  if (s.parcel_acreage != null) return fmt.acres(s.parcel_acreage) + " (parcel)";
+  return "Not reported";
+}
+
+function buildMicroView() {
+  const host = el("micro-content");
+  if (!host) return;
+  if (microFleetLoadFailed) {
+    host.innerHTML =
+      '<p class="muted">Microreactor fleet data could not be loaded. ' +
+      '<button type="button" id="micro-retry" class="text-btn">Retry</button></p>';
+    const retry = el("micro-retry");
+    if (retry) {
+      retry.addEventListener("click", () => {
+        // Clear the failure and re-render BEFORE kicking off the fetch, so the
+        // click has immediate feedback. Without this the error text sits there
+        // unchanged for the whole round-trip and the button reads as dead.
+        microFleetLoadFailed = false;
+        buildMicroView();
+        ensureMicroFleetLoaded();
+      });
+    }
+    return;
+  }
+  if (!microFleet) {
+    host.innerHTML = '<p class="muted">Loading microreactor fleet…</p>';
+    return;
+  }
+
+  // Idempotent — covers the case where the fleet resolved before initMap()
+  // had created the layer (the loader's own call would have no-oped).
+  addMicroCommitmentMarkers();
+
+  const ranked = microRankedSites();
+  microState.ranked = ranked;
+  const counts = microFleet.counts || {};
+  const mwe = microFleet.committed_mwe_by_band || {};
+  const bandStrip = (microFleet.evidence_bands || [])
+    .filter((b) => mwe[b.band] != null)
+    .map(
+      (b) =>
+        `<div class="micro-band-cell band-${escapeAttr(b.band)}" title="${escapeAttr(b.rule)}">` +
+        `<span class="micro-band-mwe">${mwe[b.band].toLocaleString()} MWe</span>` +
+        `<span class="micro-band-label">${escapeHtml(b.label)}</span>` +
+        `<span class="micro-band-auth">${escapeHtml(b.authority)}</span></div>`
+    ).join("");
+
+  const filtered = (typeof filtersActive === "function" && filtersActive()) || filterState.q;
+  const scorable = ranked.length;
+  // Derived, never hardcoded — the same rule PROGRAM_LEGEND and the nuclear
+  // overlay counts follow. These move on every data refresh.
+  let federalCount = 0, fedSuperfundCount = 0;
+  for (const s of sites) {
+    if (s.program === "fuds" || s.program === "brac") federalCount++;
+    else if (s.program === "superfund" && s.federal_facility_code === "Y") fedSuperfundCount++;
+  }
+
+  host.innerHTML =
+    `<div class="micro-lead">` +
+      `<h2>Microreactor siting — a 1–20&nbsp;MWe power block</h2>` +
+      `<p>Where a factory-built microreactor actually gets sold, and where the next one could go. ` +
+      `This lens <strong>inverts the grid signal</strong> every other ranking in this dashboard uses: ` +
+      `distance from transmission scores <em>higher</em>, because a microreactor's commercial case is ` +
+      `displacing diesel where the grid is weak or absent — not competing for interconnection where it is strong. ` +
+      `Weighted 0–100 across <strong>federal-land licensing pathway</strong> (24), <strong>grid isolation</strong> (22), ` +
+      `<strong>anchor load</strong> (18), <strong>deliverability</strong> by road and rail (18), and ` +
+      `<strong>site readiness</strong> (18); SFHA flood subtracts 12 and severe wildfire up to 8. ` +
+      `Land is a ${MICRO_MIN_ACRES}-acre threshold screen, not a ranked factor — Westinghouse publishes ` +
+      `5&nbsp;MWe on two acres, so more land does not make a better microreactor site.</p>` +
+      `<button id="micro-export-csv" class="ap1000-export" type="button" ` +
+        `title="Download the ranked microreactor siting table as CSV">` +
+        `<span aria-hidden="true">↓</span> Download ranking CSV</button>` +
+    `</div>` +
+
+    `<details class="ap1000-help">` +
+      `<summary>How this ranking works &amp; where the data comes from</summary>` +
+      `<div class="ap1000-help-body">` +
+        `<p><strong>Why federal land carries the most weight.</strong> Every U.S. microreactor to reach ` +
+        `criticality has done so under a <em>DOE authorization</em> — Antares Mark-0, Valar Ward&nbsp;250, ` +
+        `Deployable Unity, Aalo CTR and Oklo Groves, all in 2026 — not under an NRC operating licence. ` +
+        `Project Pele is a DoD build, ANPI pairs vendors to Air Force bases, and Janus is nine Army ` +
+        `installations. The corpus holds <strong>${federalCount.toLocaleString()} federal properties</strong> ` +
+        `(FUDS + BRAC) plus ${fedSuperfundCount.toLocaleString()} federal-facility Superfund sites, ` +
+        `and that pathway is the largest single difference between a 2028 and a 2035 in-service date.</p>` +
+        `<p><strong>Why a missing transmission distance is the strongest signal, not a hole.</strong> ` +
+        `All ${sites.length.toLocaleString()} sites appear in the infra-proximity join — the connector emits a ` +
+        `tombstone record when nothing is in range — so a null distance means HIFLD has no transmission ` +
+        `line within 100&nbsp;miles. That is genuinely off-grid, and it is scored as maximum isolation. ` +
+        `The score refuses to run at all until the join has landed, so the reading can never be confused ` +
+        `with "not loaded yet".</p>` +
+        `<p><strong>What stops the ranking running away to nowhere.</strong> Isolation alone is worthless — ` +
+        `empty tundra has nobody to sell to. Two components pull the other way: <em>anchor load</em> asks ` +
+        `whether there is an identified local load and whether it is the kind a 1–20&nbsp;MWe block ` +
+        `displaces (a small petroleum-fired plant scores far above a 2&nbsp;GW combined-cycle one), and ` +
+        `<em>deliverability</em> scores zero where Census TIGER has no primary road within 100&nbsp;miles — ` +
+        `you cannot truck a 70-tonne reactor to a place with no road.</p>` +
+        `<p><strong>Not scored: seismic.</strong> This project has no seismic layer over the corpus. ` +
+        `The Nuclear Siting tab carries USGS design values for its 14 curated installations; the 46,759-site ` +
+        `corpus does not, and inventing one would be worse than disclosing the gap.</p>` +
+        `<p><strong>Provenance.</strong> Fleet and commitment rows are curated, carried forward from two ` +
+        `sibling research projects that cite primary sources per row — the <em>Microreactor Opportunity Map</em> ` +
+        `(vendor specs, the opportunity set, the demand ladder) and <em>Deployment Core</em> (the six evidence ` +
+        `bands, the company roster, the 2026 criticality record). Distances, flood and wildfire are ` +
+        `<em>computed</em> from this project's own spatial index and enrichment connectors. ` +
+        `<a href="${MICRO_SCORE_SOURCE}" target="_blank" rel="noopener">Scoring code ↗</a> · ` +
+        `<a href="${MICRO_DATA_SOURCE}" target="_blank" rel="noopener">Fleet data ↗</a></p>` +
+      `</div>` +
+    `</details>` +
+
+    `<section class="micro-section">` +
+      `<h3>The fleet — ${counts.vendors_microreactor_band || 0} designs in the 1–20&nbsp;MWe band` +
+        `<span class="micro-note"> · plus 1 labelled adjacency</span></h3>` +
+      `<div class="micro-bandstrip">${bandStrip}` +
+        `<p class="micro-note micro-bandstrip-foot">Committed MWe, summed <strong>only within a band</strong>. ` +
+        `An announced MOU and an executed contract are never added together.</p></div>` +
+      `<div class="micro-table-wrap"><table class="micro-table"><thead><tr>` +
+        `<th scope="col">Design</th><th scope="col">Output</th><th scope="col">Specification</th>` +
+        `<th scope="col">Strongest documented state</th><th scope="col">Src</th>` +
+      `</tr></thead><tbody>${_microFleetRows()}</tbody></table></div>` +
+    `</section>` +
+
+    `<section class="micro-section">` +
+      `<h3>Named commitments — ${counts.commitments || 0}` +
+        `<span class="micro-note"> · ${counts.commitments_mapped || 0} carry coordinates and appear as ⬣ on the map</span></h3>` +
+      `<div class="micro-table-wrap"><table class="micro-table"><thead><tr>` +
+        `<th scope="col">Commitment</th><th scope="col">Vendor</th><th scope="col">Location</th>` +
+        `<th scope="col">Power</th><th scope="col">Evidence</th><th scope="col">Src</th>` +
+      `</tr></thead><tbody>${_microCommitmentRows()}</tbody></table></div>` +
+    `</section>` +
+
+    `<details class="ap1000-help micro-demand">` +
+      `<summary>Demand ladder — ${counts.sector_loads || 0} load classes across ${counts.sectors || 0} sectors ` +
+      `(${counts.sector_loads_full_fit || 0} fully served by a single ≤20&nbsp;MWe unit)</summary>` +
+      `<div class="ap1000-help-body">` +
+        `<p class="micro-note">Annual-average electrical demand planning bands. ` +
+        `<span class="fit-key fit-full">Filled</span> = one unit covers the whole load; ` +
+        `<span class="fit-key fit-block">Outlined</span> = the load exceeds the band, so a unit serves a ` +
+        `dedicated block inside a larger campus. These are planning bands, not guaranteed averages — ` +
+        `final sizing needs at least a year of hourly site-load data.</p>` +
+        `<div class="micro-sectors">${_microSectorHtml()}</div>` +
+      `</div>` +
+    `</details>` +
+
+    `<section class="micro-section">` +
+      `<h3>Siting screen — top ${Math.min(MICRO_RANK_LIMIT, scorable).toLocaleString()} of ` +
+        `${scorable.toLocaleString()} scored sites</h3>` +
+      `<div class="micro-controls">` +
+        `<button type="button" id="micro-offgrid-toggle" class="cand-filter${microState.offGridOnly ? " active" : ""}" ` +
+          `aria-pressed="${microState.offGridOnly}">Hard-islanded only</button>` +
+        `<span class="micro-note">` +
+          (microState.offGridOnly
+            ? "No transmission line within 100 mi. Only designs with a published no-grid-required claim — Antares R1, BWXT's expeditionary Pele — can serve these."
+            : "Sites below the " + MICRO_MIN_ACRES + "-acre screen are excluded; sites whose source reports no acreage at all are kept and flagged.") +
+        `</span>` +
+        (filtered ? `<span class="micro-note micro-filtered">· global filters applied</span>` : "") +
+      `</div>` +
+      (scorable
+        ? `<div class="micro-table-wrap"><table class="micro-table micro-rank-table"><thead><tr>` +
+            `<th scope="col">#</th><th scope="col">Site</th><th scope="col">Program</th>` +
+            `<th scope="col">Acres</th>` +
+            `<th scope="col" title="Distance to the nearest grid access point of either kind — the minimum of the transmission line and the substation. HIFLD&rsquo;s public feed is patchy on sub-transmission, so the line distance alone overstates isolation at 13.5% of sites.">To grid</th>` +
+            `<th scope="col" title="${escapeAttr(MICRO_SCORE_TOOLTIP)}">Score</th>` +
+            `<th scope="col">Breakdown</th>` +
+          `</tr></thead><tbody>${_microRankRows(ranked)}</tbody></table></div>`
+        : `<p class="muted">No sites scored yet — the infrastructure-proximity data is still loading, ` +
+          `or the current filters exclude everything.</p>`) +
+    `</section>`;
+
+  microState.built = true;
+  wireMicroControls();
+}
+
+// e2e hooks, mirroring window.__buildAp1000Csv / __sites / __tableState. They
+// let a test target the ranking and the fleet without depending on scroll
+// position, table paging, or marker decimation.
+function exposeMicroTestHooks() {
+  window.__buildMicroCsv = buildMicroCsv;
+  window.__microRankedCount = () => microRankedSites().length;
+  window.__microFleet = () => microFleet;
+  window.__fmtMiles = fmt.miles;
+}
+
+function wireMicroControls() {
+  exposeMicroTestHooks();
+  const toggle = el("micro-offgrid-toggle");
+  if (toggle) {
+    toggle.addEventListener("click", () => {
+      microState.offGridOnly = !microState.offGridOnly;
+      buildMicroView();
+    });
+  }
+  const csv = el("micro-export-csv");
+  if (csv) csv.addEventListener("click", downloadMicroCsv);
+  // Site links open the detail panel in place rather than reloading the page
+  // with ?site= — same affordance the Rankings table gives.
+  const host = el("micro-content");
+  if (host) {
+    host.querySelectorAll("a.micro-site-link").forEach((a) => {
+      a.addEventListener("click", (e) => {
+        e.preventDefault();
+        selectSite(a.dataset.site);
+      });
+    });
+  }
+}
+
+const MICRO_CSV_COLS = [
+  ["rank", (r, i) => i + 1],
+  ["id", (r) => r.site.id],
+  ["name", (r) => prettyName(r.site.name) || ""],
+  ["program", (r) => r.site.program],
+  ["state", (r) => r.site.state || ""],
+  ["acreage", (r) => r.site.acreage ?? ""],
+  ["parcel_acreage", (r) => r.site.parcel_acreage ?? ""],
+  ["transmission_mi", (r) => r.site.transmission_mi ?? ""],
+  ["grid_access_mi", (r) => microreactorGridAccessMi(r.site) ?? ""],
+  ["off_grid", (r) => (microreactorIsOffGrid(r.site) ? "yes" : "no")],
+  ["substation_mi", (r) => r.site.substation_mi ?? ""],
+  ["highway_mi", (r) => r.site.highway_mi ?? ""],
+  ["rail_mi", (r) => r.site.rail_mi ?? ""],
+  ["power_plant_mi", (r) => r.site.power_plant_mi ?? ""],
+  ["power_plant_mw", (r) => r.site.power_plant_mw ?? ""],
+  ["power_plant_fuel", (r) => r.site.power_plant_fuel ?? ""],
+  ["in_sfha", (r) => (r.site.in_sfha == null ? "" : r.site.in_sfha)],
+  ["nri_wildfire_rating", (r) => r.site.nri_wildfire_rating ?? ""],
+  ["microreactor_score", (r) => r.score],
+];
+
+function buildMicroCsv() {
+  const ranked = microState.ranked.length ? microState.ranked : microRankedSites();
+  const header = MICRO_CSV_COLS.map((c) => c[0])
+    .concat(MICRO_FACTORS.map((f) => "score_" + f.key));
+  const lines = [csvRow(header)];
+  ranked.forEach((r, i) => {
+    const bd = computeMicroreactorBreakdown(r.site) || {};
+    lines.push(csvRow(
+      MICRO_CSV_COLS.map((c) => c[1](r, i))
+        .concat(MICRO_FACTORS.map((f) => bd[f.key] ?? ""))
+    ));
+  });
+  return lines.join("\n");
+}
+
+function downloadMicroCsv() {
+  const blob = new Blob([buildMicroCsv()], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `microreactor-siting-${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 // ----- DC Candidates view -----

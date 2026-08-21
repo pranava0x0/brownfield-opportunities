@@ -70,6 +70,7 @@
       <button id="tab-candidates" class="tab" role="tab" aria-selected="false" aria-controls="view-candidates">Rankings</button>
       <button id="tab-retired" class="tab" role="tab" aria-selected="false" aria-controls="view-retired">Retired Sites</button>
       <button id="tab-ap1000" class="tab" role="tab" aria-selected="false" aria-controls="view-ap1000">Nuclear Siting</button>
+      <button id="tab-micro" class="tab" role="tab" aria-selected="false" aria-controls="view-micro">Microreactors</button>
       <button id="tab-about" class="tab" role="tab" aria-selected="false" aria-controls="view-about">About</button>
     </div>
   </nav>
@@ -304,12 +305,16 @@
     </div>
   </section>
 
+  <section id="view-micro" class="view micro-view" role="tabpanel" aria-labelledby="tab-micro" hidden>
+    <div id="micro-content" class="micro-wrap" aria-live="polite"><p class="muted">Loading microreactor fleet…</p></div>
+  </section>
+
   <section id="view-about" class="view about-view" role="tabpanel" aria-labelledby="tab-about" hidden>
     <div class="about-wrap">
 
       <div class="about-lead">
         <h2>US Brownfield &amp; Federal Site Atlas</h2>
-        <p>This dashboard indexes <strong>46,700+ contaminated federal and brownfield sites</strong> across four programs and scores each one for data-center and power-generation suitability using public infrastructure, financial, and risk signals.</p>
+        <p>This dashboard indexes <strong>46,700+ contaminated federal and brownfield sites</strong> across four programs and scores each one for data-center, power-generation, manufacturing, and microreactor suitability using public infrastructure, financial, and risk signals.</p>
       </div>
 
       <div class="about-grid">
@@ -336,6 +341,9 @@
 
             <dt><span class="about-glyph" style="color:#9a5b2e">◆</span>Retired industrial</dt>
             <dd>~660 large retired industrial sites nationwide that ceased EPA GHGRP reporting — ~530 <strong>manufacturing</strong> (chemical plants, smelters, steel/paper mills, cement, glass, refineries, auto-assembly) plus ~125 <strong>mining</strong> (mostly coal mines / prep plants). A <strong>screening signal</strong> — a former smelter, mill, or refinery may retain reusable grid infrastructure (not confirmed available or still connected; the overlay isn't yet joined to transmission/closure evidence). These often sit outside the four programs above.</dd>
+
+            <dt><span class="about-glyph" style="color:#7a3fa8">⬣</span>Microreactor commitments</dt>
+            <dd>24 named microreactor deployments with a fixed location — the three Air Force ANPI base pairings, the nine Army Janus candidate installations, the DOE pilot reactors that reached criticality in 2026, and sited commercial deals. Curated from public announcements and regulator filings; each popup carries its evidence band and sources. Alaska rows appear in the Alaska inset with their real coordinates shown.</dd>
           </dl>
         </div>
 
@@ -347,6 +355,12 @@
 
             <dt>Generation score (0–100)</dt>
             <dd>Weighted rubric for siting new <em>power generation</em> — weighted differently because what suits a 200 MW compute load ≠ a 200 MW solar/gas build. Positive weights sum to 100: acreage (24 pts, the dominant constraint), transmission-to-export (18), substation interconnection (14), voltage headroom (12), gas pipeline (10), grid reuse — repowering a retired plant's interconnection (8), ISO/RTO market access (8), readiness (6). It has <strong>no active-plant component</strong> (you are the plant) and gives <strong>no credit for active reuse</strong> (occupied land is a liability for a ground-up build). Carries the same flood (−18) and climate (−10) penalties and the same transmission gate as the DC lens, but <strong>not</strong> the regulatory penalty (a DC moratorium doesn't block a power plant).</dd>
+
+            <dt>Manufacturing score (0&ndash;100)</dt>
+            <dd>Weighted rubric for siting a <em>manufacturing plant</em>. Positive weights sum to 100: rail access (22 pts &mdash; a gate for heavy-materials plants), acreage (18, <em>peaked</em> rather than rising: a 100&ndash;500&nbsp;ac plateau decaying past 2,000, because a plant wants a right-sized site, not the largest one), transmission (16), substation (12), gas (12), highway (10), readiness (10). Carries the same flood and climate penalties and the same transmission gate as the other lenses.</dd>
+
+            <dt>Microreactor score (0&ndash;100)</dt>
+            <dd>Weighted rubric for siting a <em>1&ndash;20&nbsp;MWe factory-built microreactor</em>, and the one lens that <strong>inverts the grid signal</strong>: distance from grid access scores <em>higher</em>, because a microreactor's commercial case is displacing diesel where the grid is weak or absent &mdash; not competing for interconnection where it is strong. Positive weights sum to 100: federal-land licensing pathway (24 &mdash; every US microreactor to reach criticality has done so under a DOE authorization, not an NRC licence), grid isolation (22), anchor load (18 &mdash; an identified local load in or near the 1&ndash;20&nbsp;MWe band, gated on the nearest plant's fuel, since a solar farm is not evidence of demand), deliverability by road and rail (18 &mdash; a 70-tonne unit has to physically arrive), and site readiness (18). Flood subtracts 12 (less than the DC lens: a small reactor pad can dodge a floodplain inside a larger parcel) and severe wildfire up to 8; drought is <strong>not</strong> charged, because the heat-pipe and HTGR designs in the fleet are air-coolable. Land is a 5-acre threshold screen, not a ranked factor. Seismic is not scored &mdash; no seismic layer covers the corpus.</dd>
 
             <dt>DC tier (Edge / Colo / Hyperscale / Mega)</dt>
             <dd>Quick-filter bucket derived from acreage + transmission distance + voltage class. Used by the persona buttons and <code>?dc_tier=</code> URL parameter. Separate from the 0–100 composite score.</dd>
@@ -449,6 +463,9 @@
 
             <dt>Rankings tab</dt>
             <dd>Ranked table of all scored sites. Switch between the Data Center, Generation, and Manufacturing lenses; the global filters apply here too.</dd>
+
+            <dt>Microreactors tab</dt>
+            <dd>The 1&ndash;20&nbsp;MWe microreactor market and a siting screen for it: the vendor fleet, 32 named commitments, and every corpus site ranked by a fourth lens that <strong>inverts the grid signal</strong> &mdash; distance from the grid scores <em>higher</em>, because a microreactor's case is displacing diesel where the grid is weak or absent. Global filters apply here too.</dd>
 
             <dt>KPI cells</dt>
             <dd>The Datacenter-ready and Hyperscale-ready cells are clickable — they toggle a filter to show only those sites.</dd>
@@ -662,6 +679,7 @@
 <script defer src="provenance.js"></script>
 <script defer src="dc-score.js"></script>
 <script defer src="ap1000-score.js"></script>
+<script defer src="microreactor-score.js"></script>
 <script defer src="app.js"></script>
 </body>
 </html>

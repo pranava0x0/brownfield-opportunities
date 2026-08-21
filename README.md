@@ -23,6 +23,7 @@ Static dashboard of EPA Superfund + ACRES brownfield + USACE FUDS + DOD BRAC sit
 
 **Frontend** —
 
+- **Microreactor siting lens** (2026-08) — a fourth 0–100 score over the whole corpus for a 1–20 MWe factory-built power block, which deliberately **inverts the grid signal** the other three lenses share: distance from grid access scores *higher*, because a microreactor's case is displacing diesel where the grid is weak or absent. Weights federal-land licensing pathway (24), grid isolation (22), anchor load (18), deliverability (18), readiness (18). Ships alongside a curated fleet of 12 vendor designs and 32 named commitments (`docs/data/microreactor-fleet.json`), rendered as the Microreactors tab plus ⬣ map markers.
 - Map (Leaflet + Canvas) and table views with sortable columns, free-text search, program / state / NPL-status / acreage filters, and shareable URL state (`?site=`, `?q=`, `?state=`, `?status=`, `?program=`, `?min_ac=`).
 - US-only vector basemap (no raster tiles): states (filled GeoJSON polygons) + counties (lazy-loaded TopoJSON past zoom 7), CSS-var-driven so theme swaps repaint cleanly.
 - Cartographic insets for AK / HI / PR / VI / Pacific territories — markers remap into labeled boxes along the bottom of the map; real coords preserved on `lat_real`/`lon_real`.
