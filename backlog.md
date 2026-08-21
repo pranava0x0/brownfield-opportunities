@@ -4,6 +4,77 @@ Ideas and enhancements. Priorities: **high** = next, **med** = soon, **low** = n
 
 ---
 
+## NEPA MCP integration — proposal awaiting decision (2026-08-21)
+
+Researched PNNL's [`nepa-mcp`](https://pypi.org/project/nepa-mcp/) 0.1.1 (PermitAI
+toolkit; 19 servers / 46 tools / 32 GIS layers, BSD-3). Full analysis, capability map
+and six scenarios in **[nepa-mcp-integration-spec.md](nepa-mcp-integration-spec.md)**;
+host/packaging findings in `data-source-research.md` §32.
+
+- **[high] Tier A — install as an agent-time MCP server.** `pipx install --python
+  python3.12 nepa-mcp && nepa-mcp configure claude`. Zero architectural cost, no data
+  file, no refresh cost. Buys per-site NEPA screening (ESA species, wetlands/§404,
+  tribal lands, historic properties) on the handful of sites that matter — signals no
+  current lens can see. **Blocked only on `pipx` not being installed.**
+- **[high] Tier B1 — `census-workforce` connector.** ACS 5-Year county socioeconomics
+  to replace the hand-typed workforce rating that carries **15/100** of the Nuclear
+  Siting score and that CLAUDE.md admits has "no federal GIS layer". ~3,232 counties,
+  joins via the `CountyIndex` we already resolve offline. Build it against the Census
+  API directly, NOT through `nepa-mcp` — an MCP server is for discovery and validation,
+  not batch ETL. **Gated on the refresh chain being healthy first.**
+- **[med] Tier B2 — tribal-lands containment.** TIGERweb AIANNHA, ~700 polygons,
+  identical in shape to `opportunity-zone` / `ira-energy-community`. Section 106 exposure
+  is currently invisible across 8,848 federal properties.
+- **[med] S2 — automate the regulatory re-audit.** `cfr_compare_versions` / `cfr_history`
+  diff a CFR citation between two dates, which is exactly the "has this moved since
+  `verified_at`?" question `STATE_DC_REGULATION` (quarterly) and EO 14318 need. **Only
+  works for federal instruments — state tax law is not in the CFR**, so
+  `STATE_DC_INCENTIVES` still needs the manual 51-row sweep.
+- **[low] Tier B3 — PAD-US protected areas.** Needs a size probe before committing.
+- **Refused, with reasons in the spec:** per-site ESA/wetlands/NRHP/air-quality over the
+  full corpus (~19 h per layer — the flood-backfill trap), re-deriving FEMA flood data we
+  already have at 91.1%, `map_composer` as a product surface, and adding `nepa-mcp` to
+  `requirements.txt` (Python 3.12 floor vs our 3.9).
+
+---
+
+## Microreactor siting tab — follow-ups (2026-08-21)
+
+Shipped: `docs/data/microreactor-fleet.json` (12 vendors / 32 commitments / 8-sector
+demand ladder), `docs/microreactor-score.js` (the inverted-grid lens), and the
+Microreactors tab. Open items that were scoped out deliberately:
+
+- **[med] The demand ladder is a reference table, not a join.** The 55 load classes
+  (Compute 1–10 MW, cement 7–25 MW, remote mines 5–20 MW, …) describe who buys a
+  1–20 MWe block, but nothing connects them to a site. The natural join is
+  `retired-industrial.json`, which already labels 658 facilities by NAICS sector —
+  a retired cement plant sits in a known load band. It would turn "this site is
+  isolated and federal" into "this site is isolated, federal, and there is a
+  7–25 MW cement load next door." Blocked on nothing but scope.
+- **[med] `anchor_load` uses the nearest power plant as a load proxy.** It is the
+  best universal signal on disk, but it is a proxy: it detects generation, not
+  demand. A real load layer (EIA-861 utility sales by county, or the Census County
+  Business Patterns employment-by-NAICS table) would replace the proxy with a
+  measurement. Both are public and bulk-downloadable.
+- **[low] Vendor-to-site matching is not implemented.** The tab shows the fleet and
+  the ranking side by side but does not say which designs fit a given site. The one
+  defensible criterion available today is the published no-grid-required claim
+  (Antares R1; BWXT's expeditionary Pele) against `microreactorIsOffGrid()` —
+  every other spec that would drive a match (exclusion-zone footprint, security
+  perimeter, water) is unpublished for 11 of the 12 vendors. Worth doing only as
+  the narrow off-grid filter, not as a general fit score.
+- **[low] Fleet and commitment rows carry no `verified_at`.** They are curated and
+  will rot — ANPI, Janus and the pilot programme all move monthly. `STATE_DC_INCENTIVES`
+  solved this with a per-row `verified_at` and a documented re-audit cadence; this
+  file should do the same. Suggested cadence: quarterly, matching `STATE_DC_REGULATION`.
+- **[low] Land-area, shell/enclosure and utility-filing coverage is 1/14, 1/14 and
+  4/14 in the source project** and web search cannot fix it — those live in FERC
+  eLibrary, state PUC dockets and NRC ADAMS. Only Westinghouse publishes a footprint
+  (2 acres), which is why `MICRO_MIN_ACRES` is a judgement call rather than a
+  derived figure.
+
+---
+
 ## DOE national-lab research pass — 2026-08-09
 
 Read the current national-lab literature on brownfield reuse and large-load

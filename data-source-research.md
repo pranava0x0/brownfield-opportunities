@@ -492,3 +492,27 @@ only; the findings live in that note.
 **Extraction note:** several of these PDFs come back as raw binary through
 WebFetch. `pypdf` is already available in this environment and extracts them
 fine (`pdftotext` is not installed) — decode locally rather than re-fetching.
+
+## §32 — PNNL `nepa-mcp` (PermitAI NEPA MCP Toolkit), probed 2026-08-21
+
+Evaluated for integration; full analysis and the tiered proposal live in
+[nepa-mcp-integration-spec.md](nepa-mcp-integration-spec.md). Host / packaging
+findings only here.
+
+| Query | Result | Notes |
+|---|---|---|
+| `pypi.org/project/nepa-mcp/` via WebFetch | **Error page, no content** | The PyPI HTML project page returned "A required part of this site couldn't load" to WebFetch. **Use the JSON API instead** — `curl -s https://pypi.org/pypi/<name>/json` returned complete metadata (author, license, `requires_dist`, full long-description, release list) on the first try. Faster and more parseable than the HTML page for any PyPI probe. |
+| WebSearch `"NEPA-MCP PyPI PNNL"` | **Missed it entirely** | Returned generic MCP/PyPI tooling. The package is findable by exact name, not by description. Searching `PNNL NEPA MCP` surfaced the *PermitAI* program pages (SearchNEPA / WriteNEPA / InsightsNEPA / DraftNEPABench) but never the package. **Go to the JSON API with a guessed name before searching.** |
+| Name variants probed | `nepa-mcp` **200**, `nepa_mcp` **200** (normalizes to the same project); `nepamcp`, `pnnl-nepa-mcp`, `nepa-mcp-server` all **404** | |
+| `raw.githubusercontent.com/pnnl/nepa-mcp/v0.1.1/docs/mcp-tool-catalog.md` | **200** | The complete 19-server / 46-tool inventory, generated from each server's live `tools/list` contract. Fetch this rather than reading the README's prose summary — and re-fetch on any version bump, since it is generated and will drift. |
+
+**Packaging constraint worth remembering:** `nepa-mcp` requires **Python ≥ 3.12**
+and pins `fastmcp==3.4.4` plus `shapely` / `pyproj`. This repo's floor is
+Python 3.9+ and the machine default is 3.9.6, so it can never be a
+`requirements.txt` entry — it runs out-of-process as an MCP server on
+`/Users/pranava/.local/bin/python3.12`. `pipx` is **not** installed here.
+
+**Do not re-probe** the 12 agency endpoints it wraps by hand — the catalog names
+them (BLM, Census, eCFR/GPO, NOAA Fisheries, EPA AQS/NEPAssist, FEMA NFHL, GBIF,
+USFWS IPaC, NPS NRHP, USGS PAD-US, Census TIGERweb, USACE). Several overlap
+endpoints already logged above.
