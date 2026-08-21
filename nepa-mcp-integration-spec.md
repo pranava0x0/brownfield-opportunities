@@ -1,8 +1,27 @@
 # NEPA MCP integration spec
 
-**Status:** research + proposal. Nothing here is built.
+**Status:** approved and implemented through the safe boundaries below.
 **Researched:** 2026-08-21, against `nepa-mcp` **0.1.1** (the current release; `0.1.0` is the only prior one).
-**Decision this asks for:** approve Tier A (zero cost, do it now), approve or defer Tiers B1–B3 (three narrow connectors), and accept the Tier C refusals.
+
+### Implementation checkpoint — 2026-08-21
+
+- **Tier A done.** Exact-version isolated install at
+  `~/.local/share/uv/tools/nepa-mcp`; `nepa-mcp doctor` passes. Codex config enables
+  the nine read-only servers used here. Census and AQS remain credential-gated.
+- **Janus product surface done.** `scripts/build_janus_nepa.py` produces six source
+  screens plus 12-layer GeoJSON for all nine Army installations. The Microreactors tab
+  has a clickable matrix, source cards, retrieval dates, announced Army/EO 14299 pathway,
+  deep links, and a lazy Leaflet overlay. No screen changes ranking.
+- **Tier B2 done.** `tribal-areas` bulk-fetches six current TIGERweb AIANNHA layers and
+  joins all 46,759 sites offline. Result: 2,122 mapped point-context hits. It is labeled
+  consultation context, not tribal title or a consultation conclusion.
+- **Tier B1 code done; data blocked.** `census-workforce` makes one ACS request per state
+  and joins county labor force, construction employment, and median income. The current
+  Census API requires `CENSUS_API_KEY`; no key is present, so no partial artifact ships.
+- **Tier B3 not shipped nationally after probe.** PAD-US ROI calls were too large and
+  unreliable for a safe 46,759-site connector. Janus gets a 0.1-mile point-context query;
+  Fort Wainwright is explicitly unavailable after a bounded timeout.
+- **Research follow-on:** [NEPATEC patterns for brownfield reindustrialization](research/nepatec-reindustrialization.md).
 
 ---
 
@@ -37,8 +56,8 @@ static-data project).
 
 That is not a blocker, it is a shape constraint: **`nepa-mcp` runs out-of-process, on its own
 interpreter, as an MCP server the agent talks to — never as an import inside `refresh.py`.**
-`python3.12` is already present at `/Users/pranava/.local/bin/python3.12`; `pipx` is not
-installed and would need to be.
+The implementation uses `uv tool install nepa-mcp==0.1.1`; the Janus builder invokes that
+isolated interpreter and keeps the project runtime unchanged.
 
 ---
 
@@ -64,7 +83,7 @@ Each row below is a gap **this project has already written down** as unfilled.
 | **Tribal consultation** — nothing, anywhere | `tribal.get_tribal_lands_in_roi` | Section 106 / Tribal consultation is a schedule risk on federal land, and 8,848 of our sites *are* federal land. Currently invisible in every lens. |
 | **Historic properties** — nothing | `nrhp.get_nrhp_properties_in_roi` | Same Section 106 exposure. FUDS and BRAC properties are disproportionately likely to contain listed structures. |
 | **ESA species / critical habitat** — nothing | `ipac.get_ipac_resources_in_roi`, `gbif.*`, `esa_ranges.*`, `noaa.*` | A listed species on site is a genuine schedule-killer that no current lens can see. |
-| **Wetlands / Section 404** — `data-source-research.md` logs an FWS NWI liveness probe that never became a connector | `usace.analyze_usace_jurisdiction`, `usace.get_usace_wetland_regions_in_roi`, `usace.get_usace_regulatory_district` | 404 jurisdiction determines whether a site needs a permit at all, and which district issues it. |
+| **Water / Section 404 context** — `data-source-research.md` logs an FWS NWI liveness probe that never became a connector | `usace.analyze_usace_jurisdiction`, wetland-region and regulatory-district tools | The tool returns district and delineation-method context. It **does not identify wetlands or determine CWA jurisdiction**; field delineation and agency review remain required. |
 | **Protected areas** — nothing | `padus.get_padus_protected_areas_in_roi` | PAD-US 4.1 owner/manager attributes. Directly relevant to the "is this land actually available" question the parcel-owner connector only half-answers. |
 | **Air quality / NAAQS** — nothing | `epa_aqs.*`, `nepa_assist.analyze_nepa_assist_screening` | Nonattainment status gates behind-the-meter gas turbines and diesel backup — i.e. it constrains the DC lens's `gas_pipeline_mi` component and the whole generation lens. |
 | **Regulatory currency** — `STATE_DC_INCENTIVES` (51 rows, annual re-audit), `STATE_DC_REGULATION` (quarterly re-audit), EO 14318, all hand-maintained | `cfr.cfr_resolve_executive_order`, `cfr.cfr_rulemaking`, `cfr.cfr_compare_versions`, `cfr.cfr_history` | These re-audits are the most tedious recurring work in the repo. `cfr_compare_versions` diffs a citation between two dates — that is precisely the "has this changed since `verified_at`?" question. |
@@ -86,10 +105,8 @@ Install `nepa-mcp` as an MCP server for the *analyst working in Claude Code*, no
 the dashboard or `refresh.py` touches.
 
 ```bash
-python3.12 -m pip install --user pipx && python3.12 -m pipx ensurepath
-pipx install --python python3.12 nepa-mcp
-nepa-mcp doctor          # expect: Installed servers: 19
-nepa-mcp configure claude
+uv tool install nepa-mcp==0.1.1
+~/.local/bin/nepa-mcp doctor   # expect: Installed servers: 19
 ```
 
 **What it buys:** ad-hoc, per-site NEPA screening on the handful of sites that actually
@@ -225,22 +242,21 @@ refresh chain before adding Tier B.**
 
 ## 5. Recommended sequence
 
-1. **Now — Tier A.** `pipx install nepa-mcp`, `nepa-mcp configure claude`. Run **S1** against the
-   top 10 microreactor sites and the 14 Nuclear Siting installations. Log findings in
-   `data-source-research.md` in the existing probe format, so the discovery is never re-paid.
-2. **Then — S2** on the federal instruments only, and record in CLAUDE.md that state tax rows
-   still need the manual sweep.
-3. **Then — S3 validation half.** If ACS separates the 14 installations sensibly, open Tier B1.
-   If it doesn't, stop and say so — that is a real finding, and cheaper than a connector.
-4. **Blocked on the refresh chain — Tier B1/B2/B3.** Do not add a 26th data file to a pipeline
-   with 12 consecutive CI failures.
+1. **Done:** refresh-chain empty-write protection, Tier A install, Janus screens/UI, Tier B2.
+2. **Next credentialed run:** provide `CENSUS_API_KEY`, build Tier B1, inspect distributions,
+   then decide whether measured construction employment should replace any score judgement.
+3. **Next product slice:** build the reuse dossier described in
+   `research/nepatec-reindustrialization.md` from existing fields.
+4. **Then:** NEPATEC analogue search and federal regulatory change monitoring. State law
+   remains a separate manual evidence stream.
 
 ## 6. Open questions
 
 - Does `nepa-mcp` respect a rate limit per upstream service, or does the caller? Our connectors
   hold a hard 1.5 s/host floor as an ethics rule; an MCP server fanning out 46 tools could
   violate it invisibly. **Verify before any batch use.**
-- `pipx` is not installed on this machine. Confirm the install path before promising Tier A.
+- Census and AQS credentials are absent. Keep their unavailable state visible; never convert
+  it to a zero/no-hit.
 - 0.1.1 is an early release with two versions on PyPI. Pin the version in any documented
   workflow, and re-read the tool catalog on upgrade — it is generated from the live
   `tools/list` contract and will drift.
