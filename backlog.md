@@ -4,33 +4,38 @@ Ideas and enhancements. Priorities: **high** = next, **med** = soon, **low** = n
 
 ---
 
-## NEPA MCP integration — proposal awaiting decision (2026-08-21)
+## NEPA MCP integration — implemented core (2026-08-21)
 
 Researched PNNL's [`nepa-mcp`](https://pypi.org/project/nepa-mcp/) 0.1.1 (PermitAI
 toolkit; 19 servers / 46 tools / 32 GIS layers, BSD-3). Full analysis, capability map
 and six scenarios in **[nepa-mcp-integration-spec.md](nepa-mcp-integration-spec.md)**;
 host/packaging findings in `data-source-research.md` §32.
 
-- **[high] Tier A — install as an agent-time MCP server.** `pipx install --python
-  python3.12 nepa-mcp && nepa-mcp configure claude`. Zero architectural cost, no data
-  file, no refresh cost. Buys per-site NEPA screening (ESA species, wetlands/§404,
-  tribal lands, historic properties) on the handful of sites that matter — signals no
-  current lens can see. **Blocked only on `pipx` not being installed.**
-- **[high] Tier B1 — `census-workforce` connector.** ACS 5-Year county socioeconomics
+- ~~**[high] Tier A — install as an agent-time MCP server.**~~ **Done 2026-08-21.**
+  Exact `nepa-mcp==0.1.1` isolated with `uv`; nine narrow Codex servers configured.
+  Janus build adds six source screens and 12 map layers for nine installations.
+- **[high] Tier B1 — `census-workforce` connector.** **Code and tests done; data blocked.** ACS 5-Year county socioeconomics
   to replace the hand-typed workforce rating that carries **15/100** of the Nuclear
   Siting score and that CLAUDE.md admits has "no federal GIS layer". ~3,232 counties,
   joins via the `CountyIndex` we already resolve offline. Build it against the Census
-  API directly, NOT through `nepa-mcp` — an MCP server is for discovery and validation,
-  not batch ETL. **Gated on the refresh chain being healthy first.**
-- **[med] Tier B2 — tribal-lands containment.** TIGERweb AIANNHA, ~700 polygons,
-  identical in shape to `opportunity-zone` / `ira-energy-community`. Section 106 exposure
-  is currently invisible across 8,848 federal properties.
+  API directly, NOT through `nepa-mcp`. Needs `CENSUS_API_KEY`; do not ship an empty file.
+- ~~**[med] Tier B2 — tribal-area containment.**~~ **Done 2026-08-21.** Six TIGERweb
+  AIANNHA layers, 1,071 polygons, 46,759 sites, 2,122 mapped point-context hits.
 - **[med] S2 — automate the regulatory re-audit.** `cfr_compare_versions` / `cfr_history`
   diff a CFR citation between two dates, which is exactly the "has this moved since
   `verified_at`?" question `STATE_DC_REGULATION` (quarterly) and EO 14318 need. **Only
   works for federal instruments — state tax law is not in the CFR**, so
   `STATE_DC_INCENTIVES` still needs the manual 51-row sweep.
-- **[low] Tier B3 — PAD-US protected areas.** Needs a size probe before committing.
+- **[low] Tier B3 — PAD-US protected areas.** National connector deferred after size/
+  reliability probe. Janus uses bounded 0.1-mile point context; one explicit timeout.
+- **[high] Reuse dossier.** One site view for land/control, reusable infrastructure,
+  environmental baseline, prior studies/permits, workforce/community, and delivery path.
+  Use known/no-hit/unavailable/project-work states. See
+  `research/nepatec-reindustrialization.md`.
+- **[med] NEPATEC analogue finder.** Search comparable brownfield/retired-plant actions by
+  agency, review level, issue, mitigation, and outcome with page-level citations.
+- **[med] Permit/evidence graph.** Dependencies, owner, status, source, dates, and gaps;
+  connect PermitTEC litigation to challenged procedural nodes.
 - **Refused, with reasons in the spec:** per-site ESA/wetlands/NRHP/air-quality over the
   full corpus (~19 h per layer — the flood-backfill trap), re-deriving FEMA flood data we
   already have at 91.1%, `map_composer` as a product surface, and adding `nepa-mcp` to
