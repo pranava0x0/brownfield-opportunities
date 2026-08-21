@@ -20,7 +20,7 @@ host/packaging findings in `data-source-research.md` §32.
   joins via the `CountyIndex` we already resolve offline. Build it against the Census
   API directly, NOT through `nepa-mcp`. Needs `CENSUS_API_KEY`; do not ship an empty file.
 - ~~**[med] Tier B2 — tribal-area containment.**~~ **Done 2026-08-21.** Six TIGERweb
-  AIANNHA layers, 1,071 polygons, 46,759 sites, 2,122 mapped point-context hits.
+  AIANNHA layers, 1,071 polygons, 46,759 sites checked, 2,122 sparse positive hits.
 - **[med] S2 — automate the regulatory re-audit.** `cfr_compare_versions` / `cfr_history`
   diff a CFR citation between two dates, which is exactly the "has this moved since
   `verified_at`?" question `STATE_DC_REGULATION` (quarterly) and EO 14318 need. **Only
