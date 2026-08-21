@@ -1478,7 +1478,7 @@ function ensureTribalAreasLoaded() {
         if (Array.isArray(rec.aiannha_areas)) existing.aiannha_areas = rec.aiannha_areas;
       }
       if (selectedId && sitesById.has(selectedId)) selectSite(selectedId);
-      buildCandidatesView();
+      maybeRefreshCandidates();
     })
     .catch((err) => {
       console.error("Tribal-area enrichment load failed:", err);
@@ -3349,6 +3349,14 @@ function setupTableInfiniteScroll() {
   _tableObserver = new IntersectionObserver(
     (entries) => {
       if (!entries.some((e) => e.isIntersecting)) return;
+      const tableView = el("view-table");
+      // A hidden table has a zero-height scroll root. Chromium can still
+      // report its sentinel as intersecting, and the zero geometry makes the
+      // remaining-scroll calculation below look exactly like "at bottom".
+      // Ignore observer work until the Table tab owns a real viewport.
+      if (!tableView?.classList.contains("active") || wrap.clientHeight <= 0) {
+        return;
+      }
       // Scroll-position guard. During the Map→Table tab transition (and in
       // headless contexts where layout settles in multiple passes) the
       // observer can fire several times before the sentinel's position
@@ -5259,6 +5267,10 @@ function _setupCandidatesScroll() {
   _candidatesObserver = new IntersectionObserver(
     (entries) => {
       if (!entries.some((e) => e.isIntersecting)) return;
+      const candidatesView = el("view-candidates");
+      if (!candidatesView?.classList.contains("active") || wrap.clientHeight <= 0) {
+        return;
+      }
       // Same scroll-position guard as the main table (UAT-2026-05-11):
       // don't prefetch during tab-transition layout thrash.
       const remaining = wrap.scrollHeight - wrap.scrollTop - wrap.clientHeight;
