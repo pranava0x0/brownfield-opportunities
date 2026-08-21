@@ -52,7 +52,4 @@ def test_bulk_layers_join_inside_and_outside(tmp_path, monkeypatch):
     by_id = {record["id"]: record for record in records}
     assert by_id["IN"]["in_aiannha_area"] is True
     assert by_id["IN"]["aiannha_areas"][0]["name"] == "Example Reservation"
-    assert by_id["OUT"] == {
-        "id": "OUT", "program": "superfund", "in_aiannha_area": False,
-        "aiannha_area_count": 0,
-    }
+    assert "OUT" not in by_id

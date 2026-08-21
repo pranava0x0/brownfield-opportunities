@@ -12,8 +12,8 @@
   screens plus 12-layer GeoJSON for all nine Army installations. The Microreactors tab
   has a clickable matrix, source cards, retrieval dates, announced Army/EO 14299 pathway,
   deep links, and a lazy Leaflet overlay. No screen changes ranking.
-- **Tier B2 done.** `tribal-areas` bulk-fetches six current TIGERweb AIANNHA layers and
-  joins all 46,759 sites offline. Result: 2,122 mapped point-context hits. It is labeled
+- **Tier B2 done.** `tribal-areas` bulk-fetches six current TIGERweb AIANNHA layers,
+  checks all 46,759 sites offline, and ships only 2,122 positive point-context hits. It is labeled
   consultation context, not tribal title or a consultation conclusion.
 - **Tier B1 code done; data blocked.** `census-workforce` makes one ACS request per state
   and joins county labor force, construction employment, and median income. The current

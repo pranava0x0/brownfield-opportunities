@@ -104,9 +104,11 @@ class TribalAreas(Connector):
             log.error("tribal-area index empty; refusing an all-false output")
             return []
         records = []
+        examined = 0
         for site in sites:
             if not site.get("id") or site.get("lat") is None or site.get("lon") is None:
                 continue
+            examined += 1
             hits = index.containing_all(float(site["lat"]), float(site["lon"]))
             unique = []
             seen = set()
@@ -116,16 +118,18 @@ class TribalAreas(Connector):
                     continue
                 seen.add(key)
                 unique.append(hit)
-            rec = {
-                "id": site["id"],
-                "program": site["program"],
-                "in_aiannha_area": bool(unique),
-                "aiannha_area_count": len(unique),
-            }
+            # Sparse positive-only enrichment. The UI only makes a positive
+            # consultation-context claim; emitting 44k explicit false rows
+            # added 4 MB and a full-corpus join to every page load.
             if unique:
-                rec["aiannha_areas"] = unique
-            records.append(rec)
+                records.append({
+                    "id": site["id"],
+                    "program": site["program"],
+                    "in_aiannha_area": True,
+                    "aiannha_area_count": len(unique),
+                    "aiannha_areas": unique,
+                })
         if getattr(args, "limit", None):
             records = records[: args.limit]
-        log.info("[tribal-areas] %d sites; %d mapped hits", len(records), sum(r["in_aiannha_area"] for r in records))
+        log.info("[tribal-areas] %d sites examined; %d mapped hits", examined, len(records))
         return records
