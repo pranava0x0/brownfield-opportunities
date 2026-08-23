@@ -668,20 +668,35 @@ function computeManufacturingScore(site) {
 
 // ---------------------------------------------------------------------------
 
-window.computeDcCompositeScore = computeDcCompositeScore;
-window.computeDcScoreBreakdown = computeDcScoreBreakdown;
-window.computeGenerationScore = computeGenerationScore;
-window.computeGenerationScoreBreakdown = computeGenerationScoreBreakdown;
-window.DC_SCORE_WEIGHTS = DC_SCORE_WEIGHTS;
-window.DC_SCORE_TOOLTIP = DC_SCORE_TOOLTIP;
-window.GENERATION_SCORE_WEIGHTS = GENERATION_SCORE_WEIGHTS;
-window.GENERATION_SCORE_TOOLTIP = GENERATION_SCORE_TOOLTIP;
-window.computeManufacturingScore = computeManufacturingScore;
-window.computeManufacturingScoreBreakdown = computeManufacturingScoreBreakdown;
-window.MANUFACTURING_SCORE_WEIGHTS = MANUFACTURING_SCORE_WEIGHTS;
-window.MANUFACTURING_SCORE_TOOLTIP = MANUFACTURING_SCORE_TOOLTIP;
-window.FLOOD_SFHA_PENALTY = FLOOD_SFHA_PENALTY;
-window.CLIMATE_PENALTY_VERY_HIGH = CLIMATE_PENALTY_VERY_HIGH;
-window.REGULATORY_PENALTY_RESTRICTIVE = REGULATORY_PENALTY_RESTRICTIVE;
-window.REGULATORY_PENALTY_CAUTIONARY = REGULATORY_PENALTY_CAUTIONARY;
-window.CLIMATE_PENALTY_REL_HIGH = CLIMATE_PENALTY_REL_HIGH;
+const _root = typeof window !== "undefined" ? window : globalThis;
+_root.computeDcCompositeScore = computeDcCompositeScore;
+_root.computeDcScoreBreakdown = computeDcScoreBreakdown;
+_root.computeGenerationScore = computeGenerationScore;
+_root.computeGenerationScoreBreakdown = computeGenerationScoreBreakdown;
+_root.DC_SCORE_WEIGHTS = DC_SCORE_WEIGHTS;
+_root.DC_SCORE_TOOLTIP = DC_SCORE_TOOLTIP;
+_root.GENERATION_SCORE_WEIGHTS = GENERATION_SCORE_WEIGHTS;
+_root.GENERATION_SCORE_TOOLTIP = GENERATION_SCORE_TOOLTIP;
+_root.computeManufacturingScore = computeManufacturingScore;
+_root.computeManufacturingScoreBreakdown = computeManufacturingScoreBreakdown;
+_root.MANUFACTURING_SCORE_WEIGHTS = MANUFACTURING_SCORE_WEIGHTS;
+_root.MANUFACTURING_SCORE_TOOLTIP = MANUFACTURING_SCORE_TOOLTIP;
+_root.FLOOD_SFHA_PENALTY = FLOOD_SFHA_PENALTY;
+_root.CLIMATE_PENALTY_VERY_HIGH = CLIMATE_PENALTY_VERY_HIGH;
+_root.REGULATORY_PENALTY_RESTRICTIVE = REGULATORY_PENALTY_RESTRICTIVE;
+_root.REGULATORY_PENALTY_CAUTIONARY = REGULATORY_PENALTY_CAUTIONARY;
+_root.CLIMATE_PENALTY_REL_HIGH = CLIMATE_PENALTY_REL_HIGH;
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {
+    computeDcCompositeScore,
+    computeDcScoreBreakdown,
+    computeGenerationScore,
+    computeGenerationScoreBreakdown,
+    computeManufacturingScore,
+    computeManufacturingScoreBreakdown,
+    DC_SCORE_WEIGHTS,
+    GENERATION_SCORE_WEIGHTS,
+    MANUFACTURING_SCORE_WEIGHTS,
+  };
+}

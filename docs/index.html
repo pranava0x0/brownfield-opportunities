@@ -69,6 +69,7 @@
       <button id="tab-table" class="tab" role="tab" aria-selected="false" aria-controls="view-table">Table</button>
       <button id="tab-candidates" class="tab" role="tab" aria-selected="false" aria-controls="view-candidates">Rankings</button>
       <button id="tab-retired" class="tab" role="tab" aria-selected="false" aria-controls="view-retired">Retired Sites</button>
+      <button id="tab-coal" class="tab" role="tab" aria-selected="false" aria-controls="view-coal">Coal Repowering</button>
       <button id="tab-ap1000" class="tab" role="tab" aria-selected="false" aria-controls="view-ap1000">Nuclear Siting</button>
       <button id="tab-micro" class="tab" role="tab" aria-selected="false" aria-controls="view-micro">Microreactors</button>
       <button id="tab-about" class="tab" role="tab" aria-selected="false" aria-controls="view-about">About</button>
@@ -271,6 +272,83 @@
         <p>Large facilities that ceased EPA GHGRP reporting — which can mean closed, idled, <em>or</em> simply dropping below the reporting threshold. Treat it as a <strong>screening signal</strong>: a former smelter, mill, refinery, or mine may retain reusable grid infrastructure worth investigating for data-center or generation reuse. It does not by itself confirm the site is available or still connected. Counts by the facility's prior use. The reuse case has a federal precedent: DOE's coal-to-nuclear study screened 394 retiring and recently retired coal sites and found <strong>roughly 80% suitable for an SMR</strong> (33 for a large reactor), with <strong>15–35% construction savings</strong> from reusing the existing grid, cooling, and civil infrastructure (<a href="https://www.energy.gov/ne/articles/doe-report-finds-hundreds-retiring-coal-plant-sites-could-convert-nuclear" target="_blank" rel="noopener">DOE Office of Nuclear Energy</a>).</p>
       </div>
       <div id="retired-stats" aria-live="polite"><p class="muted">Loading retired-site data…</p></div>
+    </div>
+  </section>
+
+  <section id="view-coal" class="view coal-view" role="tabpanel" aria-labelledby="tab-coal" hidden>
+    <div class="coal-wrap">
+      <div class="coal-lead">
+        <h2>Coal-to-Clean Repowering &amp; Stranded Asset Valuation Engine</h2>
+        <p>A national catalogue of operating and retiring coal plants evaluated for <strong>nuclear SMR</strong> and <strong>hyperscale AI data center conversion</strong>. Reusing existing high-voltage switchyards, active water intake allocations, and heavy rail loops yields <strong>15–35% construction CapEx savings</strong> ($100M–$450M+ per site) and bypasses 5–7 year interconnection queues via FERC generator replacement transfer rules (<a href="https://www.energy.gov/ne/articles/doe-report-finds-hundreds-retiring-coal-plant-sites-could-convert-nuclear" target="_blank" rel="noopener">DOE Office of Nuclear Energy / EIA-860M</a>).</p>
+      </div>
+
+      <div class="coal-kpis" id="coal-kpi-deck">
+        <div class="coal-kpi">
+          <span class="coal-kpi-label">Conversion Assets</span>
+          <span class="coal-kpi-val" id="coal-kpi-count">18</span>
+          <span class="coal-kpi-sub">major coal facilities</span>
+        </div>
+        <div class="coal-kpi">
+          <span class="coal-kpi-label">Total Coal Capacity</span>
+          <span class="coal-kpi-val" id="coal-kpi-mw">28.4 GW</span>
+          <span class="coal-kpi-sub">firm dispatchable grid capacity</span>
+        </div>
+        <div class="coal-kpi">
+          <span class="coal-kpi-label">Stranded Infrastructure Value</span>
+          <span class="coal-kpi-val" id="coal-kpi-val">$5.1B</span>
+          <span class="coal-kpi-sub">switchyard, intake &amp; rail replacement</span>
+        </div>
+        <div class="coal-kpi">
+          <span class="coal-kpi-label">Fast-Track Queue Eligible</span>
+          <span class="coal-kpi-val" id="coal-kpi-queue">100%</span>
+          <span class="coal-kpi-sub">generator replacement transfers</span>
+        </div>
+      </div>
+
+      <div class="coal-filters-bar">
+        <div class="coal-filter-group">
+          <label for="coal-status-filter">Status:</label>
+          <select id="coal-status-filter" class="coal-select">
+            <option value="all">All statuses</option>
+            <option value="operating">Operating</option>
+            <option value="retiring">Retiring soon</option>
+            <option value="retired">Retired</option>
+          </select>
+        </div>
+        <div class="coal-filter-group">
+          <label for="coal-iso-filter">ISO / RTO:</label>
+          <select id="coal-iso-filter" class="coal-select">
+            <option value="all">All Grid Regions</option>
+            <option value="PJM">PJM</option>
+            <option value="MISO">MISO</option>
+            <option value="ERCOT">ERCOT</option>
+            <option value="TVA">TVA</option>
+            <option value="WECC">WECC</option>
+            <option value="SERC">SERC</option>
+          </select>
+        </div>
+        <div class="coal-filter-group">
+          <label for="coal-suitability-filter">Suitability:</label>
+          <select id="coal-suitability-filter" class="coal-select">
+            <option value="all">All Pathways</option>
+            <option value="nuclear_preferred">Nuclear Preferred</option>
+            <option value="datacenter_preferred">Data Center Preferred</option>
+            <option value="dual_feasible">Dual Feasible</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="coal-table-container" class="coal-table-wrap" aria-live="polite">
+        <p class="muted">Loading coal conversion assets…</p>
+      </div>
+
+      <div id="coal-site-drawer" class="coal-drawer" hidden>
+        <div class="coal-drawer-head">
+          <h3 id="coal-drawer-title">Plant Details</h3>
+          <button id="coal-drawer-close" class="close" aria-label="Close plant details">×</button>
+        </div>
+        <div id="coal-drawer-body" class="coal-drawer-body"></div>
+      </div>
     </div>
   </section>
 
@@ -478,6 +556,192 @@
           </dl>
         </div>
 
+        <div class="about-section about-arch-full" style="grid-column: 1 / -1;">
+          <h3>System Architecture &amp; Data Flow Pipelines</h3>
+          <p class="about-arch-intro">How 46,759 contaminated and federal properties are ingested, spatially indexed against nationwide infrastructure, scored across four suitability lenses, and rendered in real-time in the browser without server dependencies.</p>
+          
+          <div class="arch-flow-grid">
+            <!-- Master Platform Flow -->
+            <div class="flow-card master-card">
+              <div class="flow-card-head">
+                <span class="flow-card-badge">Master Pipeline</span>
+                <h4>End-to-End Platform Architecture</h4>
+              </div>
+              <div class="flow-diagram-visual">
+                <div class="flow-step-box">
+                  <span class="step-num">1</span>
+                  <strong>Upstream Federal Sources</strong>
+                  <span class="step-desc">EPA, DoD, USACE, EIA, FEMA, Census, NETL, HUD, PNNL</span>
+                </div>
+                <div class="flow-arrow-down">↓</div>
+                <div class="flow-step-box">
+                  <span class="step-num">2</span>
+                  <strong>Connector Ingestion &amp; Sanitization</strong>
+                  <span class="step-desc">Deduplication, Title-Casing, Sentinel Scrubbing, Pydantic Schema Validation</span>
+                </div>
+                <div class="flow-arrow-down">↓</div>
+                <div class="flow-step-box">
+                  <span class="step-num">3</span>
+                  <strong>Spatial Indexing &amp; Proximity Joins</strong>
+                  <span class="step-desc">SegmentIndex (52k lines) &amp; PointIndex (70k substations, 13k plants, 394 coal units)</span>
+                </div>
+                <div class="flow-arrow-down">↓</div>
+                <div class="flow-step-box">
+                  <span class="step-num">4</span>
+                  <strong>Offline Static JSON Artifacts</strong>
+                  <span class="step-desc">Eager sites.json (170 KB) + Lazy program files &amp; Overlays (Zero runtime backend)</span>
+                </div>
+                <div class="flow-arrow-down">↓</div>
+                <div class="flow-step-box">
+                  <span class="step-num">5</span>
+                  <strong>Client-Side Engine &amp; Reactive UI</strong>
+                  <span class="step-desc">Chunked marker hydration, paginated virtual tables, multi-lens scoring, URL state sync</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Feature 1: Universal Brownfield Ingestion -->
+            <div class="flow-card">
+              <div class="flow-card-head">
+                <span class="flow-card-badge">Feature 1</span>
+                <h4>Universal Brownfields Ingestion</h4>
+              </div>
+              <p class="flow-desc">Unifies 4 disparate federal environmental programs into a single normalized <code>SiteRecord</code> schema with cross-source unique IDs and clean coordinate resolution.</p>
+              <div class="pipeline-tags">
+                <span class="ptag">EPA Superfund (1.9k)</span>
+                <span class="ptag">EPA ACRES (36.0k)</span>
+                <span class="ptag">USACE FUDS (8.8k)</span>
+                <span class="ptag">DoD BRAC (27)</span>
+              </div>
+              <ul class="flow-points">
+                <li><strong>Idempotent ID Namespacing:</strong> <code>ACRES-{id}</code>, <code>FUDS-{id}</code>, <code>BRAC-{slug}</code>, <code>{EPA_ID}</code>.</li>
+                <li><strong>Place-Name Prettifier:</strong> Converts ALL-CAPS uppercase EPA/USACE records into Title-Case and scrubs placeholder sentinels (<code>NO CITY</code>, <code>_NULL_</code>).</li>
+                <li><strong>Lazy Multi-Source Hydration:</strong> Superfund loads eagerly for &lt;100ms first paint; 36k ACRES &amp; 8.8k FUDS load in 800-record chunks per idle frame.</li>
+              </ul>
+            </div>
+
+            <!-- Feature 2: Spatial Proximity & Grid Indexing -->
+            <div class="flow-card">
+              <div class="flow-card-head">
+                <span class="flow-card-badge">Feature 2</span>
+                <h4>Power &amp; Grid Spatial Indexing</h4>
+              </div>
+              <p class="flow-desc">High-performance spatial grid indexing that joins 46,759 brownfields against national energy, transportation, and hydrologic infrastructure.</p>
+              <div class="pipeline-tags">
+                <span class="ptag">HIFLD 52k Lines</span>
+                <span class="ptag">OSM 70k Substations</span>
+                <span class="ptag">EIA 13.4k Plants</span>
+                <span class="ptag">TIGER Rail/Roads</span>
+              </div>
+              <ul class="flow-points">
+                <li><strong>Local Equirectangular Projections:</strong> $O(1)$ grid-cell hashing with Chebyshev ring expansion for nearest-neighbor lookups.</li>
+                <li><strong>1-Lipschitz Mathematical Invariant:</strong> $|d(A) - d(B)| \le \text{dist}(A, B)$ verified offline across 511,927 distance fields.</li>
+                <li><strong>Infrastructure Inheritance:</strong> Detects shared switchyards, bus voltages (69–765 kV), and proximity to operating/retired thermal generators.</li>
+              </ul>
+            </div>
+
+            <!-- Feature 3: Multi-Lens Siting Scoring -->
+            <div class="flow-card">
+              <div class="flow-card-head">
+                <span class="flow-card-badge">Feature 3</span>
+                <h4>Multi-Lens Siting Scoring Engine</h4>
+              </div>
+              <p class="flow-desc">Evaluates site suitability across 4 distinct industrial development personas with dedicated weighting matrices and constraint penalties.</p>
+              <div class="pipeline-tags">
+                <span class="ptag">Data Center (0–100)</span>
+                <span class="ptag">Power Gen (0–100)</span>
+                <span class="ptag">Manufacturing (0–100)</span>
+                <span class="ptag">Microreactors (0–100)</span>
+              </div>
+              <ul class="flow-points">
+                <li><strong>Data Center Lens:</strong> Prioritizes power voltage (14%), transmission (16%), substation (12%), gas (10%), land (20%), minus flood (−18) &amp; moratoriums (−8).</li>
+                <li><strong>Generation Lens:</strong> Prioritizes developable land (24%), export capacity (18%), substation POI (14%), market access (8%).</li>
+                <li><strong>Inverted Microreactor Lens:</strong> Inverts the grid signal—sites further from high-voltage transmission score <em>higher</em> to reward diesel replacement in islanded/remote regions.</li>
+              </ul>
+            </div>
+
+            <!-- Feature 4: Coal Conversion & Stranded Valuation Engine -->
+            <div class="flow-card">
+              <div class="flow-card-head">
+                <span class="flow-card-badge">Feature 4</span>
+                <h4>Coal-to-Clean Reindustrialization</h4>
+              </div>
+              <p class="flow-desc">Screens national coal facilities for conversion to advanced nuclear SMRs and AI data center campuses, modeling replacement CapEx value.</p>
+              <div class="pipeline-tags">
+                <span class="ptag">EIA-860M Inventory</span>
+                <span class="ptag">DOE Coal-to-Nuclear</span>
+                <span class="ptag">Stranded Asset Val ($B)</span>
+                <span class="ptag">FERC Fast-Track Queue</span>
+              </div>
+              <ul class="flow-points">
+                <li><strong>Stranded Replacement Valuation:</strong> $V = (\text{MW} \times \$180\text{k}) + \$25\text{M}_{\text{water}} + \$12\text{M}_{\text{rail}} + \$8\text{M}_{\text{civil}} \times e^{-0.25 d_{\text{mi}}}$.</li>
+                <li><strong>CapEx Advantage:</strong> Stranded heavy electrical and water intake infrastructure saves 15–35% ($100M–$450M+) on nuclear or compute deployment.</li>
+                <li><strong>Interconnection Fast-Track:</strong> Identifies sites $\le 1.5$ mi from retiring switchyards eligible for FERC generator replacement queue transfer.</li>
+              </ul>
+            </div>
+
+            <!-- Feature 5: Advanced Nuclear & Microreactor Pipeline -->
+            <div class="flow-card">
+              <div class="flow-card-head">
+                <span class="flow-card-badge">Feature 5</span>
+                <h4>Advanced Nuclear &amp; Microreactor Pipeline</h4>
+              </div>
+              <p class="flow-desc">Combines Idaho National Laboratory's 4-tier civilian AP1000 study, USAF ANPI base awards, and PNNL Janus environmental screens.</p>
+              <div class="pipeline-tags">
+                <span class="ptag">INL AP1000 Siting</span>
+                <span class="ptag">USAF ANPI Picks</span>
+                <span class="ptag">PNNL Janus NEPA</span>
+                <span class="ptag">USGS 7Q10 Low-Flow</span>
+              </div>
+              <ul class="flow-points">
+                <li><strong>Reactor Class Separation:</strong> Segregates Gigawatt Gen III+ PWRs (wet-cooled) from SMRs (dry-coolable) and 1–20 MWe microreactors.</li>
+                <li><strong>Cooling &amp; Water Rights:</strong> Low-flow margin modeling against USGS streamgages with state-by-state surface water rights obtainability multipliers.</li>
+                <li><strong>NEPA Environmental Overlays:</strong> Integrates PNNL PermitAI/NEPA MCP screens for DoD installations covering wetlands, floodplains, and air basins.</li>
+              </ul>
+            </div>
+
+            <!-- Feature 6: Federal Clean Energy Portfolio -->
+            <div class="flow-card">
+              <div class="flow-card-head">
+                <span class="flow-card-badge">Feature 6</span>
+                <h4>Federal Cleanup to Clean Energy &amp; CEML</h4>
+              </div>
+              <p class="flow-desc">Catalogs massive federal reservations (DOE-EM) and reclaimed coal mine lands (DOE-OCED) undergoing gigawatt-scale clean energy transitions.</p>
+              <div class="pipeline-tags">
+                <span class="ptag">DOE-EM Reservations</span>
+                <span class="ptag">DOE-OCED Mine Lands</span>
+                <span class="ptag">1.5M+ Federal Acres</span>
+                <span class="ptag">Active RFP Solicitations</span>
+              </div>
+              <ul class="flow-points">
+                <li><strong>Federal Security &amp; Land Scale:</strong> Flagship reservations including Savannah River Site (310k ac), Hanford (586k ac), and INL (570k ac).</li>
+                <li><strong>Gigawatt Compute Campus Precedents:</strong> Tracks selections such as NNSA/Amentum (1 GW AI DC + ~2 GW on-site clean power at SRS).</li>
+                <li><strong>Clean Energy on Mine Lands:</strong> Utility-scale solar/storage projects on former surface coal mines (Mineral Basin PA, Lewis Ridge KY).</li>
+              </ul>
+            </div>
+
+            <!-- Feature 7: Financial Stacking & Regulatory Intelligence -->
+            <div class="flow-card">
+              <div class="flow-card-head">
+                <span class="flow-card-badge">Feature 7</span>
+                <h4>Financial Stacking &amp; Regulatory Tracking</h4>
+              </div>
+              <p class="flow-desc">Synthesizes tax credit eligibility, Opportunity Zones, state data center incentives, and automated federal eCFR regulatory monitors.</p>
+              <div class="pipeline-tags">
+                <span class="ptag">Treasury QOZ Tracts</span>
+                <span class="ptag">NETL IRA Energy Comm.</span>
+                <span class="ptag">State DC Incentives</span>
+                <span class="ptag">eCFR Regulatory Diff</span>
+              </div>
+              <ul class="flow-points">
+                <li><strong>IRA Energy Community +10% Bonus:</strong> Point-in-polygon resolution against coal-closure tracts and fossil-fuel-employment areas.</li>
+                <li><strong>Opportunity Zone Tax Step-Up:</strong> Distinguishes standard vs. Rural QOZ tracts (30% basis step-up).</li>
+                <li><strong>State Regulatory Index:</strong> Audits 50-state data center tax exemptions, sales tax holidays, and moratorium risk legislation.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
         <div class="about-section about-sources">
           <h3>Data sources &amp; freshness</h3>
           <ul class="about-source-list">
@@ -592,6 +856,7 @@
       <dt>Power plant</dt><dd id="d-power-plant-mi" class="muted-cell">Not available</dd>
       <dt>Retired plant</dt><dd id="d-retired-plant-mi" class="muted-cell">Not available</dd>
       <dt>Retiring plant</dt><dd id="d-planned-retire-mi" class="muted-cell">Not available</dd>
+      <dt>Coal repowering</dt><dd id="d-coal-repower-mi" class="muted-cell">Not available</dd>
       <dt>Rail line</dt><dd id="d-rail-mi" class="muted-cell">Not available</dd>
       <dt>Highway</dt><dd id="d-highway-mi" class="muted-cell">Not available</dd>
       <dt>Gas pipeline</dt><dd id="d-gas-pipeline-mi" class="muted-cell">Not available</dd>

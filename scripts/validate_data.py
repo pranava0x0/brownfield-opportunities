@@ -41,10 +41,20 @@ from typing import Any, Callable, Iterable, Optional
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "docs" / "data"
-sys.path.insert(0, str(ROOT))
+import importlib.util
 
-from connectors.county_lookup import CountyIndex  # noqa: E402
-from connectors.spatial import PolygonIndex, haversine_mi  # noqa: E402
+_spatial_spec = importlib.util.spec_from_file_location("spatial", str(ROOT / "connectors" / "spatial.py"))
+_spatial_mod = importlib.util.module_from_spec(_spatial_spec)
+_spatial_spec.loader.exec_module(_spatial_mod)
+PolygonIndex = _spatial_mod.PolygonIndex
+haversine_mi = _spatial_mod.haversine_mi
+
+_county_spec = importlib.util.spec_from_file_location("county_lookup", str(ROOT / "connectors" / "county_lookup.py"))
+_county_mod = importlib.util.module_from_spec(_county_spec)
+# inject spatial into sys.modules so county_lookup can import it if needed
+sys.modules["connectors.spatial"] = _spatial_mod
+_county_spec.loader.exec_module(_county_mod)
+CountyIndex = _county_mod.CountyIndex
 
 # --------------------------------------------------------------------------
 # Reference domains
@@ -78,6 +88,9 @@ ENRICHMENT_FILES = [
 # Overlay files: NOT SiteRecords, own shapes, validated separately.
 OVERLAY_FILES = [
     "ap1000-sites.json",
+    "coal-conversions.json",
+    "coal-conversions-proximity.json",
+    "federal-clean-energy.json",
     "microreactor-fleet.json",
     "nuclear-brownfield-proximity.json",
     "nuclear-civilian-sites.json",
@@ -306,7 +319,7 @@ class Corpus:
 def _records_of(payload: Any) -> list[dict]:
     if isinstance(payload, list):
         return payload
-    for key in ("sites", "records", "campuses", "data"):
+    for key in ("sites", "records", "campuses", "data", "matches", "assets"):
         val = payload.get(key)
         if isinstance(val, list):
             return val

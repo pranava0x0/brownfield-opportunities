@@ -249,6 +249,40 @@ class SiteRecord(BaseModel):
         description="Name of the nearest planned-retirement power plant.",
     )
 
+    # Coal-to-Clean (Nuclear & Data Center) Conversion fields (Spec 04)
+    coal_conversion_plant_name: Optional[str] = Field(
+        default=None,
+        description="Name of the nearest coal plant conversion asset (active or retired ≥100 MW).",
+    )
+    coal_conversion_plant_mi: Optional[float] = Field(
+        default=None,
+        description="Miles to the nearest coal plant conversion asset.",
+    )
+    coal_conversion_mw: Optional[float] = Field(
+        default=None,
+        description="Nameplate coal capacity in MW of the nearest coal conversion asset.",
+    )
+    coal_conversion_switchyard_kv: Optional[float] = Field(
+        default=None,
+        description="Interconnect switchyard voltage (kV) of the nearest coal conversion asset.",
+    )
+    coal_conversion_rail: Optional[bool] = Field(
+        default=None,
+        description="Whether the coal conversion asset has active rail loop/siding.",
+    )
+    coal_conversion_water: Optional[bool] = Field(
+        default=None,
+        description="Whether the coal conversion asset has dedicated water intake / NPDES discharge.",
+    )
+    coal_conversion_stranded_val_usd: Optional[float] = Field(
+        default=None,
+        description="Estimated stranded infrastructure replacement value (USD) derived from grid/water/rail assets.",
+    )
+    coal_conversion_queue_fasttrack: Optional[bool] = Field(
+        default=None,
+        description="Whether site is eligible for ISO/RTO generator replacement fast-track queue transfer (within 1.5 mi).",
+    )
+
     flood_zone: Optional[str] = Field(
         default=None,
         description="FEMA NFHL flood-zone code at the site (`A`, `AE`, `V`, `VE`, "
@@ -530,3 +564,69 @@ class Payload(BaseModel):
     # Set on the combined sites.json: lists per-program counts so the frontend
     # can render a source filter without scanning the full record list.
     programs: Optional[dict[str, int]] = None
+
+
+class CoalConversionAsset(BaseModel):
+    """One coal plant facility evaluated for nuclear or data center conversion (Spec 04)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    eia_plant_id: int = Field(description="EIA Plant Code")
+    plant_name: str
+    utility_operator: str
+    state: str = Field(min_length=2, max_length=2)
+    county: str
+    latitude: float
+    longitude: float
+    status: Literal["operating", "retired", "planned_retirement"]
+    retired_year: Optional[int] = None
+    planned_retirement_year: Optional[int] = None
+    nameplate_coal_mw: float = Field(ge=0.0)
+    switchyard_kv: float = Field(ge=0.0)
+    has_rail: bool
+    has_water_intake: bool
+    intake_flow_gpm: Optional[float] = None
+    npdes_permit_id: Optional[str] = None
+    site_acreage: Optional[float] = None
+    iso_rto: str
+    queue_transfer_eligible: bool
+    est_stranded_asset_value_usd: float
+    conversion_suitability: Literal["nuclear_preferred", "datacenter_preferred", "dual_feasible"]
+
+
+class CoalConversionProximityRecord(BaseModel):
+    """Proximity link from a tracked brownfield to an adjacent coal conversion asset."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    id: str = Field(description="Tracked brownfield site ID")
+    coal_conversion_plant_name: str
+    coal_conversion_plant_mi: float = Field(ge=0.0)
+    coal_conversion_mw: float = Field(ge=0.0)
+    coal_conversion_switchyard_kv: float = Field(ge=0.0)
+    coal_conversion_rail: bool
+    coal_conversion_water: bool
+    coal_conversion_stranded_val_usd: float = Field(ge=0.0)
+    coal_conversion_queue_fasttrack: bool
+
+
+class FederalCleanEnergySite(BaseModel):
+    """One flagship DOE 'Cleanup to Clean Energy' or Mine Lands clean energy site (Spec 08)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    site_id: str = Field(description="Unique identifier e.g. 'doe-em-srs'")
+    site_name: str
+    managing_office: Literal["DOE-EM", "DOE-OCED", "BLM", "OSMRE", "DOD-AFCEC", "DOD-ANPI"]
+    state: str = Field(min_length=2, max_length=2)
+    county: str
+    latitude: float
+    longitude: float
+    available_acreage: float = Field(ge=0.0)
+    target_technologies: list[str]
+    program_stage: Literal["RFI_Issued", "RFQ_Awarded", "Lease_Executed", "Pre_Application", "Construction"]
+    commercial_partner: Optional[str] = None
+    solicitation_url: str
+    nepa_review_document_url: Optional[str] = None
+    key_advantages: list[str]
+
