@@ -29,6 +29,12 @@ implemented Spec 04/08 datasets were corrected in the same branch and are now gu
 `scripts/validate_data.py` checks `overlay-pydantic-schema` / `curated-provenance` /
 `coal-catalog-coherence` and the pre-PR gate `scripts/pr_gate.sh`.
 
+Coal-engine follow-ups live in spec 04 §7 (derive the ~550-plant universe from the cached EIA-860M
+workbook is the [high] one; score integration and the BTM-siting sub-score follow). One structural
+item from the domain review: **[med] split `available_acreage` semantics in federal-clean-energy**
+(`total_site_acreage` vs `offered_acreage` — INL offers ~44k of 570k ac; today the payload `source`
+string carries the caveat).
+
 ---
 
 ## NEPA MCP integration — implemented core (2026-08-21)
