@@ -1,6 +1,23 @@
 # Backlog
 
 Ideas and enhancements. Priorities: **high** = next, **med** = soon, **low** = nice-to-have.
+Rankings are evaluated on three dimensions: **Impact** (value to developers / agencies / buyers), **Size** (implementation effort / risk), and **Completeness** (data availability / defensibility).
+
+---
+
+## 🎯 Executive Ranked Roadmap (2026-08-23 Review)
+
+| Rank | Initiative / Epic | Priority | Impact | Size | Completeness | Detailed Spec |
+|:---:|---|:---:|:---:|:---:|:---:|---|
+| **1** | **Single-Site Comprehensive Reuse Dossier & Precedent Engine** | **High** | 5/5 | 3/5 (M) | 4/5 (High) | [docs/specs/spec-reuse-dossier-and-nepa-precedent.md](docs/specs/spec-reuse-dossier-and-nepa-precedent.md) |
+| **2** | **Quantitative Workforce & Socioeconomic Layer (ACS + LEHD)** | **High** | 5/5 | 3/5 (M) | 5/5 (High) | [docs/specs/spec-workforce-socioeconomic-intelligence.md](docs/specs/spec-workforce-socioeconomic-intelligence.md) |
+| **3** | **ORNL OR-SAGE National Siting Criteria Layer (10 Parameters)** | **High** | 5/5 | 4/5 (L) | 4/5 (High) | [docs/specs/spec-orsage-siting-criteria.md](docs/specs/spec-orsage-siting-criteria.md) |
+| **4** | **Coal-to-Nuclear & Coal-to-Data-Center Conversion Engine** | **High** | 5/5 | 3/5 (M) | 4/5 (High) | [docs/specs/spec-coal-reindustrialization-engine.md](docs/specs/spec-coal-reindustrialization-engine.md) |
+| **5** | **Water Stress & 7Q10 Low-Flow Hydrology (WRI + USGS)** | **High** | 5/5 | 3/5 (M) | 4/5 (High) | [docs/specs/spec-water-stress-and-cooling-intake.md](docs/specs/spec-water-stress-and-cooling-intake.md) |
+| **6** | **EPA RE-Powering 190k Universe & Substation Validation** | **High** | 4/5 | 3/5 (M) | 4/5 (High) | [docs/specs/spec-repowering-universe-and-substation-validation.md](docs/specs/spec-repowering-universe-and-substation-validation.md) |
+| **7** | **Microreactor Demand Ladder & Vendor Compatibility Match** | **High** | 4/5 | 2/5 (S) | 5/5 (High) | [docs/specs/spec-microreactor-demand-matching.md](docs/specs/spec-microreactor-demand-matching.md) |
+| **8** | **DOE "Cleanup to Clean Energy" & Mine Land (CEML) Overlay** | **Med** | 4/5 | 2/5 (S) | 5/5 (High) | [docs/specs/spec-cleanup-to-clean-energy-and-mine-lands.md](docs/specs/spec-cleanup-to-clean-energy-and-mine-lands.md) |
+| **9** | **ISO Queue Dynamics & Automated eCFR Regulatory Tracker** | **Med** | 4/5 | 3/5 (M) | 4/5 (High) | [docs/specs/spec-queue-dynamics-and-regulatory-reaudit.md](docs/specs/spec-queue-dynamics-and-regulatory-reaudit.md) |
 
 ---
 
@@ -18,20 +35,20 @@ host/packaging findings in `data-source-research.md` §32.
   to replace the hand-typed workforce rating that carries **15/100** of the Nuclear
   Siting score and that CLAUDE.md admits has "no federal GIS layer". ~3,232 counties,
   joins via the `CountyIndex` we already resolve offline. Build it against the Census
-  API directly, NOT through `nepa-mcp`. Needs `CENSUS_API_KEY`; do not ship an empty file.
+  API directly, NOT through `nepa-mcp`. Needs `CENSUS_API_KEY`; do not ship an empty file. Spec: [docs/specs/spec-workforce-socioeconomic-intelligence.md](docs/specs/spec-workforce-socioeconomic-intelligence.md).
 - ~~**[med] Tier B2 — tribal-area containment.**~~ **Done 2026-08-21.** Six TIGERweb
   AIANNHA layers, 1,071 polygons, 46,759 sites checked, 2,122 sparse positive hits.
 - **[med] S2 — automate the regulatory re-audit.** `cfr_compare_versions` / `cfr_history`
   diff a CFR citation between two dates, which is exactly the "has this moved since
   `verified_at`?" question `STATE_DC_REGULATION` (quarterly) and EO 14318 need. **Only
   works for federal instruments — state tax law is not in the CFR**, so
-  `STATE_DC_INCENTIVES` still needs the manual 51-row sweep.
+  `STATE_DC_INCENTIVES` still needs the manual 51-row sweep. Spec: [docs/specs/spec-queue-dynamics-and-regulatory-reaudit.md](docs/specs/spec-queue-dynamics-and-regulatory-reaudit.md).
 - **[low] Tier B3 — PAD-US protected areas.** National connector deferred after size/
   reliability probe. Janus uses bounded 0.1-mile point context; one explicit timeout.
 - **[high] Reuse dossier.** One site view for land/control, reusable infrastructure,
   environmental baseline, prior studies/permits, workforce/community, and delivery path.
   Use known/no-hit/unavailable/project-work states. See
-  `research/nepatec-reindustrialization.md`.
+  `research/nepatec-reindustrialization.md` and [docs/specs/spec-reuse-dossier-and-nepa-precedent.md](docs/specs/spec-reuse-dossier-and-nepa-precedent.md).
 - **[med] NEPATEC analogue finder.** Search comparable brownfield/retired-plant actions by
   agency, review level, issue, mitigation, and outcome with page-level citations.
 - **[med] Permit/evidence graph.** Dependencies, owner, status, source, dates, and gaps;
