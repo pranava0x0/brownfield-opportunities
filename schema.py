@@ -651,7 +651,17 @@ class FederalCleanEnergySite(BaseModel):
     county: str
     latitude: float
     longitude: float
-    available_acreage: float = Field(ge=0.0)
+    available_acreage: float = Field(
+        ge=0.0,
+        description="Full reservation/withdrawal acreage (reference scale of the federal site).",
+    )
+    offered_acreage: Optional[float] = Field(
+        default=None,
+        ge=0.0,
+        description="Acreage actually identified/offered for development when the program "
+        "has named one (e.g. INL's ~44k ac for AI infrastructure of the 570k-ac site) — "
+        "the actionable figure; render it alongside, never conflate with available_acreage.",
+    )
     target_technologies: list[str]
     program_stage: Literal["RFI_Issued", "RFQ_Awarded", "Lease_Executed", "Pre_Application", "Construction"]
     commercial_partner: Optional[str] = None

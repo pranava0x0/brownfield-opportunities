@@ -144,6 +144,37 @@ def test_tab_strip_no_horizontal_page_scroll_mobile(page, base_url):
     assert overflow == 0, f"page-level horizontal overflow: {overflow}px"
 
 
+def test_coal_csv_export_serves_the_filtered_catalog(page, base_url):
+    """Codex round 2: the GLOBAL topbar export serves the brownfield corpus,
+    so the Coal tab ships its own Export CSV. The CSV must contain exactly
+    the filtered catalog rows (header + N), carry the citation columns, and
+    shrink when a filter narrows the table."""
+    _goto_ready(page, base_url)
+    page.click("#tab-coal")
+    page.wait_for_selector("#coal-table-container table.coal-table", timeout=15000)
+    state = page.evaluate(
+        """(() => {
+          const all = window.__buildCoalCsv().split('\\n');
+          document.getElementById('coal-status-filter').value = 'planned_retirement';
+          document.getElementById('coal-status-filter').dispatchEvent(new Event('change'));
+          const filtered = window.__buildCoalCsv().split('\\n');
+          return {
+            btn: !!document.getElementById('coal-export-csv'),
+            header: all[0],
+            allRows: all.length - 1,
+            filteredRows: filtered.length - 1,
+            assets: (window.__coalAssets || []).length,
+            planned: (window.__coalAssets || []).filter(a => a.status === 'planned_retirement').length,
+          };
+        })()"""
+    )
+    assert state["btn"], "coal Export CSV button missing"
+    assert state["allRows"] == state["assets"], state
+    assert state["filteredRows"] == state["planned"] > 0, state
+    for col in ("plant_name", "source_url", "verified_at", "modeled_stranded_value_usd", "poi_occupied"):
+        assert col in state["header"], state["header"]
+
+
 def test_coal_load_failure_shows_retry_not_forever_loading(page, base_url):
     """Codex review P2: a failed catalog fetch must render a retryable error,
     never an indefinite 'Loading…'. The retry button re-fetches (the loader

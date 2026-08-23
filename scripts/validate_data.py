@@ -1754,6 +1754,14 @@ def c_curated_provenance(c: Corpus):
                 if len(examples) < 50:
                     examples.append(f"{fname}:{label}:unparseable {date_field}={stamp}")
                 continue
+            if d > today:
+                # A future audit stamp is invalid, not fresh — it would
+                # suppress the staleness WARN until that date plus 200 days
+                # (same rule as enrichment-freshness's future check).
+                bad += 1
+                if len(examples) < 50:
+                    examples.append(f"{fname}:{label}:future {date_field}={stamp}")
+                continue
             if (today - d).days > 200:
                 stale += 1
                 if len(stale_ex) < 50:

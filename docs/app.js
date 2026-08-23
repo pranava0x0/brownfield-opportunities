@@ -2026,10 +2026,16 @@ function ensureFederalCleanEnergyLoaded() {
         // "datacenter_ai" → "datacenter ai") — no raw underscores to users.
         const deslug = (v) => String(v || "").replace(/_/g, " ");
         const techList = (s.target_technologies || []).map(deslug).join(", ");
+        // Offered/developable acreage is the actionable number when the
+        // program has named one; the reservation total is context, not land
+        // on the table (INL offers ~44k of 570k ac — never conflate).
+        const acresLabel = s.offered_acreage != null
+          ? `${Math.round(s.offered_acreage).toLocaleString()} ac offered of ${Math.round(s.available_acreage).toLocaleString()}-ac site`
+          : `${Math.round(s.available_acreage).toLocaleString()} Acres`;
         marker.bindPopup(
           `<div class="ref-campus-popup">` +
           `<strong>${escapeHtml(s.site_name)}</strong>` +
-          `<div class="ref-campus-company">${escapeHtml(s.managing_office)} · ${escapeHtml(Math.round(s.available_acreage).toLocaleString())} Acres (${escapeHtml(deslug(s.program_stage))})</div>` +
+          `<div class="ref-campus-company">${escapeHtml(s.managing_office)} · ${escapeHtml(acresLabel)} (${escapeHtml(deslug(s.program_stage))})</div>` +
           (place ? `<div class="ref-campus-prev">${escapeHtml(place)}</div>` : "") +
           (s.commercial_partner ? `<div class="ref-campus-meta"><span>Partner: ${escapeHtml(s.commercial_partner)}</span></div>` : "") +
           `<div class="ref-campus-meta"><span>Target: ${escapeHtml(techList)}</span></div>` +
@@ -3918,6 +3924,8 @@ function buildCoalView() {
         if (drawer) drawer.hidden = true;
       });
     }
+    const exportBtn = el("coal-export-csv");
+    if (exportBtn) exportBtn.addEventListener("click", downloadCoalCsv);
     // Delegated row actions — the listener lives on the container so it
     // survives every innerHTML rebuild, and the plant name travels via the
     // row's data-plant attribute (dataset decodes entities), never via
@@ -3939,20 +3947,76 @@ function buildCoalView() {
   renderCoalTable();
 }
 
-function renderCoalTable() {
-  const container = el("coal-table-container");
-  if (!container) return;
-
+// The single filter predicate shared by the table renderer and the CSV
+// export, so "Export CSV" can never disagree with the rows on screen.
+function getFilteredCoalAssets() {
   const statusFilter = (el("coal-status-filter") && el("coal-status-filter").value) || "all";
   const isoFilter = (el("coal-iso-filter") && el("coal-iso-filter").value) || "all";
   const suitFilter = (el("coal-suitability-filter") && el("coal-suitability-filter").value) || "all";
-
-  const filtered = coalConversionAssets.filter((a) => {
+  return coalConversionAssets.filter((a) => {
     if (statusFilter !== "all" && a.status !== statusFilter) return false;
     if (isoFilter !== "all" && a.iso_rto !== isoFilter) return false;
     if (suitFilter !== "all" && a.conversion_suitability !== suitFilter) return false;
     return true;
   });
+}
+
+// Coal-tab CSV export (the ap1000-export-csv pattern) — the GLOBAL topbar
+// export always serves the brownfield corpus, so this tab ships its own
+// button for the coal catalog (Codex review 2026-08-23 round 2).
+function buildCoalCsv() {
+  const cols = [
+    ["plant_name", (a) => a.plant_name],
+    ["utility_operator", (a) => a.utility_operator],
+    ["state", (a) => a.state],
+    ["county", (a) => a.county],
+    ["status", (a) => a.status],
+    ["retired_year", (a) => a.retired_year ?? ""],
+    ["planned_retirement_year", (a) => a.planned_retirement_year ?? ""],
+    ["nameplate_coal_mw", (a) => a.nameplate_coal_mw],
+    ["switchyard_kv", (a) => a.switchyard_kv],
+    ["has_rail", (a) => a.has_rail],
+    ["has_water_intake", (a) => a.has_water_intake],
+    ["poi_occupied", (a) => a.poi_occupied ?? false],
+    ["iso_rto", (a) => a.iso_rto],
+    ["queue_transfer_eligible", (a) => a.queue_transfer_eligible],
+    ["modeled_stranded_value_usd", (a) => a.est_stranded_asset_value_usd],
+    ["conversion_suitability", (a) => a.conversion_suitability],
+    ["site_acreage", (a) => a.site_acreage ?? ""],
+    ["note", (a) => a.note ?? ""],
+    ["source_url", (a) => a.source_url],
+    ["verified_at", (a) => a.verified_at],
+  ];
+  const esc = (v) => {
+    const s = String(v ?? "");
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  const rows = [cols.map(([label]) => label)];
+  for (const a of getFilteredCoalAssets()) {
+    rows.push(cols.map(([, get]) => get(a)));
+  }
+  return rows.map((r) => r.map(esc).join(",")).join("\n");
+}
+
+function downloadCoalCsv() {
+  const csv = buildCoalCsv();
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `coal-conversions-${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+window.__buildCoalCsv = buildCoalCsv; // e2e hook, like __buildAp1000Csv
+
+function renderCoalTable() {
+  const container = el("coal-table-container");
+  if (!container) return;
+
+  const filtered = getFilteredCoalAssets();
 
   if (filtered.length === 0) {
     container.innerHTML = '<p class="muted" style="padding:20px;">No coal conversion assets match the selected filters.</p>';

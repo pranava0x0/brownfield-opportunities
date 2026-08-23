@@ -61,6 +61,7 @@ FEDERAL_SITES_CATALOG: list[dict[str, Any]] = [
         "state": "ID", "county": "Butte",
         "latitude": 43.5333, "longitude": -112.9500,
         "available_acreage": 570000.0,
+        "offered_acreage": 44000.0,
         "target_technologies": ["nuclear_smr", "nuclear_micro", "datacenter_ai", "geothermal"],
         "program_stage": "RFI_Issued",
         "commercial_partner": None,
@@ -68,7 +69,7 @@ FEDERAL_SITES_CATALOG: list[dict[str, Any]] = [
         "nepa_review_document_url": None,
         "key_advantages": [
             "One of the four Jul-2025 DOE AI-data-center flagship selections; first-tranche RFP issued Sept 2025 (responses due Nov 2025)",
-            "~44,000 ac identified for AI infrastructure within the 570,000-ac reservation (acreage shown is the full reservation)",
+            "~44,000 ac identified for AI infrastructure within the 570,000-ac reservation",
             "National nuclear innovation & test reservation (DOME, Aalo, Oklo pilots)",
             "Extensive geotechnical, seismic, and meteorological baseline records",
             "Western Interconnection tie-lines",

@@ -34,10 +34,15 @@ step "3/4 curated-citation liveness (coal + federal overlays)"
 # Exit codes: 0 = all resolve · 1 = at least one DEFINITIVE dead URL (gates)
 # · 2 = network unreachable (warns, does not gate — but verify before ship).
 python3 - <<'EOF'
-import json, sys, urllib.error, urllib.request
+import json, sys, time, urllib.error, urllib.request
 from pathlib import Path
 dead, unreachable = 0, 0
 seen = set()
+# House network ethics: >=1.5s between requests to any single host, and a
+# throttling answer (429/403) is INCONCLUSIVE, never a dead citation — a
+# rate-limited GEM wiki must not block every PR (Codex review round 2).
+INCONCLUSIVE_HTTP = {403, 429}
+last_hit: dict[str, float] = {}
 for fname, key, field in [
     ("coal-conversions.json", "assets", "source_url"),
     ("federal-clean-energy.json", "sites", "solicitation_url"),
@@ -48,6 +53,10 @@ for fname, key, field in [
         if not url or url in seen:
             continue
         seen.add(url)
+        host = url.split("/", 3)[2]
+        wait = last_hit.get(host, 0) + 1.5 - time.monotonic()
+        if wait > 0:
+            time.sleep(wait)
         status = None
         for method in ("HEAD", "GET"):  # some hosts reject HEAD
             req = urllib.request.Request(url, method=method,
@@ -58,15 +67,18 @@ for fname, key, field in [
                 break
             except urllib.error.HTTPError as e:
                 status = e.code  # definitive server answer
+                if status in INCONCLUSIVE_HTTP:
+                    break        # don't hammer a throttling host with the GET retry
             except Exception:
                 status = None    # network-level failure — inconclusive
-        if status is None:
+        last_hit[host] = time.monotonic()
+        if status is None or status in INCONCLUSIVE_HTTP:
             unreachable += 1
-            print(f"  UNREACHABLE {fname}: {url}")
+            print(f"  UNREACHABLE {fname}: {url}" + (f" (HTTP {status})" if status else ""))
         elif status >= 400:
             dead += 1
             print(f"  DEAD CITATION {fname}: {url} (HTTP {status})")
-print(f"  checked {len(seen)} unique citation URLs: {dead} dead, {unreachable} unreachable")
+print(f"  checked {len(seen)} unique citation URLs: {dead} dead, {unreachable} unreachable/throttled")
 sys.exit(1 if dead else (2 if unreachable else 0))
 EOF
 live_rc=$?
