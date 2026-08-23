@@ -648,7 +648,7 @@
                 <span class="ptag">Microreactors (0–100)</span>
               </div>
               <ul class="flow-points">
-                <li><strong>Data Center Lens:</strong> Prioritizes power voltage (14%), transmission (16%), substation (12%), gas (10%), land (20%), minus flood (−18) &amp; moratoriums (−8).</li>
+                <li><strong>Data Center Lens:</strong> Prioritizes developable land, transmission voltage &amp; distance, substation and gas proximity, minus flood / climate / moratorium penalties (exact weights live in <code>dc-score.js</code> and its score tooltips — the single source of truth).</li>
                 <li><strong>Generation Lens:</strong> Prioritizes developable land (24%), export capacity (18%), substation POI (14%), market access (8%).</li>
                 <li><strong>Inverted Microreactor Lens:</strong> Inverts the grid signal—sites further from high-voltage transmission score <em>higher</em> to reward diesel replacement in islanded/remote regions.</li>
               </ul>
@@ -669,7 +669,7 @@
               </div>
               <ul class="flow-points">
                 <li><strong>Modeled Stranded Valuation:</strong> V = (MW × $180k + $25M water + $12M rail + $8M civil) × e^(−0.25 · miles) — a screening estimate, not an appraisal.</li>
-                <li><strong>CapEx Advantage:</strong> Reusing heavy electrical and water-intake infrastructure saves 15–35% on nuclear or compute deployment (DOE/INL).</li>
+                <li><strong>CapEx Advantage:</strong> Reusing heavy electrical and water-intake infrastructure saves 15–35% on nuclear construction (DOE/INL coal-to-nuclear studies); compute campuses inherit the same switchyard/water/rail assets, though the studied figure is nuclear-specific.</li>
                 <li><strong>POI Reuse:</strong> Flags sites ≤ 1.5 mi from a retired/retiring switchyard — generator-replacement / surplus-interconnection candidates.</li>
               </ul>
             </div>
@@ -720,12 +720,12 @@
                 <span class="flow-card-badge">Feature 7</span>
                 <h4>Financial Stacking &amp; Regulatory Tracking</h4>
               </div>
-              <p class="flow-desc">Synthesizes tax credit eligibility, Opportunity Zones, state data center incentives, and automated federal eCFR regulatory monitors.</p>
+              <p class="flow-desc">Synthesizes tax credit eligibility, Opportunity Zones, state data center incentives, and quarterly-audited regulatory climate signals (an automated eCFR diff tracker is specced, not yet built).</p>
               <div class="pipeline-tags">
                 <span class="ptag">Treasury QOZ Tracts</span>
                 <span class="ptag">NETL IRA Energy Comm.</span>
                 <span class="ptag">State DC Incentives</span>
-                <span class="ptag">eCFR Regulatory Diff</span>
+                <span class="ptag">Quarterly Reg. Re-Audit</span>
               </div>
               <ul class="flow-points">
                 <li><strong>IRA Energy Community +10% Bonus:</strong> Point-in-polygon resolution against coal-closure tracts and fossil-fuel-employment areas.</li>
@@ -748,6 +748,8 @@
             <li><a href="https://www.openstreetmap.org/" target="_blank" rel="noopener">OpenStreetMap</a> — Substations via Overpass API</li>
             <li><a href="https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html" target="_blank" rel="noopener">Census TIGER</a> — Roads, railroads, county boundaries</li>
             <li><a href="https://hazards.fema.gov/nhl/" target="_blank" rel="noopener">FEMA NFHL</a> — Flood Hazard Zones (per-site query)</li>
+            <li><a href="https://www.gem.wiki/" target="_blank" rel="noopener">Global Energy Monitor</a> — Per-plant citations for the curated coal conversion catalog</li>
+            <li><a href="https://www.energy.gov/em/em-clean-energy-land-reuse" target="_blank" rel="noopener">DOE EM / OCED</a> — Cleanup to Clean Energy, AI-data-center site selections, CEML mine-lands awards</li>
             <li><a href="https://opportunityzones.hud.gov/" target="_blank" rel="noopener">HUD Opportunity Zones</a> — QOZ tracts</li>
             <li><a href="https://www.eia.gov/" target="_blank" rel="noopener">EIA Atlas</a> — ISO/RTO region polygons</li>
             <li><a href="https://www.energycodes.gov/development/buildings/climate_zones" target="_blank" rel="noopener">DOE Building America</a> — ASHRAE climate zones</li>
@@ -757,7 +759,7 @@
             <li><a href="https://www.eia.gov/electricity/data/eia860m/" target="_blank" rel="noopener">EIA-860M</a> — Retired power-plant generators</li>
             <li><a href="https://www.epa.gov/ghgreporting" target="_blank" rel="noopener">EPA GHGRP</a> — Retired heavy-industrial facilities (Envirofacts REST)</li>
           </ul>
-          <p class="about-note">Dashboard <span id="hero-version">v1.27</span> · Last data refresh: <span id="about-refresh-date">—</span>. Source code and raw data files: <a href="https://github.com/pranava0x0/brownfield-opportunities" target="_blank" rel="noopener">GitHub</a>. The AI Summary on each site detail panel is generated from these federal records — see any site's Summary tab.</p>
+          <p class="about-note">Dashboard <span id="hero-version">v1.28</span> · Last data refresh: <span id="about-refresh-date">—</span>. Source code and raw data files: <a href="https://github.com/pranava0x0/brownfield-opportunities" target="_blank" rel="noopener">GitHub</a>. The AI Summary on each site detail panel is generated from these federal records — see any site's Summary tab.</p>
         </div>
 
       </div><!-- .about-grid -->

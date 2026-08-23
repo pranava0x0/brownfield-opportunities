@@ -78,11 +78,11 @@ COAL_PLANTS_CATALOG: list[dict[str, Any]] = [
         "state": "AL", "county": "Jackson",
         "latitude": 34.8933, "longitude": -85.7533,
         "status": "retired", "retired_year": 2015,
-        "nameplate_coal_mw": 1600.0, "switchyard_kv": 500.0,
+        "nameplate_coal_mw": 1969.0, "switchyard_kv": 500.0,
         "has_rail": True, "has_water_intake": True,
         "site_acreage": 1400.0, "iso_rto": "TVA",
         "conversion_suitability": "datacenter_preferred",
-        "note": "Google data center on-site since 2015 — the original coal-to-DC precedent (see reference-campuses).",
+        "note": "Google data center announced 2015 (construction from 2016) — the original coal-to-DC precedent (see reference-campuses).",
         "source_url": "https://www.gem.wiki/Widows_Creek_Fossil_Plant",
     },
     {
@@ -91,7 +91,7 @@ COAL_PLANTS_CATALOG: list[dict[str, Any]] = [
         "state": "OH", "county": "Coshocton",
         "latitude": 40.1869, "longitude": -81.8953,
         "status": "retired", "retired_year": 2020,
-        "nameplate_coal_mw": 1780.0, "switchyard_kv": 345.0,
+        "nameplate_coal_mw": 2174.8, "switchyard_kv": 345.0,
         "has_rail": True, "has_water_intake": True,
         "site_acreage": 2500.0, "iso_rto": "PJM",
         "conversion_suitability": "dual_feasible",
@@ -146,8 +146,8 @@ COAL_PLANTS_CATALOG: list[dict[str, Any]] = [
         "nameplate_coal_mw": 1303.0, "switchyard_kv": 345.0,
         "has_rail": True, "has_water_intake": True,
         "site_acreage": 1800.0, "iso_rto": "Non-RTO/WECC",
-        "conversion_suitability": "nuclear_preferred",
-        "note": "Staggered unit closures announced 2025-2028; western resource-adequacy pressure could extend — verify at each quarterly audit.",
+        "conversion_suitability": "dual_feasible",
+        "note": "Unit 2 retirement announced for 2028-09-30; Unit 1's end-2025 retirement is ALREADY overridden by an active DOE 202(c) emergency order (Dec 2025, renewed). Tri-State's announced replacement is solar + gas + storage, so nuclear is advocacy, not an owner program.",
         "source_url": "https://www.gem.wiki/Craig_Station",
     },
     {
@@ -194,12 +194,12 @@ COAL_PLANTS_CATALOG: list[dict[str, Any]] = [
         "utility_operator": "Tennessee Valley Authority",
         "state": "TN", "county": "Stewart",
         "latitude": 36.3908, "longitude": -87.6533,
-        "status": "planned_retirement", "planned_retirement_year": 2028,
+        "status": "operating",
         "nameplate_coal_mw": 2470.0, "switchyard_kv": 500.0,
         "has_rail": True, "has_water_intake": True,
         "site_acreage": 2300.0, "iso_rto": "TVA",
         "conversion_suitability": "dual_feasible",
-        "note": "Unit 1 slated ~2026, Unit 2 ~2028; TVA gas CC replacement under construction on-site — dates subject to TVA board and 202(c)-era review.",
+        "note": "LIFE-EXTENSION: TVA's board voted unanimously 2026-02-11 to continue operating Cumberland (and Kingston) beyond the previously scheduled retirement dates, reversing the 2024 decision; the 1,450-MW gas CC remains under construction adjacent. The Colstrip pattern, not a conversion window.",
         "source_url": "https://www.gem.wiki/Cumberland_Fossil_Plant",
     },
     {
@@ -224,7 +224,7 @@ COAL_PLANTS_CATALOG: list[dict[str, Any]] = [
         "has_rail": True, "has_water_intake": True,
         "site_acreage": 950.0, "iso_rto": "TVA",
         "conversion_suitability": "dual_feasible",
-        "note": "TVA evaluating site redevelopment; 500 kV POI adjacent to the Oak Ridge corridor.",
+        "note": "Stacks imploded Jun 2025; TVA redevelopment underway — Type One Energy fusion LOI, synchronous-condenser RFP, economic-development targeting study. 500 kV POI adjacent to the Oak Ridge corridor.",
         "source_url": "https://www.gem.wiki/Bull_Run_Fossil_Plant",
     },
     {
@@ -237,7 +237,7 @@ COAL_PLANTS_CATALOG: list[dict[str, Any]] = [
         "has_rail": True, "has_water_intake": True,
         "site_acreage": 820.0, "iso_rto": "TVA",
         "conversion_suitability": "datacenter_preferred",
-        "note": "TVA gas combined-cycle operating on-site since 2012 — the coal-to-gas-on-site pattern.",
+        "note": "TVA gas combined-cycle operating on-site since 2012 — the coal-to-gas-on-site pattern. The POI is in use by the CC, so reuse means surplus-interconnection headroom, not a full transfer.",
         "source_url": "https://www.gem.wiki/John_Sevier_Fossil_Plant",
     },
     {
@@ -263,7 +263,7 @@ COAL_PLANTS_CATALOG: list[dict[str, Any]] = [
         "has_rail": True, "has_water_intake": True,
         "site_acreage": 3000.0, "iso_rto": "TVA",
         "conversion_suitability": "dual_feasible",
-        "note": "TVA Paradise gas combined-cycle operating on-site; retired coal units demolished 2021.",
+        "note": "TVA Paradise gas combined-cycle operating on-site; retired coal units demolished 2021. The POI is in use by the CC, so reuse means surplus-interconnection headroom, not a full transfer.",
         "source_url": "https://www.gem.wiki/Paradise_Fossil_Plant",
     },
     {
@@ -276,7 +276,7 @@ COAL_PLANTS_CATALOG: list[dict[str, Any]] = [
         "has_rail": True, "has_water_intake": True,
         "site_acreage": 1900.0, "iso_rto": "MISO",
         "conversion_suitability": "datacenter_preferred",
-        "note": "Hallador (acquired from Hoosier Energy) pursuing data-center power agreements for the plant's output.",
+        "note": "Hallador (acquired from Hoosier Energy) signed a 12-year contract with NIPSCO GenCo (2026) to serve Google and Amazon data-center load from Merom — the operating-coal-to-DC-supply pattern.",
         "source_url": "https://www.gem.wiki/Merom_Generating_Station",
     },
     {
@@ -326,9 +326,11 @@ def build_assets() -> list[dict[str, Any]]:
     for raw in COAL_PLANTS_CATALOG:
         asset = dict(raw)
         asset.setdefault("verified_at", VERIFIED)
-        # An operating plant's POI is not transferable — eligibility is
-        # derived from status, never hand-set.
-        asset["queue_transfer_eligible"] = asset["status"] != "operating"
+        # POI-reuse eligibility is DERIVED, never hand-set: an operating
+        # plant's interconnection is not transferable, and a gas-converted
+        # plant's POI is occupied by its successor units (surplus headroom at
+        # best — say so in the row note, don't claim a transfer).
+        asset["queue_transfer_eligible"] = asset["status"] in ("retired", "planned_retirement")
         asset["est_stranded_asset_value_usd"] = calculate_stranded_asset_valuation(
             asset["nameplate_coal_mw"],
             asset["has_water_intake"],
@@ -385,23 +387,27 @@ def main() -> int:
         nearest = plant_index.nearest_with_attr(lat, lon)
         if nearest is not None and nearest[0] <= MAX_RADIUS_MI:
             dist_mi, plant_asset = nearest
+            # Derive the flag from the SAME rounded value we store, so the
+            # emitted record is self-consistent and any consumer (validator,
+            # tests, UI) can re-derive it from the record's own fields.
+            dist_r = round(dist_mi, 2)
             val = calculate_stranded_asset_valuation(
                 plant_asset["nameplate_coal_mw"],
                 plant_asset["has_water_intake"],
                 plant_asset["has_rail"],
-                distance_mi=dist_mi,
+                distance_mi=dist_r,
             )
             rec = CoalConversionProximityRecord(
                 id=s_id,
                 coal_conversion_plant_name=plant_asset["plant_name"],
-                coal_conversion_plant_mi=round(dist_mi, 2),
+                coal_conversion_plant_mi=dist_r,
                 coal_conversion_mw=plant_asset["nameplate_coal_mw"],
                 coal_conversion_switchyard_kv=plant_asset["switchyard_kv"],
                 coal_conversion_rail=plant_asset["has_rail"],
                 coal_conversion_water=plant_asset["has_water_intake"],
                 coal_conversion_stranded_val_usd=val,
                 coal_conversion_queue_fasttrack=(
-                    dist_mi <= 1.5 and plant_asset["queue_transfer_eligible"]
+                    dist_r <= 1.5 and plant_asset["queue_transfer_eligible"]
                 ),
             )
             proximity_matches.append(json.loads(rec.model_dump_json()))

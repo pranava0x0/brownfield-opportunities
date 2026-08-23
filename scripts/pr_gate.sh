@@ -30,11 +30,13 @@ run python3 -m pytest tests/ -q --ignore=tests/e2e -p no:cacheprovider
 step "2/4 offline data validation (schema, joins, provenance, coherence)"
 run python3 scripts/validate_data.py --fail-on FAIL
 
-step "3/4 curated-citation liveness (coal + federal overlays; network, best-effort)"
-python3 - <<'EOF' || echo "  (liveness check skipped/failed — network optional, verify before ship)"
-import json, sys, urllib.request
+step "3/4 curated-citation liveness (coal + federal overlays)"
+# Exit codes: 0 = all resolve · 1 = at least one DEFINITIVE dead URL (gates)
+# · 2 = network unreachable (warns, does not gate — but verify before ship).
+python3 - <<'EOF'
+import json, sys, urllib.error, urllib.request
 from pathlib import Path
-bad = 0
+dead, unreachable = 0, 0
 seen = set()
 for fname, key, field in [
     ("coal-conversions.json", "assets", "source_url"),
@@ -46,24 +48,37 @@ for fname, key, field in [
         if not url or url in seen:
             continue
         seen.add(url)
-        req = urllib.request.Request(url, method="HEAD", headers={"User-Agent": "brownfield-pr-gate"})
-        try:
-            with urllib.request.urlopen(req, timeout=10) as r:
-                if r.status >= 400:
-                    raise Exception(f"HTTP {r.status}")
-        except Exception as e:
-            # GET fallback — some hosts reject HEAD.
+        status = None
+        for method in ("HEAD", "GET"):  # some hosts reject HEAD
+            req = urllib.request.Request(url, method=method,
+                                         headers={"User-Agent": "brownfield-pr-gate"})
             try:
-                with urllib.request.urlopen(url, timeout=10) as r:
-                    if r.status >= 400:
-                        raise Exception(f"HTTP {r.status}")
-            except Exception as e2:
-                bad += 1
-                print(f"  DEAD CITATION {fname}: {url} ({e2})")
-print(f"  checked {len(seen)} unique citation URLs, {bad} dead")
-sys.exit(1 if bad else 0)
+                with urllib.request.urlopen(req, timeout=10) as r:
+                    status = r.status
+                break
+            except urllib.error.HTTPError as e:
+                status = e.code  # definitive server answer
+            except Exception:
+                status = None    # network-level failure — inconclusive
+        if status is None:
+            unreachable += 1
+            print(f"  UNREACHABLE {fname}: {url}")
+        elif status >= 400:
+            dead += 1
+            print(f"  DEAD CITATION {fname}: {url} (HTTP {status})")
+print(f"  checked {len(seen)} unique citation URLs: {dead} dead, {unreachable} unreachable")
+sys.exit(1 if dead else (2 if unreachable else 0))
 EOF
-[ $? -ne 0 ] && fail=1
+live_rc=$?
+if [ "$live_rc" -eq 1 ]; then
+  echo "  citation liveness: FAILED (dead URL — the v1 bug this step exists to catch)"
+  fail=1
+elif [ "$live_rc" -eq 2 ]; then
+  echo "  citation liveness: WARN (network unreachable — verify manually before ship)"
+elif [ "$live_rc" -ne 0 ]; then
+  echo "  citation liveness: script error (rc=$live_rc)"
+  fail=1
+fi
 
 if [ "$FAST" -eq 1 ]; then
   step "4/4 e2e guards — SKIPPED (--fast)"

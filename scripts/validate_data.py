@@ -1808,7 +1808,9 @@ def c_coal_catalog_coherence(c: Corpus):
             a.get("retired_year") or a.get("planned_retirement_year")
         ):
             problems.append("operating with a retirement year")
-        if bool(a.get("queue_transfer_eligible")) != (a.get("status") != "operating"):
+        if bool(a.get("queue_transfer_eligible")) != (
+            a.get("status") in ("retired", "planned_retirement")
+        ):
             problems.append("queue_transfer_eligible not derived from status")
         if float(a.get("switchyard_kv", -1)) not in KV_CLASSES:
             problems.append(f"kv {a.get('switchyard_kv')} not a voltage class")
@@ -1841,7 +1843,10 @@ def c_coal_catalog_coherence(c: Corpus):
                 bad += 1
                 if len(examples) < 50:
                     examples.append(f"{rec.get('id')}:{claimed}!={round(d, 2)}")
-            want_ft = (float(claimed or 99) <= 1.5) and bool(plant.get("queue_transfer_eligible"))
+            # None-safe, not truthiness — a legitimate 0.0-mi distance must
+            # not fall through to the 99 sentinel.
+            ft_mi = 99.0 if claimed is None else float(claimed)
+            want_ft = (ft_mi <= 1.5) and bool(plant.get("queue_transfer_eligible"))
             if bool(rec.get("coal_conversion_queue_fasttrack")) != want_ft:
                 bad += 1
                 if len(examples) < 50:

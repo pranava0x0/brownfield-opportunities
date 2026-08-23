@@ -36,8 +36,8 @@ should deep-link to it rather than duplicating its tracking.
 
 | RTO / ISO | Standard Study Reality | Verified Fast-Track / POI-Reuse Mechanism | Queue Risk Rating |
 |---|---|---|---|
-| **PJM** | 2-year transition cycles (2025-26) | **Surplus Interconnection Service** (Order 845) + **generator Replacement process**; RRI (Dec 2024); proposed **Expedited Interconnection Track** (≥500 MW serving large loads) | Medium-High |
-| **ERCOT** | Connect-and-manage (gen); new **Batch Study** framework for large loads — **Batch Zero** classifications issued 2026-08-07 (PCLR / WLPUN designations) | TX **SB6 (2025)** co-location + interconnection statute | Low-Medium |
+| **PJM** | 2-year transition cycles (2025-26) | **Surplus Interconnection Service** (Order 845) + **generator Replacement process**; RRI (Dec 2024); **Expedited Interconnection Track** — FERC-approved 2026-06-09, accepting requests (≥500 MW, state-sponsored, ≤10/yr, sunsets 2027) | Medium-High |
+| **ERCOT** | Connect-and-manage (gen); new PUCT-approved **Batch Study** framework for large loads — **Batch Zero** classifications were due 2026-08-07 but are **paused** under the Governor's large-load verification directive (PCLR / WLPUN designations) | TX **SB6 (2025)** co-location + interconnection statute | Low-Medium |
 | **MISO** | 4–5 years (backlogs) | Generator Replacement + surplus study; **ERAS** (Expedited Resource Addition Study, 2025) | High |
 | **SPP** | 3–4 years | DISIS cluster study; expedited RA study proposals | Medium |
 | **NYISO** | 2–3 years | Class Year reform; note the state-level **Responsible Data Center Development Act** (passed 2026-06-04) + EO 62 gate large loads before the queue | Medium-High |

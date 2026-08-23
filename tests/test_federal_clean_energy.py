@@ -33,11 +33,21 @@ class TestFederalCleanEnergy(unittest.TestCase):
             self.assertIsInstance(site["key_advantages"], list)
             self.assertGreater(len(site["key_advantages"]), 0)
 
+    # The two guessed slugs the v1 draft shipped — both 404'd. Pinned so the
+    # regression is impossible to reintroduce silently (URL liveness itself
+    # is checked network-side by scripts/pr_gate.sh step 3).
+    KNOWN_DEAD_URLS = {
+        "https://www.energy.gov/em/cleanup-clean-energy",
+        "https://www.energy.gov/oced/clean-energy-demonstrations-current-and-former-mine-land",
+    }
+
     def test_provenance_contract(self):
-        """Every row cites a REAL solicitation URL (the v1 draft shipped two
-        guessed energy.gov slugs that 404'd) and carries an audit stamp."""
+        """Every row cites a REAL solicitation URL and carries an audit stamp;
+        the v1 draft's two fabricated energy.gov slugs must never return."""
         for site in build_sites():
             self.assertTrue(site["solicitation_url"].startswith("https://"), site["site_id"])
+            self.assertNotIn(site["solicitation_url"], self.KNOWN_DEAD_URLS, site["site_id"])
+            self.assertNotIn(site.get("nepa_review_document_url"), self.KNOWN_DEAD_URLS, site["site_id"])
             self.assertRegex(site["verified_at"], r"^\d{4}-\d{2}-\d{2}$")
 
     def test_sweep_corrections_hold(self):

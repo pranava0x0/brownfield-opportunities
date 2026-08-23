@@ -60,17 +60,22 @@ Timeline now anchoring every queue conversation (and the user's own FERC Show Ca
 Attachment X / ERCOT Batch Zero" framing conflated three different things):
 
 - **PJM**: *Surplus Interconnection Service* (FERC Order 845) and the *generator Replacement
-  process* reuse an existing POI; the *Reliability Resource Initiative* (Dec 2024) and the proposed
-  *Expedited Interconnection Track* (EIT, ≥500 MW, 2026) expedite new generation serving large loads.
-  [RenewableEnergyWorld](https://www.renewableenergyworld.com/power-grid/pjm-proposes-an-expedited-interconnection-track-for-generators-to-supply-large-load-additions/)
+  process* reuse an existing POI; the *Reliability Resource Initiative* (Dec 2024) and the
+  *Expedited Interconnection Track* (EIT — **FERC-approved 2026-06-09, accepting requests**; ≥500 MW
+  capacity resources, state-sponsored, ≤10/yr, sunsets end-2027) expedite new generation serving
+  large loads.
+  [RenewableEnergyWorld](https://www.renewableenergyworld.com/power-grid/pjm-proposes-an-expedited-interconnection-track-for-generators-to-supply-large-load-additions/) ·
+  [UtilityDive (FERC approval)](https://www.utilitydive.com/news/ferc-pjm-fast-track-expedited-interconnection-eit/822479/)
 - **MISO**: Generator Replacement + surplus study process share an existing POI; *ERAS* (Expedited
   Resource Addition Study, 2025) fast-tracks resource-adequacy projects.
   [K&L Gates](https://www.klgates.com/Regional-Grid-Operators-Attempt-to-Tackle-Resource-Adequacy-by-Fast-Tracking-Generator-Interconnection-6-6-2025)
 - **ERCOT**: "**Batch Zero**" is REAL but it is a **large-load interconnection study batch** (first
-  batch of the new Batch Study framework; technical submissions due 2026-07-10, classifications
-  2026-08-07), with PCLR (Provisional Controllable Load Resource) and WLPUN (Withdrawal-Limited
-  Private Use Network) designations — **not** a generator queue-transfer rule. TX **SB6 (2025)**
-  is the co-location/interconnection statute.
+  batch of the PUCT-approved Batch Study framework; technical submissions due 2026-07-10,
+  classifications due 2026-08-07 — **but ERCOT paused Batch Zero** under the Governor's large-load
+  verification directive, so no classifications issued as of late Aug 2026), with PCLR (Provisional
+  Controllable Load Resource) and WLPUN (Withdrawal-Limited Private Use Network) designations —
+  **not** a generator queue-transfer rule. TX **SB6 (2025)** is the co-location/interconnection
+  statute. [Baker Botts](https://www.bakerbotts.com/thought-leadership/publications/2026/august/texas-large-load-interconnection-update---ercot-batch-zero-pause-and-verification-process)
   [ERCOT](https://www.ercot.com/files/docs/2026/06/18/ERCOT-Trending-Topic-New-Batch-Connection-Process-for-Large-Electricity-Users.pdf) ·
   [EPE](https://epeconsulting.com/epe-intelligence/news/ercot-introduces-a-new-batch-study-framework-for-large-load-interconnections)
 
@@ -176,10 +181,15 @@ can slip **in both directions** (early retirement < 202(c) extension < DC-driven
   the administration claims it will finish the **entire federal environmental review for the
   biggest US gas project — the OpenAI–Nvidia data center in Ohio — in seven months**. Whatever the
   merits, precedent pace matters to Spec 01's NEPA-precedent engine.
-- **CEML (mine lands)**: **Lewis Ridge is Rye Development's 308 MW pumped-storage** project (FERC
-  license application 2026-05; EIS NOI in the Federal Register 2026-05-12) — ⚠ corrects PR, which
-  had it as "287 MW solar / EDF Renewables". **Mineral Basin** is Swift Current's 402 MW solar on
-  ~2,700 ac of Clearfield County PA mine land — confirmed, not cancelled.
+- **CEML (mine lands)**: **Lewis Ridge is Rye Development's pumped-storage** project — **266 MW per
+  the FERC Final License Application** (filed 2025; earlier draft filings said 287 MW), EIS NOI in
+  the Federal Register 2026-05-12 — ⚠ corrects PR, which had it as "287 MW solar / EDF Renewables".
+  **Mineral Basin** is Swift Current's 402 MW solar on ~2,700 ac of Clearfield County PA mine land —
+  confirmed, not cancelled. Also from the domain-review pass: **Portsmouth broke ground 2026-03-20**
+  on the SoftBank/SB Energy PORTS Technology Campus (10 GW DC + ~9.2 GW gas, $33.3B), **Hanford
+  selected Hecate Energy** (up to 1 GW solar+storage, realty negotiations), and **TVA's board voted
+  2026-02-11 to keep Cumberland and Kingston running past their scheduled retirements** — the
+  clearest single datapoint that announced coal retirement dates are policy-contingent.
   [Federal Register NOI](https://www.federalregister.gov/documents/2026/05/12/2026-09425/lewis-ridge-pumped-storage-llc-notice-of-intent-to-prepare-an-environmental-impact-statement-for-the) ·
   [RenewableEnergyWorld](https://www.renewableenergyworld.com/energy-business/policy-and-regulation/475-million-award-for-energy-on-mine-lands-includes-lewis-ridge-coal-to-pumped-storage/)
 

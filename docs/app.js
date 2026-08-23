@@ -1958,22 +1958,30 @@ function ensureCoalConversionsLoaded() {
         coalMarkersByName.set(s.plant_name, marker);
         const place = [s.county, s.state].filter(Boolean).join(" County, ");
         const strandedM = (s.est_stranded_asset_value_usd / 1_000_000).toFixed(1);
+        const statusLabel = COAL_STATUS_LABELS[s.status] || s.status;
         marker.bindPopup(
           `<div class="ref-campus-popup">` +
           `<strong>${escapeHtml(s.plant_name)}</strong>` +
-          `<div class="ref-campus-company">${escapeHtml(Math.round(s.nameplate_coal_mw).toLocaleString())} MW Coal (${escapeHtml(s.status)}) · ${escapeHtml(s.switchyard_kv)} kV Switchyard</div>` +
+          `<div class="ref-campus-company">${escapeHtml(Math.round(s.nameplate_coal_mw).toLocaleString())} MW Coal (${escapeHtml(statusLabel)}) · ${escapeHtml(s.switchyard_kv)} kV Switchyard</div>` +
           (place ? `<div class="ref-campus-prev">${escapeHtml(place)} · ${escapeHtml(s.iso_rto)}</div>` : "") +
           `<div class="ref-campus-meta">` +
             `<span>Modeled value: ~$${strandedM}M</span>` +
             (s.has_water_intake ? `<span>Water intake</span>` : "") +
             (s.has_rail ? `<span>Rail loop</span>` : "") +
-            (s.queue_transfer_eligible ? `<span style="color:var(--success, #16a34a)">⚡ POI reusable</span>` : "") +
+            (s.queue_transfer_eligible ? `<span style="color:var(--readiness-ready)">⚡ POI reusable</span>` : "") +
           `</div>` +
           `<div class="ref-campus-prev" style="margin-top:6px">Coal-to-Clean repowering candidate. Reusing stranded electrical, rail, and water assets can cut CapEx 15–35% for SMR/nuclear or AI data center campuses (DOE/INL). Value figure is a modeled screening estimate, not an appraisal.</div>` +
-          `<button type="button" class="coal-popup-btn" onclick="window.__openCoalTabForPlant('${escapeHtml(s.plant_name).replace(/'/g, "\\'")}')">Explore in Coal Tab &rarr;</button>` +
+          `<button type="button" class="coal-popup-btn">Explore in Coal Tab &rarr;</button>` +
           `</div>`,
           { maxWidth: 290 }
         );
+        // Bind the popup button on open with the closured name — inline
+        // onclick + hand-rolled quote escaping is how names with apostrophes
+        // become injection/SyntaxError bugs (code review 2026-08-23 #1).
+        marker.on("popupopen", (ev) => {
+          const btn = ev.popup.getElement()?.querySelector(".coal-popup-btn");
+          if (btn) btn.addEventListener("click", () => window.__openCoalTabForPlant(s.plant_name), { once: true });
+        });
         coalConversionLayer.addLayer(marker);
       }
       rerenderLegend();
@@ -2008,11 +2016,14 @@ function ensureFederalCleanEnergyLoaded() {
         });
         const marker = L.marker([s.latitude, s.longitude], { icon, zIndexOffset: 420 });
         const place = [s.county, s.state].filter(Boolean).join(" County, ");
-        const techList = (s.target_technologies || []).join(", ");
+        // Render enum slugs as prose ("RFQ_Awarded" → "RFQ Awarded",
+        // "datacenter_ai" → "datacenter ai") — no raw underscores to users.
+        const deslug = (v) => String(v || "").replace(/_/g, " ");
+        const techList = (s.target_technologies || []).map(deslug).join(", ");
         marker.bindPopup(
           `<div class="ref-campus-popup">` +
           `<strong>${escapeHtml(s.site_name)}</strong>` +
-          `<div class="ref-campus-company">${escapeHtml(s.managing_office)} · ${escapeHtml(Math.round(s.available_acreage).toLocaleString())} Acres (${escapeHtml(s.program_stage)})</div>` +
+          `<div class="ref-campus-company">${escapeHtml(s.managing_office)} · ${escapeHtml(Math.round(s.available_acreage).toLocaleString())} Acres (${escapeHtml(deslug(s.program_stage))})</div>` +
           (place ? `<div class="ref-campus-prev">${escapeHtml(place)}</div>` : "") +
           (s.commercial_partner ? `<div class="ref-campus-meta"><span>Partner: ${escapeHtml(s.commercial_partner)}</span></div>` : "") +
           `<div class="ref-campus-meta"><span>Target: ${escapeHtml(techList)}</span></div>` +
@@ -3878,6 +3889,22 @@ function buildCoalView() {
         if (drawer) drawer.hidden = true;
       });
     }
+    // Delegated row actions — the listener lives on the container so it
+    // survives every innerHTML rebuild, and the plant name travels via the
+    // row's data-plant attribute (dataset decodes entities), never via
+    // string-interpolated inline onclick (code review 2026-08-23 #1).
+    container.addEventListener("click", (e) => {
+      const btn = e.target.closest("button[data-act]");
+      if (!btn || !container.contains(btn)) return;
+      const row = btn.closest(".coal-row");
+      const plant = row && coalConversionAssets.find((a) => a.plant_name === row.dataset.plant);
+      if (!plant) return;
+      if (btn.dataset.act === "map") {
+        window.__focusCoalPlantOnMap(plant.latitude, plant.longitude, plant.plant_name);
+      } else if (btn.dataset.act === "inspect") {
+        window.__inspectCoalPlant(plant.plant_name);
+      }
+    });
   }
 
   renderCoalTable();
@@ -3956,8 +3983,8 @@ function renderCoalTable() {
         </td>
         <td>
           <div class="coal-action-btns">
-            <button type="button" class="coal-btn map-btn" onclick="window.__focusCoalPlantOnMap(${plant.latitude}, ${plant.longitude}, '${escapeAttr(plant.plant_name).replace(/'/g, "\\'")}')">Map ↗</button>
-            <button type="button" class="coal-btn inspect-btn" onclick="window.__inspectCoalPlant('${escapeAttr(plant.plant_name).replace(/'/g, "\\'")}')">Details ↓</button>
+            <button type="button" class="coal-btn map-btn" data-act="map">Map ↗</button>
+            <button type="button" class="coal-btn inspect-btn" data-act="inspect">Details ↓</button>
           </div>
         </td>
       </tr>
@@ -3972,9 +3999,10 @@ window.__openCoalTabForPlant = function(plantName) {
   if (typeof window.__setView === "function") {
     window.__setView("coal");
   }
-  setTimeout(() => {
-    window.__inspectCoalPlant(plantName);
-  }, 100);
+  // Chain on the loader, not a fixed timer — if the catalog fetch failed at
+  // boot (loader nulls its promise for retry), setView('coal') retries it and
+  // this resolves once the data is actually there (code review 2026-08-23 #13).
+  ensureCoalConversionsLoaded().then(() => window.__inspectCoalPlant(plantName));
 };
 
 window.__focusCoalPlantOnMap = function(lat, lon, plantName) {
@@ -4006,7 +4034,9 @@ window.__inspectCoalPlant = function(plantName) {
       nearby.push(s);
     }
   }
-  nearby.sort((a, b) => (a.coal_conversion_plant_mi || 999) - (b.coal_conversion_plant_mi || 999));
+  // ?? not || — a legitimate 0.0-mi ("Adjacent") distance is falsy and would
+  // sort last under || (code review 2026-08-23 #9).
+  nearby.sort((a, b) => (a.coal_conversion_plant_mi ?? 999) - (b.coal_conversion_plant_mi ?? 999));
 
   title.textContent = `${plant.plant_name} — Conversion Profile`;
   const valM = (plant.est_stranded_asset_value_usd / 1_000_000).toFixed(1);
@@ -4018,16 +4048,16 @@ window.__inspectCoalPlant = function(plantName) {
         <h4>Tracked Brownfields &amp; Superfund Sites Nearby (${nearby.length} within 10 mi)</h4>
         <div class="coal-nearby-list">
           ${nearby.slice(0, 15).map((s) => `
-            <div class="coal-nearby-item" onclick="window.__selectAndOpenSite('${s.id}')">
+            <button type="button" class="coal-nearby-item" data-site-id="${escapeAttr(s.id)}">
               <div class="coal-nearby-head">
                 <strong>${escapeHtml(s.name)}</strong>
                 <span class="coal-nearby-dist">${fmt.miles(s.coal_conversion_plant_mi)}</span>
               </div>
               <div class="coal-nearby-sub">
-                ${escapeHtml(s.program.toUpperCase())} · ${s.acreage ? `${Math.round(s.acreage)} ac · ` : ''}${escapeHtml(s.city || s.county || '')}, ${s.state}
+                ${escapeHtml(s.program.toUpperCase())} · ${s.acreage ? `${Math.round(s.acreage)} ac · ` : ''}${escapeHtml(s.city || s.county || '')}, ${escapeHtml(s.state)}
                 ${s.coal_conversion_queue_fasttrack ? '<span class="coal-fast-badge">⚡ POI-reuse zone (≤1.5 mi of retired/retiring switchyard)</span>' : ''}
               </div>
-            </div>
+            </button>
           `).join('')}
           ${nearby.length > 15 ? `<p class="muted" style="margin-top:8px;">+ ${nearby.length - 15} more sites nearby</p>` : ''}
         </div>
@@ -4046,7 +4076,7 @@ window.__inspectCoalPlant = function(plantName) {
           <dt>Switchyard Voltage</dt><dd>${plant.switchyard_kv} kV High Voltage</dd>
           <dt>Grid Region / RTO</dt><dd>${escapeHtml(plant.iso_rto)}</dd>
           <dt>Status</dt><dd>${escapeHtml(COAL_STATUS_LABELS[plant.status] || plant.status)}${plant.retired_year ? ` (${plant.retired_year})` : plant.planned_retirement_year ? ` (${plant.planned_retirement_year})` : ''}</dd>
-          <dt>POI Reuse</dt><dd>${plant.queue_transfer_eligible ? 'Generator-replacement / surplus-interconnection candidate (retired or retiring POI)' : 'Operating plant — POI not transferable'}</dd>
+          <dt>POI Reuse</dt><dd>${plant.queue_transfer_eligible ? 'Generator-replacement / surplus-interconnection candidate (retired or retiring POI)' : plant.status === 'converted_gas' ? 'POI occupied by on-site gas successor — surplus-interconnection headroom only' : 'Operating plant — POI not transferable'}</dd>
         </dl>
       </div>
       <div class="coal-profile-card">
@@ -4061,14 +4091,26 @@ window.__inspectCoalPlant = function(plantName) {
       <div class="coal-profile-card valuation-card">
         <h4>💰 Modeled Stranded-Asset Value</h4>
         <div class="coal-val-big">~$${valM} Million</div>
-        <p class="coal-val-desc">Screening estimate, not an appraisal: $180k/MW grid interconnect + $25M water + $12M rail + $8M civil, distance-decayed — anchored to the DOE/INL 15–35% coal-reuse CapEx-savings range.</p>
-        <button type="button" class="coal-jump-map-btn" onclick="window.__focusCoalPlantOnMap(${plant.latitude}, ${plant.longitude}, '${escapeAttr(plant.plant_name).replace(/'/g, "\\'")}')">View on Map ↗</button>
+        <p class="coal-val-desc">Screening estimate, not an appraisal: $180k/MW grid interconnect + $25M water + $12M rail + $8M civil, distance-decayed — anchored to the DOE/INL coal-to-nuclear 15–35% savings range. Gross of ash/CCR-closure and demolition liabilities.</p>
+        <button type="button" class="coal-jump-map-btn">View on Map ↗</button>
       </div>
     </div>
     ${plant.note ? `<p class="coal-plant-note">${escapeHtml(plant.note)}</p>` : ''}
     ${plant.source_url ? `<p class="coal-plant-cite muted">Source: <a href="${escapeAttr(plant.source_url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(plant.source_url.replace(/^https?:\/\//, ""))}</a>${plant.verified_at ? ` · verified ${escapeHtml(plant.verified_at)}` : ''}</p>` : ''}
     ${nearbyHtml}
   `;
+
+  // Bind drawer actions with closures — no string-interpolated inline
+  // handlers (code review 2026-08-23 #1/#8). Nearby items are real <button>s
+  // so keyboard/AT users can open them.
+  const jumpBtn = body.querySelector(".coal-jump-map-btn");
+  if (jumpBtn) {
+    jumpBtn.addEventListener("click", () =>
+      window.__focusCoalPlantOnMap(plant.latitude, plant.longitude, plant.plant_name));
+  }
+  for (const item of body.querySelectorAll(".coal-nearby-item[data-site-id]")) {
+    item.addEventListener("click", () => window.__selectAndOpenSite(item.dataset.siteId));
+  }
 
   drawer.hidden = false;
   drawer.scrollIntoView({ behavior: "smooth", block: "nearest" });

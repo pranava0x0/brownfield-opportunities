@@ -144,6 +144,36 @@ def test_tab_strip_no_horizontal_page_scroll_mobile(page, base_url):
     assert overflow == 0, f"page-level horizontal overflow: {overflow}px"
 
 
+def test_map_overlays_render_markers_and_legend(page, base_url):
+    """The map surfaces of BOTH overlays: 18 ⬢ coal + 10 🏛 federal markers
+    exist with the glyph directly in the styled icon div (no orphaned inner
+    span — the CSS targets the class itself), and the legend gains both rows.
+    This is the path findings #1/#2 of the 2026-08-23 review shipped through
+    untested."""
+    _goto_ready(page, base_url)
+    state = page.evaluate(
+        """(() => {
+          const coal = [...document.querySelectorAll('.coal-repowering-icon')];
+          const fed = [...document.querySelectorAll('.federal-site-icon')];
+          const legend = document.querySelector('.legend') || document.body;
+          const firstCoal = coal[0];
+          return {
+            coal: coal.length,
+            fed: fed.length,
+            coalHasInnerSpan: firstCoal ? !!firstCoal.querySelector('span') : null,
+            coalStyled: firstCoal ? getComputedStyle(firstCoal).fontSize : null,
+            legendText: legend.textContent,
+          };
+        })()"""
+    )
+    assert state["coal"] == 18, state
+    assert state["fed"] == 10, state
+    assert state["coalHasInnerSpan"] is False, "glyph must live directly in the icon div"
+    assert state["coalStyled"] == "17px", f"marker CSS not applied: {state['coalStyled']}"
+    assert "Coal repowering asset" in state["legendText"]
+    assert "Federal clean energy" in state["legendText"]
+
+
 def test_coal_detail_cell_renders_for_joined_site(page, base_url):
     """A site inside the 10-mi join renders the 'Coal repowering' row with a
     clickable chip labeled as modeled; a site outside stays 'Not available'."""

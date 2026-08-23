@@ -573,7 +573,9 @@ class CoalConversionAsset(BaseModel):
     `verified_at` (YYYY-MM-DD audit stamp, STATE_DC_INCENTIVES discipline).
     Fields no public document supports (intake GPM, NPDES IDs) stay None —
     absent means unverified. `queue_transfer_eligible` is DERIVED from status
-    (an operating plant's interconnection is not transferable), never hand-set.
+    (true only for retired / planned_retirement: an operating plant's
+    interconnection is not transferable, and a gas-converted plant's POI is
+    occupied by its successor units), never hand-set.
     """
 
     model_config = ConfigDict(extra="forbid")

@@ -136,10 +136,10 @@ Aug-2026 sweep):
 
 | Market | POI-reuse mechanism (generation) | Expedite mechanism (new gen / large load) |
 |---|---|---|
-| PJM | **Surplus Interconnection Service** (FERC Order 845) + **generator Replacement process** | Reliability Resource Initiative (Dec 2024); proposed **Expedited Interconnection Track** (≥500 MW gen serving large loads, 2026) |
+| PJM | **Surplus Interconnection Service** (FERC Order 845) + **generator Replacement process** | Reliability Resource Initiative (Dec 2024); **Expedited Interconnection Track** — FERC-approved 2026-06-09, accepting requests (≥500 MW capacity resources, state-sponsored, ≤10/yr, sunsets end-2027) |
 | MISO | Generator Replacement + surplus study (shares existing POI/rights) | **ERAS** — Expedited Resource Addition Study (2025) |
-| ERCOT | Serial "connect-and-manage" already fast for gen | **Batch Zero** is the first *large-load* study batch (PCLR / WLPUN designations; classifications issued 2026-08-07) under the new Batch Study framework — a LOAD process, not a generator transfer rule. TX **SB6 (2025)** governs co-location. |
-| All six RTOs | — | FERC **§206 show-cause orders (Jun 2026)** compel justification/reform of large-load interconnection rules; compliance filings land H2 2026 — track in Spec 09 |
+| ERCOT | Serial "connect-and-manage" already fast for gen | **Batch Zero** is the first *large-load* study batch (PCLR / WLPUN designations) under the PUCT-approved Batch Study framework — a LOAD process, not a generator transfer rule. Classifications were due 2026-08-07 but **ERCOT paused Batch Zero** pending the Governor's large-load verification directive (as of Aug 2026). TX **SB6 (2025)** governs co-location. |
+| All six RTOs | — | FERC **§206 show-cause orders (2026-06-18)** compel justification/reform of large-load interconnection rules (large load defined >50 MW at >69 kV); compliance filings land H2 2026 — track in Spec 09 |
 
 The badge copy should say "generator-replacement / surplus-interconnection eligible (retired or
 retiring POI)" — never a made-up tariff section number, and never for a still-operating plant.

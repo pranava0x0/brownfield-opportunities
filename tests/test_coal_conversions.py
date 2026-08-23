@@ -62,12 +62,13 @@ class TestCoalConversions(unittest.TestCase):
                 self.assertIsNone(asset.get("planned_retirement_year"), asset["plant_name"])
 
     def test_queue_eligibility_is_derived(self):
-        """An operating plant's interconnection is not transferable — the flag
-        must be derived from status, never hand-set (spec 04 §4.2)."""
+        """POI-reuse eligibility is derived from status, never hand-set: false
+        for operating plants (POI not transferable) AND for gas conversions
+        (POI occupied by the successor units) — spec 04 §4.2."""
         for asset in build_assets():
             self.assertEqual(
                 asset["queue_transfer_eligible"],
-                asset["status"] != "operating",
+                asset["status"] in ("retired", "planned_retirement"),
                 asset["plant_name"],
             )
 
@@ -119,6 +120,12 @@ class TestCoalConversions(unittest.TestCase):
         colstrip = by_name["Colstrip Steam Plant"]
         self.assertEqual(colstrip["status"], "operating")
         self.assertNotIn("planned_retirement_year", colstrip)
+        # Cumberland too: TVA's board voted 2026-02-11 to keep it running
+        # past the scheduled dates (domain review 2026-08-23).
+        cumberland = by_name["Cumberland Fossil Plant"]
+        self.assertEqual(cumberland["status"], "operating")
+        self.assertNotIn("planned_retirement_year", cumberland)
+        self.assertFalse(cumberland["queue_transfer_eligible"])
         # Montour is a completed coal-to-gas conversion.
         self.assertEqual(by_name["Montour Steam Electric Station"]["status"], "converted_gas")
         # The Natrium town is Kemmerer, never "Kemper".

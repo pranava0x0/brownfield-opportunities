@@ -1028,6 +1028,7 @@ main {
   color: var(--nuclear-ready);
   text-shadow: 0 0 3px rgba(0,0,0,0.55);
 }
+[data-theme="dark"] .nuclear-site-icon { text-shadow: 0 0 4px rgba(0,0,0,0.8); }
 .nuclear-cat-ready    { color: var(--nuclear-ready); }
 .nuclear-cat-feasible { color: var(--nuclear-feasible); }
 .nuclear-cat-restart  { color: var(--nuclear-restart); }
@@ -1042,21 +1043,21 @@ main {
   text-align: center;
 }
 [data-theme="dark"] .legend-coal { color: #fbbf24; }
+/* Glyph is DIRECTLY in the icon div (no inner span — the ⚛/⬣ marker-DOM
+   pattern, CLAUDE.md), so the class itself carries the type styles. */
 .coal-repowering-icon {
   background: none !important;
   border: none !important;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-.coal-repowering-icon span {
   font-size: 17px;
   color: #b45309;
   text-shadow: 0 0 3px rgba(0,0,0,0.6);
   cursor: pointer;
   line-height: 1;
 }
-[data-theme="dark"] .coal-repowering-icon span {
+[data-theme="dark"] .coal-repowering-icon {
   color: #fbbf24;
   text-shadow: 0 0 4px rgba(0,0,0,0.9);
 }
@@ -1077,15 +1078,13 @@ main {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-.federal-site-icon span {
   font-size: 17px;
   color: #4338ca;
   text-shadow: 0 0 3px rgba(0,0,0,0.6);
   cursor: pointer;
   line-height: 1;
 }
-[data-theme="dark"] .federal-site-icon span {
+[data-theme="dark"] .federal-site-icon {
   color: #818cf8;
   text-shadow: 0 0 4px rgba(0,0,0,0.9);
 }
@@ -3166,8 +3165,14 @@ main {
 .coal-status-pill {
   display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase;
 }
-.coal-status-pill.operating { background: color-mix(in srgb, var(--success, #16a34a) 15%, transparent); color: var(--success, #16a34a); }
-.coal-status-pill.retiring  { background: color-mix(in srgb, #b45309 15%, transparent); color: #b45309; }
+/* Pill classes mirror the schema status vocabulary exactly —
+   operating | planned_retirement | retired | converted_gas.
+   Green reuses --readiness-ready (the repo's readiness token), no ad-hoc
+   --success token. */
+.coal-status-pill.operating { background: color-mix(in srgb, var(--readiness-ready) 15%, transparent); color: var(--readiness-ready); }
+.coal-status-pill.planned_retirement { background: color-mix(in srgb, #b45309 15%, transparent); color: #b45309; }
+[data-theme="dark"] .coal-status-pill.planned_retirement { background: color-mix(in srgb, #fbbf24 15%, transparent); color: #fbbf24; }
+.coal-status-pill.converted_gas { background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); }
 .coal-status-pill.retired   { background: color-mix(in srgb, var(--muted) 15%, transparent); color: var(--muted); }
 
 .coal-infra-badges { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
@@ -3178,7 +3183,7 @@ main {
 [data-theme="dark"] .coal-badge.water { color: #60a5fa; }
 .coal-badge.rail  { background: rgba(147, 51, 234, 0.12); color: #9333ea; }
 [data-theme="dark"] .coal-badge.rail { color: #c084fc; }
-.coal-badge.queue { background: rgba(22, 163, 74, 0.12); color: #16a34a; font-weight: 600; }
+.coal-badge.queue { background: color-mix(in srgb, var(--readiness-ready) 12%, transparent); color: var(--readiness-ready); font-weight: 600; }
 .coal-badge.muted { background: var(--surface-2); color: var(--muted); }
 
 .coal-tag {
@@ -3257,11 +3262,19 @@ main {
 .coal-nearby-dist { font-size: 11.5px; font-weight: 600; color: #b45309; font-variant-numeric: tabular-nums; }
 [data-theme="dark"] .coal-nearby-dist { color: #fbbf24; }
 .coal-nearby-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
-.coal-fast-badge { display: inline-block; color: var(--success, #16a34a); font-weight: 600; margin-left: 4px; }
+.coal-fast-badge { display: inline-block; color: var(--readiness-ready); font-weight: 600; margin-left: 4px; }
 /* [hidden] belt-and-suspenders (see CLAUDE.md "the [hidden] trap") — the
    drawer relies on the hidden attribute and must never be resurrected by a
    future display rule. */
 .coal-drawer[hidden] { display: none; }
+/* Nearby items are real <button>s (keyboard/AT access) — reset the UA
+   button chrome so they render as the same cards the divs were. */
+button.coal-nearby-item {
+  appearance: none; border: 1px solid var(--border); background: var(--surface);
+  font: inherit; color: inherit; text-align: left; width: 100%; cursor: pointer;
+}
+button.coal-nearby-item:hover { border-color: var(--accent); }
+button.coal-nearby-item:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .coal-plant-note { margin: 14px 0 4px; font-size: 12.5px; color: var(--text); border-left: 3px solid var(--accent); padding-left: 10px; }
 .coal-plant-cite { margin: 4px 0 0; font-size: 11.5px; }
 .coal-plant-cite a { color: var(--accent); }

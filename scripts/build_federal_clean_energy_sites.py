@@ -41,7 +41,7 @@ FEDERAL_SITES_CATALOG: list[dict[str, Any]] = [
         "managing_office": "DOE-EM",
         "state": "SC", "county": "Aiken",
         "latitude": 33.2458, "longitude": -81.5642,
-        "available_acreage": 310000.0,
+        "available_acreage": 198000.0,
         "target_technologies": ["datacenter_ai", "nuclear_smr", "gas_generation", "solar_utility", "battery_storage"],
         "program_stage": "RFQ_Awarded",
         "commercial_partner": "Amentum (selected to negotiate AI data center + on-site power lease, 2026)",
@@ -67,7 +67,8 @@ FEDERAL_SITES_CATALOG: list[dict[str, Any]] = [
         "solicitation_url": DOE_SITE_SELECTION_URL,
         "nepa_review_document_url": None,
         "key_advantages": [
-            "One of the four Jul-2025 DOE AI-data-center flagship selections",
+            "One of the four Jul-2025 DOE AI-data-center flagship selections; first-tranche RFP issued Sept 2025 (responses due Nov 2025)",
+            "~44,000 ac identified for AI infrastructure within the 570,000-ac reservation (acreage shown is the full reservation)",
             "National nuclear innovation & test reservation (DOME, Aalo, Oklo pilots)",
             "Extensive geotechnical, seismic, and meteorological baseline records",
             "Western Interconnection tie-lines",
@@ -81,9 +82,9 @@ FEDERAL_SITES_CATALOG: list[dict[str, Any]] = [
         "latitude": 46.5500, "longitude": -119.5000,
         "available_acreage": 8000.0,
         "target_technologies": ["solar_utility", "battery_storage", "nuclear_smr", "datacenter_ai"],
-        "program_stage": "RFI_Issued",
-        "commercial_partner": None,
-        "solicitation_url": EM_LAND_REUSE_URL,
+        "program_stage": "RFQ_Awarded",
+        "commercial_partner": "Hecate Energy (selected from 11 RFQ respondents; realty negotiations for up to 1 GW solar + storage)",
+        "solicitation_url": "https://www.energy.gov/articles/doe-announces-cleanup-clean-energy-project-hanford-site",
         "nepa_review_document_url": None,
         "key_advantages": [
             "Original 2023 Cleanup-to-Clean-Energy site (with INL, SRS, WIPP, NNSS)",
@@ -119,7 +120,7 @@ FEDERAL_SITES_CATALOG: list[dict[str, Any]] = [
         "available_acreage": 860000.0,
         "target_technologies": ["solar_utility", "battery_storage", "nuclear_micro", "datacenter_ai"],
         "program_stage": "RFI_Issued",
-        "commercial_partner": "Mission Support and Test Services (M&O contractor)",
+        "commercial_partner": None,
         "solicitation_url": EM_LAND_REUSE_URL,
         "nepa_review_document_url": None,
         "key_advantages": [
@@ -154,13 +155,13 @@ FEDERAL_SITES_CATALOG: list[dict[str, Any]] = [
         "state": "OH", "county": "Pike",
         "latitude": 39.0167, "longitude": -83.0000,
         "available_acreage": 3700.0,
-        "target_technologies": ["nuclear_smr", "nuclear_micro", "datacenter_ai", "solar_utility"],
-        "program_stage": "Pre_Application",
-        "commercial_partner": None,
+        "target_technologies": ["nuclear_smr", "nuclear_micro", "datacenter_ai", "gas_generation", "solar_utility"],
+        "program_stage": "Construction",
+        "commercial_partner": "SoftBank Group / SB Energy (PORTS Technology Campus — 10 GW DC + ~9.2 GW gas, $33.3B; initial 800 MW phase, ops target 2028)",
         "solicitation_url": DOE_SITE_SELECTION_URL,
         "nepa_review_document_url": None,
         "key_advantages": [
-            "Parallel AI-data-center announcement (Mar 2026) alongside the four flagships",
+            "Groundbreaking held 2026-03-20 for the PORTS Technology Campus — the largest announced US AI-DC project on federal land",
             "Massive 345 kV switchyards (enrichment cascade historically drew ~2 GW)",
             "Scioto River water access and licensed discharge",
             "Centrus commercial HALEU enrichment cascade adjacent",
@@ -216,8 +217,8 @@ FEDERAL_SITES_CATALOG: list[dict[str, Any]] = [
         "solicitation_url": CEML_URL,
         "nepa_review_document_url": "https://www.federalregister.gov/documents/2026/05/12/2026-09425/lewis-ridge-pumped-storage-llc-notice-of-intent-to-prepare-an-environmental-impact-statement-for-the",
         "key_advantages": [
-            "308 MW closed-loop PUMPED-STORAGE HYDRO on former coal-mine land — first US pumped storage on mine land, first new US pumped storage in 30+ years",
-            "FERC original-license application filed May 2026 (EIS NOI in Federal Register)",
+            "266 MW closed-loop PUMPED-STORAGE HYDRO (FERC Final License Application; earlier filings said 287 MW) — the first US pumped storage on former coal-mine land",
+            "FERC final license application filed 2025; EIS Notice of Intent published in the Federal Register 2026-05-12",
             "CEML demonstration award (up to $81M DOE cost share)",
         ],
     },
@@ -242,7 +243,7 @@ def main() -> int:
 
     payload = {
         "generated_at": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "source": "DOE Cleanup to Clean Energy (EM) + AI-data-centers-on-federal-land selections + OCED CEML mine-lands awards; facts per research/industry-topical-2026-08.md",
+        "source": "DOE Cleanup to Clean Energy (EM) + AI-data-centers-on-federal-land selections + OCED CEML mine-lands awards; facts per research/industry-topical-2026-08.md. Coordinates are reservation reference points; available_acreage is the full reservation/withdrawal unless a row's key_advantages say otherwise.",
         "count": len(sites),
         "sites": sites,
     }

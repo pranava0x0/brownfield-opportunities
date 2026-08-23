@@ -382,13 +382,15 @@
     },
     coal_conversion_plant_name: {
       group: "Infrastructure", label: "Coal conversion asset",
-      publisher: "US EIA / EPA CAMD / DOE",
-      dataset: "Form EIA-860M / DOE Coal-to-Clean Reindustrialization Studies",
+      publisher: "This project (curated; per-row Global Energy Monitor citations)",
+      dataset: "Curated coal-to-clean conversion catalog (18 plants, quarterly re-audit)",
       file: D.COAL_PROX, code: "scripts/build_coal_conversions.py",
-      derivation: "Nearest prominent coal plant conversion candidate (≥100 MW) within 10 mi. "
-        + "Evaluates stranded switchyard kV, rail loop, and water intake replacement value ($M).",
+      derivation: "Nearest curated coal conversion candidate (≥100 MW) within 10 mi. "
+        + "Dollar figure is a MODELED screening estimate ($180k/MW grid + water/rail/civil, "
+        + "distance-decayed), anchored to the DOE/INL 15–35% coal-reuse savings range — "
+        + "each plant row carries its own source_url + verified_at (shown in the Coal tab).",
       url: "https://www.energy.gov/ne/articles/doe-report-finds-hundreds-retiring-coal-plant-sites-could-convert-nuclear",
-      verifyLabel: "DOE Coal-to-Clean Reindustrialization Report",
+      verifyLabel: "DOE/INL coal-to-nuclear study (methodology anchor)",
     },
 
     // --- programmatic / financial overlays ---
