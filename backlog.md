@@ -19,6 +19,16 @@ Rankings are evaluated on three dimensions: **Impact** (value to developers / ag
 | **8** | **DOE "Cleanup to Clean Energy" & Mine Land (CEML) Overlay** | **Med** | 4/5 | 2/5 (S) | 5/5 (High) | [docs/specs/spec-cleanup-to-clean-energy-and-mine-lands.md](docs/specs/spec-cleanup-to-clean-energy-and-mine-lands.md) | **Done (2026-08-23)** |
 | **9** | **ISO Queue Dynamics & Automated eCFR Regulatory Tracker** | **Med** | 4/5 | 3/5 (M) | 4/5 (High) | [docs/specs/spec-queue-dynamics-and-regulatory-reaudit.md](docs/specs/spec-queue-dynamics-and-regulatory-reaudit.md) | Ready |
 
+**2026-08-23 revision pass:** all nine specs were re-grounded against the
+[Aug-2026 industry sweep](research/industry-topical-2026-08.md) (X bookmarks via Chrome +
+UtilityDive / DOE / FERC / ERCOT / TVA primary sources + Volts / Open Circuit / Energy Gang).
+Substantive corrections landed in specs 04 / 08 / 09 (queue-mechanism names, FERC §206 timeline,
+Paducah = Brookfield/NextEra, Lewis Ridge = Rye 308 MW pumped storage, Colstrip life-extension,
+provenance contracts with per-row `source_url` + `verified_at`, quarterly re-audit cadence); the
+implemented Spec 04/08 datasets were corrected in the same branch and are now guarded by
+`scripts/validate_data.py` checks `overlay-pydantic-schema` / `curated-provenance` /
+`coal-catalog-coherence` and the pre-PR gate `scripts/pr_gate.sh`.
+
 ---
 
 ## NEPA MCP integration — implemented core (2026-08-21)
