@@ -567,18 +567,28 @@ class Payload(BaseModel):
 
 
 class CoalConversionAsset(BaseModel):
-    """One coal plant facility evaluated for nuclear or data center conversion (Spec 04)."""
+    """One coal plant facility evaluated for nuclear or data center conversion (Spec 04).
+
+    Provenance contract: every row carries `source_url` (verified resolving) +
+    `verified_at` (YYYY-MM-DD audit stamp, STATE_DC_INCENTIVES discipline).
+    Fields no public document supports (intake GPM, NPDES IDs) stay None —
+    absent means unverified. `queue_transfer_eligible` is DERIVED from status
+    (an operating plant's interconnection is not transferable), never hand-set.
+    """
 
     model_config = ConfigDict(extra="forbid")
 
-    eia_plant_id: int = Field(description="EIA Plant Code")
+    eia_plant_id: Optional[int] = Field(
+        default=None,
+        description="EIA Plant Code — set only when verified against EIA-860M, never hand-typed.",
+    )
     plant_name: str
     utility_operator: str
     state: str = Field(min_length=2, max_length=2)
     county: str
     latitude: float
     longitude: float
-    status: Literal["operating", "retired", "planned_retirement"]
+    status: Literal["operating", "retired", "planned_retirement", "converted_gas"]
     retired_year: Optional[int] = None
     planned_retirement_year: Optional[int] = None
     nameplate_coal_mw: float = Field(ge=0.0)
@@ -590,8 +600,15 @@ class CoalConversionAsset(BaseModel):
     site_acreage: Optional[float] = None
     iso_rto: str
     queue_transfer_eligible: bool
-    est_stranded_asset_value_usd: float
+    est_stranded_asset_value_usd: float = Field(
+        description="MODELED estimate (spec 04 §4.1 formula) — label as such in every UI surface."
+    )
     conversion_suitability: Literal["nuclear_preferred", "datacenter_preferred", "dual_feasible"]
+    note: Optional[str] = Field(
+        default=None, description="Deal context (life extension, conversion project, consent decree)."
+    )
+    source_url: str = Field(description="Per-row citation; must resolve.")
+    verified_at: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}$")
 
 
 class CoalConversionProximityRecord(BaseModel):
@@ -611,13 +628,17 @@ class CoalConversionProximityRecord(BaseModel):
 
 
 class FederalCleanEnergySite(BaseModel):
-    """One flagship DOE 'Cleanup to Clean Energy' or Mine Lands clean energy site (Spec 08)."""
+    """One flagship DOE 'Cleanup to Clean Energy' / AI-data-center / Mine Lands
+    federal clean-energy site (Spec 08). Same provenance contract as
+    CoalConversionAsset: `solicitation_url` must be a real resolving URL
+    (never a guessed slug) and every row carries a `verified_at` audit stamp.
+    Re-audit quarterly — these programs move on political timelines."""
 
     model_config = ConfigDict(extra="forbid")
 
     site_id: str = Field(description="Unique identifier e.g. 'doe-em-srs'")
     site_name: str
-    managing_office: Literal["DOE-EM", "DOE-OCED", "BLM", "OSMRE", "DOD-AFCEC", "DOD-ANPI"]
+    managing_office: Literal["DOE-EM", "DOE-NNSA", "DOE-OCED", "BLM", "OSMRE", "DOD-AFCEC", "DOD-ANPI"]
     state: str = Field(min_length=2, max_length=2)
     county: str
     latitude: float
@@ -629,4 +650,5 @@ class FederalCleanEnergySite(BaseModel):
     solicitation_url: str
     nepa_review_document_url: Optional[str] = None
     key_advantages: list[str]
+    verified_at: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}$")
 

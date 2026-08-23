@@ -1941,12 +1941,15 @@ function ensureCoalConversionsLoaded() {
     .then((payload) => {
       recordRefreshDate(payload.generated_at, COAL_CONVERSIONS_URL);
       coalConversionAssets = payload.assets || [];
+      window.__coalAssets = coalConversionAssets; // e2e hook, like __sites
       if (!coalConversionLayer) return;
       for (const s of coalConversionAssets) {
         if (s.latitude == null || s.longitude == null) continue;
+        // Glyph directly in the icon div (no inner span) — halves marker DOM
+        // cost; the 5,000-node first-paint budget has ~60 nodes of headroom.
         const icon = L.divIcon({
           className: "coal-repowering-icon",
-          html: "<span>⬢</span>",
+          html: "⬢",
           iconSize: [18, 18],
           iconAnchor: [9, 9],
           popupAnchor: [0, -10],
@@ -1961,12 +1964,12 @@ function ensureCoalConversionsLoaded() {
           `<div class="ref-campus-company">${escapeHtml(Math.round(s.nameplate_coal_mw).toLocaleString())} MW Coal (${escapeHtml(s.status)}) · ${escapeHtml(s.switchyard_kv)} kV Switchyard</div>` +
           (place ? `<div class="ref-campus-prev">${escapeHtml(place)} · ${escapeHtml(s.iso_rto)}</div>` : "") +
           `<div class="ref-campus-meta">` +
-            `<span>Valuation: ~$${strandedM}M</span>` +
+            `<span>Modeled value: ~$${strandedM}M</span>` +
             (s.has_water_intake ? `<span>Water intake</span>` : "") +
             (s.has_rail ? `<span>Rail loop</span>` : "") +
-            (s.queue_transfer_eligible ? `<span style="color:var(--success, #16a34a)">⚡ Fast-track queue</span>` : "") +
+            (s.queue_transfer_eligible ? `<span style="color:var(--success, #16a34a)">⚡ POI reusable</span>` : "") +
           `</div>` +
-          `<div class="ref-campus-prev" style="margin-top:6px">Coal-to-Clean repowering candidate (EIA/DOE). Stranded electrical, rail, and water assets reduce CapEx 15–35% for SMR/nuclear or AI data center campuses.</div>` +
+          `<div class="ref-campus-prev" style="margin-top:6px">Coal-to-Clean repowering candidate. Reusing stranded electrical, rail, and water assets can cut CapEx 15–35% for SMR/nuclear or AI data center campuses (DOE/INL). Value figure is a modeled screening estimate, not an appraisal.</div>` +
           `<button type="button" class="coal-popup-btn" onclick="window.__openCoalTabForPlant('${escapeHtml(s.plant_name).replace(/'/g, "\\'")}')">Explore in Coal Tab &rarr;</button>` +
           `</div>`,
           { maxWidth: 290 }
@@ -1998,7 +2001,7 @@ function ensureFederalCleanEnergyLoaded() {
         if (s.latitude == null || s.longitude == null) continue;
         const icon = L.divIcon({
           className: "federal-site-icon",
-          html: "<span>🏛</span>",
+          html: "🏛",
           iconSize: [20, 20],
           iconAnchor: [10, 10],
           popupAnchor: [0, -10],
@@ -3671,6 +3674,7 @@ function wireTabs() {
     if (onCandidates) buildCandidatesView();
     if (onRetired) { ensureRetiredIndustrialLoaded(); buildRetiredView(); }
     if (onCoal) { ensureCoalConversionsLoaded().then(() => buildCoalView()); }
+    if (onAbout) mountAboutView();
     if (onAp1000) {
       ensureAp1000Loaded(); buildAp1000View();
       ensureNuclearSitesLoaded(); buildNuclearCivilianView();
@@ -3772,8 +3776,57 @@ function buildRetiredView() {
     + `<p class="retired-foot muted">Source: <a href="https://www.epa.gov/ghgreporting" target="_blank" rel="noopener">EPA Greenhouse Gas Reporting Program</a> facilities that ceased reporting (closed, idled, or below threshold), queried by <code>reporting_status</code> via the <a href="https://www.epa.gov/enviro/envirofacts-data-service-api" target="_blank" rel="noopener">Envirofacts data service</a>; every ◆ marker's popup deep-links to that facility's <a href="https://enviro.epa.gov/envirofacts/ghg/search" target="_blank" rel="noopener">EPA Envirofacts GHG record</a>. This is a screening signal for reusable grid infrastructure — verify ownership, interconnection, and closure before treating any site as available. <strong>Nearby records:</strong> ${retiredIndustrialSites.filter((s) => s.tracked_site_id).length.toLocaleString()} sites have a Superfund, ACRES, FUDS, or BRAC point within 1 mi. Those links are proximity context only, not parcel matches or availability evidence. Use the rust ◆ markers on the Map to locate them.</p>`;
 }
 
+// ----- About: lazy view mount -----
+// The whole About view (~190 static DOM nodes incl. the System Architecture
+// flow-card grid) lives in <template id="about-template"> and mounts on
+// first About activation. Template content is not part of the rendered
+// document, so first paint stays under the 5,000-node budget
+// (see test_dom_size_under_5k_nodes). Anything that writes into About
+// content (e.g. #about-refresh-date) must run AFTER this in setView.
+let aboutMounted = false;
+function mountAboutView() {
+  if (aboutMounted) return;
+  const tpl = el("about-template");
+  const view = el("view-about");
+  if (!tpl || !view || !tpl.content) return;
+  aboutMounted = true;
+  view.appendChild(tpl.content.cloneNode(true));
+}
+
 // ----- Coal-to-Clean Repowering View (Spec 04) -----
 let coalFiltersBound = false;
+
+// Status labels for the coal catalog's actual value domain. Keep in sync with
+// schema.py CoalConversionAsset.status — the filter <option>s are generated
+// from the loaded data (drift-safe iteration, the PROGRAM_LEGEND/UAT-007
+// rule), so a new status only needs a label here to render nicely.
+const COAL_STATUS_LABELS = {
+  operating: "Operating",
+  planned_retirement: "Retiring soon",
+  retired: "Retired",
+  converted_gas: "Converted to gas",
+};
+
+// Rebuild a coal filter <select>'s options from the values present in the
+// data, preserving the current selection when still valid.
+function populateCoalFilterOptions(selectId, values, labelFor) {
+  const sel = el(selectId);
+  if (!sel) return;
+  const prev = sel.value;
+  const allLabel = sel.options.length ? sel.options[0].textContent : "All";
+  const allOpt = document.createElement("option");
+  allOpt.value = "all";
+  allOpt.textContent = allLabel;
+  const opts = [allOpt];
+  for (const v of values) {
+    const opt = document.createElement("option");
+    opt.value = v;
+    opt.textContent = labelFor ? (labelFor(v) || v) : v;
+    opts.push(opt);
+  }
+  sel.replaceChildren(...opts);
+  sel.value = opts.some((o) => o.value === prev) ? prev : "all";
+}
 
 function buildCoalView() {
   const container = el("coal-table-container");
@@ -3782,6 +3835,19 @@ function buildCoalView() {
     container.innerHTML = '<p class="muted">Loading coal conversion assets…</p>';
     return;
   }
+
+  // Filter options come from the dataset's actual value domain — hardcoded
+  // lists are how the v1 "retiring"/"SERC" dead options shipped.
+  const statuses = [...new Set(coalConversionAssets.map((a) => a.status).filter(Boolean))].sort();
+  const isos = [...new Set(coalConversionAssets.map((a) => a.iso_rto).filter(Boolean))].sort();
+  populateCoalFilterOptions("coal-status-filter", statuses, (v) => COAL_STATUS_LABELS[v]);
+  populateCoalFilterOptions("coal-iso-filter", isos, null);
+  const suits = [...new Set(coalConversionAssets.map((a) => a.conversion_suitability).filter(Boolean))].sort();
+  populateCoalFilterOptions("coal-suitability-filter", suits, (v) => ({
+    nuclear_preferred: "Nuclear Preferred",
+    datacenter_preferred: "Data Center Preferred",
+    dual_feasible: "Dual Feasible",
+  })[v]);
 
   // Update headline KPI counters
   const totalMw = coalConversionAssets.reduce((sum, a) => sum + (a.nameplate_coal_mw || 0), 0);
@@ -3865,11 +3931,7 @@ function renderCoalTable() {
       ? '<span class="coal-tag dc">🖥 Data Center</span>'
       : '<span class="coal-tag dual">⚡ Dual Feasible</span>';
 
-    const statusBadge = plant.status === "operating"
-      ? '<span class="coal-status-pill operating">Operating</span>'
-      : plant.status === "retiring"
-      ? '<span class="coal-status-pill retiring">Retiring</span>'
-      : '<span class="coal-status-pill retired">Retired</span>';
+    const statusBadge = `<span class="coal-status-pill ${escapeAttr(plant.status)}">${escapeHtml(COAL_STATUS_LABELS[plant.status] || plant.status)}</span>`;
 
     html += `
       <tr class="coal-row" data-plant="${escapeAttr(plant.plant_name)}">
@@ -3882,9 +3944,9 @@ function renderCoalTable() {
         <td class="num font-num">${plant.switchyard_kv ? `${plant.switchyard_kv} kV` : "—"}</td>
         <td>
           <div class="coal-infra-badges">
-            ${plant.has_water_intake ? `<span class="coal-badge water" title="Active NPDES: ${escapeAttr(plant.npdes_permit_id || 'Yes')} · Flow: ${plant.intake_flow_gpm ? plant.intake_flow_gpm.toLocaleString() : 'N/A'} GPM">💧 Water (${plant.intake_flow_gpm ? Math.round(plant.intake_flow_gpm / 1000) + 'k' : ''} GPM)</span>` : '<span class="coal-badge muted">No intake</span>'}
-            ${plant.has_rail ? '<span class="coal-badge rail" title="Active on-site rail siding / loop">🚂 Rail siding</span>' : '<span class="coal-badge muted">No rail</span>'}
-            ${plant.queue_transfer_eligible ? '<span class="coal-badge queue" title="Eligible for FERC fast-track generator replacement queue transfer">⚡ Fast-track queue</span>' : ''}
+            ${plant.has_water_intake ? `<span class="coal-badge water" title="Water intake on-site${plant.intake_flow_gpm ? ` · ${plant.intake_flow_gpm.toLocaleString()} GPM` : ''}">💧 Water intake</span>` : '<span class="coal-badge muted">No intake</span>'}
+            ${plant.has_rail ? '<span class="coal-badge rail" title="On-site rail siding / loop">🚂 Rail siding</span>' : '<span class="coal-badge muted">No rail</span>'}
+            ${plant.queue_transfer_eligible ? '<span class="coal-badge queue" title="Retired or retiring POI — generator-replacement / surplus-interconnection candidate">⚡ POI reusable</span>' : ''}
           </div>
         </td>
         <td class="num font-num"><strong>~$${valM}M</strong></td>
@@ -3935,7 +3997,7 @@ window.__inspectCoalPlant = function(plantName) {
   const drawer = el("coal-site-drawer");
   const title = el("coal-drawer-title");
   const body = el("coal-drawer-body");
-  if (!drawer || !body) return;
+  if (!drawer || !body || !title) return;
 
   // Find nearby brownfields in sitesById within 10 mi
   const nearby = [];
@@ -3963,7 +4025,7 @@ window.__inspectCoalPlant = function(plantName) {
               </div>
               <div class="coal-nearby-sub">
                 ${escapeHtml(s.program.toUpperCase())} · ${s.acreage ? `${Math.round(s.acreage)} ac · ` : ''}${escapeHtml(s.city || s.county || '')}, ${s.state}
-                ${s.coal_conversion_queue_fasttrack ? '<span class="coal-fast-badge">⚡ Queue Transfer Zone (≤1.5 mi)</span>' : ''}
+                ${s.coal_conversion_queue_fasttrack ? '<span class="coal-fast-badge">⚡ POI-reuse zone (≤1.5 mi of retired/retiring switchyard)</span>' : ''}
               </div>
             </div>
           `).join('')}
@@ -3982,26 +4044,29 @@ window.__inspectCoalPlant = function(plantName) {
         <dl class="coal-dl">
           <dt>Nameplate Capacity</dt><dd><strong>${Math.round(plant.nameplate_coal_mw).toLocaleString()} MW</strong></dd>
           <dt>Switchyard Voltage</dt><dd>${plant.switchyard_kv} kV High Voltage</dd>
-          <dt>Grid Region / RTO</dt><dd>${plant.iso_rto}</dd>
-          <dt>Queue Status</dt><dd>${plant.queue_transfer_eligible ? 'Eligible for FERC fast-track transfer' : 'Standard Study'}</dd>
+          <dt>Grid Region / RTO</dt><dd>${escapeHtml(plant.iso_rto)}</dd>
+          <dt>Status</dt><dd>${escapeHtml(COAL_STATUS_LABELS[plant.status] || plant.status)}${plant.retired_year ? ` (${plant.retired_year})` : plant.planned_retirement_year ? ` (${plant.planned_retirement_year})` : ''}</dd>
+          <dt>POI Reuse</dt><dd>${plant.queue_transfer_eligible ? 'Generator-replacement / surplus-interconnection candidate (retired or retiring POI)' : 'Operating plant — POI not transferable'}</dd>
         </dl>
       </div>
       <div class="coal-profile-card">
         <h4>💧 Water, Rail &amp; Land Assets</h4>
         <dl class="coal-dl">
-          <dt>Water Intake</dt><dd>${plant.has_water_intake ? `Active intake (${plant.intake_flow_gpm ? plant.intake_flow_gpm.toLocaleString() : 'N/A'} GPM)` : 'None'}</dd>
-          <dt>NPDES Permit ID</dt><dd>${plant.npdes_permit_id || 'N/A'}</dd>
-          <dt>Rail Access</dt><dd>${plant.has_rail ? 'Active Rail Loop / Siding' : 'None'}</dd>
+          <dt>Water Intake</dt><dd>${plant.has_water_intake ? `Intake on-site${plant.intake_flow_gpm ? ` (${plant.intake_flow_gpm.toLocaleString()} GPM)` : ''}` : 'None'}</dd>
+          <dt>NPDES Permit</dt><dd>${plant.npdes_permit_id ? escapeHtml(plant.npdes_permit_id) : 'Not verified — check EPA ECHO'}</dd>
+          <dt>Rail Access</dt><dd>${plant.has_rail ? 'Rail loop / siding on-site' : 'None'}</dd>
           <dt>Site Acreage</dt><dd>${plant.site_acreage ? `${plant.site_acreage.toLocaleString()} Acres` : 'N/A'}</dd>
         </dl>
       </div>
       <div class="coal-profile-card valuation-card">
-        <h4>💰 Stranded Replacement Value</h4>
-        <div class="coal-val-big">$${valM} Million</div>
-        <p class="coal-val-desc">Estimated CapEx savings ($180k/MW grid + $25M water + $12M rail + $8M civil) for nuclear SMR or AI data center campus.</p>
+        <h4>💰 Modeled Stranded-Asset Value</h4>
+        <div class="coal-val-big">~$${valM} Million</div>
+        <p class="coal-val-desc">Screening estimate, not an appraisal: $180k/MW grid interconnect + $25M water + $12M rail + $8M civil, distance-decayed — anchored to the DOE/INL 15–35% coal-reuse CapEx-savings range.</p>
         <button type="button" class="coal-jump-map-btn" onclick="window.__focusCoalPlantOnMap(${plant.latitude}, ${plant.longitude}, '${escapeAttr(plant.plant_name).replace(/'/g, "\\'")}')">View on Map ↗</button>
       </div>
     </div>
+    ${plant.note ? `<p class="coal-plant-note">${escapeHtml(plant.note)}</p>` : ''}
+    ${plant.source_url ? `<p class="coal-plant-cite muted">Source: <a href="${escapeAttr(plant.source_url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(plant.source_url.replace(/^https?:\/\//, ""))}</a>${plant.verified_at ? ` · verified ${escapeHtml(plant.verified_at)}` : ''}</p>` : ''}
     ${nearbyHtml}
   `;
 
@@ -7088,9 +7153,9 @@ function setCoalRepowerCell(id, s) {
   if (s.coal_conversion_switchyard_kv != null) parts.push(`${s.coal_conversion_switchyard_kv} kV`);
   if (s.coal_conversion_stranded_val_usd != null) {
     const valM = (s.coal_conversion_stranded_val_usd / 1_000_000).toFixed(1);
-    parts.push(`~$${valM}M val`);
+    parts.push(`~$${valM}M modeled`);
   }
-  if (s.coal_conversion_queue_fasttrack) parts.push("⚡ Fast-track queue");
+  if (s.coal_conversion_queue_fasttrack) parts.push("⚡ POI reuse zone");
   if (parts.length) {
     const span = document.createElement("button");
     span.type = "button";

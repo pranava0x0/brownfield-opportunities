@@ -3258,6 +3258,13 @@ main {
 [data-theme="dark"] .coal-nearby-dist { color: #fbbf24; }
 .coal-nearby-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
 .coal-fast-badge { display: inline-block; color: var(--success, #16a34a); font-weight: 600; margin-left: 4px; }
+/* [hidden] belt-and-suspenders (see CLAUDE.md "the [hidden] trap") — the
+   drawer relies on the hidden attribute and must never be resurrected by a
+   future display rule. */
+.coal-drawer[hidden] { display: none; }
+.coal-plant-note { margin: 14px 0 4px; font-size: 12.5px; color: var(--text); border-left: 3px solid var(--accent); padding-left: 10px; }
+.coal-plant-cite { margin: 4px 0 0; font-size: 11.5px; }
+.coal-plant-cite a { color: var(--accent); }
 
 /* ==========================================================================
    Architecture & Data Flow Diagrams (About Tab)

@@ -41,20 +41,10 @@ from typing import Any, Callable, Iterable, Optional
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "docs" / "data"
-import importlib.util
+sys.path.insert(0, str(ROOT))
 
-_spatial_spec = importlib.util.spec_from_file_location("spatial", str(ROOT / "connectors" / "spatial.py"))
-_spatial_mod = importlib.util.module_from_spec(_spatial_spec)
-_spatial_spec.loader.exec_module(_spatial_mod)
-PolygonIndex = _spatial_mod.PolygonIndex
-haversine_mi = _spatial_mod.haversine_mi
-
-_county_spec = importlib.util.spec_from_file_location("county_lookup", str(ROOT / "connectors" / "county_lookup.py"))
-_county_mod = importlib.util.module_from_spec(_county_spec)
-# inject spatial into sys.modules so county_lookup can import it if needed
-sys.modules["connectors.spatial"] = _spatial_mod
-_county_spec.loader.exec_module(_county_mod)
-CountyIndex = _county_mod.CountyIndex
+from connectors.county_lookup import CountyIndex  # noqa: E402
+from connectors.spatial import PolygonIndex, haversine_mi  # noqa: E402
 
 # --------------------------------------------------------------------------
 # Reference domains
@@ -1678,6 +1668,188 @@ def c_freshness(c: Corpus):
         "enrichment-freshness", "derived", verdict(len(stale), warn_only=True),
         len(ages), len(stale), "no data file is >1 year stale or dated in the future",
         stale[:8], {"age_days": dict(sorted(ages.items(), key=lambda kv: -kv[1]))},
+    )
+
+
+# Overlay files with a live Pydantic contract in schema.py. A schema class
+# that nothing validates against is documentation pretending to be a guard —
+# this check is what makes the classes load-bearing (spec 04/08 lesson).
+OVERLAY_SCHEMA_FILES = {
+    "coal-conversions.json": ("CoalConversionAsset", "assets"),
+    "coal-conversions-proximity.json": ("CoalConversionProximityRecord", "matches"),
+    "federal-clean-energy.json": ("FederalCleanEnergySite", "sites"),
+}
+
+# Curated overlays whose every row must carry the provenance pair
+# (source_url-ish citation + verified_at audit stamp) — the
+# STATE_DC_INCENTIVES discipline applied to overlay data files.
+CURATED_PROVENANCE_FILES = {
+    "coal-conversions.json": ("assets", "source_url", "verified_at"),
+    "federal-clean-energy.json": ("sites", "solicitation_url", "verified_at"),
+}
+
+
+@check("overlay-pydantic-schema", "struct")
+def c_overlay_schema(c: Corpus):
+    """Validate curated overlay files against their schema.py classes."""
+    try:
+        import schema as schema_mod
+    except Exception as exc:  # pragma: no cover
+        yield Finding("overlay-pydantic-schema", "struct", "WARN", 0, 1,
+                      f"pydantic import failed: {exc}")
+        return
+    bad, examples, checked = 0, [], 0
+    for fname, (cls_name, key) in OVERLAY_SCHEMA_FILES.items():
+        payload = c.raw.get(fname)
+        cls = getattr(schema_mod, cls_name, None)
+        if payload is None or cls is None:
+            bad += 1
+            examples.append(f"{fname}: missing file or schema class {cls_name}")
+            continue
+        for rec in payload.get(key, []) or []:
+            checked += 1
+            try:
+                cls.model_validate(rec)
+            except Exception as exc:
+                bad += 1
+                if len(examples) < 200:
+                    msg = str(exc).splitlines()[1] if "\n" in str(exc) else str(exc)
+                    examples.append(f"{fname}:{rec.get('plant_name') or rec.get('site_id') or rec.get('id')}:{msg[:70]}")
+    yield Finding(
+        "overlay-pydantic-schema", "struct", verdict(bad), checked, bad,
+        "coal/federal overlay records validate against their schema.py classes (extra=forbid)",
+        examples,
+    )
+
+
+@check("curated-provenance", "derived")
+def c_curated_provenance(c: Corpus):
+    """Every curated overlay row carries a resolvable-looking citation and an
+    audit stamp; stale stamps (>200 days) surface as a WARN so the quarterly
+    re-audit cadence is visible in CI, not just in CLAUDE.md."""
+    bad, stale, examples, stale_ex, checked = 0, 0, [], [], 0
+    today = datetime.now().date()
+    for fname, (key, url_field, date_field) in CURATED_PROVENANCE_FILES.items():
+        payload = c.raw.get(fname)
+        if payload is None:
+            continue
+        for rec in payload.get(key, []) or []:
+            checked += 1
+            label = rec.get("plant_name") or rec.get("site_id") or rec.get("id")
+            url = rec.get(url_field)
+            stamp = rec.get(date_field)
+            if not (isinstance(url, str) and url.startswith("https://")):
+                bad += 1
+                if len(examples) < 50:
+                    examples.append(f"{fname}:{label}:missing {url_field}")
+            if not (isinstance(stamp, str) and len(stamp) == 10):
+                bad += 1
+                if len(examples) < 50:
+                    examples.append(f"{fname}:{label}:missing {date_field}")
+                continue
+            try:
+                d = datetime.fromisoformat(stamp).date()
+            except ValueError:
+                bad += 1
+                if len(examples) < 50:
+                    examples.append(f"{fname}:{label}:unparseable {date_field}={stamp}")
+                continue
+            if (today - d).days > 200:
+                stale += 1
+                if len(stale_ex) < 50:
+                    stale_ex.append(f"{fname}:{label}:{stamp}")
+    yield Finding(
+        "curated-provenance", "derived", verdict(bad), checked, bad,
+        "every curated coal/federal overlay row carries source_url + verified_at",
+        examples,
+    )
+    yield Finding(
+        "curated-provenance-freshness", "derived", verdict(stale, warn_only=True),
+        checked, stale,
+        "curated overlay audit stamps are <200 days old (quarterly re-audit cadence)",
+        stale_ex,
+    )
+
+
+@check("coal-catalog-coherence", "derived")
+def c_coal_catalog_coherence(c: Corpus):
+    """Internal coherence of the coal conversion catalog + proximity join:
+    status/year agreement, DERIVED queue eligibility (an operating plant's
+    POI is not transferable), switchyard kV in a real voltage class, the
+    modeled valuation reproducing its own formula, and join distances
+    reproducing against the catalog coordinates."""
+    import math
+
+    payload = c.raw.get("coal-conversions.json")
+    prox = c.raw.get("coal-conversions-proximity.json")
+    if not payload:
+        yield Finding("coal-catalog-coherence", "derived", "WARN", 0, 1,
+                      "coal-conversions.json missing")
+        return
+    KV_CLASSES = {69.0, 115.0, 138.0, 161.0, 230.0, 345.0, 500.0, 765.0}
+
+    def formula(mw: float, water: bool, rail: bool, dist: float) -> float:
+        base = mw * 180_000.0 + (25_000_000.0 if water else 0.0) \
+            + (12_000_000.0 if rail else 0.0) + 8_000_000.0
+        return round(base * math.exp(-0.25 * dist), 2)
+
+    bad, examples, checked = 0, [], 0
+    assets = payload.get("assets", []) or []
+    by_name = {a.get("plant_name"): a for a in assets}
+    for a in assets:
+        checked += 1
+        name = a.get("plant_name")
+        problems = []
+        if a.get("status") == "retired" and not a.get("retired_year"):
+            problems.append("retired without retired_year")
+        if a.get("status") == "planned_retirement" and not a.get("planned_retirement_year"):
+            problems.append("planned_retirement without year")
+        if a.get("status") == "operating" and (
+            a.get("retired_year") or a.get("planned_retirement_year")
+        ):
+            problems.append("operating with a retirement year")
+        if bool(a.get("queue_transfer_eligible")) != (a.get("status") != "operating"):
+            problems.append("queue_transfer_eligible not derived from status")
+        if float(a.get("switchyard_kv", -1)) not in KV_CLASSES:
+            problems.append(f"kv {a.get('switchyard_kv')} not a voltage class")
+        expect = formula(a.get("nameplate_coal_mw", 0.0), a.get("has_water_intake", False),
+                         a.get("has_rail", False), 0.0)
+        if abs(expect - float(a.get("est_stranded_asset_value_usd", -1))) > 1.0:
+            problems.append("valuation does not reproduce formula")
+        if problems:
+            bad += 1
+            if len(examples) < 50:
+                examples.append(f"{name}: {'; '.join(problems)}")
+
+    join_checked = 0
+    if prox:
+        merged = c.merged
+        for rec in prox.get("matches", []) or []:
+            join_checked += 1
+            checked += 1
+            site = merged.get(rec.get("id"))
+            plant = by_name.get(rec.get("coal_conversion_plant_name"))
+            if site is None or plant is None or site.get("lat") is None:
+                bad += 1
+                if len(examples) < 50:
+                    examples.append(f"{rec.get('id')}: unknown site or plant in join")
+                continue
+            d = haversine_mi(site["lat"], site["lon"],
+                             plant["latitude"], plant["longitude"])
+            claimed = rec.get("coal_conversion_plant_mi")
+            if claimed is None or abs(float(claimed) - d) > 0.15 or d > 10.5:
+                bad += 1
+                if len(examples) < 50:
+                    examples.append(f"{rec.get('id')}:{claimed}!={round(d, 2)}")
+            want_ft = (float(claimed or 99) <= 1.5) and bool(plant.get("queue_transfer_eligible"))
+            if bool(rec.get("coal_conversion_queue_fasttrack")) != want_ft:
+                bad += 1
+                if len(examples) < 50:
+                    examples.append(f"{rec.get('id')}: fasttrack flag not derived")
+    yield Finding(
+        "coal-catalog-coherence", "derived", verdict(bad), checked, bad,
+        "coal catalog rows internally coherent; proximity join reproduces distances + derived flags",
+        examples, {"assets": len(assets), "join_rows": join_checked},
     )
 
 

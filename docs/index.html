@@ -278,62 +278,52 @@
   <section id="view-coal" class="view coal-view" role="tabpanel" aria-labelledby="tab-coal" hidden>
     <div class="coal-wrap">
       <div class="coal-lead">
-        <h2>Coal-to-Clean Repowering &amp; Stranded Asset Valuation Engine</h2>
-        <p>A national catalogue of operating and retiring coal plants evaluated for <strong>nuclear SMR</strong> and <strong>hyperscale AI data center conversion</strong>. Reusing existing high-voltage switchyards, active water intake allocations, and heavy rail loops yields <strong>15–35% construction CapEx savings</strong> ($100M–$450M+ per site) and bypasses 5–7 year interconnection queues via FERC generator replacement transfer rules (<a href="https://www.energy.gov/ne/articles/doe-report-finds-hundreds-retiring-coal-plant-sites-could-convert-nuclear" target="_blank" rel="noopener">DOE Office of Nuclear Energy / EIA-860M</a>).</p>
+        <h2>Coal-to-Clean Repowering &amp; Stranded Asset Screening</h2>
+        <p>A curated catalogue of operating, retiring, retired, and gas-converted coal plants evaluated for <strong>nuclear SMR</strong> and <strong>hyperscale AI data center conversion</strong>. Reusing existing high-voltage switchyards, water intakes, and heavy rail loops can cut construction CapEx <strong>15–35%</strong> (<a href="https://www.energy.gov/ne/articles/doe-report-finds-hundreds-retiring-coal-plant-sites-could-convert-nuclear" target="_blank" rel="noopener">DOE/INL coal-to-nuclear studies</a>), and a retired or retiring interconnection can be reused via generator-replacement and surplus-interconnection processes instead of a new queue position. Dollar figures are <em>modeled screening estimates</em>; every plant row carries its own citation and audit date, and retirement dates can slip in both directions (DOE §202(c) extensions, data-center-driven life extensions).</p>
       </div>
 
       <div class="coal-kpis" id="coal-kpi-deck">
         <div class="coal-kpi">
           <span class="coal-kpi-label">Conversion Assets</span>
-          <span class="coal-kpi-val" id="coal-kpi-count">18</span>
+          <span class="coal-kpi-val" id="coal-kpi-count">—</span>
           <span class="coal-kpi-sub">major coal facilities</span>
         </div>
         <div class="coal-kpi">
           <span class="coal-kpi-label">Total Coal Capacity</span>
-          <span class="coal-kpi-val" id="coal-kpi-mw">28.4 GW</span>
+          <span class="coal-kpi-val" id="coal-kpi-mw">—</span>
           <span class="coal-kpi-sub">firm dispatchable grid capacity</span>
         </div>
         <div class="coal-kpi">
-          <span class="coal-kpi-label">Stranded Infrastructure Value</span>
-          <span class="coal-kpi-val" id="coal-kpi-val">$5.1B</span>
-          <span class="coal-kpi-sub">switchyard, intake &amp; rail replacement</span>
+          <span class="coal-kpi-label">Modeled Stranded Value</span>
+          <span class="coal-kpi-val" id="coal-kpi-val">—</span>
+          <span class="coal-kpi-sub">switchyard, intake &amp; rail (screening estimate)</span>
         </div>
         <div class="coal-kpi">
-          <span class="coal-kpi-label">Fast-Track Queue Eligible</span>
-          <span class="coal-kpi-val" id="coal-kpi-queue">100%</span>
-          <span class="coal-kpi-sub">generator replacement transfers</span>
+          <span class="coal-kpi-label">Reusable POI</span>
+          <span class="coal-kpi-val" id="coal-kpi-queue">—</span>
+          <span class="coal-kpi-sub">retired / retiring interconnections</span>
         </div>
       </div>
 
       <div class="coal-filters-bar">
         <div class="coal-filter-group">
           <label for="coal-status-filter">Status:</label>
+          <!-- Options are populated from the loaded dataset's value domain
+               (drift-safe iteration — hardcoded lists shipped dead options). -->
           <select id="coal-status-filter" class="coal-select">
             <option value="all">All statuses</option>
-            <option value="operating">Operating</option>
-            <option value="retiring">Retiring soon</option>
-            <option value="retired">Retired</option>
           </select>
         </div>
         <div class="coal-filter-group">
           <label for="coal-iso-filter">ISO / RTO:</label>
           <select id="coal-iso-filter" class="coal-select">
             <option value="all">All Grid Regions</option>
-            <option value="PJM">PJM</option>
-            <option value="MISO">MISO</option>
-            <option value="ERCOT">ERCOT</option>
-            <option value="TVA">TVA</option>
-            <option value="WECC">WECC</option>
-            <option value="SERC">SERC</option>
           </select>
         </div>
         <div class="coal-filter-group">
           <label for="coal-suitability-filter">Suitability:</label>
           <select id="coal-suitability-filter" class="coal-select">
             <option value="all">All Pathways</option>
-            <option value="nuclear_preferred">Nuclear Preferred</option>
-            <option value="datacenter_preferred">Data Center Preferred</option>
-            <option value="dual_feasible">Dual Feasible</option>
           </select>
         </div>
       </div>
@@ -388,6 +378,11 @@
   </section>
 
   <section id="view-about" class="view about-view" role="tabpanel" aria-labelledby="tab-about" hidden>
+    <!-- The entire About view mounts lazily from this <template> on first
+         activation (app.js mountAboutView). Template content is NOT part of
+         the rendered DOM, keeping ~190 static nodes out of the 5,000-node
+         first-paint budget (test_dom_size_under_5k_nodes). -->
+    <template id="about-template">
     <div class="about-wrap">
 
       <div class="about-lead">
@@ -556,10 +551,9 @@
           </dl>
         </div>
 
-        <div class="about-section about-arch-full" style="grid-column: 1 / -1;">
+        <div class="about-section about-arch-full" id="about-arch-mount" style="grid-column: 1 / -1;">
           <h3>System Architecture &amp; Data Flow Pipelines</h3>
           <p class="about-arch-intro">How 46,759 contaminated and federal properties are ingested, spatially indexed against nationwide infrastructure, scored across four suitability lenses, and rendered in real-time in the browser without server dependencies.</p>
-          
           <div class="arch-flow-grid">
             <!-- Master Platform Flow -->
             <div class="flow-card master-card">
@@ -583,7 +577,7 @@
                 <div class="flow-step-box">
                   <span class="step-num">3</span>
                   <strong>Spatial Indexing &amp; Proximity Joins</strong>
-                  <span class="step-desc">SegmentIndex (52k lines) &amp; PointIndex (70k substations, 13k plants, 394 coal units)</span>
+                  <span class="step-desc">SegmentIndex (52k transmission lines) &amp; PointIndex (70k substations, 13k plants, curated coal assets)</span>
                 </div>
                 <div class="flow-arrow-down">↓</div>
                 <div class="flow-step-box">
@@ -634,8 +628,8 @@
                 <span class="ptag">TIGER Rail/Roads</span>
               </div>
               <ul class="flow-points">
-                <li><strong>Local Equirectangular Projections:</strong> $O(1)$ grid-cell hashing with Chebyshev ring expansion for nearest-neighbor lookups.</li>
-                <li><strong>1-Lipschitz Mathematical Invariant:</strong> $|d(A) - d(B)| \le \text{dist}(A, B)$ verified offline across 511,927 distance fields.</li>
+                <li><strong>Local Equirectangular Projections:</strong> O(1) grid-cell hashing with Chebyshev ring expansion for nearest-neighbor lookups.</li>
+                <li><strong>1-Lipschitz Invariant:</strong> |d(A) − d(B)| ≤ dist(A, B), verified offline across 511,927 distance fields.</li>
                 <li><strong>Infrastructure Inheritance:</strong> Detects shared switchyards, bus voltages (69–765 kV), and proximity to operating/retired thermal generators.</li>
               </ul>
             </div>
@@ -668,15 +662,15 @@
               </div>
               <p class="flow-desc">Screens national coal facilities for conversion to advanced nuclear SMRs and AI data center campuses, modeling replacement CapEx value.</p>
               <div class="pipeline-tags">
-                <span class="ptag">EIA-860M Inventory</span>
+                <span class="ptag">GEM / EIA Plant Records</span>
                 <span class="ptag">DOE Coal-to-Nuclear</span>
                 <span class="ptag">Stranded Asset Val ($B)</span>
-                <span class="ptag">FERC Fast-Track Queue</span>
+                <span class="ptag">POI Reuse (Order 845)</span>
               </div>
               <ul class="flow-points">
-                <li><strong>Stranded Replacement Valuation:</strong> $V = (\text{MW} \times \$180\text{k}) + \$25\text{M}_{\text{water}} + \$12\text{M}_{\text{rail}} + \$8\text{M}_{\text{civil}} \times e^{-0.25 d_{\text{mi}}}$.</li>
-                <li><strong>CapEx Advantage:</strong> Stranded heavy electrical and water intake infrastructure saves 15–35% ($100M–$450M+) on nuclear or compute deployment.</li>
-                <li><strong>Interconnection Fast-Track:</strong> Identifies sites $\le 1.5$ mi from retiring switchyards eligible for FERC generator replacement queue transfer.</li>
+                <li><strong>Modeled Stranded Valuation:</strong> V = (MW × $180k + $25M water + $12M rail + $8M civil) × e^(−0.25 · miles) — a screening estimate, not an appraisal.</li>
+                <li><strong>CapEx Advantage:</strong> Reusing heavy electrical and water-intake infrastructure saves 15–35% on nuclear or compute deployment (DOE/INL).</li>
+                <li><strong>POI Reuse:</strong> Flags sites ≤ 1.5 mi from a retired/retiring switchyard — generator-replacement / surplus-interconnection candidates.</li>
               </ul>
             </div>
 
@@ -714,9 +708,9 @@
                 <span class="ptag">Active RFP Solicitations</span>
               </div>
               <ul class="flow-points">
-                <li><strong>Federal Security &amp; Land Scale:</strong> Flagship reservations including Savannah River Site (310k ac), Hanford (586k ac), and INL (570k ac).</li>
-                <li><strong>Gigawatt Compute Campus Precedents:</strong> Tracks selections such as NNSA/Amentum (1 GW AI DC + ~2 GW on-site clean power at SRS).</li>
-                <li><strong>Clean Energy on Mine Lands:</strong> Utility-scale solar/storage projects on former surface coal mines (Mineral Basin PA, Lewis Ridge KY).</li>
+                <li><strong>Federal Security &amp; Land Scale:</strong> Flagship reservations including Savannah River Site (310k ac), NNSS (860k ac), and INL (570k ac).</li>
+                <li><strong>Gigawatt Compute Campus Precedents:</strong> Tracks awards such as Amentum at SRS and Brookfield/NextEra at Paducah (1.8 GW AI campus + 2 GW gas + 2.6 GW BESS).</li>
+                <li><strong>Clean Energy on Mine Lands:</strong> CEML demonstrations on former surface coal mines — solar (Mineral Basin PA, 402 MW) and pumped storage (Lewis Ridge KY, 308 MW).</li>
               </ul>
             </div>
 
@@ -768,6 +762,7 @@
 
       </div><!-- .about-grid -->
     </div><!-- .about-wrap -->
+    </template>
   </section>
 </main>
 
