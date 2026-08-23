@@ -172,6 +172,7 @@ COAL_PLANTS_CATALOG: list[dict[str, Any]] = [
         "nameplate_coal_mw": 1500.0, "switchyard_kv": 500.0,
         "has_rail": True, "has_water_intake": True,
         "site_acreage": 2100.0, "iso_rto": "PJM",
+        "poi_occupied": True,
         "conversion_suitability": "datacenter_preferred",
         "note": "Gas conversion COMPLETED Aug 2023 (dual-fuel); coal exit required by end-2025. An operating gas plant with a 500 kV POI, not a stranded site.",
         "source_url": "https://www.gem.wiki/Montour_Steam_Station",
@@ -236,6 +237,7 @@ COAL_PLANTS_CATALOG: list[dict[str, Any]] = [
         "nameplate_coal_mw": 800.0, "switchyard_kv": 161.0,
         "has_rail": True, "has_water_intake": True,
         "site_acreage": 820.0, "iso_rto": "TVA",
+        "poi_occupied": True,
         "conversion_suitability": "datacenter_preferred",
         "note": "TVA gas combined-cycle operating on-site since 2012 — the coal-to-gas-on-site pattern. The POI is in use by the CC, so reuse means surplus-interconnection headroom, not a full transfer.",
         "source_url": "https://www.gem.wiki/John_Sevier_Fossil_Plant",
@@ -262,6 +264,7 @@ COAL_PLANTS_CATALOG: list[dict[str, Any]] = [
         "nameplate_coal_mw": 2630.0, "switchyard_kv": 500.0,
         "has_rail": True, "has_water_intake": True,
         "site_acreage": 3000.0, "iso_rto": "TVA",
+        "poi_occupied": True,
         "conversion_suitability": "dual_feasible",
         "note": "TVA Paradise gas combined-cycle operating on-site; retired coal units demolished 2021. The POI is in use by the CC, so reuse means surplus-interconnection headroom, not a full transfer.",
         "source_url": "https://www.gem.wiki/Paradise_Fossil_Plant",
@@ -326,11 +329,17 @@ def build_assets() -> list[dict[str, Any]]:
     for raw in COAL_PLANTS_CATALOG:
         asset = dict(raw)
         asset.setdefault("verified_at", VERIFIED)
+        asset.setdefault("poi_occupied", False)
         # POI-reuse eligibility is DERIVED, never hand-set: an operating
-        # plant's interconnection is not transferable, and a gas-converted
-        # plant's POI is occupied by its successor units (surplus headroom at
-        # best — say so in the row note, don't claim a transfer).
-        asset["queue_transfer_eligible"] = asset["status"] in ("retired", "planned_retirement")
+        # plant's interconnection is not transferable, a gas-converted plant's
+        # POI belongs to its successor units, and a retired coal plant whose
+        # site hosts an operating successor (John Sevier / Paradise pattern)
+        # has an OCCUPIED POI — surplus headroom at best, never a transfer
+        # (Codex review 2026-08-23 P1).
+        asset["queue_transfer_eligible"] = (
+            asset["status"] in ("retired", "planned_retirement")
+            and not asset["poi_occupied"]
+        )
         asset["est_stranded_asset_value_usd"] = calculate_stranded_asset_valuation(
             asset["nameplate_coal_mw"],
             asset["has_water_intake"],

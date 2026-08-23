@@ -601,6 +601,12 @@ class CoalConversionAsset(BaseModel):
     npdes_permit_id: Optional[str] = None
     site_acreage: Optional[float] = None
     iso_rto: str
+    poi_occupied: bool = Field(
+        default=False,
+        description="True when a successor plant on-site already uses the interconnection "
+        "(e.g. a coal-to-gas CC) — the coal units may be retired but the POI is NOT free; "
+        "at best there is Order-845 surplus headroom.",
+    )
     queue_transfer_eligible: bool
     est_stranded_asset_value_usd: float = Field(
         description="MODELED estimate (spec 04 §4.1 formula) — label as such in every UI surface."

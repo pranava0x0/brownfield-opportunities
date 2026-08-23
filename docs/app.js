@@ -619,6 +619,8 @@ let janusNepaLoadFailed = false;
 let janusNepa = null;                 // PNNL nepa-mcp screen for 9 Army sites
 let janusNepaLayer = null;            // selected site's lazy GeoJSON overlay
 let coalConversionsLoadingPromise = null;
+let coalConversionsSettled = false;     // a load completed (even if empty)
+let coalConversionsLoadFailed = false;  // last attempt errored — retryable
 let coalProxLoadingPromise = null;
 let federalCleanEnergyLoadingPromise = null;
 let coalConversionAssets = [];
@@ -1941,6 +1943,8 @@ function ensureCoalConversionsLoaded() {
     .then((payload) => {
       recordRefreshDate(payload.generated_at, COAL_CONVERSIONS_URL);
       coalConversionAssets = payload.assets || [];
+      coalConversionsSettled = true;      // even a genuine empty is settled
+      coalConversionsLoadFailed = false;  // — not retryable, unlike a failure
       window.__coalAssets = coalConversionAssets; // e2e hook, like __sites
       if (!coalConversionLayer) return;
       for (const s of coalConversionAssets) {
@@ -1988,7 +1992,9 @@ function ensureCoalConversionsLoaded() {
     })
     .catch((err) => {
       console.error("Coal conversions overlay load failed:", err);
-      coalConversionsLoadingPromise = null;
+      coalConversionsLoadFailed = true;
+      coalConversionsLoadingPromise = null; // nulled so the next call retries
+      if (typeof buildCoalView === "function") buildCoalView();
     });
   return coalConversionsLoadingPromise;
 }
@@ -3843,7 +3849,30 @@ function buildCoalView() {
   const container = el("coal-table-container");
   if (!container) return;
   if (!coalConversionAssets || coalConversionAssets.length === 0) {
-    container.innerHTML = '<p class="muted">Loading coal conversion assets…</p>';
+    // Three distinct states, never a forever-"Loading…" (Codex review P2,
+    // same contract as the nuclear overlay): failed → retryable error;
+    // settled-but-empty → explicit empty (a successful empty is NOT
+    // retryable); otherwise genuinely still loading.
+    if (coalConversionsLoadFailed) {
+      container.replaceChildren();
+      const p = document.createElement("p");
+      p.className = "muted";
+      p.textContent = "Coal conversion assets failed to load. ";
+      const retry = document.createElement("button");
+      retry.type = "button";
+      retry.className = "coal-btn";
+      retry.textContent = "Retry";
+      retry.addEventListener("click", () => {
+        container.innerHTML = '<p class="muted">Loading coal conversion assets…</p>';
+        ensureCoalConversionsLoaded().then(() => buildCoalView());
+      });
+      p.appendChild(retry);
+      container.appendChild(p);
+    } else if (coalConversionsSettled) {
+      container.innerHTML = '<p class="muted">No coal conversion assets in this build.</p>';
+    } else {
+      container.innerHTML = '<p class="muted">Loading coal conversion assets…</p>';
+    }
     return;
   }
 
@@ -4076,7 +4105,7 @@ window.__inspectCoalPlant = function(plantName) {
           <dt>Switchyard Voltage</dt><dd>${plant.switchyard_kv} kV High Voltage</dd>
           <dt>Grid Region / RTO</dt><dd>${escapeHtml(plant.iso_rto)}</dd>
           <dt>Status</dt><dd>${escapeHtml(COAL_STATUS_LABELS[plant.status] || plant.status)}${plant.retired_year ? ` (${plant.retired_year})` : plant.planned_retirement_year ? ` (${plant.planned_retirement_year})` : ''}</dd>
-          <dt>POI Reuse</dt><dd>${plant.queue_transfer_eligible ? 'Generator-replacement / surplus-interconnection candidate (retired or retiring POI)' : plant.status === 'converted_gas' ? 'POI occupied by on-site gas successor — surplus-interconnection headroom only' : 'Operating plant — POI not transferable'}</dd>
+          <dt>POI Reuse</dt><dd>${plant.queue_transfer_eligible ? 'Generator-replacement / surplus-interconnection candidate (retired or retiring POI)' : (plant.poi_occupied || plant.status === 'converted_gas') ? 'POI occupied by on-site successor units — surplus-interconnection headroom only' : 'Operating plant — POI not transferable'}</dd>
         </dl>
       </div>
       <div class="coal-profile-card">

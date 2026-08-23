@@ -144,6 +144,31 @@ def test_tab_strip_no_horizontal_page_scroll_mobile(page, base_url):
     assert overflow == 0, f"page-level horizontal overflow: {overflow}px"
 
 
+def test_coal_load_failure_shows_retry_not_forever_loading(page, base_url):
+    """Codex review P2: a failed catalog fetch must render a retryable error,
+    never an indefinite 'Loading…'. The retry button re-fetches (the loader
+    nulls its promise on failure) and builds the table."""
+    blocked = {"on": True}
+
+    def route_coal(route):
+        if blocked["on"]:
+            route.abort()
+        else:
+            route.fallback()
+
+    page.route("**/data/coal-conversions.json", route_coal)
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__sitesLoaded === true", timeout=20000)
+    page.click("#tab-coal")
+    page.wait_for_selector("#coal-table-container button.coal-btn", timeout=10000)
+    text = page.evaluate("document.getElementById('coal-table-container').textContent")
+    assert "failed to load" in text, text
+    # Unblock and retry — the table must build.
+    blocked["on"] = False
+    page.click("#coal-table-container button.coal-btn")
+    page.wait_for_selector("#coal-table-container table.coal-table", timeout=15000)
+
+
 def test_map_overlays_render_markers_and_legend(page, base_url):
     """The map surfaces of BOTH overlays: 18 ⬢ coal + 10 🏛 federal markers
     exist with the glyph directly in the styled icon div (no orphaned inner

@@ -1810,8 +1810,9 @@ def c_coal_catalog_coherence(c: Corpus):
             problems.append("operating with a retirement year")
         if bool(a.get("queue_transfer_eligible")) != (
             a.get("status") in ("retired", "planned_retirement")
+            and not a.get("poi_occupied", False)
         ):
-            problems.append("queue_transfer_eligible not derived from status")
+            problems.append("queue_transfer_eligible not derived from status/poi_occupied")
         if float(a.get("switchyard_kv", -1)) not in KV_CLASSES:
             problems.append(f"kv {a.get('switchyard_kv')} not a voltage class")
         expect = formula(a.get("nameplate_coal_mw", 0.0), a.get("has_water_intake", False),

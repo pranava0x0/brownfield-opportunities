@@ -62,15 +62,20 @@ class TestCoalConversions(unittest.TestCase):
                 self.assertIsNone(asset.get("planned_retirement_year"), asset["plant_name"])
 
     def test_queue_eligibility_is_derived(self):
-        """POI-reuse eligibility is derived from status, never hand-set: false
-        for operating plants (POI not transferable) AND for gas conversions
-        (POI occupied by the successor units) — spec 04 §4.2."""
+        """POI-reuse eligibility is derived, never hand-set: false for
+        operating plants (POI not transferable), for gas conversions, AND for
+        retired plants whose POI is occupied by an on-site successor
+        (John Sevier / Paradise) — spec 04 §4.2, Codex review P1."""
         for asset in build_assets():
             self.assertEqual(
                 asset["queue_transfer_eligible"],
-                asset["status"] in ("retired", "planned_retirement"),
+                asset["status"] in ("retired", "planned_retirement")
+                and not asset.get("poi_occupied", False),
                 asset["plant_name"],
             )
+        by_name = {a["plant_name"]: a for a in build_assets()}
+        self.assertFalse(by_name["John Sevier Fossil Plant"]["queue_transfer_eligible"])
+        self.assertFalse(by_name["Paradise Fossil Plant"]["queue_transfer_eligible"])
 
     def test_stranded_asset_valuation(self):
         val_0 = calculate_stranded_asset_valuation(1000.0, has_water=True, has_rail=True, distance_mi=0.0)
