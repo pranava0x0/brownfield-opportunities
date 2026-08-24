@@ -3724,7 +3724,7 @@ function wireTabs() {
     if (microView)      { microView.classList.toggle("active", onMicro);           microView.hidden = !onMicro; }
     if (aboutView)      { aboutView.classList.toggle("active", onAbout);           aboutView.hidden = !onAbout; }
     const globalExportCsv = el("export-csv");
-    if (globalExportCsv) globalExportCsv.hidden = onAp1000 || onMicro;
+    if (globalExportCsv) globalExportCsv.hidden = onAp1000 || onMicro || onCoal;
     if (onMap) setTimeout(() => map.invalidateSize(), 50);
     if (onCandidates) buildCandidatesView();
     if (onRetired) { mountRetiredView(); ensureRetiredIndustrialLoaded(); buildRetiredView(); }
