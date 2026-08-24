@@ -38,6 +38,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import socket
 import sys
 import threading
@@ -503,22 +504,31 @@ class SourceDef:
 
 
 def purge_server_src_namespace() -> int:
-    """Drop nepa-mcp server-private ``src``/``src.*`` entries from sys.modules.
+    """Reset nepa-mcp server-private import state between server loads.
 
-    Every nepa-mcp 0.1.1 server ships its OWN ``src`` package, and whichever
-    server loads first claims the ``src`` name in sys.modules — after which
-    every other server's ``import src.apis.<x>_api`` resolves against the
-    WRONG server's package and fails (observed 2026-08-24: a cache-resumed
-    run loaded map_composer before the tabular servers, and every later
-    tabular load died with "No module named 'src.apis.ipac_api'", which was
-    then CACHED as unavailable). Purging before each load makes every server
-    re-import its own namespace; already-loaded modules keep their bound
-    references, so this is safe to call between loads. Returns the number of
-    entries removed (for the regression test)."""
+    Every nepa-mcp 0.1.1 server ships its OWN top-level ``src`` package.
+    The library's ``load_server_module`` is built for one-server-per-process
+    (``run_server``): it purges ``src``/``src.*`` from sys.modules itself,
+    but its ``if directory not in sys.path: insert(0, ...)`` guard never
+    RE-FRONTS a directory that later servers have pushed down — so in a
+    multi-server process the second SITE's loads resolve ``import
+    src.apis.<x>_api`` against whichever server directory is frontmost
+    (observed 2026-08-24: site 1's eight servers all loaded fine, then
+    every site-2 load except nepa_assist died with "No module named
+    'src.apis.ipac_api'" and the failures were CACHED as unavailable).
+    Two-part reset, run before every load: drop ``src``/``src.*`` from
+    sys.modules AND strip every ``nepa_mcp/_servers`` directory from
+    sys.path so the loader re-inserts the right one at the front.
+    Already-loaded modules keep their bound references, so this is safe
+    between loads. Returns entries removed (for the regression test)."""
     stale = [m for m in sys.modules if m == "src" or m.startswith("src.")]
     for name in stale:
         del sys.modules[name]
-    return len(stale)
+    marker = os.sep + os.path.join("nepa_mcp", "_servers") + os.sep
+    kept = [p for p in sys.path if marker not in p]
+    removed_paths = len(sys.path) - len(kept)
+    sys.path[:] = kept
+    return len(stale) + removed_paths
 
 
 def _isolated_load_server_module(server_name: str):

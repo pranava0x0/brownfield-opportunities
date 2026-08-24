@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-24T20:47:08.023698Z",
+  "generated_at": "2026-08-24T21:17:20.762213Z",
   "nepa_mcp_version": "0.1.1",
   "site_id": "portsmouth",
   "site_label": "Portsmouth",
@@ -305,44 +305,516 @@
       ],
       "screening": {
         "ipac": {
-          "status": "unavailable",
-          "error": "No module named 'src.apis.ipac_api'",
-          "retrieved_at": "2026-08-24T20:44:32.917389Z"
+          "species": [
+            {
+              "id": "Population$Sid[352]",
+              "common_name": "Clubshell",
+              "scientific_name": "Pleurobema clava",
+              "short_name": "Clubshell",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[1]",
+              "common_name": "Indiana bat",
+              "scientific_name": "Myotis sodalis",
+              "short_name": "Indiana bat",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[10838]",
+              "common_name": "Longsolid",
+              "scientific_name": "Fusconaia subrotunda",
+              "short_name": "Longsolid",
+              "listing_status": "Threatened",
+              "listing_code": "T",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[10710]",
+              "common_name": "Monarch butterfly",
+              "scientific_name": "Danaus plexippus",
+              "short_name": "Monarch butterfly",
+              "listing_status": "Proposed Threatened",
+              "listing_code": "PT",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[10043]",
+              "common_name": "Northern Long-Eared Bat",
+              "scientific_name": "Myotis septentrionalis",
+              "short_name": "Northern Long-Eared Bat",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[374]",
+              "common_name": "Northern riffleshell",
+              "scientific_name": "Epioblasma rangiana",
+              "short_name": "Northern riffleshell",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[6062]",
+              "common_name": "Rayed Bean",
+              "scientific_name": "Villosa fabalis",
+              "short_name": "Rayed Bean",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[10837]",
+              "common_name": "Round hickorynut",
+              "scientific_name": "Obovaria subrotunda",
+              "short_name": "Round hickorynut",
+              "listing_status": "Threatened",
+              "listing_code": "T",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[8134]",
+              "common_name": "Salamander mussel",
+              "scientific_name": "Simpsonaias ambigua",
+              "short_name": "Salamander mussel",
+              "listing_status": "Proposed Endangered",
+              "listing_code": "PE",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[742]",
+              "common_name": "Small whorled pogonia",
+              "scientific_name": "Isotria medeoloides",
+              "short_name": "Small whorled pogonia",
+              "listing_status": "Threatened",
+              "listing_code": "T",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[11365]",
+              "common_name": "Tricolored bat",
+              "scientific_name": "Perimyotis subflavus",
+              "short_name": "Tricolored bat",
+              "listing_status": "Proposed Endangered",
+              "listing_code": "PE",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[1039]",
+              "common_name": "Virginia spiraea",
+              "scientific_name": "Spiraea virginiana",
+              "short_name": "Virginia spiraea",
+              "listing_status": "Threatened",
+              "listing_code": "T",
+              "critical_habitat": "None"
+            }
+          ],
+          "migratory_birds": [
+            {
+              "common_name": "Bald Eagle",
+              "scientific_name": "Haliaeetus leucocephalus",
+              "code": "BAEA",
+              "conservation_level": "NON_BCC_VULNERABLE",
+              "bcc": false,
+              "breeds_from": "1972-09-01T00:00Z",
+              "breeds_to": "1972-08-31T00:00Z"
+            },
+            {
+              "common_name": "Cerulean Warbler",
+              "scientific_name": "Setophaga cerulea",
+              "code": "CERW",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-04-27T00:00Z",
+              "breeds_to": "1972-07-20T00:00Z"
+            },
+            {
+              "common_name": "Chimney Swift",
+              "scientific_name": "Chaetura pelagica",
+              "code": "CHSW",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-03-15T00:00Z",
+              "breeds_to": "1972-08-25T00:00Z"
+            },
+            {
+              "common_name": "Eastern Whip-poor-will",
+              "scientific_name": "Antrostomus vociferus",
+              "code": "EWPW",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-01T00:00Z",
+              "breeds_to": "1972-08-20T00:00Z"
+            },
+            {
+              "common_name": "Henslow's Sparrow",
+              "scientific_name": "Ammodramus henslowii",
+              "code": "HESP",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-01T00:00Z",
+              "breeds_to": "1972-08-31T00:00Z"
+            },
+            {
+              "common_name": "Kentucky Warbler",
+              "scientific_name": "Geothlypis formosa",
+              "code": "KEWA",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-04-20T00:00Z",
+              "breeds_to": "1972-08-20T00:00Z"
+            },
+            {
+              "common_name": "Prairie Warbler",
+              "scientific_name": "Setophaga discolor",
+              "code": "PRAW",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-01T00:00Z",
+              "breeds_to": "1972-07-31T00:00Z"
+            },
+            {
+              "common_name": "Red-headed Woodpecker",
+              "scientific_name": "Melanerpes erythrocephalus",
+              "code": "RHWO",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-10T00:00Z",
+              "breeds_to": "1972-09-10T00:00Z"
+            },
+            {
+              "common_name": "Wood Thrush",
+              "scientific_name": "Hylocichla mustelina",
+              "code": "WOTH",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-10T00:00Z",
+              "breeds_to": "1972-08-31T00:00Z"
+            }
+          ],
+          "wetlands": [],
+          "refuges": [],
+          "field_offices": [
+            {
+              "name": "Ohio Ecological Services Field Office",
+              "code": ""
+            }
+          ],
+          "critical_habitat": [],
+          "marine_mammals": [],
+          "fish_hatcheries": [],
+          "coastal_barriers": {
+            "items": [],
+            "truncated": false
+          },
+          "counts": {
+            "listed_species": 12,
+            "critical_habitat": 0,
+            "migratory_birds": 9,
+            "wetland_types": 0,
+            "refuges": 0
+          },
+          "status": "ok",
+          "retrieved_at": "2026-08-24T21:11:42.535580Z"
         },
         "tribal": {
-          "status": "unavailable",
-          "error": "No module named 'src.apis.tribal_api'",
-          "retrieved_at": "2026-08-24T20:44:32.920498Z"
+          "count": 0,
+          "tribal_lands": [],
+          "warnings": [],
+          "status": "ok",
+          "retrieved_at": "2026-08-24T21:04:43.345230Z"
         },
         "nrhp": {
-          "status": "unavailable",
-          "error": "No module named 'src.apis.nrhp_api'",
-          "retrieved_at": "2026-08-24T20:44:32.925150Z"
+          "count": 4,
+          "national_historic_landmarks": 0,
+          "properties": [
+            {
+              "name": "Friendly Grove",
+              "resource_type": "building",
+              "address": "OH 220, E of Piketon",
+              "city": "Piketon",
+              "county": "Pike",
+              "state": "OHIO",
+              "cert_date": "01/26/70",
+              "is_nhl": "",
+              "status": "Listed",
+              "is_extant": "Unknown",
+              "nris_refnum": "70000513",
+              "nara_url": "https://catalog.archives.gov/id/71990939",
+              "geometry_type": "Historic Places (Points)"
+            },
+            {
+              "name": "Jones-Cutler House",
+              "resource_type": "building",
+              "address": "Bridge St.",
+              "city": "Jasper",
+              "county": "Pike",
+              "state": "OHIO",
+              "cert_date": "04/26/76",
+              "is_nhl": "",
+              "status": "Listed",
+              "is_extant": "Unknown",
+              "nris_refnum": "76001509",
+              "nara_url": "https://catalog.archives.gov/id/71990941",
+              "geometry_type": "Historic Places (Points)"
+            },
+            {
+              "name": "Piketon Historic District",
+              "resource_type": "district",
+              "address": "Bounded by West and 3rd Sts., U.S. 23, and the Scioto River",
+              "city": "Piketon",
+              "county": "Pike",
+              "state": "OHIO",
+              "cert_date": "02/28/74",
+              "is_nhl": "",
+              "status": "Listed",
+              "is_extant": "Unknown",
+              "nris_refnum": "74001598",
+              "nara_url": "https://catalog.archives.gov/id/71990949",
+              "geometry_type": "Historic Places (Polygons)"
+            },
+            {
+              "name": "Vanmeter Stone House and Outbuildings",
+              "resource_type": "building",
+              "address": "S of Piketon at jct. of U.S. 23 and OH 124",
+              "city": "Piketon",
+              "county": "Pike",
+              "state": "OHIO",
+              "cert_date": "03/31/75",
+              "is_nhl": "",
+              "status": "Listed",
+              "is_extant": "Unknown",
+              "nris_refnum": "75001519",
+              "nara_url": "https://catalog.archives.gov/id/71990945",
+              "geometry_type": "Historic Places (Points)"
+            }
+          ],
+          "warnings": [],
+          "data_unavailable": false,
+          "status": "ok",
+          "retrieved_at": "2026-08-24T21:05:22.266192Z"
         },
         "padus": {
-          "status": "unavailable",
-          "error": "No module named 'src.apis.padus_api'",
-          "retrieved_at": "2026-08-24T20:44:32.930027Z"
+          "query_buffer_miles": 0.1,
+          "count": 0,
+          "owner_types": {},
+          "designation_types": {},
+          "largest_records": [],
+          "records_truncated": 0,
+          "warnings": [],
+          "status": "ok",
+          "retrieved_at": "2026-08-24T21:05:40.500964Z"
         },
         "usace": {
-          "status": "unavailable",
-          "error": "No module named 'src.apis.usace_api'",
-          "retrieved_at": "2026-08-24T20:44:32.934255Z"
+          "districts": [
+            {
+              "district_name": "US Army Engineer District, Huntington",
+              "district_abbreviation": "LRH",
+              "division_name": "Great Lakes and Ohio River Division",
+              "division_abbreviation": "CELRD",
+              "website_url": "http://www.lrh.usace.army.mil/Missions/Regulatory.aspx",
+              "phone": "304-399-5211",
+              "address": "Huntington District, 502 Eighth Street, Huntington, West Virginia 25701-2070"
+            }
+          ],
+          "wetland_regions": [
+            {
+              "region_name": "Eastern Mountains and Piedmont",
+              "mlra_name": "Central Allegheny Plateau",
+              "lrr_name": "East and Central Farming and Forest Region",
+              "supplement_url": ""
+            }
+          ],
+          "wetland_subregions": [
+            {
+              "subregion_name": "LRR N, MLRA 124",
+              "subregion_code": "124",
+              "parent_region": "EMP",
+              "mlra_name": "Western Allegheny Plateau",
+              "lrr_name": "East and Central Farming and Forest Region"
+            }
+          ],
+          "warnings": [],
+          "limitation": "District and delineation-region context only. This does not show wetland presence or make a Clean Water Act jurisdictional determination.",
+          "status": "ok",
+          "retrieved_at": "2026-08-24T21:06:02.250765Z"
         },
         "fema_nfhl": {
-          "status": "unavailable",
-          "error": "No module named 'src.apis.fema_nfhl_api'",
-          "retrieved_at": "2026-08-24T20:44:32.938100Z"
+          "count": 3,
+          "zone_counts": {
+            "A": 1,
+            "X": 2
+          },
+          "sfha_count": 1,
+          "sfha_percentage": 33.3,
+          "truncated": false,
+          "warnings": [],
+          "status": "ok",
+          "retrieved_at": "2026-08-24T21:06:21.072629Z"
         },
         "gbif": {
-          "status": "unavailable",
-          "error": "cannot import name 'get_gbif_species_by_county_sync' from 'src.apis.gbif_api' (/Users/pranava/.cache/uv/archive-v0/sgEssBLf8VSi3pzT/lib/python3.12/site-packages/nepa_mcp/_servers/map_composer/src/apis/gbif_api.py)",
-          "retrieved_at": "2026-08-24T20:44:32.954000Z"
+          "occurrence_count": 122,
+          "species_count": 15,
+          "by_threat_status": {
+            "Near Threatened": 104,
+            "Vulnerable": 17,
+            "Endangered": 1
+          },
+          "top_species": [
+            {
+              "species": "Common Grackle",
+              "occurrences": 61
+            },
+            {
+              "species": "Killdeer",
+              "occurrences": 17
+            },
+            {
+              "species": "Chimney Swift",
+              "occurrences": 13
+            },
+            {
+              "species": "Eastern Whip-poor-will",
+              "occurrences": 5
+            },
+            {
+              "species": "Eastern Meadowlark",
+              "occurrences": 5
+            },
+            {
+              "species": "Cerulean Warbler",
+              "occurrences": 3
+            },
+            {
+              "species": "Etheostoma tippecanoe Jordan & Evermann, 1890",
+              "occurrences": 3
+            },
+            {
+              "species": "Charadrius vociferus Linnaeus, 1758",
+              "occurrences": 2
+            },
+            {
+              "species": "Magicicada septendecim (Linnaeus, 1758)",
+              "occurrences": 2
+            },
+            {
+              "species": "Magicicada cassini (Fisher, 1852)",
+              "occurrences": 2
+            },
+            {
+              "species": "Cerioporus squamosus (Huds.) Qu\u00e9l.",
+              "occurrences": 2
+            },
+            {
+              "species": "Lesser Yellowlegs",
+              "occurrences": 2
+            },
+            {
+              "species": "Greater Yellowlegs",
+              "occurrences": 2
+            },
+            {
+              "species": "Ulmus americana L.",
+              "occurrences": 1
+            },
+            {
+              "species": "Northern Bobwhite",
+              "occurrences": 1
+            }
+          ],
+          "warnings": [],
+          "status": "ok",
+          "retrieved_at": "2026-08-24T21:06:31.266558Z"
         },
         "nepa_assist": {
-          "status": "unavailable",
-          "error": "No module named 'src.apis.nepa_assist_api'",
-          "retrieved_at": "2026-08-24T20:44:32.956730Z"
+          "summary": {
+            "total_checks": 41,
+            "yes_count": 15,
+            "no_count": 26,
+            "flagged_issues": [
+              "Within 1 mile of a PM2.5 Annual (1997 standard) Non-Attainment/Maintenance Area?",
+              "Within 1 mile of an impaired stream?",
+              "Within 1 mile of an impaired waterbody?",
+              "Within 1 mile of a waterbody?",
+              "Within 1 mile of a stream?",
+              "Within 1 mile of a Brownfields site?",
+              "Within 1 mile of a Toxic Release Inventory (TRI) site?",
+              "Within 1 mile of a water discharger (NPDES)?",
+              "Within 1 mile of a hazardous waste (RCRA) facility?",
+              "Within 1 mile of an air emission facility?",
+              "Within 1 mile of a school?",
+              "Within 1 mile of a historic property on the National Register of Historic Places?",
+              "Within 1 mile of a Land Cession Boundary?",
+              "Within 1 mile of the service area of a mitigation or conservation bank?",
+              "Within 1 mile of the service area of an In-Lieu-Fee Program?"
+            ]
+          },
+          "categories": {
+            "air_quality": {
+              "Within 1 mile of an Ozone 1-hr (1979 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of an Ozone 8-hr (1997 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of an Ozone 8-hr (2008 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of an Ozone 8-hr (2015 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a Lead (2008 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a SO2 1-hr (2010 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a PM2.5 24hr (2006 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a PM2.5 Annual (1997 standard) Non-Attainment/Maintenance Area?": "yes",
+              "Within 1 mile of a PM2.5 Annual (2012 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a PM10 (1987 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a CO Annual (1971 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a NO2 Annual (1971 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of an air emission facility?": "yes"
+            },
+            "water_resources": {
+              "Within 1 mile of an impaired stream?": "yes",
+              "Within 1 mile of an impaired waterbody?": "yes",
+              "Within 1 mile of a waterbody?": "yes",
+              "Within 1 mile of a stream?": "yes",
+              "Within 1 mile of a water discharger (NPDES)?": "yes",
+              "Within 1 mile of an ESA-designated Critical Habitat river, stream or water feature per U.S. Fish & Wildlife Service?": "no"
+            },
+            "contaminated_sites": {
+              "Within 1 mile of a Brownfields site?": "yes",
+              "Within 1 mile of a Superfund site?": "no",
+              "Within 1 mile of a Toxic Release Inventory (TRI) site?": "yes",
+              "Within 1 mile of a hazardous waste (RCRA) facility?": "yes",
+              "Within 1 mile of a tribal area (lower 48 states)?": "no"
+            },
+            "community_features": {
+              "Within 1 mile of a Federal Land?": "no",
+              "Within 1 mile of a school?": "yes",
+              "Within 1 mile of an airport?": "no",
+              "Within 1 mile of a hospital?": "no"
+            },
+            "natural_resources": {
+              "Within 1 mile of a designated sole source aquifer?": "no",
+              "Within 1 mile of the service area of a mitigation or conservation bank?": "yes",
+              "Within 1 mile of the service area of an In-Lieu-Fee Program?": "yes",
+              "Within 1 mile of an Essential Fish Habitat (EFH)?": "no",
+              "Within 1 mile of a Habitat Area of Particular Concern (HAPC)?": "no",
+              "Within 1 mile of an EFH Area Protected from Fishing (EFHA)?": "no",
+              "Within 1 mile of a Bureau of Land Management Area of Critical Environmental Concern?": "no",
+              "Within 1 mile of an ESA-designated Critical Habitat Area per U.S. Fish & Wildlife Service?": "no"
+            },
+            "cultural_resources": {
+              "Within 1 mile of a historic property on the National Register of Historic Places?": "yes",
+              "Within 1 mile of a Land Cession Boundary?": "yes"
+            },
+            "other": {
+              "Within 1 mile of a Chemical Data Reporting (CDR) site?": "no",
+              "Within 1 mile of a Public Property Boundary of the Formerly Used Defense Sites?": "no",
+              "Within 1 mile of a Munitions Response Site?": "no"
+            }
+          },
+          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=DOE+site+E2E+%E2%80%94+PORTS+Technology+Campus+%E2%80%94+SB+Energy+%2F+OpenAI&coords=-83.09790315499998%2C39.08248243300005%2C-82.91209684499995%2C39.08248243300005%2C-82.91209684499995%2C38.93751666400004%2C-83.09790315499998%2C38.93751666400004%2C-83.09790315499998%2C39.08248243300005&type=polygon&radius=1&unit=miles&f=report",
+          "status": "ok",
+          "retrieved_at": "2026-08-24T20:58:24.800606Z"
         }
       },
       "geojson_url": "data/portsmouth-nepa/ports-technology-campus.geojson",
@@ -411,44 +883,500 @@
       ],
       "screening": {
         "ipac": {
-          "status": "unavailable",
-          "error": "No module named 'src.apis.ipac_api'",
-          "retrieved_at": "2026-08-24T20:44:32.917970Z"
+          "species": [
+            {
+              "id": "Population$Sid[352]",
+              "common_name": "Clubshell",
+              "scientific_name": "Pleurobema clava",
+              "short_name": "Clubshell",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[1]",
+              "common_name": "Indiana bat",
+              "scientific_name": "Myotis sodalis",
+              "short_name": "Indiana bat",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[10838]",
+              "common_name": "Longsolid",
+              "scientific_name": "Fusconaia subrotunda",
+              "short_name": "Longsolid",
+              "listing_status": "Threatened",
+              "listing_code": "T",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[10710]",
+              "common_name": "Monarch butterfly",
+              "scientific_name": "Danaus plexippus",
+              "short_name": "Monarch butterfly",
+              "listing_status": "Proposed Threatened",
+              "listing_code": "PT",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[10043]",
+              "common_name": "Northern Long-Eared Bat",
+              "scientific_name": "Myotis septentrionalis",
+              "short_name": "Northern Long-Eared Bat",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[374]",
+              "common_name": "Northern riffleshell",
+              "scientific_name": "Epioblasma rangiana",
+              "short_name": "Northern riffleshell",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[6062]",
+              "common_name": "Rayed Bean",
+              "scientific_name": "Villosa fabalis",
+              "short_name": "Rayed Bean",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[10837]",
+              "common_name": "Round hickorynut",
+              "scientific_name": "Obovaria subrotunda",
+              "short_name": "Round hickorynut",
+              "listing_status": "Threatened",
+              "listing_code": "T",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[8134]",
+              "common_name": "Salamander mussel",
+              "scientific_name": "Simpsonaias ambigua",
+              "short_name": "Salamander mussel",
+              "listing_status": "Proposed Endangered",
+              "listing_code": "PE",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[742]",
+              "common_name": "Small whorled pogonia",
+              "scientific_name": "Isotria medeoloides",
+              "short_name": "Small whorled pogonia",
+              "listing_status": "Threatened",
+              "listing_code": "T",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[11365]",
+              "common_name": "Tricolored bat",
+              "scientific_name": "Perimyotis subflavus",
+              "short_name": "Tricolored bat",
+              "listing_status": "Proposed Endangered",
+              "listing_code": "PE",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[1039]",
+              "common_name": "Virginia spiraea",
+              "scientific_name": "Spiraea virginiana",
+              "short_name": "Virginia spiraea",
+              "listing_status": "Threatened",
+              "listing_code": "T",
+              "critical_habitat": "None"
+            }
+          ],
+          "migratory_birds": [
+            {
+              "common_name": "Bald Eagle",
+              "scientific_name": "Haliaeetus leucocephalus",
+              "code": "BAEA",
+              "conservation_level": "NON_BCC_VULNERABLE",
+              "bcc": false,
+              "breeds_from": "1972-09-01T00:00Z",
+              "breeds_to": "1972-08-31T00:00Z"
+            },
+            {
+              "common_name": "Cerulean Warbler",
+              "scientific_name": "Setophaga cerulea",
+              "code": "CERW",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-04-27T00:00Z",
+              "breeds_to": "1972-07-20T00:00Z"
+            },
+            {
+              "common_name": "Chimney Swift",
+              "scientific_name": "Chaetura pelagica",
+              "code": "CHSW",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-03-15T00:00Z",
+              "breeds_to": "1972-08-25T00:00Z"
+            },
+            {
+              "common_name": "Eastern Whip-poor-will",
+              "scientific_name": "Antrostomus vociferus",
+              "code": "EWPW",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-01T00:00Z",
+              "breeds_to": "1972-08-20T00:00Z"
+            },
+            {
+              "common_name": "Henslow's Sparrow",
+              "scientific_name": "Ammodramus henslowii",
+              "code": "HESP",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-01T00:00Z",
+              "breeds_to": "1972-08-31T00:00Z"
+            },
+            {
+              "common_name": "Kentucky Warbler",
+              "scientific_name": "Geothlypis formosa",
+              "code": "KEWA",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-04-20T00:00Z",
+              "breeds_to": "1972-08-20T00:00Z"
+            },
+            {
+              "common_name": "Prairie Warbler",
+              "scientific_name": "Setophaga discolor",
+              "code": "PRAW",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-01T00:00Z",
+              "breeds_to": "1972-07-31T00:00Z"
+            },
+            {
+              "common_name": "Red-headed Woodpecker",
+              "scientific_name": "Melanerpes erythrocephalus",
+              "code": "RHWO",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-10T00:00Z",
+              "breeds_to": "1972-09-10T00:00Z"
+            },
+            {
+              "common_name": "Wood Thrush",
+              "scientific_name": "Hylocichla mustelina",
+              "code": "WOTH",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-10T00:00Z",
+              "breeds_to": "1972-08-31T00:00Z"
+            }
+          ],
+          "wetlands": [],
+          "refuges": [],
+          "field_offices": [
+            {
+              "name": "Ohio Ecological Services Field Office",
+              "code": ""
+            }
+          ],
+          "critical_habitat": [],
+          "marine_mammals": [],
+          "fish_hatcheries": [],
+          "coastal_barriers": {
+            "items": [],
+            "truncated": false
+          },
+          "counts": {
+            "listed_species": 12,
+            "critical_habitat": 0,
+            "migratory_birds": 9,
+            "wetland_types": 0,
+            "refuges": 0
+          },
+          "status": "ok",
+          "retrieved_at": "2026-08-24T21:12:17.548703Z"
         },
         "tribal": {
-          "status": "unavailable",
-          "error": "No module named 'src.apis.tribal_api'",
-          "retrieved_at": "2026-08-24T20:44:32.920726Z"
+          "count": 0,
+          "tribal_lands": [],
+          "warnings": [],
+          "status": "ok",
+          "retrieved_at": "2026-08-24T21:04:52.214491Z"
         },
         "nrhp": {
-          "status": "unavailable",
-          "error": "No module named 'src.apis.nrhp_api'",
-          "retrieved_at": "2026-08-24T20:44:32.926124Z"
+          "count": 3,
+          "national_historic_landmarks": 0,
+          "properties": [
+            {
+              "name": "Jones-Cutler House",
+              "resource_type": "building",
+              "address": "Bridge St.",
+              "city": "Jasper",
+              "county": "Pike",
+              "state": "OHIO",
+              "cert_date": "04/26/76",
+              "is_nhl": "",
+              "status": "Listed",
+              "is_extant": "Unknown",
+              "nris_refnum": "76001509",
+              "nara_url": "https://catalog.archives.gov/id/71990941",
+              "geometry_type": "Historic Places (Points)"
+            },
+            {
+              "name": "Piketon Historic District",
+              "resource_type": "district",
+              "address": "Bounded by West and 3rd Sts., U.S. 23, and the Scioto River",
+              "city": "Piketon",
+              "county": "Pike",
+              "state": "OHIO",
+              "cert_date": "02/28/74",
+              "is_nhl": "",
+              "status": "Listed",
+              "is_extant": "Unknown",
+              "nris_refnum": "74001598",
+              "nara_url": "https://catalog.archives.gov/id/71990949",
+              "geometry_type": "Historic Places (Polygons)"
+            },
+            {
+              "name": "Vanmeter Stone House and Outbuildings",
+              "resource_type": "building",
+              "address": "S of Piketon at jct. of U.S. 23 and OH 124",
+              "city": "Piketon",
+              "county": "Pike",
+              "state": "OHIO",
+              "cert_date": "03/31/75",
+              "is_nhl": "",
+              "status": "Listed",
+              "is_extant": "Unknown",
+              "nris_refnum": "75001519",
+              "nara_url": "https://catalog.archives.gov/id/71990945",
+              "geometry_type": "Historic Places (Points)"
+            }
+          ],
+          "warnings": [],
+          "data_unavailable": false,
+          "status": "ok",
+          "retrieved_at": "2026-08-24T21:05:25.431688Z"
         },
         "padus": {
-          "status": "unavailable",
-          "error": "No module named 'src.apis.padus_api'",
-          "retrieved_at": "2026-08-24T20:44:32.930527Z"
+          "query_buffer_miles": 0.1,
+          "count": 0,
+          "owner_types": {},
+          "designation_types": {},
+          "largest_records": [],
+          "records_truncated": 0,
+          "warnings": [],
+          "status": "ok",
+          "retrieved_at": "2026-08-24T21:05:48.543421Z"
         },
         "usace": {
-          "status": "unavailable",
-          "error": "No module named 'src.apis.usace_api'",
-          "retrieved_at": "2026-08-24T20:44:32.934894Z"
+          "districts": [
+            {
+              "district_name": "US Army Engineer District, Huntington",
+              "district_abbreviation": "LRH",
+              "division_name": "Great Lakes and Ohio River Division",
+              "division_abbreviation": "CELRD",
+              "website_url": "http://www.lrh.usace.army.mil/Missions/Regulatory.aspx",
+              "phone": "304-399-5211",
+              "address": "Huntington District, 502 Eighth Street, Huntington, West Virginia 25701-2070"
+            }
+          ],
+          "wetland_regions": [
+            {
+              "region_name": "Eastern Mountains and Piedmont",
+              "mlra_name": "Central Allegheny Plateau",
+              "lrr_name": "East and Central Farming and Forest Region",
+              "supplement_url": ""
+            }
+          ],
+          "wetland_subregions": [
+            {
+              "subregion_name": "LRR N, MLRA 124",
+              "subregion_code": "124",
+              "parent_region": "EMP",
+              "mlra_name": "Western Allegheny Plateau",
+              "lrr_name": "East and Central Farming and Forest Region"
+            }
+          ],
+          "warnings": [],
+          "limitation": "District and delineation-region context only. This does not show wetland presence or make a Clean Water Act jurisdictional determination.",
+          "status": "ok",
+          "retrieved_at": "2026-08-24T21:06:06.559628Z"
         },
         "fema_nfhl": {
-          "status": "unavailable",
-          "error": "No module named 'src.apis.fema_nfhl_api'",
-          "retrieved_at": "2026-08-24T20:44:32.938366Z"
+          "count": 3,
+          "zone_counts": {
+            "A": 1,
+            "X": 2
+          },
+          "sfha_count": 1,
+          "sfha_percentage": 33.3,
+          "truncated": false,
+          "warnings": [],
+          "status": "ok",
+          "retrieved_at": "2026-08-24T21:06:22.797315Z"
         },
         "gbif": {
-          "status": "unavailable",
-          "error": "cannot import name 'get_gbif_species_by_county_sync' from 'src.apis.gbif_api' (/Users/pranava/.cache/uv/archive-v0/sgEssBLf8VSi3pzT/lib/python3.12/site-packages/nepa_mcp/_servers/map_composer/src/apis/gbif_api.py)",
-          "retrieved_at": "2026-08-24T20:44:32.954272Z"
+          "occurrence_count": 136,
+          "species_count": 15,
+          "by_threat_status": {
+            "Near Threatened": 120,
+            "Vulnerable": 16
+          },
+          "top_species": [
+            {
+              "species": "Common Grackle",
+              "occurrences": 65
+            },
+            {
+              "species": "Killdeer",
+              "occurrences": 19
+            },
+            {
+              "species": "Chimney Swift",
+              "occurrences": 11
+            },
+            {
+              "species": "Eastern Meadowlark",
+              "occurrences": 9
+            },
+            {
+              "species": "Eastern Whip-poor-will",
+              "occurrences": 8
+            },
+            {
+              "species": "Cerulean Warbler",
+              "occurrences": 6
+            },
+            {
+              "species": "Etheostoma tippecanoe Jordan & Evermann, 1890",
+              "occurrences": 3
+            },
+            {
+              "species": "Charadrius vociferus Linnaeus, 1758",
+              "occurrences": 2
+            },
+            {
+              "species": "Magicicada septendecim (Linnaeus, 1758)",
+              "occurrences": 2
+            },
+            {
+              "species": "Magicicada cassini (Fisher, 1852)",
+              "occurrences": 2
+            },
+            {
+              "species": "Cerioporus squamosus (Huds.) Qu\u00e9l.",
+              "occurrences": 2
+            },
+            {
+              "species": "Lesser Yellowlegs",
+              "occurrences": 2
+            },
+            {
+              "species": "Greater Yellowlegs",
+              "occurrences": 2
+            },
+            {
+              "species": "Hydrastis canadensis L.",
+              "occurrences": 1
+            },
+            {
+              "species": "Northern Bobwhite",
+              "occurrences": 1
+            }
+          ],
+          "warnings": [],
+          "status": "ok",
+          "retrieved_at": "2026-08-24T21:06:32.562768Z"
         },
         "nepa_assist": {
-          "status": "unavailable",
-          "error": "No module named 'src.apis.nepa_assist_api'",
-          "retrieved_at": "2026-08-24T20:44:32.956976Z"
+          "summary": {
+            "total_checks": 41,
+            "yes_count": 15,
+            "no_count": 26,
+            "flagged_issues": [
+              "Within 1 mile of a PM2.5 Annual (1997 standard) Non-Attainment/Maintenance Area?",
+              "Within 1 mile of an impaired stream?",
+              "Within 1 mile of an impaired waterbody?",
+              "Within 1 mile of a waterbody?",
+              "Within 1 mile of a stream?",
+              "Within 1 mile of a Brownfields site?",
+              "Within 1 mile of a Toxic Release Inventory (TRI) site?",
+              "Within 1 mile of a water discharger (NPDES)?",
+              "Within 1 mile of a hazardous waste (RCRA) facility?",
+              "Within 1 mile of an air emission facility?",
+              "Within 1 mile of a school?",
+              "Within 1 mile of a historic property on the National Register of Historic Places?",
+              "Within 1 mile of a Land Cession Boundary?",
+              "Within 1 mile of the service area of a mitigation or conservation bank?",
+              "Within 1 mile of the service area of an In-Lieu-Fee Program?"
+            ]
+          },
+          "categories": {
+            "air_quality": {
+              "Within 1 mile of an Ozone 1-hr (1979 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of an Ozone 8-hr (1997 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of an Ozone 8-hr (2008 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of an Ozone 8-hr (2015 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a Lead (2008 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a SO2 1-hr (2010 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a PM2.5 24hr (2006 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a PM2.5 Annual (1997 standard) Non-Attainment/Maintenance Area?": "yes",
+              "Within 1 mile of a PM2.5 Annual (2012 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a PM10 (1987 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a CO Annual (1971 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a NO2 Annual (1971 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of an air emission facility?": "yes"
+            },
+            "water_resources": {
+              "Within 1 mile of an impaired stream?": "yes",
+              "Within 1 mile of an impaired waterbody?": "yes",
+              "Within 1 mile of a waterbody?": "yes",
+              "Within 1 mile of a stream?": "yes",
+              "Within 1 mile of a water discharger (NPDES)?": "yes",
+              "Within 1 mile of an ESA-designated Critical Habitat river, stream or water feature per U.S. Fish & Wildlife Service?": "no"
+            },
+            "contaminated_sites": {
+              "Within 1 mile of a Brownfields site?": "yes",
+              "Within 1 mile of a Superfund site?": "no",
+              "Within 1 mile of a Toxic Release Inventory (TRI) site?": "yes",
+              "Within 1 mile of a hazardous waste (RCRA) facility?": "yes",
+              "Within 1 mile of a tribal area (lower 48 states)?": "no"
+            },
+            "community_features": {
+              "Within 1 mile of a Federal Land?": "no",
+              "Within 1 mile of a school?": "yes",
+              "Within 1 mile of an airport?": "no",
+              "Within 1 mile of a hospital?": "no"
+            },
+            "natural_resources": {
+              "Within 1 mile of a designated sole source aquifer?": "no",
+              "Within 1 mile of the service area of a mitigation or conservation bank?": "yes",
+              "Within 1 mile of the service area of an In-Lieu-Fee Program?": "yes",
+              "Within 1 mile of an Essential Fish Habitat (EFH)?": "no",
+              "Within 1 mile of a Habitat Area of Particular Concern (HAPC)?": "no",
+              "Within 1 mile of an EFH Area Protected from Fishing (EFHA)?": "no",
+              "Within 1 mile of a Bureau of Land Management Area of Critical Environmental Concern?": "no",
+              "Within 1 mile of an ESA-designated Critical Habitat Area per U.S. Fish & Wildlife Service?": "no"
+            },
+            "cultural_resources": {
+              "Within 1 mile of a historic property on the National Register of Historic Places?": "yes",
+              "Within 1 mile of a Land Cession Boundary?": "yes"
+            },
+            "other": {
+              "Within 1 mile of a Chemical Data Reporting (CDR) site?": "no",
+              "Within 1 mile of a Public Property Boundary of the Formerly Used Defense Sites?": "no",
+              "Within 1 mile of a Munitions Response Site?": "no"
+            }
+          },
+          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=DOE+site+E2E+%E2%80%94+Centrus+American+Centrifuge+Plant&coords=-83.11788746199994%2C39.07048258200007%2C-82.93211253799996%2C39.07048258200007%2C-82.93211253799996%2C38.92551651500003%2C-83.11788746199994%2C38.92551651500003%2C-83.11788746199994%2C39.07048258200007&type=polygon&radius=1&unit=miles&f=report",
+          "status": "ok",
+          "retrieved_at": "2026-08-24T20:58:29.494617Z"
         }
       },
       "geojson_url": "data/portsmouth-nepa/ports-centrus-acp.geojson",
@@ -517,44 +1445,734 @@
       ],
       "screening": {
         "ipac": {
-          "status": "unavailable",
-          "error": "No module named 'src.apis.ipac_api'",
-          "retrieved_at": "2026-08-24T20:44:32.918177Z"
+          "species": [
+            {
+              "id": "Population$Sid[352]",
+              "common_name": "Clubshell",
+              "scientific_name": "Pleurobema clava",
+              "short_name": "Clubshell",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[1]",
+              "common_name": "Indiana bat",
+              "scientific_name": "Myotis sodalis",
+              "short_name": "Indiana bat",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[10838]",
+              "common_name": "Longsolid",
+              "scientific_name": "Fusconaia subrotunda",
+              "short_name": "Longsolid",
+              "listing_status": "Threatened",
+              "listing_code": "T",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[10710]",
+              "common_name": "Monarch butterfly",
+              "scientific_name": "Danaus plexippus",
+              "short_name": "Monarch butterfly",
+              "listing_status": "Proposed Threatened",
+              "listing_code": "PT",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[10043]",
+              "common_name": "Northern Long-Eared Bat",
+              "scientific_name": "Myotis septentrionalis",
+              "short_name": "Northern Long-Eared Bat",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[374]",
+              "common_name": "Northern riffleshell",
+              "scientific_name": "Epioblasma rangiana",
+              "short_name": "Northern riffleshell",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[6062]",
+              "common_name": "Rayed Bean",
+              "scientific_name": "Villosa fabalis",
+              "short_name": "Rayed Bean",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[10837]",
+              "common_name": "Round hickorynut",
+              "scientific_name": "Obovaria subrotunda",
+              "short_name": "Round hickorynut",
+              "listing_status": "Threatened",
+              "listing_code": "T",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[8134]",
+              "common_name": "Salamander mussel",
+              "scientific_name": "Simpsonaias ambigua",
+              "short_name": "Salamander mussel",
+              "listing_status": "Proposed Endangered",
+              "listing_code": "PE",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[742]",
+              "common_name": "Small whorled pogonia",
+              "scientific_name": "Isotria medeoloides",
+              "short_name": "Small whorled pogonia",
+              "listing_status": "Threatened",
+              "listing_code": "T",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[11365]",
+              "common_name": "Tricolored bat",
+              "scientific_name": "Perimyotis subflavus",
+              "short_name": "Tricolored bat",
+              "listing_status": "Proposed Endangered",
+              "listing_code": "PE",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[1039]",
+              "common_name": "Virginia spiraea",
+              "scientific_name": "Spiraea virginiana",
+              "short_name": "Virginia spiraea",
+              "listing_status": "Threatened",
+              "listing_code": "T",
+              "critical_habitat": "None"
+            }
+          ],
+          "migratory_birds": [
+            {
+              "common_name": "Bald Eagle",
+              "scientific_name": "Haliaeetus leucocephalus",
+              "code": "BAEA",
+              "conservation_level": "NON_BCC_VULNERABLE",
+              "bcc": false,
+              "breeds_from": "1972-09-01T00:00Z",
+              "breeds_to": "1972-08-31T00:00Z"
+            },
+            {
+              "common_name": "Cerulean Warbler",
+              "scientific_name": "Setophaga cerulea",
+              "code": "CERW",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-04-27T00:00Z",
+              "breeds_to": "1972-07-20T00:00Z"
+            },
+            {
+              "common_name": "Chimney Swift",
+              "scientific_name": "Chaetura pelagica",
+              "code": "CHSW",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-03-15T00:00Z",
+              "breeds_to": "1972-08-25T00:00Z"
+            },
+            {
+              "common_name": "Eastern Whip-poor-will",
+              "scientific_name": "Antrostomus vociferus",
+              "code": "EWPW",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-01T00:00Z",
+              "breeds_to": "1972-08-20T00:00Z"
+            },
+            {
+              "common_name": "Henslow's Sparrow",
+              "scientific_name": "Ammodramus henslowii",
+              "code": "HESP",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-01T00:00Z",
+              "breeds_to": "1972-08-31T00:00Z"
+            },
+            {
+              "common_name": "Kentucky Warbler",
+              "scientific_name": "Geothlypis formosa",
+              "code": "KEWA",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-04-20T00:00Z",
+              "breeds_to": "1972-08-20T00:00Z"
+            },
+            {
+              "common_name": "Prairie Warbler",
+              "scientific_name": "Setophaga discolor",
+              "code": "PRAW",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-01T00:00Z",
+              "breeds_to": "1972-07-31T00:00Z"
+            },
+            {
+              "common_name": "Red-headed Woodpecker",
+              "scientific_name": "Melanerpes erythrocephalus",
+              "code": "RHWO",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-10T00:00Z",
+              "breeds_to": "1972-09-10T00:00Z"
+            },
+            {
+              "common_name": "Wood Thrush",
+              "scientific_name": "Hylocichla mustelina",
+              "code": "WOTH",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-10T00:00Z",
+              "breeds_to": "1972-08-31T00:00Z"
+            }
+          ],
+          "wetlands": [
+            {
+              "code": "L1UBHh",
+              "system": "Lacustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "L1UBHx",
+              "system": "Lacustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PAB/EM1F",
+              "system": "Palustrine",
+              "class": "Aquatic Bed",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PABG",
+              "system": "Palustrine",
+              "class": "Aquatic Bed",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1/UBF",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1A",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1Ah",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1C",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1F",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/EM1C",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/SS1A",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/SS1C",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1A",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1C",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1/EM1A",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1/EM1C",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1A",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1C",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBF",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBFh",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBFx",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBG",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBGh",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBGx",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBK",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "R2USA",
+              "system": "Riverine",
+              "class": "Unconsolidated Shore",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "R4SBC",
+              "system": "Riverine",
+              "class": "Streambed",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "R5UBFx",
+              "system": "Riverine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "R5UBH",
+              "system": "Riverine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "R2UBG",
+              "system": "Riverine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "R2UBH",
+              "system": "Riverine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            }
+          ],
+          "refuges": [],
+          "field_offices": [
+            {
+              "name": "Ohio Ecological Services Field Office",
+              "code": ""
+            }
+          ],
+          "critical_habitat": [],
+          "marine_mammals": [],
+          "fish_hatcheries": [],
+          "coastal_barriers": {
+            "items": [],
+            "truncated": false
+          },
+          "counts": {
+            "listed_species": 12,
+            "critical_habitat": 0,
+            "migratory_birds": 9,
+            "wetland_types": 31,
+            "refuges": 0
+          },
+          "status": "ok",
+          "retrieved_at": "2026-08-24T21:16:46.812063Z"
         },
         "tribal": {
-          "status": "unavailable",
-          "error": "No module named 'src.apis.tribal_api'",
-          "retrieved_at": "2026-08-24T20:44:32.920921Z"
+          "count": 0,
+          "tribal_lands": [],
+          "warnings": [],
+          "status": "ok",
+          "retrieved_at": "2026-08-24T21:05:01.304277Z"
         },
         "nrhp": {
-          "status": "unavailable",
-          "error": "No module named 'src.apis.nrhp_api'",
-          "retrieved_at": "2026-08-24T20:44:32.926742Z"
+          "count": 4,
+          "national_historic_landmarks": 0,
+          "properties": [
+            {
+              "name": "Friendly Grove",
+              "resource_type": "building",
+              "address": "OH 220, E of Piketon",
+              "city": "Piketon",
+              "county": "Pike",
+              "state": "OHIO",
+              "cert_date": "01/26/70",
+              "is_nhl": "",
+              "status": "Listed",
+              "is_extant": "Unknown",
+              "nris_refnum": "70000513",
+              "nara_url": "https://catalog.archives.gov/id/71990939",
+              "geometry_type": "Historic Places (Points)"
+            },
+            {
+              "name": "Jones-Cutler House",
+              "resource_type": "building",
+              "address": "Bridge St.",
+              "city": "Jasper",
+              "county": "Pike",
+              "state": "OHIO",
+              "cert_date": "04/26/76",
+              "is_nhl": "",
+              "status": "Listed",
+              "is_extant": "Unknown",
+              "nris_refnum": "76001509",
+              "nara_url": "https://catalog.archives.gov/id/71990941",
+              "geometry_type": "Historic Places (Points)"
+            },
+            {
+              "name": "Piketon Historic District",
+              "resource_type": "district",
+              "address": "Bounded by West and 3rd Sts., U.S. 23, and the Scioto River",
+              "city": "Piketon",
+              "county": "Pike",
+              "state": "OHIO",
+              "cert_date": "02/28/74",
+              "is_nhl": "",
+              "status": "Listed",
+              "is_extant": "Unknown",
+              "nris_refnum": "74001598",
+              "nara_url": "https://catalog.archives.gov/id/71990949",
+              "geometry_type": "Historic Places (Polygons)"
+            },
+            {
+              "name": "Vanmeter Stone House and Outbuildings",
+              "resource_type": "building",
+              "address": "S of Piketon at jct. of U.S. 23 and OH 124",
+              "city": "Piketon",
+              "county": "Pike",
+              "state": "OHIO",
+              "cert_date": "03/31/75",
+              "is_nhl": "",
+              "status": "Listed",
+              "is_extant": "Unknown",
+              "nris_refnum": "75001519",
+              "nara_url": "https://catalog.archives.gov/id/71990945",
+              "geometry_type": "Historic Places (Points)"
+            }
+          ],
+          "warnings": [],
+          "data_unavailable": false,
+          "status": "ok",
+          "retrieved_at": "2026-08-24T21:05:28.652573Z"
         },
         "padus": {
-          "status": "unavailable",
-          "error": "No module named 'src.apis.padus_api'",
-          "retrieved_at": "2026-08-24T20:44:32.930941Z"
+          "query_buffer_miles": 0.1,
+          "count": 0,
+          "owner_types": {},
+          "designation_types": {},
+          "largest_records": [],
+          "records_truncated": 0,
+          "warnings": [],
+          "status": "ok",
+          "retrieved_at": "2026-08-24T21:05:51.740236Z"
         },
         "usace": {
-          "status": "unavailable",
-          "error": "No module named 'src.apis.usace_api'",
-          "retrieved_at": "2026-08-24T20:44:32.935786Z"
+          "districts": [
+            {
+              "district_name": "US Army Engineer District, Huntington",
+              "district_abbreviation": "LRH",
+              "division_name": "Great Lakes and Ohio River Division",
+              "division_abbreviation": "CELRD",
+              "website_url": "http://www.lrh.usace.army.mil/Missions/Regulatory.aspx",
+              "phone": "304-399-5211",
+              "address": "Huntington District, 502 Eighth Street, Huntington, West Virginia 25701-2070"
+            }
+          ],
+          "wetland_regions": [
+            {
+              "region_name": "Eastern Mountains and Piedmont",
+              "mlra_name": "Central Allegheny Plateau",
+              "lrr_name": "East and Central Farming and Forest Region",
+              "supplement_url": ""
+            }
+          ],
+          "wetland_subregions": [
+            {
+              "subregion_name": "LRR N, MLRA 124",
+              "subregion_code": "124",
+              "parent_region": "EMP",
+              "mlra_name": "Western Allegheny Plateau",
+              "lrr_name": "East and Central Farming and Forest Region"
+            }
+          ],
+          "warnings": [],
+          "limitation": "District and delineation-region context only. This does not show wetland presence or make a Clean Water Act jurisdictional determination.",
+          "status": "ok",
+          "retrieved_at": "2026-08-24T21:06:11.173976Z"
         },
         "fema_nfhl": {
-          "status": "unavailable",
-          "error": "No module named 'src.apis.fema_nfhl_api'",
-          "retrieved_at": "2026-08-24T20:44:32.938557Z"
+          "count": 2,
+          "zone_counts": {
+            "A": 1,
+            "X": 1
+          },
+          "sfha_count": 1,
+          "sfha_percentage": 50.0,
+          "truncated": false,
+          "warnings": [],
+          "status": "ok",
+          "retrieved_at": "2026-08-24T21:06:24.315326Z"
         },
         "gbif": {
-          "status": "unavailable",
-          "error": "cannot import name 'get_gbif_species_by_county_sync' from 'src.apis.gbif_api' (/Users/pranava/.cache/uv/archive-v0/sgEssBLf8VSi3pzT/lib/python3.12/site-packages/nepa_mcp/_servers/map_composer/src/apis/gbif_api.py)",
-          "retrieved_at": "2026-08-24T20:44:32.954439Z"
+          "occurrence_count": 139,
+          "species_count": 15,
+          "by_threat_status": {
+            "Near Threatened": 121,
+            "Vulnerable": 17,
+            "Endangered": 1
+          },
+          "top_species": [
+            {
+              "species": "Common Grackle",
+              "occurrences": 67
+            },
+            {
+              "species": "Killdeer",
+              "occurrences": 19
+            },
+            {
+              "species": "Chimney Swift",
+              "occurrences": 13
+            },
+            {
+              "species": "Eastern Meadowlark",
+              "occurrences": 11
+            },
+            {
+              "species": "Eastern Whip-poor-will",
+              "occurrences": 8
+            },
+            {
+              "species": "Cerulean Warbler",
+              "occurrences": 3
+            },
+            {
+              "species": "Etheostoma tippecanoe Jordan & Evermann, 1890",
+              "occurrences": 3
+            },
+            {
+              "species": "Charadrius vociferus Linnaeus, 1758",
+              "occurrences": 2
+            },
+            {
+              "species": "Magicicada septendecim (Linnaeus, 1758)",
+              "occurrences": 2
+            },
+            {
+              "species": "Magicicada cassini (Fisher, 1852)",
+              "occurrences": 2
+            },
+            {
+              "species": "Cerioporus squamosus (Huds.) Qu\u00e9l.",
+              "occurrences": 2
+            },
+            {
+              "species": "Lesser Yellowlegs",
+              "occurrences": 2
+            },
+            {
+              "species": "Greater Yellowlegs",
+              "occurrences": 2
+            },
+            {
+              "species": "Ulmus americana L.",
+              "occurrences": 1
+            },
+            {
+              "species": "Northern Bobwhite",
+              "occurrences": 1
+            }
+          ],
+          "warnings": [],
+          "status": "ok",
+          "retrieved_at": "2026-08-24T21:06:34.282185Z"
         },
         "nepa_assist": {
-          "status": "unavailable",
-          "error": "No module named 'src.apis.nepa_assist_api'",
-          "retrieved_at": "2026-08-24T20:44:32.957162Z"
+          "summary": {
+            "total_checks": 41,
+            "yes_count": 15,
+            "no_count": 26,
+            "flagged_issues": [
+              "Within 1 mile of a PM2.5 Annual (1997 standard) Non-Attainment/Maintenance Area?",
+              "Within 1 mile of an impaired stream?",
+              "Within 1 mile of an impaired waterbody?",
+              "Within 1 mile of a waterbody?",
+              "Within 1 mile of a stream?",
+              "Within 1 mile of a Brownfields site?",
+              "Within 1 mile of a Toxic Release Inventory (TRI) site?",
+              "Within 1 mile of a water discharger (NPDES)?",
+              "Within 1 mile of a hazardous waste (RCRA) facility?",
+              "Within 1 mile of an air emission facility?",
+              "Within 1 mile of a school?",
+              "Within 1 mile of a historic property on the National Register of Historic Places?",
+              "Within 1 mile of a Land Cession Boundary?",
+              "Within 1 mile of the service area of a mitigation or conservation bank?",
+              "Within 1 mile of the service area of an In-Lieu-Fee Program?"
+            ]
+          },
+          "categories": {
+            "air_quality": {
+              "Within 1 mile of an Ozone 1-hr (1979 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of an Ozone 8-hr (1997 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of an Ozone 8-hr (2008 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of an Ozone 8-hr (2015 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a Lead (2008 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a SO2 1-hr (2010 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a PM2.5 24hr (2006 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a PM2.5 Annual (1997 standard) Non-Attainment/Maintenance Area?": "yes",
+              "Within 1 mile of a PM2.5 Annual (2012 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a PM10 (1987 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a CO Annual (1971 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a NO2 Annual (1971 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of an air emission facility?": "yes"
+            },
+            "water_resources": {
+              "Within 1 mile of an impaired stream?": "yes",
+              "Within 1 mile of an impaired waterbody?": "yes",
+              "Within 1 mile of a waterbody?": "yes",
+              "Within 1 mile of a stream?": "yes",
+              "Within 1 mile of a water discharger (NPDES)?": "yes",
+              "Within 1 mile of an ESA-designated Critical Habitat river, stream or water feature per U.S. Fish & Wildlife Service?": "no"
+            },
+            "contaminated_sites": {
+              "Within 1 mile of a Brownfields site?": "yes",
+              "Within 1 mile of a Superfund site?": "no",
+              "Within 1 mile of a Toxic Release Inventory (TRI) site?": "yes",
+              "Within 1 mile of a hazardous waste (RCRA) facility?": "yes",
+              "Within 1 mile of a tribal area (lower 48 states)?": "no"
+            },
+            "community_features": {
+              "Within 1 mile of a Federal Land?": "no",
+              "Within 1 mile of a school?": "yes",
+              "Within 1 mile of an airport?": "no",
+              "Within 1 mile of a hospital?": "no"
+            },
+            "natural_resources": {
+              "Within 1 mile of a designated sole source aquifer?": "no",
+              "Within 1 mile of the service area of a mitigation or conservation bank?": "yes",
+              "Within 1 mile of the service area of an In-Lieu-Fee Program?": "yes",
+              "Within 1 mile of an Essential Fish Habitat (EFH)?": "no",
+              "Within 1 mile of a Habitat Area of Particular Concern (HAPC)?": "no",
+              "Within 1 mile of an EFH Area Protected from Fishing (EFHA)?": "no",
+              "Within 1 mile of a Bureau of Land Management Area of Critical Environmental Concern?": "no",
+              "Within 1 mile of an ESA-designated Critical Habitat Area per U.S. Fish & Wildlife Service?": "no"
+            },
+            "cultural_resources": {
+              "Within 1 mile of a historic property on the National Register of Historic Places?": "yes",
+              "Within 1 mile of a Land Cession Boundary?": "yes"
+            },
+            "other": {
+              "Within 1 mile of a Chemical Data Reporting (CDR) site?": "no",
+              "Within 1 mile of a Public Property Boundary of the Formerly Used Defense Sites?": "no",
+              "Within 1 mile of a Munitions Response Site?": "no"
+            }
+          },
+          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=DOE+site+E2E+%E2%80%94+Former+process+buildings+%2B+On-Site+Waste+Disposal+Facility&coords=-83.10289661499996%2C39.07748249500003%2C-82.91710338499996%2C39.07748249500003%2C-82.91710338499996%2C38.93251660200008%2C-83.10289661499996%2C38.93251660200008%2C-83.10289661499996%2C39.07748249500003&type=polygon&radius=1&unit=miles&f=report",
+          "status": "ok",
+          "retrieved_at": "2026-08-24T20:58:34.266107Z"
         }
       },
       "geojson_url": "data/portsmouth-nepa/ports-process-buildings.geojson",
@@ -638,44 +2256,726 @@
       ],
       "screening": {
         "ipac": {
-          "status": "unavailable",
-          "error": "No module named 'src.apis.ipac_api'",
-          "retrieved_at": "2026-08-24T20:44:32.918352Z"
+          "species": [
+            {
+              "id": "Population$Sid[352]",
+              "common_name": "Clubshell",
+              "scientific_name": "Pleurobema clava",
+              "short_name": "Clubshell",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[1]",
+              "common_name": "Indiana bat",
+              "scientific_name": "Myotis sodalis",
+              "short_name": "Indiana bat",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[10838]",
+              "common_name": "Longsolid",
+              "scientific_name": "Fusconaia subrotunda",
+              "short_name": "Longsolid",
+              "listing_status": "Threatened",
+              "listing_code": "T",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[10710]",
+              "common_name": "Monarch butterfly",
+              "scientific_name": "Danaus plexippus",
+              "short_name": "Monarch butterfly",
+              "listing_status": "Proposed Threatened",
+              "listing_code": "PT",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[10043]",
+              "common_name": "Northern Long-Eared Bat",
+              "scientific_name": "Myotis septentrionalis",
+              "short_name": "Northern Long-Eared Bat",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[374]",
+              "common_name": "Northern riffleshell",
+              "scientific_name": "Epioblasma rangiana",
+              "short_name": "Northern riffleshell",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[6062]",
+              "common_name": "Rayed Bean",
+              "scientific_name": "Villosa fabalis",
+              "short_name": "Rayed Bean",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[10837]",
+              "common_name": "Round hickorynut",
+              "scientific_name": "Obovaria subrotunda",
+              "short_name": "Round hickorynut",
+              "listing_status": "Threatened",
+              "listing_code": "T",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[8134]",
+              "common_name": "Salamander mussel",
+              "scientific_name": "Simpsonaias ambigua",
+              "short_name": "Salamander mussel",
+              "listing_status": "Proposed Endangered",
+              "listing_code": "PE",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[742]",
+              "common_name": "Small whorled pogonia",
+              "scientific_name": "Isotria medeoloides",
+              "short_name": "Small whorled pogonia",
+              "listing_status": "Threatened",
+              "listing_code": "T",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[11365]",
+              "common_name": "Tricolored bat",
+              "scientific_name": "Perimyotis subflavus",
+              "short_name": "Tricolored bat",
+              "listing_status": "Proposed Endangered",
+              "listing_code": "PE",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[1039]",
+              "common_name": "Virginia spiraea",
+              "scientific_name": "Spiraea virginiana",
+              "short_name": "Virginia spiraea",
+              "listing_status": "Threatened",
+              "listing_code": "T",
+              "critical_habitat": "None"
+            }
+          ],
+          "migratory_birds": [
+            {
+              "common_name": "Bald Eagle",
+              "scientific_name": "Haliaeetus leucocephalus",
+              "code": "BAEA",
+              "conservation_level": "NON_BCC_VULNERABLE",
+              "bcc": false,
+              "breeds_from": "1972-09-01T00:00Z",
+              "breeds_to": "1972-08-31T00:00Z"
+            },
+            {
+              "common_name": "Cerulean Warbler",
+              "scientific_name": "Setophaga cerulea",
+              "code": "CERW",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-04-27T00:00Z",
+              "breeds_to": "1972-07-20T00:00Z"
+            },
+            {
+              "common_name": "Chimney Swift",
+              "scientific_name": "Chaetura pelagica",
+              "code": "CHSW",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-03-15T00:00Z",
+              "breeds_to": "1972-08-25T00:00Z"
+            },
+            {
+              "common_name": "Eastern Whip-poor-will",
+              "scientific_name": "Antrostomus vociferus",
+              "code": "EWPW",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-01T00:00Z",
+              "breeds_to": "1972-08-20T00:00Z"
+            },
+            {
+              "common_name": "Henslow's Sparrow",
+              "scientific_name": "Ammodramus henslowii",
+              "code": "HESP",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-01T00:00Z",
+              "breeds_to": "1972-08-31T00:00Z"
+            },
+            {
+              "common_name": "Kentucky Warbler",
+              "scientific_name": "Geothlypis formosa",
+              "code": "KEWA",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-04-20T00:00Z",
+              "breeds_to": "1972-08-20T00:00Z"
+            },
+            {
+              "common_name": "Prairie Warbler",
+              "scientific_name": "Setophaga discolor",
+              "code": "PRAW",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-01T00:00Z",
+              "breeds_to": "1972-07-31T00:00Z"
+            },
+            {
+              "common_name": "Red-headed Woodpecker",
+              "scientific_name": "Melanerpes erythrocephalus",
+              "code": "RHWO",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-10T00:00Z",
+              "breeds_to": "1972-09-10T00:00Z"
+            },
+            {
+              "common_name": "Wood Thrush",
+              "scientific_name": "Hylocichla mustelina",
+              "code": "WOTH",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-10T00:00Z",
+              "breeds_to": "1972-08-31T00:00Z"
+            }
+          ],
+          "wetlands": [
+            {
+              "code": "L1UBHh",
+              "system": "Lacustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "L1UBHx",
+              "system": "Lacustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PAB/EM1F",
+              "system": "Palustrine",
+              "class": "Aquatic Bed",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PABG",
+              "system": "Palustrine",
+              "class": "Aquatic Bed",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1/UBF",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1A",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1Ah",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1C",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1F",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/EM1C",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/SS1A",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/SS1C",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1A",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1C",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1/EM1A",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1/EM1C",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1A",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1C",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBF",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBFh",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBFx",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBG",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBGh",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBGx",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBK",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "R2USA",
+              "system": "Riverine",
+              "class": "Unconsolidated Shore",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "R4SBC",
+              "system": "Riverine",
+              "class": "Streambed",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "R5UBFx",
+              "system": "Riverine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "R5UBH",
+              "system": "Riverine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "R2UBG",
+              "system": "Riverine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "R2UBH",
+              "system": "Riverine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            }
+          ],
+          "refuges": [],
+          "field_offices": [
+            {
+              "name": "Ohio Ecological Services Field Office",
+              "code": ""
+            }
+          ],
+          "critical_habitat": [],
+          "marine_mammals": [],
+          "fish_hatcheries": [],
+          "coastal_barriers": {
+            "items": [],
+            "truncated": false
+          },
+          "counts": {
+            "listed_species": 12,
+            "critical_habitat": 0,
+            "migratory_birds": 9,
+            "wetland_types": 31,
+            "refuges": 0
+          },
+          "status": "ok",
+          "retrieved_at": "2026-08-24T21:17:03.941990Z"
         },
         "tribal": {
-          "status": "unavailable",
-          "error": "No module named 'src.apis.tribal_api'",
-          "retrieved_at": "2026-08-24T20:44:32.921128Z"
+          "count": 0,
+          "tribal_lands": [],
+          "warnings": [],
+          "status": "ok",
+          "retrieved_at": "2026-08-24T21:05:10.574638Z"
         },
         "nrhp": {
-          "status": "unavailable",
-          "error": "No module named 'src.apis.nrhp_api'",
-          "retrieved_at": "2026-08-24T20:44:32.927152Z"
+          "count": 4,
+          "national_historic_landmarks": 0,
+          "properties": [
+            {
+              "name": "Friendly Grove",
+              "resource_type": "building",
+              "address": "OH 220, E of Piketon",
+              "city": "Piketon",
+              "county": "Pike",
+              "state": "OHIO",
+              "cert_date": "01/26/70",
+              "is_nhl": "",
+              "status": "Listed",
+              "is_extant": "Unknown",
+              "nris_refnum": "70000513",
+              "nara_url": "https://catalog.archives.gov/id/71990939",
+              "geometry_type": "Historic Places (Points)"
+            },
+            {
+              "name": "Jones-Cutler House",
+              "resource_type": "building",
+              "address": "Bridge St.",
+              "city": "Jasper",
+              "county": "Pike",
+              "state": "OHIO",
+              "cert_date": "04/26/76",
+              "is_nhl": "",
+              "status": "Listed",
+              "is_extant": "Unknown",
+              "nris_refnum": "76001509",
+              "nara_url": "https://catalog.archives.gov/id/71990941",
+              "geometry_type": "Historic Places (Points)"
+            },
+            {
+              "name": "Piketon Historic District",
+              "resource_type": "district",
+              "address": "Bounded by West and 3rd Sts., U.S. 23, and the Scioto River",
+              "city": "Piketon",
+              "county": "Pike",
+              "state": "OHIO",
+              "cert_date": "02/28/74",
+              "is_nhl": "",
+              "status": "Listed",
+              "is_extant": "Unknown",
+              "nris_refnum": "74001598",
+              "nara_url": "https://catalog.archives.gov/id/71990949",
+              "geometry_type": "Historic Places (Polygons)"
+            },
+            {
+              "name": "Vanmeter Stone House and Outbuildings",
+              "resource_type": "building",
+              "address": "S of Piketon at jct. of U.S. 23 and OH 124",
+              "city": "Piketon",
+              "county": "Pike",
+              "state": "OHIO",
+              "cert_date": "03/31/75",
+              "is_nhl": "",
+              "status": "Listed",
+              "is_extant": "Unknown",
+              "nris_refnum": "75001519",
+              "nara_url": "https://catalog.archives.gov/id/71990945",
+              "geometry_type": "Historic Places (Points)"
+            }
+          ],
+          "warnings": [],
+          "data_unavailable": false,
+          "status": "ok",
+          "retrieved_at": "2026-08-24T21:05:31.385878Z"
         },
         "padus": {
-          "status": "unavailable",
-          "error": "No module named 'src.apis.padus_api'",
-          "retrieved_at": "2026-08-24T20:44:32.931384Z"
+          "query_buffer_miles": 0.1,
+          "count": 0,
+          "owner_types": {},
+          "designation_types": {},
+          "largest_records": [],
+          "records_truncated": 0,
+          "warnings": [],
+          "status": "ok",
+          "retrieved_at": "2026-08-24T21:05:52.538849Z"
         },
         "usace": {
-          "status": "unavailable",
-          "error": "No module named 'src.apis.usace_api'",
-          "retrieved_at": "2026-08-24T20:44:32.935981Z"
+          "districts": [
+            {
+              "district_name": "US Army Engineer District, Huntington",
+              "district_abbreviation": "LRH",
+              "division_name": "Great Lakes and Ohio River Division",
+              "division_abbreviation": "CELRD",
+              "website_url": "http://www.lrh.usace.army.mil/Missions/Regulatory.aspx",
+              "phone": "304-399-5211",
+              "address": "Huntington District, 502 Eighth Street, Huntington, West Virginia 25701-2070"
+            }
+          ],
+          "wetland_regions": [
+            {
+              "region_name": "Eastern Mountains and Piedmont",
+              "mlra_name": "Central Allegheny Plateau",
+              "lrr_name": "East and Central Farming and Forest Region",
+              "supplement_url": ""
+            }
+          ],
+          "wetland_subregions": [
+            {
+              "subregion_name": "LRR N, MLRA 124",
+              "subregion_code": "124",
+              "parent_region": "EMP",
+              "mlra_name": "Western Allegheny Plateau",
+              "lrr_name": "East and Central Farming and Forest Region"
+            }
+          ],
+          "warnings": [],
+          "limitation": "District and delineation-region context only. This does not show wetland presence or make a Clean Water Act jurisdictional determination.",
+          "status": "ok",
+          "retrieved_at": "2026-08-24T21:06:15.890039Z"
         },
         "fema_nfhl": {
-          "status": "unavailable",
-          "error": "No module named 'src.apis.fema_nfhl_api'",
-          "retrieved_at": "2026-08-24T20:44:32.938749Z"
+          "count": 2,
+          "zone_counts": {
+            "A": 1,
+            "X": 1
+          },
+          "sfha_count": 1,
+          "sfha_percentage": 50.0,
+          "truncated": false,
+          "warnings": [],
+          "status": "ok",
+          "retrieved_at": "2026-08-24T21:06:27.286620Z"
         },
         "gbif": {
-          "status": "unavailable",
-          "error": "cannot import name 'get_gbif_species_by_county_sync' from 'src.apis.gbif_api' (/Users/pranava/.cache/uv/archive-v0/sgEssBLf8VSi3pzT/lib/python3.12/site-packages/nepa_mcp/_servers/map_composer/src/apis/gbif_api.py)",
-          "retrieved_at": "2026-08-24T20:44:32.954609Z"
+          "occurrence_count": 116,
+          "species_count": 12,
+          "by_threat_status": {
+            "Near Threatened": 102,
+            "Vulnerable": 13,
+            "Endangered": 1
+          },
+          "top_species": [
+            {
+              "species": "Common Grackle",
+              "occurrences": 58
+            },
+            {
+              "species": "Killdeer",
+              "occurrences": 22
+            },
+            {
+              "species": "Chimney Swift",
+              "occurrences": 11
+            },
+            {
+              "species": "Eastern Whip-poor-will",
+              "occurrences": 8
+            },
+            {
+              "species": "Eastern Meadowlark",
+              "occurrences": 3
+            },
+            {
+              "species": "Etheostoma tippecanoe Jordan & Evermann, 1890",
+              "occurrences": 3
+            },
+            {
+              "species": "Charadrius vociferus Linnaeus, 1758",
+              "occurrences": 2
+            },
+            {
+              "species": "Cerulean Warbler",
+              "occurrences": 2
+            },
+            {
+              "species": "Lesser Yellowlegs",
+              "occurrences": 2
+            },
+            {
+              "species": "Greater Yellowlegs",
+              "occurrences": 2
+            },
+            {
+              "species": "Magicicada septendecim (Linnaeus, 1758)",
+              "occurrences": 1
+            },
+            {
+              "species": "Ulmus americana L.",
+              "occurrences": 1
+            },
+            {
+              "species": "Blackpoll Warbler",
+              "occurrences": 1
+            }
+          ],
+          "warnings": [],
+          "status": "ok",
+          "retrieved_at": "2026-08-24T21:06:36.301231Z"
         },
         "nepa_assist": {
-          "status": "unavailable",
-          "error": "No module named 'src.apis.nepa_assist_api'",
-          "retrieved_at": "2026-08-24T20:44:32.957331Z"
+          "summary": {
+            "total_checks": 41,
+            "yes_count": 15,
+            "no_count": 26,
+            "flagged_issues": [
+              "Within 1 mile of a PM2.5 Annual (1997 standard) Non-Attainment/Maintenance Area?",
+              "Within 1 mile of an impaired stream?",
+              "Within 1 mile of an impaired waterbody?",
+              "Within 1 mile of a waterbody?",
+              "Within 1 mile of a stream?",
+              "Within 1 mile of a Brownfields site?",
+              "Within 1 mile of a Toxic Release Inventory (TRI) site?",
+              "Within 1 mile of a water discharger (NPDES)?",
+              "Within 1 mile of a hazardous waste (RCRA) facility?",
+              "Within 1 mile of an air emission facility?",
+              "Within 1 mile of a school?",
+              "Within 1 mile of a historic property on the National Register of Historic Places?",
+              "Within 1 mile of a Land Cession Boundary?",
+              "Within 1 mile of the service area of a mitigation or conservation bank?",
+              "Within 1 mile of the service area of an In-Lieu-Fee Program?"
+            ]
+          },
+          "categories": {
+            "air_quality": {
+              "Within 1 mile of an Ozone 1-hr (1979 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of an Ozone 8-hr (1997 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of an Ozone 8-hr (2008 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of an Ozone 8-hr (2015 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a Lead (2008 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a SO2 1-hr (2010 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a PM2.5 24hr (2006 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a PM2.5 Annual (1997 standard) Non-Attainment/Maintenance Area?": "yes",
+              "Within 1 mile of a PM2.5 Annual (2012 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a PM10 (1987 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a CO Annual (1971 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a NO2 Annual (1971 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of an air emission facility?": "yes"
+            },
+            "water_resources": {
+              "Within 1 mile of an impaired stream?": "yes",
+              "Within 1 mile of an impaired waterbody?": "yes",
+              "Within 1 mile of a waterbody?": "yes",
+              "Within 1 mile of a stream?": "yes",
+              "Within 1 mile of a water discharger (NPDES)?": "yes",
+              "Within 1 mile of an ESA-designated Critical Habitat river, stream or water feature per U.S. Fish & Wildlife Service?": "no"
+            },
+            "contaminated_sites": {
+              "Within 1 mile of a Brownfields site?": "yes",
+              "Within 1 mile of a Superfund site?": "no",
+              "Within 1 mile of a Toxic Release Inventory (TRI) site?": "yes",
+              "Within 1 mile of a hazardous waste (RCRA) facility?": "yes",
+              "Within 1 mile of a tribal area (lower 48 states)?": "no"
+            },
+            "community_features": {
+              "Within 1 mile of a Federal Land?": "no",
+              "Within 1 mile of a school?": "yes",
+              "Within 1 mile of an airport?": "no",
+              "Within 1 mile of a hospital?": "no"
+            },
+            "natural_resources": {
+              "Within 1 mile of a designated sole source aquifer?": "no",
+              "Within 1 mile of the service area of a mitigation or conservation bank?": "yes",
+              "Within 1 mile of the service area of an In-Lieu-Fee Program?": "yes",
+              "Within 1 mile of an Essential Fish Habitat (EFH)?": "no",
+              "Within 1 mile of a Habitat Area of Particular Concern (HAPC)?": "no",
+              "Within 1 mile of an EFH Area Protected from Fishing (EFHA)?": "no",
+              "Within 1 mile of a Bureau of Land Management Area of Critical Environmental Concern?": "no",
+              "Within 1 mile of an ESA-designated Critical Habitat Area per U.S. Fish & Wildlife Service?": "no"
+            },
+            "cultural_resources": {
+              "Within 1 mile of a historic property on the National Register of Historic Places?": "yes",
+              "Within 1 mile of a Land Cession Boundary?": "yes"
+            },
+            "other": {
+              "Within 1 mile of a Chemical Data Reporting (CDR) site?": "no",
+              "Within 1 mile of a Public Property Boundary of the Formerly Used Defense Sites?": "no",
+              "Within 1 mile of a Munitions Response Site?": "no"
+            }
+          },
+          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=DOE+site+E2E+%E2%80%94+SODI+transferred+parcels+%E2%80%94+Trillium+and+Oklo&coords=-83.08789007699994%2C39.07248255700006%2C-82.90210992299995%2C39.07248255700006%2C-82.90210992299995%2C38.927516540000056%2C-83.08789007699994%2C38.927516540000056%2C-83.08789007699994%2C39.07248255700006&type=polygon&radius=1&unit=miles&f=report",
+          "status": "ok",
+          "retrieved_at": "2026-08-24T20:58:38.904015Z"
         }
       },
       "geojson_url": "data/portsmouth-nepa/ports-sodi-parcels.geojson",
@@ -744,44 +3044,733 @@
       ],
       "screening": {
         "ipac": {
-          "status": "unavailable",
-          "error": "No module named 'src.apis.ipac_api'",
-          "retrieved_at": "2026-08-24T20:44:32.918534Z"
+          "species": [
+            {
+              "id": "Population$Sid[352]",
+              "common_name": "Clubshell",
+              "scientific_name": "Pleurobema clava",
+              "short_name": "Clubshell",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[1]",
+              "common_name": "Indiana bat",
+              "scientific_name": "Myotis sodalis",
+              "short_name": "Indiana bat",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[10838]",
+              "common_name": "Longsolid",
+              "scientific_name": "Fusconaia subrotunda",
+              "short_name": "Longsolid",
+              "listing_status": "Threatened",
+              "listing_code": "T",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[10710]",
+              "common_name": "Monarch butterfly",
+              "scientific_name": "Danaus plexippus",
+              "short_name": "Monarch butterfly",
+              "listing_status": "Proposed Threatened",
+              "listing_code": "PT",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[10043]",
+              "common_name": "Northern Long-Eared Bat",
+              "scientific_name": "Myotis septentrionalis",
+              "short_name": "Northern Long-Eared Bat",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[374]",
+              "common_name": "Northern riffleshell",
+              "scientific_name": "Epioblasma rangiana",
+              "short_name": "Northern riffleshell",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[6062]",
+              "common_name": "Rayed Bean",
+              "scientific_name": "Villosa fabalis",
+              "short_name": "Rayed Bean",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[10837]",
+              "common_name": "Round hickorynut",
+              "scientific_name": "Obovaria subrotunda",
+              "short_name": "Round hickorynut",
+              "listing_status": "Threatened",
+              "listing_code": "T",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[8134]",
+              "common_name": "Salamander mussel",
+              "scientific_name": "Simpsonaias ambigua",
+              "short_name": "Salamander mussel",
+              "listing_status": "Proposed Endangered",
+              "listing_code": "PE",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[742]",
+              "common_name": "Small whorled pogonia",
+              "scientific_name": "Isotria medeoloides",
+              "short_name": "Small whorled pogonia",
+              "listing_status": "Threatened",
+              "listing_code": "T",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[11365]",
+              "common_name": "Tricolored bat",
+              "scientific_name": "Perimyotis subflavus",
+              "short_name": "Tricolored bat",
+              "listing_status": "Proposed Endangered",
+              "listing_code": "PE",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[1039]",
+              "common_name": "Virginia spiraea",
+              "scientific_name": "Spiraea virginiana",
+              "short_name": "Virginia spiraea",
+              "listing_status": "Threatened",
+              "listing_code": "T",
+              "critical_habitat": "None"
+            }
+          ],
+          "migratory_birds": [
+            {
+              "common_name": "Bald Eagle",
+              "scientific_name": "Haliaeetus leucocephalus",
+              "code": "BAEA",
+              "conservation_level": "NON_BCC_VULNERABLE",
+              "bcc": false,
+              "breeds_from": "1972-09-01T00:00Z",
+              "breeds_to": "1972-08-31T00:00Z"
+            },
+            {
+              "common_name": "Cerulean Warbler",
+              "scientific_name": "Setophaga cerulea",
+              "code": "CERW",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-04-27T00:00Z",
+              "breeds_to": "1972-07-20T00:00Z"
+            },
+            {
+              "common_name": "Chimney Swift",
+              "scientific_name": "Chaetura pelagica",
+              "code": "CHSW",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-03-15T00:00Z",
+              "breeds_to": "1972-08-25T00:00Z"
+            },
+            {
+              "common_name": "Eastern Whip-poor-will",
+              "scientific_name": "Antrostomus vociferus",
+              "code": "EWPW",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-01T00:00Z",
+              "breeds_to": "1972-08-20T00:00Z"
+            },
+            {
+              "common_name": "Henslow's Sparrow",
+              "scientific_name": "Ammodramus henslowii",
+              "code": "HESP",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-01T00:00Z",
+              "breeds_to": "1972-08-31T00:00Z"
+            },
+            {
+              "common_name": "Kentucky Warbler",
+              "scientific_name": "Geothlypis formosa",
+              "code": "KEWA",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-04-20T00:00Z",
+              "breeds_to": "1972-08-20T00:00Z"
+            },
+            {
+              "common_name": "Prairie Warbler",
+              "scientific_name": "Setophaga discolor",
+              "code": "PRAW",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-01T00:00Z",
+              "breeds_to": "1972-07-31T00:00Z"
+            },
+            {
+              "common_name": "Red-headed Woodpecker",
+              "scientific_name": "Melanerpes erythrocephalus",
+              "code": "RHWO",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-10T00:00Z",
+              "breeds_to": "1972-09-10T00:00Z"
+            },
+            {
+              "common_name": "Wood Thrush",
+              "scientific_name": "Hylocichla mustelina",
+              "code": "WOTH",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-10T00:00Z",
+              "breeds_to": "1972-08-31T00:00Z"
+            }
+          ],
+          "wetlands": [
+            {
+              "code": "L1UBHh",
+              "system": "Lacustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "L1UBHx",
+              "system": "Lacustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PAB/EM1F",
+              "system": "Palustrine",
+              "class": "Aquatic Bed",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PABG",
+              "system": "Palustrine",
+              "class": "Aquatic Bed",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1/UBF",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1A",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1Ah",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1C",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1F",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/EM1C",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/SS1A",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/SS1C",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1A",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1C",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1/EM1A",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1/EM1C",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1A",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1C",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBF",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBFh",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBFx",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBG",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBGh",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBGx",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBK",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "R2USA",
+              "system": "Riverine",
+              "class": "Unconsolidated Shore",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "R4SBC",
+              "system": "Riverine",
+              "class": "Streambed",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "R5UBFx",
+              "system": "Riverine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "R5UBH",
+              "system": "Riverine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "R2UBG",
+              "system": "Riverine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "R2UBH",
+              "system": "Riverine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            }
+          ],
+          "refuges": [],
+          "field_offices": [
+            {
+              "name": "Ohio Ecological Services Field Office",
+              "code": ""
+            }
+          ],
+          "critical_habitat": [],
+          "marine_mammals": [],
+          "fish_hatcheries": [],
+          "coastal_barriers": {
+            "items": [],
+            "truncated": false
+          },
+          "counts": {
+            "listed_species": 12,
+            "critical_habitat": 0,
+            "migratory_birds": 9,
+            "wetland_types": 31,
+            "refuges": 0
+          },
+          "status": "ok",
+          "retrieved_at": "2026-08-24T21:17:20.577918Z"
         },
         "tribal": {
-          "status": "unavailable",
-          "error": "No module named 'src.apis.tribal_api'",
-          "retrieved_at": "2026-08-24T20:44:32.921294Z"
+          "count": 0,
+          "tribal_lands": [],
+          "warnings": [],
+          "status": "ok",
+          "retrieved_at": "2026-08-24T21:05:19.720635Z"
         },
         "nrhp": {
-          "status": "unavailable",
-          "error": "No module named 'src.apis.nrhp_api'",
-          "retrieved_at": "2026-08-24T20:44:32.927541Z"
+          "count": 4,
+          "national_historic_landmarks": 0,
+          "properties": [
+            {
+              "name": "Friendly Grove",
+              "resource_type": "building",
+              "address": "OH 220, E of Piketon",
+              "city": "Piketon",
+              "county": "Pike",
+              "state": "OHIO",
+              "cert_date": "01/26/70",
+              "is_nhl": "",
+              "status": "Listed",
+              "is_extant": "Unknown",
+              "nris_refnum": "70000513",
+              "nara_url": "https://catalog.archives.gov/id/71990939",
+              "geometry_type": "Historic Places (Points)"
+            },
+            {
+              "name": "Jones-Cutler House",
+              "resource_type": "building",
+              "address": "Bridge St.",
+              "city": "Jasper",
+              "county": "Pike",
+              "state": "OHIO",
+              "cert_date": "04/26/76",
+              "is_nhl": "",
+              "status": "Listed",
+              "is_extant": "Unknown",
+              "nris_refnum": "76001509",
+              "nara_url": "https://catalog.archives.gov/id/71990941",
+              "geometry_type": "Historic Places (Points)"
+            },
+            {
+              "name": "Piketon Historic District",
+              "resource_type": "district",
+              "address": "Bounded by West and 3rd Sts., U.S. 23, and the Scioto River",
+              "city": "Piketon",
+              "county": "Pike",
+              "state": "OHIO",
+              "cert_date": "02/28/74",
+              "is_nhl": "",
+              "status": "Listed",
+              "is_extant": "Unknown",
+              "nris_refnum": "74001598",
+              "nara_url": "https://catalog.archives.gov/id/71990949",
+              "geometry_type": "Historic Places (Polygons)"
+            },
+            {
+              "name": "Vanmeter Stone House and Outbuildings",
+              "resource_type": "building",
+              "address": "S of Piketon at jct. of U.S. 23 and OH 124",
+              "city": "Piketon",
+              "county": "Pike",
+              "state": "OHIO",
+              "cert_date": "03/31/75",
+              "is_nhl": "",
+              "status": "Listed",
+              "is_extant": "Unknown",
+              "nris_refnum": "75001519",
+              "nara_url": "https://catalog.archives.gov/id/71990945",
+              "geometry_type": "Historic Places (Points)"
+            }
+          ],
+          "warnings": [],
+          "data_unavailable": false,
+          "status": "ok",
+          "retrieved_at": "2026-08-24T21:05:34.580927Z"
         },
         "padus": {
-          "status": "unavailable",
-          "error": "No module named 'src.apis.padus_api'",
-          "retrieved_at": "2026-08-24T20:44:32.931670Z"
+          "query_buffer_miles": 0.1,
+          "count": 0,
+          "owner_types": {},
+          "designation_types": {},
+          "largest_records": [],
+          "records_truncated": 0,
+          "warnings": [],
+          "status": "ok",
+          "retrieved_at": "2026-08-24T21:05:57.483878Z"
         },
         "usace": {
-          "status": "unavailable",
-          "error": "No module named 'src.apis.usace_api'",
-          "retrieved_at": "2026-08-24T20:44:32.936157Z"
+          "districts": [
+            {
+              "district_name": "US Army Engineer District, Huntington",
+              "district_abbreviation": "LRH",
+              "division_name": "Great Lakes and Ohio River Division",
+              "division_abbreviation": "CELRD",
+              "website_url": "http://www.lrh.usace.army.mil/Missions/Regulatory.aspx",
+              "phone": "304-399-5211",
+              "address": "Huntington District, 502 Eighth Street, Huntington, West Virginia 25701-2070"
+            }
+          ],
+          "wetland_regions": [
+            {
+              "region_name": "Eastern Mountains and Piedmont",
+              "mlra_name": "Central Allegheny Plateau",
+              "lrr_name": "East and Central Farming and Forest Region",
+              "supplement_url": ""
+            }
+          ],
+          "wetland_subregions": [
+            {
+              "subregion_name": "LRR N, MLRA 124",
+              "subregion_code": "124",
+              "parent_region": "EMP",
+              "mlra_name": "Western Allegheny Plateau",
+              "lrr_name": "East and Central Farming and Forest Region"
+            }
+          ],
+          "warnings": [],
+          "limitation": "District and delineation-region context only. This does not show wetland presence or make a Clean Water Act jurisdictional determination.",
+          "status": "ok",
+          "retrieved_at": "2026-08-24T21:06:20.458769Z"
         },
         "fema_nfhl": {
-          "status": "unavailable",
-          "error": "No module named 'src.apis.fema_nfhl_api'",
-          "retrieved_at": "2026-08-24T20:44:32.938921Z"
+          "count": 4,
+          "zone_counts": {
+            "A": 1,
+            "X": 3
+          },
+          "sfha_count": 1,
+          "sfha_percentage": 25.0,
+          "truncated": false,
+          "warnings": [],
+          "status": "ok",
+          "retrieved_at": "2026-08-24T21:06:28.642960Z"
         },
         "gbif": {
-          "status": "unavailable",
-          "error": "cannot import name 'get_gbif_species_by_county_sync' from 'src.apis.gbif_api' (/Users/pranava/.cache/uv/archive-v0/sgEssBLf8VSi3pzT/lib/python3.12/site-packages/nepa_mcp/_servers/map_composer/src/apis/gbif_api.py)",
-          "retrieved_at": "2026-08-24T20:44:32.954772Z"
+          "occurrence_count": 138,
+          "species_count": 14,
+          "by_threat_status": {
+            "Near Threatened": 121,
+            "Vulnerable": 17
+          },
+          "top_species": [
+            {
+              "species": "Common Grackle",
+              "occurrences": 67
+            },
+            {
+              "species": "Killdeer",
+              "occurrences": 19
+            },
+            {
+              "species": "Chimney Swift",
+              "occurrences": 13
+            },
+            {
+              "species": "Eastern Meadowlark",
+              "occurrences": 11
+            },
+            {
+              "species": "Eastern Whip-poor-will",
+              "occurrences": 8
+            },
+            {
+              "species": "Cerulean Warbler",
+              "occurrences": 3
+            },
+            {
+              "species": "Etheostoma tippecanoe Jordan & Evermann, 1890",
+              "occurrences": 3
+            },
+            {
+              "species": "Charadrius vociferus Linnaeus, 1758",
+              "occurrences": 2
+            },
+            {
+              "species": "Magicicada septendecim (Linnaeus, 1758)",
+              "occurrences": 2
+            },
+            {
+              "species": "Magicicada cassini (Fisher, 1852)",
+              "occurrences": 2
+            },
+            {
+              "species": "Cerioporus squamosus (Huds.) Qu\u00e9l.",
+              "occurrences": 2
+            },
+            {
+              "species": "Lesser Yellowlegs",
+              "occurrences": 2
+            },
+            {
+              "species": "Greater Yellowlegs",
+              "occurrences": 2
+            },
+            {
+              "species": "Northern Bobwhite",
+              "occurrences": 1
+            },
+            {
+              "species": "Blackpoll Warbler",
+              "occurrences": 1
+            }
+          ],
+          "warnings": [],
+          "status": "ok",
+          "retrieved_at": "2026-08-24T21:06:38.533309Z"
         },
         "nepa_assist": {
-          "status": "unavailable",
-          "error": "No module named 'src.apis.nepa_assist_api'",
-          "retrieved_at": "2026-08-24T20:44:32.957493Z"
+          "summary": {
+            "total_checks": 41,
+            "yes_count": 15,
+            "no_count": 26,
+            "flagged_issues": [
+              "Within 1 mile of a PM2.5 Annual (1997 standard) Non-Attainment/Maintenance Area?",
+              "Within 1 mile of an impaired stream?",
+              "Within 1 mile of an impaired waterbody?",
+              "Within 1 mile of a waterbody?",
+              "Within 1 mile of a stream?",
+              "Within 1 mile of a Brownfields site?",
+              "Within 1 mile of a Toxic Release Inventory (TRI) site?",
+              "Within 1 mile of a water discharger (NPDES)?",
+              "Within 1 mile of a hazardous waste (RCRA) facility?",
+              "Within 1 mile of an air emission facility?",
+              "Within 1 mile of a school?",
+              "Within 1 mile of a historic property on the National Register of Historic Places?",
+              "Within 1 mile of a Land Cession Boundary?",
+              "Within 1 mile of the service area of a mitigation or conservation bank?",
+              "Within 1 mile of the service area of an In-Lieu-Fee Program?"
+            ]
+          },
+          "categories": {
+            "air_quality": {
+              "Within 1 mile of an Ozone 1-hr (1979 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of an Ozone 8-hr (1997 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of an Ozone 8-hr (2008 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of an Ozone 8-hr (2015 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a Lead (2008 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a SO2 1-hr (2010 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a PM2.5 24hr (2006 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a PM2.5 Annual (1997 standard) Non-Attainment/Maintenance Area?": "yes",
+              "Within 1 mile of a PM2.5 Annual (2012 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a PM10 (1987 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a CO Annual (1971 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a NO2 Annual (1971 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of an air emission facility?": "yes"
+            },
+            "water_resources": {
+              "Within 1 mile of an impaired stream?": "yes",
+              "Within 1 mile of an impaired waterbody?": "yes",
+              "Within 1 mile of a waterbody?": "yes",
+              "Within 1 mile of a stream?": "yes",
+              "Within 1 mile of a water discharger (NPDES)?": "yes",
+              "Within 1 mile of an ESA-designated Critical Habitat river, stream or water feature per U.S. Fish & Wildlife Service?": "no"
+            },
+            "contaminated_sites": {
+              "Within 1 mile of a Brownfields site?": "yes",
+              "Within 1 mile of a Superfund site?": "no",
+              "Within 1 mile of a Toxic Release Inventory (TRI) site?": "yes",
+              "Within 1 mile of a hazardous waste (RCRA) facility?": "yes",
+              "Within 1 mile of a tribal area (lower 48 states)?": "no"
+            },
+            "community_features": {
+              "Within 1 mile of a Federal Land?": "no",
+              "Within 1 mile of a school?": "yes",
+              "Within 1 mile of an airport?": "no",
+              "Within 1 mile of a hospital?": "no"
+            },
+            "natural_resources": {
+              "Within 1 mile of a designated sole source aquifer?": "no",
+              "Within 1 mile of the service area of a mitigation or conservation bank?": "yes",
+              "Within 1 mile of the service area of an In-Lieu-Fee Program?": "yes",
+              "Within 1 mile of an Essential Fish Habitat (EFH)?": "no",
+              "Within 1 mile of a Habitat Area of Particular Concern (HAPC)?": "no",
+              "Within 1 mile of an EFH Area Protected from Fishing (EFHA)?": "no",
+              "Within 1 mile of a Bureau of Land Management Area of Critical Environmental Concern?": "no",
+              "Within 1 mile of an ESA-designated Critical Habitat Area per U.S. Fish & Wildlife Service?": "no"
+            },
+            "cultural_resources": {
+              "Within 1 mile of a historic property on the National Register of Historic Places?": "yes",
+              "Within 1 mile of a Land Cession Boundary?": "yes"
+            },
+            "other": {
+              "Within 1 mile of a Chemical Data Reporting (CDR) site?": "no",
+              "Within 1 mile of a Public Property Boundary of the Formerly Used Defense Sites?": "no",
+              "Within 1 mile of a Munitions Response Site?": "no"
+            }
+          },
+          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=DOE+site+E2E+%E2%80%94+X-530+switchyard+corridor+%E2%80%94+the+grid+asset&coords=-83.10790053899996%2C39.08048245800006%2C-82.92209946099996%2C39.08048245800006%2C-82.92209946099996%2C38.93551663900007%2C-83.10790053899996%2C38.93551663900007%2C-83.10790053899996%2C39.08048245800006&type=polygon&radius=1&unit=miles&f=report",
+          "status": "ok",
+          "retrieved_at": "2026-08-24T20:58:43.717592Z"
         }
       },
       "geojson_url": "data/portsmouth-nepa/ports-x530-switchyard.geojson",

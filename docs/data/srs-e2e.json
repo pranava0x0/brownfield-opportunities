@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-24T20:58:19.854861Z",
+  "generated_at": "2026-08-24T21:16:07.583320Z",
   "nepa_mcp_version": "0.1.1",
   "site_id": "srs",
   "site_label": "Savannah River",
@@ -1110,9 +1110,16 @@
           "retrieved_at": "2026-08-24T20:57:01.626808Z"
         },
         "fema_nfhl": {
-          "status": "unavailable",
-          "error": "Failed to query FEMA NFHL API: ('Connection aborted.', ConnectionResetError(54, 'Connection reset by peer'))",
-          "retrieved_at": "2026-08-24T20:57:20.168190Z"
+          "count": 2,
+          "zone_counts": {
+            "X": 2
+          },
+          "sfha_count": 0,
+          "sfha_percentage": 0.0,
+          "truncated": false,
+          "warnings": [],
+          "status": "ok",
+          "retrieved_at": "2026-08-24T21:16:07.384163Z"
         },
         "gbif": {
           "occurrence_count": 1000,
@@ -2143,9 +2150,17 @@
           "retrieved_at": "2026-08-24T20:57:06.018412Z"
         },
         "fema_nfhl": {
-          "status": "unavailable",
-          "error": "Failed to query FEMA NFHL API: ('Connection aborted.', ConnectionResetError(54, 'Connection reset by peer'))",
-          "retrieved_at": "2026-08-24T20:57:22.018600Z"
+          "count": 3,
+          "zone_counts": {
+            "X": 2,
+            "D": 1
+          },
+          "sfha_count": 0,
+          "sfha_percentage": 0.0,
+          "truncated": false,
+          "warnings": [],
+          "status": "ok",
+          "retrieved_at": "2026-08-24T21:07:51.057754Z"
         },
         "gbif": {
           "occurrence_count": 1000,
@@ -3235,9 +3250,17 @@
           "retrieved_at": "2026-08-24T20:57:10.526839Z"
         },
         "fema_nfhl": {
-          "status": "unavailable",
-          "error": "Failed to query FEMA NFHL API: ('Connection aborted.', ConnectionResetError(54, 'Connection reset by peer'))",
-          "retrieved_at": "2026-08-24T20:57:23.014150Z"
+          "count": 3,
+          "zone_counts": {
+            "X": 2,
+            "D": 1
+          },
+          "sfha_count": 0,
+          "sfha_percentage": 0.0,
+          "truncated": false,
+          "warnings": [],
+          "status": "ok",
+          "retrieved_at": "2026-08-24T21:07:54.182465Z"
         },
         "gbif": {
           "occurrence_count": 1000,
@@ -4281,9 +4304,18 @@
           "retrieved_at": "2026-08-24T20:57:15.142806Z"
         },
         "fema_nfhl": {
-          "status": "unavailable",
-          "error": "Failed to query FEMA NFHL API: ('Connection aborted.', ConnectionResetError(54, 'Connection reset by peer'))",
-          "retrieved_at": "2026-08-24T20:57:24.521398Z"
+          "count": 4,
+          "zone_counts": {
+            "A": 1,
+            "D": 1,
+            "X": 2
+          },
+          "sfha_count": 1,
+          "sfha_percentage": 25.0,
+          "truncated": false,
+          "warnings": [],
+          "status": "ok",
+          "retrieved_at": "2026-08-24T21:07:54.788712Z"
         },
         "gbif": {
           "occurrence_count": 709,
