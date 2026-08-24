@@ -264,3 +264,26 @@ def test_cache_writes_are_atomic_no_tmp_leftovers(tmp_path, screening):
     screening.cache_error_at(path, RuntimeError("boom"))
     assert path.exists()
     assert not list(tmp_path.glob("*.tmp")), "atomic write left a temp file behind"
+
+
+def test_purge_server_src_namespace_isolates_server_packages(screening):
+    """2026-08-24 regression: every nepa-mcp 0.1.1 server ships its own
+    ``src`` package, and whichever loads first claims sys.modules['src'] —
+    a cache-resumed run that loaded map_composer before the tabular servers
+    made every later tabular load fail with "No module named
+    'src.apis.ipac_api'", and the failures were then cached as unavailable.
+    The default loader now purges src/src.* between loads."""
+    import sys
+    import types
+
+    sys.modules["src"] = types.ModuleType("src")
+    sys.modules["src.apis"] = types.ModuleType("src.apis")
+    sys.modules["srcother_keepme"] = types.ModuleType("srcother_keepme")
+    try:
+        removed = screening.purge_server_src_namespace()
+        assert removed == 2
+        assert "src" not in sys.modules
+        assert "src.apis" not in sys.modules
+        assert "srcother_keepme" in sys.modules  # prefix match only on "src."
+    finally:
+        sys.modules.pop("srcother_keepme", None)

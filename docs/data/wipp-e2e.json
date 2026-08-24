@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-24T20:42:50.203739Z",
+  "generated_at": "2026-08-24T20:51:23.028061Z",
   "nepa_mcp_version": "0.1.1",
   "site_id": "wipp",
   "site_label": "WIPP",
@@ -287,9 +287,55 @@
           "rationale": "The operating repository core is reserved to WIPP purposes under the Land Withdrawal Act while the mission runs (anticipated beyond 2050) \u2014 and even WIPP's own water allocation is only 6.6 million gallons per year."
         }
       ],
-      "screening": {},
-      "geojson_url": null,
-      "map_summary": null,
+      "screening": {
+        "ipac": {
+          "status": "unavailable",
+          "error": "No module named 'src.apis.ipac_api'",
+          "retrieved_at": "2026-08-24T20:50:24.546401Z"
+        },
+        "tribal": {
+          "status": "unavailable",
+          "error": "No module named 'src.apis.tribal_api'",
+          "retrieved_at": "2026-08-24T20:50:24.550993Z"
+        },
+        "nrhp": {
+          "status": "unavailable",
+          "error": "No module named 'src.apis.nrhp_api'",
+          "retrieved_at": "2026-08-24T20:50:24.553119Z"
+        },
+        "padus": {
+          "status": "unavailable",
+          "error": "No module named 'src.apis.padus_api'",
+          "retrieved_at": "2026-08-24T20:50:24.555463Z"
+        },
+        "usace": {
+          "status": "unavailable",
+          "error": "No module named 'src.apis.usace_api'",
+          "retrieved_at": "2026-08-24T20:50:24.557444Z"
+        },
+        "fema_nfhl": {
+          "status": "unavailable",
+          "error": "No module named 'src.apis.fema_nfhl_api'",
+          "retrieved_at": "2026-08-24T20:50:24.559965Z"
+        },
+        "gbif": {
+          "status": "unavailable",
+          "error": "cannot import name 'get_gbif_species_by_county_sync' from 'src.apis.gbif_api' (/Users/pranava/.cache/uv/archive-v0/sgEssBLf8VSi3pzT/lib/python3.12/site-packages/nepa_mcp/_servers/map_composer/src/apis/gbif_api.py)",
+          "retrieved_at": "2026-08-24T20:50:24.566844Z"
+        },
+        "nepa_assist": {
+          "status": "unavailable",
+          "error": "No module named 'src.apis.nepa_assist_api'",
+          "retrieved_at": "2026-08-24T20:50:24.570368Z"
+        }
+      },
+      "geojson_url": "data/wipp-nepa/wipp-repository-core.geojson",
+      "map_summary": {
+        "feature_count": 12,
+        "layers_ok": 14,
+        "layers_partial": 0,
+        "layers_failed": 0
+      },
       "corpus_record": null,
       "nearby_tracked": [
         {
@@ -380,9 +426,55 @@
           "rationale": "Small footprint in ~7,200 uncommitted acres, near-zero wet-cooling draw for most 1-20 MWe designs, DOE has already named nuclear as eligible, and DOE-EM is the site's own landlord \u2014 not anchored only because no developer has been selected."
         }
       ],
-      "screening": {},
-      "geojson_url": null,
-      "map_summary": null,
+      "screening": {
+        "ipac": {
+          "status": "unavailable",
+          "error": "No module named 'src.apis.ipac_api'",
+          "retrieved_at": "2026-08-24T20:50:24.547631Z"
+        },
+        "tribal": {
+          "status": "unavailable",
+          "error": "No module named 'src.apis.tribal_api'",
+          "retrieved_at": "2026-08-24T20:50:24.551325Z"
+        },
+        "nrhp": {
+          "status": "unavailable",
+          "error": "No module named 'src.apis.nrhp_api'",
+          "retrieved_at": "2026-08-24T20:50:24.553383Z"
+        },
+        "padus": {
+          "status": "unavailable",
+          "error": "No module named 'src.apis.padus_api'",
+          "retrieved_at": "2026-08-24T20:50:24.555760Z"
+        },
+        "usace": {
+          "status": "unavailable",
+          "error": "No module named 'src.apis.usace_api'",
+          "retrieved_at": "2026-08-24T20:50:24.557710Z"
+        },
+        "fema_nfhl": {
+          "status": "unavailable",
+          "error": "No module named 'src.apis.fema_nfhl_api'",
+          "retrieved_at": "2026-08-24T20:50:24.560395Z"
+        },
+        "gbif": {
+          "status": "unavailable",
+          "error": "cannot import name 'get_gbif_species_by_county_sync' from 'src.apis.gbif_api' (/Users/pranava/.cache/uv/archive-v0/sgEssBLf8VSi3pzT/lib/python3.12/site-packages/nepa_mcp/_servers/map_composer/src/apis/gbif_api.py)",
+          "retrieved_at": "2026-08-24T20:50:24.567242Z"
+        },
+        "nepa_assist": {
+          "status": "unavailable",
+          "error": "No module named 'src.apis.nepa_assist_api'",
+          "retrieved_at": "2026-08-24T20:50:24.570726Z"
+        }
+      },
+      "geojson_url": "data/wipp-nepa/wipp-lwa-balance.geojson",
+      "map_summary": {
+        "feature_count": 11,
+        "layers_ok": 14,
+        "layers_partial": 0,
+        "layers_failed": 0
+      },
       "corpus_record": null,
       "nearby_tracked": [
         {

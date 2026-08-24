@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-24T20:42:50.152609Z",
+  "generated_at": "2026-08-24T20:58:19.854861Z",
   "nepa_mcp_version": "0.1.1",
   "site_id": "srs",
   "site_label": "Savannah River",
@@ -309,9 +309,905 @@
           "rationale": "A microreactor could serve as an early, lower-risk demonstration ahead of the larger nuclear build-out under DOE's streamlined authorization \u2014 none is announced for SRS today."
         }
       ],
-      "screening": {},
-      "geojson_url": null,
-      "map_summary": null,
+      "screening": {
+        "ipac": {
+          "species": [
+            {
+              "id": "Population$Sid[996]",
+              "common_name": "American chaffseed",
+              "scientific_name": "Schwalbea americana",
+              "short_name": "American chaffseed",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[976]",
+              "common_name": "Canby's dropwort",
+              "scientific_name": "Oxypolis canbyi",
+              "short_name": "Canby's dropwort",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[991]",
+              "common_name": "Harperella",
+              "scientific_name": "Ptilimnium nodosum",
+              "short_name": "Harperella",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[10710]",
+              "common_name": "Monarch butterfly",
+              "scientific_name": "Danaus plexippus",
+              "short_name": "Monarch butterfly",
+              "listing_status": "Proposed Threatened",
+              "listing_code": "PT",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[4284]",
+              "common_name": "Ocmulgee skullcap",
+              "scientific_name": "Scutellaria ocmulgee",
+              "short_name": "Ocmulgee skullcap",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[960]",
+              "common_name": "Pondberry",
+              "scientific_name": "Lindera melissifolia",
+              "short_name": "Pondberry",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[107]",
+              "common_name": "Red-cockaded woodpecker",
+              "scientific_name": "Dryobates borealis",
+              "short_name": "Red-cockaded woodpecker",
+              "listing_status": "Threatened",
+              "listing_code": "T",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[1042]",
+              "common_name": "Relict trillium",
+              "scientific_name": "Trillium reliquum",
+              "short_name": "Relict trillium",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[924]",
+              "common_name": "Smooth coneflower",
+              "scientific_name": "Echinacea laevigata",
+              "short_name": "Smooth coneflower",
+              "listing_status": "Threatened",
+              "listing_code": "T",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[1348]",
+              "common_name": "Southern hognose snake",
+              "scientific_name": "Heterodon simus",
+              "short_name": "Southern hognose snake",
+              "listing_status": "Proposed Threatened",
+              "listing_code": "PT",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[11365]",
+              "common_name": "Tricolored bat",
+              "scientific_name": "Perimyotis subflavus",
+              "short_name": "Tricolored bat",
+              "listing_status": "Proposed Endangered",
+              "listing_code": "PE",
+              "critical_habitat": "None"
+            }
+          ],
+          "migratory_birds": [
+            {
+              "common_name": "American Kestrel",
+              "scientific_name": "Falco sparverius",
+              "code": "AMKE",
+              "conservation_level": "BCC_BCR",
+              "bcc": false,
+              "breeds_from": "1972-04-01T00:00Z",
+              "breeds_to": "1972-08-31T00:00Z"
+            },
+            {
+              "common_name": "Bachman's Sparrow",
+              "scientific_name": "Peucaea aestivalis",
+              "code": "BACS",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-01T00:00Z",
+              "breeds_to": "1972-09-30T00:00Z"
+            },
+            {
+              "common_name": "Bald Eagle",
+              "scientific_name": "Haliaeetus leucocephalus",
+              "code": "BAEA",
+              "conservation_level": "NON_BCC_VULNERABLE",
+              "bcc": false,
+              "breeds_from": "1972-09-01T00:00Z",
+              "breeds_to": "1972-07-31T00:00Z"
+            },
+            {
+              "common_name": "Black-throated Green Warbler",
+              "scientific_name": "Setophaga virens",
+              "code": "BTNW",
+              "conservation_level": "BCC_BCR",
+              "bcc": false,
+              "breeds_from": "1972-05-01T00:00Z",
+              "breeds_to": "1972-08-15T00:00Z"
+            },
+            {
+              "common_name": "Brown-headed Nuthatch",
+              "scientific_name": "Sitta pusilla",
+              "code": "BHNU",
+              "conservation_level": "BCC_BCR",
+              "bcc": false,
+              "breeds_from": "1972-03-01T00:00Z",
+              "breeds_to": "1972-07-15T00:00Z"
+            },
+            {
+              "common_name": "Chimney Swift",
+              "scientific_name": "Chaetura pelagica",
+              "code": "CHSW",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-03-15T00:00Z",
+              "breeds_to": "1972-08-25T00:00Z"
+            },
+            {
+              "common_name": "Chuck-will's-widow",
+              "scientific_name": "Antrostomus carolinensis",
+              "code": "CWWI",
+              "conservation_level": "BCC_BCR",
+              "bcc": false,
+              "breeds_from": "1972-05-10T00:00Z",
+              "breeds_to": "1972-07-10T00:00Z"
+            },
+            {
+              "common_name": "Eastern Whip-poor-will",
+              "scientific_name": "Antrostomus vociferus",
+              "code": "EWPW",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-01T00:00Z",
+              "breeds_to": "1972-08-20T00:00Z"
+            },
+            {
+              "common_name": "Golden Eagle",
+              "scientific_name": "Aquila chrysaetos",
+              "code": "GOEA",
+              "conservation_level": "NON_BCC_VULNERABLE",
+              "bcc": false,
+              "breeds_from": null,
+              "breeds_to": null
+            },
+            {
+              "common_name": "Grasshopper Sparrow",
+              "scientific_name": "Ammodramus savannarum",
+              "code": "GRSP",
+              "conservation_level": "BCC_BCR",
+              "bcc": false,
+              "breeds_from": "1972-06-01T00:00Z",
+              "breeds_to": "1972-08-20T00:00Z"
+            },
+            {
+              "common_name": "Henslow's Sparrow",
+              "scientific_name": "Ammodramus henslowii",
+              "code": "HESP",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": null,
+              "breeds_to": null
+            },
+            {
+              "common_name": "Kentucky Warbler",
+              "scientific_name": "Geothlypis formosa",
+              "code": "KEWA",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-04-20T00:00Z",
+              "breeds_to": "1972-08-20T00:00Z"
+            },
+            {
+              "common_name": "Le Conte's Sparrow",
+              "scientific_name": "Ammodramus leconteii",
+              "code": "LCSP",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": null,
+              "breeds_to": null
+            },
+            {
+              "common_name": "Lesser Yellowlegs",
+              "scientific_name": "Tringa flavipes",
+              "code": "LEYE",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": null,
+              "breeds_to": null
+            },
+            {
+              "common_name": "Painted Bunting",
+              "scientific_name": "Passerina ciris",
+              "code": "PABU",
+              "conservation_level": "BCC_BCR",
+              "bcc": false,
+              "breeds_from": "1972-04-25T00:00Z",
+              "breeds_to": "1972-08-15T00:00Z"
+            },
+            {
+              "common_name": "Prairie Warbler",
+              "scientific_name": "Setophaga discolor",
+              "code": "PRAW",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-01T00:00Z",
+              "breeds_to": "1972-07-31T00:00Z"
+            },
+            {
+              "common_name": "Prothonotary Warbler",
+              "scientific_name": "Protonotaria citrea",
+              "code": "PROW",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-04-01T00:00Z",
+              "breeds_to": "1972-07-31T00:00Z"
+            },
+            {
+              "common_name": "Red-cockaded Woodpecker",
+              "scientific_name": "Picoides borealis",
+              "code": "RCWO",
+              "conservation_level": "NON_BCC_ESA",
+              "bcc": false,
+              "breeds_from": "1972-04-10T00:00Z",
+              "breeds_to": "1972-07-31T00:00Z"
+            },
+            {
+              "common_name": "Red-headed Woodpecker",
+              "scientific_name": "Melanerpes erythrocephalus",
+              "code": "RHWO",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-10T00:00Z",
+              "breeds_to": "1972-09-10T00:00Z"
+            },
+            {
+              "common_name": "Swallow-tailed Kite",
+              "scientific_name": "Elanoides forficatus",
+              "code": "STKI",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-03-10T00:00Z",
+              "breeds_to": "1972-06-30T00:00Z"
+            },
+            {
+              "common_name": "Wood Stork",
+              "scientific_name": "Mycteria americana",
+              "code": "WOST",
+              "conservation_level": "NON_BCC_ESA",
+              "bcc": false,
+              "breeds_from": "1972-12-01T00:00Z",
+              "breeds_to": "1972-08-31T00:00Z"
+            },
+            {
+              "common_name": "Wood Thrush",
+              "scientific_name": "Hylocichla mustelina",
+              "code": "WOTH",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-10T00:00Z",
+              "breeds_to": "1972-08-31T00:00Z"
+            }
+          ],
+          "wetlands": [
+            {
+              "code": "L1UBHh",
+              "system": "Lacustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PAB3Hh",
+              "system": "Palustrine",
+              "class": "Aquatic Bed",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1A",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1B",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1C",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1Cd",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1Ch",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1F",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1Fb",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1Fh",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/2C",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/2Ch",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/2F",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/2Fh",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/2Fx",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/3B",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/4A",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/4B",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/4C",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1A",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1Ah",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1B",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1Bd",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1C",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1Ch",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1F",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1Fb",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1Fh",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO3/1B",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO3C",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO4/3B",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO4A",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO4B",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO4C",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO7B",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1/2Fb",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1A",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1B",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1C",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1F",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1Fb",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS3A",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS3B",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS3C",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS4B",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBFx",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBH",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBHb",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBHh",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBHx",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUSAx",
+              "system": "Palustrine",
+              "class": "Unconsolidated Shore",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUSCx",
+              "system": "Palustrine",
+              "class": "Unconsolidated Shore",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "R2UBH",
+              "system": "Riverine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "R2UBHx",
+              "system": "Riverine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "R4SBC",
+              "system": "Riverine",
+              "class": "Streambed",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "R5UBH",
+              "system": "Riverine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            }
+          ],
+          "refuges": [],
+          "field_offices": [
+            {
+              "name": "South Carolina Ecological Services",
+              "code": ""
+            }
+          ],
+          "critical_habitat": [],
+          "marine_mammals": [],
+          "fish_hatcheries": [],
+          "coastal_barriers": {
+            "items": [],
+            "truncated": false
+          },
+          "counts": {
+            "listed_species": 11,
+            "critical_habitat": 0,
+            "migratory_birds": 22,
+            "wetland_types": 56,
+            "refuges": 0
+          },
+          "status": "ok",
+          "retrieved_at": "2026-08-24T20:54:40.630352Z"
+        },
+        "tribal": {
+          "count": 0,
+          "tribal_lands": [],
+          "warnings": [],
+          "status": "ok",
+          "retrieved_at": "2026-08-24T20:55:12.015909Z"
+        },
+        "nrhp": {
+          "count": 0,
+          "national_historic_landmarks": 0,
+          "properties": [],
+          "warnings": [],
+          "data_unavailable": false,
+          "status": "ok",
+          "retrieved_at": "2026-08-24T20:55:49.892832Z"
+        },
+        "padus": {
+          "query_buffer_miles": 0.1,
+          "count": 1,
+          "owner_types": {
+            "UNK": 1
+          },
+          "designation_types": {
+            "FOTH": 1
+          },
+          "largest_records": [
+            {
+              "owner_type": "UNK",
+              "owner_name": "UNK",
+              "manager_type": "FED",
+              "manager_name": "DOE",
+              "designation_type": "FOTH",
+              "unit_name": "Savannah River Site",
+              "state": "SC",
+              "gis_acres": 195398.0,
+              "gap_status": "4",
+              "iucn_category": "Unassigned",
+              "date_established": ""
+            }
+          ],
+          "records_truncated": 0,
+          "warnings": [],
+          "status": "ok",
+          "retrieved_at": "2026-08-24T20:56:14.371695Z"
+        },
+        "usace": {
+          "districts": [
+            {
+              "district_name": "US Army Engineer District, Charleston",
+              "district_abbreviation": "SAC",
+              "division_name": "South Atlantic Division",
+              "division_abbreviation": "CESAD",
+              "website_url": "http://www.sac.usace.army.mil/Missions/Regulatory.aspx",
+              "phone": "843-329-8044",
+              "address": "Charleston District Regulatory Office, 69 A Hagood Ave, Charleston, SC 29403"
+            }
+          ],
+          "wetland_regions": [
+            {
+              "region_name": "Atlantic and Gulf Coastal Plain",
+              "mlra_name": "Southern Coastal Plain",
+              "lrr_name": "South Atlantic and Gulf Slope Cash Crops, Forest, and Livestock Region",
+              "supplement_url": "https://usace.contentdm.oclc.org/digital/collection/p266001coll1/id/7605/"
+            }
+          ],
+          "wetland_subregions": [
+            {
+              "subregion_name": "LRR P, MLRA 137",
+              "subregion_code": "137",
+              "parent_region": "Atlantic and Gulf Coastal Plain",
+              "mlra_name": "Carolina and Georgia Sand Hills",
+              "lrr_name": "South Atlantic and Gulf Slope Cash Crops, Forest, and Livestock Region"
+            }
+          ],
+          "warnings": [],
+          "limitation": "District and delineation-region context only. This does not show wetland presence or make a Clean Water Act jurisdictional determination.",
+          "status": "ok",
+          "retrieved_at": "2026-08-24T20:57:01.626808Z"
+        },
+        "fema_nfhl": {
+          "status": "unavailable",
+          "error": "Failed to query FEMA NFHL API: ('Connection aborted.', ConnectionResetError(54, 'Connection reset by peer'))",
+          "retrieved_at": "2026-08-24T20:57:20.168190Z"
+        },
+        "gbif": {
+          "occurrence_count": 1000,
+          "species_count": 24,
+          "by_threat_status": {
+            "Near Threatened": 810,
+            "Vulnerable": 187,
+            "Endangered": 3
+          },
+          "top_species": [
+            {
+              "species": "Killdeer",
+              "occurrences": 259
+            },
+            {
+              "species": "Common Grackle",
+              "occurrences": 207
+            },
+            {
+              "species": "Loggerhead Shrike",
+              "occurrences": 140
+            },
+            {
+              "species": "Chimney Swift",
+              "occurrences": 140
+            },
+            {
+              "species": "Eastern Meadowlark",
+              "occurrences": 72
+            },
+            {
+              "species": "Northern Bobwhite",
+              "occurrences": 39
+            },
+            {
+              "species": "Bachman's Sparrow",
+              "occurrences": 36
+            },
+            {
+              "species": "Chuck-will's-widow",
+              "occurrences": 24
+            },
+            {
+              "species": "Horned Grebe",
+              "occurrences": 23
+            },
+            {
+              "species": "Bombus pensylvanicus (De Geer, 1773)",
+              "occurrences": 14
+            },
+            {
+              "species": "Eastern Whip-poor-will",
+              "occurrences": 12
+            },
+            {
+              "species": "Lesser Yellowlegs",
+              "occurrences": 7
+            },
+            {
+              "species": "Least Sandpiper",
+              "occurrences": 6
+            },
+            {
+              "species": "Greater Yellowlegs",
+              "occurrences": 5
+            },
+            {
+              "species": "King Rail",
+              "occurrences": 3
+            }
+          ],
+          "warnings": [],
+          "status": "ok",
+          "retrieved_at": "2026-08-24T20:57:32.032717Z"
+        },
+        "nepa_assist": {
+          "summary": {
+            "total_checks": 0,
+            "yes_count": 0,
+            "no_count": 0,
+            "flagged_issues": []
+          },
+          "categories": {},
+          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=DOE+site+E2E+%E2%80%94+AI+data-center+%2F+energy+lease+tracts+%2810+tracts%29&coords=-81.73634875699997%2C33.32255223000004%2C-81.56365124299998%2C33.32255223000004%2C-81.56365124299998%2C33.17744692200006%2C-81.73634875699997%2C33.17744692200006%2C-81.73634875699997%2C33.32255223000004&type=polygon&radius=1&unit=miles&f=report",
+          "status": "ok",
+          "retrieved_at": "2026-08-24T20:57:53.202548Z"
+        }
+      },
+      "geojson_url": "data/srs-nepa/srs-ai-lease-area.geojson",
+      "map_summary": {
+        "feature_count": 270,
+        "layers_ok": 14,
+        "layers_partial": 0,
+        "layers_failed": 0
+      },
       "corpus_record": {
         "acreage": 234032.0,
         "npl_status": "Currently on the Final NPL",
@@ -405,9 +1301,1016 @@
           "rationale": "A lab-adjacent microreactor demonstration is plausible without the full land transfer, on the DOE-authorization path; none is announced."
         }
       ],
-      "screening": {},
-      "geojson_url": null,
-      "map_summary": null,
+      "screening": {
+        "ipac": {
+          "species": [
+            {
+              "id": "Population$Sid[991]",
+              "common_name": "Harperella",
+              "scientific_name": "Ptilimnium nodosum",
+              "short_name": "Harperella",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[10710]",
+              "common_name": "Monarch butterfly",
+              "scientific_name": "Danaus plexippus",
+              "short_name": "Monarch butterfly",
+              "listing_status": "Proposed Threatened",
+              "listing_code": "PT",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[4284]",
+              "common_name": "Ocmulgee skullcap",
+              "scientific_name": "Scutellaria ocmulgee",
+              "short_name": "Ocmulgee skullcap",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[107]",
+              "common_name": "Red-cockaded woodpecker",
+              "scientific_name": "Dryobates borealis",
+              "short_name": "Red-cockaded woodpecker",
+              "listing_status": "Threatened",
+              "listing_code": "T",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[1042]",
+              "common_name": "Relict trillium",
+              "scientific_name": "Trillium reliquum",
+              "short_name": "Relict trillium",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[924]",
+              "common_name": "Smooth coneflower",
+              "scientific_name": "Echinacea laevigata",
+              "short_name": "Smooth coneflower",
+              "listing_status": "Threatened",
+              "listing_code": "T",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[1348]",
+              "common_name": "Southern hognose snake",
+              "scientific_name": "Heterodon simus",
+              "short_name": "Southern hognose snake",
+              "listing_status": "Proposed Threatened",
+              "listing_code": "PT",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[11365]",
+              "common_name": "Tricolored bat",
+              "scientific_name": "Perimyotis subflavus",
+              "short_name": "Tricolored bat",
+              "listing_status": "Proposed Endangered",
+              "listing_code": "PE",
+              "critical_habitat": "None"
+            }
+          ],
+          "migratory_birds": [
+            {
+              "common_name": "American Kestrel",
+              "scientific_name": "Falco sparverius",
+              "code": "AMKE",
+              "conservation_level": "BCC_BCR",
+              "bcc": false,
+              "breeds_from": "1972-04-01T00:00Z",
+              "breeds_to": "1972-08-31T00:00Z"
+            },
+            {
+              "common_name": "Bachman's Sparrow",
+              "scientific_name": "Peucaea aestivalis",
+              "code": "BACS",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-01T00:00Z",
+              "breeds_to": "1972-09-30T00:00Z"
+            },
+            {
+              "common_name": "Bald Eagle",
+              "scientific_name": "Haliaeetus leucocephalus",
+              "code": "BAEA",
+              "conservation_level": "NON_BCC_VULNERABLE",
+              "bcc": false,
+              "breeds_from": "1972-09-01T00:00Z",
+              "breeds_to": "1972-07-31T00:00Z"
+            },
+            {
+              "common_name": "Black-throated Green Warbler",
+              "scientific_name": "Setophaga virens",
+              "code": "BTNW",
+              "conservation_level": "BCC_BCR",
+              "bcc": false,
+              "breeds_from": "1972-05-01T00:00Z",
+              "breeds_to": "1972-08-15T00:00Z"
+            },
+            {
+              "common_name": "Brown-headed Nuthatch",
+              "scientific_name": "Sitta pusilla",
+              "code": "BHNU",
+              "conservation_level": "BCC_BCR",
+              "bcc": false,
+              "breeds_from": "1972-03-01T00:00Z",
+              "breeds_to": "1972-07-15T00:00Z"
+            },
+            {
+              "common_name": "Cerulean Warbler",
+              "scientific_name": "Setophaga cerulea",
+              "code": "CERW",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-04-26T00:00Z",
+              "breeds_to": "1972-07-20T00:00Z"
+            },
+            {
+              "common_name": "Chimney Swift",
+              "scientific_name": "Chaetura pelagica",
+              "code": "CHSW",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-03-15T00:00Z",
+              "breeds_to": "1972-08-25T00:00Z"
+            },
+            {
+              "common_name": "Chuck-will's-widow",
+              "scientific_name": "Antrostomus carolinensis",
+              "code": "CWWI",
+              "conservation_level": "BCC_BCR",
+              "bcc": false,
+              "breeds_from": "1972-05-10T00:00Z",
+              "breeds_to": "1972-07-10T00:00Z"
+            },
+            {
+              "common_name": "Eastern Whip-poor-will",
+              "scientific_name": "Antrostomus vociferus",
+              "code": "EWPW",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-01T00:00Z",
+              "breeds_to": "1972-08-20T00:00Z"
+            },
+            {
+              "common_name": "Golden Eagle",
+              "scientific_name": "Aquila chrysaetos",
+              "code": "GOEA",
+              "conservation_level": "NON_BCC_VULNERABLE",
+              "bcc": false,
+              "breeds_from": null,
+              "breeds_to": null
+            },
+            {
+              "common_name": "Grasshopper Sparrow",
+              "scientific_name": "Ammodramus savannarum",
+              "code": "GRSP",
+              "conservation_level": "BCC_BCR",
+              "bcc": false,
+              "breeds_from": "1972-06-01T00:00Z",
+              "breeds_to": "1972-08-20T00:00Z"
+            },
+            {
+              "common_name": "Kentucky Warbler",
+              "scientific_name": "Geothlypis formosa",
+              "code": "KEWA",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-04-20T00:00Z",
+              "breeds_to": "1972-08-20T00:00Z"
+            },
+            {
+              "common_name": "Least Tern",
+              "scientific_name": "Sternula antillarum",
+              "code": "LETE",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-04-25T00:00Z",
+              "breeds_to": "1972-09-05T00:00Z"
+            },
+            {
+              "common_name": "Lesser Yellowlegs",
+              "scientific_name": "Tringa flavipes",
+              "code": "LEYE",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": null,
+              "breeds_to": null
+            },
+            {
+              "common_name": "Painted Bunting",
+              "scientific_name": "Passerina ciris",
+              "code": "PABU",
+              "conservation_level": "BCC_BCR",
+              "bcc": false,
+              "breeds_from": "1972-04-25T00:00Z",
+              "breeds_to": "1972-08-15T00:00Z"
+            },
+            {
+              "common_name": "Pectoral Sandpiper",
+              "scientific_name": "Calidris melanotos",
+              "code": "PESA",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": null,
+              "breeds_to": null
+            },
+            {
+              "common_name": "Prairie Warbler",
+              "scientific_name": "Setophaga discolor",
+              "code": "PRAW",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-01T00:00Z",
+              "breeds_to": "1972-07-31T00:00Z"
+            },
+            {
+              "common_name": "Prothonotary Warbler",
+              "scientific_name": "Protonotaria citrea",
+              "code": "PROW",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-04-01T00:00Z",
+              "breeds_to": "1972-07-31T00:00Z"
+            },
+            {
+              "common_name": "Red-cockaded Woodpecker",
+              "scientific_name": "Picoides borealis",
+              "code": "RCWO",
+              "conservation_level": "NON_BCC_ESA",
+              "bcc": false,
+              "breeds_from": "1972-04-10T00:00Z",
+              "breeds_to": "1972-07-31T00:00Z"
+            },
+            {
+              "common_name": "Red-headed Woodpecker",
+              "scientific_name": "Melanerpes erythrocephalus",
+              "code": "RHWO",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-10T00:00Z",
+              "breeds_to": "1972-09-10T00:00Z"
+            },
+            {
+              "common_name": "Ruddy Turnstone",
+              "scientific_name": "Arenaria interpres",
+              "code": "RUTU",
+              "conservation_level": "BCC_BCR",
+              "bcc": false,
+              "breeds_from": null,
+              "breeds_to": null
+            },
+            {
+              "common_name": "Rusty Blackbird",
+              "scientific_name": "Euphagus carolinus",
+              "code": "RUBL",
+              "conservation_level": "BCC_BCR",
+              "bcc": false,
+              "breeds_from": null,
+              "breeds_to": null
+            },
+            {
+              "common_name": "Semipalmated Sandpiper",
+              "scientific_name": "Calidris pusilla",
+              "code": "SESA",
+              "conservation_level": "BCC_BCR",
+              "bcc": false,
+              "breeds_from": null,
+              "breeds_to": null
+            },
+            {
+              "common_name": "Short-billed Dowitcher",
+              "scientific_name": "Limnodromus griseus",
+              "code": "SBDO",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": null,
+              "breeds_to": null
+            },
+            {
+              "common_name": "Swallow-tailed Kite",
+              "scientific_name": "Elanoides forficatus",
+              "code": "STKI",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-03-10T00:00Z",
+              "breeds_to": "1972-06-30T00:00Z"
+            },
+            {
+              "common_name": "Willet",
+              "scientific_name": "Tringa semipalmata",
+              "code": "WILL",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-04-20T00:00Z",
+              "breeds_to": "1972-08-05T00:00Z"
+            },
+            {
+              "common_name": "Wood Stork",
+              "scientific_name": "Mycteria americana",
+              "code": "WOST",
+              "conservation_level": "NON_BCC_ESA",
+              "bcc": false,
+              "breeds_from": "1972-12-01T00:00Z",
+              "breeds_to": "1972-08-31T00:00Z"
+            },
+            {
+              "common_name": "Wood Thrush",
+              "scientific_name": "Hylocichla mustelina",
+              "code": "WOTH",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-10T00:00Z",
+              "breeds_to": "1972-08-31T00:00Z"
+            }
+          ],
+          "wetlands": [
+            {
+              "code": "PAB4Hx",
+              "system": "Palustrine",
+              "class": "Aquatic Bed",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1A",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1Ad",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1Bd",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1C",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1Cd",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1Ch",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1F",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1Fb",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1Fd",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1Fh",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/2F",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/2Fh",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/3B",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/3Bd",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/3C",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/4A",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/4B",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/4C",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1A",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1Ad",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1B",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1C",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1Cb",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1Cd",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1Ch",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1F",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1Fb",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1Fh",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO2F",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO3/1B",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO3/1C",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO3B",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO4/1A",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO4A",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO4B",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO4C",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1/2Fb",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1/2Fh",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1A",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1Ad",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1C",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1Cb",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1F",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1Fh",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS3C",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBH",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBHb",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBHh",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBHx",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUSAh",
+              "system": "Palustrine",
+              "class": "Unconsolidated Shore",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUSAx",
+              "system": "Palustrine",
+              "class": "Unconsolidated Shore",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUSC",
+              "system": "Palustrine",
+              "class": "Unconsolidated Shore",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUSCx",
+              "system": "Palustrine",
+              "class": "Unconsolidated Shore",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "R2UBH",
+              "system": "Riverine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "R2UBHx",
+              "system": "Riverine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "R4SBC",
+              "system": "Riverine",
+              "class": "Streambed",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "R5UBH",
+              "system": "Riverine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            }
+          ],
+          "refuges": [],
+          "field_offices": [
+            {
+              "name": "South Carolina Ecological Services",
+              "code": ""
+            }
+          ],
+          "critical_habitat": [],
+          "marine_mammals": [],
+          "fish_hatcheries": [],
+          "coastal_barriers": {
+            "items": [],
+            "truncated": false
+          },
+          "counts": {
+            "listed_species": 8,
+            "critical_habitat": 0,
+            "migratory_birds": 28,
+            "wetland_types": 58,
+            "refuges": 0
+          },
+          "status": "ok",
+          "retrieved_at": "2026-08-24T20:54:47.220578Z"
+        },
+        "tribal": {
+          "count": 0,
+          "tribal_lands": [],
+          "warnings": [],
+          "status": "ok",
+          "retrieved_at": "2026-08-24T20:55:21.049491Z"
+        },
+        "nrhp": {
+          "count": 0,
+          "national_historic_landmarks": 0,
+          "properties": [],
+          "warnings": [],
+          "data_unavailable": false,
+          "status": "ok",
+          "retrieved_at": "2026-08-24T20:55:52.885814Z"
+        },
+        "padus": {
+          "query_buffer_miles": 0.1,
+          "count": 1,
+          "owner_types": {
+            "UNK": 1
+          },
+          "designation_types": {
+            "FOTH": 1
+          },
+          "largest_records": [
+            {
+              "owner_type": "UNK",
+              "owner_name": "UNK",
+              "manager_type": "FED",
+              "manager_name": "DOE",
+              "designation_type": "FOTH",
+              "unit_name": "Savannah River Site",
+              "state": "SC",
+              "gis_acres": 195398.0,
+              "gap_status": "4",
+              "iucn_category": "Unassigned",
+              "date_established": ""
+            }
+          ],
+          "records_truncated": 0,
+          "warnings": [],
+          "status": "ok",
+          "retrieved_at": "2026-08-24T20:56:19.406971Z"
+        },
+        "usace": {
+          "districts": [
+            {
+              "district_name": "US Army Engineer District, Charleston",
+              "district_abbreviation": "SAC",
+              "division_name": "South Atlantic Division",
+              "division_abbreviation": "CESAD",
+              "website_url": "http://www.sac.usace.army.mil/Missions/Regulatory.aspx",
+              "phone": "843-329-8044",
+              "address": "Charleston District Regulatory Office, 69 A Hagood Ave, Charleston, SC 29403"
+            }
+          ],
+          "wetland_regions": [
+            {
+              "region_name": "Atlantic and Gulf Coastal Plain",
+              "mlra_name": "Southern Coastal Plain",
+              "lrr_name": "South Atlantic and Gulf Slope Cash Crops, Forest, and Livestock Region",
+              "supplement_url": "https://usace.contentdm.oclc.org/digital/collection/p266001coll1/id/7605/"
+            }
+          ],
+          "wetland_subregions": [
+            {
+              "subregion_name": "LRR P, MLRA 137",
+              "subregion_code": "137",
+              "parent_region": "Atlantic and Gulf Coastal Plain",
+              "mlra_name": "Carolina and Georgia Sand Hills",
+              "lrr_name": "South Atlantic and Gulf Slope Cash Crops, Forest, and Livestock Region"
+            }
+          ],
+          "warnings": [],
+          "limitation": "District and delineation-region context only. This does not show wetland presence or make a Clean Water Act jurisdictional determination.",
+          "status": "ok",
+          "retrieved_at": "2026-08-24T20:57:06.018412Z"
+        },
+        "fema_nfhl": {
+          "status": "unavailable",
+          "error": "Failed to query FEMA NFHL API: ('Connection aborted.', ConnectionResetError(54, 'Connection reset by peer'))",
+          "retrieved_at": "2026-08-24T20:57:22.018600Z"
+        },
+        "gbif": {
+          "occurrence_count": 1000,
+          "species_count": 24,
+          "by_threat_status": {
+            "Near Threatened": 659,
+            "Vulnerable": 334,
+            "Endangered": 7
+          },
+          "top_species": [
+            {
+              "species": "Chimney Swift",
+              "occurrences": 282
+            },
+            {
+              "species": "Common Grackle",
+              "occurrences": 170
+            },
+            {
+              "species": "Killdeer",
+              "occurrences": 141
+            },
+            {
+              "species": "Loggerhead Shrike",
+              "occurrences": 123
+            },
+            {
+              "species": "Eastern Meadowlark",
+              "occurrences": 106
+            },
+            {
+              "species": "Northern Bobwhite",
+              "occurrences": 48
+            },
+            {
+              "species": "Bombus pensylvanicus (De Geer, 1773)",
+              "occurrences": 39
+            },
+            {
+              "species": "Bobolink",
+              "occurrences": 21
+            },
+            {
+              "species": "Bachman's Sparrow",
+              "occurrences": 18
+            },
+            {
+              "species": "Chuck-will's-widow",
+              "occurrences": 17
+            },
+            {
+              "species": "Eastern Whip-poor-will",
+              "occurrences": 6
+            },
+            {
+              "species": "Rusty Blackbird",
+              "occurrences": 5
+            },
+            {
+              "species": "Gymnocladus dioicus (L.) K.Koch",
+              "occurrences": 4
+            },
+            {
+              "species": "Antrostomus carolinensis (J.F.Gmelin, 1789)",
+              "occurrences": 3
+            },
+            {
+              "species": "Pinus palustris Mill.",
+              "occurrences": 3
+            }
+          ],
+          "warnings": [],
+          "status": "ok",
+          "retrieved_at": "2026-08-24T20:57:38.019195Z"
+        },
+        "nepa_assist": {
+          "summary": {
+            "total_checks": 41,
+            "yes_count": 13,
+            "no_count": 28,
+            "flagged_issues": [
+              "Within 1 mile of an impaired stream?",
+              "Within 1 mile of a waterbody?",
+              "Within 1 mile of a stream?",
+              "Within 1 mile of a Brownfields site?",
+              "Within 1 mile of a Superfund site?",
+              "Within 1 mile of a Toxic Release Inventory (TRI) site?",
+              "Within 1 mile of a water discharger (NPDES)?",
+              "Within 1 mile of a hazardous waste (RCRA) facility?",
+              "Within 1 mile of an air emission facility?",
+              "Within 1 mile of a school?",
+              "Within 1 mile of the service area of a mitigation or conservation bank?",
+              "Within 1 mile of the service area of an In-Lieu-Fee Program?",
+              "Within 1 mile of an Essential Fish Habitat (EFH)?"
+            ]
+          },
+          "categories": {
+            "air_quality": {
+              "Within 1 mile of an Ozone 1-hr (1979 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of an Ozone 8-hr (1997 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of an Ozone 8-hr (2008 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of an Ozone 8-hr (2015 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a Lead (2008 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a SO2 1-hr (2010 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a PM2.5 24hr (2006 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a PM2.5 Annual (1997 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a PM2.5 Annual (2012 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a PM10 (1987 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a CO Annual (1971 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a NO2 Annual (1971 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of an air emission facility?": "yes"
+            },
+            "water_resources": {
+              "Within 1 mile of an impaired stream?": "yes",
+              "Within 1 mile of an impaired waterbody?": "no",
+              "Within 1 mile of a waterbody?": "yes",
+              "Within 1 mile of a stream?": "yes",
+              "Within 1 mile of a water discharger (NPDES)?": "yes",
+              "Within 1 mile of an ESA-designated Critical Habitat river, stream or water feature per U.S. Fish & Wildlife Service?": "no"
+            },
+            "contaminated_sites": {
+              "Within 1 mile of a Brownfields site?": "yes",
+              "Within 1 mile of a Superfund site?": "yes",
+              "Within 1 mile of a Toxic Release Inventory (TRI) site?": "yes",
+              "Within 1 mile of a hazardous waste (RCRA) facility?": "yes",
+              "Within 1 mile of a tribal area (lower 48 states)?": "no"
+            },
+            "community_features": {
+              "Within 1 mile of a Federal Land?": "no",
+              "Within 1 mile of a school?": "yes",
+              "Within 1 mile of an airport?": "no",
+              "Within 1 mile of a hospital?": "no"
+            },
+            "natural_resources": {
+              "Within 1 mile of a designated sole source aquifer?": "no",
+              "Within 1 mile of the service area of a mitigation or conservation bank?": "yes",
+              "Within 1 mile of the service area of an In-Lieu-Fee Program?": "yes",
+              "Within 1 mile of an Essential Fish Habitat (EFH)?": "yes",
+              "Within 1 mile of a Habitat Area of Particular Concern (HAPC)?": "no",
+              "Within 1 mile of an EFH Area Protected from Fishing (EFHA)?": "no",
+              "Within 1 mile of a Bureau of Land Management Area of Critical Environmental Concern?": "no",
+              "Within 1 mile of an ESA-designated Critical Habitat Area per U.S. Fish & Wildlife Service?": "no"
+            },
+            "cultural_resources": {
+              "Within 1 mile of a historic property on the National Register of Historic Places?": "no",
+              "Within 1 mile of a Land Cession Boundary?": "no"
+            },
+            "other": {
+              "Within 1 mile of a Chemical Data Reporting (CDR) site?": "no",
+              "Within 1 mile of a Public Property Boundary of the Formerly Used Defense Sites?": "no",
+              "Within 1 mile of a Munitions Response Site?": "no"
+            }
+          },
+          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=DOE+site+E2E+%E2%80%94+A%2FM+Area+%E2%80%94+SRNL+campus+and+the+industrial-park+question&coords=-81.82454023099996%2C33.415351145000045%2C-81.65165976899993%2C33.415351145000045%2C-81.65165976899993%2C33.27024800600003%2C-81.82454023099996%2C33.27024800600003%2C-81.82454023099996%2C33.415351145000045&type=polygon&radius=1&unit=miles&f=report",
+          "status": "ok",
+          "retrieved_at": "2026-08-24T20:58:00.594294Z"
+        }
+      },
+      "geojson_url": "data/srs-nepa/srs-a-m-area.geojson",
+      "map_summary": {
+        "feature_count": 179,
+        "layers_ok": 14,
+        "layers_partial": 0,
+        "layers_failed": 0
+      },
       "corpus_record": null,
       "nearby_tracked": [
         {
@@ -483,9 +2386,1023 @@
           "rationale": "Fits easily within the remediated footprint, consistent with DOE's own industrial-reuse framing."
         }
       ],
-      "screening": {},
-      "geojson_url": null,
-      "map_summary": null,
+      "screening": {
+        "ipac": {
+          "species": [
+            {
+              "id": "Population$Sid[991]",
+              "common_name": "Harperella",
+              "scientific_name": "Ptilimnium nodosum",
+              "short_name": "Harperella",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[10710]",
+              "common_name": "Monarch butterfly",
+              "scientific_name": "Danaus plexippus",
+              "short_name": "Monarch butterfly",
+              "listing_status": "Proposed Threatened",
+              "listing_code": "PT",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[4284]",
+              "common_name": "Ocmulgee skullcap",
+              "scientific_name": "Scutellaria ocmulgee",
+              "short_name": "Ocmulgee skullcap",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[107]",
+              "common_name": "Red-cockaded woodpecker",
+              "scientific_name": "Dryobates borealis",
+              "short_name": "Red-cockaded woodpecker",
+              "listing_status": "Threatened",
+              "listing_code": "T",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[1042]",
+              "common_name": "Relict trillium",
+              "scientific_name": "Trillium reliquum",
+              "short_name": "Relict trillium",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[924]",
+              "common_name": "Smooth coneflower",
+              "scientific_name": "Echinacea laevigata",
+              "short_name": "Smooth coneflower",
+              "listing_status": "Threatened",
+              "listing_code": "T",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[1348]",
+              "common_name": "Southern hognose snake",
+              "scientific_name": "Heterodon simus",
+              "short_name": "Southern hognose snake",
+              "listing_status": "Proposed Threatened",
+              "listing_code": "PT",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[11365]",
+              "common_name": "Tricolored bat",
+              "scientific_name": "Perimyotis subflavus",
+              "short_name": "Tricolored bat",
+              "listing_status": "Proposed Endangered",
+              "listing_code": "PE",
+              "critical_habitat": "None"
+            }
+          ],
+          "migratory_birds": [
+            {
+              "common_name": "American Kestrel",
+              "scientific_name": "Falco sparverius",
+              "code": "AMKE",
+              "conservation_level": "BCC_BCR",
+              "bcc": false,
+              "breeds_from": "1972-04-01T00:00Z",
+              "breeds_to": "1972-08-31T00:00Z"
+            },
+            {
+              "common_name": "Bachman's Sparrow",
+              "scientific_name": "Peucaea aestivalis",
+              "code": "BACS",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-01T00:00Z",
+              "breeds_to": "1972-09-30T00:00Z"
+            },
+            {
+              "common_name": "Bald Eagle",
+              "scientific_name": "Haliaeetus leucocephalus",
+              "code": "BAEA",
+              "conservation_level": "NON_BCC_VULNERABLE",
+              "bcc": false,
+              "breeds_from": "1972-09-01T00:00Z",
+              "breeds_to": "1972-07-31T00:00Z"
+            },
+            {
+              "common_name": "Black-throated Green Warbler",
+              "scientific_name": "Setophaga virens",
+              "code": "BTNW",
+              "conservation_level": "BCC_BCR",
+              "bcc": false,
+              "breeds_from": "1972-05-01T00:00Z",
+              "breeds_to": "1972-08-15T00:00Z"
+            },
+            {
+              "common_name": "Brown-headed Nuthatch",
+              "scientific_name": "Sitta pusilla",
+              "code": "BHNU",
+              "conservation_level": "BCC_BCR",
+              "bcc": false,
+              "breeds_from": "1972-03-01T00:00Z",
+              "breeds_to": "1972-07-15T00:00Z"
+            },
+            {
+              "common_name": "Cerulean Warbler",
+              "scientific_name": "Setophaga cerulea",
+              "code": "CERW",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-04-26T00:00Z",
+              "breeds_to": "1972-07-20T00:00Z"
+            },
+            {
+              "common_name": "Chimney Swift",
+              "scientific_name": "Chaetura pelagica",
+              "code": "CHSW",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-03-15T00:00Z",
+              "breeds_to": "1972-08-25T00:00Z"
+            },
+            {
+              "common_name": "Chuck-will's-widow",
+              "scientific_name": "Antrostomus carolinensis",
+              "code": "CWWI",
+              "conservation_level": "BCC_BCR",
+              "bcc": false,
+              "breeds_from": "1972-05-10T00:00Z",
+              "breeds_to": "1972-07-10T00:00Z"
+            },
+            {
+              "common_name": "Eastern Whip-poor-will",
+              "scientific_name": "Antrostomus vociferus",
+              "code": "EWPW",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-01T00:00Z",
+              "breeds_to": "1972-08-20T00:00Z"
+            },
+            {
+              "common_name": "Golden Eagle",
+              "scientific_name": "Aquila chrysaetos",
+              "code": "GOEA",
+              "conservation_level": "NON_BCC_VULNERABLE",
+              "bcc": false,
+              "breeds_from": null,
+              "breeds_to": null
+            },
+            {
+              "common_name": "Grasshopper Sparrow",
+              "scientific_name": "Ammodramus savannarum",
+              "code": "GRSP",
+              "conservation_level": "BCC_BCR",
+              "bcc": false,
+              "breeds_from": "1972-06-01T00:00Z",
+              "breeds_to": "1972-08-20T00:00Z"
+            },
+            {
+              "common_name": "Kentucky Warbler",
+              "scientific_name": "Geothlypis formosa",
+              "code": "KEWA",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-04-20T00:00Z",
+              "breeds_to": "1972-08-20T00:00Z"
+            },
+            {
+              "common_name": "Least Tern",
+              "scientific_name": "Sternula antillarum",
+              "code": "LETE",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-04-25T00:00Z",
+              "breeds_to": "1972-09-05T00:00Z"
+            },
+            {
+              "common_name": "Lesser Yellowlegs",
+              "scientific_name": "Tringa flavipes",
+              "code": "LEYE",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": null,
+              "breeds_to": null
+            },
+            {
+              "common_name": "Painted Bunting",
+              "scientific_name": "Passerina ciris",
+              "code": "PABU",
+              "conservation_level": "BCC_BCR",
+              "bcc": false,
+              "breeds_from": "1972-04-25T00:00Z",
+              "breeds_to": "1972-08-15T00:00Z"
+            },
+            {
+              "common_name": "Pectoral Sandpiper",
+              "scientific_name": "Calidris melanotos",
+              "code": "PESA",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": null,
+              "breeds_to": null
+            },
+            {
+              "common_name": "Prairie Warbler",
+              "scientific_name": "Setophaga discolor",
+              "code": "PRAW",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-01T00:00Z",
+              "breeds_to": "1972-07-31T00:00Z"
+            },
+            {
+              "common_name": "Prothonotary Warbler",
+              "scientific_name": "Protonotaria citrea",
+              "code": "PROW",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-04-01T00:00Z",
+              "breeds_to": "1972-07-31T00:00Z"
+            },
+            {
+              "common_name": "Red-cockaded Woodpecker",
+              "scientific_name": "Picoides borealis",
+              "code": "RCWO",
+              "conservation_level": "NON_BCC_ESA",
+              "bcc": false,
+              "breeds_from": "1972-04-10T00:00Z",
+              "breeds_to": "1972-07-31T00:00Z"
+            },
+            {
+              "common_name": "Red-headed Woodpecker",
+              "scientific_name": "Melanerpes erythrocephalus",
+              "code": "RHWO",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-10T00:00Z",
+              "breeds_to": "1972-09-10T00:00Z"
+            },
+            {
+              "common_name": "Ruddy Turnstone",
+              "scientific_name": "Arenaria interpres",
+              "code": "RUTU",
+              "conservation_level": "BCC_BCR",
+              "bcc": false,
+              "breeds_from": null,
+              "breeds_to": null
+            },
+            {
+              "common_name": "Rusty Blackbird",
+              "scientific_name": "Euphagus carolinus",
+              "code": "RUBL",
+              "conservation_level": "BCC_BCR",
+              "bcc": false,
+              "breeds_from": null,
+              "breeds_to": null
+            },
+            {
+              "common_name": "Semipalmated Sandpiper",
+              "scientific_name": "Calidris pusilla",
+              "code": "SESA",
+              "conservation_level": "BCC_BCR",
+              "bcc": false,
+              "breeds_from": null,
+              "breeds_to": null
+            },
+            {
+              "common_name": "Short-billed Dowitcher",
+              "scientific_name": "Limnodromus griseus",
+              "code": "SBDO",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": null,
+              "breeds_to": null
+            },
+            {
+              "common_name": "Swallow-tailed Kite",
+              "scientific_name": "Elanoides forficatus",
+              "code": "STKI",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-03-10T00:00Z",
+              "breeds_to": "1972-06-30T00:00Z"
+            },
+            {
+              "common_name": "Willet",
+              "scientific_name": "Tringa semipalmata",
+              "code": "WILL",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-04-20T00:00Z",
+              "breeds_to": "1972-08-05T00:00Z"
+            },
+            {
+              "common_name": "Wood Stork",
+              "scientific_name": "Mycteria americana",
+              "code": "WOST",
+              "conservation_level": "NON_BCC_ESA",
+              "bcc": false,
+              "breeds_from": "1972-12-01T00:00Z",
+              "breeds_to": "1972-08-31T00:00Z"
+            },
+            {
+              "common_name": "Wood Thrush",
+              "scientific_name": "Hylocichla mustelina",
+              "code": "WOTH",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-10T00:00Z",
+              "breeds_to": "1972-08-31T00:00Z"
+            }
+          ],
+          "wetlands": [
+            {
+              "code": "PAB4Hx",
+              "system": "Palustrine",
+              "class": "Aquatic Bed",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1A",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1Ad",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1Bd",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1C",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1Cd",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1Ch",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1F",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1Fb",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1Fd",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1Fh",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/2F",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/2Fh",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/3B",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/3Bd",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/3C",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/4A",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/4B",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/4C",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1A",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1Ad",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1B",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1C",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1Cb",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1Cd",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1Ch",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1F",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1Fb",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1Fh",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO2F",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO3/1B",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO3/1C",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO3B",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO4/1A",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO4/3B",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO4A",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO4B",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO4C",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1/2Fb",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1A",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1Ad",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1C",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1Cb",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1F",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1Fb",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1Fh",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS3C",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBH",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBHb",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBHh",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBHx",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUSAh",
+              "system": "Palustrine",
+              "class": "Unconsolidated Shore",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUSAx",
+              "system": "Palustrine",
+              "class": "Unconsolidated Shore",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUSC",
+              "system": "Palustrine",
+              "class": "Unconsolidated Shore",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUSCx",
+              "system": "Palustrine",
+              "class": "Unconsolidated Shore",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "R2UBH",
+              "system": "Riverine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "R2UBHx",
+              "system": "Riverine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "R4SBC",
+              "system": "Riverine",
+              "class": "Streambed",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "R5UBH",
+              "system": "Riverine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            }
+          ],
+          "refuges": [],
+          "field_offices": [
+            {
+              "name": "South Carolina Ecological Services",
+              "code": ""
+            }
+          ],
+          "critical_habitat": [],
+          "marine_mammals": [],
+          "fish_hatcheries": [],
+          "coastal_barriers": {
+            "items": [],
+            "truncated": false
+          },
+          "counts": {
+            "listed_species": 8,
+            "critical_habitat": 0,
+            "migratory_birds": 28,
+            "wetland_types": 59,
+            "refuges": 0
+          },
+          "status": "ok",
+          "retrieved_at": "2026-08-24T20:54:51.987003Z"
+        },
+        "tribal": {
+          "count": 0,
+          "tribal_lands": [],
+          "warnings": [],
+          "status": "ok",
+          "retrieved_at": "2026-08-24T20:55:30.103119Z"
+        },
+        "nrhp": {
+          "count": 0,
+          "national_historic_landmarks": 0,
+          "properties": [],
+          "warnings": [],
+          "data_unavailable": false,
+          "status": "ok",
+          "retrieved_at": "2026-08-24T20:55:55.922934Z"
+        },
+        "padus": {
+          "query_buffer_miles": 0.1,
+          "count": 1,
+          "owner_types": {
+            "UNK": 1
+          },
+          "designation_types": {
+            "FOTH": 1
+          },
+          "largest_records": [
+            {
+              "owner_type": "UNK",
+              "owner_name": "UNK",
+              "manager_type": "FED",
+              "manager_name": "DOE",
+              "designation_type": "FOTH",
+              "unit_name": "Savannah River Site",
+              "state": "SC",
+              "gis_acres": 195398.0,
+              "gap_status": "4",
+              "iucn_category": "Unassigned",
+              "date_established": ""
+            }
+          ],
+          "records_truncated": 0,
+          "warnings": [],
+          "status": "ok",
+          "retrieved_at": "2026-08-24T20:56:43.411330Z"
+        },
+        "usace": {
+          "districts": [
+            {
+              "district_name": "US Army Engineer District, Charleston",
+              "district_abbreviation": "SAC",
+              "division_name": "South Atlantic Division",
+              "division_abbreviation": "CESAD",
+              "website_url": "http://www.sac.usace.army.mil/Missions/Regulatory.aspx",
+              "phone": "843-329-8044",
+              "address": "Charleston District Regulatory Office, 69 A Hagood Ave, Charleston, SC 29403"
+            }
+          ],
+          "wetland_regions": [
+            {
+              "region_name": "Atlantic and Gulf Coastal Plain",
+              "mlra_name": "Southern Coastal Plain",
+              "lrr_name": "South Atlantic and Gulf Slope Cash Crops, Forest, and Livestock Region",
+              "supplement_url": "https://usace.contentdm.oclc.org/digital/collection/p266001coll1/id/7605/"
+            }
+          ],
+          "wetland_subregions": [
+            {
+              "subregion_name": "LRR P, MLRA 137",
+              "subregion_code": "137",
+              "parent_region": "Atlantic and Gulf Coastal Plain",
+              "mlra_name": "Carolina and Georgia Sand Hills",
+              "lrr_name": "South Atlantic and Gulf Slope Cash Crops, Forest, and Livestock Region"
+            }
+          ],
+          "warnings": [],
+          "limitation": "District and delineation-region context only. This does not show wetland presence or make a Clean Water Act jurisdictional determination.",
+          "status": "ok",
+          "retrieved_at": "2026-08-24T20:57:10.526839Z"
+        },
+        "fema_nfhl": {
+          "status": "unavailable",
+          "error": "Failed to query FEMA NFHL API: ('Connection aborted.', ConnectionResetError(54, 'Connection reset by peer'))",
+          "retrieved_at": "2026-08-24T20:57:23.014150Z"
+        },
+        "gbif": {
+          "occurrence_count": 1000,
+          "species_count": 25,
+          "by_threat_status": {
+            "Near Threatened": 651,
+            "Vulnerable": 342,
+            "Endangered": 7
+          },
+          "top_species": [
+            {
+              "species": "Chimney Swift",
+              "occurrences": 291
+            },
+            {
+              "species": "Common Grackle",
+              "occurrences": 183
+            },
+            {
+              "species": "Killdeer",
+              "occurrences": 143
+            },
+            {
+              "species": "Loggerhead Shrike",
+              "occurrences": 119
+            },
+            {
+              "species": "Eastern Meadowlark",
+              "occurrences": 102
+            },
+            {
+              "species": "Bombus pensylvanicus (De Geer, 1773)",
+              "occurrences": 39
+            },
+            {
+              "species": "Northern Bobwhite",
+              "occurrences": 39
+            },
+            {
+              "species": "Bobolink",
+              "occurrences": 20
+            },
+            {
+              "species": "Chuck-will's-widow",
+              "occurrences": 17
+            },
+            {
+              "species": "Bachman's Sparrow",
+              "occurrences": 14
+            },
+            {
+              "species": "Eastern Whip-poor-will",
+              "occurrences": 5
+            },
+            {
+              "species": "Rusty Blackbird",
+              "occurrences": 4
+            },
+            {
+              "species": "Gymnocladus dioicus (L.) K.Koch",
+              "occurrences": 4
+            },
+            {
+              "species": "Antrostomus carolinensis (J.F.Gmelin, 1789)",
+              "occurrences": 3
+            },
+            {
+              "species": "Pinus palustris Mill.",
+              "occurrences": 3
+            }
+          ],
+          "warnings": [],
+          "status": "ok",
+          "retrieved_at": "2026-08-24T20:57:45.076538Z"
+        },
+        "nepa_assist": {
+          "summary": {
+            "total_checks": 41,
+            "yes_count": 13,
+            "no_count": 28,
+            "flagged_issues": [
+              "Within 1 mile of an impaired stream?",
+              "Within 1 mile of a waterbody?",
+              "Within 1 mile of a stream?",
+              "Within 1 mile of a Brownfields site?",
+              "Within 1 mile of a Superfund site?",
+              "Within 1 mile of a Toxic Release Inventory (TRI) site?",
+              "Within 1 mile of a water discharger (NPDES)?",
+              "Within 1 mile of a hazardous waste (RCRA) facility?",
+              "Within 1 mile of an air emission facility?",
+              "Within 1 mile of a school?",
+              "Within 1 mile of the service area of a mitigation or conservation bank?",
+              "Within 1 mile of the service area of an In-Lieu-Fee Program?",
+              "Within 1 mile of an Essential Fish Habitat (EFH)?"
+            ]
+          },
+          "categories": {
+            "air_quality": {
+              "Within 1 mile of an Ozone 1-hr (1979 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of an Ozone 8-hr (1997 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of an Ozone 8-hr (2008 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of an Ozone 8-hr (2015 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a Lead (2008 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a SO2 1-hr (2010 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a PM2.5 24hr (2006 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a PM2.5 Annual (1997 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a PM2.5 Annual (2012 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a PM10 (1987 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a CO Annual (1971 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a NO2 Annual (1971 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of an air emission facility?": "yes"
+            },
+            "water_resources": {
+              "Within 1 mile of an impaired stream?": "yes",
+              "Within 1 mile of an impaired waterbody?": "no",
+              "Within 1 mile of a waterbody?": "yes",
+              "Within 1 mile of a stream?": "yes",
+              "Within 1 mile of a water discharger (NPDES)?": "yes",
+              "Within 1 mile of an ESA-designated Critical Habitat river, stream or water feature per U.S. Fish & Wildlife Service?": "no"
+            },
+            "contaminated_sites": {
+              "Within 1 mile of a Brownfields site?": "yes",
+              "Within 1 mile of a Superfund site?": "yes",
+              "Within 1 mile of a Toxic Release Inventory (TRI) site?": "yes",
+              "Within 1 mile of a hazardous waste (RCRA) facility?": "yes",
+              "Within 1 mile of a tribal area (lower 48 states)?": "no"
+            },
+            "community_features": {
+              "Within 1 mile of a Federal Land?": "no",
+              "Within 1 mile of a school?": "yes",
+              "Within 1 mile of an airport?": "no",
+              "Within 1 mile of a hospital?": "no"
+            },
+            "natural_resources": {
+              "Within 1 mile of a designated sole source aquifer?": "no",
+              "Within 1 mile of the service area of a mitigation or conservation bank?": "yes",
+              "Within 1 mile of the service area of an In-Lieu-Fee Program?": "yes",
+              "Within 1 mile of an Essential Fish Habitat (EFH)?": "yes",
+              "Within 1 mile of a Habitat Area of Particular Concern (HAPC)?": "no",
+              "Within 1 mile of an EFH Area Protected from Fishing (EFHA)?": "no",
+              "Within 1 mile of a Bureau of Land Management Area of Critical Environmental Concern?": "no",
+              "Within 1 mile of an ESA-designated Critical Habitat Area per U.S. Fish & Wildlife Service?": "no"
+            },
+            "cultural_resources": {
+              "Within 1 mile of a historic property on the National Register of Historic Places?": "no",
+              "Within 1 mile of a Land Cession Boundary?": "no"
+            },
+            "other": {
+              "Within 1 mile of a Chemical Data Reporting (CDR) site?": "no",
+              "Within 1 mile of a Public Property Boundary of the Formerly Used Defense Sites?": "no",
+              "Within 1 mile of a Munitions Response Site?": "no"
+            }
+          },
+          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=DOE+site+E2E+%E2%80%94+D-Area+%E2%80%94+retired+coal+powerhouse+on+the+river&coords=-81.82103598299994%2C33.41105119500003%2C-81.64816401699994%2C33.41105119500003%2C-81.64816401699994%2C33.26594795600005%2C-81.82103598299994%2C33.26594795600005%2C-81.82103598299994%2C33.41105119500003&type=polygon&radius=1&unit=miles&f=report",
+          "status": "ok",
+          "retrieved_at": "2026-08-24T20:58:06.805927Z"
+        }
+      },
+      "geojson_url": "data/srs-nepa/srs-d-area.geojson",
+      "map_summary": {
+        "feature_count": 169,
+        "layers_ok": 14,
+        "layers_partial": 0,
+        "layers_failed": 0
+      },
       "corpus_record": null,
       "nearby_tracked": [
         {
@@ -556,9 +3473,979 @@
           "rationale": "Active high-level liquid-waste cleanup core (43 tanks pending closure through 2037-2041) plus H-Canyon processing \u2014 no reuse consideration before the mission completes. A mission timeline, not a permanent legal bar."
         }
       ],
-      "screening": {},
-      "geojson_url": null,
-      "map_summary": null,
+      "screening": {
+        "ipac": {
+          "species": [
+            {
+              "id": "Population$Sid[996]",
+              "common_name": "American chaffseed",
+              "scientific_name": "Schwalbea americana",
+              "short_name": "American chaffseed",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[976]",
+              "common_name": "Canby's dropwort",
+              "scientific_name": "Oxypolis canbyi",
+              "short_name": "Canby's dropwort",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[991]",
+              "common_name": "Harperella",
+              "scientific_name": "Ptilimnium nodosum",
+              "short_name": "Harperella",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[10710]",
+              "common_name": "Monarch butterfly",
+              "scientific_name": "Danaus plexippus",
+              "short_name": "Monarch butterfly",
+              "listing_status": "Proposed Threatened",
+              "listing_code": "PT",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[4284]",
+              "common_name": "Ocmulgee skullcap",
+              "scientific_name": "Scutellaria ocmulgee",
+              "short_name": "Ocmulgee skullcap",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[960]",
+              "common_name": "Pondberry",
+              "scientific_name": "Lindera melissifolia",
+              "short_name": "Pondberry",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[107]",
+              "common_name": "Red-cockaded woodpecker",
+              "scientific_name": "Dryobates borealis",
+              "short_name": "Red-cockaded woodpecker",
+              "listing_status": "Threatened",
+              "listing_code": "T",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[1042]",
+              "common_name": "Relict trillium",
+              "scientific_name": "Trillium reliquum",
+              "short_name": "Relict trillium",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[924]",
+              "common_name": "Smooth coneflower",
+              "scientific_name": "Echinacea laevigata",
+              "short_name": "Smooth coneflower",
+              "listing_status": "Threatened",
+              "listing_code": "T",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[1348]",
+              "common_name": "Southern hognose snake",
+              "scientific_name": "Heterodon simus",
+              "short_name": "Southern hognose snake",
+              "listing_status": "Proposed Threatened",
+              "listing_code": "PT",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[11365]",
+              "common_name": "Tricolored bat",
+              "scientific_name": "Perimyotis subflavus",
+              "short_name": "Tricolored bat",
+              "listing_status": "Proposed Endangered",
+              "listing_code": "PE",
+              "critical_habitat": "None"
+            }
+          ],
+          "migratory_birds": [
+            {
+              "common_name": "American Kestrel",
+              "scientific_name": "Falco sparverius",
+              "code": "AMKE",
+              "conservation_level": "BCC_BCR",
+              "bcc": false,
+              "breeds_from": "1972-04-01T00:00Z",
+              "breeds_to": "1972-08-31T00:00Z"
+            },
+            {
+              "common_name": "Bachman's Sparrow",
+              "scientific_name": "Peucaea aestivalis",
+              "code": "BACS",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-01T00:00Z",
+              "breeds_to": "1972-09-30T00:00Z"
+            },
+            {
+              "common_name": "Bald Eagle",
+              "scientific_name": "Haliaeetus leucocephalus",
+              "code": "BAEA",
+              "conservation_level": "NON_BCC_VULNERABLE",
+              "bcc": false,
+              "breeds_from": "1972-09-01T00:00Z",
+              "breeds_to": "1972-07-31T00:00Z"
+            },
+            {
+              "common_name": "Black-throated Green Warbler",
+              "scientific_name": "Setophaga virens",
+              "code": "BTNW",
+              "conservation_level": "BCC_BCR",
+              "bcc": false,
+              "breeds_from": "1972-05-01T00:00Z",
+              "breeds_to": "1972-08-15T00:00Z"
+            },
+            {
+              "common_name": "Brown-headed Nuthatch",
+              "scientific_name": "Sitta pusilla",
+              "code": "BHNU",
+              "conservation_level": "BCC_BCR",
+              "bcc": false,
+              "breeds_from": "1972-03-01T00:00Z",
+              "breeds_to": "1972-07-15T00:00Z"
+            },
+            {
+              "common_name": "Chimney Swift",
+              "scientific_name": "Chaetura pelagica",
+              "code": "CHSW",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-03-15T00:00Z",
+              "breeds_to": "1972-08-25T00:00Z"
+            },
+            {
+              "common_name": "Chuck-will's-widow",
+              "scientific_name": "Antrostomus carolinensis",
+              "code": "CWWI",
+              "conservation_level": "BCC_BCR",
+              "bcc": false,
+              "breeds_from": "1972-05-10T00:00Z",
+              "breeds_to": "1972-07-10T00:00Z"
+            },
+            {
+              "common_name": "Eastern Whip-poor-will",
+              "scientific_name": "Antrostomus vociferus",
+              "code": "EWPW",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-01T00:00Z",
+              "breeds_to": "1972-08-20T00:00Z"
+            },
+            {
+              "common_name": "Golden Eagle",
+              "scientific_name": "Aquila chrysaetos",
+              "code": "GOEA",
+              "conservation_level": "NON_BCC_VULNERABLE",
+              "bcc": false,
+              "breeds_from": null,
+              "breeds_to": null
+            },
+            {
+              "common_name": "Grasshopper Sparrow",
+              "scientific_name": "Ammodramus savannarum",
+              "code": "GRSP",
+              "conservation_level": "BCC_BCR",
+              "bcc": false,
+              "breeds_from": "1972-06-01T00:00Z",
+              "breeds_to": "1972-08-20T00:00Z"
+            },
+            {
+              "common_name": "Henslow's Sparrow",
+              "scientific_name": "Ammodramus henslowii",
+              "code": "HESP",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": null,
+              "breeds_to": null
+            },
+            {
+              "common_name": "Kentucky Warbler",
+              "scientific_name": "Geothlypis formosa",
+              "code": "KEWA",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-04-20T00:00Z",
+              "breeds_to": "1972-08-20T00:00Z"
+            },
+            {
+              "common_name": "Le Conte's Sparrow",
+              "scientific_name": "Ammodramus leconteii",
+              "code": "LCSP",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": null,
+              "breeds_to": null
+            },
+            {
+              "common_name": "Lesser Yellowlegs",
+              "scientific_name": "Tringa flavipes",
+              "code": "LEYE",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": null,
+              "breeds_to": null
+            },
+            {
+              "common_name": "Painted Bunting",
+              "scientific_name": "Passerina ciris",
+              "code": "PABU",
+              "conservation_level": "BCC_BCR",
+              "bcc": false,
+              "breeds_from": "1972-04-25T00:00Z",
+              "breeds_to": "1972-08-15T00:00Z"
+            },
+            {
+              "common_name": "Prairie Warbler",
+              "scientific_name": "Setophaga discolor",
+              "code": "PRAW",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-01T00:00Z",
+              "breeds_to": "1972-07-31T00:00Z"
+            },
+            {
+              "common_name": "Prothonotary Warbler",
+              "scientific_name": "Protonotaria citrea",
+              "code": "PROW",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-04-01T00:00Z",
+              "breeds_to": "1972-07-31T00:00Z"
+            },
+            {
+              "common_name": "Red-cockaded Woodpecker",
+              "scientific_name": "Picoides borealis",
+              "code": "RCWO",
+              "conservation_level": "NON_BCC_ESA",
+              "bcc": false,
+              "breeds_from": "1972-04-10T00:00Z",
+              "breeds_to": "1972-07-31T00:00Z"
+            },
+            {
+              "common_name": "Red-headed Woodpecker",
+              "scientific_name": "Melanerpes erythrocephalus",
+              "code": "RHWO",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-10T00:00Z",
+              "breeds_to": "1972-09-10T00:00Z"
+            },
+            {
+              "common_name": "Swallow-tailed Kite",
+              "scientific_name": "Elanoides forficatus",
+              "code": "STKI",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-03-10T00:00Z",
+              "breeds_to": "1972-06-30T00:00Z"
+            },
+            {
+              "common_name": "Wood Stork",
+              "scientific_name": "Mycteria americana",
+              "code": "WOST",
+              "conservation_level": "NON_BCC_ESA",
+              "bcc": false,
+              "breeds_from": "1972-12-01T00:00Z",
+              "breeds_to": "1972-08-31T00:00Z"
+            },
+            {
+              "common_name": "Wood Thrush",
+              "scientific_name": "Hylocichla mustelina",
+              "code": "WOTH",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-10T00:00Z",
+              "breeds_to": "1972-08-31T00:00Z"
+            }
+          ],
+          "wetlands": [
+            {
+              "code": "L1UBHh",
+              "system": "Lacustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PAB3Hh",
+              "system": "Palustrine",
+              "class": "Aquatic Bed",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1A",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1B",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1C",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1Cd",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1Ch",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1F",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1Fb",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1Fh",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/2C",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/2Ch",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/2F",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/2Fh",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/2Fx",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/3B",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/4A",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/4B",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/4C",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1A",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1Ah",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1B",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1C",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1Cb",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1Ch",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1F",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1Fb",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1Fh",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO3/1B",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO3C",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO4/3B",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO4A",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO4B",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO4C",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO7B",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1/2Fb",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1/4B",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1A",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1B",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1C",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1F",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1Fb",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS3B",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS3C",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS4B",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS4C",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBFx",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBH",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBHb",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBHh",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBHx",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUSAx",
+              "system": "Palustrine",
+              "class": "Unconsolidated Shore",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUSCx",
+              "system": "Palustrine",
+              "class": "Unconsolidated Shore",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "R2UBH",
+              "system": "Riverine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "R2UBHx",
+              "system": "Riverine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "R4SBC",
+              "system": "Riverine",
+              "class": "Streambed",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "R5UBH",
+              "system": "Riverine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            }
+          ],
+          "refuges": [],
+          "field_offices": [
+            {
+              "name": "South Carolina Ecological Services",
+              "code": ""
+            }
+          ],
+          "critical_habitat": [],
+          "marine_mammals": [],
+          "fish_hatcheries": [],
+          "coastal_barriers": {
+            "items": [],
+            "truncated": false
+          },
+          "counts": {
+            "listed_species": 11,
+            "critical_habitat": 0,
+            "migratory_birds": 22,
+            "wetland_types": 57,
+            "refuges": 0
+          },
+          "status": "ok",
+          "retrieved_at": "2026-08-24T20:54:57.629445Z"
+        },
+        "tribal": {
+          "count": 0,
+          "tribal_lands": [],
+          "warnings": [],
+          "status": "ok",
+          "retrieved_at": "2026-08-24T20:55:39.151312Z"
+        },
+        "nrhp": {
+          "count": 0,
+          "national_historic_landmarks": 0,
+          "properties": [],
+          "warnings": [],
+          "data_unavailable": false,
+          "status": "ok",
+          "retrieved_at": "2026-08-24T20:55:58.913869Z"
+        },
+        "padus": {
+          "query_buffer_miles": 0.1,
+          "count": 1,
+          "owner_types": {
+            "UNK": 1
+          },
+          "designation_types": {
+            "FOTH": 1
+          },
+          "largest_records": [
+            {
+              "owner_type": "UNK",
+              "owner_name": "UNK",
+              "manager_type": "FED",
+              "manager_name": "DOE",
+              "designation_type": "FOTH",
+              "unit_name": "Savannah River Site",
+              "state": "SC",
+              "gis_acres": 195398.0,
+              "gap_status": "4",
+              "iucn_category": "Unassigned",
+              "date_established": ""
+            }
+          ],
+          "records_truncated": 0,
+          "warnings": [],
+          "status": "ok",
+          "retrieved_at": "2026-08-24T20:56:48.553833Z"
+        },
+        "usace": {
+          "districts": [
+            {
+              "district_name": "US Army Engineer District, Charleston",
+              "district_abbreviation": "SAC",
+              "division_name": "South Atlantic Division",
+              "division_abbreviation": "CESAD",
+              "website_url": "http://www.sac.usace.army.mil/Missions/Regulatory.aspx",
+              "phone": "843-329-8044",
+              "address": "Charleston District Regulatory Office, 69 A Hagood Ave, Charleston, SC 29403"
+            }
+          ],
+          "wetland_regions": [
+            {
+              "region_name": "Atlantic and Gulf Coastal Plain",
+              "mlra_name": "Southern Coastal Plain",
+              "lrr_name": "South Atlantic and Gulf Slope Cash Crops, Forest, and Livestock Region",
+              "supplement_url": "https://usace.contentdm.oclc.org/digital/collection/p266001coll1/id/7605/"
+            }
+          ],
+          "wetland_subregions": [
+            {
+              "subregion_name": "LRR P, MLRA 137",
+              "subregion_code": "137",
+              "parent_region": "Atlantic and Gulf Coastal Plain",
+              "mlra_name": "Carolina and Georgia Sand Hills",
+              "lrr_name": "South Atlantic and Gulf Slope Cash Crops, Forest, and Livestock Region"
+            }
+          ],
+          "warnings": [],
+          "limitation": "District and delineation-region context only. This does not show wetland presence or make a Clean Water Act jurisdictional determination.",
+          "status": "ok",
+          "retrieved_at": "2026-08-24T20:57:15.142806Z"
+        },
+        "fema_nfhl": {
+          "status": "unavailable",
+          "error": "Failed to query FEMA NFHL API: ('Connection aborted.', ConnectionResetError(54, 'Connection reset by peer'))",
+          "retrieved_at": "2026-08-24T20:57:24.521398Z"
+        },
+        "gbif": {
+          "occurrence_count": 709,
+          "species_count": 22,
+          "by_threat_status": {
+            "Near Threatened": 521,
+            "Vulnerable": 186,
+            "Endangered": 2
+          },
+          "top_species": [
+            {
+              "species": "Common Grackle",
+              "occurrences": 152
+            },
+            {
+              "species": "Killdeer",
+              "occurrences": 140
+            },
+            {
+              "species": "Chimney Swift",
+              "occurrences": 125
+            },
+            {
+              "species": "Loggerhead Shrike",
+              "occurrences": 68
+            },
+            {
+              "species": "Eastern Meadowlark",
+              "occurrences": 40
+            },
+            {
+              "species": "Bachman's Sparrow",
+              "occurrences": 35
+            },
+            {
+              "species": "Northern Bobwhite",
+              "occurrences": 33
+            },
+            {
+              "species": "Bombus pensylvanicus (De Geer, 1773)",
+              "occurrences": 30
+            },
+            {
+              "species": "Horned Grebe",
+              "occurrences": 23
+            },
+            {
+              "species": "Chuck-will's-widow",
+              "occurrences": 19
+            },
+            {
+              "species": "Eastern Whip-poor-will",
+              "occurrences": 12
+            },
+            {
+              "species": "Lesser Yellowlegs",
+              "occurrences": 7
+            },
+            {
+              "species": "Least Sandpiper",
+              "occurrences": 6
+            },
+            {
+              "species": "Greater Yellowlegs",
+              "occurrences": 5
+            },
+            {
+              "species": "King Rail",
+              "occurrences": 3
+            }
+          ],
+          "warnings": [],
+          "status": "ok",
+          "retrieved_at": "2026-08-24T20:57:49.712169Z"
+        },
+        "nepa_assist": {
+          "summary": {
+            "total_checks": 41,
+            "yes_count": 10,
+            "no_count": 31,
+            "flagged_issues": [
+              "Within 1 mile of a waterbody?",
+              "Within 1 mile of a stream?",
+              "Within 1 mile of a Superfund site?",
+              "Within 1 mile of a Toxic Release Inventory (TRI) site?",
+              "Within 1 mile of a water discharger (NPDES)?",
+              "Within 1 mile of a hazardous waste (RCRA) facility?",
+              "Within 1 mile of an air emission facility?",
+              "Within 1 mile of a school?",
+              "Within 1 mile of the service area of a mitigation or conservation bank?",
+              "Within 1 mile of the service area of an In-Lieu-Fee Program?"
+            ]
+          },
+          "categories": {
+            "air_quality": {
+              "Within 1 mile of an Ozone 1-hr (1979 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of an Ozone 8-hr (1997 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of an Ozone 8-hr (2008 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of an Ozone 8-hr (2015 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a Lead (2008 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a SO2 1-hr (2010 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a PM2.5 24hr (2006 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a PM2.5 Annual (1997 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a PM2.5 Annual (2012 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a PM10 (1987 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a CO Annual (1971 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a NO2 Annual (1971 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of an air emission facility?": "yes"
+            },
+            "water_resources": {
+              "Within 1 mile of an impaired stream?": "no",
+              "Within 1 mile of an impaired waterbody?": "no",
+              "Within 1 mile of a waterbody?": "yes",
+              "Within 1 mile of a stream?": "yes",
+              "Within 1 mile of a water discharger (NPDES)?": "yes",
+              "Within 1 mile of an ESA-designated Critical Habitat river, stream or water feature per U.S. Fish & Wildlife Service?": "no"
+            },
+            "contaminated_sites": {
+              "Within 1 mile of a Brownfields site?": "no",
+              "Within 1 mile of a Superfund site?": "yes",
+              "Within 1 mile of a Toxic Release Inventory (TRI) site?": "yes",
+              "Within 1 mile of a hazardous waste (RCRA) facility?": "yes",
+              "Within 1 mile of a tribal area (lower 48 states)?": "no"
+            },
+            "community_features": {
+              "Within 1 mile of a Federal Land?": "no",
+              "Within 1 mile of a school?": "yes",
+              "Within 1 mile of an airport?": "no",
+              "Within 1 mile of a hospital?": "no"
+            },
+            "natural_resources": {
+              "Within 1 mile of a designated sole source aquifer?": "no",
+              "Within 1 mile of the service area of a mitigation or conservation bank?": "yes",
+              "Within 1 mile of the service area of an In-Lieu-Fee Program?": "yes",
+              "Within 1 mile of an Essential Fish Habitat (EFH)?": "no",
+              "Within 1 mile of a Habitat Area of Particular Concern (HAPC)?": "no",
+              "Within 1 mile of an EFH Area Protected from Fishing (EFHA)?": "no",
+              "Within 1 mile of a Bureau of Land Management Area of Critical Environmental Concern?": "no",
+              "Within 1 mile of an ESA-designated Critical Habitat Area per U.S. Fish & Wildlife Service?": "no"
+            },
+            "cultural_resources": {
+              "Within 1 mile of a historic property on the National Register of Historic Places?": "no",
+              "Within 1 mile of a Land Cession Boundary?": "no"
+            },
+            "other": {
+              "Within 1 mile of a Chemical Data Reporting (CDR) site?": "no",
+              "Within 1 mile of a Public Property Boundary of the Formerly Used Defense Sites?": "no",
+              "Within 1 mile of a Munitions Response Site?": "no"
+            }
+          },
+          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=DOE+site+E2E+%E2%80%94+F%2FH+Area+%E2%80%94+tank+farms+and+the+liquid-waste+core&coords=-81.72637828199998%2C33.35255188000008%2C-81.55362171799999%2C33.35255188000008%2C-81.55362171799999%2C33.207447272000024%2C-81.72637828199998%2C33.207447272000024%2C-81.72637828199998%2C33.35255188000008&type=polygon&radius=1&unit=miles&f=report",
+          "status": "ok",
+          "retrieved_at": "2026-08-24T20:58:13.192562Z"
+        }
+      },
+      "geojson_url": "data/srs-nepa/srs-fh-tank-farms.geojson",
+      "map_summary": {
+        "feature_count": 267,
+        "layers_ok": 14,
+        "layers_partial": 0,
+        "layers_failed": 0
+      },
       "corpus_record": null,
       "nearby_tracked": [
         {
@@ -629,9 +4516,1085 @@
           "rationale": "Formally designated WMA & Ecological Reserve inside the research-park set-aside \u2014 an administrative conservation designation DOE could in principle revisit, unlike a statutory monument, but a real bar as it stands."
         }
       ],
-      "screening": {},
-      "geojson_url": null,
-      "map_summary": null,
+      "screening": {
+        "ipac": {
+          "species": [
+            {
+              "id": "Population$Sid[996]",
+              "common_name": "American chaffseed",
+              "scientific_name": "Schwalbea americana",
+              "short_name": "American chaffseed",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[976]",
+              "common_name": "Canby's dropwort",
+              "scientific_name": "Oxypolis canbyi",
+              "short_name": "Canby's dropwort",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[991]",
+              "common_name": "Harperella",
+              "scientific_name": "Ptilimnium nodosum",
+              "short_name": "Harperella",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[10710]",
+              "common_name": "Monarch butterfly",
+              "scientific_name": "Danaus plexippus",
+              "short_name": "Monarch butterfly",
+              "listing_status": "Proposed Threatened",
+              "listing_code": "PT",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[960]",
+              "common_name": "Pondberry",
+              "scientific_name": "Lindera melissifolia",
+              "short_name": "Pondberry",
+              "listing_status": "Endangered",
+              "listing_code": "E",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[107]",
+              "common_name": "Red-cockaded woodpecker",
+              "scientific_name": "Dryobates borealis",
+              "short_name": "Red-cockaded woodpecker",
+              "listing_status": "Threatened",
+              "listing_code": "T",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[924]",
+              "common_name": "Smooth coneflower",
+              "scientific_name": "Echinacea laevigata",
+              "short_name": "Smooth coneflower",
+              "listing_status": "Threatened",
+              "listing_code": "T",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[1348]",
+              "common_name": "Southern hognose snake",
+              "scientific_name": "Heterodon simus",
+              "short_name": "Southern hognose snake",
+              "listing_status": "Proposed Threatened",
+              "listing_code": "PT",
+              "critical_habitat": "None"
+            },
+            {
+              "id": "Population$Sid[11365]",
+              "common_name": "Tricolored bat",
+              "scientific_name": "Perimyotis subflavus",
+              "short_name": "Tricolored bat",
+              "listing_status": "Proposed Endangered",
+              "listing_code": "PE",
+              "critical_habitat": "None"
+            }
+          ],
+          "migratory_birds": [
+            {
+              "common_name": "American Kestrel",
+              "scientific_name": "Falco sparverius",
+              "code": "AMKE",
+              "conservation_level": "BCC_BCR",
+              "bcc": false,
+              "breeds_from": "1972-04-01T00:00Z",
+              "breeds_to": "1972-08-31T00:00Z"
+            },
+            {
+              "common_name": "Bachman's Sparrow",
+              "scientific_name": "Peucaea aestivalis",
+              "code": "BACS",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-01T00:00Z",
+              "breeds_to": "1972-09-30T00:00Z"
+            },
+            {
+              "common_name": "Bald Eagle",
+              "scientific_name": "Haliaeetus leucocephalus",
+              "code": "BAEA",
+              "conservation_level": "NON_BCC_VULNERABLE",
+              "bcc": false,
+              "breeds_from": "1972-09-01T00:00Z",
+              "breeds_to": "1972-07-31T00:00Z"
+            },
+            {
+              "common_name": "Brown-headed Nuthatch",
+              "scientific_name": "Sitta pusilla",
+              "code": "BHNU",
+              "conservation_level": "BCC_BCR",
+              "bcc": false,
+              "breeds_from": "1972-03-01T00:00Z",
+              "breeds_to": "1972-07-15T00:00Z"
+            },
+            {
+              "common_name": "Chimney Swift",
+              "scientific_name": "Chaetura pelagica",
+              "code": "CHSW",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-03-15T00:00Z",
+              "breeds_to": "1972-08-25T00:00Z"
+            },
+            {
+              "common_name": "Chuck-will's-widow",
+              "scientific_name": "Antrostomus carolinensis",
+              "code": "CWWI",
+              "conservation_level": "BCC_BCR",
+              "bcc": false,
+              "breeds_from": "1972-05-10T00:00Z",
+              "breeds_to": "1972-07-10T00:00Z"
+            },
+            {
+              "common_name": "Eastern Whip-poor-will",
+              "scientific_name": "Antrostomus vociferus",
+              "code": "EWPW",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-01T00:00Z",
+              "breeds_to": "1972-08-20T00:00Z"
+            },
+            {
+              "common_name": "Golden Eagle",
+              "scientific_name": "Aquila chrysaetos",
+              "code": "GOEA",
+              "conservation_level": "NON_BCC_VULNERABLE",
+              "bcc": false,
+              "breeds_from": null,
+              "breeds_to": null
+            },
+            {
+              "common_name": "Grasshopper Sparrow",
+              "scientific_name": "Ammodramus savannarum",
+              "code": "GRSP",
+              "conservation_level": "BCC_BCR",
+              "bcc": false,
+              "breeds_from": "1972-06-01T00:00Z",
+              "breeds_to": "1972-08-20T00:00Z"
+            },
+            {
+              "common_name": "Henslow's Sparrow",
+              "scientific_name": "Ammodramus henslowii",
+              "code": "HESP",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": null,
+              "breeds_to": null
+            },
+            {
+              "common_name": "Kentucky Warbler",
+              "scientific_name": "Geothlypis formosa",
+              "code": "KEWA",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-04-20T00:00Z",
+              "breeds_to": "1972-08-20T00:00Z"
+            },
+            {
+              "common_name": "Le Conte's Sparrow",
+              "scientific_name": "Ammodramus leconteii",
+              "code": "LCSP",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": null,
+              "breeds_to": null
+            },
+            {
+              "common_name": "Lesser Yellowlegs",
+              "scientific_name": "Tringa flavipes",
+              "code": "LEYE",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": null,
+              "breeds_to": null
+            },
+            {
+              "common_name": "Painted Bunting",
+              "scientific_name": "Passerina ciris",
+              "code": "PABU",
+              "conservation_level": "BCC_BCR",
+              "bcc": false,
+              "breeds_from": "1972-04-25T00:00Z",
+              "breeds_to": "1972-08-15T00:00Z"
+            },
+            {
+              "common_name": "Prairie Warbler",
+              "scientific_name": "Setophaga discolor",
+              "code": "PRAW",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-01T00:00Z",
+              "breeds_to": "1972-07-31T00:00Z"
+            },
+            {
+              "common_name": "Prothonotary Warbler",
+              "scientific_name": "Protonotaria citrea",
+              "code": "PROW",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-04-01T00:00Z",
+              "breeds_to": "1972-07-31T00:00Z"
+            },
+            {
+              "common_name": "Red-cockaded Woodpecker",
+              "scientific_name": "Picoides borealis",
+              "code": "RCWO",
+              "conservation_level": "NON_BCC_ESA",
+              "bcc": false,
+              "breeds_from": "1972-04-10T00:00Z",
+              "breeds_to": "1972-07-31T00:00Z"
+            },
+            {
+              "common_name": "Red-headed Woodpecker",
+              "scientific_name": "Melanerpes erythrocephalus",
+              "code": "RHWO",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-05-10T00:00Z",
+              "breeds_to": "1972-09-10T00:00Z"
+            },
+            {
+              "common_name": "Swallow-tailed Kite",
+              "scientific_name": "Elanoides forficatus",
+              "code": "STKI",
+              "conservation_level": "BCC_RANGEWIDE_CON",
+              "bcc": false,
+              "breeds_from": "1972-03-10T00:00Z",
+              "breeds_to": "1972-06-30T00:00Z"
+            },
+            {
+              "common_name": "Wood Stork",
+              "scientific_name": "Mycteria americana",
+              "code": "WOST",
+              "conservation_level": "NON_BCC_ESA",
+              "bcc": false,
+              "breeds_from": "1972-12-01T00:00Z",
+              "breeds_to": "1972-08-31T00:00Z"
+            }
+          ],
+          "wetlands": [
+            {
+              "code": "L1UBHh",
+              "system": "Lacustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "L1UBHx",
+              "system": "Lacustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "L2AB3Fh",
+              "system": "Lacustrine",
+              "class": "Aquatic Bed",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "L2AB3Hh",
+              "system": "Lacustrine",
+              "class": "Aquatic Bed",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "L2AB4Hh",
+              "system": "Lacustrine",
+              "class": "Aquatic Bed",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "L2USCh",
+              "system": "Lacustrine",
+              "class": "Unconsolidated Shore",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PAB3Hh",
+              "system": "Palustrine",
+              "class": "Aquatic Bed",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PAB4Hh",
+              "system": "Palustrine",
+              "class": "Aquatic Bed",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1A",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1Ad",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1Ax",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1B",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1C",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1Cd",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1Ch",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1Cx",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1F",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1Fh",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PEM1Fx",
+              "system": "Palustrine",
+              "class": "Emergent",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/2C",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/2Ch",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/2F",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/2Fh",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/3A",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/3B",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/4A",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/4Ad",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/4B",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1/4C",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1A",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1Ad",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1Ax",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1B",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1Bd",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1C",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1Cd",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1Ch",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1F",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO1Fh",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO2Fh",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO3/1B",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO3/4B",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO3B",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO3C",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO4A",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO4B",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO4C",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PFO7B",
+              "system": "Palustrine",
+              "class": "Forested",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1/3B",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1/4A",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1/4B",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1A",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1Ad",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1B",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1C",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1Ch",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1F",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS1Fh",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS3B",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS4/1C",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS4A",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS4Ad",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS4B",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PSS4C",
+              "system": "Palustrine",
+              "class": "Scrub-Shrub",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBF",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBFx",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBH",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBHh",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUBHx",
+              "system": "Palustrine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUSA",
+              "system": "Palustrine",
+              "class": "Unconsolidated Shore",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUSC",
+              "system": "Palustrine",
+              "class": "Unconsolidated Shore",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "PUSCx",
+              "system": "Palustrine",
+              "class": "Unconsolidated Shore",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "R2UBH",
+              "system": "Riverine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "R2UBHx",
+              "system": "Riverine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "R4SBC",
+              "system": "Riverine",
+              "class": "Streambed",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            },
+            {
+              "code": "R5UBH",
+              "system": "Riverine",
+              "class": "Unconsolidated Bottom",
+              "water_regime": "Nontidal",
+              "shape": "Polygon"
+            }
+          ],
+          "refuges": [],
+          "field_offices": [
+            {
+              "name": "South Carolina Ecological Services",
+              "code": ""
+            }
+          ],
+          "critical_habitat": [],
+          "marine_mammals": [],
+          "fish_hatcheries": [],
+          "coastal_barriers": {
+            "items": [],
+            "truncated": false
+          },
+          "counts": {
+            "listed_species": 9,
+            "critical_habitat": 0,
+            "migratory_birds": 20,
+            "wetland_types": 76,
+            "refuges": 0
+          },
+          "status": "ok",
+          "retrieved_at": "2026-08-24T20:55:04.292672Z"
+        },
+        "tribal": {
+          "count": 0,
+          "tribal_lands": [],
+          "warnings": [],
+          "status": "ok",
+          "retrieved_at": "2026-08-24T20:55:48.179432Z"
+        },
+        "nrhp": {
+          "count": 0,
+          "national_historic_landmarks": 0,
+          "properties": [],
+          "warnings": [],
+          "data_unavailable": false,
+          "status": "ok",
+          "retrieved_at": "2026-08-24T20:56:01.943755Z"
+        },
+        "padus": {
+          "query_buffer_miles": 0.1,
+          "count": 1,
+          "owner_types": {
+            "UNK": 1
+          },
+          "designation_types": {
+            "FOTH": 1
+          },
+          "largest_records": [
+            {
+              "owner_type": "UNK",
+              "owner_name": "UNK",
+              "manager_type": "FED",
+              "manager_name": "DOE",
+              "designation_type": "FOTH",
+              "unit_name": "Savannah River Site",
+              "state": "SC",
+              "gis_acres": 195398.0,
+              "gap_status": "4",
+              "iucn_category": "Unassigned",
+              "date_established": ""
+            }
+          ],
+          "records_truncated": 0,
+          "warnings": [],
+          "status": "ok",
+          "retrieved_at": "2026-08-24T20:56:58.245792Z"
+        },
+        "usace": {
+          "districts": [
+            {
+              "district_name": "US Army Engineer District, Charleston",
+              "district_abbreviation": "SAC",
+              "division_name": "South Atlantic Division",
+              "division_abbreviation": "CESAD",
+              "website_url": "http://www.sac.usace.army.mil/Missions/Regulatory.aspx",
+              "phone": "843-329-8044",
+              "address": "Charleston District Regulatory Office, 69 A Hagood Ave, Charleston, SC 29403"
+            }
+          ],
+          "wetland_regions": [
+            {
+              "region_name": "Atlantic and Gulf Coastal Plain",
+              "mlra_name": "Southern Coastal Plain",
+              "lrr_name": "South Atlantic and Gulf Slope Cash Crops, Forest, and Livestock Region",
+              "supplement_url": "https://usace.contentdm.oclc.org/digital/collection/p266001coll1/id/7605/"
+            }
+          ],
+          "wetland_subregions": [
+            {
+              "subregion_name": "LRR P, MLRA 137",
+              "subregion_code": "137",
+              "parent_region": "Atlantic and Gulf Coastal Plain",
+              "mlra_name": "Carolina and Georgia Sand Hills",
+              "lrr_name": "South Atlantic and Gulf Slope Cash Crops, Forest, and Livestock Region"
+            }
+          ],
+          "warnings": [],
+          "limitation": "District and delineation-region context only. This does not show wetland presence or make a Clean Water Act jurisdictional determination.",
+          "status": "ok",
+          "retrieved_at": "2026-08-24T20:57:19.743953Z"
+        },
+        "fema_nfhl": {
+          "count": 3,
+          "zone_counts": {
+            "A": 1,
+            "X": 2
+          },
+          "sfha_count": 1,
+          "sfha_percentage": 33.3,
+          "truncated": false,
+          "warnings": [],
+          "status": "ok",
+          "retrieved_at": "2026-08-24T20:57:26.343824Z"
+        },
+        "gbif": {
+          "occurrence_count": 477,
+          "species_count": 20,
+          "by_threat_status": {
+            "Near Threatened": 299,
+            "Vulnerable": 172,
+            "Endangered": 6
+          },
+          "top_species": [
+            {
+              "species": "Chimney Swift",
+              "occurrences": 92
+            },
+            {
+              "species": "Killdeer",
+              "occurrences": 71
+            },
+            {
+              "species": "Common Grackle",
+              "occurrences": 68
+            },
+            {
+              "species": "Horned Grebe",
+              "occurrences": 40
+            },
+            {
+              "species": "Bachman's Sparrow",
+              "occurrences": 37
+            },
+            {
+              "species": "Northern Bobwhite",
+              "occurrences": 31
+            },
+            {
+              "species": "Bombus pensylvanicus (De Geer, 1773)",
+              "occurrences": 31
+            },
+            {
+              "species": "Loggerhead Shrike",
+              "occurrences": 29
+            },
+            {
+              "species": "Eastern Meadowlark",
+              "occurrences": 17
+            },
+            {
+              "species": "Chuck-will's-widow",
+              "occurrences": 16
+            },
+            {
+              "species": "Eastern Whip-poor-will",
+              "occurrences": 12
+            },
+            {
+              "species": "Lesser Yellowlegs",
+              "occurrences": 7
+            },
+            {
+              "species": "Pinus palustris Mill.",
+              "occurrences": 6
+            },
+            {
+              "species": "King Rail",
+              "occurrences": 5
+            },
+            {
+              "species": "Greater Yellowlegs",
+              "occurrences": 5
+            }
+          ],
+          "warnings": [],
+          "status": "ok",
+          "retrieved_at": "2026-08-24T20:57:52.777610Z"
+        },
+        "nepa_assist": {
+          "summary": {
+            "total_checks": 41,
+            "yes_count": 11,
+            "no_count": 30,
+            "flagged_issues": [
+              "Within 1 mile of a waterbody?",
+              "Within 1 mile of a stream?",
+              "Within 1 mile of a Superfund site?",
+              "Within 1 mile of a Toxic Release Inventory (TRI) site?",
+              "Within 1 mile of a water discharger (NPDES)?",
+              "Within 1 mile of a hazardous waste (RCRA) facility?",
+              "Within 1 mile of an air emission facility?",
+              "Within 1 mile of a school?",
+              "Within 1 mile of a Chemical Data Reporting (CDR) site?",
+              "Within 1 mile of the service area of a mitigation or conservation bank?",
+              "Within 1 mile of the service area of an In-Lieu-Fee Program?"
+            ]
+          },
+          "categories": {
+            "air_quality": {
+              "Within 1 mile of an Ozone 1-hr (1979 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of an Ozone 8-hr (1997 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of an Ozone 8-hr (2008 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of an Ozone 8-hr (2015 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a Lead (2008 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a SO2 1-hr (2010 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a PM2.5 24hr (2006 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a PM2.5 Annual (1997 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a PM2.5 Annual (2012 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a PM10 (1987 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a CO Annual (1971 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of a NO2 Annual (1971 standard) Non-Attainment/Maintenance Area?": "no",
+              "Within 1 mile of an air emission facility?": "yes"
+            },
+            "water_resources": {
+              "Within 1 mile of an impaired stream?": "no",
+              "Within 1 mile of an impaired waterbody?": "no",
+              "Within 1 mile of a waterbody?": "yes",
+              "Within 1 mile of a stream?": "yes",
+              "Within 1 mile of a water discharger (NPDES)?": "yes",
+              "Within 1 mile of an ESA-designated Critical Habitat river, stream or water feature per U.S. Fish & Wildlife Service?": "no"
+            },
+            "contaminated_sites": {
+              "Within 1 mile of a Brownfields site?": "no",
+              "Within 1 mile of a Superfund site?": "yes",
+              "Within 1 mile of a Toxic Release Inventory (TRI) site?": "yes",
+              "Within 1 mile of a hazardous waste (RCRA) facility?": "yes",
+              "Within 1 mile of a tribal area (lower 48 states)?": "no"
+            },
+            "community_features": {
+              "Within 1 mile of a Federal Land?": "no",
+              "Within 1 mile of a school?": "yes",
+              "Within 1 mile of an airport?": "no",
+              "Within 1 mile of a hospital?": "no"
+            },
+            "natural_resources": {
+              "Within 1 mile of a designated sole source aquifer?": "no",
+              "Within 1 mile of the service area of a mitigation or conservation bank?": "yes",
+              "Within 1 mile of the service area of an In-Lieu-Fee Program?": "yes",
+              "Within 1 mile of an Essential Fish Habitat (EFH)?": "no",
+              "Within 1 mile of a Habitat Area of Particular Concern (HAPC)?": "no",
+              "Within 1 mile of an EFH Area Protected from Fishing (EFHA)?": "no",
+              "Within 1 mile of a Bureau of Land Management Area of Critical Environmental Concern?": "no",
+              "Within 1 mile of an ESA-designated Critical Habitat Area per U.S. Fish & Wildlife Service?": "no"
+            },
+            "cultural_resources": {
+              "Within 1 mile of a historic property on the National Register of Historic Places?": "no",
+              "Within 1 mile of a Land Cession Boundary?": "no"
+            },
+            "other": {
+              "Within 1 mile of a Chemical Data Reporting (CDR) site?": "yes",
+              "Within 1 mile of a Public Property Boundary of the Formerly Used Defense Sites?": "no",
+              "Within 1 mile of a Munitions Response Site?": "no"
+            }
+          },
+          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=DOE+site+E2E+%E2%80%94+Crackerneck+WMA+%2F+Par+Pond+%E2%80%94+the+conservation+set-aside&coords=-81.60283440399996%2C33.30795240100008%2C-81.43016559599994%2C33.30795240100008%2C-81.43016559599994%2C33.162846751000075%2C-81.60283440399996%2C33.162846751000075%2C-81.60283440399996%2C33.30795240100008&type=polygon&radius=1&unit=miles&f=report",
+          "status": "ok",
+          "retrieved_at": "2026-08-24T20:58:19.686393Z"
+        }
+      },
+      "geojson_url": "data/srs-nepa/srs-crackerneck.geojson",
+      "map_summary": {
+        "feature_count": 207,
+        "layers_ok": 14,
+        "layers_partial": 0,
+        "layers_failed": 0
+      },
       "corpus_record": null,
       "nearby_tracked": [
         {

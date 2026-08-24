@@ -85,6 +85,44 @@ but currently persists across visits once un-dismissed), or keep it as-is if usa
 suggests it's still the more discoverable entry point for new visitors. Should be decided
 alongside the header/navigation IA rethink above, not in isolation.
 
+## DOE Sites tab follow-ups (2026-08-24, post-v2 restructure)
+
+Shipped 2026-08-24: the tab became "DOE Sites" (Hanford + SRS + Portsmouth +
+Paducah + WIPP through one code path — the first concrete step of the
+header/IA rethink's "group the curated tabs" direction without adding a
+tenth tab), answers-first layout, cited facility-fit matrix with per-cell
+constraints, unit drawer, seven-category infrastructure (nat-gas + T&D per
+user direction), AI-narrative disclosure, and full 8-source screens + map
+packages for all 17 new land units. Open follow-ups:
+
+- **[high] Quarterly re-audit of the four new dossiers** — these are the
+  fastest-moving curated rows in the repo (SRS's Amentum lease is
+  negotiation-stage; Paducah's KY PSC approval is pending; Portsmouth's
+  OPSB certificate + FAST-41 §401 deadline land late 2026; WIPP's NextEra
+  realty agreement is unsigned). Same cadence discipline as
+  `STATE_DC_REGULATION`; `curated-provenance-freshness` will WARN at 200
+  days regardless.
+- **[med] INL + Oak Ridge dossiers** — the two remaining Jul-2025 AI-DC
+  selections; `build_doe_sites_e2e.py` makes each ~a curation pack + one
+  SITES entry.
+- **[med] H1 parcel polygons** (carried from spec 11): representative
+  points are v1/v2's biggest honesty gap; NNSA hasn't published SRS tract
+  boundaries and DOE hasn't published campus parcels, so this stays
+  blocked on upstream for the new sites but EPA operable-unit polygons
+  exist for Hanford.
+- **[low] Unverified-figure re-checks**: Portsmouth's diverging campus job
+  figures (10k/2k DOE vs 35k/2.5k FAST-41 scope — presented both,
+  unreconciled); Paducah's 2031-vs-2032 completion; WIPP's current fill %
+  (42% is Apr-2023) and workforce (~1,100 is Jun-2017).
+
+## ~~Hanford tab — surface existing federal decision documents per parcel (2026-08-24)~~ — **Done 2026-08-24**
+
+Shipped as part of the DOE Sites v2 restructure: `_doeDecisionDocsHtml()`
+renders a "Prior federal decision documents" block in the unit drawer for
+parcels with a `corpus_site_id`, reusing the epa-superfund-docs join the
+app already loads (client-side only, exactly as scoped below). Original
+item kept for context:
+
 ## Hanford tab — surface existing federal decision documents per parcel (2026-08-24)
 
 nepa-mcp itself (the 19-server live capability census, `research/nepa-mcp-capability-census-2026-08.md`)

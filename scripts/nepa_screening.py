@@ -39,6 +39,7 @@ from __future__ import annotations
 import json
 import logging
 import socket
+import sys
 import threading
 import time
 from datetime import datetime, timezone
@@ -501,6 +502,32 @@ class SourceDef:
         self.invoke = invoke
 
 
+def purge_server_src_namespace() -> int:
+    """Drop nepa-mcp server-private ``src``/``src.*`` entries from sys.modules.
+
+    Every nepa-mcp 0.1.1 server ships its OWN ``src`` package, and whichever
+    server loads first claims the ``src`` name in sys.modules — after which
+    every other server's ``import src.apis.<x>_api`` resolves against the
+    WRONG server's package and fails (observed 2026-08-24: a cache-resumed
+    run loaded map_composer before the tabular servers, and every later
+    tabular load died with "No module named 'src.apis.ipac_api'", which was
+    then CACHED as unavailable). Purging before each load makes every server
+    re-import its own namespace; already-loaded modules keep their bound
+    references, so this is safe to call between loads. Returns the number of
+    entries removed (for the regression test)."""
+    stale = [m for m in sys.modules if m == "src" or m.startswith("src.")]
+    for name in stale:
+        del sys.modules[name]
+    return len(stale)
+
+
+def _isolated_load_server_module(server_name: str):
+    from nepa_mcp.loader import load_server_module
+
+    purge_server_src_namespace()
+    return load_server_module(server_name)
+
+
 def run_source_matrix(
     sites: Sequence[Mapping[str, Any]],
     source_defs: Iterable[SourceDef],
@@ -512,13 +539,12 @@ def run_source_matrix(
 
     ``module_loader`` exists so unit tests can inject fake server modules and
     exercise the caching / failure-isolation contract without Python 3.12 or
-    the network. Production callers leave it None and get nepa-mcp's loader.
+    the network. Production callers leave it None and get nepa-mcp's loader
+    (wrapped in the src-namespace purge — see purge_server_src_namespace).
     """
     if module_loader is None:
         verify_nepa_mcp_version()
-        from nepa_mcp.loader import load_server_module
-
-        module_loader = load_server_module
+        module_loader = _isolated_load_server_module
 
     results: dict = {site["id"]: {} for site in sites}
     for source in source_defs:
@@ -586,9 +612,7 @@ def collect_map_geojson(
             return cached
 
     if module_loader is None:
-        from nepa_mcp.loader import load_server_module
-
-        module_loader = load_server_module
+        module_loader = _isolated_load_server_module
 
     overrides = dict(layer_buffer_overrides or {})
     module = module_loader("map_composer")
