@@ -23,7 +23,7 @@ Rankings are evaluated on three dimensions: **Impact** (value to developers / ag
 [Aug-2026 industry sweep](research/industry-topical-2026-08.md) (X bookmarks via Chrome +
 UtilityDive / DOE / FERC / ERCOT / TVA primary sources + Volts / Open Circuit / Energy Gang).
 Substantive corrections landed in specs 04 / 08 / 09 (queue-mechanism names, FERC §206 timeline,
-Paducah = Brookfield/NextEra, Lewis Ridge = Rye 308 MW pumped storage, Colstrip life-extension,
+Paducah = Brookfield/NextEra, Lewis Ridge = Rye 266 MW pumped storage, Colstrip life-extension,
 provenance contracts with per-row `source_url` + `verified_at`, quarterly re-audit cadence); the
 implemented Spec 04/08 datasets were corrected in the same branch and are now guarded by
 `scripts/validate_data.py` checks `overlay-pydantic-schema` / `curated-provenance` /

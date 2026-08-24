@@ -221,7 +221,7 @@ can slip **in both directions** (early retirement < 202(c) extension < DC-driven
 | 05 Water | xAI Memphis + TVA >5 MW charge show water & power politics converging on the same metros; keep 7Q10 plan, add municipal-supply-politics note. |
 | 06 RE-Powering 190k | Add a verification step: confirm the dataset is still published under the current administration before building the connector. |
 | 07 Microreactor match | Aalo INL cadence supports it; unchanged scope. |
-| 08 Federal portfolio | Paducah = Brookfield/NextEra (2 GW gas + 2.6 GW BESS + 1.8 GW campus); SRS = Amentum; Portsmouth Mar-2026; Lewis Ridge = 308 MW pumped storage (Rye); per-row `verified_at`; NNSS office label fixed. |
+| 08 Federal portfolio | Paducah = Brookfield/NextEra (2 GW gas + 2.6 GW BESS + 1.8 GW campus); SRS = Amentum; Portsmouth Mar-2026; Lewis Ridge = 266 MW pumped storage (Rye, per the FERC FLA); per-row `verified_at`; NNSS office label fixed. |
 | 09 Queue + eCFR | Anchor to the FERC timeline (§403 Oct 2025 → PJM co-location Dec 2025 → §206 show-cause Jun 2026); replace the queue matrix with verified mechanisms per RTO; add DC-tariff tracking (TVA Aug 2026) to the quarterly re-audit scope. |
 
 ## Source index

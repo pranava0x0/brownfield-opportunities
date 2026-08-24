@@ -8,7 +8,7 @@ resolve (never a guessed slug — the v1 draft shipped two 404s) and a
 `verified_at` audit stamp. Facts re-verified 2026-08-23 against the industry
 sweep (research/industry-topical-2026-08.md §T6): Paducah's Brookfield /
 NextEra award (Jul 2026), SRS's Amentum selection, Portsmouth's Mar-2026
-announcement, and Lewis Ridge being Rye Development's 308 MW PUMPED-STORAGE
+announcement, and Lewis Ridge being Rye Development's 266 MW PUMPED-STORAGE
 project (not solar). Coordinates are reservation reference points, not parcel
 centroids. Re-audit quarterly — these programs move on political timelines.
 """

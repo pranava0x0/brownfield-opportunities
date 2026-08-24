@@ -17,7 +17,7 @@ Anchor facts as of 2026-08 (each row in the dataset carries its own `source_url`
 - **Idaho National Laboratory** and **Oak Ridge Reservation (ETTP)** — the other two of the four Jul-2025 flagship selections; ORR also hosts Kairos Hermes (lease executed via CROET).
 - **Portsmouth (OH)** — parallel announcement Mar 2026 (not one of the four flagships).
 - **Hanford, WIPP, NNSS** — the original 2023 Cleanup-to-Clean-Energy five (with INL and SRS); NNSS is **NNSA-managed** (label it so — not DOE-EM).
-- **CEML mine-lands awards** — **Mineral Basin Solar** (Swift Current, 402 MW, ~2,700 ac, Clearfield County PA) and **Lewis Ridge** (**Rye Development, 308 MW pumped-storage hydro** — *not* solar, *not* EDF; FERC license application + EIS NOI May 2026).
+- **CEML mine-lands awards** — **Mineral Basin Solar** (Swift Current, 402 MW, ~2,700 ac, Clearfield County PA) and **Lewis Ridge** (**Rye Development, 266 MW pumped-storage hydro** per the FERC Final License Application (earlier filings said 287 MW) — *not* solar, *not* EDF; FLA filed 2025, EIS NOI May 2026).
 
 Currently, these high-priority federal initiatives are referenced only in narrative notes. This initiative establishes a first-class curated dataset (`docs/data/federal-clean-energy.json`) and interactive map layer, joining them with our infrastructure proximity index.
 
