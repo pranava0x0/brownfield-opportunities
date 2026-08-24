@@ -84,9 +84,15 @@ FEDERAL_SITES_CATALOG: list[dict[str, Any]] = [
         "available_acreage": 8000.0,
         "target_technologies": ["solar_utility", "battery_storage", "nuclear_smr", "datacenter_ai"],
         "program_stage": "RFQ_Awarded",
-        "commercial_partner": "Hecate Energy (selected from 11 RFQ respondents; realty negotiations for up to 1 GW solar + storage)",
+        # 2026-08-24 re-verify: Hecate (selected from 11 RFQ respondents)
+        # sold the up-to-2-GW "Cereza" project to Savion in Feb 2026; DOE's
+        # first NEPA action (CX-034321, Aug 2025) covered the license
+        # agreement + Phase I ESA. Stage stays RFQ_Awarded — no lease
+        # execution has been announced.
+        "commercial_partner": "Savion (acquired the up-to-2-GW 'Cereza' solar+storage project from Hecate Energy, Feb 2026)",
         "solicitation_url": "https://www.energy.gov/articles/doe-announces-cleanup-clean-energy-project-hanford-site",
-        "nepa_review_document_url": None,
+        "nepa_review_document_url": "https://www.energy.gov/nepa/articles/cx-034321-hecate-energy-cereza-llc-license-agreement-and-categorical-exclusion",
+        "verified_at": "2026-08-24",
         "key_advantages": [
             "Original 2023 Cleanup-to-Clean-Energy site (with INL, SRS, WIPP, NNSS)",
             "Columbia River high-volume cooling-water corridor",
