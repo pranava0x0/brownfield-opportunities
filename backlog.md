@@ -37,6 +37,98 @@ string carries the caveat).
 
 ---
 
+## Header/navigation IA rethink (2026-08-24) — needs a real plan, not a quick pass
+
+The 2026-08-24 header pass (title/search/tabs/stats reordering, filters sidebar,
+tab-scoped visibility) treated the 9-tab strip as-is. It's worth stepping back and asking
+whether the tab structure itself is right, but that's a bigger IA question than a
+same-session UI tweak — **[med] scope a proper research + design pass before touching
+tab structure**:
+- The 9 tabs read as three different KINDS of thing today: (1) **corpus views** — Map,
+  Table, Rankings — all filter/sort the same 46,759-site dataset; (2) **curated
+  single-purpose analyses** — Retired Sites, Coal Reinvestment, Nuclear Siting,
+  Microreactors, Hanford — each its own hand-built dataset/scoring lens with no shared
+  filter state; (3) **About** — static reference. Worth asking whether the tab bar should
+  visually/structurally group these three kinds instead of presenting all 9 as peers.
+- **Table vs Rankings overlap.** Both are tabular views over the corpus (Table = raw
+  sortable/filterable rows; Rankings = DC/Gen/Mfg scored rows). Investigate whether these
+  could merge into one view (e.g. a "sort by" that includes the score lenses, or a toggle
+  within Table) rather than two separate tabs with separate code paths
+  (`buildCandidatesView()` vs the table renderer in `app.js`).
+- **"Back to map" flows.** Audit every click-through that should return the user to a
+  specific map state (site markers, `?site=` deep links, "Show features on map" buttons
+  scattered across Hanford/Coal/AP1000/Microreactors) and confirm they're all consistent
+  and discoverable — some curated tabs currently strand the user with no map-return
+  affordance beyond clicking "Map" and losing context.
+- **Landing/default page.** Currently Map is the hardcoded default (`which === "map"`
+  omits the URL hash). Worth deciding intentionally whether Map is still the best first
+  screen given how much curated-analysis content now exists alongside the corpus, or
+  whether a different landing experience (e.g. the JTBD strip promoted to a real landing
+  step) serves new visitors better.
+- This item is a placeholder for a **detailed plan + user-research pass**, not a spec to
+  implement directly — the actual IA decisions (merge/split/reorder) need real evidence
+  (usage data if available, or at least a structured walkthrough) before committing to a
+  new tab structure that every curated view's tests are coupled to.
+
+## "What are you siting?" (JTBD) strip — review relevance (2026-08-24)
+
+The `#jtbd-strip` quick-start chips (Data center / Power generation / Nuclear reactor /
+Factory — added v1.13.1+, grounded in 2026 speed-to-power research) route to a Rankings
+lens or the Nuclear Siting tab. **[low/med]** Revisit whether this strip earns its
+permanent header real estate now that the same routing is also reachable via the
+Rankings tab's own lens buttons (Data Center / Generation / Manufacturing) and the
+Nuclear Siting tab directly — i.e. the JTBD strip may now be a redundant second path to
+the same three destinations rather than the only path. Options to weigh: fold it into
+the landing/IA rethink above (a JTBD-first landing step instead of a persistent header
+strip), demote it to a first-visit-only prompt (it already has a dismiss + localStorage,
+but currently persists across visits once un-dismissed), or keep it as-is if usage
+suggests it's still the more discoverable entry point for new visitors. Should be decided
+alongside the header/navigation IA rethink above, not in isolation.
+
+## Hanford tab — surface existing federal decision documents per parcel (2026-08-24)
+
+nepa-mcp itself (the 19-server live capability census, `research/nepa-mcp-capability-census-2026-08.md`)
+does **not** expose historical EIS/EA/CE/FONSI/BO/BA document text or metadata — its
+`eis_boundaries` Map Composer layer only gives WHERE a past EIS review happened
+(a boundary polygon), never the document. The actual 120,000+ document NEPA corpus
+(SearchNEPA/ChatNEPA/NEPATEC) is PNNL's separate, un-integrated product — already tracked
+as the "[med] NEPATEC analogue finder" item above.
+
+**But a faster, already-available win exists**: Hanford's own NPL sub-sites (100-Area
+`WA3890090076`, 200-Area `WA1890090078`, 300-Area `WA2890090077`, and 1100-Area) are
+covered by the *existing*, unrelated `epa-superfund-docs` connector — checked
+2026-08-24, all three checked EPA_IDs already have **7–8 real documents each** in
+`docs/data/epa-superfund-docs.json`, including Records of Decision and Five-Year Reviews
+(CERCLA response-action history, not NEPA per se, but exactly the kind of "past federal
+decision document" a user asking this question wants). None of this is currently surfaced
+on the Hanford tab. **[med]** Client-side-only work — no new connector or nepa-mcp
+rebuild needed: in `scripts/build_hanford_e2e.py`, map each Hanford parcel whose land
+unit corresponds to one of the four NPL sub-areas to its EPA_ID (only some of the 9
+parcels are NPL sub-areas — the National Monument / historical park / industrial-park /
+solar-lease parcels aren't), carry that EPA_ID into `hanford-e2e.json`, and in
+`_hanfordParcelCard()` (`docs/app.js`) render a "Prior federal decision documents" block
+for parcels that have one, reusing the existing `epa-superfund-docs.json` join the rest
+of the app already loads via `ensureSuperfundDocsLoaded()`.
+
+---
+
+## Coal Reinvestment permitting screen — needs more detail (2026-08-24)
+
+The coal-tab drawer's NEPA screening block (`coal-nepa.json`, built via
+`scripts/build_coal_nepa.py` on top of the shared `scripts/nepa_screening.py`
+engine — same source matrix as Hanford/Janus) is a good first pass but thin
+relative to what the Hanford E2E dossier shows is possible for one site:
+today it's screening counts only, no permitting-pathway table (regime /
+applies-at-this-plant / authority, like `hanford-e2e.json`'s
+`permitting_pathways`), no per-plant opportunity fit narrative, and no
+"screening, not siting" honesty rail parity check against the Hanford tab's
+copy. **[med]** Bring the coal drawer's NEPA section up to the Hanford tab's
+level of detail — permitting pathway table, richer per-source finding text,
+and an explicit unavailable-≠-no-hit rail — using the same `nepa_screening.py`
+primitives so it doesn't fork the engine.
+
+---
+
 ## NEPA MCP integration — implemented core (2026-08-21)
 
 Researched PNNL's [`nepa-mcp`](https://pypi.org/project/nepa-mcp/) 0.1.1 (PermitAI

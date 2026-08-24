@@ -38,7 +38,13 @@ def test_hanford_tab_renders_nine_parcels_with_full_screen(page, base_url):
           return {
             cards: cards.length,
             managers: view.querySelectorAll('.hanford-mgr').length,
-            pathwayRows: view.querySelectorAll('.hanford-pathway-table tbody tr').length,
+            // Sources & methodology AND the facility-fit summary reuse the
+            // same .hanford-pathway-table look, so scope both out to count
+            // only the actual permitting table.
+            pathwayRows: view.querySelectorAll('.hanford-pathways:not(.hanford-sources):not(.hanford-facility-summary) .hanford-pathway-table tbody tr').length,
+            sourceRows: view.querySelectorAll('.hanford-sources .hanford-pathway-table tbody tr').length,
+            facilityConsiderationRows: view.querySelectorAll('.hanford-facility-considerations tbody tr').length,
+            facilityMatrixRows: view.querySelectorAll('.hanford-facility-matrix tbody tr').length,
             screenRows: first.querySelectorAll('.hanford-screen-table tbody tr').length,
             limitStrip: !!view.querySelector('.janus-limit'),
           };
@@ -47,8 +53,42 @@ def test_hanford_tab_renders_nine_parcels_with_full_screen(page, base_url):
     assert state["cards"] == 9
     assert state["managers"] == 5
     assert state["pathwayRows"] == 8
+    assert state["sourceRows"] == 11
+    assert state["facilityConsiderationRows"] == 4
+    assert state["facilityMatrixRows"] == 9
     assert state["screenRows"] == 10
     assert state["limitStrip"] is True
+
+
+def test_hanford_facility_fit_best_fit_ranking(page, base_url):
+    """2026-08-24: the facility-fit summary computes a "best fit" column
+    client-side from the curated per-type fit values (anchored > strong >
+    conditional > precluded). Pin the ranking logic against two parcels with
+    known, distinct outcomes so a future refactor of the ranking can't
+    silently invert or flatten it."""
+    _open_hanford(page, base_url)
+    result = page.evaluate(
+        """() => {
+          const rowText = (id) => {
+            const link = document.querySelector(`.hanford-facility-matrix a[href="#${id}"]`);
+            return link ? link.closest('tr').querySelector('.hanford-best-fit').textContent.trim() : null;
+          };
+          return {
+            energyNorthwest: rowText('hp-hanford-energy-northwest'),
+            area300: rowText('hp-hanford-300-area'),
+            area200: rowText('hp-hanford-200-area'),
+          };
+        }"""
+    )
+    # Energy Northwest: lwr_pwr and smr are both curated "anchored" (an
+    # operating reactor + an NRC-pre-application SMR) — tied best fit.
+    assert result["energyNorthwest"] == "Large reactor / SMR"
+    # 300 Area: microreactor is the sole "strong" fit; everything else is
+    # weaker — single best fit.
+    assert result["area300"] == "Microreactor"
+    # 200 Area: every facility type is curated "precluded" (active
+    # tank-waste mission) — the all-precluded tie lists all four.
+    assert result["area200"] == "Data center / Large reactor / SMR / Microreactor"
 
 
 def test_hanford_view_scrolls(page, base_url):

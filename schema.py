@@ -702,6 +702,21 @@ class HanfordOpportunity(BaseModel):
     rationale: str
 
 
+class HanfordFacilityFit(BaseModel):
+    """One row of the data-center-vs-reactor-class comparison on a Hanford
+    parcel — distinct from HanfordOpportunity's single combined
+    "advanced_nuclear" kind because each reactor tier has a different
+    licensing pathway, water draw, and footprint. Same fit vocabulary and
+    editorial-judgement contract as HanfordOpportunity.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["data_center", "lwr_pwr", "smr", "microreactor"]
+    fit: Literal["anchored", "strong", "conditional", "precluded"]
+    rationale: str
+
+
 class HanfordParcel(BaseModel):
     """One named sub-area of the Hanford Site in the E2E NEPA dossier.
 
@@ -742,6 +757,7 @@ class HanfordParcel(BaseModel):
     extra_sources: Optional[list[HanfordSourceLink]] = None
     verified_at: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}$")
     opportunities: list[HanfordOpportunity]
+    facility_fit: list[HanfordFacilityFit]
     # Generated (never curated) fields, present in the emitted JSON:
     screening: Optional[dict] = None
     geojson_url: Optional[str] = None

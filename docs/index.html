@@ -37,33 +37,33 @@
 <body>
 <a href="#main" class="skip-link">Skip to main content</a>
 <header class="topbar" role="banner">
-  <div class="topbar-row">
-  <div class="brand">
-    <h1>Brownfield Opportunities</h1>
-    <p class="sub" id="meta">Loading…</p>
-  </div>
-  <nav class="topbar-controls" aria-label="Toolbar">
-    <div class="search-wrap">
-      <label class="search">
-        <span class="search-icon" aria-hidden="true">⌕</span>
-        <input id="search" type="search" placeholder="Search sites…" aria-label="Search by name, city, county, or state" title="Search by name, city, county, or state" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="search-typeahead">
-      </label>
-      <ul id="search-typeahead" class="search-typeahead" role="listbox" aria-label="Matching sites" hidden></ul>
+  <div class="topbar-row topbar-row-brand">
+    <div class="brand">
+      <h1>Brownfield Opportunities</h1>
+      <span id="topbar-refresh" class="topbar-refresh"></span>
     </div>
-    <span id="search-count" class="search-count" aria-live="polite"></span>
-    <button id="filters-toggle" class="icon-btn" aria-expanded="false" aria-controls="filters" title="Filters">
-      <span aria-hidden="true">⚙</span><span class="sr-only">Filters</span>
-      <span id="filters-chip" class="chip-count" hidden aria-hidden="true">0</span>
-    </button>
-    <button id="export-csv" class="icon-btn" title="Export visible rows as CSV">
-      <span aria-hidden="true">↓</span><span class="sr-only">Export CSV</span>
-    </button>
-    <button id="share-link" class="icon-btn" title="Copy shareable link to clipboard">
-      <span aria-hidden="true">⎘</span><span class="sr-only">Copy shareable link</span>
-    </button>
-    <button id="theme-toggle" class="icon-btn" title="Toggle dark mode">
-      <span aria-hidden="true" id="theme-icon">☾</span><span class="sr-only">Toggle theme</span>
-    </button>
+    <nav class="topbar-controls" aria-label="Toolbar">
+      <div class="search-wrap" id="search-wrap">
+        <label class="search">
+          <span class="search-icon" aria-hidden="true">⌕</span>
+          <input id="search" type="search" placeholder="Search sites…" aria-label="Search by name, city, county, or state" title="Search by name, city, county, or state" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="search-typeahead">
+        </label>
+        <ul id="search-typeahead" class="search-typeahead" role="listbox" aria-label="Matching sites" hidden></ul>
+      </div>
+      <span id="search-count" class="search-count" aria-live="polite"></span>
+      <button id="filters-toggle" class="icon-btn" aria-expanded="false" aria-controls="filters" title="Filters">
+        <span aria-hidden="true">⚙</span><span class="sr-only">Filters</span>
+        <span id="filters-chip" class="chip-count" hidden aria-hidden="true">0</span>
+      </button>
+      <button id="export-csv" class="icon-btn" title="Export visible rows as CSV">
+        <span aria-hidden="true">↓</span><span class="sr-only">Export CSV</span>
+      </button>
+      <button id="theme-toggle" class="icon-btn" title="Toggle dark mode">
+        <span aria-hidden="true" id="theme-icon">☾</span><span class="sr-only">Toggle theme</span>
+      </button>
+    </nav>
+  </div>
+  <div class="topbar-row topbar-row-tabs">
     <div class="tabs" role="tablist" aria-label="View">
       <button id="tab-map" class="tab active" role="tab" aria-selected="true" aria-controls="view-map">Map</button>
       <button id="tab-table" class="tab" role="tab" aria-selected="false" aria-controls="view-table">Table</button>
@@ -75,7 +75,6 @@
       <button id="tab-hanford" class="tab" role="tab" aria-selected="false" aria-controls="view-hanford">Hanford</button>
       <button id="tab-about" class="tab" role="tab" aria-selected="false" aria-controls="view-about">About</button>
     </div>
-  </nav>
   </div>
   <details class="kpi-disclosure" id="kpi-disclosure">
     <summary class="kpi-summary" aria-label="Show headline metrics">
@@ -90,31 +89,27 @@
       </span>
       <span class="kpi-summary-chevron" aria-hidden="true"></span>
     </summary>
+    <p class="sub kpi-tagline" id="meta">Loading…</p>
     <div class="kpi-deck" id="kpi-deck" aria-label="Headline metrics">
       <div class="kpi" data-kpi="total">
         <span class="kpi-label">Sites tracked</span>
         <span class="kpi-num" id="kpi-total">—</span>
-        <span class="kpi-sub" id="kpi-total-sub">across 4 programs</span>
       </div>
       <div class="kpi" data-kpi="acreage">
         <span class="kpi-label">Acres tracked</span>
         <span class="kpi-num" id="kpi-acres">—</span>
-        <span class="kpi-sub" id="kpi-acres-sub">with reported area</span>
       </div>
       <div class="kpi" data-kpi="dc">
         <span class="kpi-label">Datacenter-ready</span>
         <span class="kpi-num" id="kpi-dc">—</span>
-        <span class="kpi-sub kpi-sub-strong" id="kpi-dc-sub" title="≥50 ac · power · water">≥50 ac · power · water</span>
       </div>
       <div class="kpi" data-kpi="hyperscale">
         <span class="kpi-label">Hyperscale-ready</span>
         <span class="kpi-num" id="kpi-hyperscale">—</span>
-        <span class="kpi-sub kpi-sub-strong" id="kpi-hyperscale-sub" title="≥100 ac · ≥230 kV · ≤1 mi">≥100 ac · ≥230 kV · ≤1 mi</span>
       </div>
       <div class="kpi" data-kpi="generation">
         <span class="kpi-label">Generation-ready</span>
         <span class="kpi-num" id="kpi-generation">—</span>
-        <span class="kpi-sub kpi-sub-strong" id="kpi-generation-sub" title="≥75 score · land · grid export">≥75 score · land · grid export</span>
       </div>
     </div>
   </details>
@@ -133,6 +128,7 @@
 </header>
 
 <div id="filters-backdrop" class="filters-backdrop" hidden aria-hidden="true"></div>
+<div class="app-body">
 <section id="filters" class="filters" hidden aria-label="Filters">
   <header class="filters-sheet-head" aria-hidden="true">
     <span class="filters-sheet-handle"></span>
@@ -398,7 +394,7 @@
     <div class="hanford-wrap">
       <div class="hanford-lead">
         <h2>Hanford end-to-end — one DOE site, every reuse outcome</h2>
-        <p>A worked example of what this dashboard plus <a href="https://github.com/pnnl/nepa-mcp" target="_blank" rel="noopener">PNNL's nepa-mcp</a> can say about a single federal cleanup site. Each named land unit of the 580-square-mile Hanford Site gets a ten-source environmental screen (USFWS <em>and</em> NOAA Fisheries lenses, tribal geography, historic properties, protected areas, USACE context, flood, biodiversity, EPA NEPAssist), the permitting and licensing pathways that would govern reuse, joins from this dashboard's own infrastructure enrichments, and an honest opportunity call — including where the answer is <strong>"this land is off the table."</strong> Screening evidence, never an agency determination.</p>
+        <p>A worked example of what this dashboard plus <a href="https://github.com/pnnl/nepa-mcp" target="_blank" rel="noopener">PNNL's nepa-mcp</a> can say about a single federal cleanup site — one land unit at a time, with an honest reuse call for each, including where the answer is <strong>"this land is off the table."</strong> Sources and methodology below; screening evidence, never an agency determination.</p>
       </div>
       <div id="hanford-content" aria-live="polite"><p class="muted">Loading Hanford dossier…</p></div>
     </div>
@@ -560,7 +556,7 @@
             <dd>Click any marker to open the site detail panel. Markers are sized by acreage. Zoom in to see all sites in a dense region — markers are decimated at low zoom for performance.</dd>
 
             <dt>Filters</dt>
-            <dd>The gear (⚙) button opens filters: program, NPL status, state, acreage, DC tier persona, Opportunity Zone, and DC candidate toggle. All filters round-trip via the URL — share a filtered view with the ⎘ button.</dd>
+            <dd>The gear (⚙) button opens filters: program, NPL status, state, acreage, DC tier persona, Opportunity Zone, and DC candidate toggle. All filters round-trip via the URL — copy the address bar to share a filtered view.</dd>
 
             <dt>Rankings tab</dt>
             <dd>Ranked table of all scored sites. Switch between the Data Center, Generation, and Manufacturing lenses; the global filters apply here too.</dd>
@@ -795,6 +791,7 @@
     </template>
   </section>
 </main>
+</div><!-- .app-body -->
 
 <aside id="detail" class="detail" hidden aria-hidden="true" aria-labelledby="detail-title" role="complementary">
   <button id="detail-close" class="close" aria-label="Close detail panel">×</button>
@@ -955,7 +952,6 @@
     </span>
   </details>
   <span class="footer-meta">
-    <span id="footer-refresh">Refreshed —</span> ·
     <a href="https://github.com/pranava0x0/brownfield-opportunities" target="_blank" rel="noopener">Open data on GitHub</a>
   </span>
 </footer>

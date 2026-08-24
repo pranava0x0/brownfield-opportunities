@@ -294,6 +294,65 @@ OPPORTUNITY_KINDS = {
     "heritage_tourism": "Heritage interpretation",
 }
 
+# Facility-fit summary — a dedicated data-center-vs-reactor-class comparison
+# distinct from the general `opportunities` list above (which already has a
+# single combined "advanced_nuclear" kind). Splitting the reactor class into
+# three tiers matters because each has a different licensing pathway, water
+# draw, footprint, and infrastructure precedent — the same technical axes
+# this dashboard's own dc-score.js / ap1000-score.js / microreactor-score.js
+# lenses already score the 46,759-site corpus on, applied qualitatively here
+# since Hanford's 9 curated land units aren't part of that corpus join.
+FACILITY_TYPES = {
+    "data_center": {
+        "label": "Data center",
+        "considerations": (
+            "Land + firm power + fiber. No NRC or DOE reactor authorization "
+            "needed, so it is the fastest of the four to build once power is "
+            "secured — but it competes for the same scarce federal-land "
+            "interconnection queue as everything else on this page."
+        ),
+        "source_url": "https://www.epa.gov/re-powering",
+        "verified_at": VERIFIED_AT,
+    },
+    "lwr_pwr": {
+        "label": "Large reactor (LWR/PWR)",
+        "considerations": (
+            "A ≥1,000 MWe-class unit (e.g. AP1000). Needs an NRC construction "
+            "permit and operating license — or DOE authorization on federal "
+            "land — roughly 27 MGD of cooling water per unit, a multi-mile "
+            "emergency planning zone, and is best sited where a high-voltage "
+            "switchyard and EPZ infrastructure already exist."
+        ),
+        "source_url": "https://www.energy.gov/sites/default/files/EIS-0476-FEIS_Part1-2012.pdf",
+        "verified_at": VERIFIED_AT,
+    },
+    "smr": {
+        "label": "Small modular reactor (SMR)",
+        "considerations": (
+            "A ~50-300 MWe modular unit (e.g. X-energy Xe-100). Same NRC/DOE "
+            "licensing track as a large reactor, but a smaller footprint, "
+            "lower water draw, and a tighter exclusion zone — the class "
+            "Energy Northwest's Cascade Advanced Energy Facility is pursuing "
+            "at Hanford (design-builder selected Oct 2025; NRC "
+            "pre-application, no construction-permit application filed yet)."
+        ),
+        "source_url": "https://www.energy-northwest.com/news-releases/energy-northwest-selects-design-builder-for-cascade-advanced-energy-facility-in-washington-state/",
+        "verified_at": VERIFIED_AT,
+    },
+    "microreactor": {
+        "label": "Microreactor",
+        "considerations": (
+            "A 1-20 MWe factory-built unit. DOE authorization (not NRC) is "
+            "the fast path on federal land, land is a 5-acre threshold "
+            "rather than a ranked factor, and the best fit is a defined "
+            "anchor load or a site without existing grid access — not simply "
+            "the largest available parcel."
+        ),
+        "source_url": "https://www.datacenterfrontier.com/energy/article/55232808/westinghouse-evinci-microreactor-could-yield-5-mw-of-nuclear-power-every-8-years-for-ai-data-centers",
+        "verified_at": VERIFIED_AT,
+    },
+}
+
 # Fit vocabulary rendered by the UI:
 #   anchored    — the opportunity is already committed/operating on the parcel
 #   strong      — evidence supports pursuing now
@@ -347,6 +406,22 @@ PARCELS = [
                 ),
             },
         ],
+        "facility_fit": [
+            {
+                "type": t,
+                "fit": "precluded",
+                "rationale": (
+                    "Cocooned reactor cores (interim safe storage, a "
+                    "~75-year DOE timeline) and an active groundwater "
+                    "remedy occupy the parcel today — not offered under "
+                    "DOE's current disposition plan for this facility type. "
+                    "That is a mission choice DOE could revisit, not a "
+                    "legal bar like the Monument's Antiquities Act "
+                    "protection next door."
+                ),
+            }
+            for t in FACILITY_TYPES
+        ],
     },
     {
         "id": "hanford-200-area",
@@ -389,6 +464,19 @@ PARCELS = [
                     "vitrification will occupy the plateau past mid-century."
                 ),
             },
+        ],
+        "facility_fit": [
+            {
+                "type": t,
+                "fit": "precluded",
+                "rationale": (
+                    "Industrial-Exclusive zoning protects the tank-waste "
+                    "mission; vitrification runs past mid-century, leaving "
+                    "no offerable footprint for any of these four facility "
+                    "types."
+                ),
+            }
+            for t in FACILITY_TYPES
         ],
     },
     {
@@ -433,6 +521,48 @@ PARCELS = [
                     "Gate: CERCLA 120(h) covenants for any transfer plus "
                     "remedy-compatibility review of the uranium plume. Horn "
                     "Rapids next door shows the demand exists."
+                ),
+            },
+        ],
+        "facility_fit": [
+            {
+                "type": "data_center",
+                "fit": "conditional",
+                "rationale": (
+                    "Land and grid access support it, but groundwater-remedy "
+                    "compatibility review gates any new foundation, and the "
+                    "CLUP points this corridor at R&D rather than industrial "
+                    "load."
+                ),
+            },
+            {
+                "type": "lwr_pwr",
+                "fit": "precluded",
+                "rationale": (
+                    "Too small at 1,500 acres and no existing nuclear "
+                    "infrastructure or emergency-planning zone — a large "
+                    "reactor here starts from zero, next to an active "
+                    "groundwater remedy."
+                ),
+            },
+            {
+                "type": "smr",
+                "fit": "conditional",
+                "rationale": (
+                    "Same remedy-compatibility gate as advanced manufacturing; "
+                    "a single small module could plausibly coexist with R&D "
+                    "use, but no SMR offering exists on this parcel today."
+                ),
+            },
+            {
+                "type": "microreactor",
+                "fit": "strong",
+                "rationale": (
+                    "Contiguous with PNNL — the DOE-mission R&D campus that "
+                    "builds nepa-mcp itself — a small footprint easily clears "
+                    "the 5-acre threshold, and federal ownership keeps the "
+                    "fast DOE-authorization licensing path open. The "
+                    "best-matched facility type for this parcel."
                 ),
             },
         ],
@@ -497,6 +627,48 @@ PARCELS = [
                     "center with its power request, but the same BPA "
                     "large-load queue paces it — and no federal AI-DC award "
                     "landed at Hanford in DOE's July 2025 selections."
+                ),
+            },
+        ],
+        "facility_fit": [
+            {
+                "type": "data_center",
+                "fit": "conditional",
+                "rationale": (
+                    "Atlas Agro has bundled a ~$500M data center with its "
+                    "power request, gated on the same BPA large-load queue "
+                    "as the fertilizer plant."
+                ),
+            },
+            {
+                "type": "lwr_pwr",
+                "fit": "precluded",
+                "rationale": (
+                    "Non-federal (transferred to Port of Benton / City of "
+                    "Richland), with no existing nuclear infrastructure or "
+                    "emergency-planning zone — a large reactor would need an "
+                    "NRC license built from scratch on land DOE no longer "
+                    "controls."
+                ),
+            },
+            {
+                "type": "smr",
+                "fit": "precluded",
+                "rationale": (
+                    "Same missing-infrastructure problem as a large reactor; "
+                    "the smaller footprint doesn't change the non-federal "
+                    "ownership or the absent licensing precedent."
+                ),
+            },
+            {
+                "type": "microreactor",
+                "fit": "conditional",
+                "rationale": (
+                    "Transferred land loses the fast DOE-authorization path "
+                    "(would need NRC instead), but Framatome's operating "
+                    "fuel-fabrication plant is exactly the kind of anchor "
+                    "industrial load a microreactor could serve if the "
+                    "economics clear NRC licensing."
                 ),
             },
         ],
@@ -565,6 +737,47 @@ PARCELS = [
                 ),
             },
         ],
+        "facility_fit": [
+            {
+                "type": "data_center",
+                "fit": "conditional",
+                "rationale": (
+                    "Amazon's TRi Energy Partnership exists precisely to pair "
+                    "new nuclear output with data-center load, but it's gated "
+                    "on the Xe-100 fleet reaching operation."
+                ),
+            },
+            {
+                "type": "lwr_pwr",
+                "fit": "anchored",
+                "rationale": (
+                    "Columbia Generating Station (1,236 MW) has operated here "
+                    "since the 1980s with its own 500 kV interconnection and "
+                    "emergency-planning zone already in place — the strongest "
+                    "possible precedent for a large reactor."
+                ),
+            },
+            {
+                "type": "smr",
+                "fit": "anchored",
+                "rationale": (
+                    "Energy Northwest's Cascade Advanced Energy Facility "
+                    "(Xe-100 modules, design-builder selected Oct 2025) is "
+                    "already under NRC pre-application review on this "
+                    "corridor."
+                ),
+            },
+            {
+                "type": "microreactor",
+                "fit": "conditional",
+                "rationale": (
+                    "Grid-connected and licensing-mature for large and "
+                    "modular reactors, but that's the opposite case a "
+                    "microreactor optimizes for — a demonstration unit is "
+                    "plausible here, but not the priority use."
+                ),
+            },
+        ],
     },
     {
         "id": "hanford-clean-energy-reservation",
@@ -629,6 +842,42 @@ PARCELS = [
                 ),
             },
         ],
+        "facility_fit": [
+            {
+                "type": "data_center",
+                "fit": "conditional",
+                "rationale": (
+                    "The offered acreage is earmarked for solar plus storage "
+                    "under an active DOE lease negotiation; a data center "
+                    "would need its own separate federal land offering."
+                ),
+            },
+            {
+                "type": "lwr_pwr",
+                "fit": "conditional",
+                "rationale": (
+                    "The same attributes that drew the solar RFQ (federal "
+                    "control, grid, water, workforce) apply to a large "
+                    "reactor, but no nuclear offering exists on this parcel "
+                    "today."
+                ),
+            },
+            {
+                "type": "smr",
+                "fit": "conditional",
+                "rationale": "Same reasoning as the large-reactor case, at smaller scale — no offering exists today.",
+            },
+            {
+                "type": "microreactor",
+                "fit": "conditional",
+                "rationale": (
+                    "8,000 acres is far more than any microreactor needs, "
+                    "and DOE's authorization pathway is available on this "
+                    "federal land, but the acreage is already committed to "
+                    "the solar lease negotiation."
+                ),
+            },
+        ],
     },
     {
         "id": "hanford-reach-monument",
@@ -674,6 +923,19 @@ PARCELS = [
                 ),
             },
         ],
+        "facility_fit": [
+            {
+                "type": t,
+                "fit": "precluded",
+                "rationale": (
+                    "National Monument proclamation, listed-species critical "
+                    "habitat, and treaty-era cultural landscapes foreclose "
+                    "any industrial or energy development, including this "
+                    "one."
+                ),
+            }
+            for t in FACILITY_TYPES
+        ],
     },
     {
         "id": "hanford-b-reactor",
@@ -710,6 +972,19 @@ PARCELS = [
                 ),
             },
         ],
+        "facility_fit": [
+            {
+                "type": t,
+                "fit": "precluded",
+                "rationale": (
+                    "Manhattan Project National Historical Park boundary and "
+                    "the Section 106 historic-preservation consultation it "
+                    "triggers rule out any new industrial or energy facility "
+                    "here, including this one."
+                ),
+            }
+            for t in FACILITY_TYPES
+        ],
     },
     {
         "id": "pnnl-campus",
@@ -744,6 +1019,19 @@ PARCELS = [
                     "workforce signal the AP1000 lens weights 15/100."
                 ),
             },
+        ],
+        "facility_fit": [
+            {
+                "type": t,
+                "fit": "precluded",
+                "rationale": (
+                    "An operating DOE Office of Science lab campus, not "
+                    "offerable industrial land — its value to this comparison "
+                    "is as the workforce anchor the nearby 300 Area's "
+                    "microreactor fit leans on."
+                ),
+            }
+            for t in FACILITY_TYPES
         ],
     },
 ]
@@ -994,6 +1282,14 @@ def validate_parcels() -> None:
                 raise SystemExit(f"{parcel['id']}: unknown opportunity kind {opp['kind']}")
             if opp["fit"] not in {"anchored", "strong", "conditional", "precluded"}:
                 raise SystemExit(f"{parcel['id']}: unknown fit {opp['fit']}")
+        facility_types = [ff["type"] for ff in parcel.get("facility_fit", [])]
+        if sorted(facility_types) != sorted(FACILITY_TYPES):
+            raise SystemExit(
+                f"{parcel['id']}: facility_fit must cover exactly {sorted(FACILITY_TYPES)}, got {sorted(facility_types)}"
+            )
+        for ff in parcel.get("facility_fit", []):
+            if ff["fit"] not in {"anchored", "strong", "conditional", "precluded"}:
+                raise SystemExit(f"{parcel['id']}: unknown facility_fit fit {ff['fit']}")
     if str(ROOT) not in sys.path:
         sys.path.insert(0, str(ROOT))
     try:
@@ -1115,6 +1411,7 @@ def write_output(
         "site_overview": SITE_OVERVIEW,
         "permitting_pathways": PERMITTING_PATHWAYS,
         "opportunity_kinds": OPPORTUNITY_KINDS,
+        "facility_types": FACILITY_TYPES,
         "limitations": LIMITATIONS,
         "sources": SOURCE_META,
         "parcels": out_parcels,
