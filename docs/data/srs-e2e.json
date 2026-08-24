@@ -1,0 +1,664 @@
+{
+  "generated_at": "2026-08-24T20:42:50.152609Z",
+  "nepa_mcp_version": "0.1.1",
+  "site_id": "srs",
+  "site_label": "Savannah River",
+  "screening_buffer_miles": 5.0,
+  "flood_radius_miles": 2.0,
+  "flood_unmapped_note": "NFHL coverage varies here \u2014 unmapped is not flood-free",
+  "parcel_count": 5,
+  "method": "PNNL nepa-mcp structured APIs and Map Composer layers, cached and rate-limited to at least 1.5 seconds between requests per host; curated parcel facts verified against primary sources; corpus fields joined from this project's own enrichment files.",
+  "narrative_note": "Narrative text in this dossier (site history, unit status, availability, and fit rationales) is AI-drafted from the primary sources cited on each row and human-verified against them on 2026-08-24. Numbers and dated facts each carry their citation; screening rows are live tool output, never prose. No text on this page is an agency determination.",
+  "site_overview": {
+    "name": "Savannah River Site",
+    "state": "SC",
+    "county": "Aiken / Barnwell / Allendale",
+    "size_sq_mi": 310,
+    "summary": "SRS produced plutonium and tritium for the weapons program from 1951 (five heavy-water reactors, all shut down by end of 1988) and now pairs the DOE-EM cleanup with expanding NNSA missions \u2014 sole-source tritium, and plutonium pit production in the former MOX building. NNSA became the site landlord on October 1, 2024, with EM continuing as the cleanup tenant. In July 2026 NNSA selected Amentum to negotiate a phased lease for a 1 GWe AI data center backed by ~2 GWe of co-located generation \u2014 gas first, transitioning to advanced nuclear \u2014 on 10 identified tracts totaling 3,103 acres.",
+    "managers": [
+      {
+        "role": "Landlord (since Oct 2024)",
+        "who": "NNSA Savannah River Field Office \u2014 site authority and stewardship; DOE-EM continues the cleanup mission as a tenant",
+        "url": "https://www.energy.gov/srs/articles/em-nnsa-landlord-transition-complete-savannah-river-site"
+      },
+      {
+        "role": "Regulators",
+        "who": "EPA Region 4 and the SC Dept. of Environmental Services (successor to DHEC's environmental programs, July 2024) under the Federal Facility Agreement effective Aug 16, 1993",
+        "url": "https://www.srs.gov/general/programs/soil/ffa/"
+      },
+      {
+        "role": "M&O contractor",
+        "who": "Savannah River Nuclear Solutions (through Sept 2026 + one option year); liquid waste: Savannah River Mission Completion; SRNL: Battelle Savannah River Alliance",
+        "url": "https://www.energy.gov/srs/savannah-river-site"
+      },
+      {
+        "role": "Research park",
+        "who": "The AEC designated 192,323 acres as the nation's first National Environmental Research Park (June 20, 1972); UGA's Savannah River Ecology Laboratory co-manages ecological research",
+        "url": "https://srel.uga.edu/"
+      }
+    ],
+    "land_use_plan": {
+      "label": "SRS Land Use Baseline Report (WSRC, 1995) + SRS Land Use Plan (updated May 2013)",
+      "url": "https://digital.library.unt.edu/ark:/67531/metadc626351/",
+      "note": "All SRS land is DOE-owned; use is governed by NEPA, RCRA, and CERCLA with the 1995 baseline report and later land-use plans as the framework documents."
+    }
+  },
+  "permitting_pathways": [
+    {
+      "regime": "CERCLA Federal Facility Agreement",
+      "applies": "Governs all environmental remediation across SRS's ~515 operable units (408 complete / 10 in remediation per the EPA profile). DOE leads remedial action with EPA Region 4 and SC DES concurrence; effective Aug 16, 1993.",
+      "authority": "EPA Region 4 + SC Dept. of Environmental Services + DOE",
+      "url": "https://www.srs.gov/general/programs/soil/ffa/"
+    },
+    {
+      "regime": "DOE reactor authorization (Atomic Energy Act)",
+      "applies": "Executive Order 14299 (May 23, 2025) directs DOE to use its authorization authority for privately funded advanced reactors on DOE sites \u2014 the pathway the Amentum project's gas-to-nuclear generation plan would lean on for any DOE-authorized unit; NRC licensing remains the alternative.",
+      "authority": "U.S. Department of Energy",
+      "url": "https://www.energy.gov/ne/articles/5-fast-facts-about-doe-reactor-authorization"
+    },
+    {
+      "regime": "SC PSC siting certificate (S.C. Code Title 58, Ch. 33)",
+      "applies": "A state certificate applies to SC-jurisdictional utilities building >75 MW generation or \u2265125 kV lines. Whether it reaches a behind-the-fence, non-utility project on the federal enclave is UNCONFIRMED \u2014 an open question, not a settled answer.",
+      "authority": "South Carolina Public Service Commission",
+      "url": "https://law.justia.com/codes/south-carolina/title-58/chapter-33/section-58-33-20/"
+    },
+    {
+      "regime": "DOE NEPA review",
+      "applies": "Any DOE realty action (the AI-DC lease tracts included) takes an EA/EIS or categorical exclusion under 10 CFR 1021; DOE has proposed a new categorical exclusion for advanced reactors on federal sites (Mar 2026 notice).",
+      "authority": "U.S. Department of Energy",
+      "url": "https://www.energy.gov/nepa/doe-categorical-exclusion-cx-determinations"
+    },
+    {
+      "regime": "Clean Water Act 404 / wetlands",
+      "applies": "SRS holds extensive Carolina-bay wetlands; construction touching jurisdictional waters needs USACE permitting. The screen below returns district and delineation-region context only \u2014 never a jurisdictional determination.",
+      "authority": "U.S. Army Corps of Engineers",
+      "url": "https://regulatory.ops.usace.army.mil/"
+    }
+  ],
+  "opportunity_kinds": {
+    "solar_storage": "Utility solar + storage",
+    "advanced_nuclear": "Advanced nuclear",
+    "ai_datacenter": "AI data center",
+    "advanced_manufacturing": "Advanced manufacturing",
+    "battery_storage": "Grid battery storage",
+    "research_campus": "Research / lab campus",
+    "conservation": "Conservation (status quo)",
+    "heritage_tourism": "Heritage interpretation",
+    "gas_generation": "Gas generation",
+    "hydrogen_ammonia": "Hydrogen / ammonia",
+    "nuclear_fuel_cycle": "Nuclear fuel cycle",
+    "waste_disposal": "Waste mission (operating)"
+  },
+  "facility_types": {
+    "data_center": {
+      "label": "Data center",
+      "considerations": "Land + firm power + fiber. No NRC or DOE reactor authorization needed, so it is the fastest of the four to build once power is secured \u2014 but it competes for the same scarce federal-land interconnection queue as everything else on this page.",
+      "source_url": "https://www.epa.gov/re-powering",
+      "verified_at": "2026-08-24"
+    },
+    "lwr_pwr": {
+      "label": "Large reactor (LWR/PWR)",
+      "considerations": "A \u22651,000 MWe-class unit (e.g. AP1000). Needs an NRC construction permit and operating license \u2014 or DOE authorization on federal land \u2014 roughly 27 MGD of cooling water per unit, a multi-mile emergency planning zone, and is best sited where a high-voltage switchyard and EPZ infrastructure already exist.",
+      "source_url": "https://www.energy.gov/sites/default/files/EIS-0476-FEIS_Part1-2012.pdf",
+      "verified_at": "2026-08-24"
+    },
+    "smr": {
+      "label": "Small modular reactor (SMR)",
+      "considerations": "A ~50-300 MWe modular unit. Same NRC/DOE licensing track as a large reactor, but a smaller footprint, lower water draw, and a tighter exclusion zone. Executive Order 14299 (May 23, 2025) directs DOE to use its authorization authority for privately funded advanced reactors on DOE sites \u2014 the pathway every 'advanced nuclear' plan on this page leans on.",
+      "source_url": "https://www.energy.gov/ne/articles/5-fast-facts-about-doe-reactor-authorization",
+      "verified_at": "2026-08-24"
+    },
+    "microreactor": {
+      "label": "Microreactor",
+      "considerations": "A 1-20 MWe factory-built unit. DOE authorization (not NRC) is the fast path on federal land, land is a 5-acre threshold rather than a ranked factor, and the best fit is a defined anchor load or a site without existing grid access \u2014 not simply the largest available parcel.",
+      "source_url": "https://www.datacenterfrontier.com/energy/article/55232808/westinghouse-evinci-microreactor-could-yield-5-mw-of-nuclear-power-every-8-years-for-ai-data-centers",
+      "verified_at": "2026-08-24"
+    }
+  },
+  "infrastructure": [
+    {
+      "category": "power_td",
+      "summary": "Dominion Energy South Carolina (formerly SCE&G) operates 115 and 230 kV transmission on the site, including the 151-1L switchyard; since the Oct 2024 landlord transition NNSA directly holds the site's utility contracts with Dominion, Ameresco, and CSX. Plant Vogtle's four-unit nuclear campus sits directly across the Savannah River in Burke County, GA.",
+      "source_label": "DOE \u2014 EM/NNSA landlord transition",
+      "source_url": "https://www.energy.gov/srs/articles/em-nnsa-landlord-transition-complete-savannah-river-site",
+      "extra_sources": [
+        {
+          "label": "DOE NEPA CX-022129 \u2014 SCE&G 115/230 kV lines on SRS",
+          "url": "https://www.energy.gov/nepa/articles/cx-022129-herbicide-application-sce-and-g-115-and-230-kv-electricity-transmission"
+        }
+      ],
+      "verified_at": "2026-08-24"
+    },
+    {
+      "category": "natural_gas",
+      "summary": "Carolina Gas Transmission (Berkshire Hathaway Energy) operates interstate gas infrastructure across Aiken and Barnwell counties, including an Aiken County compressor station \u2014 the most plausible supply for the Amentum project's gas-bridge generation. No public source specifies the lateral or interconnect that would serve the lease tracts.",
+      "source_label": "Rextag pipeline atlas \u2014 Carolina Gas Transmission",
+      "source_url": "https://rextag.com/pages/carolina-gas-transmission",
+      "verified_at": "2026-08-24"
+    },
+    {
+      "category": "water",
+      "summary": "The Savannah River at Augusta (USGS gauge 02197000, ~25 mi upstream) averages ~7,477 cfs over the last decade. The site cooled five production reactors from the river via Par Pond (built 1958-59, ~2,640 acres) and L-Lake (1985, ~988 acres); large-scale cooling withdrawal ended with reactor shutdown by 1988.",
+      "source_label": "USGS NWIS \u2014 gauge 02197000 statistics",
+      "source_url": "https://waterdata.usgs.gov/monitoring-location/USGS-02197000/statistics/",
+      "verified_at": "2026-08-24"
+    },
+    {
+      "category": "rail",
+      "summary": "The internal rail network originally exceeded 60 miles; less than half remains operational. The site interchanges with CSX at Dunbarton, and NNSA holds the CSX rail-service contract directly since the 2024 landlord transition.",
+      "source_label": "Savannah River Plant history (rail network)",
+      "source_url": "https://en.wikipedia.org/wiki/Savannah_River_Plant",
+      "extra_sources": [
+        {
+          "label": "DOE \u2014 NNSA holds the CSX contract",
+          "url": "https://www.energy.gov/srs/articles/em-nnsa-landlord-transition-complete-savannah-river-site"
+        }
+      ],
+      "verified_at": "2026-08-24"
+    },
+    {
+      "category": "road",
+      "summary": "SC-125 runs 17.3 miles through the site connecting Augusta, GA and Allendale, SC (a no-stopping zone inside the boundary); SC-19 links Aiken to the site and meets I-20 at Exit 18.",
+      "source_label": "SC Highway 125 (WSDOT-style route data)",
+      "source_url": "https://en.wikipedia.org/wiki/South_Carolina_Highway_125",
+      "verified_at": "2026-08-24"
+    },
+    {
+      "category": "workforce",
+      "summary": "13,510 employed at the site as of March 2026 (SRNS 6,969; SRMC 3,735; SRNL/BSRA 1,390), projected toward ~18,000 as plutonium pit production ramps. The Augusta-Richmond County GA-SC metro's civilian labor force was 270,500 (Dec 2025).",
+      "source_label": "Aiken Standard \u2014 SRS workforce growth",
+      "source_url": "https://www.postandcourier.com/aikenstandard/aikenstandard/news/savannah-river-site/savannah-river-site-workforce-growth/article_bf9f65d9-16bb-4bc4-9010-c12ad18a5f3d.html",
+      "extra_sources": [
+        {
+          "label": "FRED \u2014 Augusta MSA labor force",
+          "url": "https://fred.stlouisfed.org/series/AUGU213LFN"
+        }
+      ],
+      "verified_at": "2026-08-24"
+    }
+  ],
+  "limitations": [
+    "Coordinates are representative points inside named areas, not parcel boundaries.",
+    "Counts mean features intersect the screening buffer, not a project footprint.",
+    "No result is an agency determination, permit conclusion, or suitability score.",
+    "An unavailable source is never treated as a no-hit.",
+    "Opportunity and facility fits are curated editorial judgements with citations \u2014 screening evidence informs them, it does not compute them.",
+    "NFHL map coverage varies by county; zero mapped flood zones does not mean flood-free."
+  ],
+  "sources": {
+    "ipac": {
+      "label": "USFWS IPaC",
+      "url": "https://ipac.ecosphere.fws.gov/",
+      "covers": "ESA species, critical habitat, migratory birds, wetlands, refuges (USFWS lens)"
+    },
+    "tribal": {
+      "label": "Census TIGERweb AIANNHA",
+      "url": "https://tigerweb.geo.census.gov/tigerwebmain/TIGERweb_apps.html",
+      "covers": "mapped tribal geographies; treaty rights extend beyond mapped boundaries"
+    },
+    "nrhp": {
+      "label": "National Park Service NRHP",
+      "url": "https://www.nps.gov/subjects/nationalregister/database-research.htm",
+      "covers": "listed historic properties; not eligible-but-unlisted resources"
+    },
+    "padus": {
+      "label": "USGS PAD-US 4.1",
+      "url": "https://www.usgs.gov/programs/gap-analysis-project/science/pad-us-data-overview",
+      "covers": "protected-area context at the parcel reference point (0.1-mile query)"
+    },
+    "usace": {
+      "label": "USACE regulatory boundaries and wetland regions",
+      "url": "https://regulatory.ops.usace.army.mil/",
+      "covers": "district and delineation method; not wetland presence or jurisdiction"
+    },
+    "fema_nfhl": {
+      "label": "FEMA National Flood Hazard Layer",
+      "url": "https://www.fema.gov/flood-maps/national-flood-hazard-layer",
+      "covers": "mapped flood zones within 2 miles; much of Hanford is unmapped in NFHL \u2014 unmapped is not flood-free"
+    },
+    "gbif": {
+      "label": "GBIF threatened-species occurrences",
+      "url": "https://www.gbif.org/",
+      "covers": "presence-only observation records since 2000; absence of records is absence of observers"
+    },
+    "nepa_assist": {
+      "label": "EPA NEPAssist",
+      "url": "https://nepassisttool.epa.gov/nepassist/nepamap.aspx",
+      "covers": "environmental proximity flags from EPA screening services"
+    },
+    "map_composer": {
+      "label": "PNNL NEPA MCP Map Composer",
+      "url": "https://pnnl.github.io/nepa-mcp/",
+      "covers": "provenance-rich federal GIS features clipped to the screening buffer, incl. EPA EIS boundaries"
+    }
+  },
+  "parcels": [
+    {
+      "id": "srs-ai-lease-area",
+      "name": "AI data-center / energy lease tracts (10 tracts)",
+      "kind": "leased_energy",
+      "lat": 33.25,
+      "lon": -81.65,
+      "coord_note": "NNSA has not published tract boundaries; this is the site-level reference point, low-precision by design.",
+      "approx_acres": 3103,
+      "corpus_site_id": "SC1890008989",
+      "clup_designation": null,
+      "clup_note": "Ten tracts (81-570 acres each) designated for AI/energy leasing; one named tract, L-Area, currently stores used nuclear fuel \u2014 a constraint on that specific tract.",
+      "status": "NNSA identified 10 tracts totaling 3,103 acres and, on July 20, 2026, selected Amentum to enter phased lease negotiations for a 1 GWe AI data center backed by ~2 GWe of co-located generation \u2014 natural gas first, transitioning to advanced nuclear. Founding coalition members include DC BLOX, Milliken & Company, Google, and Nucor.",
+      "availability": "Not yet leased \u2014 the selection is explicitly not a final award; lease negotiation plus permitting, safety, and security reviews are the remaining gates.",
+      "source_url": "https://www.energy.gov/nnsa/articles/nnsa-selects-amentum-ai-data-center-and-energy-project-savannah-river-site",
+      "extra_sources": [
+        {
+          "label": "NEI Magazine \u2014 Amentum SRS AI campus (1 GWe + 2 GWe)",
+          "url": "https://www.neimagazine.com/news/amentum-to-develop-srs-ai-campus/"
+        }
+      ],
+      "verified_at": "2026-08-24",
+      "opportunities": [
+        {
+          "kind": "ai_datacenter",
+          "fit": "strong",
+          "rationale": "Amentum was selected July 20, 2026 to negotiate the lease \u2014 a committed direction, but selection is not a final award, so the executed lease is the gate."
+        },
+        {
+          "kind": "gas_generation",
+          "fit": "strong",
+          "rationale": "The announced ~2 GWe generation plan starts on natural gas as the bridge fuel; no supply lateral for the tracts has been publicly specified."
+        },
+        {
+          "kind": "advanced_nuclear",
+          "fit": "conditional",
+          "rationale": "The plan transitions to advanced nuclear, but no reactor vendor or design has been announced \u2014 technology selection and DOE/NRC authorization are the gates."
+        }
+      ],
+      "facility_fit": [
+        {
+          "type": "data_center",
+          "fit": "strong",
+          "constraint": "land",
+          "rationale": "This is the tracts' committed purpose \u2014 but NNSA's selection of Amentum is explicitly not a final award, so the executed lease (plus permitting, safety, and security review) is what separates strong from anchored."
+        },
+        {
+          "type": "lwr_pwr",
+          "fit": "conditional",
+          "constraint": "licensing",
+          "rationale": "The ~2 GWe co-located generation plan targets 'advanced nuclear' after a gas bridge, but no reactor class or vendor is announced; any GW-class unit still needs DOE authorization or an NRC license.",
+          "sources": [
+            {
+              "label": "NEI Magazine \u2014 gas bridge to advanced nuclear",
+              "url": "https://www.neimagazine.com/news/amentum-to-develop-srs-ai-campus/"
+            }
+          ]
+        },
+        {
+          "type": "smr",
+          "fit": "strong",
+          "constraint": "licensing",
+          "rationale": "SMR-class units fit the announced gas-to-nuclear plan and the EO 14299 DOE-authorization pathway; the gap is a finalized vendor/technology decision.",
+          "sources": [
+            {
+              "label": "DOE \u2014 reactor authorization fast facts",
+              "url": "https://www.energy.gov/ne/articles/5-fast-facts-about-doe-reactor-authorization"
+            }
+          ]
+        },
+        {
+          "type": "microreactor",
+          "fit": "strong",
+          "constraint": "licensing",
+          "rationale": "A microreactor could serve as an early, lower-risk demonstration ahead of the larger nuclear build-out under DOE's streamlined authorization \u2014 none is announced for SRS today."
+        }
+      ],
+      "screening": {},
+      "geojson_url": null,
+      "map_summary": null,
+      "corpus_record": {
+        "acreage": 234032.0,
+        "npl_status": "Currently on the Final NPL",
+        "npl_status_code": "F",
+        "profile_url": "https://www.epa.gov/superfund/savannah-river-site",
+        "transmission_mi": 0.3,
+        "transmission_kv": 115.0,
+        "substation_mi": 0.5,
+        "substation_kv": 115.0,
+        "rail_mi": 0.6,
+        "highway_mi": 23.7,
+        "gas_pipeline_mi": 9.4,
+        "flood_zone": "X",
+        "in_sfha": false,
+        "power_plant_mi": 5.3,
+        "power_plant_mw": 19.0,
+        "power_plant_fuel": "biomass",
+        "iso_rto": "non-RTO"
+      },
+      "nearby_tracked": [
+        {
+          "id": "ACRES-163625",
+          "name": "Brinkley Station",
+          "program": "brownfield",
+          "distance_mi": 9.2
+        },
+        {
+          "id": "ACRES-16073",
+          "name": "Campbells Service Center ",
+          "program": "brownfield",
+          "distance_mi": 9.9
+        }
+      ]
+    },
+    {
+      "id": "srs-a-m-area",
+      "name": "A/M Area \u2014 SRNL campus and the industrial-park question",
+      "kind": "context_campus",
+      "lat": 33.3428,
+      "lon": -81.7381,
+      "coord_note": "SRNL's published campus coordinate, northwest corner of the site near Jackson, SC.",
+      "approx_acres": 5000,
+      "corpus_site_id": null,
+      "clup_designation": null,
+      "clup_note": "SRNL campus is an active R&D mission; the adjacent ~5,000-acre industrial-park concept has no confirmed DOE land-use redesignation.",
+      "status": "Savannah River National Laboratory (~820,000 sq ft, operated by Battelle Savannah River Alliance) anchors the site's northwest corner; M-Area completed CERCLA closure in 2010. A community proposal (reported 2021) to convert ~5,000 acres near the boundary into an industrial park still requires a DOE land transfer that has not occurred.",
+      "availability": "SRNL campus is an operating DOE lab \u2014 not available. The industrial-park footprint is proposal-stage only, gated on a DOE land transfer plus ~$25M in water/sewer buildout.",
+      "source_url": "https://www.srnl.gov/fact-sheets/srnl-overview/",
+      "extra_sources": [
+        {
+          "label": "Post & Courier \u2014 SRS industrial-park proposal",
+          "url": "https://www.postandcourier.com/columbia/proposal-would-turn-chunk-of-srs-into-industrial-park-if-the-feds-will-give-back/article_125d73b6-2215-11ec-8758-23083e939004.html"
+        }
+      ],
+      "verified_at": "2026-08-24",
+      "opportunities": [
+        {
+          "kind": "research_campus",
+          "fit": "anchored",
+          "rationale": "SRNL is operating and growing \u2014 the workforce and R&D anchor every reuse plan on this page leans on."
+        },
+        {
+          "kind": "advanced_manufacturing",
+          "fit": "conditional",
+          "rationale": "The industrial-park concept has real regional backing but needs the unexecuted DOE land transfer and state-funded utilities first."
+        }
+      ],
+      "facility_fit": [
+        {
+          "type": "data_center",
+          "fit": "conditional",
+          "constraint": "land",
+          "rationale": "Real infrastructure and a long-standing push for an adjacent industrial park, but no data center is proposed here and the land transfer hasn't happened."
+        },
+        {
+          "type": "lwr_pwr",
+          "fit": "precluded",
+          "constraint": "mission",
+          "rationale": "SRNL is an active, mission-critical national-lab campus; no part of A/M Area is under consideration for utility-scale reactor siting."
+        },
+        {
+          "type": "smr",
+          "fit": "conditional",
+          "constraint": "land",
+          "rationale": "The broader site has SMR-partnership history (Holtec SMR-160 agreements, 2012-2020s \u2014 current status unconfirmed), but an SMR here needs both the unexecuted land transfer and a siting decision."
+        },
+        {
+          "type": "microreactor",
+          "fit": "strong",
+          "constraint": "licensing",
+          "rationale": "A lab-adjacent microreactor demonstration is plausible without the full land transfer, on the DOE-authorization path; none is announced."
+        }
+      ],
+      "screening": {},
+      "geojson_url": null,
+      "map_summary": null,
+      "corpus_record": null,
+      "nearby_tracked": [
+        {
+          "id": "ACRES-163625",
+          "name": "Brinkley Station",
+          "program": "brownfield",
+          "distance_mi": 2.8
+        },
+        {
+          "id": "ACRES-16073",
+          "name": "Campbells Service Center ",
+          "program": "brownfield",
+          "distance_mi": 3.3
+        }
+      ]
+    },
+    {
+      "id": "srs-d-area",
+      "name": "D-Area \u2014 retired coal powerhouse on the river",
+      "kind": "cleanup_area",
+      "lat": 33.3385,
+      "lon": -81.7346,
+      "coord_note": "Global Energy Monitor facility entry for the D-Area Power House.",
+      "approx_acres": 210,
+      "corpus_site_id": null,
+      "clup_designation": null,
+      "clup_note": "DOE-EM frames post-cleanup D-Area as 'prepared for industrial use if needed.'",
+      "status": "The 78.2 MW coal powerhouse (seven units, commissioned 1952) closed in 2012; ash basins and landfill were remediated from 2014. Roughly 60% of D-Area structures have been demolished, with the powerhouse building and water treatment plant among those remaining; solar installation is planned.",
+      "availability": "DOE-EM's stated goal is returning all 210 acres to a condition 'prepared for industrial use if needed' \u2014 the site's own reuse-ready brownfield.",
+      "source_url": "https://www.energy.gov/em/articles/reducing-footprints-increasing-opportunities-savannah-river-site",
+      "extra_sources": [
+        {
+          "label": "Global Energy Monitor \u2014 D-Area Power House",
+          "url": "https://www.gem.wiki/Savannah_River_D-Area_Power_House"
+        }
+      ],
+      "verified_at": "2026-08-24",
+      "opportunities": [
+        {
+          "kind": "solar_storage",
+          "fit": "strong",
+          "rationale": "DOE's own reporting says solar-panel installation is planned for the remediated footprint."
+        },
+        {
+          "kind": "advanced_manufacturing",
+          "fit": "conditional",
+          "rationale": "DOE-EM's 'prepared for industrial use' framing is the invitation; completing the remaining demolition is the gate."
+        }
+      ],
+      "facility_fit": [
+        {
+          "type": "data_center",
+          "fit": "strong",
+          "constraint": "land",
+          "rationale": "A 210-acre parcel with grid and river-water history that DOE-EM itself frames as reuse-ready; the nearest gate is finishing demolition, not a fundamental barrier."
+        },
+        {
+          "type": "lwr_pwr",
+          "fit": "conditional",
+          "constraint": "land",
+          "rationale": "210 acres is generally undersized for a conventional large-LWR campus with its exclusion area."
+        },
+        {
+          "type": "smr",
+          "fit": "strong",
+          "constraint": "licensing",
+          "rationale": "The acreage plausibly fits SMR units, and the parcel's former-powerhouse river-water and grid interconnection history is exactly the repowering pattern \u2014 no SMR is proposed here yet."
+        },
+        {
+          "type": "microreactor",
+          "fit": "strong",
+          "constraint": "licensing",
+          "rationale": "Fits easily within the remediated footprint, consistent with DOE's own industrial-reuse framing."
+        }
+      ],
+      "screening": {},
+      "geojson_url": null,
+      "map_summary": null,
+      "corpus_record": null,
+      "nearby_tracked": [
+        {
+          "id": "ACRES-163625",
+          "name": "Brinkley Station",
+          "program": "brownfield",
+          "distance_mi": 2.9
+        },
+        {
+          "id": "ACRES-16073",
+          "name": "Campbells Service Center ",
+          "program": "brownfield",
+          "distance_mi": 3.5
+        }
+      ]
+    },
+    {
+      "id": "srs-fh-tank-farms",
+      "name": "F/H Area \u2014 tank farms and the liquid-waste core",
+      "kind": "cleanup_core",
+      "lat": 33.28,
+      "lon": -81.64,
+      "coord_note": "Rough interpolation only \u2014 DOE describes the General Separations Area as 'north-central'; no public sub-area geocode exists.",
+      "approx_acres": 67,
+      "corpus_site_id": null,
+      "clup_designation": null,
+      "clup_note": "Active FFA-directed remediation area; long-term waste-management designation expected post-closure.",
+      "status": "51 underground waste tanks (22 in F, 29 in H); 8 operationally closed. Of the >165 million gallons of liquid waste historically generated, ~33 million gallons remain in storage (Feb 2026). The Salt Waste Processing Facility reached full operations in January 2021; the liquid-waste system plan targets all tanks operationally closed between 2037 and 2041.",
+      "availability": "None \u2014 the active cleanup core under the FFA, precluded until tank closure substantially completes (2037+), with land-use controls persisting after.",
+      "source_url": "https://www.energy.gov/em/articles/latest-srs-liquid-waste-system-plan-outlines-path-tank-closure",
+      "extra_sources": [
+        {
+          "label": "NRC \u2014 F-Area Tank Farm (WIR reviews)",
+          "url": "https://www.nrc.gov/waste/incidental-waste/wir-process/wir-locations/f-area-tank-farm"
+        }
+      ],
+      "verified_at": "2026-08-24",
+      "opportunities": [
+        {
+          "kind": "waste_disposal",
+          "fit": "anchored",
+          "rationale": "The liquid-waste mission IS this land's use for the next decade-plus; saying so keeps 'remaining land' honest."
+        }
+      ],
+      "facility_fit": [
+        {
+          "type": "data_center",
+          "fit": "precluded",
+          "constraint": "mission",
+          "rationale": "Active high-level liquid-waste cleanup core (43 tanks pending closure through 2037-2041) plus H-Canyon processing \u2014 no reuse consideration before the mission completes. A mission timeline, not a permanent legal bar."
+        },
+        {
+          "type": "lwr_pwr",
+          "fit": "precluded",
+          "constraint": "mission",
+          "rationale": "Active high-level liquid-waste cleanup core (43 tanks pending closure through 2037-2041) plus H-Canyon processing \u2014 no reuse consideration before the mission completes. A mission timeline, not a permanent legal bar."
+        },
+        {
+          "type": "smr",
+          "fit": "precluded",
+          "constraint": "mission",
+          "rationale": "Active high-level liquid-waste cleanup core (43 tanks pending closure through 2037-2041) plus H-Canyon processing \u2014 no reuse consideration before the mission completes. A mission timeline, not a permanent legal bar."
+        },
+        {
+          "type": "microreactor",
+          "fit": "precluded",
+          "constraint": "mission",
+          "rationale": "Active high-level liquid-waste cleanup core (43 tanks pending closure through 2037-2041) plus H-Canyon processing \u2014 no reuse consideration before the mission completes. A mission timeline, not a permanent legal bar."
+        }
+      ],
+      "screening": {},
+      "geojson_url": null,
+      "map_summary": null,
+      "corpus_record": null,
+      "nearby_tracked": [
+        {
+          "id": "SC1890008989",
+          "name": "SAVANNAH RIVER SITE (USDOE)",
+          "program": "superfund",
+          "distance_mi": 4.7
+        },
+        {
+          "id": "ACRES-163625",
+          "name": "Brinkley Station",
+          "program": "brownfield",
+          "distance_mi": 8.7
+        },
+        {
+          "id": "ACRES-16073",
+          "name": "Campbells Service Center ",
+          "program": "brownfield",
+          "distance_mi": 9.5
+        }
+      ]
+    },
+    {
+      "id": "srs-crackerneck",
+      "name": "Crackerneck WMA / Par Pond \u2014 the conservation set-aside",
+      "kind": "conservation",
+      "lat": 33.2354,
+      "lon": -81.5165,
+      "coord_note": "USGS gauge point below the Par Pond dam \u2014 the nearest confirmed public coordinate.",
+      "approx_acres": 10470,
+      "corpus_site_id": null,
+      "clup_designation": null,
+      "clup_note": "Wildlife Management Area & Ecological Reserve within the National Environmental Research Park set-aside.",
+      "status": "Crackerneck Wildlife Management Area & Ecological Reserve (10,470 acres, DOE-owned, SCDNR-managed under a 1987 agreement formalized by a 1999 DOE proclamation) holds old-growth river swamp and Carolina bays. Par Pond (built 1958-59, ~2,640 acres) and L-Lake (1985) are the former reactor-cooling reservoirs.",
+      "availability": "Not available for industrial or energy reuse \u2014 a conservation designation by DOE administrative action, which is a standing commitment rather than a statutory bar.",
+      "source_url": "https://public-lands-scdnr.hub.arcgis.com/pages/crackerneck-wma-ecological-reserve",
+      "verified_at": "2026-08-24",
+      "opportunities": [
+        {
+          "kind": "conservation",
+          "fit": "anchored",
+          "rationale": "Decades of SCDNR management and research set-aside status point one direction."
+        }
+      ],
+      "facility_fit": [
+        {
+          "type": "data_center",
+          "fit": "precluded",
+          "constraint": "land",
+          "rationale": "Formally designated WMA & Ecological Reserve inside the research-park set-aside \u2014 an administrative conservation designation DOE could in principle revisit, unlike a statutory monument, but a real bar as it stands."
+        },
+        {
+          "type": "lwr_pwr",
+          "fit": "precluded",
+          "constraint": "land",
+          "rationale": "Formally designated WMA & Ecological Reserve inside the research-park set-aside \u2014 an administrative conservation designation DOE could in principle revisit, unlike a statutory monument, but a real bar as it stands."
+        },
+        {
+          "type": "smr",
+          "fit": "precluded",
+          "constraint": "land",
+          "rationale": "Formally designated WMA & Ecological Reserve inside the research-park set-aside \u2014 an administrative conservation designation DOE could in principle revisit, unlike a statutory monument, but a real bar as it stands."
+        },
+        {
+          "type": "microreactor",
+          "fit": "precluded",
+          "constraint": "land",
+          "rationale": "Formally designated WMA & Ecological Reserve inside the research-park set-aside \u2014 an administrative conservation designation DOE could in principle revisit, unlike a statutory monument, but a real bar as it stands."
+        }
+      ],
+      "screening": {},
+      "geojson_url": null,
+      "map_summary": null,
+      "corpus_record": null,
+      "nearby_tracked": [
+        {
+          "id": "SC1890008989",
+          "name": "SAVANNAH RIVER SITE (USDOE)",
+          "program": "superfund",
+          "distance_mi": 7.0
+        },
+        {
+          "id": "FUDS-I04SC0093",
+          "name": "BARNWELL MUN ARPT",
+          "program": "fuds",
+          "distance_mi": 7.6
+        },
+        {
+          "id": "SCD003357589",
+          "name": "SHURON INC.",
+          "program": "superfund",
+          "distance_mi": 8.3
+        },
+        {
+          "id": "FUDS-I04SC0999",
+          "name": "BARNWELL POW CAMP",
+          "program": "fuds",
+          "distance_mi": 9.6
+        }
+      ]
+    }
+  ]
+}

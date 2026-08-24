@@ -83,6 +83,10 @@ OVERLAY_FILES = [
     "coal-nepa.json",
     "federal-clean-energy.json",
     "hanford-e2e.json",
+    "srs-e2e.json",
+    "portsmouth-e2e.json",
+    "paducah-e2e.json",
+    "wipp-e2e.json",
     "microreactor-fleet.json",
     "nuclear-brownfield-proximity.json",
     "nuclear-civilian-sites.json",
@@ -1681,6 +1685,10 @@ OVERLAY_SCHEMA_FILES = {
     "coal-conversions-proximity.json": ("CoalConversionProximityRecord", "matches"),
     "federal-clean-energy.json": ("FederalCleanEnergySite", "sites"),
     "hanford-e2e.json": ("HanfordParcel", "parcels"),
+    "srs-e2e.json": ("HanfordParcel", "parcels"),
+    "portsmouth-e2e.json": ("HanfordParcel", "parcels"),
+    "paducah-e2e.json": ("HanfordParcel", "parcels"),
+    "wipp-e2e.json": ("HanfordParcel", "parcels"),
 }
 
 # Curated overlays whose every row must carry the provenance pair
@@ -1690,6 +1698,10 @@ CURATED_PROVENANCE_FILES = {
     "coal-conversions.json": ("assets", "source_url", "verified_at"),
     "federal-clean-energy.json": ("sites", "solicitation_url", "verified_at"),
     "hanford-e2e.json": ("parcels", "source_url", "verified_at"),
+    "srs-e2e.json": ("parcels", "source_url", "verified_at"),
+    "portsmouth-e2e.json": ("parcels", "source_url", "verified_at"),
+    "paducah-e2e.json": ("parcels", "source_url", "verified_at"),
+    "wipp-e2e.json": ("parcels", "source_url", "verified_at"),
 }
 
 

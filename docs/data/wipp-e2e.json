@@ -1,0 +1,403 @@
+{
+  "generated_at": "2026-08-24T20:42:50.203739Z",
+  "nepa_mcp_version": "0.1.1",
+  "site_id": "wipp",
+  "site_label": "WIPP",
+  "screening_buffer_miles": 5.0,
+  "flood_radius_miles": 2.0,
+  "flood_unmapped_note": "NFHL coverage varies here \u2014 unmapped is not flood-free",
+  "parcel_count": 2,
+  "method": "PNNL nepa-mcp structured APIs and Map Composer layers, cached and rate-limited to at least 1.5 seconds between requests per host; curated parcel facts verified against primary sources; corpus fields joined from this project's own enrichment files.",
+  "narrative_note": "Narrative text in this dossier (site history, unit status, availability, and fit rationales) is AI-drafted from the primary sources cited on each row and human-verified against them on 2026-08-24. Numbers and dated facts each carry their citation; screening rows are live tool output, never prose. No text on this page is an agency determination.",
+  "site_overview": {
+    "name": "Waste Isolation Pilot Plant",
+    "state": "NM",
+    "county": "Eddy",
+    "size_sq_mi": 16,
+    "summary": "WIPP is the nation's only operating deep geologic repository, emplacing defense transuranic waste 2,150 feet down in the Salado salt since 1999 on a 16-section (10,240-acre) federal land withdrawal, with DOE anticipating operations beyond 2050. The reuse story is the withdrawal's balance: DOE's Cleanup-to-Clean-Energy program identified ~9,000 acres for carbon-free energy (naming solar, wind, AND nuclear), and selected NextEra in September 2024 to negotiate a solar + storage lease. Water \u2014 not land \u2014 is the binding constraint: WIPP's own supply is capped at 6.6 million gallons per YEAR, piped 31 miles from Carlsbad.",
+    "managers": [
+      {
+        "role": "Operator (site owner)",
+        "who": "DOE-EM Carlsbad Field Office; M&O contractor Salado Isolation Mining Contractors (Bechtel-led, contract extended Dec 2025)",
+        "url": "https://www.energy.gov/em/waste-isolation-pilot-plant-wipp"
+      },
+      {
+        "role": "State regulator",
+        "who": "NM Environment Department \u2014 RCRA hazardous waste permit (effective Nov 3, 2023; a 2026 revision dedicates 55% of disposal volume to LANL legacy waste through 2031, rising to 75%)",
+        "url": "https://www.env.nm.gov/hazardous-waste/wipp/"
+      },
+      {
+        "role": "Federal certifier",
+        "who": "EPA certifies long-term disposal safety under 40 CFR 191/194 every five years (last recertified May 3, 2022; next application due by Nov 26, 2026)",
+        "url": "https://www.epa.gov/radiation/certification-and-recertification-wipp"
+      },
+      {
+        "role": "Surface administration",
+        "who": "BLM administers grazing and secondary surface uses on the withdrawal balance, subject to DOE's statutory jurisdiction and WIPP-purpose priority",
+        "url": "https://www.emnrd.nm.gov/wipp-transportation-safety-program/frequently-asked-questions-about-wipp/"
+      }
+    ],
+    "land_use_plan": {
+      "label": "WIPP Land Withdrawal Act (P.L. 102-579, 1992) + WIPP Land Management Plan",
+      "url": "https://www.congress.gov/102/statute/STATUTE-106/STATUTE-106-Pg4777.pdf",
+      "note": "The Act withdrew the 16 sections from mining and mineral leasing, gave WIPP purposes priority, and lets the Secretary permit non-WIPP uses \u2014 the authority DOE exercised for the 2024 clean-energy solicitation."
+    }
+  },
+  "permitting_pathways": [
+    {
+      "regime": "WIPP Land Withdrawal Act",
+      "applies": "Governs all use of the 10,240-acre withdrawal: land is withdrawn from mining and mineral leasing, WIPP purposes have priority, and the Secretary of Energy may permit non-WIPP uses \u2014 the basis for the clean-energy leasing.",
+      "authority": "U.S. DOE (Secretary of Energy) under P.L. 102-579",
+      "url": "https://www.congress.gov/102/statute/STATUTE-106/STATUTE-106-Pg4777.pdf"
+    },
+    {
+      "regime": "NMED RCRA hazardous waste permit",
+      "applies": "Regulates the hazardous component of TRU mixed waste (co-permittees DOE + SIMCO); the current permit took effect Nov 3, 2023 and a 2026 revision mandates higher LANL legacy-waste shares.",
+      "authority": "New Mexico Environment Department",
+      "url": "https://www.env.nm.gov/hazardous-waste/wipp/"
+    },
+    {
+      "regime": "EPA 40 CFR 191/194 certification",
+      "applies": "Certifies 10,000-year disposal safety on a five-year recertification cycle; the next compliance application is due on or before November 26, 2026. Physical repository changes route through EPA Planned Change Requests \u2014 most recently the July 31, 2025 approval of replacement Panels 11 and 12.",
+      "authority": "U.S. EPA",
+      "url": "https://www.epa.gov/radiation/certification-and-recertification-wipp"
+    },
+    {
+      "regime": "NM PRC siting review",
+      "applies": "New Mexico's certificate requirement attaches to 'public utilities' serving the public; a merchant clean-energy project on federal land likely falls outside it \u2014 a legal INFERENCE flagged as such, not a confirmed determination.",
+      "authority": "NM Public Regulation Commission (jurisdiction uncertain)",
+      "url": "https://codes.findlaw.com/nm/chapter-62-electric-gas-and-water-utilities/nm-st-sect-62-9-3/"
+    },
+    {
+      "regime": "DOE NEPA review",
+      "applies": "Any DOE realty action on the withdrawal (a clean-energy lease included) requires NEPA review; no WIPP-solar EA or CX had been published as of August 2026, consistent with the NextEra project still being in realty negotiation.",
+      "authority": "U.S. Department of Energy",
+      "url": "https://www.energy.gov/nepa/doe-categorical-exclusion-cx-determinations"
+    }
+  ],
+  "opportunity_kinds": {
+    "solar_storage": "Utility solar + storage",
+    "advanced_nuclear": "Advanced nuclear",
+    "ai_datacenter": "AI data center",
+    "advanced_manufacturing": "Advanced manufacturing",
+    "battery_storage": "Grid battery storage",
+    "research_campus": "Research / lab campus",
+    "conservation": "Conservation (status quo)",
+    "heritage_tourism": "Heritage interpretation",
+    "gas_generation": "Gas generation",
+    "hydrogen_ammonia": "Hydrogen / ammonia",
+    "nuclear_fuel_cycle": "Nuclear fuel cycle",
+    "waste_disposal": "Waste mission (operating)"
+  },
+  "facility_types": {
+    "data_center": {
+      "label": "Data center",
+      "considerations": "Land + firm power + fiber. No NRC or DOE reactor authorization needed, so it is the fastest of the four to build once power is secured \u2014 but it competes for the same scarce federal-land interconnection queue as everything else on this page.",
+      "source_url": "https://www.epa.gov/re-powering",
+      "verified_at": "2026-08-24"
+    },
+    "lwr_pwr": {
+      "label": "Large reactor (LWR/PWR)",
+      "considerations": "A \u22651,000 MWe-class unit (e.g. AP1000). Needs an NRC construction permit and operating license \u2014 or DOE authorization on federal land \u2014 roughly 27 MGD of cooling water per unit, a multi-mile emergency planning zone, and is best sited where a high-voltage switchyard and EPZ infrastructure already exist.",
+      "source_url": "https://www.energy.gov/sites/default/files/EIS-0476-FEIS_Part1-2012.pdf",
+      "verified_at": "2026-08-24"
+    },
+    "smr": {
+      "label": "Small modular reactor (SMR)",
+      "considerations": "A ~50-300 MWe modular unit. Same NRC/DOE licensing track as a large reactor, but a smaller footprint, lower water draw, and a tighter exclusion zone. Executive Order 14299 (May 23, 2025) directs DOE to use its authorization authority for privately funded advanced reactors on DOE sites \u2014 the pathway every 'advanced nuclear' plan on this page leans on.",
+      "source_url": "https://www.energy.gov/ne/articles/5-fast-facts-about-doe-reactor-authorization",
+      "verified_at": "2026-08-24"
+    },
+    "microreactor": {
+      "label": "Microreactor",
+      "considerations": "A 1-20 MWe factory-built unit. DOE authorization (not NRC) is the fast path on federal land, land is a 5-acre threshold rather than a ranked factor, and the best fit is a defined anchor load or a site without existing grid access \u2014 not simply the largest available parcel.",
+      "source_url": "https://www.datacenterfrontier.com/energy/article/55232808/westinghouse-evinci-microreactor-could-yield-5-mw-of-nuclear-power-every-8-years-for-ai-data-centers",
+      "verified_at": "2026-08-24"
+    }
+  },
+  "infrastructure": [
+    {
+      "category": "power_td",
+      "summary": "Xcel Energy's Southwestern Public Service serves the area, with a 345 kV regional backbone through Eddy County. SPS told the NM Legislature it is building 200+ miles of new distribution feeders across Eddy and Lea counties for oil-and-gas electrification \u2014 an actively expanding, strained grid rather than idle headroom.",
+      "source_label": "NM Legislature \u2014 SPS Eddy/Lea buildout testimony",
+      "source_url": "https://www.nmlegis.gov/handouts/WNR%20102824%20Item%2011%20Xcel%20Energy%20ETA.pdf",
+      "verified_at": "2026-08-24"
+    },
+    {
+      "category": "natural_gas",
+      "summary": "Gas is regionally abundant: El Paso Natural Gas (~10,140-mile Kinder Morgan system) and Energy Transfer's Transwestern Pipeline both cross the Permian Basin around the site.",
+      "source_label": "El Paso Natural Gas system overview",
+      "source_url": "https://en.wikipedia.org/wiki/El_Paso_Natural_Gas",
+      "verified_at": "2026-08-24"
+    },
+    {
+      "category": "water",
+      "summary": "THE binding constraint. WIPP's water arrives by a 31-mile pipeline DOE built in 1984 from Carlsbad's Double Eagle wellfield; under the 2009 transfer agreement Carlsbad supplies WIPP up to 6.6 million gallons per YEAR. The Pecos River basin adjudication has been pending since 1956 and the interstate compact obligates deliveries to Texas \u2014 there is no evident surplus for a new large water-intensive use.",
+      "source_label": "DOE \u2014 WIPP water line transfer (2009)",
+      "source_url": "https://www.wipp.energy.gov/pr/2009/WIPP_Water_Line_6-18-09.pdf",
+      "extra_sources": [
+        {
+          "label": "NM OSE \u2014 Pecos basin",
+          "url": "https://www.ose.nm.gov/Basins/Pecos/isc_Pecos.php"
+        }
+      ],
+      "verified_at": "2026-08-24"
+    },
+    {
+      "category": "rail",
+      "summary": "BNSF's Carlsbad and Loving industrial spurs serve the regional potash corridor (BNSF resumed direct operation when Southwestern Railroad's contract ended in January 2017). TRU waste itself moves to WIPP exclusively by truck in NRC-certified casks \u2014 the spur is a freight asset, not the waste pathway.",
+      "source_label": "Federal Register \u2014 Southwestern Railroad discontinuance",
+      "source_url": "https://www.federalregister.gov/documents/2017/02/06/2017-02427/southwestern-railroad-inc-discontinuance-of-service-exemption-in-curry-roosevelt-chaves-and-eddy",
+      "verified_at": "2026-08-24"
+    },
+    {
+      "category": "road",
+      "summary": "US-62/180 is the designated WIPP transportation corridor. DOE's own pages disagree on the Carlsbad distance \u2014 26 miles (wipp.energy.gov, NM EMNRD) vs 33 miles (the DOE-EM page); both are cited, unresolved.",
+      "source_label": "WIPP \u2014 about the site",
+      "source_url": "https://wipp.energy.gov/about-us.asp",
+      "extra_sources": [
+        {
+          "label": "DOE-EM \u2014 WIPP overview (33-mi figure)",
+          "url": "https://www.energy.gov/em/waste-isolation-pilot-plant-wipp"
+        }
+      ],
+      "verified_at": "2026-08-24"
+    },
+    {
+      "category": "workforce",
+      "summary": "The best citable headcount is ~1,100 employees as of June 2017 (DOE's site-by-the-numbers sheet) \u2014 dated, and plausibly higher today given shaft and ventilation construction since, but no current figure is published. Regional nuclear workforce context: URENCO's Eunice enrichment plant (~40 mi class, Lea County) employs 230+ directly and supplies about a third of US enrichment demand.",
+      "source_label": "DOE \u2014 WIPP site by the numbers (2017)",
+      "source_url": "https://www.energy.gov/sites/prod/files/2017/08/f36/WIPP%20Site%20by%20Numbers%20June%202017.pdf",
+      "extra_sources": [
+        {
+          "label": "URENCO USA \u2014 capacity expansion",
+          "url": "https://www.urenco.com/news/usa/2025/urenco-usa-expands-u.s-enrichment-capacity-with-second-new-cascade"
+        }
+      ],
+      "verified_at": "2026-08-24"
+    }
+  ],
+  "limitations": [
+    "Coordinates are representative points inside named areas, not parcel boundaries.",
+    "Counts mean features intersect the screening buffer, not a project footprint.",
+    "No result is an agency determination, permit conclusion, or suitability score.",
+    "An unavailable source is never treated as a no-hit.",
+    "Opportunity and facility fits are curated editorial judgements with citations \u2014 screening evidence informs them, it does not compute them.",
+    "NFHL map coverage varies by county; zero mapped flood zones does not mean flood-free."
+  ],
+  "sources": {
+    "ipac": {
+      "label": "USFWS IPaC",
+      "url": "https://ipac.ecosphere.fws.gov/",
+      "covers": "ESA species, critical habitat, migratory birds, wetlands, refuges (USFWS lens)"
+    },
+    "tribal": {
+      "label": "Census TIGERweb AIANNHA",
+      "url": "https://tigerweb.geo.census.gov/tigerwebmain/TIGERweb_apps.html",
+      "covers": "mapped tribal geographies; treaty rights extend beyond mapped boundaries"
+    },
+    "nrhp": {
+      "label": "National Park Service NRHP",
+      "url": "https://www.nps.gov/subjects/nationalregister/database-research.htm",
+      "covers": "listed historic properties; not eligible-but-unlisted resources"
+    },
+    "padus": {
+      "label": "USGS PAD-US 4.1",
+      "url": "https://www.usgs.gov/programs/gap-analysis-project/science/pad-us-data-overview",
+      "covers": "protected-area context at the parcel reference point (0.1-mile query)"
+    },
+    "usace": {
+      "label": "USACE regulatory boundaries and wetland regions",
+      "url": "https://regulatory.ops.usace.army.mil/",
+      "covers": "district and delineation method; not wetland presence or jurisdiction"
+    },
+    "fema_nfhl": {
+      "label": "FEMA National Flood Hazard Layer",
+      "url": "https://www.fema.gov/flood-maps/national-flood-hazard-layer",
+      "covers": "mapped flood zones within 2 miles; much of Hanford is unmapped in NFHL \u2014 unmapped is not flood-free"
+    },
+    "gbif": {
+      "label": "GBIF threatened-species occurrences",
+      "url": "https://www.gbif.org/",
+      "covers": "presence-only observation records since 2000; absence of records is absence of observers"
+    },
+    "nepa_assist": {
+      "label": "EPA NEPAssist",
+      "url": "https://nepassisttool.epa.gov/nepassist/nepamap.aspx",
+      "covers": "environmental proximity flags from EPA screening services"
+    },
+    "map_composer": {
+      "label": "PNNL NEPA MCP Map Composer",
+      "url": "https://pnnl.github.io/nepa-mcp/",
+      "covers": "provenance-rich federal GIS features clipped to the screening buffer, incl. EPA EIS boundaries"
+    }
+  },
+  "parcels": [
+    {
+      "id": "wipp-repository-core",
+      "name": "WIPP surface facilities + repository core",
+      "kind": "operating_mission",
+      "lat": 32.3714,
+      "lon": -103.7924,
+      "coord_note": "Los Medanos area reference point; DOE's exclusive-use surface area is 1,453.90 acres.",
+      "approx_acres": 1454,
+      "corpus_site_id": null,
+      "clup_designation": null,
+      "clup_note": "The Land Withdrawal Act reserves this core to WIPP purposes while the repository operates.",
+      "status": "The active mission core: waste handling building, five shafts (the 2,275-ft utility shaft reached depth in October 2023), and the repository 2,150 feet down in the Salado salt. EPA approved replacement Panels 11 and 12 on July 31, 2025 after Panels 9 and 10 were abandoned for ground conditions; the new 540,000-cfm ventilation system targets full operation in 2026. DOE anticipates operating beyond 2050.",
+      "availability": "None \u2014 the nation's only operating deep geologic TRU repository.",
+      "source_url": "https://www.energy.gov/em/waste-isolation-pilot-plant-wipp",
+      "extra_sources": [
+        {
+          "label": "Federal Register \u2014 EPA approval of Panels 11/12",
+          "url": "https://www.federalregister.gov/documents/2025/08/19/2025-15741/approval-of-replacement-waste-panels-11-and-12-at-the-waste-isolation-pilot-plant"
+        }
+      ],
+      "verified_at": "2026-08-24",
+      "opportunities": [
+        {
+          "kind": "waste_disposal",
+          "fit": "anchored",
+          "rationale": "TRU disposal is the statutory purpose of this land under the Land Withdrawal Act, for decades yet."
+        }
+      ],
+      "facility_fit": [
+        {
+          "type": "data_center",
+          "fit": "precluded",
+          "constraint": "mission",
+          "rationale": "The operating repository core is reserved to WIPP purposes under the Land Withdrawal Act while the mission runs (anticipated beyond 2050) \u2014 and even WIPP's own water allocation is only 6.6 million gallons per year."
+        },
+        {
+          "type": "lwr_pwr",
+          "fit": "precluded",
+          "constraint": "mission",
+          "rationale": "The operating repository core is reserved to WIPP purposes under the Land Withdrawal Act while the mission runs (anticipated beyond 2050) \u2014 and even WIPP's own water allocation is only 6.6 million gallons per year."
+        },
+        {
+          "type": "smr",
+          "fit": "precluded",
+          "constraint": "mission",
+          "rationale": "The operating repository core is reserved to WIPP purposes under the Land Withdrawal Act while the mission runs (anticipated beyond 2050) \u2014 and even WIPP's own water allocation is only 6.6 million gallons per year."
+        },
+        {
+          "type": "microreactor",
+          "fit": "precluded",
+          "constraint": "mission",
+          "rationale": "The operating repository core is reserved to WIPP purposes under the Land Withdrawal Act while the mission runs (anticipated beyond 2050) \u2014 and even WIPP's own water allocation is only 6.6 million gallons per year."
+        }
+      ],
+      "screening": {},
+      "geojson_url": null,
+      "map_summary": null,
+      "corpus_record": null,
+      "nearby_tracked": [
+        {
+          "id": "FUDS-K06NM0369",
+          "name": "CARLSBAD PBR #24",
+          "program": "fuds",
+          "distance_mi": 7.5
+        },
+        {
+          "id": "FUDS-K06NM0368",
+          "name": "CARLSBAD PBR #23",
+          "program": "fuds",
+          "distance_mi": 9.3
+        },
+        {
+          "id": "FUDS-K06NM0371",
+          "name": "CARLSBAD PBR #26",
+          "program": "fuds",
+          "distance_mi": 9.7
+        }
+      ]
+    },
+    {
+      "id": "wipp-lwa-balance",
+      "name": "Land Withdrawal Area balance \u2014 the clean-energy acreage",
+      "kind": "leased_energy",
+      "lat": 32.37,
+      "lon": -103.8,
+      "coord_note": "Withdrawal-area reference point; the ~8,786-acre balance surrounds the fenced core.",
+      "approx_acres": 8786,
+      "corpus_site_id": null,
+      "clup_designation": null,
+      "clup_note": "BLM administers grazing/secondary surface uses on the balance; DOE retains statutory jurisdiction with WIPP-purpose priority.",
+      "status": "DOE's Cleanup-to-Clean-Energy RFI (February 2024) identified ~9,000 contiguous acres here for carbon-free energy, explicitly naming solar, wind, and nuclear as eligible. DOE selected NextEra in September 2024 to negotiate a realty agreement for at least 150 MW of solar plus 100 MW of storage on up to 1,800 acres \u2014 still at the realty-negotiation stage as of August 2026, leaving roughly 7,200 acres uncommitted.",
+      "availability": "In negotiation (solar) with most of the acreage uncommitted; every use competes with the water reality \u2014 WIPP's own allocation is 6.6 million gallons per year.",
+      "source_url": "https://www.energy.gov/em/em-clean-energy-land-reuse",
+      "extra_sources": [
+        {
+          "label": "DOE \u2014 WIPP clean-energy RFI (solar/wind/nuclear eligible)",
+          "url": "https://www.energy.gov/em/articles/us-department-energy-issues-request-information-potential-clean-energy-projects-wipp"
+        },
+        {
+          "label": "DOE \u2014 NextEra selected for WIPP solar",
+          "url": "https://www.energy.gov/em/articles/doe-selects-nextera-energy-large-scale-solar-project-waste-isolation-pilot-plant"
+        }
+      ],
+      "verified_at": "2026-08-24",
+      "opportunities": [
+        {
+          "kind": "solar_storage",
+          "fit": "strong",
+          "rationale": "NextEra was selected September 2024, but no signed lease or construction start is public \u2014 the realty agreement is the gate."
+        },
+        {
+          "kind": "battery_storage",
+          "fit": "strong",
+          "rationale": "The selected proposal pairs 100 MW of storage with the solar."
+        },
+        {
+          "kind": "advanced_nuclear",
+          "fit": "conditional",
+          "rationale": "DOE's own RFI names nuclear as eligible on this acreage; water supply (or dry cooling) and a licensing pathway are the gates."
+        }
+      ],
+      "facility_fit": [
+        {
+          "type": "data_center",
+          "fit": "conditional",
+          "constraint": "water",
+          "rationale": "The Land Withdrawal Act lets the Secretary approve non-WIPP uses (the solar solicitation is the precedent), but there is no proven water source beyond WIPP's committed 6.6 million gallons/year and no committed interconnection point on this parcel."
+        },
+        {
+          "type": "lwr_pwr",
+          "fit": "precluded",
+          "constraint": "water",
+          "rationale": "Land is sufficient but water is fatal: the basin is fully committed among Carlsbad, potash, and oil-and-gas users, the Pecos adjudication has been open since 1956, and a Vogtle-class unit needs roughly 20+ MGD \u2014 three orders of magnitude above WIPP's own annual allocation."
+        },
+        {
+          "type": "smr",
+          "fit": "conditional",
+          "constraint": "water",
+          "rationale": "DOE's RFI explicitly lists nuclear as eligible here \u2014 a named primary-source signal \u2014 but a new water right or a dry-cooled design, plus a licensing pathway, must come first."
+        },
+        {
+          "type": "microreactor",
+          "fit": "strong",
+          "constraint": "water",
+          "rationale": "Small footprint in ~7,200 uncommitted acres, near-zero wet-cooling draw for most 1-20 MWe designs, DOE has already named nuclear as eligible, and DOE-EM is the site's own landlord \u2014 not anchored only because no developer has been selected."
+        }
+      ],
+      "screening": {},
+      "geojson_url": null,
+      "map_summary": null,
+      "corpus_record": null,
+      "nearby_tracked": [
+        {
+          "id": "FUDS-K06NM0369",
+          "name": "CARLSBAD PBR #24",
+          "program": "fuds",
+          "distance_mi": 7.1
+        },
+        {
+          "id": "FUDS-K06NM0368",
+          "name": "CARLSBAD PBR #23",
+          "program": "fuds",
+          "distance_mi": 9.5
+        }
+      ]
+    }
+  ]
+}

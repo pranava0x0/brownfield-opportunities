@@ -294,6 +294,160 @@ OPPORTUNITY_KINDS = {
     "heritage_tourism": "Heritage interpretation",
 }
 
+# How the dossier's prose was produced — rendered verbatim near the top of
+# the tab. The dashboard's attribution principle (every AI-generated surface
+# says so and cites its inputs) applied to curated narrative text.
+NARRATIVE_NOTE = (
+    "Narrative text in this dossier (site history, unit status, availability, "
+    "and fit rationales) is AI-drafted from the primary sources cited on each "
+    "row and human-verified against them on {date}. Numbers and dated facts "
+    "each carry their citation; screening rows are live tool output, never "
+    "prose. No text on this page is an agency determination."
+).format(date=VERIFIED_AT)
+
+# Site-level infrastructure facts — the seven-category vocabulary
+# (power_td / natural_gas / water / rail / road / fiber / workforce; the
+# first two added 2026-08-24 by user direction). Every row is one cited
+# claim, validated against schema.DoeInfrastructureRow before write. A
+# category with no verifiable public source is omitted, never invented.
+# Assembled 2026-08-24 from a primary-source research pass (BPA/DOE PDFs
+# extracted via PyMuPDF; USGS pulled from the live NWIS RDB API).
+INFRASTRUCTURE: "list[dict[str, Any]]" = [
+    {
+        "category": "power_td",
+        "summary": (
+            "BPA's Ashe substation (500 kV) sits on the site adjacent to "
+            "Columbia Generating Station; the rebuilt Midway-Ashe 230 kV "
+            "line (18 miles, energized May 6, 2025) replaced a 70-year-old "
+            "line and provides dual-circuit backup to CGS and the "
+            "vitrification plant — BPA owns one circuit, DOE's Hanford "
+            "field office operates the other."
+        ),
+        "source_label": "BPA newsroom, May 2025",
+        "source_url": "https://www.bpa.gov/about/newsroom/news-articles/20250508-new-high-voltage-tx-line-supports-reliability-for-the-hanford-site",
+        "verified_at": VERIFIED_AT,
+    },
+    {
+        "category": "power_td",
+        "summary": (
+            "Speed-to-power is the live constraint: BPA's four-project "
+            "Tri-Cities Reinforcement program (new Webber Canyon substation "
+            "+ an 18.5-mile 115 kV line; construction slated Feb 2026, "
+            "energization winter 2027) is driven by regional load growth, "
+            "and Atlas Agro's proposed fertilizer plant — needing more than "
+            "300 MW — is gated on a new BPA line off the Ashe substation, "
+            "with Richland approving a $51.3M design-and-materials cost "
+            "agreement in June 2026."
+        ),
+        "source_label": "BPA fact sheet DOE/BP-5456 (May 2025)",
+        "source_url": "https://www.bpa.gov/-/media/Aep/about/publications/fact-sheets/fs-202505-tri-cities-reinforcement-project.pdf",
+        "extra_sources": [
+            {
+                "label": "Tri-Cities Area Journal of Business — Atlas Agro agreements",
+                "url": "https://www.tricitiesbusinessnews.com/articles/deal-advances-atlas-agros-fertilizer-plant",
+            },
+        ],
+        "verified_at": VERIFIED_AT,
+    },
+    {
+        "category": "natural_gas",
+        "summary": (
+            "Hanford has NO dedicated natural-gas pipeline. DOE scoped a "
+            "~29-mile, ~$35M lateral from an interstate tie-in north of "
+            "Pasco (Cascade Natural Gas's 2012 proposal, EIS-0467) to "
+            "serve the Waste Treatment Plant and 300 Area — the EIS was "
+            "postponed and subsequently canceled, and the WTP plan moved "
+            "to electrically generated steam instead."
+        ),
+        "source_label": "DOE NEPA database — EIS-0467",
+        "source_url": "https://www.energy.gov/node/300133",
+        "extra_sources": [
+            {
+                "label": "Cascade Natural Gas — 2012 pipeline proposal",
+                "url": "https://www.hanford.gov/files.cfm/CascadeNaturalGasPressRelease.pdf",
+            },
+        ],
+        "verified_at": VERIFIED_AT,
+    },
+    {
+        "category": "water",
+        "summary": (
+            "The Columbia below Priest Rapids Dam (USGS gauge 12472800, "
+            "drainage 96,000 sq mi) ran a 95,280 cfs annual mean in water "
+            "year 2025, with the recent decade averaging ~110,800 cfs — "
+            "below the ~120,700 cfs regulated-period (1960-2000) average. "
+            "The river is also the drinking-water source for Richland, "
+            "Pasco, and Kennewick."
+        ),
+        "source_label": "USGS NWIS (live RDB query)",
+        "source_url": "https://waterservices.usgs.gov/nwis/stat/?format=rdb&sites=12472800&statReportType=annual&statTypeCd=mean&parameterCd=00060",
+        "verified_at": VERIFIED_AT,
+    },
+    {
+        "category": "rail",
+        "summary": (
+            "DOE's on-site rail network ceased regular operation in 1997; "
+            "Tri-City Railroad took a lease on the 37-mile 'Northern "
+            "Connection' of the Hanford rail system in 2002, and the Port "
+            "of Benton's 16-mile 'Southern Connection' short line (Center "
+            "Parkway to Horn Rapids Road) has been operated by Columbia "
+            "Rail Group since February 2023, with BNSF's mainline and "
+            "yard at Pasco."
+        ),
+        "source_label": "Federal Register — Hanford rail lease (2002)",
+        "source_url": "https://www.federalregister.gov/documents/2002/05/30/02-13385/tri-city-railroad-company-llc-lease-and-operation-exemption-hanford-site-rail-system-in-richland-wa",
+        "extra_sources": [
+            {"label": "Port of Benton — rail", "url": "https://portofbenton.com/our-properties-facilities/rail/"},
+        ],
+        "verified_at": VERIFIED_AT,
+    },
+    {
+        "category": "road",
+        "summary": (
+            "SR-240 runs 43 miles from the SR-24 junction at the site "
+            "around Richland to US-395 in Kennewick (its busiest section "
+            "carries ~76,000 vehicles/day), with I-182 and US-395 "
+            "completing the regional connections."
+        ),
+        "source_label": "WSDOT route data (via Wikipedia)",
+        "source_url": "https://en.wikipedia.org/wiki/Washington_State_Route_240",
+        "verified_at": VERIFIED_AT,
+    },
+    {
+        "category": "fiber",
+        "summary": (
+            "Benton PUD extended its open-access fiber network to Richland "
+            "and Rattlesnake Mountain in 2013 explicitly citing capacity "
+            "for 'the Hanford project'; NoaNet's statewide network rides "
+            "spare dark fiber on BPA transmission corridors, though no "
+            "public route-mile figure specific to the Hanford corridor "
+            "exists."
+        ),
+        "source_label": "CommunityNetworks — Benton PUD Richland build",
+        "source_url": "https://communitynetworks.org/content/benton-public-utility-district-brings-fiber-richland-washington",
+        "extra_sources": [
+            {"label": "NoaNet — our story", "url": "https://www.noanet.net/about/our-story/"},
+        ],
+        "verified_at": VERIFIED_AT,
+    },
+    {
+        "category": "workforce",
+        "summary": (
+            "The cleanup mission employs roughly 13,000 workers against a "
+            "$3.2B+ FY2026 budget; PNNL adds 6,043 scientists, engineers, "
+            "and professional staff (FY2024) and Energy Northwest more "
+            "than 1,000 — inside a Tri-Cities metro labor force of "
+            "150,521 (Dec 2025)."
+        ),
+        "source_label": "Tri-Cities Area Journal of Business — FY26 funding",
+        "source_url": "https://www.tricitiesbusinessnews.com/articles/hanford-pnnl-funding-fy2026",
+        "extra_sources": [
+            {"label": "PNNL — about (headcount)", "url": "https://www.pnnl.gov/about"},
+        ],
+        "verified_at": VERIFIED_AT,
+    },
+]
+
 # Facility-fit summary — a dedicated data-center-vs-reactor-class comparison
 # distinct from the general `opportunities` list above (which already has a
 # single combined "advanced_nuclear" kind). Splitting the reactor class into
@@ -410,6 +564,7 @@ PARCELS = [
             {
                 "type": t,
                 "fit": "precluded",
+                "constraint": "mission",
                 "rationale": (
                     "Cocooned reactor cores (interim safe storage, a "
                     "~75-year DOE timeline) and an active groundwater "
@@ -419,6 +574,12 @@ PARCELS = [
                     "legal bar like the Monument's Antiquities Act "
                     "protection next door."
                 ),
+                "sources": [
+                    {
+                        "label": "DOE — Hanford 100 Area reactor interim safe storage",
+                        "url": "https://www.hanford.gov/page.cfm/RiverCorridor",
+                    },
+                ],
             }
             for t in FACILITY_TYPES
         ],
@@ -469,12 +630,19 @@ PARCELS = [
             {
                 "type": t,
                 "fit": "precluded",
+                "constraint": "mission",
                 "rationale": (
                     "Industrial-Exclusive zoning protects the tank-waste "
                     "mission; vitrification runs past mid-century, leaving "
                     "no offerable footprint for any of these four facility "
                     "types."
                 ),
+                "sources": [
+                    {
+                        "label": "WA Ecology — vitrification begins (Oct 2025)",
+                        "url": "https://ecology.wa.gov/about-us/who-we-are/news/2025/hanford-site-waste-vitrification-begins",
+                    },
+                ],
             }
             for t in FACILITY_TYPES
         ],
@@ -528,6 +696,7 @@ PARCELS = [
             {
                 "type": "data_center",
                 "fit": "conditional",
+                "constraint": "land",
                 "rationale": (
                     "Land and grid access support it, but groundwater-remedy "
                     "compatibility review gates any new foundation, and the "
@@ -538,6 +707,7 @@ PARCELS = [
             {
                 "type": "lwr_pwr",
                 "fit": "precluded",
+                "constraint": "land",
                 "rationale": (
                     "Too small at 1,500 acres and no existing nuclear "
                     "infrastructure or emergency-planning zone — a large "
@@ -548,6 +718,7 @@ PARCELS = [
             {
                 "type": "smr",
                 "fit": "conditional",
+                "constraint": "land",
                 "rationale": (
                     "Same remedy-compatibility gate as advanced manufacturing; "
                     "a single small module could plausibly coexist with R&D "
@@ -557,6 +728,7 @@ PARCELS = [
             {
                 "type": "microreactor",
                 "fit": "strong",
+                "constraint": "licensing",
                 "rationale": (
                     "Contiguous with PNNL — the DOE-mission R&D campus that "
                     "builds nepa-mcp itself — a small footprint easily clears "
@@ -604,6 +776,10 @@ PARCELS = [
                 "label": "Framatome — TerraPower HALEU metallization line",
                 "url": "https://www.framatome.com/medias/framatome-and-terrapower-achieve-breakthrough-in-uranium-metallization-for-advanced-reactor-fuel-commercialization/",
             },
+            {
+                "label": "Tri-Cities Area Journal of Business — Atlas Agro deal status",
+                "url": "https://www.tricitiesbusinessnews.com/articles/deal-advances-atlas-agros-fertilizer-plant",
+            },
         ],
         "verified_at": VERIFIED_AT,
         "opportunities": [
@@ -634,6 +810,7 @@ PARCELS = [
             {
                 "type": "data_center",
                 "fit": "conditional",
+                "constraint": "power",
                 "rationale": (
                     "Atlas Agro has bundled a ~$500M data center with its "
                     "power request, gated on the same BPA large-load queue "
@@ -643,6 +820,7 @@ PARCELS = [
             {
                 "type": "lwr_pwr",
                 "fit": "precluded",
+                "constraint": "licensing",
                 "rationale": (
                     "Non-federal (transferred to Port of Benton / City of "
                     "Richland), with no existing nuclear infrastructure or "
@@ -654,6 +832,7 @@ PARCELS = [
             {
                 "type": "smr",
                 "fit": "precluded",
+                "constraint": "licensing",
                 "rationale": (
                     "Same missing-infrastructure problem as a large reactor; "
                     "the smaller footprint doesn't change the non-federal "
@@ -663,6 +842,7 @@ PARCELS = [
             {
                 "type": "microreactor",
                 "fit": "conditional",
+                "constraint": "licensing",
                 "rationale": (
                     "Transferred land loses the fast DOE-authorization path "
                     "(would need NRC instead), but Framatome's operating "
@@ -741,6 +921,7 @@ PARCELS = [
             {
                 "type": "data_center",
                 "fit": "conditional",
+                "constraint": "power",
                 "rationale": (
                     "Amazon's TRi Energy Partnership exists precisely to pair "
                     "new nuclear output with data-center load, but it's gated "
@@ -750,16 +931,24 @@ PARCELS = [
             {
                 "type": "lwr_pwr",
                 "fit": "anchored",
+                "constraint": "licensing",
                 "rationale": (
                     "Columbia Generating Station (1,236 MW) has operated here "
                     "since the 1980s with its own 500 kV interconnection and "
                     "emergency-planning zone already in place — the strongest "
                     "possible precedent for a large reactor."
                 ),
+                "sources": [
+                    {
+                        "label": "WA EFSEC — Columbia Generating Station",
+                        "url": "https://efsec.wa.gov/facilities/columbia-generating-station",
+                    },
+                ],
             },
             {
                 "type": "smr",
                 "fit": "anchored",
+                "constraint": "licensing",
                 "rationale": (
                     "Energy Northwest's Cascade Advanced Energy Facility "
                     "(Xe-100 modules, design-builder selected Oct 2025) is "
@@ -770,6 +959,7 @@ PARCELS = [
             {
                 "type": "microreactor",
                 "fit": "conditional",
+                "constraint": "mission",
                 "rationale": (
                     "Grid-connected and licensing-mature for large and "
                     "modular reactors, but that's the opposite case a "
@@ -846,6 +1036,7 @@ PARCELS = [
             {
                 "type": "data_center",
                 "fit": "conditional",
+                "constraint": "land",
                 "rationale": (
                     "The offered acreage is earmarked for solar plus storage "
                     "under an active DOE lease negotiation; a data center "
@@ -855,6 +1046,7 @@ PARCELS = [
             {
                 "type": "lwr_pwr",
                 "fit": "conditional",
+                "constraint": "land",
                 "rationale": (
                     "The same attributes that drew the solar RFQ (federal "
                     "control, grid, water, workforce) apply to a large "
@@ -865,11 +1057,13 @@ PARCELS = [
             {
                 "type": "smr",
                 "fit": "conditional",
+                "constraint": "land",
                 "rationale": "Same reasoning as the large-reactor case, at smaller scale — no offering exists today.",
             },
             {
                 "type": "microreactor",
                 "fit": "conditional",
+                "constraint": "land",
                 "rationale": (
                     "8,000 acres is far more than any microreactor needs, "
                     "and DOE's authorization pathway is available on this "
@@ -927,12 +1121,19 @@ PARCELS = [
             {
                 "type": t,
                 "fit": "precluded",
+                "constraint": "land",
                 "rationale": (
                     "National Monument proclamation, listed-species critical "
                     "habitat, and treaty-era cultural landscapes foreclose "
                     "any industrial or energy development, including this "
                     "one."
                 ),
+                "sources": [
+                    {
+                        "label": "Proclamation — Hanford Reach National Monument (June 2000)",
+                        "url": "https://clintonwhitehouse3.archives.gov/CEQ/hanford_reach.html",
+                    },
+                ],
             }
             for t in FACILITY_TYPES
         ],
@@ -976,6 +1177,7 @@ PARCELS = [
             {
                 "type": t,
                 "fit": "precluded",
+                "constraint": "land",
                 "rationale": (
                     "Manhattan Project National Historical Park boundary and "
                     "the Section 106 historic-preservation consultation it "
@@ -1024,6 +1226,7 @@ PARCELS = [
             {
                 "type": t,
                 "fit": "precluded",
+                "constraint": "mission",
                 "rationale": (
                     "An operating DOE Office of Science lab campus, not "
                     "offerable industrial land — its value to this comparison "
@@ -1290,6 +1493,10 @@ def validate_parcels() -> None:
         for ff in parcel.get("facility_fit", []):
             if ff["fit"] not in {"anchored", "strong", "conditional", "precluded"}:
                 raise SystemExit(f"{parcel['id']}: unknown facility_fit fit {ff['fit']}")
+            # 2026-08-24 rework contract: every cell names its binding
+            # constraint so the matrix can render WHY, not just a color.
+            if not ff.get("constraint"):
+                raise SystemExit(f"{parcel['id']}/{ff['type']}: facility_fit cell missing constraint")
     if str(ROOT) not in sys.path:
         sys.path.insert(0, str(ROOT))
     try:
@@ -1302,6 +1509,8 @@ def validate_parcels() -> None:
         # missing `opportunities` must fail Pydantic's required-field check
         # here, before any network spend (PR #22 review finding 3).
         schema_mod.HanfordParcel.model_validate(parcel)
+    for infra_row in INFRASTRUCTURE:
+        schema_mod.DoeInfrastructureRow.model_validate(infra_row)
 
 
 def build_screening(parcels: "list[dict[str, Any]]", use_cache: bool) -> dict:
@@ -1399,6 +1608,8 @@ def write_output(
     payload = {
         "generated_at": screening.utc_now(),
         "nepa_mcp_version": screening.NEPA_MCP_VERSION,
+        "site_id": "hanford",
+        "site_label": "Hanford",
         "screening_buffer_miles": BUFFER_MILES,
         "flood_radius_miles": FLOOD_RADIUS_MILES,
         "parcel_count": len(out_parcels),
@@ -1408,10 +1619,12 @@ def write_output(
             "curated parcel facts verified against primary sources; corpus "
             "fields joined from this project's own enrichment files."
         ),
+        "narrative_note": NARRATIVE_NOTE,
         "site_overview": SITE_OVERVIEW,
         "permitting_pathways": PERMITTING_PATHWAYS,
         "opportunity_kinds": OPPORTUNITY_KINDS,
         "facility_types": FACILITY_TYPES,
+        "infrastructure": INFRASTRUCTURE,
         "limitations": LIMITATIONS,
         "sources": SOURCE_META,
         "parcels": out_parcels,

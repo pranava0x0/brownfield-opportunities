@@ -658,6 +658,9 @@ def test_refresh_date_reflects_freshest_data_file(page, base_url):
           // coal-nepa.json is deliberately ABSENT: its loader is drawer-lazy
           // and does not call recordRefreshDate (reference-campuses rule —
           // a file whose loader may never run must not drive the date).
+          // srs/portsmouth/paducah/wipp-e2e.json are ABSENT for the same
+          // reason: they lazy-load on DOE-site pill selection and their
+          // loaders deliberately skip recordRefreshDate.
           const fmt = (s) => new Date(Date.parse(s)).toISOString().slice(0, 10);
           let coreDate = null;
           const dates = [];

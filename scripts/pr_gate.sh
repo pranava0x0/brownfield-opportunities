@@ -75,22 +75,28 @@ def check(fname: str, url: str) -> None:
         dead += 1
         print(f"  DEAD CITATION {fname}: {url} (HTTP {status})")
 
+DOE_SITE_FILES = [
+    "hanford-e2e.json", "srs-e2e.json", "portsmouth-e2e.json",
+    "paducah-e2e.json", "wipp-e2e.json",
+]
 for fname, key, field in [
     ("coal-conversions.json", "assets", "source_url"),
     ("federal-clean-energy.json", "sites", "solicitation_url"),
-    ("hanford-e2e.json", "parcels", "source_url"),
-]:
+] + [(f, "parcels", "source_url") for f in DOE_SITE_FILES]:
     payload = json.loads((Path("docs/data") / fname).read_text())
     for rec in payload.get(key, []):
         check(fname, rec.get(field))
 
-# facility_types is a top-level dict (not a list), one row per facility
-# type rather than per parcel — the general "what this facility type needs"
-# claims (water demand, licensing pathway, acreage threshold) added
-# 2026-08-24, same provenance contract as everything else on the page.
-hanford = json.loads((Path("docs/data") / "hanford-e2e.json").read_text())
-for meta in hanford.get("facility_types", {}).values():
-    check("hanford-e2e.json (facility_types)", meta.get("source_url"))
+# facility_types and infrastructure carry their own per-row citations
+# (facility_types is a top-level dict, one row per facility type; the
+# infrastructure list is the 2026-08-24 seven-category vocabulary) — same
+# provenance contract as the parcel rows, across all five DOE dossiers.
+for fname in DOE_SITE_FILES:
+    payload = json.loads((Path("docs/data") / fname).read_text())
+    for meta in payload.get("facility_types", {}).values():
+        check(f"{fname} (facility_types)", meta.get("source_url"))
+    for row in payload.get("infrastructure", []):
+        check(f"{fname} (infrastructure)", row.get("source_url"))
 
 print(f"  checked {len(seen)} unique citation URLs: {dead} dead, {unreachable} unreachable/throttled")
 sys.exit(1 if dead else (2 if unreachable else 0))
