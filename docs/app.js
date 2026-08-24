@@ -656,12 +656,14 @@ function markAppReady() {
 //
 // All numbers are derived from the in-memory `sites` array; no extra fetches.
 // Called after each lazy-load lands so the deck progressively fills in.
+// The single "last refreshed" readout on the page — lives next to the
+// title. Used to be repeated in the hero, the footer, AND the tagline;
+// three dates in three places invited drift and was visual noise, so this
+// is now the only one (2026-08-24).
 function setHeroRefresh(dateStr) {
   if (!dateStr || dateStr === "—") return;
-  const heroEl = el("hero-refresh");
-  if (heroEl) heroEl.textContent = `Updated ${dateStr}`;
-  const footerEl = el("footer-refresh");
-  if (footerEl) footerEl.textContent = `Refreshed ${dateStr}`;
+  const topbarEl = el("topbar-refresh");
+  if (topbarEl) topbarEl.textContent = `Refreshed ${dateStr}`;
 }
 
 // Tracks the freshest `generated_at` across EVERY data file the page loads —
@@ -721,11 +723,11 @@ function updateMetaText({ loadingLabel = null } = {}) {
       parts.push(`${counts[program].toLocaleString()} ${PROGRAM_META_LABEL[program]}`);
     }
   }
-  const refreshed = window.__refreshedAt;
   let text = `${total.toLocaleString()} sites`;
   if (parts.length) text += ` (${parts.join(" + ")})`;
   if (loadingLabel) text += ` · loading ${loadingLabel}…`;
-  if (refreshed && refreshed !== "—") text += ` · refreshed ${refreshed}`;
+  // The refreshed date lives next to the title (#topbar-refresh) — one
+  // readout on the page, not repeated here too.
   const node = el("meta");
   if (node) node.textContent = text;
 }
@@ -733,42 +735,23 @@ function updateMetaText({ loadingLabel = null } = {}) {
 function updateKpiDeck() {
   const total = sites.length;
   let acreSum = 0;
-  let acreCount = 0;
   let dcCount = 0;
   let hyperCount = 0;
   let genCount = 0;
-  const programSet = new Set();
   for (const s of sites) {
-    if (typeof s.acreage === "number") {
-      acreSum += s.acreage;
-      acreCount++;
-    }
+    if (typeof s.acreage === "number") acreSum += s.acreage;
     if (s.data_center_reuse_candidate === true) dcCount++;
     const tier = computeDcScore(s);
     if (tier === "hyperscale" || tier === "mega") hyperCount++;
     const genScore = computeGenerationScore(s);
     if (genScore != null && genScore >= 75) genCount++;
-    if (s.program) programSet.add(s.program);
   }
   const set = (id, value) => {
     const node = el(id);
     if (node) node.textContent = value;
   };
-  // Also set `title` on every KPI subtext so the unclipped string is
-  // available on hover — `text-overflow: ellipsis` truncates these on
-  // narrow desktop columns (e.g. "4.9K sites with rep…"). The static
-  // strings in HTML (DC/hyperscale criteria, states subtext) get their
-  // title applied at init via setKpiSubTitles().
-  const setSub = (id, value) => {
-    const node = el(id);
-    if (!node) return;
-    node.textContent = value;
-    node.title = value;
-  };
   set("kpi-total", fmt.compact(total));
-  setSub("kpi-total-sub", `across ${programSet.size} program${programSet.size === 1 ? "" : "s"}`);
   set("kpi-acres", fmt.compact(acreSum));
-  setSub("kpi-acres-sub", `${fmt.compact(acreCount)} sites with reported area`);
   set("kpi-dc", fmt.compact(dcCount));
   set("kpi-hyperscale", fmt.compact(hyperCount));
   set("kpi-generation", fmt.compact(genCount));
@@ -943,7 +926,6 @@ fetch(PRIMARY_DATA_URL)
     wireNearbyClicks();
     wireExportCsv();
     wireAp1000ExportCsv();
-    wireShareLink();
     wireThemeToggle();
     wireKpiDisclosure();
     wireDetailSections();
@@ -1280,8 +1262,13 @@ function ensureParcelOwnerLoaded() {
       if (!r.ok) throw new Error("HTTP " + r.status);
       return r.json();
     })
-    .then((payload) => {
+    .then(async (payload) => {
       recordRefreshDate(payload.generated_at, PARCEL_OWNER_URL);
+      // All-programs join — wait on ACRES/FUDS/BRAC first or the `!existing`
+      // guard below can silently drop them (load-order race, see CLAUDE.md).
+      await Promise.allSettled(
+        [acresLoadingPromise, fudsLoadingPromise, bracLoadingPromise].filter(Boolean)
+      );
       for (const rec of payload.sites || []) {
         const existing = sitesById.get(rec.id);
         if (!existing) continue;
@@ -1358,7 +1345,10 @@ function ensureAcresCleanupLoaded() {
       if (!r.ok) throw new Error("HTTP " + r.status);
       return r.json();
     })
-    .then((payload) => {
+    .then(async (payload) => {
+      // ACRES-only join — wait on the ACRES load first or the `!existing`
+      // guard below can silently drop it (load-order race, see CLAUDE.md).
+      if (acresLoadingPromise) await Promise.allSettled([acresLoadingPromise]);
       for (const rec of payload.sites || []) {
         const existing = sitesById.get(rec.id);
         if (!existing) continue;
@@ -1412,8 +1402,16 @@ function ensureInfraLoaded() {
       if (!r.ok) throw new Error("HTTP " + r.status);
       return r.json();
     })
-    .then((payload) => {
+    .then(async (payload) => {
       recordRefreshDate(payload.generated_at, INFRA_DATA_URL);
+      // infra-proximity.json is large enough to usually resolve AFTER ACRES/
+      // FUDS/BRAC, which is why this join "accidentally" worked — but that's
+      // file-size luck, not a guarantee (load-order race, see CLAUDE.md).
+      // Wait on the in-flight program loads first so the `!existing` guard
+      // below can't silently drop every non-Superfund join.
+      await Promise.allSettled(
+        [acresLoadingPromise, fudsLoadingPromise, bracLoadingPromise].filter(Boolean)
+      );
       for (const rec of payload.sites || []) {
         const existing = sitesById.get(rec.id);
         if (!existing) continue;
@@ -1464,8 +1462,13 @@ function ensureOppZoneLoaded() {
       if (!r.ok) throw new Error("HTTP " + r.status);
       return r.json();
     })
-    .then((payload) => {
+    .then(async (payload) => {
       recordRefreshDate(payload.generated_at, OPP_ZONE_URL);
+      // All-programs join — wait on ACRES/FUDS/BRAC first or the `!existing`
+      // guard below can silently drop them (load-order race, see CLAUDE.md).
+      await Promise.allSettled(
+        [acresLoadingPromise, fudsLoadingPromise, bracLoadingPromise].filter(Boolean)
+      );
       for (const rec of payload.sites || []) {
         const existing = sitesById.get(rec.id);
         if (!existing) continue;
@@ -1537,8 +1540,13 @@ function ensureIraEnergyCommunityLoaded() {
       if (!r.ok) throw new Error("HTTP " + r.status);
       return r.json();
     })
-    .then((payload) => {
+    .then(async (payload) => {
       recordRefreshDate(payload.generated_at, IRA_EC_URL);
+      // All-programs join — wait on ACRES/FUDS/BRAC first or the `!existing`
+      // guard below can silently drop them (load-order race, see CLAUDE.md).
+      await Promise.allSettled(
+        [acresLoadingPromise, fudsLoadingPromise, bracLoadingPromise].filter(Boolean)
+      );
       for (const rec of payload.sites || []) {
         const existing = sitesById.get(rec.id);
         if (!existing) continue;
@@ -1574,8 +1582,13 @@ function ensureFemaNriLoaded() {
       if (!r.ok) throw new Error("HTTP " + r.status);
       return r.json();
     })
-    .then((payload) => {
+    .then(async (payload) => {
       recordRefreshDate(payload.generated_at, FEMA_NRI_URL);
+      // All-programs join — wait on ACRES/FUDS/BRAC first or the `!existing`
+      // guard below can silently drop them (load-order race, see CLAUDE.md).
+      await Promise.allSettled(
+        [acresLoadingPromise, fudsLoadingPromise, bracLoadingPromise].filter(Boolean)
+      );
       for (const rec of payload.sites || []) {
         const existing = sitesById.get(rec.id);
         if (!existing) continue;
@@ -1609,8 +1622,13 @@ function ensureClimateZoneLoaded() {
       if (!r.ok) throw new Error("HTTP " + r.status);
       return r.json();
     })
-    .then((payload) => {
+    .then(async (payload) => {
       recordRefreshDate(payload.generated_at, CLIMATE_ZONE_URL);
+      // All-programs join — wait on ACRES/FUDS/BRAC first or the `!existing`
+      // guard below can silently drop them (load-order race, see CLAUDE.md).
+      await Promise.allSettled(
+        [acresLoadingPromise, fudsLoadingPromise, bracLoadingPromise].filter(Boolean)
+      );
       for (const rec of payload.sites || []) {
         const existing = sitesById.get(rec.id);
         if (!existing) continue;
@@ -1637,8 +1655,13 @@ function ensureIsoRtoLoaded() {
       if (!r.ok) throw new Error("HTTP " + r.status);
       return r.json();
     })
-    .then((payload) => {
+    .then(async (payload) => {
       recordRefreshDate(payload.generated_at, ISO_RTO_URL);
+      // All-programs join — wait on ACRES/FUDS/BRAC first or the `!existing`
+      // guard below can silently drop them (load-order race, see CLAUDE.md).
+      await Promise.allSettled(
+        [acresLoadingPromise, fudsLoadingPromise, bracLoadingPromise].filter(Boolean)
+      );
       for (const rec of payload.sites || []) {
         const existing = sitesById.get(rec.id);
         if (!existing) continue;
@@ -1669,8 +1692,13 @@ function ensureRetiredPlantsLoaded() {
       if (!r.ok) throw new Error("HTTP " + r.status);
       return r.json();
     })
-    .then((payload) => {
+    .then(async (payload) => {
       recordRefreshDate(payload.generated_at, RETIRED_PLANTS_URL);
+      // All-programs join — wait on ACRES/FUDS/BRAC first or the `!existing`
+      // guard below can silently drop them (load-order race, see CLAUDE.md).
+      await Promise.allSettled(
+        [acresLoadingPromise, fudsLoadingPromise, bracLoadingPromise].filter(Boolean)
+      );
       for (const rec of payload.sites || []) {
         const existing = sitesById.get(rec.id);
         if (!existing) continue;
@@ -2950,28 +2978,16 @@ function wireDetailSections() {
   else if (DETAIL_SECTION_MQ.addListener) DETAIL_SECTION_MQ.addListener(onChange);
 }
 
-// Open the KPI disclosure by default on desktop so the carousel renders as
-// a static panel. On phones we leave it closed (the slim summary strip is
-// the always-visible signal). A matchMedia listener keeps the state in
-// sync when the user resizes or rotates a tablet.
+// The KPI deck is always-open on every breakpoint — mobile used to collapse
+// it behind a tap-to-expand summary chip, but the extra tap was the
+// problem, not a feature; the deck now renders directly as a horizontally
+// scrollable strip (see the mobile media query in style.css) with no
+// disclosure interaction at all. `<summary>` stays in the DOM (`<details>`
+// needs one child of that type) but is hidden on every breakpoint.
 function wireKpiDisclosure() {
   const disc = el("kpi-disclosure");
   if (!disc) return;
-  const mq = window.matchMedia("(max-width: 640px)");
-  const sync = (mobileMode) => {
-    // Don't fight the user — only auto-toggle if the user hasn't manually
-    // interacted in this session. After first toggle the mode flips and we
-    // respect the user's choice.
-    if (disc.dataset.userToggled === "true") return;
-    disc.open = !mobileMode;
-  };
-  sync(mq.matches);
-  // Modern browsers: addEventListener; Safari <14 fallback: addListener.
-  if (mq.addEventListener) mq.addEventListener("change", (ev) => sync(ev.matches));
-  else if (mq.addListener) mq.addListener((ev) => sync(ev.matches));
-  disc.addEventListener("toggle", () => {
-    disc.dataset.userToggled = "true";
-  });
+  disc.open = true;
 }
 
 function wireSearch() {
@@ -3760,6 +3776,33 @@ function wireTabs() {
     if (aboutView)      { aboutView.classList.toggle("active", onAbout);           aboutView.hidden = !onAbout; }
     const globalExportCsv = el("export-csv");
     if (globalExportCsv) globalExportCsv.hidden = onAp1000 || onMicro || onCoal || onHanford;
+    // Search only makes sense against the corpus views that read
+    // tableState.filtered (map/table/rankings/microreactors — the
+    // microreactor siting screen's microRankedSites() sources from the same
+    // globally-filtered set Rankings does, so it needs the same controls;
+    // Codex PR #23 review). The remaining curated tabs (Retired, Coal,
+    // Nuclear Siting, Hanford, About) have their own local content and read
+    // no global filter state at all.
+    const searchOnThisTab = onMap || onTable || onCandidates || onMicro;
+    const searchWrapEl = el("search-wrap");
+    if (searchWrapEl) searchWrapEl.hidden = !searchOnThisTab;
+    const searchCountEl = el("search-count");
+    if (searchCountEl) searchCountEl.hidden = !searchOnThisTab;
+    // Same scope as search — the filters panel only filters the corpus
+    // views. Force-close it when navigating to a curated tab so it can't
+    // be left open with no visible toggle to close it.
+    const filtersToggleEl = el("filters-toggle");
+    if (filtersToggleEl) {
+      filtersToggleEl.hidden = !searchOnThisTab;
+      if (!searchOnThisTab && filtersToggleEl.getAttribute("aria-expanded") === "true") {
+        closeFiltersUi();
+      }
+    }
+    // The headline stat deck (and the per-program tagline folded into it)
+    // is a summary of the CORPUS, not of a curated tab's own content — show
+    // it only where the corpus is actually on screen.
+    const kpiDisclosureEl = el("kpi-disclosure");
+    if (kpiDisclosureEl) kpiDisclosureEl.hidden = !(onMap || onTable);
     if (onMap) setTimeout(() => map.invalidateSize(), 50);
     if (onCandidates) buildCandidatesView();
     if (onRetired) { mountRetiredView(); ensureRetiredIndustrialLoaded(); buildRetiredView(); }
@@ -5548,6 +5591,19 @@ const HANFORD_FIT_LABEL = {
   precluded: "Precluded",
 };
 
+// Facility-fit summary vocabulary — a dedicated data-center-vs-reactor-class
+// comparison, distinct from the general `opportunities` list (which has a
+// single combined "advanced_nuclear" kind). Order matters: it's the column
+// order in the top-of-page summary table AND the row order in each parcel's
+// mini-list, smallest-footprint reactor class last.
+const HANFORD_FACILITY_ORDER = ["data_center", "lwr_pwr", "smr", "microreactor"];
+const HANFORD_FACILITY_SHORT_LABEL = {
+  data_center: "Data center",
+  lwr_pwr: "Large reactor",
+  smr: "SMR",
+  microreactor: "Microreactor",
+};
+
 function ensureHanfordLoaded() {
   if (hanfordLoadingPromise) return hanfordLoadingPromise;
   hanfordLoadFailed = false;
@@ -5700,6 +5756,59 @@ function _hanfordCorpusHtml(p) {
   );
 }
 
+const HANFORD_FIT_RANK = { anchored: 4, strong: 3, conditional: 2, precluded: 1 };
+
+// Top-of-page comparison: what each facility type needs (from the build
+// script's FACILITY_TYPES, so the criteria text lives in one place) plus a
+// parcel × facility-type matrix with a computed "best fit" column. The
+// per-cell fit VALUES are curated (facility_fit on each parcel); only the
+// best-fit ranking itself is computed client-side from those values.
+function _hanfordFacilityFitSummaryHtml(parcels, facilityTypes) {
+  if (!parcels.length) return "";
+  const considerationRows = HANFORD_FACILITY_ORDER.map((t) => {
+    const meta = facilityTypes[t] || {};
+    const src = meta.source_url
+      ? ` <a href="${escapeAttr(meta.source_url)}" target="_blank" rel="noopener" class="micro-note">Source ↗</a>`
+      : "";
+    return `<tr><th scope="row">${escapeHtml(meta.label || HANFORD_FACILITY_SHORT_LABEL[t] || t)}</th>` +
+      `<td>${escapeHtml(meta.considerations || "")}${src}</td></tr>`;
+  }).join("");
+  const bodyRows = parcels.map((p) => {
+    const byType = {};
+    for (const ff of p.facility_fit || []) byType[ff.type] = ff;
+    let bestRank = 0;
+    for (const t of HANFORD_FACILITY_ORDER) {
+      const r = HANFORD_FIT_RANK[byType[t]?.fit] || 0;
+      if (r > bestRank) bestRank = r;
+    }
+    const bestTypes = bestRank > 0
+      ? HANFORD_FACILITY_ORDER.filter((t) => HANFORD_FIT_RANK[byType[t]?.fit] === bestRank)
+      : [];
+    const bestLabel = bestTypes.length
+      ? bestTypes.map((t) => HANFORD_FACILITY_SHORT_LABEL[t]).join(" / ")
+      : "None — not offered";
+    const cells = HANFORD_FACILITY_ORDER.map((t) => {
+      const ff = byType[t];
+      if (!ff) return `<td class="hanford-fit-cell">—</td>`;
+      return `<td class="hanford-fit-cell"><span class="hp-fit hp-fit-${escapeAttr(ff.fit)}" title="${escapeAttr(ff.rationale)}">${escapeHtml(HANFORD_FIT_LABEL[ff.fit] || ff.fit)}</span></td>`;
+    }).join("");
+    return `<tr><th scope="row"><a href="#hp-${escapeAttr(p.id)}">${escapeHtml(p.name)}</a> <span class="micro-note">~${Math.round(p.approx_acres).toLocaleString()} ac</span></th>` +
+      cells +
+      `<td class="hanford-best-fit">${escapeHtml(bestLabel)}</td></tr>`;
+  }).join("");
+  return (
+    `<details class="hanford-pathways hanford-facility-summary"><summary><strong>Facility fit summary — data center vs. reactor class</strong> <span class="micro-note">(what each facility type needs, and the best-fit ranking per parcel)</span></summary>` +
+    `<p class="hanford-summary">Every parcel below is screened against the same four facility types. "Best fit" ties to the highest-ranked fit value (anchored &gt; strong &gt; conditional &gt; precluded); a tie lists every type at that rank. These are editorial judgements grounded in each parcel's curated status and availability, not a computed score — hover a fit badge (or open the parcel below) for the reasoning.</p>` +
+    `<div class="micro-table-wrap"><table class="micro-table hanford-pathway-table hanford-facility-considerations">` +
+    `<thead><tr><th scope="col">Facility type</th><th scope="col">What it needs</th></tr></thead>` +
+    `<tbody>${considerationRows}</tbody></table></div>` +
+    `<div class="micro-table-wrap"><table class="micro-table hanford-facility-matrix">` +
+    `<thead><tr><th scope="col">Parcel</th>${HANFORD_FACILITY_ORDER.map((t) => `<th scope="col">${escapeHtml(HANFORD_FACILITY_SHORT_LABEL[t])}</th>`).join("")}<th scope="col">Best fit</th></tr></thead>` +
+    `<tbody>${bodyRows}</tbody></table></div>` +
+    `</details>`
+  );
+}
+
 function _hanfordParcelCard(p) {
   const kindLabel = HANFORD_KIND_LABEL[p.kind] || p.kind;
   const fits = (p.opportunities || []).map((o) =>
@@ -5715,6 +5824,15 @@ function _hanfordParcelCard(p) {
     `<div><strong>${escapeHtml((hanfordData.opportunity_kinds || {})[o.kind] || o.kind)}</strong>` +
     `<p>${escapeHtml(o.rationale)}</p></div></li>`
   ).join("");
+  const facilityByType = {};
+  for (const ff of p.facility_fit || []) facilityByType[ff.type] = ff;
+  const facilityFitItems = HANFORD_FACILITY_ORDER.map((t) => {
+    const ff = facilityByType[t];
+    if (!ff) return "";
+    return `<li class="hp-opp"><span class="hp-fit hp-fit-${escapeAttr(ff.fit)}">${escapeHtml(HANFORD_FIT_LABEL[ff.fit] || ff.fit)}</span>` +
+      `<div><strong>${escapeHtml(HANFORD_FACILITY_SHORT_LABEL[t] || t)}</strong>` +
+      `<p>${escapeHtml(ff.rationale)}</p></div></li>`;
+  }).join("");
   const nearby = (p.nearby_tracked || []).map((n) =>
     `<li><a href="?site=${encodeURIComponent(n.id)}" class="hanford-site-link" data-site="${escapeAttr(n.id)}">${escapeHtml(prettyName(n.name) || n.id)}</a>` +
     ` <span class="micro-note">${escapeHtml((n.program || "").toUpperCase())} · ${fmt.miles(n.distance_mi)}</span></li>`
@@ -5753,6 +5871,8 @@ function _hanfordParcelCard(p) {
     `<tbody>${screenRows}</tbody></table></div>` +
     _hanfordCorpusHtml(p) +
     `<h5>Opportunities</h5><ul class="hp-opps">${opps || '<li class="micro-note">None assessed.</li>'}</ul>` +
+    `<h5>Facility fit <span class="micro-note">(data center vs. reactor class — see the summary above for how these compare across all nine parcels)</span></h5>` +
+    `<ul class="hp-opps">${facilityFitItems || '<li class="micro-note">None assessed.</li>'}</ul>` +
     (nearby ? `<h5>Nearby tracked records</h5><ul class="hanford-nearby">${nearby}</ul>` : "") +
     `<div class="janus-card-links hanford-cites">` +
     `<a href="${escapeAttr(p.source_url)}" target="_blank" rel="noopener">Primary source ↗</a>` +
@@ -5797,20 +5917,34 @@ function buildHanfordView() {
   const limits = (hanfordData.limitations || []).map((l) => escapeHtml(l)).join(" · ");
   const parcels = (hanfordData.parcels || []).map((p) => _hanfordParcelCard(p)).join("");
   const lup = ov.land_use_plan || {};
+  const sourceRows = Object.values(hanfordData.sources || {}).map((s) =>
+    `<tr><th scope="row">${s.url ? `<a href="${escapeAttr(s.url)}" target="_blank" rel="noopener">${escapeHtml(s.label)} ↗</a>` : escapeHtml(s.label)}</th>` +
+    `<td>${escapeHtml(s.covers || "")}</td></tr>`
+  ).join("");
+  const facilityFitSummary = _hanfordFacilityFitSummaryHtml(hanfordData.parcels || [], hanfordData.facility_types || {});
   host.innerHTML =
+    `<details class="hanford-pathways hanford-sources" open><summary><strong>Sources &amp; methodology</strong> <span class="micro-note">(where every finding on this page comes from, and how it was pulled)</span></summary>` +
     `<div class="janus-limit"><strong>Screening, not siting:</strong> ${limits}</div>` +
+    `<p class="hanford-summary">Every row in each parcel's environmental screen below comes from <a href="https://github.com/pnnl/nepa-mcp" target="_blank" rel="noopener">PNNL's nepa-mcp</a> — an open-source toolkit (BSD-3) that wraps live federal GIS and regulatory APIs behind one uniform interface. For each land unit, this dossier calls nepa-mcp's tools once per source below, at a ${escapeHtml(String(hanfordData.screening_buffer_miles || 5))}-mile radius around a representative point in that unit, caches the raw response, and normalizes it into the "Finding" column shown in each parcel's Environmental screen table. A source that times out or errors is recorded as <strong>unavailable</strong> — it is never silently counted as a no-hit. The Map Composer layers (the "Show features on map" button) are pulled the same way, as GeoJSON instead of tabular counts. Site history, ownership, and land-use-plan facts below are hand-curated and cited per row — see each row's own "Source ↗" link.</p>` +
+    `<div class="micro-table-wrap"><table class="micro-table hanford-pathway-table">` +
+    `<thead><tr><th scope="col">Source (nepa-mcp tool)</th><th scope="col">What it actually covers</th></tr></thead>` +
+    `<tbody>${sourceRows}</tbody></table></div></details>` +
+    facilityFitSummary +
     `<section class="hanford-overview">` +
+    `<h3 class="hanford-section-title">Site history</h3>` +
     `<p class="hanford-summary">${escapeHtml(ov.summary || "")}</p>` +
+    `</section>` +
+    `<details class="hanford-pathways" open><summary><strong>Who manages this land</strong> <span class="micro-note">(landlord, regulators, and every overlapping jurisdiction)</span></summary>` +
     `<div class="hanford-mgrs">${managers}</div>` +
     (lup.label
       ? `<p class="hanford-lup micro-note">${escapeHtml(lup.note || "")} <a href="${escapeAttr(lup.url)}" target="_blank" rel="noopener">${escapeHtml(lup.label)} ↗</a></p>`
       : "") +
-    `</section>` +
+    `</details>` +
     `<details class="hanford-pathways"><summary><strong>Permitting &amp; licensing pathways</strong> <span class="micro-note">(what applies and who decides — never a schedule estimate)</span></summary>` +
     `<div class="micro-table-wrap"><table class="micro-table hanford-pathway-table">` +
     `<thead><tr><th scope="col">Regime</th><th scope="col">When it applies at Hanford</th><th scope="col">Authority</th></tr></thead>` +
     `<tbody>${pathways}</tbody></table></div></details>` +
-    `<section class="hanford-parcels"><h3>The land, unit by unit</h3>${parcels}</section>` +
+    `<section class="hanford-parcels"><h3>NEPA-MCP screening report — the land, unit by unit</h3>${parcels}</section>` +
     `<p class="micro-note hanford-method">${escapeHtml(hanfordData.method || "")} nepa-mcp ${escapeHtml(hanfordData.nepa_mcp_version || "")} · generated ${escapeHtml((hanfordData.generated_at || "").slice(0, 10))}</p>`;
 
   // Delegated bindings — no string-interpolated inline handlers.
@@ -7577,40 +7711,6 @@ function applyTheme(theme) {
   const icon = document.getElementById("theme-icon");
   if (icon) icon.textContent = theme === "dark" ? "☀" : "☾";
 }
-// Copy the current page URL (with all filter state encoded by syncUrl)
-// to the clipboard. Prefers the modern async Clipboard API; falls back
-// to the legacy hidden-textarea + execCommand path for older browsers
-// and for non-secure-context loads (Clipboard API requires HTTPS or
-// localhost). Toast confirms the copy so users get feedback without an
-// extra modal.
-function wireShareLink() {
-  const btn = el("share-link");
-  if (!btn) return;
-  btn.addEventListener("click", async () => {
-    const url = window.location.href;
-    let ok = false;
-    try {
-      if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(url);
-        ok = true;
-      } else {
-        const ta = document.createElement("textarea");
-        ta.value = url;
-        ta.setAttribute("readonly", "");
-        ta.style.position = "fixed";
-        ta.style.left = "-9999px";
-        document.body.appendChild(ta);
-        ta.select();
-        ok = document.execCommand("copy");
-        document.body.removeChild(ta);
-      }
-    } catch (_e) {
-      ok = false;
-    }
-    showToast(ok ? "Link copied to clipboard" : "Couldn't copy link — long-press the address bar instead");
-  });
-}
-
 function wireThemeToggle() {
   el("theme-toggle").addEventListener("click", () => {
     const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
