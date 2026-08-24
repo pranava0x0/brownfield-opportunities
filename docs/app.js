@@ -1527,7 +1527,7 @@ function ensureTribalAreasLoaded() {
 // IRA Energy Community enrichment. Joins onto every program by `id` to add
 // `in_energy_community` (boolean), `energy_community_type` (coal_closure |
 // fossil_fuel_employment), and `energy_community_detail` (human-readable
-// provenance). A clean-energy project on an energy community earns a +10pp
+// provenance). A qualifying energy project on an energy community earns a +10pp
 // ITC/PTC bonus under IRA §45/48 — a financial signal that stacks with OZ.
 function ensureIraEnergyCommunityLoaded() {
   if (iraEcLoadingPromise) return iraEcLoadingPromise;
@@ -1940,7 +1940,7 @@ function ensurePlannedRetirementsLoaded() {
             (s.balancing_authority ? `<span>${escapeHtml(s.balancing_authority)}</span>` : "") +
             (s.operator ? `<span>${escapeHtml(s.operator)}</span>` : "") +
           `</div>` +
-          `<div class="ref-campus-prev" style="margin-top:6px">Announced retirement (EIA-860M) — a dated hand-off of a large grid interconnection. Candidate for repowering (nuclear / gas / solar+storage) or a co-located large load; dates can slip.</div>` +
+          `<div class="ref-campus-prev" style="margin-top:6px">Announced retirement (EIA-860M) — a dated hand-off of a large grid interconnection. Candidate for replacement generation (nuclear / gas / solar+storage) or a co-located large load; dates can slip.</div>` +
           `</div>`,
           { maxWidth: 280 }
         );
@@ -1955,7 +1955,7 @@ function ensurePlannedRetirementsLoaded() {
   return plannedRetirementsLoadingPromise;
 }
 
-// Coal-to-Clean (Nuclear / Data Center) Conversion overlay (Spec 04)
+// Coal reinvestment (nuclear / data center) conversion overlay (Spec 04)
 function ensureCoalConversionsLoaded() {
   if (coalConversionsLoadingPromise) return coalConversionsLoadingPromise;
   coalConversionsLoadingPromise = fetch(COAL_CONVERSIONS_URL, { priority: "low" })
@@ -1976,7 +1976,7 @@ function ensureCoalConversionsLoaded() {
         // Glyph directly in the icon div (no inner span) — halves marker DOM
         // cost; the 5,000-node first-paint budget has ~60 nodes of headroom.
         const icon = L.divIcon({
-          className: "coal-repowering-icon",
+          className: "coal-repowering-icon",  // class name kept stable (CSS + e2e)
           html: "⬢",
           iconSize: [18, 18],
           iconAnchor: [9, 9],
@@ -1998,7 +1998,7 @@ function ensureCoalConversionsLoaded() {
             (s.has_rail ? `<span>Rail loop</span>` : "") +
             (s.queue_transfer_eligible ? `<span style="color:var(--readiness-ready)">⚡ POI reusable</span>` : "") +
           `</div>` +
-          `<div class="ref-campus-prev" style="margin-top:6px">Coal-to-Clean repowering candidate. Reusing stranded electrical, rail, and water assets cuts nuclear construction CapEx 15–35% (DOE/INL coal-to-nuclear studies); data-center campuses inherit the same switchyard, water, and rail assets. Value figure is a modeled screening estimate, not an appraisal.</div>` +
+          `<div class="ref-campus-prev" style="margin-top:6px">Coal reinvestment candidate. Reusing stranded electrical, rail, and water assets cuts nuclear construction CapEx 15–35% (DOE/INL coal-to-nuclear studies); data-center campuses inherit the same switchyard, water, and rail assets. Value figure is a modeled screening estimate, not an appraisal.</div>` +
           `<button type="button" class="coal-popup-btn">Explore in Coal Tab &rarr;</button>` +
           `</div>`,
           { maxWidth: 290 }
@@ -2023,7 +2023,7 @@ function ensureCoalConversionsLoaded() {
   return coalConversionsLoadingPromise;
 }
 
-// Federal Clean Energy & Mine Lands (CEML) overlay (Spec 08)
+// Federal land-program overlay — DOE EM / OCED CEML (Spec 08)
 function ensureFederalCleanEnergyLoaded() {
   if (federalCleanEnergyLoadingPromise) return federalCleanEnergyLoadingPromise;
   federalCleanEnergyLoadingPromise = fetch(FEDERAL_CLEAN_ENERGY_URL, { priority: "low" })
@@ -2072,7 +2072,7 @@ function ensureFederalCleanEnergyLoaded() {
       rerenderLegend();
     })
     .catch((err) => {
-      console.error("Federal clean energy overlay load failed:", err);
+      console.error("Federal energy-program overlay load failed:", err);
       federalCleanEnergyLoadingPromise = null;
     });
   return federalCleanEnergyLoadingPromise;
@@ -2678,19 +2678,19 @@ function addLegend() {
         `<span class="legend-num">${microCommitmentLayer.getLayers().length}</span>` +
         `</div>`
       : "";
-    // Coal-to-Clean repowering assets (EIA/DOE)
+    // Coal reinvestment assets (EIA/DOE)
     const coalRow = (coalConversionLayer && coalConversionLayer.getLayers().length > 0)
       ? `<div class="legend-row legend-row-ref">` +
         `<span class="legend-coal">⬢</span>` +
-        `<span class="legend-label">Coal repowering asset</span>` +
+        `<span class="legend-label">Coal reinvestment asset</span>` +
         `<span class="legend-num">${coalConversionLayer.getLayers().length}</span>` +
         `</div>`
       : "";
-    // Federal Clean Energy & Mine Lands (CEML) reservations
+    // Federal land-program reservations (DOE EM / OCED CEML)
     const fedRow = (federalCleanEnergyLayer && federalCleanEnergyLayer.getLayers().length > 0)
       ? `<div class="legend-row legend-row-ref">` +
         `<span class="legend-federal">🏛</span>` +
-        `<span class="legend-label">Federal clean energy</span>` +
+        `<span class="legend-label">Federal energy program</span>` +
         `<span class="legend-num">${federalCleanEnergyLayer.getLayers().length}</span>` +
         `</div>`
       : "";
@@ -3893,7 +3893,7 @@ function mountAboutView() {
   view.appendChild(tpl.content.cloneNode(true));
 }
 
-// Same lazy-mount mechanism for the Coal Repowering and Retired Sites view
+// Same lazy-mount mechanism for the Coal Reinvestment and Retired Sites view
 // skeletons — their interiors live in <template> until first activation, so
 // hidden tabs cost ~2 nodes each at first paint. Mount BEFORE any code that
 // queries elements inside the view (buildCoalView / buildRetiredView run
@@ -3918,7 +3918,7 @@ function mountRetiredView() {
   view.appendChild(tpl.content.cloneNode(true));
 }
 
-// ----- Coal-to-Clean Repowering View (Spec 04) -----
+// ----- Coal Reinvestment View (Spec 04) -----
 let coalFiltersBound = false;
 
 // Status labels for the coal catalog's actual value domain. Keep in sync with
@@ -6344,7 +6344,7 @@ function makeCandidateRow(s, rank) {
   }
   if (s.in_energy_community) {
     const lbl = s.energy_community_type === "coal_closure" ? "IRA Coal" : "IRA";
-    badges.push(`<span class="sig-badge sig-ira" title="IRA energy community${s.energy_community_detail ? " — " + escapeAttr(s.energy_community_detail) : ""} — +10pp ITC/PTC bonus for clean-energy builds">${escapeHtml(lbl)}</span>`);
+    badges.push(`<span class="sig-badge sig-ira" title="IRA energy community${s.energy_community_detail ? " — " + escapeAttr(s.energy_community_detail) : ""} — +10pp ITC/PTC bonus for qualifying energy builds">${escapeHtml(lbl)}</span>`);
   }
   if (s.npl_status_code === "D") {
     badges.push('<span class="sig-badge sig-ready" title="Deleted from NPL — cleanup complete">Clean</span>');
@@ -6785,10 +6785,10 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
     ? ` <span class="pill oz-pill" title="Site is inside a Treasury Qualified Opportunity Zone — capital gains deferral applies to 5+yr holds (QOF investment)${s.oz_rural ? ' · Rural OZ designation' : ''}">${s.oz_rural ? 'OZ \xb7 Rural' : 'OZ'}</span>`
     : "";
   // IRA energy community pill — financial signal that stacks with OZ. A
-  // clean-energy build here earns a +10pp ITC/PTC bonus. Coal-closure
+  // qualifying energy build here earns a +10pp ITC/PTC bonus. Coal-closure
   // communities are the higher-confidence (tract-level) signal.
   const iraPill = s.in_energy_community === true
-    ? ` <span class="pill ira-pill" title="IRA energy community (${escapeAttr(s.energy_community_type === "coal_closure" ? "coal closure" : "fossil-fuel employment")}${s.energy_community_detail ? " · " + escapeAttr(s.energy_community_detail) : ""}) — clean-energy projects earn a +10 percentage-point ITC/PTC bonus">${s.energy_community_type === "coal_closure" ? "IRA \xb7 Coal" : "IRA"}</span>`
+    ? ` <span class="pill ira-pill" title="IRA energy community (${escapeAttr(s.energy_community_type === "coal_closure" ? "coal closure" : "fossil-fuel employment")}${s.energy_community_detail ? " · " + escapeAttr(s.energy_community_detail) : ""}) — qualifying energy projects earn a +10 percentage-point ITC/PTC bonus">${s.energy_community_type === "coal_closure" ? "IRA \xb7 Coal" : "IRA"}</span>`
     : "";
   const tribalPill = s.in_aiannha_area === true
     ? ` <span class="pill tribal-pill" title="Inside ${s.aiannha_area_count || 1} Census TIGERweb AIANNHA mapped area(s): ${escapeAttr((s.aiannha_areas || []).map((area) => area.name).join(" · "))}. Screening context only; not title or a consultation determination.">Tribal area context</span>`
@@ -7847,13 +7847,13 @@ function setPlannedRetireCell(id, s) {
     const span = document.createElement("span");
     span.className = "pp-chip sig-plant";
     span.textContent = parts.join(" · ");
-    span.title = "Operating plant with an announced retirement — interconnect frees on a known date; repowering/co-location deals close before shutdown (Homer City pattern)";
+    span.title = "Operating plant with an announced retirement — interconnect frees on a known date; replacement-generation/co-location deals close before shutdown (Homer City pattern)";
     node.appendChild(document.createTextNode(" "));
     node.appendChild(span);
   }
 }
 
-// Coal conversion repowering asset cell (Spec 04)
+// Coal conversion asset cell (Spec 04)
 function setCoalRepowerCell(id, s) {
   const node = el(id);
   if (!node) return;
@@ -7878,7 +7878,7 @@ function setCoalRepowerCell(id, s) {
     span.type = "button";
     span.className = "pp-chip sig-plant coal-clickable-chip";
     span.textContent = parts.join(" · ") + " →";
-    span.title = "Click to explore this coal plant in the Coal Repowering tab (DOE/EIA data, stranded asset breakdown, nearby brownfield parcels)";
+    span.title = "Click to explore this coal plant in the Coal Reinvestment tab (DOE/EIA data, stranded asset breakdown, nearby brownfield parcels)";
     span.addEventListener("click", (e) => {
       e.stopPropagation();
       if (s.coal_conversion_plant_name && window.__openCoalTabForPlant) {
@@ -7992,7 +7992,7 @@ function setEnergyCommunityCell(id, s) {
       : "Energy community";
     const detail = s.energy_community_detail ? ` — ${s.energy_community_detail}` : "";
     const url = "https://energycommunities.gov/energy-community-tax-credit-bonus/";
-    const title = `IRA energy community (${typeLabel}${detail}) — clean-energy projects here earn a +10 percentage-point ITC/PTC bonus under IRA §45/48`;
+    const title = `IRA energy community (${typeLabel}${detail}) — qualifying energy projects here earn a +10 percentage-point ITC/PTC bonus under IRA §45/48`;
     node.innerHTML = `<a href="${escapeAttr(url)}" target="_blank" rel="noopener" title="${escapeAttr(title)}">Yes · ${escapeHtml(typeLabel)}${escapeHtml(detail)}</a>`;
     node.classList.remove("muted-cell");
     node.classList.add("ready");

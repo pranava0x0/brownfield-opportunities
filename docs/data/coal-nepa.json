@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-08-24T06:05:39.414965Z",
+  "generated_at": "2026-08-24T13:22:40.753565Z",
   "nepa_mcp_version": "0.1.1",
   "screening_buffer_miles": 5.0,
   "flood_radius_miles": 2.0,
   "plant_count": 18,
-  "method": "PNNL nepa-mcp structured APIs, cached and rate-limited to at least 1.5 seconds between requests per host; one screen per cataloged coal repowering asset.",
+  "method": "PNNL nepa-mcp structured APIs, cached and rate-limited to at least 1.5 seconds between requests per host; one screen per cataloged coal reinvestment asset.",
   "limitations": [
     "Coordinates are plant reference points, not project footprints.",
     "Counts mean features intersect the screening buffer, not the parcel.",
@@ -529,91 +529,9 @@
           "retrieved_at": "2026-08-24T06:03:23.650998Z"
         },
         "nepa_assist": {
-          "summary": {
-            "total_checks": 41,
-            "yes_count": 18,
-            "no_count": 23,
-            "flagged_issues": [
-              "Within 1 mile of an Ozone 1-hr (1979 standard) Non-Attainment/Maintenance Area?",
-              "Within 1 mile of a PM2.5 Annual (1997 standard) Non-Attainment/Maintenance Area?",
-              "Within 1 mile of a CO Annual (1971 standard) Non-Attainment/Maintenance Area?",
-              "Within 1 mile of an impaired stream?",
-              "Within 1 mile of an impaired waterbody?",
-              "Within 1 mile of a waterbody?",
-              "Within 1 mile of a stream?",
-              "Within 1 mile of a Toxic Release Inventory (TRI) site?",
-              "Within 1 mile of a water discharger (NPDES)?",
-              "Within 1 mile of a hazardous waste (RCRA) facility?",
-              "Within 1 mile of an air emission facility?",
-              "Within 1 mile of a school?",
-              "Within 1 mile of an airport?",
-              "Within 1 mile of a historic property on the National Register of Historic Places?",
-              "Within 1 mile of a Chemical Data Reporting (CDR) site?",
-              "Within 1 mile of the service area of a mitigation or conservation bank?",
-              "Within 1 mile of the service area of an In-Lieu-Fee Program?",
-              "Within 1 mile of an ESA-designated Critical Habitat Area per U.S. Fish & Wildlife Service?"
-            ]
-          },
-          "categories": {
-            "air_quality": {
-              "Within 1 mile of an Ozone 1-hr (1979 standard) Non-Attainment/Maintenance Area?": "yes",
-              "Within 1 mile of an Ozone 8-hr (1997 standard) Non-Attainment/Maintenance Area?": "no",
-              "Within 1 mile of an Ozone 8-hr (2008 standard) Non-Attainment/Maintenance Area?": "no",
-              "Within 1 mile of an Ozone 8-hr (2015 standard) Non-Attainment/Maintenance Area?": "no",
-              "Within 1 mile of a Lead (2008 standard) Non-Attainment/Maintenance Area?": "no",
-              "Within 1 mile of a SO2 1-hr (2010 standard) Non-Attainment/Maintenance Area?": "no",
-              "Within 1 mile of a PM2.5 24hr (2006 standard) Non-Attainment/Maintenance Area?": "no",
-              "Within 1 mile of a PM2.5 Annual (1997 standard) Non-Attainment/Maintenance Area?": "yes",
-              "Within 1 mile of a PM2.5 Annual (2012 standard) Non-Attainment/Maintenance Area?": "no",
-              "Within 1 mile of a PM10 (1987 standard) Non-Attainment/Maintenance Area?": "no",
-              "Within 1 mile of a CO Annual (1971 standard) Non-Attainment/Maintenance Area?": "yes",
-              "Within 1 mile of a NO2 Annual (1971 standard) Non-Attainment/Maintenance Area?": "no",
-              "Within 1 mile of an air emission facility?": "yes"
-            },
-            "water_resources": {
-              "Within 1 mile of an impaired stream?": "yes",
-              "Within 1 mile of an impaired waterbody?": "yes",
-              "Within 1 mile of a waterbody?": "yes",
-              "Within 1 mile of a stream?": "yes",
-              "Within 1 mile of a water discharger (NPDES)?": "yes",
-              "Within 1 mile of an ESA-designated Critical Habitat river, stream or water feature per U.S. Fish & Wildlife Service?": "no"
-            },
-            "contaminated_sites": {
-              "Within 1 mile of a Brownfields site?": "no",
-              "Within 1 mile of a Superfund site?": "no",
-              "Within 1 mile of a Toxic Release Inventory (TRI) site?": "yes",
-              "Within 1 mile of a hazardous waste (RCRA) facility?": "yes",
-              "Within 1 mile of a tribal area (lower 48 states)?": "no"
-            },
-            "community_features": {
-              "Within 1 mile of a Federal Land?": "no",
-              "Within 1 mile of a school?": "yes",
-              "Within 1 mile of an airport?": "yes",
-              "Within 1 mile of a hospital?": "no"
-            },
-            "natural_resources": {
-              "Within 1 mile of a designated sole source aquifer?": "no",
-              "Within 1 mile of the service area of a mitigation or conservation bank?": "yes",
-              "Within 1 mile of the service area of an In-Lieu-Fee Program?": "yes",
-              "Within 1 mile of an Essential Fish Habitat (EFH)?": "no",
-              "Within 1 mile of a Habitat Area of Particular Concern (HAPC)?": "no",
-              "Within 1 mile of an EFH Area Protected from Fishing (EFHA)?": "no",
-              "Within 1 mile of a Bureau of Land Management Area of Critical Environmental Concern?": "no",
-              "Within 1 mile of an ESA-designated Critical Habitat Area per U.S. Fish & Wildlife Service?": "yes"
-            },
-            "cultural_resources": {
-              "Within 1 mile of a historic property on the National Register of Historic Places?": "yes",
-              "Within 1 mile of a Land Cession Boundary?": "no"
-            },
-            "other": {
-              "Within 1 mile of a Chemical Data Reporting (CDR) site?": "yes",
-              "Within 1 mile of a Public Property Boundary of the Formerly Used Defense Sites?": "no",
-              "Within 1 mile of a Munitions Response Site?": "no"
-            }
-          },
-          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=Coal+repowering+%E2%80%94+Belews+Creek+Steam+Station&coords=-80.15128568599994%2C36.371915830000034%2C-79.97211431399995%2C36.371915830000034%2C-79.97211431399995%2C36.22688328900006%2C-80.15128568599994%2C36.22688328900006%2C-80.15128568599994%2C36.371915830000034&type=polygon&radius=1&unit=miles&f=report",
-          "status": "ok",
-          "retrieved_at": "2026-08-24T06:04:18.837680Z"
+          "status": "unavailable",
+          "error": "source query exceeded 40 seconds",
+          "retrieved_at": "2026-08-24T13:20:55.114846Z"
         }
       }
     },
@@ -1341,9 +1259,9 @@
               "Within 1 mile of a Munitions Response Site?": "no"
             }
           },
-          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=Coal+repowering+%E2%80%94+Bull+Run+Fossil+Plant&coords=-84.24677052599998%2C36.09441919900007%2C-84.06822947399996%2C36.09441919900007%2C-84.06822947399996%2C35.94937992200005%2C-84.24677052599998%2C35.94937992200005%2C-84.24677052599998%2C36.09441919900007&type=polygon&radius=1&unit=miles&f=report",
+          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=Coal+reinvestment+%E2%80%94+Bull+Run+Fossil+Plant&coords=-84.24677052599998%2C36.09441919900007%2C-84.06822947399996%2C36.09441919900007%2C-84.06822947399996%2C35.94937992200005%2C-84.24677052599998%2C35.94937992200005%2C-84.24677052599998%2C36.09441919900007&type=polygon&radius=1&unit=miles&f=report",
           "status": "ok",
-          "retrieved_at": "2026-08-24T06:04:23.795228Z"
+          "retrieved_at": "2026-08-24T13:21:24.139433Z"
         }
       }
     },
@@ -2061,9 +1979,9 @@
               "Within 1 mile of a Munitions Response Site?": "no"
             }
           },
-          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=Coal+repowering+%E2%80%94+Cheswick+Generating+Station&coords=-79.88668211399994%2C40.61166327700005%2C-79.69671788599999%2C40.61166327700005%2C-79.69671788599999%2C40.466735811000035%2C-79.88668211399994%2C40.466735811000035%2C-79.88668211399994%2C40.61166327700005&type=polygon&radius=1&unit=miles&f=report",
+          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=Coal+reinvestment+%E2%80%94+Cheswick+Generating+Station&coords=-79.88668211399994%2C40.61166327700005%2C-79.69671788599999%2C40.61166327700005%2C-79.69671788599999%2C40.466735811000035%2C-79.88668211399994%2C40.466735811000035%2C-79.88668211399994%2C40.61166327700005&type=polygon&radius=1&unit=miles&f=report",
           "status": "ok",
-          "retrieved_at": "2026-08-24T06:04:29.086826Z"
+          "retrieved_at": "2026-08-24T13:21:29.747388Z"
         }
       }
     },
@@ -2538,9 +2456,9 @@
               "Within 1 mile of a Munitions Response Site?": "no"
             }
           },
-          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=Coal+repowering+%E2%80%94+Colstrip+Steam+Plant&coords=-106.71645878799995%2C45.95489546200008%2C-106.50914121199997%2C45.95489546200008%2C-106.50914121199997%2C45.81010361600005%2C-106.71645878799995%2C45.81010361600005%2C-106.71645878799995%2C45.95489546200008&type=polygon&radius=1&unit=miles&f=report",
+          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=Coal+reinvestment+%E2%80%94+Colstrip+Steam+Plant&coords=-106.71645878799995%2C45.95489546200008%2C-106.50914121199997%2C45.95489546200008%2C-106.50914121199997%2C45.81010361600005%2C-106.71645878799995%2C45.81010361600005%2C-106.71645878799995%2C45.95489546200008&type=polygon&radius=1&unit=miles&f=report",
           "status": "ok",
-          "retrieved_at": "2026-08-24T06:04:33.351894Z"
+          "retrieved_at": "2026-08-24T13:21:34.018399Z"
         }
       }
     },
@@ -3228,9 +3146,9 @@
               "Within 1 mile of a Munitions Response Site?": "no"
             }
           },
-          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=Coal+repowering+%E2%80%94+Conesville+Power+Plant&coords=-81.98978893599997%2C40.259367706000035%2C-81.80081106399996%2C40.259367706000035%2C-81.80081106399996%2C40.114431384000056%2C-81.98978893599997%2C40.114431384000056%2C-81.98978893599997%2C40.259367706000035&type=polygon&radius=1&unit=miles&f=report",
+          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=Coal+reinvestment+%E2%80%94+Conesville+Power+Plant&coords=-81.98978893599997%2C40.259367706000035%2C-81.80081106399996%2C40.259367706000035%2C-81.80081106399996%2C40.114431384000056%2C-81.98978893599997%2C40.114431384000056%2C-81.98978893599997%2C40.259367706000035&type=polygon&radius=1&unit=miles&f=report",
           "status": "ok",
-          "retrieved_at": "2026-08-24T06:04:38.683991Z"
+          "retrieved_at": "2026-08-24T13:21:39.764587Z"
         }
       }
     },
@@ -4219,9 +4137,9 @@
               "Within 1 mile of a Munitions Response Site?": "no"
             }
           },
-          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=Coal+repowering+%E2%80%94+Craig+Generating+Station&coords=-107.68597554499996%2C40.53606422800004%2C-107.49622445499995%2C40.53606422800004%2C-107.49622445499995%2C40.39113486000008%2C-107.68597554499996%2C40.39113486000008%2C-107.68597554499996%2C40.53606422800004&type=polygon&radius=1&unit=miles&f=report",
+          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=Coal+reinvestment+%E2%80%94+Craig+Generating+Station&coords=-107.68597554499996%2C40.53606422800004%2C-107.49622445499995%2C40.53606422800004%2C-107.49622445499995%2C40.39113486000008%2C-107.68597554499996%2C40.39113486000008%2C-107.68597554499996%2C40.53606422800004&type=polygon&radius=1&unit=miles&f=report",
           "status": "ok",
-          "retrieved_at": "2026-08-24T06:04:42.734399Z"
+          "retrieved_at": "2026-08-24T13:21:43.924159Z"
         }
       }
     },
@@ -4972,9 +4890,9 @@
               "Within 1 mile of a Munitions Response Site?": "no"
             }
           },
-          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=Coal+repowering+%E2%80%94+Cumberland+Fossil+Plant&coords=-87.74299043999997%2C36.46331471800005%2C-87.56360955999997%2C36.46331471800005%2C-87.56360955999997%2C36.31828440000004%2C-87.74299043999997%2C36.31828440000004%2C-87.74299043999997%2C36.46331471800005&type=polygon&radius=1&unit=miles&f=report",
+          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=Coal+reinvestment+%E2%80%94+Cumberland+Fossil+Plant&coords=-87.74299043999997%2C36.46331471800005%2C-87.56360955999997%2C36.46331471800005%2C-87.56360955999997%2C36.31828440000004%2C-87.74299043999997%2C36.31828440000004%2C-87.74299043999997%2C36.46331471800005&type=polygon&radius=1&unit=miles&f=report",
           "status": "ok",
-          "retrieved_at": "2026-08-24T06:04:47.295284Z"
+          "retrieved_at": "2026-08-24T13:21:48.663967Z"
         }
       }
     },
@@ -5899,9 +5817,9 @@
               "Within 1 mile of a Munitions Response Site?": "no"
             }
           },
-          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=Coal+repowering+%E2%80%94+Gibson+Generating+Station&coords=-87.84988052299997%2C38.44359037600003%2C-87.66571947699998%2C38.44359037600003%2C-87.66571947699998%2C38.298608725000065%2C-87.84988052299997%2C38.298608725000065%2C-87.84988052299997%2C38.44359037600003&type=polygon&radius=1&unit=miles&f=report",
+          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=Coal+reinvestment+%E2%80%94+Gibson+Generating+Station&coords=-87.84988052299997%2C38.44359037600003%2C-87.66571947699998%2C38.44359037600003%2C-87.66571947699998%2C38.298608725000065%2C-87.84988052299997%2C38.298608725000065%2C-87.84988052299997%2C38.44359037600003&type=polygon&radius=1&unit=miles&f=report",
           "status": "ok",
-          "retrieved_at": "2026-08-24T06:04:51.653609Z"
+          "retrieved_at": "2026-08-24T13:21:53.041128Z"
         }
       }
     },
@@ -6399,9 +6317,9 @@
               "Within 1 mile of a Munitions Response Site?": "no"
             }
           },
-          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=Coal+repowering+%E2%80%94+Homer+City+Generating+Station&coords=-79.29244555799994%2C40.58576360300003%2C-79.10255444199998%2C40.58576360300003%2C-79.10255444199998%2C40.440835485000036%2C-79.29244555799994%2C40.440835485000036%2C-79.29244555799994%2C40.58576360300003&type=polygon&radius=1&unit=miles&f=report",
+          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=Coal+reinvestment+%E2%80%94+Homer+City+Generating+Station&coords=-79.29244555799994%2C40.58576360300003%2C-79.10255444199998%2C40.58576360300003%2C-79.10255444199998%2C40.440835485000036%2C-79.29244555799994%2C40.440835485000036%2C-79.29244555799994%2C40.58576360300003&type=polygon&radius=1&unit=miles&f=report",
           "status": "ok",
-          "retrieved_at": "2026-08-24T06:04:56.770591Z"
+          "retrieved_at": "2026-08-24T13:21:58.330205Z"
         }
       }
     },
@@ -7070,9 +6988,9 @@
               "Within 1 mile of a Munitions Response Site?": "no"
             }
           },
-          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=Coal+repowering+%E2%80%94+John+Sevier+Fossil+Plant&coords=-83.07138573099996%2C36.45921476800004%2C-82.89201426899996%2C36.45921476800004%2C-82.89201426899996%2C36.31418435000006%2C-83.07138573099996%2C36.31418435000006%2C-83.07138573099996%2C36.45921476800004&type=polygon&radius=1&unit=miles&f=report",
+          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=Coal+reinvestment+%E2%80%94+John+Sevier+Fossil+Plant&coords=-83.07138573099996%2C36.45921476800004%2C-82.89201426899996%2C36.45921476800004%2C-82.89201426899996%2C36.31418435000006%2C-83.07138573099996%2C36.31418435000006%2C-83.07138573099996%2C36.45921476800004&type=polygon&radius=1&unit=miles&f=report",
           "status": "ok",
-          "retrieved_at": "2026-08-24T06:05:01.792716Z"
+          "retrieved_at": "2026-08-24T13:22:03.885940Z"
         }
       }
     },
@@ -7779,9 +7697,9 @@
               "Within 1 mile of a Munitions Response Site?": "no"
             }
           },
-          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=Coal+repowering+%E2%80%94+Martin+Lake+Steam+Electric+Station&coords=-94.65370045199995%2C32.33446369400008%2C-94.48289954799998%2C32.33446369400008%2C-94.48289954799998%2C32.18933547200004%2C-94.65370045199995%2C32.18933547200004%2C-94.65370045199995%2C32.33446369400008&type=polygon&radius=1&unit=miles&f=report",
+          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=Coal+reinvestment+%E2%80%94+Martin+Lake+Steam+Electric+Station&coords=-94.65370045199995%2C32.33446369400008%2C-94.48289954799998%2C32.33446369400008%2C-94.48289954799998%2C32.18933547200004%2C-94.65370045199995%2C32.18933547200004%2C-94.65370045199995%2C32.33446369400008&type=polygon&radius=1&unit=miles&f=report",
           "status": "ok",
-          "retrieved_at": "2026-08-24T06:05:07.111062Z"
+          "retrieved_at": "2026-08-24T13:22:08.964481Z"
         }
       }
     },
@@ -8468,9 +8386,9 @@
               "Within 1 mile of a Munitions Response Site?": "no"
             }
           },
-          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=Coal+repowering+%E2%80%94+Merom+Generating+Station&coords=-87.60716431799995%2C39.129181850000066%2C-87.42123568199997%2C39.129181850000066%2C-87.42123568199997%2C38.98421724600007%2C-87.60716431799995%2C38.98421724600007%2C-87.60716431799995%2C39.129181850000066&type=polygon&radius=1&unit=miles&f=report",
+          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=Coal+reinvestment+%E2%80%94+Merom+Generating+Station&coords=-87.60716431799995%2C39.129181850000066%2C-87.42123568199997%2C39.129181850000066%2C-87.42123568199997%2C38.98421724600007%2C-87.60716431799995%2C38.98421724600007%2C-87.60716431799995%2C39.129181850000066&type=polygon&radius=1&unit=miles&f=report",
           "status": "ok",
-          "retrieved_at": "2026-08-24T06:05:11.810260Z"
+          "retrieved_at": "2026-08-24T13:22:13.548995Z"
         }
       }
     },
@@ -9013,9 +8931,9 @@
               "Within 1 mile of a Munitions Response Site?": "no"
             }
           },
-          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=Coal+repowering+%E2%80%94+Montour+Steam+Electric+Station&coords=-76.76244434999995%2C41.14415656700004%2C-76.57095564999997%2C41.14415656700004%2C-76.57095564999997%2C40.99924251900006%2C-76.76244434999995%2C40.99924251900006%2C-76.76244434999995%2C41.14415656700004&type=polygon&radius=1&unit=miles&f=report",
+          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=Coal+reinvestment+%E2%80%94+Montour+Steam+Electric+Station&coords=-76.76244434999995%2C41.14415656700004%2C-76.57095564999997%2C41.14415656700004%2C-76.57095564999997%2C40.99924251900006%2C-76.76244434999995%2C40.99924251900006%2C-76.76244434999995%2C41.14415656700004&type=polygon&radius=1&unit=miles&f=report",
           "status": "ok",
-          "retrieved_at": "2026-08-24T06:05:16.976385Z"
+          "retrieved_at": "2026-08-24T13:22:18.714067Z"
         }
       }
     },
@@ -9675,9 +9593,9 @@
             "flagged_issues": []
           },
           "categories": {},
-          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=Coal+repowering+%E2%80%94+Naughton+Power+Plant+%28Kemmerer%29&coords=-110.69235793099995%2C41.830747890000055%2C-110.49884206899998%2C41.830747890000055%2C-110.49884206899998%2C41.685851193000076%2C-110.69235793099995%2C41.685851193000076%2C-110.69235793099995%2C41.830747890000055&type=polygon&radius=1&unit=miles&f=report",
+          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=Coal+reinvestment+%E2%80%94+Naughton+Power+Plant+%28Kemmerer%29&coords=-110.69235793099995%2C41.830747890000055%2C-110.49884206899998%2C41.830747890000055%2C-110.49884206899998%2C41.685851193000076%2C-110.69235793099995%2C41.685851193000076%2C-110.69235793099995%2C41.830747890000055&type=polygon&radius=1&unit=miles&f=report",
           "status": "ok",
-          "retrieved_at": "2026-08-24T06:05:17.125392Z"
+          "retrieved_at": "2026-08-24T13:22:18.857159Z"
         }
       }
     },
@@ -10530,9 +10448,9 @@
               "Within 1 mile of a Munitions Response Site?": "no"
             }
           },
-          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=Coal+repowering+%E2%80%94+Paradise+Fossil+Plant&coords=-87.07131199599996%2C37.33360407600003%2C-86.88988800399994%2C37.33360407600003%2C-86.88988800399994%2C37.18859503400006%2C-87.07131199599996%2C37.18859503400006%2C-87.07131199599996%2C37.33360407600003&type=polygon&radius=1&unit=miles&f=report",
+          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=Coal+reinvestment+%E2%80%94+Paradise+Fossil+Plant&coords=-87.07131199599996%2C37.33360407600003%2C-86.88988800399994%2C37.33360407600003%2C-86.88988800399994%2C37.18859503400006%2C-87.07131199599996%2C37.18859503400006%2C-87.07131199599996%2C37.33360407600003&type=polygon&radius=1&unit=miles&f=report",
           "status": "ok",
-          "retrieved_at": "2026-08-24T06:05:23.060377Z"
+          "retrieved_at": "2026-08-24T13:22:24.789506Z"
         }
       }
     },
@@ -11358,9 +11276,9 @@
               "Within 1 mile of a Munitions Response Site?": "no"
             }
           },
-          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=Coal+repowering+%E2%80%94+Rockport+Generating+Station&coords=-87.12872243499999%2C37.99829588800003%2C-86.94567756499998%2C37.99829588800003%2C-86.94567756499998%2C37.85330321600003%2C-87.12872243499999%2C37.85330321600003%2C-87.12872243499999%2C37.99829588800003&type=polygon&radius=1&unit=miles&f=report",
+          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=Coal+reinvestment+%E2%80%94+Rockport+Generating+Station&coords=-87.12872243499999%2C37.99829588800003%2C-86.94567756499998%2C37.99829588800003%2C-86.94567756499998%2C37.85330321600003%2C-87.12872243499999%2C37.85330321600003%2C-87.12872243499999%2C37.99829588800003&type=polygon&radius=1&unit=miles&f=report",
           "status": "ok",
-          "retrieved_at": "2026-08-24T06:05:27.646804Z"
+          "retrieved_at": "2026-08-24T13:22:29.192903Z"
         }
       }
     },
@@ -12223,9 +12141,9 @@
               "Within 1 mile of a Munitions Response Site?": "no"
             }
           },
-          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=Coal+repowering+%E2%80%94+W.A.+Parish+Electric+Generating+Station&coords=-95.71486767799996%2C29.551494939000065%2C-95.54893232199998%2C29.551494939000065%2C-95.54893232199998%2C29.40630426900003%2C-95.71486767799996%2C29.40630426900003%2C-95.71486767799996%2C29.551494939000065&type=polygon&radius=1&unit=miles&f=report",
+          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=Coal+reinvestment+%E2%80%94+W.A.+Parish+Electric+Generating+Station&coords=-95.71486767799996%2C29.551494939000065%2C-95.54893232199998%2C29.551494939000065%2C-95.54893232199998%2C29.40630426900003%2C-95.71486767799996%2C29.40630426900003%2C-95.71486767799996%2C29.551494939000065&type=polygon&radius=1&unit=miles&f=report",
           "status": "ok",
-          "retrieved_at": "2026-08-24T06:05:34.421952Z"
+          "retrieved_at": "2026-08-24T13:22:35.864945Z"
         }
       }
     },
@@ -12903,9 +12821,9 @@
               "Within 1 mile of a Munitions Response Site?": "no"
             }
           },
-          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=Coal+repowering+%E2%80%94+Widows+Creek+Fossil+Plant&coords=-85.84133239299996%2C34.96583279200007%2C-85.66526760699998%2C34.96583279200007%2C-85.66526760699998%2C34.820766341000024%2C-85.84133239299996%2C34.820766341000024%2C-85.84133239299996%2C34.96583279200007&type=polygon&radius=1&unit=miles&f=report",
+          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=Coal+reinvestment+%E2%80%94+Widows+Creek+Fossil+Plant&coords=-85.84133239299996%2C34.96583279200007%2C-85.66526760699998%2C34.96583279200007%2C-85.66526760699998%2C34.820766341000024%2C-85.84133239299996%2C34.820766341000024%2C-85.84133239299996%2C34.96583279200007&type=polygon&radius=1&unit=miles&f=report",
           "status": "ok",
-          "retrieved_at": "2026-08-24T06:05:39.413695Z"
+          "retrieved_at": "2026-08-24T13:22:40.751333Z"
         }
       }
     }

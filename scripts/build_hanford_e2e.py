@@ -188,7 +188,7 @@ PERMITTING_PATHWAYS = [
         "regime": "NEPA (DOE lead agency)",
         "applies": (
             "Any DOE realty action — leases under the Atomic Energy Act, "
-            "Cleanup-to-Clean-Energy parcels, land transfers. DOE chooses EA "
+            "land-offering parcels, land transfers. DOE chooses EA "
             "vs. EIS per 10 CFR 1021; the 2023 FRA amendments set 1-year EA "
             "/ 2-year EIS targets."
         ),
@@ -223,7 +223,7 @@ PERMITTING_PATHWAYS = [
         "applies": (
             "Any nuclear power facility in Washington (no size floor), "
             "non-nuclear thermal plants at or above 350 MW, and — since the "
-            "2022 E2SHB 1812 expansion — clean-energy generation, storage, "
+            "2022 E2SHB 1812 expansion — generation, storage, "
             "manufacturing, and hydrogen projects that opt in. EFSEC site "
             "certification substitutes for local land-use approvals; the "
             "governor signs the certification."
@@ -343,8 +343,7 @@ PARCELS = [
                 "rationale": (
                     "Interim safe storage of reactor cores plus active "
                     "groundwater remedies leave no offerable footprint; DOE "
-                    "chose its Cleanup-to-Clean-Energy acreage elsewhere on "
-                    "the site."
+                    "chose its land-lease acreage elsewhere on the site."
                 ),
             },
         ],
@@ -569,12 +568,12 @@ PARCELS = [
     },
     {
         "id": "hanford-clean-energy-reservation",
-        "name": "Cleanup-to-Clean-Energy parcel — Cereza solar (Savion)",
+        "name": "Cereza solar parcel — DOE lease negotiation (Savion)",
         "kind": "leased_energy",
         "lat": 46.55,
         "lon": -119.5,
         "coord_note": (
-            "Representative point from the federal clean-energy overlay; DOE "
+            "Representative point from the federal land-program overlay; DOE "
             "has not published a final parcel boundary."
         ),
         "approx_acres": 8000,
@@ -582,8 +581,8 @@ PARCELS = [
         "clup_designation": None,
         "clup_note": "Offered acreage sits within CLUP industrial/conservation designations; the lease will fix the footprint.",
         "status": (
-            "Hanford is one of DOE's original 2023 Cleanup-to-Clean-Energy "
-            "sites. DOE selected Hecate Energy to negotiate a realty "
+            "Hanford is one of the original 2023 sites in DOE's land-offering "
+            "initiative ('Cleanup to Clean Energy'). DOE selected Hecate Energy to negotiate a realty "
             "agreement for up to 1 GW of solar plus storage on up to 8,000 "
             "offered acres (project 'Cereza'); DOE issued categorical "
             "exclusion CX-034321 (Aug 2025) covering a license agreement "

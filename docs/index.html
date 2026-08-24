@@ -69,7 +69,7 @@
       <button id="tab-table" class="tab" role="tab" aria-selected="false" aria-controls="view-table">Table</button>
       <button id="tab-candidates" class="tab" role="tab" aria-selected="false" aria-controls="view-candidates">Rankings</button>
       <button id="tab-retired" class="tab" role="tab" aria-selected="false" aria-controls="view-retired">Retired Sites</button>
-      <button id="tab-coal" class="tab" role="tab" aria-selected="false" aria-controls="view-coal">Coal Repowering</button>
+      <button id="tab-coal" class="tab" role="tab" aria-selected="false" aria-controls="view-coal">Coal Reinvestment</button>
       <button id="tab-ap1000" class="tab" role="tab" aria-selected="false" aria-controls="view-ap1000">Nuclear Siting</button>
       <button id="tab-micro" class="tab" role="tab" aria-selected="false" aria-controls="view-micro">Microreactors</button>
       <button id="tab-hanford" class="tab" role="tab" aria-selected="false" aria-controls="view-hanford">Hanford</button>
@@ -285,7 +285,7 @@
     <template id="coal-template">
     <div class="coal-wrap">
       <div class="coal-lead">
-        <h2>Coal-to-Clean Repowering &amp; Stranded Asset Screening</h2>
+        <h2>Coal Reinvestment &amp; Stranded Asset Screening</h2>
         <p>A curated catalogue of operating, retiring, retired, and gas-converted coal plants evaluated for <strong>nuclear SMR</strong> and <strong>hyperscale AI data center conversion</strong>. Reusing existing high-voltage switchyards, water intakes, and heavy rail loops can cut construction CapEx <strong>15–35%</strong> (<a href="https://www.energy.gov/ne/articles/doe-report-finds-hundreds-retiring-coal-plant-sites-could-convert-nuclear" target="_blank" rel="noopener">DOE/INL coal-to-nuclear studies</a>), and a retired or retiring interconnection can be reused via generator-replacement and surplus-interconnection processes instead of a new queue position. Dollar figures are <em>modeled screening estimates</em>; every plant row carries its own citation and audit date, and retirement dates can slip in both directions (DOE §202(c) extensions, data-center-driven life extensions).</p>
       </div>
 
@@ -455,7 +455,7 @@
             <dd>Weighted rubric for siting a data-center <em>load</em>. Positive weights sum to 100: transmission distance (16 pts), voltage class (14), substation proximity (12), grid inheritance from a large co-located / retired / nuclear plant (8), acreage (20), gas pipeline (10), logistics — highway + rail (6), readiness signals (14). Then <strong>subtractive penalties</strong>: −18 for a FEMA Special Flood Hazard Area, up to −10 for Very-High FEMA wildfire/drought risk, and up to −8 for a restrictive state regulatory climate (DC-lens only). The result is clamped to 0–100. Returns <em>N/A</em> when no transmission data is available (can't assess power access ≠ a bad site).</dd>
 
             <dt>Generation score (0–100)</dt>
-            <dd>Weighted rubric for siting new <em>power generation</em> — weighted differently because what suits a 200 MW compute load ≠ a 200 MW solar/gas build. Positive weights sum to 100: acreage (24 pts, the dominant constraint), transmission-to-export (18), substation interconnection (14), voltage headroom (12), gas pipeline (10), grid reuse — repowering a retired plant's interconnection (8), ISO/RTO market access (8), readiness (6). It has <strong>no active-plant component</strong> (you are the plant) and gives <strong>no credit for active reuse</strong> (occupied land is a liability for a ground-up build). Carries the same flood (−18) and climate (−10) penalties and the same transmission gate as the DC lens, but <strong>not</strong> the regulatory penalty (a DC moratorium doesn't block a power plant).</dd>
+            <dd>Weighted rubric for siting new <em>power generation</em> — weighted differently because what suits a 200 MW compute load ≠ a 200 MW solar/gas build. Positive weights sum to 100: acreage (24 pts, the dominant constraint), transmission-to-export (18), substation interconnection (14), voltage headroom (12), gas pipeline (10), grid reuse — reusing a retired plant's interconnection (8), ISO/RTO market access (8), readiness (6). It has <strong>no active-plant component</strong> (you are the plant) and gives <strong>no credit for active reuse</strong> (occupied land is a liability for a ground-up build). Carries the same flood (−18) and climate (−10) penalties and the same transmission gate as the DC lens, but <strong>not</strong> the regulatory penalty (a DC moratorium doesn't block a power plant).</dd>
 
             <dt>Manufacturing score (0&ndash;100)</dt>
             <dd>Weighted rubric for siting a <em>manufacturing plant</em>. Positive weights sum to 100: rail access (22 pts &mdash; a gate for heavy-materials plants), acreage (18, <em>peaked</em> rather than rising: a 100&ndash;500&nbsp;ac plateau decaying past 2,000, because a plant wants a right-sized site, not the largest one), transmission (16), substation (12), gas (12), highway (10), readiness (10). Carries the same flood and climate penalties and the same transmission gate as the other lenses.</dd>
@@ -505,10 +505,10 @@
             <dd>Miles to the nearest large (≥100 MW) <em>retired</em> dispatchable plant from EIA-860M. A retired plant ≤1 mile is the strongest grid-inheritance signal — stranded interconnection with no active load competing for it (the Conesville / Widows Creek pattern). Drives the <strong>Ret. Plant</strong> badge and full grid-inheritance scoring credit. Source: EIA Form EIA-860M.</dd>
 
             <dt>IRA energy community</dt>
-            <dd>Whether the site is in an Inflation Reduction Act energy community (coal-closure tract or fossil-fuel-employment county) — a +10pp ITC/PTC bonus on a clean-energy build. Source: DOE NETL 2024 layers.</dd>
+            <dd>Whether the site is in an Inflation Reduction Act energy community (coal-closure tract or fossil-fuel-employment county) — a +10pp ITC/PTC bonus on a qualifying energy build. Source: DOE NETL 2024 layers.</dd>
 
             <dt>Opportunity Zone</dt>
-            <dd>Treasury-designated QOZ tract status and whether it is Rural (~700 of 8,765 tracts). Rural OZ sites also qualify for IRA clean energy community credits. Source: HUD FeatureServer.</dd>
+            <dd>Treasury-designated QOZ tract status and whether it is Rural (~700 of 8,765 tracts). Rural OZ sites also qualify for IRA energy-community credits. Source: HUD FeatureServer.</dd>
 
             <dt>ISO / RTO</dt>
             <dd>Regional transmission organization: PJM, MISO, ERCOT, CAISO, SPP, NYISO, ISO-NE, or non-RTO. Affects interconnection queue access and electricity market structure. Source: EIA Atlas.</dd>
@@ -540,7 +540,7 @@
             <dd>EPA Sitewide Ready for Anticipated Use (SWRAU) — EPA's own determination that <em>all</em> of a site's land is ready for its anticipated use. The strongest public land-availability signal. ~940 Superfund sites meet the measure.</dd>
 
             <dt>IRA / IRA·Coal</dt>
-            <dd>Inflation Reduction Act energy community (coal-closure tract = "IRA·Coal", or fossil-fuel-employment county). +10pp ITC/PTC bonus on a paired clean-energy build.</dd>
+            <dd>Inflation Reduction Act energy community (coal-closure tract = "IRA·Coal", or fossil-fuel-employment county). +10pp ITC/PTC bonus on a paired qualifying energy build.</dd>
 
             <dt>Ret. Plant / Grid Inherit / Nuclear</dt>
             <dd>Grid-inheritance signals: a large retired plant ≤1 mi (<strong>Ret. Plant</strong>), a large active coal/gas plant ≤1 mi (<strong>Grid Inherit</strong>), or an operating nuclear plant ≥500 MW ≤5 mi (<strong>Nuclear</strong> — the AWS/Susquehanna PPA pattern). Each implies an inheritable / nearby high-voltage interconnection.</dd>
@@ -686,7 +686,7 @@
             <div class="flow-card">
               <div class="flow-card-head">
                 <span class="flow-card-badge">Feature 4</span>
-                <h4>Coal-to-Clean Reindustrialization</h4>
+                <h4>Coal Reindustrialization</h4>
               </div>
               <p class="flow-desc">Screens national coal facilities for conversion to advanced nuclear SMRs and AI data center campuses, modeling replacement CapEx value.</p>
               <div class="pipeline-tags">
@@ -722,13 +722,13 @@
               </ul>
             </div>
 
-            <!-- Feature 6: Federal Clean Energy Portfolio -->
+            <!-- Feature 6: Federal land-program portfolio -->
             <div class="flow-card">
               <div class="flow-card-head">
                 <span class="flow-card-badge">Feature 6</span>
-                <h4>Federal Cleanup to Clean Energy &amp; CEML</h4>
+                <h4>Federal Land Programs (DOE EM / OCED)</h4>
               </div>
-              <p class="flow-desc">Catalogs massive federal reservations (DOE-EM) and reclaimed coal mine lands (DOE-OCED) undergoing gigawatt-scale clean energy transitions.</p>
+              <p class="flow-desc">Catalogs massive federal reservations (DOE-EM) and reclaimed coal mine lands (DOE-OCED) offered for gigawatt-scale energy and data-center development.</p>
               <div class="pipeline-tags">
                 <span class="ptag">DOE-EM Reservations</span>
                 <span class="ptag">DOE-OCED Mine Lands</span>
@@ -738,7 +738,7 @@
               <ul class="flow-points">
                 <li><strong>Federal Security &amp; Land Scale:</strong> Flagship reservations including Savannah River Site (~198k ac), NNSS (860k ac), and INL (570k ac).</li>
                 <li><strong>Gigawatt Compute Campus Precedents:</strong> Tracks awards such as Amentum at SRS and Brookfield/NextEra at Paducah (1.8 GW AI campus + 2 GW gas + 2.6 GW BESS).</li>
-                <li><strong>Clean Energy on Mine Lands:</strong> CEML demonstrations on former surface coal mines — solar (Mineral Basin PA, 402 MW) and pumped storage (Lewis Ridge KY, 266 MW).</li>
+                <li><strong>Mine lands (CEML):</strong> demonstrations on former surface coal mines — solar (Mineral Basin PA, 402 MW) and pumped storage (Lewis Ridge KY, 266 MW).</li>
               </ul>
             </div>
 
@@ -881,7 +881,7 @@
       <dt>Power plant</dt><dd id="d-power-plant-mi" class="muted-cell">Not available</dd>
       <dt>Retired plant</dt><dd id="d-retired-plant-mi" class="muted-cell">Not available</dd>
       <dt>Retiring plant</dt><dd id="d-planned-retire-mi" class="muted-cell">Not available</dd>
-      <dt>Coal repowering</dt><dd id="d-coal-repower-mi" class="muted-cell">Not available</dd>
+      <dt>Coal reinvestment</dt><dd id="d-coal-repower-mi" class="muted-cell">Not available</dd>
       <dt>Rail line</dt><dd id="d-rail-mi" class="muted-cell">Not available</dd>
       <dt>Highway</dt><dd id="d-highway-mi" class="muted-cell">Not available</dd>
       <dt>Gas pipeline</dt><dd id="d-gas-pipeline-mi" class="muted-cell">Not available</dd>

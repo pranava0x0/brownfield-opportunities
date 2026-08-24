@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build per-plant NEPA permitting screens for the coal repowering catalog.
+"""Build per-plant NEPA permitting screens for the coal reinvestment catalog.
 
 Coal-to-nuclear and coal-to-data-center conversions live or die on
 speed-to-power, and the slowest gate is usually environmental review — yet
@@ -8,7 +8,7 @@ rail, and valuation signals with no permitting context at all. This builder
 runs each of the 18 cataloged plants through seven PNNL nepa-mcp sources
 (USFWS IPaC, tribal geography, NRHP, PAD-US point context, USACE district,
 FEMA NFHL flood zones, EPA NEPAssist) and emits docs/data/coal-nepa.json,
-which the Coal Repowering drawer renders as a "Permitting screen" section.
+which the Coal Reinvestment drawer renders as a "Permitting screen" section.
 
 Run with the isolated Python 3.12 interpreter (nepa-mcp is never a project
 dependency — see nepa-mcp-integration-spec.md)::
@@ -47,7 +47,7 @@ CATALOG_PATH = ROOT / "docs" / "data" / "coal-conversions.json"
 OUTPUT_PATH = ROOT / "docs" / "data" / "coal-nepa.json"
 CACHE_DIR = ROOT / "data" / "cache" / "coal-nepa"
 
-USER_AGENT = "BrownfieldOpportunities/0.2 (Coal repowering NEPA screening; research)"
+USER_AGENT = "BrownfieldOpportunities/0.2 (Coal reinvestment NEPA screening; research)"
 
 # Coal plants are compact industrial sites; a 5-mile context (vs the Janus
 # 10-mile installation buffer) keeps neighboring-county noise out of the
@@ -173,7 +173,7 @@ def _source_defs() -> "tuple[screening.SourceDef, ...]":
         ),
         screening.SourceDef(
             "nepa_assist", "nepa_assist", "query_nepa_assist", screening.normalize_nepa_assist,
-            lambda fn, s: fn(s["lat"], s["lon"], BUFFER_MILES, f"Coal repowering — {s['plant_name']}"),
+            lambda fn, s: fn(s["lat"], s["lon"], BUFFER_MILES, f"Coal reinvestment — {s['plant_name']}"),
         ),
     )
 
@@ -211,7 +211,7 @@ def write_output(plants: "list[dict]", tabular: dict, merge_existing: bool = Fal
         "method": (
             "PNNL nepa-mcp structured APIs, cached and rate-limited to at "
             "least 1.5 seconds between requests per host; one screen per "
-            "cataloged coal repowering asset."
+            "cataloged coal reinvestment asset."
         ),
         "limitations": LIMITATIONS,
         "sources": SOURCE_META,

@@ -77,7 +77,7 @@ FEDERAL_SITES_CATALOG: list[dict[str, Any]] = [
     },
     {
         "site_id": "doe-em-hanford",
-        "site_name": "Hanford Site Clean Energy Reservation",
+        "site_name": "Hanford Site land-lease area (DOE-EM)",
         "managing_office": "DOE-EM",
         "state": "WA", "county": "Benton",
         "latitude": 46.5500, "longitude": -119.5000,

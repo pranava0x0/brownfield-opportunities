@@ -226,8 +226,8 @@ def test_map_overlays_render_markers_and_legend(page, base_url):
     assert state["fed"] == 10, state
     assert state["coalHasInnerSpan"] is False, "glyph must live directly in the icon div"
     assert state["coalStyled"] == "17px", f"marker CSS not applied: {state['coalStyled']}"
-    assert "Coal repowering asset" in state["legendText"]
-    assert "Federal clean energy" in state["legendText"]
+    assert "Coal reinvestment asset" in state["legendText"]
+    assert "Federal energy program" in state["legendText"]
 
 
 def test_drawer_nearby_shows_unavailable_not_negative_on_prox_failure(page, base_url):
@@ -288,7 +288,7 @@ def test_coal_join_reapplies_after_restricted_boot_then_reset(page, base_url):
 
 
 def test_coal_detail_cell_renders_for_joined_site(page, base_url):
-    """A site inside the 10-mi join renders the 'Coal repowering' row with a
+    """A site inside the 10-mi join renders the 'Coal reinvestment' row with a
     clickable chip labeled as modeled; a site outside stays 'Not available'."""
     _goto_ready(page, base_url)
     result = page.evaluate(

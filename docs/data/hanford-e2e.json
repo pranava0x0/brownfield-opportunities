@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-24T12:04:43.448614Z",
+  "generated_at": "2026-08-24T13:23:18.170081Z",
   "nepa_mcp_version": "0.1.1",
   "screening_buffer_miles": 5.0,
   "flood_radius_miles": 2.0,
@@ -47,7 +47,7 @@
   "permitting_pathways": [
     {
       "regime": "NEPA (DOE lead agency)",
-      "applies": "Any DOE realty action \u2014 leases under the Atomic Energy Act, Cleanup-to-Clean-Energy parcels, land transfers. DOE chooses EA vs. EIS per 10 CFR 1021; the 2023 FRA amendments set 1-year EA / 2-year EIS targets.",
+      "applies": "Any DOE realty action \u2014 leases under the Atomic Energy Act, land-offering parcels, land transfers. DOE chooses EA vs. EIS per 10 CFR 1021; the 2023 FRA amendments set 1-year EA / 2-year EIS targets.",
       "authority": "U.S. Department of Energy (NEPA office)",
       "url": "https://www.energy.gov/nepa/"
     },
@@ -65,7 +65,7 @@
     },
     {
       "regime": "Washington EFSEC certification",
-      "applies": "Any nuclear power facility in Washington (no size floor), non-nuclear thermal plants at or above 350 MW, and \u2014 since the 2022 E2SHB 1812 expansion \u2014 clean-energy generation, storage, manufacturing, and hydrogen projects that opt in. EFSEC site certification substitutes for local land-use approvals; the governor signs the certification.",
+      "applies": "Any nuclear power facility in Washington (no size floor), non-nuclear thermal plants at or above 350 MW, and \u2014 since the 2022 E2SHB 1812 expansion \u2014 generation, storage, manufacturing, and hydrogen projects that opt in. EFSEC site certification substitutes for local land-use approvals; the governor signs the certification.",
       "authority": "WA Energy Facility Site Evaluation Council (RCW 80.50)",
       "url": "https://www.efsec.wa.gov/"
     },
@@ -194,7 +194,7 @@
         {
           "kind": "solar_storage",
           "fit": "precluded",
-          "rationale": "Interim safe storage of reactor cores plus active groundwater remedies leave no offerable footprint; DOE chose its Cleanup-to-Clean-Energy acreage elsewhere on the site."
+          "rationale": "Interim safe storage of reactor cores plus active groundwater remedies leave no offerable footprint; DOE chose its land-lease acreage elsewhere on the site."
         }
       ],
       "screening": {
@@ -3848,16 +3848,16 @@
     },
     {
       "id": "hanford-clean-energy-reservation",
-      "name": "Cleanup-to-Clean-Energy parcel \u2014 Cereza solar (Savion)",
+      "name": "Cereza solar parcel \u2014 DOE lease negotiation (Savion)",
       "kind": "leased_energy",
       "lat": 46.55,
       "lon": -119.5,
-      "coord_note": "Representative point from the federal clean-energy overlay; DOE has not published a final parcel boundary.",
+      "coord_note": "Representative point from the federal land-program overlay; DOE has not published a final parcel boundary.",
       "approx_acres": 8000,
       "corpus_site_id": null,
       "clup_designation": null,
       "clup_note": "Offered acreage sits within CLUP industrial/conservation designations; the lease will fix the footprint.",
-      "status": "Hanford is one of DOE's original 2023 Cleanup-to-Clean-Energy sites. DOE selected Hecate Energy to negotiate a realty agreement for up to 1 GW of solar plus storage on up to 8,000 offered acres (project 'Cereza'); DOE issued categorical exclusion CX-034321 (Aug 2025) covering a license agreement and Phase I site assessment; and in February 2026 Hecate sold the up-to-2-GW Cereza project to Savion, now lead developer.",
+      "status": "Hanford is one of the original 2023 sites in DOE's land-offering initiative ('Cleanup to Clean Energy'). DOE selected Hecate Energy to negotiate a realty agreement for up to 1 GW of solar plus storage on up to 8,000 offered acres (project 'Cereza'); DOE issued categorical exclusion CX-034321 (Aug 2025) covering a license agreement and Phase I site assessment; and in February 2026 Hecate sold the up-to-2-GW Cereza project to Savion, now lead developer.",
       "availability": "In active development under Savion. The lease NEPA action started as a categorical exclusion for site investigations; the construction-stage review is the next public milestone.",
       "source_url": "https://www.energy.gov/articles/doe-announces-cleanup-clean-energy-project-hanford-site",
       "extra_sources": [
@@ -4203,9 +4203,9 @@
             "flagged_issues": []
           },
           "categories": {},
-          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=Hanford+E2E+%E2%80%94+Cleanup-to-Clean-Energy+parcel+%E2%80%94+Cereza+solar+%28Savion%29&coords=-119.60492242499998%2C46.62238697200007%2C-119.39507757499996%2C46.62238697200007%2C-119.39507757499996%2C46.47761210700003%2C-119.60492242499998%2C46.47761210700003%2C-119.60492242499998%2C46.62238697200007&type=polygon&radius=1&unit=miles&f=report",
+          "report_url": "https://nepassisttool.epa.gov/nepassist/analysis.aspx?ptitle=Hanford+E2E+%E2%80%94+Cereza+solar+parcel+%E2%80%94+DOE+lease+negotiation+%28Savion%29&coords=-119.60492242499998%2C46.62238697200007%2C-119.39507757499996%2C46.62238697200007%2C-119.39507757499996%2C46.47761210700003%2C-119.60492242499998%2C46.47761210700003%2C-119.60492242499998%2C46.62238697200007&type=polygon&radius=1&unit=miles&f=report",
           "status": "ok",
-          "retrieved_at": "2026-08-24T05:50:07.344022Z"
+          "retrieved_at": "2026-08-24T13:23:17.621224Z"
         }
       },
       "geojson_url": "data/hanford-nepa/hanford-clean-energy-reservation.geojson",
