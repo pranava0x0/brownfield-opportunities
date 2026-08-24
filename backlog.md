@@ -85,6 +85,38 @@ but currently persists across visits once un-dismissed), or keep it as-is if usa
 suggests it's still the more discoverable entry point for new visitors. Should be decided
 alongside the header/navigation IA rethink above, not in isolation.
 
+## NEPA surfaces expansion — spec set 13 (2026-08-24, user-directed)
+
+Master plan: [docs/specs/spec-nepa-surfaces-expansion-plan.md](docs/specs/spec-nepa-surfaces-expansion-plan.md)
+(sequencing 13d → 13b → 13a → 13c; the DOE-Sites-v2 layout grammar is the
+shared UX contract — answers first, one drawer, click-revealed cited
+reasoning, disclaimers at the bottom).
+
+- **[high] 13d — infra freshness audit + efficient refresh**
+  ([spec](docs/specs/spec-infra-data-freshness-and-efficient-refresh.md)).
+  Script SHIPPED + audit RUN 2026-08-24: **4 STALE** — `superfund-npl`
+  (upstream edited 2026-08-22 vs our 2026-05-12), `dod-fuds`
+  (2026-08-20), `epa-redev` (2026-07-24), EIA-860M (May 2026 workbook
+  published; we parse April). Next: the supervised refresh of those four
+  (producer guardrail — never unattended), then the weekly CI freshness
+  job.
+- **[high] 13b — Coal tab NEPA walkthrough**
+  ([spec](docs/specs/spec-coal-tab-nepa-walkthrough.md)): 7→8 sources +
+  map packages + per-STATE permitting pathways + the federal-nexus
+  verdict + reading sentences per finding. Absorbs the earlier "coal
+  permitting screen needs more detail" item below.
+- **[med] 13a — Microreactors tab walkthrough**
+  ([spec](docs/specs/spec-microreactor-tab-nepa-walkthrough.md)): Janus
+  6→8 sources, answers-first reorder, ranked-site "screening preview"
+  drawer from already-joined corpus data (zero new network), fleet +
+  commitments provenance (absorbs the "[low] fleet rows carry no
+  verified_at" item at [med]).
+- **[med] 13c — nepa-mcp gap analysis → upstream proposals**
+  ([spec](docs/specs/spec-nepa-mcp-gap-analysis.md)): file the
+  `load_server_module` re-front PR (our `purge_server_src_namespace` is
+  the shim + test case), the coverage-metadata issue, and the
+  NEPATEC-document-server discussion.
+
 ## DOE Sites tab follow-ups (2026-08-24, post-v2 restructure)
 
 Shipped 2026-08-24: the tab became "DOE Sites" (Hanford + SRS + Portsmouth +
