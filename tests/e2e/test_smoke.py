@@ -2039,6 +2039,45 @@ def test_kpi_disclosure_open_by_default_on_desktop(page, base_url):
     assert state["summaryDisplay"] == "none", "summary strip should be hidden on desktop"
 
 
+def test_search_filters_stats_scoped_to_corpus_tabs(page, base_url):
+    """2026-08-24: search, the settings/filters button, and the stats deck
+    are hidden on the curated tabs (Retired/Coal/Nuclear Siting/Hanford/
+    About) since those views read no global filter state. Map/Table/
+    Rankings/Microreactors all consume tableState.filtered (Codex PR #23
+    review: microRankedSites() sources from the same globally-filtered set
+    Rankings does, so Microreactors was wrongly excluded in the first cut)
+    and must keep search + filters visible; the stats deck stays scoped to
+    Map/Table only (Rankings/Microreactors show their own scored counts).
+    The theme toggle is never scoped."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    cases = [
+        ("tab-map", True, True, True),
+        ("tab-table", True, True, True),
+        ("tab-candidates", True, True, False),
+        ("tab-micro", True, True, False),
+        ("tab-retired", False, False, False),
+        ("tab-coal", False, False, False),
+        ("tab-ap1000", False, False, False),
+        ("tab-hanford", False, False, False),
+        ("tab-about", False, False, False),
+    ]
+    for tab_id, search_visible, filters_visible, stats_visible in cases:
+        page.click(f"#{tab_id}")
+        state = page.evaluate(
+            """() => ({"""
+            """  search: !document.getElementById('search-wrap').hidden,"""
+            """  filters: !document.getElementById('filters-toggle').hidden,"""
+            """  stats: !document.getElementById('kpi-disclosure').hidden,"""
+            """  theme: !document.getElementById('theme-toggle').hidden,"""
+            """})"""
+        )
+        assert state["search"] == search_visible, f"{tab_id}: search visibility"
+        assert state["filters"] == filters_visible, f"{tab_id}: filters visibility"
+        assert state["stats"] == stats_visible, f"{tab_id}: stats visibility"
+        assert state["theme"] is True, f"{tab_id}: theme toggle must always be visible"
+
+
 def test_filters_open_as_sheet_below_640px(page, base_url):
     """Mobile filter UX (backlog [med]): on phones the gear toggles a
     bottom-sheet (not the inline strip) and pulls up a backdrop. Guards

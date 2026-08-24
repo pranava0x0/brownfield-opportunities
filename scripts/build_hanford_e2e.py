@@ -401,10 +401,13 @@ PARCELS = [
                 "type": t,
                 "fit": "precluded",
                 "rationale": (
-                    "Interim-closed land under long-term federal control, "
-                    "with cocooned reactor cores and an active groundwater "
-                    "remedy — not offered for reuse of any kind, including "
-                    "this one."
+                    "Cocooned reactor cores (interim safe storage, a "
+                    "~75-year DOE timeline) and an active groundwater "
+                    "remedy occupy the parcel today — not offered under "
+                    "DOE's current disposition plan for this facility type. "
+                    "That is a mission choice DOE could revisit, not a "
+                    "legal bar like the Monument's Antiquities Act "
+                    "protection next door."
                 ),
             }
             for t in FACILITY_TYPES

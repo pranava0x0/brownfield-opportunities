@@ -121,10 +121,9 @@ size, distances, coords, dates) reads in tabular figures.
 
 | Role | Family | Size | Weight | Letter-spacing | Used on |
 |---|---|---|---|---|---|
-| H1 (brand) | serif | 20 / 17 mob | 700 | -0.01em | `.brand h1` |
-| H2 (hero, detail) | serif | 24 / 18 mob | 700 | -0.015em | `.hero h2`, `.detail h2` |
+| H1 (brand) | serif | 20 / 18 mob | 700 | -0.01em | `.brand h1` — deliberately kept above the 16px `.search input` iOS-zoom floor on mobile so the title reads as the visual anchor of the row |
+| H2 (detail) | serif | 24 / 18 mob | 700 | -0.015em | `.detail h2` |
 | H3 (section label) | sans | 10.5 | 600 | 0.12em | `.detail h3` (uppercase) |
-| Eyebrow | sans | 10 | 600 | 0.14em | `.hero-eyebrow` (uppercase) |
 | KPI number | serif | 22 / 18 mob | 700 | -0.01em, tnum | `.kpi-num` |
 | KPI label | sans | 9.5 | 600 | 0.1em | `.kpi-label` (uppercase) |
 | Body | sans | 14 | 400 | — | `body`, `dd` |
@@ -179,106 +178,123 @@ the detail-panel transform transition and the toast fade.
 ## 3. Layout architecture
 
 The page is a top-to-bottom flex column on `body` with `overflow: hidden` so
-the map view can absolute-position itself to fill the remainder.
+the map view can absolute-position itself to fill the remainder. `#main`
+wraps `#filters` and the view sections in a row-flex `.app-body` (2026-08-24)
+so the filters sidebar and the active view sit side by side.
 
 ```
 ┌────────────────────────────────────────────────────────┐  ──┐
-│  topbar    [search] [count] [filters] [csv] [☾] [tabs] │    │ chrome ~52px
+│  topbar row 1   brand + refreshed date   [search][⚙][↓][☾] │  │
+├────────────────────────────────────────────────────────┤    │ chrome
+│  topbar row 2   [tabs: Map Table Rankings Retired ...]   │    │ ~80-110px
+├────────────────────────────────────────────────────────┤    │ (rows 3-4
+│  topbar row 3   tagline (per-program counts)             │    │ hidden on
+│  topbar row 4   ┌─Sites─┬─Acres─┬─DC──┬─Hyper─┬─Gen──┐  │    │ curated
+│                 │ tracked│tracked│ready│ ready │ready │  │    │ tabs)
 ├────────────────────────────────────────────────────────┤  ──┤
-│  hero    H2 "Every federally-tracked..."   ┌──KPI──┐   │    │ ~140px
-│          dek                               │ deck  │   │    │ (hidden <640px)
+│ .app-body (row flex, filters + active view side by side) │    │
+│ ┌──────────┐┌───────────────────────────────────────┐  │    │
+│ │ #filters ││                                       │  │    │
+│ │ (sidebar,││    map  (or table / rankings / a       │  │    │ flex: 1
+│ │  hidden  ││    curated tab — mutually exclusive    │  │    │
+│ │  by      ││    via `.view.active`)                 │  │    │
+│ │  default)││                              [legend]  │  │    │
+│ └──────────┘└───────────────────────────────────────┘  │    │
 ├────────────────────────────────────────────────────────┤  ──┤
-│  filters  [program] [state] [npl] [acreage] [persona]  │    │ collapsed by
-│                                                        │    │ default
-├────────────────────────────────────────────────────────┤  ──┤
-│                                                        │    │
-│            map  (or table view, mutually               │    │ flex: 1
-│                  exclusive — `.view.active`)           │    │
-│                                                        │    │
-│                                          [legend]      │    │
-├────────────────────────────────────────────────────────┤  ──┤
-│  footer   sources · refreshed · github                 │    │ ~32px
+│  footer   sources · github                              │    │ ~32px
 └────────────────────────────────────────────────────────┘  ──┘
 
-  Aside (detail panel) — overlay:
+  Aside (detail panel) — overlay, unaffected by .app-body:
    - Desktop: 440px right rail, 100vh, slides right→left
    - Mobile:  full width, 65vh bottom sheet, slides bottom→top
 ```
 
-`<main>` uses `position: relative; flex: 1; overflow: hidden` so the map
-`<div>` can `position: absolute; inset: 0`. Swapping views toggles
-`.view.active` (display: block) on `#view-map` / `#view-table`.
+`main` uses `position: relative; flex: 1; min-width: 0; overflow: hidden` so
+the map `<div>` can `position: absolute; inset: 0` and so it can shrink when
+the filters sidebar is open. Swapping views toggles `.view.active`
+(display: block) on `#view-map` / `#view-table` / etc.
 
-### 3.1 Topbar
+### 3.1 Topbar (v1.30, 2026-08-24 restructure)
 
-`flex` row, wraps on narrow widths. Order on desktop: brand → search →
-count → filters btn → export btn → **share-link btn (⎘)** → theme btn →
-map/table tabs. Search has `flex: 1 1 240px; max-width: 360px` so it grows
-into available space without swallowing the toolbar. The `.search-count`
-is **outside** the search input wrapper so a long count string ("23,447 of
-46,778 in California · 412k ac (389k w/ acreage)") can ellipsis-truncate
-without compressing the input.
+Four rows, not one: `.topbar-row.topbar-row-brand` (title + refreshed date on
+the left, search/settings/export/theme on the right), `.topbar-row.
+topbar-row-tabs` (the 9-tab strip, its own row so it never competes with the
+title/search row for space), then `#kpi-disclosure` (the per-program tagline
++ the 5-cell KPI deck, both inside the same `<details>`).
 
-The search element is now a `.search-wrap` container holding:
+**Refreshed date lives next to the title**, not in the footer or the tagline
+— it used to be duplicated in three places; `setHeroRefresh()` now writes
+only `#topbar-refresh`. The share-link button (`#share-link`, ⎘) that used
+to sit in the icon-button cluster is **removed** — the URL already
+round-trips every filter (`syncUrl()`), so copying the address bar IS the
+share action; a dedicated button was redundant and crowded the mobile row.
+
+**Tab-scoped visibility.** Search (`#search-wrap` + `#search-count`) and the
+settings/filters button (`#filters-toggle`) are hidden outside the tabs that
+actually consume `tableState.filtered` — Map, Table, Rankings, **and
+Microreactors** (its siting screen sources from the same globally-filtered
+set Rankings does — don't forget it when touching this list). The stats
+deck (`#kpi-disclosure`) is scoped tighter still, to Map/Table only, since
+it's a corpus summary and Rankings/Microreactors already show their own
+scored counts. The theme toggle is never scoped — always visible, every tab.
+Navigating away from a search/filters-visible tab force-closes an open
+filters sidebar (`closeFiltersUi()`) so it can never be left open with no
+visible toggle to close it.
+
+`.topbar-controls` (the search+icons cluster) is `flex-wrap: nowrap` —
+**not** `wrap`. A `flex-wrap: wrap` container inside `.topbar-row`'s
+`justify-content: space-between` silently sized itself to fit only 3 of 4
+children and orphaned the last icon button onto its own invisible line, even
+with hundreds of spare pixels in the row (see § 8.x below). `nowrap` plus
+`.search-wrap`'s own `min-width` absorbing the squeeze is the fix.
+
+The search element is a `.search-wrap` container holding:
 - `<label class="search">` with the visible input
 - `<ul id="search-typeahead" role="listbox">` absolutely-positioned
   dropdown that opens when ≥2 chars are typed (capped at 8 results, ranked
   name-prefix > name-contains > city/state-contains). Arrow keys navigate,
   Enter / mousedown picks → `window.__selectSite(id)`. Escape clears.
-  Lets users jump directly to a known site without the tab-switch + scroll
-  hunt path.
 
-The share-link button (`#share-link`) calls `navigator.clipboard.writeText
-(window.location.href)` and fires a toast confirming the copy. URL state
-already round-trips every active filter (see `syncUrl()`), so the share
-button is just discoverability — it tells users the page is permalinkable.
+On mobile (`<640px`): `.search-wrap` drops its desktop `min-width: 220px` /
+`max-width: 360px` so it can shrink to whatever's left after the (now at
+most 3) icon buttons on the same nowrap row. Search input bumps to
+`font-size: 16px` to suppress iOS auto-zoom, and the title (`h1`, 18px)
+stays visibly larger than that floor rather than tying with it.
 
-On mobile (`<640px`): `flex-wrap: wrap` pushes controls onto a second row;
-`.search { flex: 1; order: -1 }` puts the search bar on top, full width.
-Search input bumps to `font-size: 16px` to suppress iOS auto-zoom.
+### 3.2 (removed — the standalone hero strip no longer exists)
 
-### 3.2 Hero strip
-
-Editorial intro band between topbar and filters. Two columns on desktop
-(`minmax(0, 1.4fr) minmax(0, 1fr)`): left = eyebrow + serif H2 + dek; right
-= 4-cell KPI deck. Bg is `--bg-elev` to read as elevated content rather than
-chrome.
-
-At `<1024px` (tablet): collapses to one column, KPI deck flows below copy.
-
-At `<640px` (mobile): the entire hero copy is hidden (`.hero-copy { display: none }`) so the map gets the real estate; the KPI deck becomes a
-horizontal scroll-snap carousel:
-
-```css
-.kpi-deck {
-  overflow-x: auto; scroll-snap-type: x mandatory;
-  grid-template-columns: repeat(N, minmax(120px, 1fr));
-}
-.kpi { scroll-snap-align: start; }
-```
+The two-column hero band (serif H2 + dek + KPI deck) described in earlier
+revisions of this doc was removed before the 2026-08-24 pass; the KPI deck
+now lives entirely inside the topbar's `#kpi-disclosure` (§3.3). There is no
+`.hero` / `.hero-copy` markup left in `index.html` — don't resurrect
+references to it.
 
 ### 3.3 KPI deck
 
-Four cells, computed from the in-memory `sites` array on every filter
-change (no extra HTTP):
+Five cells inside `#kpi-disclosure` (a `<details>`, always `open` on every
+breakpoint since 2026-08-24 — see §5.1), computed from the in-memory `sites`
+array on every filter change (no extra HTTP):
 
 1. **Sites tracked** — total record count
 2. **Acres tracked** — sum of `s.acreage` across records with reported area
 3. **Datacenter-ready** — sites with `data_center_reuse_candidate === true`
 4. **Hyperscale-ready** — sites scoring ≥hyperscale via `computeDcScore()`
+5. **Generation-ready** — sites scoring ≥75 via `computeGenerationScore()`
 
-Each cell:
-- `kpi-label` (uppercase, 9.5px, `min-height: 2.4em` so 1-line and 2-line
-  labels visually align across the row)
-- `kpi-num` (serif, 22px, tnum)
-- `kpi-sub` (10.5px muted; the strong variant `.kpi-sub-strong` for
-  qualifying criteria like "≥50 ac · power · water")
+Each cell is just `kpi-label` (uppercase, 9.5px, `min-height: 1.2em` — a
+single line's worth, not the old 2-line reserve, since **no cell carries a
+`kpi-sub` subtext string any more** — "across 4 programs" / "with reported
+area" / "≥50 ac · power · water" / "≥75 score · land · grid export" were all
+removed 2026-08-24 as unclear or redundant clutter) plus `kpi-num` (serif,
+22px, tnum). The one exception: **Hyperscale-ready** alone keeps its
+`kpi-sub` criteria line ("≥100 ac · ≥230 kV · ≤1 mi") — the other four
+criteria strings were judged confusing on their own; this one stayed because
+it's the load-bearing gate for the persona filter.
 
-Desktop: `kpi-sub` truncates on one line (`text-overflow: ellipsis`,
-requires `display: block` — see § 8.3 ellipsis pitfall). Dynamic subtexts
-(total / acreage) get `title` written by `updateKpiDeck()` via `setSub()`;
-static ones (DC criteria, hyperscale criteria) have `title` in `index.html`.
-Mobile: `white-space: normal` so all the criteria are readable.
+The per-program tagline (`#meta`, "46,759 sites (1,908 Superfund + …)") sits
+inside the same `<details>`, above the deck — it used to also carry
+"· refreshed …", but that's the topbar refresh date's job now (§3.1), so the
+tagline is program-breakdown only.
 
 **Click-to-filter shortcuts.** Two cells are interactive:
 - `[data-kpi="hyperscale"]` → toggles `filterState.dcTier = "hyperscale"`
@@ -289,17 +305,29 @@ Mobile: `white-space: normal` so all the criteria are readable.
 
 Both carry `role="button"`, `tabindex="0"`, keyboard activation
 (Enter / Space), `.kpi-actionable` class for the cursor+hover affordance,
-and `.kpi-active` when engaged. The other two cells (total / acreage)
-are overview metrics, not filterable predicates — intentionally inert.
-Reset clears both via `refreshKpiActiveStates()`.
+and `.kpi-active` when engaged. The other three cells (total / acreage /
+generation) are overview metrics, not filterable predicates — intentionally
+inert. Reset clears both via `refreshKpiActiveStates()`.
 
-### 3.4 Filters strip
+### 3.4 Filters — a sidebar, not a strip (2026-08-24)
 
-Collapsed by default (`hidden` attribute on `#filters`). The gear icon-button
-in the topbar carries an `aria-expanded` toggle that flips the `[hidden]`
-attribute and updates the chip count.
+`#filters` is a **vertical sidebar** inside `.app-body` (§3, `flex: 0 0
+260px`, its own scroll, `border-right` instead of `border-bottom`) when
+opened — it used to be a full-width horizontal strip that pushed the map
+down; the sidebar treatment uses a wide viewport's unused side margin
+instead. **Still closed by default on every breakpoint** — only the
+orientation changed, not the default-open state (an earlier draft of this
+pass made it open-by-default on desktop and that silently narrowed the
+map's default render width enough to break an unrelated pixel-positioned
+Alaska-inset test; reverted). The gear icon-button in the topbar carries an
+`aria-expanded` toggle that flips the `[hidden]` attribute and updates the
+chip count — same toggle mechanism as before, just a different shape once
+open. Below 640px it's still the bottom-sheet overlay described in §5.1,
+unaffected by the sidebar change (`position: fixed` takes it out of
+`.app-body`'s row flow entirely).
 
-Five filter fieldsets, all flex-wrapping:
+Five filter fieldsets, all stacked (`flex-direction: column` inside the
+sidebar; each `<select>` / `<input type="range">` goes `width: 100%`):
 - **Program** (checkbox fieldset, one per `PROGRAM_LEGEND` entry)
 - **State** (native `<select>` with full names, territories in `<optgroup>`)
 - **NPL Status** (checkbox fieldset, `populateStatusFilter()` rebuilds from
@@ -488,32 +516,39 @@ order (CSS-cascade convenience):
 
 | Range | Name | Strategy |
 |---|---|---|
-| `≥1025px` | Desktop | Full hero with 2-col grid, KPI row of 5, filters wrap to 1 row, side-rail detail panel, all four detail accordions open by default |
-| `641–1024px` | Tablet | Hero collapses to 1 col (KPI deck flows below), topbar / hero / filters tighter padding |
-| `≤640px` | Mobile | Hero copy hidden, KPI deck collapses behind a disclosure with a 2-number summary chip, topbar wraps + tightens, **filters strip becomes a bottom sheet** with dim backdrop, detail panel becomes bottom sheet, **four detail sections become accordions collapsed by default**, table hides City + County columns, footer source list collapses behind a "Sources" chip |
+| `≥1025px` | Desktop | Title/search row + tab row + always-open KPI deck (5 cells) in the topbar, filters render as a sidebar when opened, side-rail detail panel, all four detail accordions open by default |
+| `641–1024px` | Tablet | Same topbar/KPI shape as desktop (nothing collapses here — see §5.1), tighter padding |
+| `≤640px` | Mobile | Topbar rows tighten + the search/icon row goes `nowrap`, KPI deck renders directly as a horizontally scrollable strip (no disclosure interaction — see §5.1), **filters sidebar becomes a bottom sheet** with dim backdrop, detail panel becomes bottom sheet, **four detail sections become accordions collapsed by default**, table hides City + County columns, footer source list collapses behind a "Sources" chip |
 
-### 5.1 Mobile UX patterns (v1.12)
+### 5.1 Mobile UX patterns (v1.12, KPI disclosure revised 2026-08-24)
 
 The mobile pass tightened chrome from ~340px to ~580px of map real estate
-on a 375×667 viewport. Five components reach for the same disclosure
-primitive (`<details>` / `<summary>`) plus one bottom-sheet primitive:
+on a 375×667 viewport. Four components reach for the same disclosure
+primitive (`<details>` / `<summary>`) plus one bottom-sheet primitive; a
+fifth (the KPI deck) used to but no longer does:
 
-- **KPI disclosure** (`#kpi-disclosure`). Summary strip on mobile shows the
-  two strongest numbers ("46.8K sites · 821 DC candidates"); expanding
-  reveals the full 5-cell carousel. `wireKpiDisclosure()` uses matchMedia
-  to set `open` based on viewport — closed on mobile, open on desktop —
-  and stops auto-toggling once the user has manually interacted in the
-  session (recorded via `dataset.userToggled`).
+- **KPI deck is always open, every breakpoint** (`#kpi-disclosure`,
+  revised 2026-08-24). It used to collapse behind a tap-to-expand summary
+  chip on mobile ("46.8K sites · 821 DC candidates" → tap → full carousel)
+  — the extra tap was judged the problem, not a feature. `wireKpiDisclosure()`
+  is now just `disc.open = true` unconditionally; the `<summary>` chip stays
+  in the DOM (a `<details>` needs one) but is `display: none` on every
+  breakpoint. On mobile the deck renders directly as the same horizontally
+  scrollable strip it always was once opened (`overflow-x: auto;
+  scroll-snap-type: x mandatory`) — no interaction required to see it.
 - **Footer sources disclosure** (`.footer-sources-disclosure`). Mirror of
-  the same pattern: inline list on desktop, tappable "Sources" chip on
-  mobile that expands the list below the footer line.
-- **Filters bottom sheet**. The `#filters` element is the same DOM on
-  both layouts — desktop CSS keeps it as an inline strip; mobile CSS
-  re-styles it into a slide-up sheet (`position: fixed; bottom: 0;
-  border-radius: 14px 14px 0 0`). A new `#filters-backdrop` overlay dims
-  the map. Reset + Done action row pinned to the bottom of the sheet via
-  `position: fixed`. The sheet's header + footer + backdrop are
-  `display: none` above 640px.
+  the OLD KPI pattern (still live here, unlike the KPI deck): inline list on
+  desktop, tappable "Sources" chip on mobile that expands the list below the
+  footer line.
+- **Filters bottom sheet**. The `#filters` element is the same DOM on both
+  layouts — desktop CSS turns it into a sidebar when opened (§3.4); mobile
+  CSS re-styles it into a slide-up sheet (`position: fixed; bottom: 0;
+  border-radius: 14px 14px 0 0`, `border-right: none` overriding the
+  sidebar's border). A new `#filters-backdrop` overlay dims the map. Reset +
+  Done action row pinned to the bottom of the sheet via `position: fixed`.
+  The sheet's header + footer + backdrop are `display: none` above 640px.
+  **Closed by default on every breakpoint** — only the shape (strip →
+  sidebar → sheet) is responsive, not the default open/closed state.
 - **Detail-panel accordions** (`.d-section` × 4). Owner & encumbrances,
   Federal documents, Infrastructure proximity, Enforcement & compliance
   each wrap in `<details data-section="X">`. `DETAIL_SECTION_PREFS` is a
@@ -539,8 +574,8 @@ docs and ECHO sections show/hide based on data availability) — verify
 
 Why these breakpoints: 1024 is the practical iPad landscape boundary;
 640 is the practical phone-portrait boundary. No need for a 4th tier —
-desktop scales fine above 1280 because `.hero-inner { max-width: 1280px;
-margin: 0 auto }` caps the readable width.
+the topbar/KPI/filters-sidebar layout doesn't need a max-width cap above
+1024px the way a prose-heavy view (Hanford, About) does.
 
 Container queries: **not used**. The page has a single fixed layout
 hierarchy so media queries against viewport width are sufficient. If a
@@ -553,16 +588,17 @@ queries become the right tool.
   overlay covers the map and breaks the "tap marker → read info → keep
   panning" loop. The drag handle is decorative — there's no actual drag
   gesture yet (a Tier 2 backlog item).
-- **Carousel, not stacked grid**, for the KPI deck. Stacking pushes the
-  map below the fold; horizontal scroll-snap keeps it accessible without
-  taking the space.
-- **Hide hero copy, keep KPI deck.** The H2 + dek are nice-to-have framing
-  on desktop; on a phone the user already knows what they opened.
+- **Carousel, not stacked grid, for the KPI deck** — and no disclosure gate
+  in front of it on mobile either (revised 2026-08-24). Stacking pushes the
+  map below the fold; horizontal scroll-snap keeps the deck accessible
+  without taking the space, and skipping the old tap-to-expand summary chip
+  means the numbers are visible without an extra interaction.
 - **Bump input font-size to 16px on iOS** to suppress the auto-zoom
-  on focus.
+  on focus — but keep the page title visibly larger than that floor so the
+  title, not the input, reads as the row's anchor.
 - **Lean on CSS, never duplicate DOM trees** for mobile/desktop layouts.
-  A `<section class="hero-copy">` that's `display: none` on mobile is fine;
-  rendering a second mobile-only block of copy is not.
+  A component that's `display: none` on mobile via a media query is fine;
+  rendering a second mobile-only block of the same content is not.
 
 ---
 

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-24T17:02:15.028103Z",
+  "generated_at": "2026-08-24T17:19:48.951240Z",
   "nepa_mcp_version": "0.1.1",
   "screening_buffer_miles": 5.0,
   "flood_radius_miles": 2.0,
@@ -219,22 +219,22 @@
         {
           "type": "data_center",
           "fit": "precluded",
-          "rationale": "Interim-closed land under long-term federal control, with cocooned reactor cores and an active groundwater remedy \u2014 not offered for reuse of any kind, including this one."
+          "rationale": "Cocooned reactor cores (interim safe storage, a ~75-year DOE timeline) and an active groundwater remedy occupy the parcel today \u2014 not offered under DOE's current disposition plan for this facility type. That is a mission choice DOE could revisit, not a legal bar like the Monument's Antiquities Act protection next door."
         },
         {
           "type": "lwr_pwr",
           "fit": "precluded",
-          "rationale": "Interim-closed land under long-term federal control, with cocooned reactor cores and an active groundwater remedy \u2014 not offered for reuse of any kind, including this one."
+          "rationale": "Cocooned reactor cores (interim safe storage, a ~75-year DOE timeline) and an active groundwater remedy occupy the parcel today \u2014 not offered under DOE's current disposition plan for this facility type. That is a mission choice DOE could revisit, not a legal bar like the Monument's Antiquities Act protection next door."
         },
         {
           "type": "smr",
           "fit": "precluded",
-          "rationale": "Interim-closed land under long-term federal control, with cocooned reactor cores and an active groundwater remedy \u2014 not offered for reuse of any kind, including this one."
+          "rationale": "Cocooned reactor cores (interim safe storage, a ~75-year DOE timeline) and an active groundwater remedy occupy the parcel today \u2014 not offered under DOE's current disposition plan for this facility type. That is a mission choice DOE could revisit, not a legal bar like the Monument's Antiquities Act protection next door."
         },
         {
           "type": "microreactor",
           "fit": "precluded",
-          "rationale": "Interim-closed land under long-term federal control, with cocooned reactor cores and an active groundwater remedy \u2014 not offered for reuse of any kind, including this one."
+          "rationale": "Cocooned reactor cores (interim safe storage, a ~75-year DOE timeline) and an active groundwater remedy occupy the parcel today \u2014 not offered under DOE's current disposition plan for this facility type. That is a mission choice DOE could revisit, not a legal bar like the Monument's Antiquities Act protection next door."
         }
       ],
       "screening": {

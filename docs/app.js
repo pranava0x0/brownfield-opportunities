@@ -3777,10 +3777,13 @@ function wireTabs() {
     const globalExportCsv = el("export-csv");
     if (globalExportCsv) globalExportCsv.hidden = onAp1000 || onMicro || onCoal || onHanford;
     // Search only makes sense against the corpus views that read
-    // tableState.filtered (map/table/rankings) — the curated tabs (Retired,
-    // Coal, Nuclear Siting, Microreactors, Hanford, About) have their own
-    // local content and no site search to run.
-    const searchOnThisTab = onMap || onTable || onCandidates;
+    // tableState.filtered (map/table/rankings/microreactors — the
+    // microreactor siting screen's microRankedSites() sources from the same
+    // globally-filtered set Rankings does, so it needs the same controls;
+    // Codex PR #23 review). The remaining curated tabs (Retired, Coal,
+    // Nuclear Siting, Hanford, About) have their own local content and read
+    // no global filter state at all.
+    const searchOnThisTab = onMap || onTable || onCandidates || onMicro;
     const searchWrapEl = el("search-wrap");
     if (searchWrapEl) searchWrapEl.hidden = !searchOnThisTab;
     const searchCountEl = el("search-count");
