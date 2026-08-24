@@ -2067,7 +2067,8 @@ function ensureFederalCleanEnergyLoaded() {
 // program loaders call applyCoalProxJoin() again as their records land
 // (Codex review 2026-08-23 round 3), and the skip-if-present guard makes
 // every re-apply a cheap no-op for already-joined ids.
-let coalProxMatches = null;
+let coalProxMatches = null;      // settled payload (even if empty)
+let coalProxLoadFailed = false;  // last attempt errored — retryable
 function applyCoalProxJoin({ refresh = false } = {}) {
   if (!coalProxMatches) return;
   let applied = 0;
@@ -2103,6 +2104,7 @@ function ensureCoalConversionsProxLoaded() {
     .then(async (payload) => {
       recordRefreshDate(payload.generated_at, COAL_PROX_URL);
       coalProxMatches = payload.matches || [];
+      coalProxLoadFailed = false;
       await Promise.allSettled(
         [acresLoadingPromise, fudsLoadingPromise, bracLoadingPromise].filter(Boolean)
       );
@@ -2110,7 +2112,8 @@ function ensureCoalConversionsProxLoaded() {
     })
     .catch((err) => {
       console.error("Coal conversions proximity load failed:", err);
-      coalProxLoadingPromise = null;
+      coalProxLoadFailed = true;
+      coalProxLoadingPromise = null; // nulled so the next call retries
     });
   return coalProxLoadingPromise;
 }
@@ -4179,6 +4182,12 @@ window.__inspectCoalPlant = function(plantName) {
         </div>
       </div>
     `;
+  } else if (coalProxLoadFailed) {
+    // A failed proximity load is UNKNOWN, never a negative claim — the
+    // "absence means unknown" doctrine (Codex review round 4).
+    nearbyHtml = `<p class="muted" style="margin-top:12px;">Nearby-sites data failed to load. <button type="button" class="coal-btn coal-nearby-retry">Retry</button></p>`;
+  } else if (coalProxMatches === null) {
+    nearbyHtml = `<p class="muted" style="margin-top:12px;">Loading nearby tracked sites…</p>`;
   } else {
     nearbyHtml = `<p class="muted" style="margin-top:12px;">No tracked brownfield sites recorded within 10 miles in the current filtered program set.</p>`;
   }
@@ -4226,6 +4235,12 @@ window.__inspectCoalPlant = function(plantName) {
   }
   for (const item of body.querySelectorAll(".coal-nearby-item[data-site-id]")) {
     item.addEventListener("click", () => window.__selectAndOpenSite(item.dataset.siteId));
+  }
+  const proxRetry = body.querySelector(".coal-nearby-retry");
+  if (proxRetry) {
+    proxRetry.addEventListener("click", () => {
+      ensureCoalConversionsProxLoaded().then(() => window.__inspectCoalPlant(plant.plant_name));
+    });
   }
 
   drawer.hidden = false;

@@ -230,6 +230,33 @@ def test_map_overlays_render_markers_and_legend(page, base_url):
     assert "Federal clean energy" in state["legendText"]
 
 
+def test_drawer_nearby_shows_unavailable_not_negative_on_prox_failure(page, base_url):
+    """Codex round 4: a failed proximity load must render 'unavailable' with a
+    working Retry — never the negative claim 'no tracked sites within 10 mi'
+    (absence means unknown). Retry re-fetches (promise nulled) and rebuilds."""
+    blocked = {"on": True}
+
+    def route_prox(route):
+        if blocked["on"]:
+            route.abort()
+        else:
+            route.fallback()
+
+    page.route("**/data/coal-conversions-proximity.json", route_prox)
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    page.click("#tab-coal")
+    page.wait_for_selector("#coal-table-container table.coal-table", timeout=15000)
+    page.click("#coal-table-container .coal-btn.inspect-btn")
+    page.wait_for_selector("#coal-site-drawer:not([hidden])", timeout=5000)
+    text = page.evaluate("document.getElementById('coal-drawer-body').textContent")
+    assert "failed to load" in text, text
+    assert "No tracked brownfield sites" not in text, "negative claim rendered for a failed load"
+    blocked["on"] = False
+    page.click("#coal-drawer-body .coal-nearby-retry")
+    page.wait_for_selector("#coal-drawer-body .coal-nearby-section, #coal-drawer-body .coal-nearby-item", timeout=15000)
+
+
 def test_coal_join_reapplies_after_restricted_boot_then_reset(page, base_url):
     """Codex round 3: booting with ?program=superfund leaves the ACRES/FUDS/
     BRAC promises null, so the initial proximity apply only reaches Superfund.
