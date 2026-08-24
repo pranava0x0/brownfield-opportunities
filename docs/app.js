@@ -1979,7 +1979,7 @@ function ensureCoalConversionsLoaded() {
             (s.has_rail ? `<span>Rail loop</span>` : "") +
             (s.queue_transfer_eligible ? `<span style="color:var(--readiness-ready)">⚡ POI reusable</span>` : "") +
           `</div>` +
-          `<div class="ref-campus-prev" style="margin-top:6px">Coal-to-Clean repowering candidate. Reusing stranded electrical, rail, and water assets can cut CapEx 15–35% for SMR/nuclear or AI data center campuses (DOE/INL). Value figure is a modeled screening estimate, not an appraisal.</div>` +
+          `<div class="ref-campus-prev" style="margin-top:6px">Coal-to-Clean repowering candidate. Reusing stranded electrical, rail, and water assets cuts nuclear construction CapEx 15–35% (DOE/INL coal-to-nuclear studies); data-center campuses inherit the same switchyard, water, and rail assets. Value figure is a modeled screening estimate, not an appraisal.</div>` +
           `<button type="button" class="coal-popup-btn">Explore in Coal Tab &rarr;</button>` +
           `</div>`,
           { maxWidth: 290 }
@@ -2088,7 +2088,13 @@ function applyCoalProxJoin({ refresh = false } = {}) {
   if (refresh && applied) {
     applyFilter();
     if (selectedId && sitesById.has(selectedId)) {
-      try { selectSite(selectedId); } catch {}
+      // Fail loud: a broken re-render here would otherwise leave a stale
+      // open detail panel with no diagnosable signal (Codex round 6).
+      try {
+        selectSite(selectedId);
+      } catch (err) {
+        console.error("selectSite re-render after coal join failed:", err);
+      }
     }
   }
 }
