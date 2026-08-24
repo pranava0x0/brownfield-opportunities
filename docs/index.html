@@ -72,6 +72,7 @@
       <button id="tab-coal" class="tab" role="tab" aria-selected="false" aria-controls="view-coal">Coal Repowering</button>
       <button id="tab-ap1000" class="tab" role="tab" aria-selected="false" aria-controls="view-ap1000">Nuclear Siting</button>
       <button id="tab-micro" class="tab" role="tab" aria-selected="false" aria-controls="view-micro">Microreactors</button>
+      <button id="tab-hanford" class="tab" role="tab" aria-selected="false" aria-controls="view-hanford">Hanford</button>
       <button id="tab-about" class="tab" role="tab" aria-selected="false" aria-controls="view-about">About</button>
     </div>
   </nav>
@@ -385,6 +386,23 @@
 
   <section id="view-micro" class="view micro-view" role="tabpanel" aria-labelledby="tab-micro" hidden>
     <div id="micro-content" class="micro-wrap" aria-live="polite"><p class="muted">Loading microreactor fleet…</p></div>
+  </section>
+
+  <section id="view-hanford" class="view hanford-view" role="tabpanel" aria-labelledby="tab-hanford" hidden>
+    <!-- End-to-end NEPA screening dossier for one DOE site (Hanford, WA).
+         Interior mounts lazily from this <template> on first tab activation
+         (app.js mountHanfordView) — template content is excluded from the
+         rendered DOM, so the tab costs ~2 nodes at first paint against the
+         5,000-node budget (test_dom_size_under_5k_nodes). -->
+    <template id="hanford-template">
+    <div class="hanford-wrap">
+      <div class="hanford-lead">
+        <h2>Hanford end-to-end — one DOE site, every reuse outcome</h2>
+        <p>A worked example of what this dashboard plus <a href="https://github.com/pnnl/nepa-mcp" target="_blank" rel="noopener">PNNL's nepa-mcp</a> can say about a single federal cleanup site. Each named land unit of the 580-square-mile Hanford Site gets a ten-source environmental screen (USFWS <em>and</em> NOAA Fisheries lenses, tribal geography, historic properties, protected areas, USACE context, flood, biodiversity, EPA NEPAssist), the permitting and licensing pathways that would govern reuse, joins from this dashboard's own infrastructure enrichments, and an honest opportunity call — including where the answer is <strong>"this land is off the table."</strong> Screening evidence, never an agency determination.</p>
+      </div>
+      <div id="hanford-content" aria-live="polite"><p class="muted">Loading Hanford dossier…</p></div>
+    </div>
+    </template>
   </section>
 
   <section id="view-about" class="view about-view" role="tabpanel" aria-labelledby="tab-about" hidden>
@@ -769,7 +787,7 @@
             <li><a href="https://www.eia.gov/electricity/data/eia860m/" target="_blank" rel="noopener">EIA-860M</a> — Retired power-plant generators</li>
             <li><a href="https://www.epa.gov/ghgreporting" target="_blank" rel="noopener">EPA GHGRP</a> — Retired heavy-industrial facilities (Envirofacts REST)</li>
           </ul>
-          <p class="about-note">Dashboard <span id="hero-version">v1.28</span> · Last data refresh: <span id="about-refresh-date">—</span>. Source code and raw data files: <a href="https://github.com/pranava0x0/brownfield-opportunities" target="_blank" rel="noopener">GitHub</a>. The AI Summary on each site detail panel is generated from these federal records — see any site's Summary tab.</p>
+          <p class="about-note">Dashboard <span id="hero-version">v1.29</span> · Last data refresh: <span id="about-refresh-date">—</span>. Source code and raw data files: <a href="https://github.com/pranava0x0/brownfield-opportunities" target="_blank" rel="noopener">GitHub</a>. The AI Summary on each site detail panel is generated from these federal records — see any site's Summary tab.</p>
         </div>
 
       </div><!-- .about-grid -->

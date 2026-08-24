@@ -35,6 +35,8 @@ const FEMA_NRI_URL = "data/fema-nri.json";
 const COAL_CONVERSIONS_URL = "data/coal-conversions.json";
 const COAL_PROX_URL = "data/coal-conversions-proximity.json";
 const FEDERAL_CLEAN_ENERGY_URL = "data/federal-clean-energy.json";
+const HANFORD_E2E_URL = "data/hanford-e2e.json";
+const COAL_NEPA_URL = "data/coal-nepa.json";
 // Vector basemap: US states (always) + US counties (lazy at zoom ≥ COUNTY_MIN_ZOOM).
 // No tiles — Canada/Mexico literally don't exist on the map. Choropleth-style
 // look (think CNN election tracker / datacenterbans.com) with bold state borders
@@ -618,6 +620,12 @@ let janusNepaLoadingPromise = null;
 let janusNepaLoadFailed = false;
 let janusNepa = null;                 // PNNL nepa-mcp screen for 9 Army sites
 let janusNepaLayer = null;            // selected site's lazy GeoJSON overlay
+let hanfordLoadingPromise = null;
+let hanfordLoadFailed = false;        // drives the Hanford tab error state
+let hanfordData = null;               // the E2E dossier payload (9 parcels)
+let hanfordParcelLayer = null;        // ▣ markers for the named land units
+let hanfordNepaLayer = null;          // selected parcel's lazy GeoJSON overlay
+const hanfordMarkersById = new Map(); // parcel id -> Leaflet marker
 let coalConversionsLoadingPromise = null;
 let coalConversionsSettled = false;     // a load completed (even if empty)
 let coalConversionsLoadFailed = false;  // last attempt errored — retryable
@@ -625,6 +633,9 @@ let coalProxLoadingPromise = null;
 let federalCleanEnergyLoadingPromise = null;
 let coalConversionAssets = [];
 const coalMarkersByName = new Map();
+let coalNepaLoadingPromise = null;
+let coalNepaLoadFailed = false;   // fetch errored — drawer offers retry
+let coalNepaByPlant = null;       // null = not loaded yet; Map when settled
 let iraEcLoadingPromise = null;
 let femaNriLoadingPromise = null;
 
@@ -947,6 +958,10 @@ fetch(PRIMARY_DATA_URL)
       get: () => sites,
     });
     window.__selectSite = selectSite;
+    // The Leaflet instance itself, for e2e zoom/center assertions —
+    // window.map is shadowed by the div#map DOM global, so tests (and
+    // debugging) need an explicit handle.
+    window.__leafletMap = map;
     // Expose tableState so e2e can verify the cached visible bbox.
     window.__tableState = tableState;
     // Expose the prettifiers + CSV schema so e2e tests can exercise the
@@ -998,6 +1013,11 @@ fetch(PRIMARY_DATA_URL)
     // a visit to the Microreactors tab. Only the tab's own tables are built
     // lazily, and that is where the DOM cost actually is.
     lazyLoads.push(ensureMicroFleetLoaded());
+    // Hanford E2E dossier: eager for the same two reasons as the fleet —
+    // its ▣ parcel markers belong on the map, and as a freshly generated
+    // artifact its generated_at must drive the displayed refresh date
+    // (a tab-gated load would make the hero date depend on tab clicks).
+    lazyLoads.push(ensureHanfordLoaded());
     applyUrlSelection();
     if (lazyLoads.length === 0) {
       markAppReady();
@@ -2346,6 +2366,8 @@ function initMap() {
   microCommitmentLayer = L.layerGroup().addTo(map);
   coalConversionLayer = L.layerGroup().addTo(map);
   federalCleanEnergyLayer = L.layerGroup().addTo(map);
+  // Hanford E2E parcel markers (▣) — nine named land units of one DOE site.
+  hanfordParcelLayer = L.layerGroup().addTo(map);
 
   fitUsBoundsSafely();
 
@@ -2673,8 +2695,17 @@ function addLegend() {
         `<span class="legend-num">${federalCleanEnergyLayer.getLayers().length}</span>` +
         `</div>`
       : "";
+    // Hanford E2E dossier parcels (one DOE site, screened end-to-end).
+    // Static glyph/label plus an integer count — nothing untrusted.
+    const hanfordRow = (hanfordParcelLayer && hanfordParcelLayer.getLayers().length > 0)
+      ? `<div class="legend-row legend-row-ref">` +
+        `<span class="legend-hanford">▣</span>` +
+        `<span class="legend-label">Hanford parcel</span>` +
+        `<span class="legend-num">${hanfordParcelLayer.getLayers().length}</span>` +
+        `</div>`
+      : "";
     div.innerHTML =
-      `<div class="legend-title"><span>Program</span></div>${rows}${refRow}${retRow}${plannedRow}${coalRow}${fedRow}${nukeRow}${microRow}` +
+      `<div class="legend-title"><span>Program</span></div>${rows}${refRow}${retRow}${plannedRow}${coalRow}${fedRow}${nukeRow}${microRow}${hanfordRow}` +
       `<div class="legend-foot">Marker size ∝ acreage (log)</div>`;
     L.DomEvent.disableClickPropagation(div);
     return div;
@@ -3687,6 +3718,7 @@ function wireTabs() {
   const coalTab = el("tab-coal");
   const ap1000Tab = el("tab-ap1000");
   const microTab = el("tab-micro");
+  const hanfordTab = el("tab-hanford");
   const aboutTab = el("tab-about");
   const setView = (which) => {
     const onMap = which === "map";
@@ -3696,12 +3728,14 @@ function wireTabs() {
     const onCoal = which === "coal";
     const onAp1000 = which === "ap1000";
     const onMicro = which === "micro";
+    const onHanford = which === "hanford";
     const onAbout = which === "about";
     for (const [tab, active] of [
       [mapTab, onMap], [tableTab, onTable],
       [candidatesTab, onCandidates], [retiredTab, onRetired],
       [coalTab, onCoal],
-      [ap1000Tab, onAp1000], [microTab, onMicro], [aboutTab, onAbout],
+      [ap1000Tab, onAp1000], [microTab, onMicro],
+      [hanfordTab, onHanford], [aboutTab, onAbout],
     ]) {
       if (!tab) continue;
       tab.classList.toggle("active", active);
@@ -3714,6 +3748,7 @@ function wireTabs() {
     const coalView = el("view-coal");
     const ap1000View = el("view-ap1000");
     const microView = el("view-micro");
+    const hanfordView = el("view-hanford");
     const aboutView = el("view-about");
     if (mapView)        { mapView.classList.toggle("active", onMap);               mapView.hidden = !onMap; }
     if (tableView)      { tableView.classList.toggle("active", onTable);           tableView.hidden = !onTable; }
@@ -3722,9 +3757,10 @@ function wireTabs() {
     if (coalView)       { coalView.classList.toggle("active", onCoal);             coalView.hidden = !onCoal; }
     if (ap1000View)     { ap1000View.classList.toggle("active", onAp1000);         ap1000View.hidden = !onAp1000; }
     if (microView)      { microView.classList.toggle("active", onMicro);           microView.hidden = !onMicro; }
+    if (hanfordView)    { hanfordView.classList.toggle("active", onHanford);       hanfordView.hidden = !onHanford; }
     if (aboutView)      { aboutView.classList.toggle("active", onAbout);           aboutView.hidden = !onAbout; }
     const globalExportCsv = el("export-csv");
-    if (globalExportCsv) globalExportCsv.hidden = onAp1000 || onMicro || onCoal;
+    if (globalExportCsv) globalExportCsv.hidden = onAp1000 || onMicro || onCoal || onHanford;
     if (onMap) setTimeout(() => map.invalidateSize(), 50);
     if (onCandidates) buildCandidatesView();
     if (onRetired) { mountRetiredView(); ensureRetiredIndustrialLoaded(); buildRetiredView(); }
@@ -3738,6 +3774,15 @@ function wireTabs() {
       ensureMicroFleetLoaded();
       ensureJanusNepaLoaded();
       buildMicroView();
+    }
+    if (onHanford) {
+      // Mount BEFORE anything queries the view's interior (the lazy-mount
+      // rule every templated view follows), then render from whatever state
+      // the eager loader has reached — buildHanfordView handles loading,
+      // failed, and loaded states itself.
+      mountHanfordView();
+      ensureHanfordLoaded();
+      buildHanfordView();
     }
     if (onAbout) {
       const d = el("about-refresh-date");
@@ -3756,10 +3801,11 @@ function wireTabs() {
   if (coalTab) coalTab.addEventListener("click", () => setView("coal"));
   if (ap1000Tab) ap1000Tab.addEventListener("click", () => setView("ap1000"));
   if (microTab) microTab.addEventListener("click", () => setView("micro"));
+  if (hanfordTab) hanfordTab.addEventListener("click", () => setView("hanford"));
   if (aboutTab) aboutTab.addEventListener("click", () => setView("about"));
 
   // Honor hash on initial load (e.g. shared URL with #ap1000).
-  const VALID_TABS = new Set(["map", "table", "candidates", "retired", "coal", "ap1000", "micro", "about"]);
+  const VALID_TABS = new Set(["map", "table", "candidates", "retired", "coal", "ap1000", "micro", "hanford", "about"]);
   const initialHash = location.hash.replace(/^#/, "").toLowerCase();
   if (VALID_TABS.has(initialHash)) setView(initialHash);
 
@@ -4168,9 +4214,109 @@ window.__focusCoalPlantOnMap = function(lat, lon, plantName) {
   }, 150);
 };
 
+// Per-plant NEPA permitting screens (docs/data/coal-nepa.json, built by
+// scripts/build_coal_nepa.py on nepa-mcp). Drawer-only evidence, so it loads
+// lazily on first drawer open and deliberately does NOT call
+// recordRefreshDate — same rule as reference-campuses.json: a file whose
+// loader may never run must not be allowed to drive the displayed
+// refresh date (it would understate freshness whenever nobody opened a
+// drawer). Keep it OUT of test_refresh_date_reflects_freshest_data_file's
+// file list for the same reason.
+function ensureCoalNepaLoaded() {
+  if (coalNepaLoadingPromise) return coalNepaLoadingPromise;
+  coalNepaLoadFailed = false;
+  coalNepaLoadingPromise = fetch(COAL_NEPA_URL, { priority: "low" })
+    .then((r) => {
+      if (r.status === 404) return { plants: [] }; // screen not generated yet
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then((payload) => {
+      coalNepaByPlant = new Map();
+      for (const row of payload.plants || []) coalNepaByPlant.set(row.plant_name, row);
+    })
+    .catch((err) => {
+      console.error("Coal NEPA screen load failed:", err);
+      coalNepaLoadFailed = true;
+      coalNepaLoadingPromise = null; // nulled so the next drawer open retries
+    });
+  return coalNepaLoadingPromise;
+}
+
+// Compact permitting-screen section for the coal drawer. Distinguishes the
+// three states honestly: still loading, failed (retryable), and loaded —
+// where "loaded but no row" means the screen has not been generated for
+// this plant, never that the plant screens clean.
+function _coalNepaSectionHtml(plantName) {
+  if (coalNepaLoadFailed) {
+    return `<div class="coal-nepa-section"><h4>Permitting screen</h4>` +
+      `<p class="muted">Screen data failed to load. <button type="button" class="coal-btn coal-nepa-retry">Retry</button></p></div>`;
+  }
+  if (coalNepaByPlant === null) {
+    return `<div class="coal-nepa-section"><h4>Permitting screen</h4>` +
+      `<p class="muted">Loading NEPA screening evidence…</p></div>`;
+  }
+  const row = coalNepaByPlant.get(plantName);
+  if (!row) {
+    return `<div class="coal-nepa-section"><h4>Permitting screen</h4>` +
+      `<p class="muted">No nepa-mcp screen generated for this plant yet.</p></div>`;
+  }
+  const s = row.screening || {};
+  const ipac = s.ipac || {};
+  const counts = ipac.counts || {};
+  const flood = s.fema_nfhl || {};
+  const districts = ((s.usace || {}).districts || [])
+    .map((d) => d.district_abbreviation || d.district_name).filter(Boolean);
+  const chip = (label, section, text, title) =>
+    `<span class="coal-nepa-chip${section && section.status === "ok" ? "" : " unavailable"}"` +
+    `${title ? ` title="${escapeAttr(title)}"` : ""}>` +
+    `<span class="coal-nepa-k">${escapeHtml(label)}</span> ` +
+    `${section && section.status === "ok" ? text : "Unavailable"}</span>`;
+  const chips = [
+    chip("ESA", ipac, `${counts.listed_species || 0} species · ${counts.critical_habitat || 0} crit. habitat`,
+      "USFWS IPaC listed species and critical-habitat records intersecting the 5-mi screen"),
+    chip("Tribal", s.tribal, `${(s.tribal || {}).count || 0} mapped`,
+      "Census AIANNHA geographies in 5 mi — consultation context, never a conclusion"),
+    chip("Historic", s.nrhp, `${(s.nrhp || {}).count || 0} NRHP`,
+      "Listed properties only; eligible-but-unlisted resources are not in this layer"),
+    chip("Protected", s.padus, `${(s.padus || {}).count || 0} PAD-US`,
+      "Protected-area records at the plant point (0.1-mi context)"),
+    chip("USACE", s.usace, districts.length ? escapeHtml(districts.join(" · ")) : "No district returned",
+      "Regulatory district — not wetland presence or a CWA jurisdictional determination"),
+    chip("Flood", flood, flood.count
+        ? `${flood.count} zones · ${flood.sfha_count || 0} SFHA in 2 mi`
+        : "No mapped zones in 2 mi",
+      "Riverine coal plants sit next to water by design — nearby mapped zones are expected context, not a disqualifier"),
+  ].join("");
+  const assist = s.nepa_assist || {};
+  const reportLink = assist.status === "ok" && assist.report_url
+    ? ` · <a href="${escapeAttr(assist.report_url)}" target="_blank" rel="noopener noreferrer">EPA NEPAssist report ↗</a>`
+    : "";
+  const retrieved = (ipac.retrieved_at || "").slice(0, 10);
+  return `<div class="coal-nepa-section">` +
+    `<h4>Permitting screen <span class="coal-nepa-note">(PNNL nepa-mcp · 5-mi context · screening evidence, not a determination)</span></h4>` +
+    `<div class="coal-nepa-chips">${chips}</div>` +
+    `<p class="coal-nepa-note">Counts mean features intersect the screening buffer, not the plant parcel. Unavailable is never a no-hit.` +
+    `${retrieved ? ` Retrieved ${escapeHtml(retrieved)}.` : ""}${reportLink}</p>` +
+    `</div>`;
+}
+
 window.__inspectCoalPlant = function(plantName) {
   const plant = coalConversionAssets.find((a) => a.plant_name === plantName);
   if (!plant) return;
+
+  // Kick the lazy screen load on first open; when it settles, re-render the
+  // drawer if it is still showing this plant. `hadSettled` prevents the
+  // resolved-promise microtask from re-invoking this function forever.
+  const hadSettled = coalNepaByPlant !== null || coalNepaLoadFailed;
+  if (!hadSettled) {
+    ensureCoalNepaLoaded().then(() => {
+      const d = el("coal-site-drawer");
+      if (d && !d.hidden && d.dataset.plant === plantName) {
+        window.__inspectCoalPlant(plantName);
+      }
+    });
+  }
 
   const drawer = el("coal-site-drawer");
   const title = el("coal-drawer-title");
@@ -4253,6 +4399,7 @@ window.__inspectCoalPlant = function(plantName) {
     </div>
     ${plant.note ? `<p class="coal-plant-note">${escapeHtml(plant.note)}</p>` : ''}
     ${plant.source_url ? `<p class="coal-plant-cite muted">Source: <a href="${escapeAttr(plant.source_url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(plant.source_url.replace(/^https?:\/\//, ""))}</a>${plant.verified_at ? ` · verified ${escapeHtml(plant.verified_at)}` : ''}</p>` : ''}
+    ${_coalNepaSectionHtml(plant.plant_name)}
     ${nearbyHtml}
   `;
 
@@ -4273,7 +4420,14 @@ window.__inspectCoalPlant = function(plantName) {
       ensureCoalConversionsProxLoaded().then(() => window.__inspectCoalPlant(plant.plant_name));
     });
   }
+  const nepaRetry = body.querySelector(".coal-nepa-retry");
+  if (nepaRetry) {
+    nepaRetry.addEventListener("click", () => {
+      ensureCoalNepaLoaded().then(() => window.__inspectCoalPlant(plant.plant_name));
+    });
+  }
 
+  drawer.dataset.plant = plant.plant_name; // lets the lazy NEPA load re-render the right plant
   drawer.hidden = false;
   drawer.scrollIntoView({ behavior: "smooth", block: "nearest" });
 };
@@ -5304,6 +5458,24 @@ function _janusLayerColor(layer) {
   return cssColor("--janus-context");
 }
 
+// Fit target for a screening map package: the ROI buffer feature, never the
+// union of every layer's geometry — USACE districts and wetland delineation
+// regions are multi-state polygons, so a union fit zooms out to half the
+// country (the Hanford package fit to zoom 4 before this). Falls back to
+// the full layer bounds only when the package carries no ROI feature.
+function _screeningFitBounds(payload, renderedLayer) {
+  const roiFeatures = (payload.features || []).filter((f) => {
+    const t = f.properties?.type;
+    return t === "Region of Interest" || t === "Project Location";
+  });
+  if (roiFeatures.length) {
+    const b = L.geoJSON({ type: "FeatureCollection", features: roiFeatures }).getBounds();
+    if (b.isValid()) return b;
+  }
+  const b = renderedLayer.getBounds();
+  return b.isValid() ? b : null;
+}
+
 function showJanusMap(siteId) {
   const site = (janusNepa?.sites || []).find((row) => row.id === siteId);
   if (!site?.geojson_url) return;
@@ -5334,13 +5506,353 @@ function showJanusMap(siteId) {
         },
       }).addTo(map);
       el("tab-map")?.click();
-      const bounds = janusNepaLayer.getBounds();
-      if (bounds.isValid()) map.fitBounds(bounds, { padding: [30, 30], maxZoom: 11 });
+      const bounds = _screeningFitBounds(displayPayload, janusNepaLayer);
+      if (bounds) map.fitBounds(bounds, { padding: [30, 30], maxZoom: 11 });
       showToast(`${site.name}: NEPA screening layers shown. Not a project footprint.`);
     })
     .catch((err) => {
       console.error("Janus GeoJSON load failed:", err);
       showToast(`${site.name}: map package unavailable.`);
+    })
+    .finally(() => {
+      if (button) { button.disabled = false; button.textContent = "Show features on map"; }
+    });
+}
+
+// ----- Hanford E2E dossier (one DOE site, screened end-to-end) -----
+// Data: docs/data/hanford-e2e.json from scripts/build_hanford_e2e.py —
+// curated parcel ground truth + a ten-source nepa-mcp screen + corpus joins.
+// The tab interior mounts lazily from <template id="hanford-template">;
+// only the nine ▣ markers and a legend row exist before first activation.
+
+const HANFORD_KIND_LABEL = {
+  cleanup_area: "Cleanup area",
+  cleanup_core: "Cleanup core",
+  transferred: "Transferred",
+  leased_energy: "Leased for energy",
+  conservation: "Conservation",
+  cultural: "Historic",
+  context_campus: "Context",
+};
+
+const HANFORD_FIT_LABEL = {
+  anchored: "Anchored",
+  strong: "Strong",
+  conditional: "Conditional",
+  precluded: "Precluded",
+};
+
+function ensureHanfordLoaded() {
+  if (hanfordLoadingPromise) return hanfordLoadingPromise;
+  hanfordLoadFailed = false;
+  hanfordLoadingPromise = fetch(HANFORD_E2E_URL, { priority: "low" })
+    .then((r) => {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then((payload) => {
+      recordRefreshDate(payload.generated_at, HANFORD_E2E_URL);
+      hanfordData = payload;
+      window.__hanford = payload; // e2e hook, like __sites / __coalAssets
+      if (hanfordParcelLayer) {
+        for (const p of payload.parcels || []) {
+          if (p.lat == null || p.lon == null) continue;
+          // Glyph directly in the icon div (no inner span) — the divIcon
+          // DOM-cost rule every overlay follows.
+          const icon = L.divIcon({
+            className: "hanford-parcel-icon",
+            html: "▣",
+            iconSize: [18, 18],
+            iconAnchor: [9, 9],
+            popupAnchor: [0, -10],
+          });
+          const marker = L.marker([p.lat, p.lon], { icon, zIndexOffset: 420 });
+          hanfordMarkersById.set(p.id, marker);
+          const kindLabel = HANFORD_KIND_LABEL[p.kind] || p.kind;
+          marker.bindPopup(
+            `<div class="ref-campus-popup">` +
+            `<strong>${escapeHtml(p.name)}</strong>` +
+            `<div class="ref-campus-company">${escapeHtml(kindLabel)} · ~${Math.round(p.approx_acres).toLocaleString()} ac</div>` +
+            `<div class="ref-campus-prev">${escapeHtml(p.availability)}</div>` +
+            `<button type="button" class="hanford-popup-btn">Open Hanford dossier &rarr;</button>` +
+            `</div>`,
+            { maxWidth: 290 }
+          );
+          // Closure-bound on popupopen — never string-interpolated inline
+          // handlers (code review 2026-08-23 #1).
+          marker.on("popupopen", (ev) => {
+            const btn = ev.popup.getElement()?.querySelector(".hanford-popup-btn");
+            if (btn) btn.addEventListener("click", () => window.__openHanfordParcel(p.id), { once: true });
+          });
+          hanfordParcelLayer.addLayer(marker);
+        }
+        rerenderLegend();
+      }
+      // If the user is already sitting on the tab, upgrade the loading state.
+      const view = el("view-hanford");
+      if (view && view.classList.contains("active")) buildHanfordView();
+    })
+    .catch((err) => {
+      console.error("Hanford dossier load failed:", err);
+      hanfordLoadFailed = true;
+      hanfordLoadingPromise = null; // nulled so the next call retries
+      const view = el("view-hanford");
+      if (view && view.classList.contains("active")) buildHanfordView();
+    });
+  return hanfordLoadingPromise;
+}
+
+let hanfordViewMounted = false;
+function mountHanfordView() {
+  if (hanfordViewMounted) return;
+  const tpl = el("hanford-template");
+  const view = el("view-hanford");
+  if (!tpl || !view || !tpl.content) return;
+  hanfordViewMounted = true;
+  view.appendChild(tpl.content.cloneNode(true));
+}
+
+// Jump from a map popup into the dossier with the parcel card open.
+window.__openHanfordParcel = function (parcelId) {
+  if (typeof window.__setView === "function") window.__setView("hanford");
+  const card = document.getElementById("hp-" + parcelId);
+  if (card) {
+    card.open = true;
+    card.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+};
+
+// Compressed per-source headline for one parcel's screening record. Reuses
+// the Janus status helper so "Unavailable is never a no-hit" renders the
+// same way on both surfaces.
+function _hanfordScreenRows(s) {
+  const ipac = s.ipac || {};
+  const counts = ipac.counts || {};
+  const noaa = s.noaa || {};
+  const efh = s.efh_salmon || {};
+  const nrhp = s.nrhp || {};
+  const tribal = s.tribal || {};
+  const padus = s.padus || {};
+  const usace = s.usace || {};
+  const flood = s.fema_nfhl || {};
+  const gbif = s.gbif || {};
+  const assist = s.nepa_assist || {};
+  const districts = (usace.districts || []).map((d) => d.district_abbreviation || d.district_name).filter(Boolean);
+  const noaaNames = (noaa.habitats || []).slice(0, 2).map((h) => h.listed_entity || h.common_name).filter(Boolean);
+  return [
+    ["USFWS IPaC", _janusStatus(ipac,
+      `<strong>${counts.listed_species || 0}</strong> listed species · ${counts.critical_habitat || 0} critical-habitat records`), ipac],
+    ["NOAA critical habitat", _janusStatus(noaa,
+      `<strong>${noaa.count || 0}</strong> NMFS designations` +
+      (noaaNames.length ? `<div class="micro-sub">${escapeHtml(noaaNames.join(" · "))}</div>` : "")), noaa],
+    ["Salmon EFH", _janusStatus(efh,
+      `<strong>${efh.count || 0}</strong> HUC-8 watersheds with mapped EFH`), efh],
+    ["Tribal geography", _janusStatus(tribal,
+      `<strong>${tribal.count || 0}</strong> mapped geographies` +
+      '<div class="micro-sub">consultation context, not a conclusion</div>'), tribal],
+    ["Historic (NRHP)", _janusStatus(nrhp,
+      `<strong>${nrhp.count || 0}</strong> listed properties · ${nrhp.national_historic_landmarks || 0} NHL`), nrhp],
+    ["Protected land", _janusStatus(padus,
+      `<strong>${padus.count || 0}</strong> PAD-US records` +
+      '<div class="micro-sub">0.1-mi point context</div>'), padus],
+    ["USACE district", _janusStatus(usace,
+      districts.length ? escapeHtml(districts.join(" · ")) : '<span class="muted-cell">No district returned</span>'), usace],
+    ["Flood (NFHL)", _janusStatus(flood,
+      flood.count
+        ? `<strong>${flood.count}</strong> mapped zones in 2 mi · ${flood.sfha_count || 0} SFHA`
+        : 'No mapped zones in 2 mi<div class="micro-sub">much of Hanford is unmapped in NFHL — not flood-free</div>'), flood],
+    ["Biodiversity (GBIF)", _janusStatus(gbif,
+      `<strong>${(gbif.occurrence_count || 0).toLocaleString()}</strong> threatened-species records · ${gbif.species_count || 0} species since 2000`), gbif],
+    ["EPA NEPAssist", _janusStatus(assist,
+      assist.report_url
+        ? `<a href="${escapeAttr(assist.report_url)}" target="_blank" rel="noopener">Screening report ↗</a>`
+        : "Screen returned"), assist],
+  ];
+}
+
+// One parcel's corpus-join readout (the dashboard's own enrichments).
+function _hanfordCorpusHtml(p) {
+  const c = p.corpus_record;
+  if (!c) return "";
+  const rows = [
+    ["Transmission", c.transmission_mi != null ? `${fmt.miles(c.transmission_mi)}${c.transmission_kv ? ` · ${c.transmission_kv} kV` : ""}` : null],
+    ["Substation", c.substation_mi != null ? `${fmt.miles(c.substation_mi)}${c.substation_kv ? ` · ${c.substation_kv} kV` : ""}` : null],
+    ["Rail", c.rail_mi != null ? fmt.miles(c.rail_mi) : null],
+    ["Highway", c.highway_mi != null ? fmt.miles(c.highway_mi) : null],
+    ["Gas pipeline", c.gas_pipeline_mi != null ? fmt.miles(c.gas_pipeline_mi) : null],
+    ["Nearest plant", c.power_plant_mi != null ? `${fmt.miles(c.power_plant_mi)} · ${Math.round(c.power_plant_mw || 0).toLocaleString()} MW ${escapeHtml(c.power_plant_fuel || "")}` : null],
+    ["NPL status", c.npl_status ? escapeHtml(c.npl_status) : null],
+  ].filter(([, v]) => v != null);
+  if (!rows.length) return "";
+  return (
+    `<div class="hanford-corpus">` +
+    `<h5>From this dashboard's enrichments <span class="micro-note">(infra-proximity joins on the NPL record)</span></h5>` +
+    `<dl class="hanford-kv">${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>` +
+    (p.corpus_site_id
+      ? `<a href="?site=${encodeURIComponent(p.corpus_site_id)}" class="hanford-site-link" data-site="${escapeAttr(p.corpus_site_id)}">Open the tracked site record →</a>`
+      : "") +
+    `</div>`
+  );
+}
+
+function _hanfordParcelCard(p) {
+  const kindLabel = HANFORD_KIND_LABEL[p.kind] || p.kind;
+  const fits = (p.opportunities || []).map((o) =>
+    `<span class="hp-fit hp-fit-${escapeAttr(o.fit)}" title="${escapeAttr((hanfordData.opportunity_kinds || {})[o.kind] || o.kind)}: ${escapeAttr(o.fit)}">` +
+    `${escapeHtml((hanfordData.opportunity_kinds || {})[o.kind] || o.kind)}</span>`
+  ).join("");
+  const screenRows = _hanfordScreenRows(p.screening || {}).map(([label, html, section]) =>
+    `<tr><th scope="row">${escapeHtml(label)}</th><td>${html}</td>` +
+    `<td class="hanford-retrieved">${section && section.retrieved_at ? escapeHtml(section.retrieved_at.slice(0, 10)) : "—"}</td></tr>`
+  ).join("");
+  const opps = (p.opportunities || []).map((o) =>
+    `<li class="hp-opp"><span class="hp-fit hp-fit-${escapeAttr(o.fit)}">${escapeHtml(HANFORD_FIT_LABEL[o.fit] || o.fit)}</span>` +
+    `<div><strong>${escapeHtml((hanfordData.opportunity_kinds || {})[o.kind] || o.kind)}</strong>` +
+    `<p>${escapeHtml(o.rationale)}</p></div></li>`
+  ).join("");
+  const nearby = (p.nearby_tracked || []).map((n) =>
+    `<li><a href="?site=${encodeURIComponent(n.id)}" class="hanford-site-link" data-site="${escapeAttr(n.id)}">${escapeHtml(prettyName(n.name) || n.id)}</a>` +
+    ` <span class="micro-note">${escapeHtml((n.program || "").toUpperCase())} · ${fmt.miles(n.distance_mi)}</span></li>`
+  ).join("");
+  const extraSources = (p.extra_sources || []).map((sr) =>
+    `<a href="${escapeAttr(sr.url)}" target="_blank" rel="noopener">${escapeHtml(sr.label)} ↗</a>`
+  ).join("");
+  const featureCount = p.map_summary?.feature_count;
+  const mapBtn = p.geojson_url
+    ? `<button type="button" class="ap1000-export hanford-map-btn" data-hanford-map="${escapeAttr(p.id)}">` +
+      `Show ${featureCount != null ? featureCount.toLocaleString() + " " : ""}features on map</button>`
+    : `<button type="button" class="ap1000-export" disabled title="Map package not generated for this parcel yet">Map package pending</button>`;
+  return (
+    `<details class="hanford-parcel" id="hp-${escapeAttr(p.id)}">` +
+    `<summary><span class="hanford-parcel-name"><strong>${escapeHtml(p.name)}</strong>` +
+    `<span class="hanford-kind hanford-kind-${escapeAttr(p.kind)}">${escapeHtml(kindLabel)}</span></span>` +
+    `<span class="hanford-summary-meta">~${Math.round(p.approx_acres).toLocaleString()} ac${fits ? ` · ${fits}` : ""}</span></summary>` +
+    `<div class="hanford-parcel-body">` +
+    `<p class="hanford-status">${escapeHtml(p.status)}</p>` +
+    `<dl class="hanford-kv hanford-kv-top">` +
+    `<dt>Availability</dt><dd>${escapeHtml(p.availability)}</dd>` +
+    `<dt>Land-use plan</dt><dd>${p.clup_designation ? `<strong>${escapeHtml(p.clup_designation)}</strong> — ` : ""}${escapeHtml(p.clup_note)}</dd>` +
+    `<dt>Coordinates</dt><dd>${p.lat.toFixed(4)}, ${p.lon.toFixed(4)} <span class="micro-note">${escapeHtml(p.coord_note)}</span></dd>` +
+    `</dl>` +
+    `<h5>Environmental screen <span class="micro-note">(${escapeHtml(String(hanfordData.screening_buffer_miles || 5))}-mile context; unavailable ≠ no-hit)</span></h5>` +
+    `<div class="micro-table-wrap"><table class="micro-table hanford-screen-table">` +
+    `<thead><tr><th scope="col">Source</th><th scope="col">Finding</th><th scope="col">Retrieved</th></tr></thead>` +
+    `<tbody>${screenRows}</tbody></table></div>` +
+    _hanfordCorpusHtml(p) +
+    `<h5>Opportunities</h5><ul class="hp-opps">${opps || '<li class="micro-note">None assessed.</li>'}</ul>` +
+    (nearby ? `<h5>Nearby tracked records</h5><ul class="hanford-nearby">${nearby}</ul>` : "") +
+    `<div class="janus-card-links hanford-cites">` +
+    `<a href="${escapeAttr(p.source_url)}" target="_blank" rel="noopener">Primary source ↗</a>` +
+    extraSources +
+    `<span>Verified ${escapeHtml(p.verified_at)}</span>` +
+    `${mapBtn}` +
+    `</div>` +
+    `</div></details>`
+  );
+}
+
+function buildHanfordView() {
+  const host = el("hanford-content");
+  if (!host) return;
+  if (hanfordLoadFailed) {
+    host.innerHTML =
+      '<p class="muted">Hanford dossier could not be loaded. ' +
+      '<button type="button" id="hanford-retry" class="text-btn">Retry</button></p>';
+    const retry = el("hanford-retry");
+    if (retry) retry.addEventListener("click", () => {
+      hanfordLoadFailed = false;
+      buildHanfordView();
+      ensureHanfordLoaded();
+    });
+    return;
+  }
+  if (!hanfordData) {
+    host.innerHTML = '<p class="muted">Loading Hanford dossier…</p>';
+    return;
+  }
+  const ov = hanfordData.site_overview || {};
+  const managers = (ov.managers || []).map((m) =>
+    `<div class="hanford-mgr"><span class="hanford-mgr-role">${escapeHtml(m.role)}</span>` +
+    `<p>${escapeHtml(m.who)}</p>` +
+    `<a href="${escapeAttr(m.url)}" target="_blank" rel="noopener">Source ↗</a></div>`
+  ).join("");
+  const pathways = (hanfordData.permitting_pathways || []).map((pw) =>
+    `<tr><th scope="row">${escapeHtml(pw.regime)}</th>` +
+    `<td>${escapeHtml(pw.applies)}</td>` +
+    `<td>${escapeHtml(pw.authority)} <a href="${escapeAttr(pw.url)}" target="_blank" rel="noopener">↗</a></td></tr>`
+  ).join("");
+  const limits = (hanfordData.limitations || []).map((l) => escapeHtml(l)).join(" · ");
+  const parcels = (hanfordData.parcels || []).map((p) => _hanfordParcelCard(p)).join("");
+  const lup = ov.land_use_plan || {};
+  host.innerHTML =
+    `<div class="janus-limit"><strong>Screening, not siting:</strong> ${limits}</div>` +
+    `<section class="hanford-overview">` +
+    `<p class="hanford-summary">${escapeHtml(ov.summary || "")}</p>` +
+    `<div class="hanford-mgrs">${managers}</div>` +
+    (lup.label
+      ? `<p class="hanford-lup micro-note">${escapeHtml(lup.note || "")} <a href="${escapeAttr(lup.url)}" target="_blank" rel="noopener">${escapeHtml(lup.label)} ↗</a></p>`
+      : "") +
+    `</section>` +
+    `<details class="hanford-pathways"><summary><strong>Permitting &amp; licensing pathways</strong> <span class="micro-note">(what applies and who decides — never a schedule estimate)</span></summary>` +
+    `<div class="micro-table-wrap"><table class="micro-table hanford-pathway-table">` +
+    `<thead><tr><th scope="col">Regime</th><th scope="col">When it applies at Hanford</th><th scope="col">Authority</th></tr></thead>` +
+    `<tbody>${pathways}</tbody></table></div></details>` +
+    `<section class="hanford-parcels"><h3>The land, unit by unit</h3>${parcels}</section>` +
+    `<p class="micro-note hanford-method">${escapeHtml(hanfordData.method || "")} nepa-mcp ${escapeHtml(hanfordData.nepa_mcp_version || "")} · generated ${escapeHtml((hanfordData.generated_at || "").slice(0, 10))}</p>`;
+
+  // Delegated bindings — no string-interpolated inline handlers.
+  host.querySelectorAll("a.hanford-site-link").forEach((a) => {
+    a.addEventListener("click", (e) => {
+      e.preventDefault();
+      selectSite(a.dataset.site);
+    });
+  });
+  host.querySelectorAll(".hanford-map-btn").forEach((btn) => {
+    btn.addEventListener("click", () => showHanfordScreeningMap(btn.dataset.hanfordMap));
+  });
+}
+
+// Load one parcel's Map Composer GeoJSON package onto the main map. Mirrors
+// showJanusMap; WA is CONUS so the inset remap is a structural no-op but is
+// kept for symmetry (every overlay repeats the AK-rows lesson eventually).
+function showHanfordScreeningMap(parcelId) {
+  const parcel = (hanfordData?.parcels || []).find((row) => row.id === parcelId);
+  if (!parcel?.geojson_url) return;
+  const button = document.querySelector(`[data-hanford-map="${CSS.escape(parcelId)}"]`);
+  if (button) { button.disabled = true; button.textContent = "Loading map…"; }
+  fetch(parcel.geojson_url)
+    .then((r) => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .then((payload) => {
+      if (hanfordNepaLayer) map.removeLayer(hanfordNepaLayer);
+      if (janusNepaLayer) { map.removeLayer(janusNepaLayer); janusNepaLayer = null; }
+      const displayPayload = _remapJanusGeoJson(payload, "WA");
+      hanfordNepaLayer = L.geoJSON(displayPayload, {
+        style: (feature) => ({
+          color: _janusLayerColor(feature.properties?.layer || feature.properties?.type || "context"),
+          weight: feature.properties?.type === "Region of Interest" ? 2 : 1,
+          opacity: 0.8,
+          fillOpacity: feature.properties?.type === "Region of Interest" ? 0.03 : 0.12,
+        }),
+        pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
+          radius: feature.properties?.type === "Project Location" ? 6 : 3,
+          color: _janusLayerColor(feature.properties?.layer || "context"),
+          fillOpacity: 0.75,
+        }),
+        onEachFeature: (feature, layer) => {
+          const props = feature.properties || {};
+          const label = props.name || props.common_name || props.type || props.layer || "Mapped feature";
+          layer.bindPopup(`<strong>${escapeHtml(label)}</strong><br>` +
+            `<span class="micro-note">${escapeHtml(props.layer || "screening area")}</span>`);
+        },
+      }).addTo(map);
+      el("tab-map")?.click();
+      const bounds = _screeningFitBounds(displayPayload, hanfordNepaLayer);
+      if (bounds) map.fitBounds(bounds, { padding: [30, 30], maxZoom: 11 });
+      showToast(`${parcel.name}: NEPA screening layers shown. Not a project footprint.`);
+    })
+    .catch((err) => {
+      console.error("Hanford GeoJSON load failed:", err);
+      showToast(`${parcel.name}: map package unavailable.`);
     })
     .finally(() => {
       if (button) { button.disabled = false; button.textContent = "Show features on map"; }

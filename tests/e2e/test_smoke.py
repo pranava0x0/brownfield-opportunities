@@ -640,8 +640,11 @@ def test_refresh_date_reflects_freshest_data_file(page, base_url):
             'nuclear-civilian-sites.json', 'nuclear-brownfield-proximity.json',
             'microreactor-fleet.json', 'janus-nepa.json', 'tribal-areas.json',
             'coal-conversions.json', 'coal-conversions-proximity.json',
-            'federal-clean-energy.json',
+            'federal-clean-energy.json', 'hanford-e2e.json',
           ];
+          // coal-nepa.json is deliberately ABSENT: its loader is drawer-lazy
+          // and does not call recordRefreshDate (reference-campuses rule —
+          // a file whose loader may never run must not drive the date).
           const fmt = (s) => new Date(Date.parse(s)).toISOString().slice(0, 10);
           let coreDate = null;
           const dates = [];

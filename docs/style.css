@@ -3339,3 +3339,174 @@ button.coal-nearby-item:focus-visible { outline: 2px solid var(--accent); outlin
   .coal-filters-bar { flex-direction: column; align-items: stretch; }
   .arch-flow-grid { grid-template-columns: 1fr; }
 }
+
+/* ===== Hanford E2E dossier tab (one DOE site, screened end-to-end) ===== */
+/* Marker + legend follow the coal-overlay literal-pair pattern: berry in
+   light, lifted pink in dark. Glyph sits DIRECTLY in the icon div (the
+   marker-DOM rule) so the class itself carries the type styles. */
+.legend-hanford {
+  color: #8f2a63;
+  font-size: 13px;
+  line-height: 1;
+  display: inline-block;
+  width: 12px;
+  text-align: center;
+}
+[data-theme="dark"] .legend-hanford { color: #e07ab8; }
+.hanford-parcel-icon {
+  background: none !important;
+  border: none !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: #8f2a63;
+  text-shadow: 0 0 3px rgba(0,0,0,0.55);
+  cursor: pointer;
+  line-height: 1;
+}
+[data-theme="dark"] .hanford-parcel-icon {
+  color: #e07ab8;
+  text-shadow: 0 0 4px rgba(0,0,0,0.9);
+}
+
+.hanford-wrap { max-width: 1180px; margin: 0 auto; padding: 28px 24px 64px; }
+.hanford-lead h2 { margin: 0 0 6px; font-family: var(--font-serif); font-size: 22px; }
+.hanford-lead p { margin: 0 0 12px; color: var(--text-soft); line-height: 1.6; max-width: 92ch; font-size: 13.5px; }
+
+.hanford-overview { margin: 14px 0 10px; }
+.hanford-summary { color: var(--text-soft); line-height: 1.6; max-width: 92ch; font-size: 13.5px; margin: 0 0 12px; }
+.hanford-mgrs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 10px;
+  margin: 0 0 10px;
+}
+.hanford-mgr {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  padding: 10px 12px;
+  font-size: 12.5px;
+}
+.hanford-mgr-role {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.hanford-mgr p { margin: 0 0 6px; color: var(--text-soft); line-height: 1.5; }
+.hanford-mgr a { font-size: 12px; }
+.hanford-lup { max-width: 92ch; }
+
+.hanford-pathways { margin: 12px 0 18px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
+.hanford-pathways > summary { cursor: pointer; padding: 10px 14px; font-size: 13px; }
+.hanford-pathways[open] > summary { border-bottom: 1px solid var(--border); }
+.hanford-pathway-table td, .hanford-pathway-table th { vertical-align: top; }
+.hanford-pathway-table th[scope="row"] { white-space: nowrap; }
+
+.hanford-parcels h3 { font-family: var(--font-serif); font-size: 18px; margin: 18px 0 10px; }
+.hanford-parcel {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  margin: 0 0 10px;
+}
+.hanford-parcel > summary {
+  cursor: pointer;
+  padding: 10px 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: 13.5px;
+}
+.hanford-parcel[open] > summary { border-bottom: 1px solid var(--border); }
+.hanford-parcel-name { display: inline-flex; flex-wrap: wrap; gap: 8px; align-items: baseline; }
+.hanford-summary-meta { font-size: 12px; color: var(--muted); display: inline-flex; flex-wrap: wrap; gap: 6px; align-items: baseline; }
+.hanford-parcel-body { padding: 12px 14px 14px; }
+.hanford-parcel-body h5 { margin: 14px 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+.hanford-status { margin: 0 0 10px; color: var(--text-soft); line-height: 1.6; font-size: 13px; max-width: 92ch; }
+
+.hanford-kind {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-soft);
+  background: var(--surface-2);
+}
+.hanford-kind-conservation, .hanford-kind-cultural { color: var(--nuclear-ready, #14663c); }
+.hanford-kind-leased_energy { color: var(--accent); }
+.hanford-kind-cleanup_core { color: var(--status-final, #b8332f); }
+
+.hanford-kv { display: grid; grid-template-columns: max-content 1fr; gap: 3px 14px; margin: 0; font-size: 12.5px; }
+.hanford-kv dt { color: var(--muted); font-weight: 600; }
+.hanford-kv dd { margin: 0; color: var(--text-soft); line-height: 1.5; }
+.hanford-kv-top { margin-bottom: 4px; }
+
+.hanford-screen-table th[scope="row"] { white-space: nowrap; font-weight: 600; }
+.hanford-retrieved { white-space: nowrap; color: var(--muted); font-size: 11.5px; }
+
+.hanford-corpus { margin-top: 12px; }
+.hanford-corpus a { font-size: 12.5px; }
+
+/* Opportunity fit badges — anchored/strong green family, conditional amber,
+   precluded muted red. Same [hidden] disciplines don't apply (never hidden). */
+.hp-fit {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid currentColor;
+  line-height: 1.5;
+}
+.hp-fit-anchored { color: var(--readiness-ready, #2f7a4d); }
+.hp-fit-strong { color: var(--accent); }
+.hp-fit-conditional { color: var(--suit-amber, #a16207); }
+.hp-fit-precluded { color: var(--status-final, #b8332f); opacity: 0.85; }
+
+.hp-opps { list-style: none; margin: 0; padding: 0; }
+.hp-opp { display: flex; gap: 10px; align-items: flex-start; padding: 6px 0; border-bottom: 1px dashed var(--border); }
+.hp-opp:last-child { border-bottom: none; }
+.hp-opp .hp-fit { flex: 0 0 auto; margin-top: 1px; }
+.hp-opp strong { font-size: 13px; }
+.hp-opp p { margin: 2px 0 0; font-size: 12.5px; color: var(--text-soft); line-height: 1.55; max-width: 86ch; }
+
+.hanford-nearby { list-style: none; margin: 0; padding: 0; font-size: 12.5px; }
+.hanford-nearby li { padding: 3px 0; }
+
+.hanford-cites { margin-top: 14px; align-items: center; }
+.hanford-cites .hanford-map-btn, .hanford-cites .ap1000-export { margin-left: auto; }
+.hanford-method { margin-top: 16px; }
+
+@media (max-width: 640px) {
+  .hanford-wrap { padding: 14px 12px 32px; }
+  .hanford-kv { grid-template-columns: 1fr; gap: 0 0; }
+  .hanford-kv dt { margin-top: 6px; }
+  .hanford-cites .hanford-map-btn, .hanford-cites .ap1000-export { margin-left: 0; }
+}
+
+/* Coal drawer — nepa-mcp permitting screen section */
+.coal-nepa-section { margin-top: 14px; }
+.coal-nepa-section h4 { margin: 0 0 8px; font-size: 13px; }
+.coal-nepa-note { font-size: 11.5px; color: var(--muted); font-weight: 400; }
+.coal-nepa-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.coal-nepa-chip {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  font-size: 11.5px;
+  color: var(--text-soft);
+}
+.coal-nepa-chip.unavailable { opacity: 0.65; font-style: italic; }
+.coal-nepa-k { font-weight: 700; color: var(--text); }

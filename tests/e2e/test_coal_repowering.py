@@ -304,3 +304,31 @@ def test_coal_detail_cell_renders_for_joined_site(page, base_url):
         })()"""
     )
     assert result and "modeled" in result, result
+
+
+def test_coal_drawer_renders_nepa_permitting_screen(page, base_url):
+    """The drawer's 'Permitting screen' section (docs/data/coal-nepa.json)
+    must render the six source chips for a screened plant, load lazily on
+    first drawer open, and re-render the SAME plant when the fetch settles
+    (the hadSettled re-entry guard). 'Unavailable' chips are allowed only
+    when the artifact itself says so — Cheswick's screen is fully ok."""
+    _goto_ready(page, base_url)
+    page.click("#tab-coal")
+    page.wait_for_selector("#coal-table-container table.coal-table", timeout=15000)
+    page.evaluate("window.__inspectCoalPlant('Cheswick Generating Station')")
+    page.wait_for_selector(".coal-nepa-section .coal-nepa-chip", timeout=15000)
+    state = page.evaluate(
+        """(() => {
+          const sec = document.querySelector('.coal-nepa-section');
+          return {
+            chips: sec.querySelectorAll('.coal-nepa-chip').length,
+            unavailable: sec.querySelectorAll('.coal-nepa-chip.unavailable').length,
+            text: sec.textContent,
+          };
+        })()"""
+    )
+    assert state["chips"] == 6
+    assert state["unavailable"] == 0
+    assert "not a determination" in state["text"]
+    # NRHP-rich plant: the chip must carry a nonzero listed-property count.
+    assert "11 NRHP" in state["text"]
