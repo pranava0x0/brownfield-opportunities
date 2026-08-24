@@ -266,6 +266,7 @@
   </section>
 
   <section id="view-retired" class="view retired-view" role="tabpanel" aria-labelledby="tab-retired" hidden>
+    <template id="retired-template">
     <div class="retired-wrap">
       <div class="retired-lead">
         <h2>Retired industrial sites — by prior use</h2>
@@ -273,9 +274,14 @@
       </div>
       <div id="retired-stats" aria-live="polite"><p class="muted">Loading retired-site data…</p></div>
     </div>
+    </template>
   </section>
 
   <section id="view-coal" class="view coal-view" role="tabpanel" aria-labelledby="tab-coal" hidden>
+    <!-- Interior mounts lazily from this <template> on first tab activation
+         (app.js mountCoalView) — keeps ~45 skeleton nodes out of the
+         5,000-node first-paint budget. -->
+    <template id="coal-template">
     <div class="coal-wrap">
       <div class="coal-lead">
         <h2>Coal-to-Clean Repowering &amp; Stranded Asset Screening</h2>
@@ -343,6 +349,7 @@
         <div id="coal-drawer-body" class="coal-drawer-body"></div>
       </div>
     </div>
+    </template>
   </section>
 
   <section id="view-ap1000" class="view ap1000-view" role="tabpanel" aria-labelledby="tab-ap1000" hidden>

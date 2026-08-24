@@ -3727,8 +3727,8 @@ function wireTabs() {
     if (globalExportCsv) globalExportCsv.hidden = onAp1000 || onMicro;
     if (onMap) setTimeout(() => map.invalidateSize(), 50);
     if (onCandidates) buildCandidatesView();
-    if (onRetired) { ensureRetiredIndustrialLoaded(); buildRetiredView(); }
-    if (onCoal) { ensureCoalConversionsLoaded().then(() => buildCoalView()); }
+    if (onRetired) { mountRetiredView(); ensureRetiredIndustrialLoaded(); buildRetiredView(); }
+    if (onCoal) { mountCoalView(); ensureCoalConversionsLoaded().then(() => buildCoalView()); }
     if (onAbout) mountAboutView();
     if (onAp1000) {
       ensureAp1000Loaded(); buildAp1000View();
@@ -3845,6 +3845,31 @@ function mountAboutView() {
   const view = el("view-about");
   if (!tpl || !view || !tpl.content) return;
   aboutMounted = true;
+  view.appendChild(tpl.content.cloneNode(true));
+}
+
+// Same lazy-mount mechanism for the Coal Repowering and Retired Sites view
+// skeletons — their interiors live in <template> until first activation, so
+// hidden tabs cost ~2 nodes each at first paint. Mount BEFORE any code that
+// queries elements inside the view (buildCoalView / buildRetiredView run
+// after their mount call in setView).
+let coalViewMounted = false;
+function mountCoalView() {
+  if (coalViewMounted) return;
+  const tpl = el("coal-template");
+  const view = el("view-coal");
+  if (!tpl || !view || !tpl.content) return;
+  coalViewMounted = true;
+  view.appendChild(tpl.content.cloneNode(true));
+}
+
+let retiredViewMounted = false;
+function mountRetiredView() {
+  if (retiredViewMounted) return;
+  const tpl = el("retired-template");
+  const view = el("view-retired");
+  if (!tpl || !view || !tpl.content) return;
+  retiredViewMounted = true;
   view.appendChild(tpl.content.cloneNode(true));
 }
 
