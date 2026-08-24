@@ -5588,6 +5588,19 @@ const HANFORD_FIT_LABEL = {
   precluded: "Precluded",
 };
 
+// Facility-fit summary vocabulary — a dedicated data-center-vs-reactor-class
+// comparison, distinct from the general `opportunities` list (which has a
+// single combined "advanced_nuclear" kind). Order matters: it's the column
+// order in the top-of-page summary table AND the row order in each parcel's
+// mini-list, smallest-footprint reactor class last.
+const HANFORD_FACILITY_ORDER = ["data_center", "lwr_pwr", "smr", "microreactor"];
+const HANFORD_FACILITY_SHORT_LABEL = {
+  data_center: "Data center",
+  lwr_pwr: "Large reactor",
+  smr: "SMR",
+  microreactor: "Microreactor",
+};
+
 function ensureHanfordLoaded() {
   if (hanfordLoadingPromise) return hanfordLoadingPromise;
   hanfordLoadFailed = false;
@@ -5740,6 +5753,56 @@ function _hanfordCorpusHtml(p) {
   );
 }
 
+const HANFORD_FIT_RANK = { anchored: 4, strong: 3, conditional: 2, precluded: 1 };
+
+// Top-of-page comparison: what each facility type needs (from the build
+// script's FACILITY_TYPES, so the criteria text lives in one place) plus a
+// parcel × facility-type matrix with a computed "best fit" column. The
+// per-cell fit VALUES are curated (facility_fit on each parcel); only the
+// best-fit ranking itself is computed client-side from those values.
+function _hanfordFacilityFitSummaryHtml(parcels, facilityTypes) {
+  if (!parcels.length) return "";
+  const considerationRows = HANFORD_FACILITY_ORDER.map((t) => {
+    const meta = facilityTypes[t] || {};
+    return `<tr><th scope="row">${escapeHtml(meta.label || HANFORD_FACILITY_SHORT_LABEL[t] || t)}</th>` +
+      `<td>${escapeHtml(meta.considerations || "")}</td></tr>`;
+  }).join("");
+  const bodyRows = parcels.map((p) => {
+    const byType = {};
+    for (const ff of p.facility_fit || []) byType[ff.type] = ff;
+    let bestRank = 0;
+    for (const t of HANFORD_FACILITY_ORDER) {
+      const r = HANFORD_FIT_RANK[byType[t]?.fit] || 0;
+      if (r > bestRank) bestRank = r;
+    }
+    const bestTypes = bestRank > 0
+      ? HANFORD_FACILITY_ORDER.filter((t) => HANFORD_FIT_RANK[byType[t]?.fit] === bestRank)
+      : [];
+    const bestLabel = bestTypes.length
+      ? bestTypes.map((t) => HANFORD_FACILITY_SHORT_LABEL[t]).join(" / ")
+      : "None — not offered";
+    const cells = HANFORD_FACILITY_ORDER.map((t) => {
+      const ff = byType[t];
+      if (!ff) return `<td class="hanford-fit-cell">—</td>`;
+      return `<td class="hanford-fit-cell"><span class="hp-fit hp-fit-${escapeAttr(ff.fit)}" title="${escapeAttr(ff.rationale)}">${escapeHtml(HANFORD_FIT_LABEL[ff.fit] || ff.fit)}</span></td>`;
+    }).join("");
+    return `<tr><th scope="row"><a href="#hp-${escapeAttr(p.id)}">${escapeHtml(p.name)}</a> <span class="micro-note">~${Math.round(p.approx_acres).toLocaleString()} ac</span></th>` +
+      cells +
+      `<td class="hanford-best-fit">${escapeHtml(bestLabel)}</td></tr>`;
+  }).join("");
+  return (
+    `<details class="hanford-pathways hanford-facility-summary"><summary><strong>Facility fit summary — data center vs. reactor class</strong> <span class="micro-note">(what each facility type needs, and the best-fit ranking per parcel)</span></summary>` +
+    `<p class="hanford-summary">Every parcel below is screened against the same four facility types. "Best fit" ties to the highest-ranked fit value (anchored &gt; strong &gt; conditional &gt; precluded); a tie lists every type at that rank. These are editorial judgements grounded in each parcel's curated status and availability, not a computed score — hover a fit badge (or open the parcel below) for the reasoning.</p>` +
+    `<div class="micro-table-wrap"><table class="micro-table hanford-pathway-table hanford-facility-considerations">` +
+    `<thead><tr><th scope="col">Facility type</th><th scope="col">What it needs</th></tr></thead>` +
+    `<tbody>${considerationRows}</tbody></table></div>` +
+    `<div class="micro-table-wrap"><table class="micro-table hanford-facility-matrix">` +
+    `<thead><tr><th scope="col">Parcel</th>${HANFORD_FACILITY_ORDER.map((t) => `<th scope="col">${escapeHtml(HANFORD_FACILITY_SHORT_LABEL[t])}</th>`).join("")}<th scope="col">Best fit</th></tr></thead>` +
+    `<tbody>${bodyRows}</tbody></table></div>` +
+    `</details>`
+  );
+}
+
 function _hanfordParcelCard(p) {
   const kindLabel = HANFORD_KIND_LABEL[p.kind] || p.kind;
   const fits = (p.opportunities || []).map((o) =>
@@ -5755,6 +5818,15 @@ function _hanfordParcelCard(p) {
     `<div><strong>${escapeHtml((hanfordData.opportunity_kinds || {})[o.kind] || o.kind)}</strong>` +
     `<p>${escapeHtml(o.rationale)}</p></div></li>`
   ).join("");
+  const facilityByType = {};
+  for (const ff of p.facility_fit || []) facilityByType[ff.type] = ff;
+  const facilityFitItems = HANFORD_FACILITY_ORDER.map((t) => {
+    const ff = facilityByType[t];
+    if (!ff) return "";
+    return `<li class="hp-opp"><span class="hp-fit hp-fit-${escapeAttr(ff.fit)}">${escapeHtml(HANFORD_FIT_LABEL[ff.fit] || ff.fit)}</span>` +
+      `<div><strong>${escapeHtml(HANFORD_FACILITY_SHORT_LABEL[t] || t)}</strong>` +
+      `<p>${escapeHtml(ff.rationale)}</p></div></li>`;
+  }).join("");
   const nearby = (p.nearby_tracked || []).map((n) =>
     `<li><a href="?site=${encodeURIComponent(n.id)}" class="hanford-site-link" data-site="${escapeAttr(n.id)}">${escapeHtml(prettyName(n.name) || n.id)}</a>` +
     ` <span class="micro-note">${escapeHtml((n.program || "").toUpperCase())} · ${fmt.miles(n.distance_mi)}</span></li>`
@@ -5793,6 +5865,8 @@ function _hanfordParcelCard(p) {
     `<tbody>${screenRows}</tbody></table></div>` +
     _hanfordCorpusHtml(p) +
     `<h5>Opportunities</h5><ul class="hp-opps">${opps || '<li class="micro-note">None assessed.</li>'}</ul>` +
+    `<h5>Facility fit <span class="micro-note">(data center vs. reactor class — see the summary above for how these compare across all nine parcels)</span></h5>` +
+    `<ul class="hp-opps">${facilityFitItems || '<li class="micro-note">None assessed.</li>'}</ul>` +
     (nearby ? `<h5>Nearby tracked records</h5><ul class="hanford-nearby">${nearby}</ul>` : "") +
     `<div class="janus-card-links hanford-cites">` +
     `<a href="${escapeAttr(p.source_url)}" target="_blank" rel="noopener">Primary source ↗</a>` +
@@ -5841,13 +5915,15 @@ function buildHanfordView() {
     `<tr><th scope="row">${s.url ? `<a href="${escapeAttr(s.url)}" target="_blank" rel="noopener">${escapeHtml(s.label)} ↗</a>` : escapeHtml(s.label)}</th>` +
     `<td>${escapeHtml(s.covers || "")}</td></tr>`
   ).join("");
+  const facilityFitSummary = _hanfordFacilityFitSummaryHtml(hanfordData.parcels || [], hanfordData.facility_types || {});
   host.innerHTML =
-    `<div class="janus-limit"><strong>Screening, not siting:</strong> ${limits}</div>` +
     `<details class="hanford-pathways hanford-sources" open><summary><strong>Sources &amp; methodology</strong> <span class="micro-note">(where every finding on this page comes from, and how it was pulled)</span></summary>` +
+    `<div class="janus-limit"><strong>Screening, not siting:</strong> ${limits}</div>` +
     `<p class="hanford-summary">Every row in each parcel's environmental screen below comes from <a href="https://github.com/pnnl/nepa-mcp" target="_blank" rel="noopener">PNNL's nepa-mcp</a> — an open-source toolkit (BSD-3) that wraps live federal GIS and regulatory APIs behind one uniform interface. For each land unit, this dossier calls nepa-mcp's tools once per source below, at a ${escapeHtml(String(hanfordData.screening_buffer_miles || 5))}-mile radius around a representative point in that unit, caches the raw response, and normalizes it into the "Finding" column shown in each parcel's Environmental screen table. A source that times out or errors is recorded as <strong>unavailable</strong> — it is never silently counted as a no-hit. The Map Composer layers (the "Show features on map" button) are pulled the same way, as GeoJSON instead of tabular counts. Site history, ownership, and land-use-plan facts below are hand-curated and cited per row — see each row's own "Source ↗" link.</p>` +
     `<div class="micro-table-wrap"><table class="micro-table hanford-pathway-table">` +
     `<thead><tr><th scope="col">Source (nepa-mcp tool)</th><th scope="col">What it actually covers</th></tr></thead>` +
     `<tbody>${sourceRows}</tbody></table></div></details>` +
+    facilityFitSummary +
     `<section class="hanford-overview">` +
     `<h3 class="hanford-section-title">Site history</h3>` +
     `<p class="hanford-summary">${escapeHtml(ov.summary || "")}</p>` +

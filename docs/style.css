@@ -3473,6 +3473,11 @@ button.coal-nearby-item:focus-visible { outline: 2px solid var(--accent); outlin
 .hanford-corpus { margin-top: 12px; }
 .hanford-corpus a { font-size: 12.5px; }
 
+.hanford-facility-considerations { margin-bottom: 14px; }
+.hanford-facility-matrix th, .hanford-facility-matrix td { text-align: left; }
+.hanford-facility-matrix .hanford-fit-cell { text-align: center; }
+.hanford-best-fit { font-weight: 600; white-space: nowrap; }
+
 /* Opportunity fit badges — anchored/strong green family, conditional amber,
    precluded muted red. Same [hidden] disciplines don't apply (never hidden). */
 .hp-fit {
