@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-24T13:23:18.170081Z",
+  "generated_at": "2026-08-24T13:34:55.126231Z",
   "nepa_mcp_version": "0.1.1",
   "screening_buffer_miles": 5.0,
   "flood_radius_miles": 2.0,
@@ -65,7 +65,7 @@
     },
     {
       "regime": "Washington EFSEC certification",
-      "applies": "Any nuclear power facility in Washington (no size floor), non-nuclear thermal plants at or above 350 MW, and \u2014 since the 2022 E2SHB 1812 expansion \u2014 generation, storage, manufacturing, and hydrogen projects that opt in. EFSEC site certification substitutes for local land-use approvals; the governor signs the certification.",
+      "applies": "Any nuclear power facility in Washington (no size floor), non-nuclear thermal plants at or above 350 MW, and \u2014 since the 2022 E2SHB 1812 expansion \u2014 clean-energy generation, storage, manufacturing, and hydrogen projects that opt in. EFSEC site certification substitutes for local land-use approvals; the governor signs the certification.",
       "authority": "WA Energy Facility Site Evaluation Council (RCW 80.50)",
       "url": "https://www.efsec.wa.gov/"
     },

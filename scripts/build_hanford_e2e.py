@@ -223,7 +223,7 @@ PERMITTING_PATHWAYS = [
         "applies": (
             "Any nuclear power facility in Washington (no size floor), "
             "non-nuclear thermal plants at or above 350 MW, and — since the "
-            "2022 E2SHB 1812 expansion — generation, storage, "
+            "2022 E2SHB 1812 expansion — clean-energy generation, storage, "
             "manufacturing, and hydrogen projects that opt in. EFSEC site "
             "certification substitutes for local land-use approvals; the "
             "governor signs the certification."
