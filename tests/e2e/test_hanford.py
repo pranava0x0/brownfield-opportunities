@@ -51,6 +51,28 @@ def test_hanford_tab_renders_nine_parcels_with_full_screen(page, base_url):
     assert state["limitStrip"] is True
 
 
+def test_hanford_view_scrolls(page, base_url):
+    """`main` is `overflow: hidden` app-shell-wide; every lazy-mounted view
+    (.about-view / .retired-view / .ap1000-view / .micro-view / .coal-view)
+    opts back into scrolling with its own `overflow-y: auto`. `.hanford-view`
+    shipped without that rule, so content taller than the viewport was
+    clipped with no way to reach it (2026-08-24)."""
+    _open_hanford(page, base_url)
+    state = page.evaluate(
+        """(() => {
+          const view = document.getElementById('view-hanford');
+          const style = getComputedStyle(view);
+          return {
+            overflowY: style.overflowY,
+            scrollHeight: view.scrollHeight,
+            clientHeight: view.clientHeight,
+          };
+        })()"""
+    )
+    assert state["overflowY"] == "auto"
+    assert state["scrollHeight"] > state["clientHeight"]
+
+
 def test_hanford_template_mounts_exactly_once(page, base_url):
     """Re-activating the tab must not stamp the template twice (the About/
     Coal/Retired lazy-mount rule)."""

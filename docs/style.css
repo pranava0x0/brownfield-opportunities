@@ -3344,6 +3344,7 @@ button.coal-nearby-item:focus-visible { outline: 2px solid var(--accent); outlin
 /* Marker + legend follow the coal-overlay literal-pair pattern: berry in
    light, lifted pink in dark. Glyph sits DIRECTLY in the icon div (the
    marker-DOM rule) so the class itself carries the type styles. */
+.hanford-view { overflow-y: auto; }
 .legend-hanford {
   color: #8f2a63;
   font-size: 13px;
