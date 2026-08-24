@@ -16,6 +16,13 @@ Water availability has emerged alongside power availability as the **#2 physical
 
 Currently, our platform captures only a high-level county-wide FEMA NRI drought rating. This initiative implements a granular, physically defensible hydrological framework combining **WRI Aqueduct 4.0 HydroBASINS baseline water stress** and **USGS Water Census 7Q10 low-flow stream statistics**.
 
+**2026-08 sweep note:** water and power politics are converging on the same metros — Memphis (xAI)
+now pairs a municipal-water controversy with TVA's new DC rate class, and utility boards are
+attaching water conditions to power agreements. The detail card should therefore distinguish
+*physical* availability (7Q10 / BWS — this spec) from *political* availability (municipal supply
+posture), and never present the first as settling the second. WRI Aqueduct 4.0 is CC-BY 4.0 —
+attribute per license.
+
 ---
 
 ## 2. Hydrological Data Sources & Pipeline

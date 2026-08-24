@@ -639,6 +639,8 @@ def test_refresh_date_reflects_freshest_data_file(page, base_url):
             'planned-retirements-proximity.json', 'coord-quality.json',
             'nuclear-civilian-sites.json', 'nuclear-brownfield-proximity.json',
             'microreactor-fleet.json', 'janus-nepa.json', 'tribal-areas.json',
+            'coal-conversions.json', 'coal-conversions-proximity.json',
+            'federal-clean-energy.json',
           ];
           const fmt = (s) => new Date(Date.parse(s)).toISOString().slice(0, 10);
           let coreDate = null;
@@ -2226,6 +2228,10 @@ def test_hero_version_label_matches_current_release(page, base_url):
     bump fails loudly. Update the regex when shipping past v1.13."""
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("window.__sitesLoaded === true", timeout=20000)
+    # #hero-version lives in the About view, which mounts lazily from
+    # <template id="about-template"> — activate the tab first.
+    page.click("#tab-about")
+    page.wait_for_selector("#hero-version", timeout=5000)
     text = (page.locator("#hero-version").text_content() or "").strip()
     import re as _re
     assert _re.match(r"^v1\.(1[3-9]|[2-9]\d)", text) or _re.match(r"^v[2-9]\.", text), (

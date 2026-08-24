@@ -123,10 +123,22 @@ interface SiteDossier {
       state_incentive_tier: number;
       state_regulatory_climate: 'supportive' | 'neutral' | 'cautionary' | 'restrictive';
       construction_workforce_est: string;
+      // 2026-08 additions (industry sweep T3/T4): the community-context signals that
+      // now decide hearings — local moratorium/pause activity, utility DC rate class
+      // (e.g. TVA's Oct-2026 data-center tariff), and the "already-disturbed land, no
+      // farmland taken" positioning line for brownfield reuse.
+      local_moratorium_context: string | null;
+      utility_dc_tariff_context: string | null;
     };
   };
 }
 ```
+
+**Precedent-pace attribute (2026-08):** NEPA review *duration* is now a competitive variable — the
+administration committed to a 7-month full federal review for the OpenAI–Nvidia Ohio gas project
+(Heatmap, Aug 2026). `NepaPrecedentRecord` should carry `review_months: int | null` so the
+precedent engine can answer "how fast have comparable actions actually cleared," not just "what was
+decided."
 
 ---
 

@@ -1033,6 +1033,62 @@ main {
 .nuclear-cat-feasible { color: var(--nuclear-feasible); }
 .nuclear-cat-restart  { color: var(--nuclear-restart); }
 
+/* Coal conversion / repowering overlay — ⬢ gold/amber hexagon with dark mode support */
+.legend-coal {
+  color: #b45309;
+  font-size: 13px;
+  line-height: 1;
+  display: inline-block;
+  width: 12px;
+  text-align: center;
+}
+[data-theme="dark"] .legend-coal { color: #fbbf24; }
+/* Glyph is DIRECTLY in the icon div (no inner span — the ⚛/⬣ marker-DOM
+   pattern, CLAUDE.md), so the class itself carries the type styles. */
+.coal-repowering-icon {
+  background: none !important;
+  border: none !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  color: #b45309;
+  text-shadow: 0 0 3px rgba(0,0,0,0.6);
+  cursor: pointer;
+  line-height: 1;
+}
+[data-theme="dark"] .coal-repowering-icon {
+  color: #fbbf24;
+  text-shadow: 0 0 4px rgba(0,0,0,0.9);
+}
+
+/* Federal Clean Energy & Mine Lands (CEML) overlay — 🏛 classic column glyph */
+.legend-federal {
+  color: #4338ca;
+  font-size: 13px;
+  line-height: 1;
+  display: inline-block;
+  width: 12px;
+  text-align: center;
+}
+[data-theme="dark"] .legend-federal { color: #818cf8; }
+.federal-site-icon {
+  background: none !important;
+  border: none !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  color: #4338ca;
+  text-shadow: 0 0 3px rgba(0,0,0,0.6);
+  cursor: pointer;
+  line-height: 1;
+}
+[data-theme="dark"] .federal-site-icon {
+  color: #818cf8;
+  text-shadow: 0 0 4px rgba(0,0,0,0.9);
+}
+
 /* Reference campus popup */
 .ref-campus-popup {
   font-size: 12.5px;
@@ -3058,4 +3114,228 @@ main {
 
 @media (min-width: 641px) and (max-width: 960px) {
   .janus-source-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* ==========================================================================
+   Coal-to-Clean Repowering View (Spec 04)
+   ========================================================================== */
+.coal-view { overflow: auto; }
+.coal-wrap { max-width: 1240px; margin: 0 auto; padding: 28px 24px 64px; }
+.coal-lead h2 { margin: 0 0 6px; font-family: var(--font-serif); font-size: 24px; color: var(--text); }
+.coal-lead p { margin: 0 0 16px; color: var(--text-soft); max-width: 86ch; line-height: 1.55; font-size: 13px; }
+
+.coal-kpis {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px; margin-bottom: 20px;
+}
+.coal-kpi {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column;
+}
+.coal-kpi-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); font-weight: 600; }
+.coal-kpi-val { font-size: 22px; font-weight: 700; color: #b45309; margin: 4px 0 2px; font-variant-numeric: tabular-nums; }
+[data-theme="dark"] .coal-kpi-val { color: #fbbf24; }
+.coal-kpi-sub { font-size: 11px; color: var(--text-soft); }
+
+.coal-filters-bar {
+  display: flex; flex-wrap: wrap; gap: 14px; align-items: center;
+  margin-bottom: 16px; padding: 12px 16px; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 8px;
+}
+.coal-filter-group { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--text); }
+.coal-select {
+  padding: 5px 8px; border-radius: 6px; border: 1px solid var(--border);
+  background: var(--surface-2); color: var(--text); font: inherit; font-size: 12px;
+}
+
+.coal-table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); }
+.coal-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.coal-table thead th {
+  position: sticky; top: 0; z-index: 1;
+  background: var(--surface-2); color: var(--muted);
+  text-align: left; font-weight: 600; font-size: 11px;
+  text-transform: uppercase; letter-spacing: 0.03em;
+  padding: 10px 12px; white-space: nowrap; border-bottom: 1px solid var(--border);
+}
+.coal-table th.num, .coal-table td.num { text-align: right; }
+.coal-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.coal-row:hover { background: var(--surface-2); }
+.coal-op { display: block; font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+.coal-status-pill {
+  display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase;
+}
+/* Pill classes mirror the schema status vocabulary exactly —
+   operating | planned_retirement | retired | converted_gas.
+   Green reuses --readiness-ready (the repo's readiness token), no ad-hoc
+   --success token. */
+.coal-status-pill.operating { background: color-mix(in srgb, var(--readiness-ready) 15%, transparent); color: var(--readiness-ready); }
+.coal-status-pill.planned_retirement { background: color-mix(in srgb, #b45309 15%, transparent); color: #b45309; }
+[data-theme="dark"] .coal-status-pill.planned_retirement { background: color-mix(in srgb, #fbbf24 15%, transparent); color: #fbbf24; }
+.coal-status-pill.converted_gas { background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); }
+.coal-status-pill.retired   { background: color-mix(in srgb, var(--muted) 15%, transparent); color: var(--muted); }
+
+.coal-infra-badges { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.coal-badge {
+  display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 500;
+}
+.coal-badge.water { background: rgba(37, 99, 235, 0.12); color: #2563eb; }
+[data-theme="dark"] .coal-badge.water { color: #60a5fa; }
+.coal-badge.rail  { background: rgba(147, 51, 234, 0.12); color: #9333ea; }
+[data-theme="dark"] .coal-badge.rail { color: #c084fc; }
+.coal-badge.queue { background: color-mix(in srgb, var(--readiness-ready) 12%, transparent); color: var(--readiness-ready); font-weight: 600; }
+.coal-badge.muted { background: var(--surface-2); color: var(--muted); }
+
+.coal-tag {
+  display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600;
+}
+.coal-tag.nuclear { color: var(--nuclear-ready, #0f766e); }
+[data-theme="dark"] .coal-tag.nuclear { color: var(--nuclear-ready, #5eead4); }
+.coal-tag.dc      { color: var(--accent); }
+.coal-tag.dual    { color: #b45309; }
+[data-theme="dark"] .coal-tag.dual { color: #fbbf24; }
+.coal-iso { display: block; font-size: 10.5px; color: var(--muted); margin-top: 2px; }
+
+.coal-action-btns { display: flex; gap: 6px; align-items: center; }
+.coal-btn {
+  padding: 4px 8px; border-radius: 5px; font-size: 11px; font-weight: 600;
+  border: 1px solid var(--border); background: var(--surface-2); color: var(--text);
+  cursor: pointer; transition: background 0.12s, border-color 0.12s;
+}
+.coal-btn:hover { border-color: var(--accent); color: var(--accent); }
+.coal-btn.inspect-btn { background: var(--accent); color: #fff; border-color: var(--accent); }
+.coal-btn.inspect-btn:hover { opacity: 0.9; }
+
+/* Interactive clickable chips & popups */
+.coal-clickable-chip {
+  cursor: pointer; transition: transform 0.1s ease, border-color 0.15s;
+  background: var(--surface-2); border: 1px solid #b45309; color: #b45309 !important;
+  border-radius: 5px; padding: 2px 7px; font-size: 11px; font-weight: 600;
+}
+[data-theme="dark"] .coal-clickable-chip { border-color: #fbbf24; color: #fbbf24 !important; }
+.coal-clickable-chip:hover { transform: translateY(-1px); box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+.coal-popup-btn {
+  display: block; width: 100%; margin-top: 8px; padding: 5px 8px; border-radius: 5px;
+  background: #b45309; color: #fff; font-size: 11px; font-weight: 600; text-align: center;
+  border: none; cursor: pointer;
+}
+.coal-popup-btn:hover { background: #92400e; }
+
+/* Coal Drawer Detail */
+.coal-drawer {
+  margin-top: 24px; padding: 20px; border: 1px solid var(--border);
+  border-radius: 10px; background: var(--surface);
+}
+.coal-drawer-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.coal-drawer-head h3 { margin: 0; font-family: var(--font-serif); font-size: 18px; color: var(--text); }
+.coal-profile-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px; margin-bottom: 20px;
+}
+.coal-profile-card {
+  padding: 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-2);
+}
+.coal-profile-card h4 { margin: 0 0 10px; font-size: 13px; color: var(--text); border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+.coal-dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 12px; margin: 0; }
+.coal-dl dt { color: var(--muted); font-weight: 500; }
+.coal-dl dd { margin: 0; color: var(--text); text-align: right; }
+.valuation-card { border-color: #b45309; }
+[data-theme="dark"] .valuation-card { border-color: #fbbf24; }
+.coal-val-big { font-size: 24px; font-weight: 800; color: #b45309; margin: 4px 0; }
+[data-theme="dark"] .coal-val-big { color: #fbbf24; }
+.coal-val-desc { font-size: 11.5px; color: var(--text-soft); line-height: 1.4; margin: 4px 0 10px; }
+.coal-jump-map-btn {
+  padding: 6px 12px; border-radius: 6px; background: #b45309; color: #fff;
+  border: none; font-size: 12px; font-weight: 600; cursor: pointer;
+}
+.coal-jump-map-btn:hover { background: #92400e; }
+
+.coal-nearby-section { margin-top: 20px; border-top: 1px solid var(--border); padding-top: 16px; }
+.coal-nearby-section h4 { margin: 0 0 12px; font-size: 14px; color: var(--text); }
+.coal-nearby-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 10px; }
+.coal-nearby-item {
+  padding: 10px 12px; border: 1px solid var(--border); border-radius: 6px;
+  background: var(--surface); cursor: pointer; transition: border-color 0.12s, transform 0.1s;
+}
+.coal-nearby-item:hover { border-color: var(--accent); transform: translateY(-1px); }
+.coal-nearby-head { display: flex; justify-content: space-between; align-items: baseline; font-size: 12.5px; }
+.coal-nearby-dist { font-size: 11.5px; font-weight: 600; color: #b45309; font-variant-numeric: tabular-nums; }
+[data-theme="dark"] .coal-nearby-dist { color: #fbbf24; }
+.coal-nearby-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+.coal-fast-badge { display: inline-block; color: var(--readiness-ready); font-weight: 600; margin-left: 4px; }
+/* [hidden] belt-and-suspenders (see CLAUDE.md "the [hidden] trap") — the
+   drawer relies on the hidden attribute and must never be resurrected by a
+   future display rule. */
+.coal-drawer[hidden] { display: none; }
+/* Nearby items are real <button>s (keyboard/AT access) — reset the UA
+   button chrome so they render as the same cards the divs were. */
+button.coal-nearby-item {
+  appearance: none; border: 1px solid var(--border); background: var(--surface);
+  font: inherit; color: inherit; text-align: left; width: 100%; cursor: pointer;
+}
+button.coal-nearby-item:hover { border-color: var(--accent); }
+button.coal-nearby-item:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.coal-plant-note { margin: 14px 0 4px; font-size: 12.5px; color: var(--text); border-left: 3px solid var(--accent); padding-left: 10px; }
+.coal-plant-cite { margin: 4px 0 0; font-size: 11.5px; }
+.coal-plant-cite a { color: var(--accent); }
+
+/* ==========================================================================
+   Architecture & Data Flow Diagrams (About Tab)
+   ========================================================================== */
+.about-arch-full { margin-top: 24px; padding-top: 20px; border-top: 2px solid var(--border); }
+.about-arch-full h3 { font-family: var(--font-serif); font-size: 22px; margin: 0 0 8px; color: var(--text); }
+.about-arch-intro { font-size: 13.5px; color: var(--text-soft); line-height: 1.6; max-width: 88ch; margin-bottom: 24px; }
+
+.arch-flow-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 20px;
+}
+.flow-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 20px; display: flex; flex-direction: column;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.master-card {
+  grid-column: 1 / -1; border-color: var(--accent); background: color-mix(in srgb, var(--accent) 3%, var(--surface));
+}
+.flow-card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.flow-card-badge {
+  display: inline-block; padding: 2px 8px; border-radius: 999px;
+  background: var(--accent); color: #fff; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+}
+.flow-card h4 { margin: 0; font-size: 16px; font-weight: 700; color: var(--text); }
+.flow-desc { font-size: 12.5px; color: var(--text-soft); line-height: 1.5; margin: 0 0 12px; }
+
+.flow-diagram-visual {
+  display: flex; flex-direction: column; gap: 8px; margin: 12px 0 16px;
+}
+.flow-step-box {
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 14px; position: relative;
+}
+.flow-step-box strong { display: block; font-size: 13px; color: var(--text); margin-bottom: 2px; }
+.flow-step-box .step-num {
+  position: absolute; right: 12px; top: 10px; width: 20px; height: 20px; border-radius: 50%;
+  background: var(--accent); color: #fff; font-size: 11px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.flow-step-box .step-desc { font-size: 11.5px; color: var(--muted); }
+.flow-arrow-down { text-align: center; color: var(--accent); font-weight: 700; font-size: 16px; line-height: 1; }
+
+.pipeline-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.ptag {
+  display: inline-block; padding: 2px 7px; border-radius: 4px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  font-size: 11px; font-weight: 600; color: var(--text);
+}
+
+.flow-points { margin: 0; padding-left: 18px; font-size: 12px; color: var(--text-soft); line-height: 1.55; }
+.flow-points li { margin-bottom: 6px; }
+.flow-points strong { color: var(--text); }
+
+@media (max-width: 640px) {
+  .coal-wrap { padding: 14px 12px 32px; }
+  .coal-kpis { grid-template-columns: 1fr 1fr; }
+  .coal-filters-bar { flex-direction: column; align-items: stretch; }
+  .arch-flow-grid { grid-template-columns: 1fr; }
 }
