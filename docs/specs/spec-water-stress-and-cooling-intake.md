@@ -127,3 +127,21 @@ $$\text{Score}_{\text{cooling}} = \begin{cases}
   - Test known high-water eastern river sites (e.g. TVA Tennessee River, Columbia River) resolve to `low` or `low_medium` with high 7Q10 flow.
 - **E2E Playwright Tests (`tests/e2e/test_water_ui.py`)**:
   - Verify detail panel displays water stress meter and citations without layout shift.
+---
+
+## NEPA-MCP expansion (2026-08-24)
+
+- `fema_nfhl.get_water_areas` and the Map Composer NHD layers (lakes,
+  reservoirs, perennial streams, stream areas — all in every Hanford
+  package) give the curated catalogs their surface-water CONTEXT today;
+  the quantitative half (7Q10, annual-mean cfs) stays on the proven USGS
+  RDB endpoints — scriptable with curl, no MCP needed
+  (reference-usgs-streamflow-rdb memory).
+- The two river-adjacent Hanford parcels (Energy Northwest corridor,
+  100 Area) are the first customers for this spec's intake framework: the
+  Cascade Xe-100 expansion case is water-gated, and the dossier currently
+  says so only qualitatively.
+- `usace.analyze_usace_jurisdiction` is already in every screen — it
+  carries the district for the Section 404 conversation, and its
+  limitation string ("not wetland presence or a jurisdictional
+  determination") is the model for every water claim this spec makes.

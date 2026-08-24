@@ -196,3 +196,20 @@ Open follow-ups, in priority order:
    catalog don't tell divergent stories.
 4. **[low] BTM-siting view** — surface gas-lateral + water + acreage as a "build-your-own-power
    here" sub-score (T1 of the sweep).
+---
+
+## NEPA-MCP expansion (2026-08-24) — permitting screens SHIPPED
+
+The catalog's missing dimension — permitting context — shipped as
+`scripts/build_coal_nepa.py` → `docs/data/coal-nepa.json` (18/18 plants,
+seven sources each) rendered as the drawer's "Permitting screen" chip row.
+Details + roadmap live in **Spec 12** (air-quality/NAAQS gate next,
+`eis_boundaries` precedent line, per-plant state siting-regime column).
+Two rules established there that bind this catalog:
+
+- Screening counts are context for a human, **never a score input** — a
+  riverine coal plant near mapped flood zones is expected (it was sited on
+  its intake), not penalized.
+- The screen keys on `plant_name` (the catalog's existing join key) and its
+  loader is drawer-lazy WITHOUT `recordRefreshDate` — a file whose loader
+  may never run must not drive the displayed refresh date.

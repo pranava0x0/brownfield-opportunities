@@ -3,6 +3,27 @@
 **Status:** approved and implemented through the safe boundaries below.
 **Researched:** 2026-08-21, against `nepa-mcp` **0.1.1** (the current release; `0.1.0` is the only prior one).
 
+### Implementation checkpoint — 2026-08-24
+
+- **Shared engine extracted.** All generic machinery (throttle, IPv4 pin,
+  bounded timeouts, disk cache, explicit-unavailable records, normalizers,
+  source-matrix loop, Map Composer packages) now lives in
+  `scripts/nepa_screening.py`; the Janus builder is a thin consumer and its
+  contract tests are unchanged. Spec: [docs/specs/spec-nepa-screening-engine.md](docs/specs/spec-nepa-screening-engine.md).
+- **Full live tool census recorded** — 19 servers / 46 tools / 32 map
+  layers enumerated from the pinned install, with impl-function names,
+  buffer-arg quirks, and captured response shapes:
+  [research/nepa-mcp-capability-census-2026-08.md](research/nepa-mcp-capability-census-2026-08.md).
+- **Hanford E2E dossier shipped** (ninth tab): 9 parcels × ten sources
+  (the Janus six + NOAA critical habitat, salmon EFH, NFHL flood, GBIF) +
+  14-layer map packages incl. `eis_boundaries`, permitting/licensing
+  pathway table, corpus joins, cited opportunity fits. Spec:
+  [docs/specs/spec-hanford-doe-parcel-explorer.md](docs/specs/spec-hanford-doe-parcel-explorer.md).
+- **Coal permitting screens shipped**: 18/18 catalog plants × seven
+  sources → the Coal drawer's "Permitting screen" chips. Spec:
+  [docs/specs/spec-permitting-context-layers.md](docs/specs/spec-permitting-context-layers.md).
+- Census + AQS remain credential-gated and visibly unavailable.
+
 ### Implementation checkpoint — 2026-08-21
 
 - **Tier A done.** Exact-version isolated install at

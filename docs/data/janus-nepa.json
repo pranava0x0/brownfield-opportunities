@@ -43,7 +43,7 @@
     },
     "map_composer": {
       "label": "PNNL NEPA MCP Map Composer",
-      "url": "https://pnnl.github.io/nepa-mcp/map-composer/",
+      "url": "https://pnnl.github.io/nepa-mcp/",
       "covers": "provenance-rich federal GIS features clipped to the screening buffer"
     }
   },

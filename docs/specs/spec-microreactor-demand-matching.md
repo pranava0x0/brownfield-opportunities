@@ -101,3 +101,21 @@ interface MicroreactorVendorFit {
   - Test off-grid filter matching against Haines Pol Dump and remote Alaska FUDS.
 - **E2E Playwright Tests (`tests/e2e/test_microreactor_ui.py`)**:
   - Verify detail panel displays compatible vendor list with accurate electrical and thermal ratings.
+---
+
+## NEPA-MCP expansion (2026-08-24)
+
+- The Janus screen now runs on the shared engine (Spec 10) — the
+  installation matrix's machinery is no longer bespoke, and the
+  fitBounds-to-ROI fix (app.js `_screeningFitBounds`) repaired this tab's
+  map packages too (union-fit was zooming to half the country wherever
+  USACE district polygons entered a package).
+- Natural next screen: the **non-Janus commitments** (Eielson, the DOE
+  pilot criticalities, Equinix/SRC sites) via the R1 generic CLI — the
+  demand-matching join this spec proposes should surface permitting
+  context beside anchor-load context, and the western tail's siting
+  reality lives in map layers we haven't consumed yet
+  (`blm_land_use_plans`, `usfs_roadless_areas`, `wild_horse_hma`).
+- Alaska rows inherit the applyInsetRemap lesson AND the screening caveat:
+  several federal layers thin out off-CONUS — unavailable/empty there is
+  coverage, not clearance.
