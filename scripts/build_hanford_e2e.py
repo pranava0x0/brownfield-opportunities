@@ -1003,10 +1003,10 @@ def validate_parcels() -> None:
         log.warning("schema.py unavailable on this interpreter (%s); CI validator still enforces it", exc)
         return
     for parcel in PARCELS:
-        schema_mod.HanfordParcel.model_validate(
-            {k: v for k, v in parcel.items() if k != "opportunities"}
-            | {"opportunities": parcel.get("opportunities", [])}
-        )
+        # Validate the row exactly as curated — no defaulting: a parcel
+        # missing `opportunities` must fail Pydantic's required-field check
+        # here, before any network spend (PR #22 review finding 3).
+        schema_mod.HanfordParcel.model_validate(parcel)
 
 
 def build_screening(parcels: "list[dict[str, Any]]", use_cache: bool) -> dict:
@@ -1036,6 +1036,7 @@ def write_output(
     geojson_by_id: dict,
     corpus_by_id: "dict[str, dict[str, Any]]",
     all_records: "list[dict[str, Any]]",
+    merge_existing: bool = False,
 ) -> None:
     GEOJSON_DIR.mkdir(parents=True, exist_ok=True)
     out_parcels = []
@@ -1043,7 +1044,18 @@ def write_output(
         row = dict(parcel)
         row["screening"] = tabular.get(parcel["id"], {})
         geojson = geojson_by_id.get(parcel["id"])
-        if geojson and geojson.get("features") is not None:
+        # A package that failed wholesale (main() records an empty
+        # FeatureCollection with metadata.status="unavailable") must NOT
+        # publish a geojson_url — "Show 0 features" + a success toast would
+        # turn an upstream failure into an apparent no-hit (Codex PR #22 P2).
+        # A legitimately empty package still carries per-layer statuses and
+        # no unavailable marker, so it stays publishable.
+        meta = (geojson or {}).get("metadata") or {}
+        if (
+            geojson
+            and geojson.get("features") is not None
+            and meta.get("status") != "unavailable"
+        ):
             path = GEOJSON_DIR / f"{parcel['id']}.geojson"
             path.write_text(json.dumps(geojson, separators=(",", ":")))
             row["geojson_url"] = f"data/hanford-nepa/{parcel['id']}.geojson"
@@ -1059,6 +1071,35 @@ def write_output(
         )
         row["nearby_tracked"] = nearby_tracked_records(parcel, all_records)
         out_parcels.append(row)
+
+    if merge_existing:
+        # A --parcel refresh must never truncate the published dossier to
+        # the selected rows (Codex PR #22 P1 — the same empty/partial-write
+        # class as the Janus --site path, which this mirrors): merge the
+        # rebuilt rows over the existing inventory, keeping curated order.
+        if not OUTPUT_PATH.exists():
+            raise RuntimeError("--parcel requires an existing complete hanford-e2e.json")
+        existing = json.loads(OUTPUT_PATH.read_text())
+        existing_by_id = {p["id"]: p for p in existing.get("parcels", [])}
+        for row in out_parcels:
+            prev = existing_by_id.get(row["id"])
+            if not prev:
+                continue
+            # Carry forward evidence this run did not (re)produce — a
+            # curated-text refresh via --skip-screening / --no-geojson must
+            # never blank a parcel's screen or map package, and a FAILED
+            # fresh package must not delete a good prior one (the flood-seed
+            # pattern: prior evidence survives until replaced; PR #22 review
+            # finding 2).
+            if not row.get("screening"):
+                row["screening"] = prev.get("screening") or {}
+            if row.get("geojson_url") is None and prev.get("geojson_url") is not None:
+                row["geojson_url"] = prev["geojson_url"]
+                row["map_summary"] = prev.get("map_summary")
+        by_id = dict(existing_by_id)
+        by_id.update({p["id"]: p for p in out_parcels})
+        order = {p["id"]: i for i, p in enumerate(PARCELS)}
+        out_parcels = sorted(by_id.values(), key=lambda row: order.get(row["id"], len(order)))
 
     payload = {
         "generated_at": screening.utc_now(),
@@ -1106,7 +1147,10 @@ def main() -> int:
     corpus_by_id, all_records = load_corpus_index()
 
     if args.skip_screening:
-        write_output(parcels, {}, {}, corpus_by_id, all_records)
+        write_output(
+            parcels, {}, {}, corpus_by_id, all_records,
+            merge_existing=bool(args.parcel),
+        )
         return 0
 
     screening.prefer_ipv4()
@@ -1124,7 +1168,10 @@ def main() -> int:
                     "features": [],
                     "metadata": {"status": "unavailable", "error": str(exc)},
                 }
-    write_output(parcels, tabular, geojson_by_id, corpus_by_id, all_records)
+    write_output(
+        parcels, tabular, geojson_by_id, corpus_by_id, all_records,
+        merge_existing=bool(args.parcel),
+    )
     return 0
 
 

@@ -178,7 +178,7 @@ def _source_defs() -> "tuple[screening.SourceDef, ...]":
     )
 
 
-def write_output(plants: "list[dict]", tabular: dict) -> None:
+def write_output(plants: "list[dict]", tabular: dict, merge_existing: bool = False) -> None:
     out = []
     for plant in plants:
         out.append(
@@ -192,6 +192,16 @@ def write_output(plants: "list[dict]", tabular: dict) -> None:
                 "screening": tabular.get(plant["id"], {}),
             }
         )
+    if merge_existing:
+        # A --plant refresh must never truncate coal-nepa.json to the
+        # selected rows (Codex PR #22 P2 — same class as the Hanford
+        # --parcel fix): merge rebuilt screens over the existing inventory.
+        if not OUTPUT_PATH.exists():
+            raise RuntimeError("--plant requires an existing complete coal-nepa.json")
+        existing = json.loads(OUTPUT_PATH.read_text())
+        by_name = {p["plant_name"]: p for p in existing.get("plants", [])}
+        by_name.update({p["plant_name"]: p for p in out})
+        out = sorted(by_name.values(), key=lambda row: row["plant_name"])
     payload = {
         "generated_at": screening.utc_now(),
         "nepa_mcp_version": screening.NEPA_MCP_VERSION,
@@ -227,7 +237,7 @@ def main() -> int:
     tabular = screening.run_source_matrix(
         plants, _source_defs(), cache_path_fn=cache_path, use_cache=not args.no_cache
     )
-    write_output(plants, tabular)
+    write_output(plants, tabular, merge_existing=bool(args.plant))
     return 0
 
 

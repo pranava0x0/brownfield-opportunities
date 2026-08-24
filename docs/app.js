@@ -625,7 +625,6 @@ let hanfordLoadFailed = false;        // drives the Hanford tab error state
 let hanfordData = null;               // the E2E dossier payload (9 parcels)
 let hanfordParcelLayer = null;        // ▣ markers for the named land units
 let hanfordNepaLayer = null;          // selected parcel's lazy GeoJSON overlay
-const hanfordMarkersById = new Map(); // parcel id -> Leaflet marker
 let coalConversionsLoadingPromise = null;
 let coalConversionsSettled = false;     // a load completed (even if empty)
 let coalConversionsLoadFailed = false;  // last attempt errored — retryable
@@ -5485,6 +5484,9 @@ function showJanusMap(siteId) {
     .then((r) => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
     .then((payload) => {
       if (janusNepaLayer) map.removeLayer(janusNepaLayer);
+      // One screening overlay at a time — clear a lingering Hanford package
+      // too (the Hanford flow clears this one; keep the symmetry).
+      if (hanfordNepaLayer) { map.removeLayer(hanfordNepaLayer); hanfordNepaLayer = null; }
       const displayPayload = _remapJanusGeoJson(payload, site.state);
       janusNepaLayer = L.geoJSON(displayPayload, {
         style: (feature) => ({
@@ -5567,7 +5569,6 @@ function ensureHanfordLoaded() {
             popupAnchor: [0, -10],
           });
           const marker = L.marker([p.lat, p.lon], { icon, zIndexOffset: 420 });
-          hanfordMarkersById.set(p.id, marker);
           const kindLabel = HANFORD_KIND_LABEL[p.kind] || p.kind;
           marker.bindPopup(
             `<div class="ref-campus-popup">` +
