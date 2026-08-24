@@ -121,3 +121,22 @@ Where weights $w_i$ reflect mitigating difficulty:
   - Add check `orsage-screening-completeness` verifying 100% coverage across the 46,759 corpus.
 - **E2E Playwright Tests (`tests/e2e/test_orsage_ui.py`)**:
   - Verify detail panel checklist renders all 10 criteria with exact units and clickable source links.
+---
+
+## NEPA-MCP expansion (2026-08-24)
+
+Division of labor clarified by the live capability census
+(research/nepa-mcp-capability-census-2026-08.md):
+
+- **Corpus-wide OR-SAGE stays a bulk-connector problem.** Per-ROI screens
+  at 46,759 sites ≈ days of wall clock per layer — Tier C, unchanged.
+- **Curated-catalog OR-SAGE checks are already answerable today** through
+  the Spec 10 engine for three parameters: protected lands (PAD-US +
+  wildlife refuges + NPS + BLM map layers), wetlands/open-water CONTEXT
+  (USACE regions + NHD layers + IPaC wetland types — context only, never
+  delineation), and 100-yr floodplain (`fema_nfhl.get_flood_zones`, now in
+  the coal + Hanford screens). Population density joins them when
+  `CENSUS_API_KEY` lands.
+- When the bulk connectors ship, the per-site screens become the SAMPLED
+  GROUND TRUTH for `validate_against_sources.py` — the S4 pattern: two
+  independent paths to the same answer.

@@ -30,7 +30,7 @@ run python3 -m pytest tests/ -q --ignore=tests/e2e -p no:cacheprovider
 step "2/4 offline data validation (schema, joins, provenance, coherence)"
 run python3 scripts/validate_data.py --fail-on FAIL
 
-step "3/4 curated-citation liveness (coal + federal overlays)"
+step "3/4 curated-citation liveness (coal + federal + hanford overlays)"
 # Exit codes: 0 = all resolve · 1 = at least one DEFINITIVE dead URL (gates)
 # · 2 = network unreachable (warns, does not gate — but verify before ship).
 python3 - <<'EOF'
@@ -46,6 +46,7 @@ last_hit: dict[str, float] = {}
 for fname, key, field in [
     ("coal-conversions.json", "assets", "source_url"),
     ("federal-clean-energy.json", "sites", "solicitation_url"),
+    ("hanford-e2e.json", "parcels", "source_url"),
 ]:
     payload = json.loads((Path("docs/data") / fname).read_text())
     for rec in payload.get(key, []):

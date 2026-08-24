@@ -163,3 +163,25 @@ decided."
   - Verify clicking "View Dossier" for Superfund, ACRES, FUDS, and BRAC records populates all 6 inventory blocks without JavaScript errors.
   - Verify lazy DOM allocation (modal destroyed/unmounted on close).
   - Verify print CSS stylesheet loads and formats headers cleanly.
+---
+
+## NEPA-MCP expansion (2026-08-24)
+
+The Hanford tab (Spec 11) is now the shipped prototype of exactly this
+dossier: curated ground truth + ten-source screen + pathway table + corpus
+joins + nearby tracked records, for nine land units of one site. What it
+proves for THIS spec:
+
+- **The dossier's environmental-baseline inventory is one engine call.**
+  `scripts/nepa_screening.py` (Spec 10) turns "assemble the screen for site
+  X" into a cached, rate-limited, failure-isolated batch — the per-site
+  Tier-A flow no longer needs an analyst driving MCP tools by hand.
+- **The precedent half has a GIS complement.** Map Composer's
+  `eis_boundaries` layer (EPA-registered EIS project boundaries, in every
+  Hanford package) answers "what NEPA reviews happened NEAR here"
+  geometrically, before NEPATEC answers "what did analogous reviews SAY."
+  The dossier should render both: boundary hits → NEPATEC text pulls.
+- **Fit vocabulary to reuse:** the Hanford opportunity model
+  (`anchored/strong/conditional/precluded` + cited rationale) is the
+  editorial layer this spec's §6 decision package needs — and `precluded`
+  is the load-bearing value; a dossier that only says yes is an ad.

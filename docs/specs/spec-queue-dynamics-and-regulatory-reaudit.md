@@ -84,3 +84,22 @@ class CfrAuditEntry(BaseModel):
   - Test eCFR version diffing against historical known rule changes.
 - **E2E Playwright Tests (`tests/e2e/test_queue_chips.py`)**:
   - Verify queue context chips render accurately based on site state and ISO/RTO jurisdiction.
+---
+
+## NEPA-MCP expansion (2026-08-24)
+
+- The `cfr` server's seven tools are confirmed live and credential-free
+  (`cfr_resolve_citation`, `cfr_resolve_executive_order`,
+  `cfr_resolve_fr_citation`, `cfr_history`, `cfr_rulemaking`,
+  `cfr_compare_versions`, `cfr_browse_structure`) — the federal half of the
+  automated re-audit has a working backend today.
+- Concrete first target set for `cfr_history`/`cfr_rulemaking` sweeps, each
+  with a `verified_at` already in the repo: EO 14299 + EO 14318 (via
+  `cfr_resolve_executive_order`), 10 CFR 50/52/53 rulemaking (NRC Part 53
+  finalization watch), 10 CFR 1021 (DOE NEPA procedures — the Hanford
+  pathway table cites it), 40 CFR 1500-1508 (CEQ), and the IRA 48E/45X
+  guidance trail. Empty window → bump `verified_at` with evidence;
+  non-empty → human reads the diff.
+- The split stays honest: state statutes and utility tariffs are NOT in the
+  CFR — `STATE_DC_REGULATION`/`STATE_DC_INCENTIVES` keep their manual
+  evidence stream; this automates only the federal instruments.

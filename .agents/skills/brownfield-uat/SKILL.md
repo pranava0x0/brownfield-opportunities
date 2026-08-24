@@ -563,3 +563,24 @@ section at the bottom of `CLAUDE.md` is the authoritative per-feature reference.
 a new note bullet when: a new selector or ID is established, a new invariant is discovered
 (e.g. "the IntersectionObserver fires 8× headless"), or a workaround is needed for a
 source-side quirk. Keep bullets under ~8 lines — longer specs go in `docs/`.
+
+### Hanford E2E tab + NEPA screening surfaces (added 2026-08-24)
+
+- **Ninth tab `#tab-hanford`** → `#view-hanford` mounts lazily from
+  `<template id="hanford-template">` on first activation. Baseline flow:
+  click the tab, expect 9 `details.hanford-parcel` cards, 5 `.hanford-mgr`
+  cards, 8 permitting-pathway rows, and 10 screening rows per opened card.
+  E2e hook: `window.__hanford` (the payload), `window.__leafletMap` (the
+  Leaflet instance — `window.map` is shadowed by the div id).
+- **"Show N features on map"** inside a parcel card must switch to the Map
+  tab AND zoom in (assert `window.__leafletMap.getZoom() >= 8`) — the
+  screening overlay fits the ROI feature, not the union of context
+  polygons. A national-zoom result after the click is the regression.
+- **Coal drawer "Permitting screen"**: `window.__inspectCoalPlant('Cheswick
+  Generating Station')` → expect 6 `.coal-nepa-chip` (0 unavailable) and
+  the "not a determination" note. The section loads lazily on first drawer
+  open; a "Loading NEPA screening evidence…" flash then a re-render is
+  correct behavior, an infinite re-render loop is not.
+- **Honesty-rail spot checks**: the Hanford limitations strip renders,
+  `precluded` fit badges exist (Monument + Central Plateau), and NFHL
+  zero-zones renders as "unmapped ≠ flood-free" copy, never "no flood risk".

@@ -69,3 +69,21 @@ class FederalCleanEnergySite(BaseModel):
   - Validates `docs/data/federal-clean-energy.json` against `FederalCleanEnergySite`.
 - **E2E Playwright Tests (`tests/e2e/test_federal_sites.py`)**:
   - Verifies all 10+ federal flagship sites render with accurate acreage and functional solicitation URLs.
+---
+
+## NEPA-MCP expansion (2026-08-24) — Hanford deep-dive SHIPPED, portfolio pattern set
+
+- **Spec 11 shipped the first site-level deep dive** of this portfolio: the
+  Hanford tab (9 parcels, ten-source screen, pathway table, opportunity
+  fits). The overlay row answers "what is this program?"; the dossier
+  answers "what would reuse HERE actually face?".
+- **Row corrections from the 2026-08-24 verification pass** (applied to the
+  builder): Hanford's Cereza project sold from Hecate Energy to **Savion**
+  (Feb 2026) at up-to-2-GW scale; DOE issued categorical exclusion
+  **CX-034321** (Aug 2025) for the license agreement + Phase I ESA — the
+  first NEPA action is complete, not pending.
+- Portfolio roadmap (H3): repeat the dossier for INL, Oak Ridge/ETTP,
+  Paducah, and SRS — the four Jul-2025 AI-DC flagships already in this
+  overlay — after a second site proves what actually repeats. The
+  `nepa_review_document_url` field this spec defined becomes load-bearing
+  there (CX/EA/EIS tracker, Spec 11 H2).

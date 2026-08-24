@@ -130,3 +130,20 @@ $$\text{Score}_{\text{mfg\_labor}} = \text{clamp}\left( 15 \times \frac{\log_{10
   - Test boundary behavior: 0 workers yields 0.0 score without division-by-zero.
 - **E2E Browser Tests (`tests/e2e/test_workforce_ui.py`)**:
   - Verify detail panel displays accurate census statistics for sampled sites (e.g. Redstone Arsenal vs Fort Wainwright).
+---
+
+## NEPA-MCP expansion (2026-08-24)
+
+- nepa-mcp's `census` server (`get_census_data`) is confirmed live in the
+  0.1.1 install but **gated on `CENSUS_API_KEY`, which remains absent** —
+  the rule stands: no key → no artifact, never an empty/zero-workforce
+  claim. The key is free; acquiring it unblocks the validation path.
+- Sequence stays: validate ACS shape via nepa-mcp on the 14 curated nuclear
+  installations (does measured construction employment separate Redstone
+  from Wainwright the way the analyst rating does?), THEN build
+  `connectors/census_workforce.py` as a normal bulk connector against the
+  Census API directly. An MCP server is how you discover the answer's
+  shape, never a batch ETL layer.
+- The Hanford dossier hand-carries its workforce signal today (PNNL campus
+  parcel, "the workforce signal the AP1000 lens weights 15/100") — the
+  first consumer for a measured county value once the connector exists.
