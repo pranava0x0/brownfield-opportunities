@@ -93,3 +93,14 @@ class SubstationValidationReport(BaseModel):
   - Test record deduplication, acreage normalization, and coordinate precision.
 - **E2E Playwright Tests (`tests/e2e/test_repowering_layer.py`)**:
   - Verify detail panel displays EPA RE-Powering renewable metrics when present.
+---
+
+## NEPA-MCP expansion (2026-08-24)
+
+- **Verdict unchanged, now with receipts:** nepa-mcp offers nothing for the
+  190k-site bulk ingest (its tools are per-ROI; the capability census
+  confirms no bulk endpoint), so this spec stays a normal-connector build.
+- Once the universe lands, its top decile becomes a Spec 10 R2/R3 customer:
+  screen the newly-surfaced high-scorers before promoting any into curated
+  overlays — the screening ritual is exactly the QA step a 100× coverage
+  expansion needs so junk coordinates don't become ranked candidates.
