@@ -7,17 +7,33 @@ Rankings are evaluated on three dimensions: **Impact** (value to developers / ag
 
 ## 🎯 Executive Ranked Roadmap (2026-08-23 Review)
 
-| Rank | Initiative / Epic | Priority | Impact | Size | Completeness | Detailed Spec |
-|:---:|---|:---:|:---:|:---:|:---:|---|
-| **1** | **Single-Site Comprehensive Reuse Dossier & Precedent Engine** | **High** | 5/5 | 3/5 (M) | 4/5 (High) | [docs/specs/spec-reuse-dossier-and-nepa-precedent.md](docs/specs/spec-reuse-dossier-and-nepa-precedent.md) |
-| **2** | **Quantitative Workforce & Socioeconomic Layer (ACS + LEHD)** | **High** | 5/5 | 3/5 (M) | 5/5 (High) | [docs/specs/spec-workforce-socioeconomic-intelligence.md](docs/specs/spec-workforce-socioeconomic-intelligence.md) |
-| **3** | **ORNL OR-SAGE National Siting Criteria Layer (10 Parameters)** | **High** | 5/5 | 4/5 (L) | 4/5 (High) | [docs/specs/spec-orsage-siting-criteria.md](docs/specs/spec-orsage-siting-criteria.md) |
-| **4** | **Coal-to-Nuclear & Coal-to-Data-Center Conversion Engine** | **High** | 5/5 | 3/5 (M) | 4/5 (High) | [docs/specs/spec-coal-reindustrialization-engine.md](docs/specs/spec-coal-reindustrialization-engine.md) |
-| **5** | **Water Stress & 7Q10 Low-Flow Hydrology (WRI + USGS)** | **High** | 5/5 | 3/5 (M) | 4/5 (High) | [docs/specs/spec-water-stress-and-cooling-intake.md](docs/specs/spec-water-stress-and-cooling-intake.md) |
-| **6** | **EPA RE-Powering 190k Universe & Substation Validation** | **High** | 4/5 | 3/5 (M) | 4/5 (High) | [docs/specs/spec-repowering-universe-and-substation-validation.md](docs/specs/spec-repowering-universe-and-substation-validation.md) |
-| **7** | **Microreactor Demand Ladder & Vendor Compatibility Match** | **High** | 4/5 | 2/5 (S) | 5/5 (High) | [docs/specs/spec-microreactor-demand-matching.md](docs/specs/spec-microreactor-demand-matching.md) |
-| **8** | **DOE "Cleanup to Clean Energy" & Mine Land (CEML) Overlay** | **Med** | 4/5 | 2/5 (S) | 5/5 (High) | [docs/specs/spec-cleanup-to-clean-energy-and-mine-lands.md](docs/specs/spec-cleanup-to-clean-energy-and-mine-lands.md) |
-| **9** | **ISO Queue Dynamics & Automated eCFR Regulatory Tracker** | **Med** | 4/5 | 3/5 (M) | 4/5 (High) | [docs/specs/spec-queue-dynamics-and-regulatory-reaudit.md](docs/specs/spec-queue-dynamics-and-regulatory-reaudit.md) |
+| Rank | Initiative / Epic | Priority | Impact | Size | Completeness | Detailed Spec | Status |
+|:---:|---|:---:|:---:|:---:|:---:|---|:---:|
+| **1** | **Single-Site Comprehensive Reuse Dossier & Precedent Engine** | **High** | 5/5 | 3/5 (M) | 4/5 (High) | [docs/specs/spec-reuse-dossier-and-nepa-precedent.md](docs/specs/spec-reuse-dossier-and-nepa-precedent.md) | Ready |
+| **2** | **Quantitative Workforce & Socioeconomic Layer (ACS + LEHD)** | **High** | 5/5 | 3/5 (M) | 5/5 (High) | [docs/specs/spec-workforce-socioeconomic-intelligence.md](docs/specs/spec-workforce-socioeconomic-intelligence.md) | Code Ready |
+| **3** | **ORNL OR-SAGE National Siting Criteria Layer (10 Parameters)** | **High** | 5/5 | 4/5 (L) | 4/5 (High) | [docs/specs/spec-orsage-siting-criteria.md](docs/specs/spec-orsage-siting-criteria.md) | Ready |
+| **4** | **Coal-to-Nuclear & Coal-to-Data-Center Conversion Engine** | **High** | 5/5 | 3/5 (M) | 4/5 (High) | [docs/specs/spec-coal-reindustrialization-engine.md](docs/specs/spec-coal-reindustrialization-engine.md) | **Done (2026-08-23)** |
+| **5** | **Water Stress & 7Q10 Low-Flow Hydrology (WRI + USGS)** | **High** | 5/5 | 3/5 (M) | 4/5 (High) | [docs/specs/spec-water-stress-and-cooling-intake.md](docs/specs/spec-water-stress-and-cooling-intake.md) | Ready |
+| **6** | **EPA RE-Powering 190k Universe & Substation Validation** | **High** | 4/5 | 3/5 (M) | 4/5 (High) | [docs/specs/spec-repowering-universe-and-substation-validation.md](docs/specs/spec-repowering-universe-and-substation-validation.md) | Ready |
+| **7** | **Microreactor Demand Ladder & Vendor Compatibility Match** | **High** | 4/5 | 2/5 (S) | 5/5 (High) | [docs/specs/spec-microreactor-demand-matching.md](docs/specs/spec-microreactor-demand-matching.md) | Ready |
+| **8** | **DOE "Cleanup to Clean Energy" & Mine Land (CEML) Overlay** | **Med** | 4/5 | 2/5 (S) | 5/5 (High) | [docs/specs/spec-cleanup-to-clean-energy-and-mine-lands.md](docs/specs/spec-cleanup-to-clean-energy-and-mine-lands.md) | **Done (2026-08-23)** |
+| **9** | **ISO Queue Dynamics & Automated eCFR Regulatory Tracker** | **Med** | 4/5 | 3/5 (M) | 4/5 (High) | [docs/specs/spec-queue-dynamics-and-regulatory-reaudit.md](docs/specs/spec-queue-dynamics-and-regulatory-reaudit.md) | Ready |
+
+**2026-08-23 revision pass:** all nine specs were re-grounded against the
+[Aug-2026 industry sweep](research/industry-topical-2026-08.md) (X bookmarks via Chrome +
+UtilityDive / DOE / FERC / ERCOT / TVA primary sources + Volts / Open Circuit / Energy Gang).
+Substantive corrections landed in specs 04 / 08 / 09 (queue-mechanism names, FERC §206 timeline,
+Paducah = Brookfield/NextEra, Lewis Ridge = Rye 266 MW pumped storage, Colstrip life-extension,
+provenance contracts with per-row `source_url` + `verified_at`, quarterly re-audit cadence); the
+implemented Spec 04/08 datasets were corrected in the same branch and are now guarded by
+`scripts/validate_data.py` checks `overlay-pydantic-schema` / `curated-provenance` /
+`coal-catalog-coherence` and the pre-PR gate `scripts/pr_gate.sh`.
+
+Coal-engine follow-ups live in spec 04 §7 (derive the ~550-plant universe from the cached EIA-860M
+workbook is the [high] one; score integration and the BTM-siting sub-score follow). One structural
+item from the domain review: **[med] split `available_acreage` semantics in federal-clean-energy**
+(`total_site_acreage` vs `offered_acreage` — INL offers ~44k of 570k ac; today the payload `source`
+string carries the caveat).
 
 ---
 

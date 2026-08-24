@@ -68,6 +68,12 @@ class SubstationValidationReport(BaseModel):
 
 ## 4. Implementation Steps
 
+0. **Liveness probe first (2026-08 sweep note).** EPA program pages have been reorganized under the
+   current administration (see the HIFLD 2025 migration and `acres6` login-gating precedents in
+   CLAUDE.md). Before building the connector, verify the RE-Powering screening dataset is still
+   published at its documented location and record the probe in `data-source-research.md` — if the
+   XLSX/geodatabase has moved behind a login, this spec's Completeness drops from 4/5 and the spec
+   should be re-ranked rather than half-built.
 1. **Connector Development (`connectors/repowering_universe.py`)**:
    - Parses the bulk EPA RE-Powering dataset into a compressed parquet / TopoJSON spatial index.
    - Performs a spatial join (tolerance $\le 0.1\text{ mi}$) against our 46,759 corpus to attach `epa_substation_distance_mi` and `solar_utility_mw`.

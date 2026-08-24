@@ -21,7 +21,7 @@ Following the ORNL/DOE methodology, these parameters are modeled as **informativ
 
 | # | Parameter | Official OR-SAGE Metric / Threshold | Source Dataset | Implementation in Platform |
 |---|---|---|---|---|
-| 1 | **Population Density** | $> 500 \text{ people/sq mi}$ within a 4-mile radius | US Census Bureau TIGER/Census Tracts | `pop_density_4mi` via offline spatial grid |
+| 1 | **Population Density** | $> 500 \text{ people/sq mi}$ within a 4-mile radius | US Census Bureau TIGER/Census Tracts | `pop_density_4mi` via offline spatial grid. Doubles as a **community-backlash proxy** — moratorium activity spans 38 states (Volts, Jul 2026) and correlates with population near the fence line |
 | 2 | **Slope / Terrain** | Grade $> 18\%$ (exclusion); $> 7\%$ (civil works cost penalty) | USGS 3DEP 1/3-arc-second DEM | `terrain_slope_pct` via multi-point elevation sampling |
 | 3 | **Seismic Ground Motion** | Peak Ground Acceleration (PGA) $> 0.30\text{g}$ / $> 0.50\text{g}$ | USGS ASCE 7-22 Seismic API | `usgs_pgam`, `usgs_exceeds_sse` |
 | 4 | **Fault Line Standoff** | Standoff distance $< 5 \text{ miles}$ from active Quaternary faults | USGS Quaternary Faults Database | `quaternary_fault_mi` via `SegmentIndex` |

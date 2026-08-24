@@ -32,6 +32,9 @@ const NUCLEAR_BROWNFIELD_PROX_URL = "data/nuclear-brownfield-proximity.json";
 const MICRO_FLEET_URL = "data/microreactor-fleet.json";
 const JANUS_NEPA_URL = "data/janus-nepa.json";
 const FEMA_NRI_URL = "data/fema-nri.json";
+const COAL_CONVERSIONS_URL = "data/coal-conversions.json";
+const COAL_PROX_URL = "data/coal-conversions-proximity.json";
+const FEDERAL_CLEAN_ENERGY_URL = "data/federal-clean-energy.json";
 // Vector basemap: US states (always) + US counties (lazy at zoom ≥ COUNTY_MIN_ZOOM).
 // No tiles — Canada/Mexico literally don't exist on the map. Choropleth-style
 // look (think CNN election tracker / datacenterbans.com) with bold state borders
@@ -531,7 +534,7 @@ const TAX_STATUS_NOTE = {
 
 // ----- State -----
 let sites = [];
-let map, markerLayer, referenceCampusLayer, retiredIndustrialLayer, plannedRetirementLayer, nuclearSiteLayer;
+let map, markerLayer, referenceCampusLayer, retiredIndustrialLayer, plannedRetirementLayer, nuclearSiteLayer, coalConversionLayer, federalCleanEnergyLayer;
 const markersById = new Map(); // id -> Leaflet marker
 const tableRowsById = new Map(); // id -> tr
 const sitesById = new Map();
@@ -615,6 +618,13 @@ let janusNepaLoadingPromise = null;
 let janusNepaLoadFailed = false;
 let janusNepa = null;                 // PNNL nepa-mcp screen for 9 Army sites
 let janusNepaLayer = null;            // selected site's lazy GeoJSON overlay
+let coalConversionsLoadingPromise = null;
+let coalConversionsSettled = false;     // a load completed (even if empty)
+let coalConversionsLoadFailed = false;  // last attempt errored — retryable
+let coalProxLoadingPromise = null;
+let federalCleanEnergyLoadingPromise = null;
+let coalConversionAssets = [];
+const coalMarkersByName = new Map();
 let iraEcLoadingPromise = null;
 let femaNriLoadingPromise = null;
 
@@ -979,6 +989,9 @@ fetch(PRIMARY_DATA_URL)
     lazyLoads.push(ensureReferenceCampusesLoaded());
     lazyLoads.push(ensureRetiredIndustrialLoaded());
     lazyLoads.push(ensurePlannedRetirementsLoaded());
+    lazyLoads.push(ensureCoalConversionsLoaded());
+    lazyLoads.push(ensureCoalConversionsProxLoaded());
+    lazyLoads.push(ensureFederalCleanEnergyLoaded());
     lazyLoads.push(ensureNuclearSitesLoaded());
     // Eager like every other map overlay — the 24 ⬣ commitment markers and
     // their legend row belong on the map from first paint, not hidden behind
@@ -1065,6 +1078,9 @@ function ensureAcresLoaded() {
       // the 36k ACRES markers light up. We resolve `acresLoadingPromise`
       // (and dispatch `brownfield:ready`) only after the last batch lands.
       return hydrateMarkersChunked(payload.sites || []).then(() => {
+        // Re-apply enrichment joins that may have landed while this program
+        // was skipped by a `?program=` URL (see applyCoalProxJoin).
+        applyCoalProxJoin();
         applyFilter();
         markAppReady();
       });
@@ -1096,6 +1112,7 @@ function ensureFudsLoaded() {
       rerenderLegend();
       updateKpiDeck();
       return hydrateMarkersChunked(payload.sites || []).then(() => {
+        applyCoalProxJoin(); // late-program re-apply (see its comment)
         applyFilter();
       });
     })
@@ -1123,6 +1140,7 @@ function ensureBracLoaded() {
       rerenderLegend();
       updateKpiDeck();
       addMarkersForRecords(payload.sites || []);
+      applyCoalProxJoin(); // late-program re-apply (see its comment)
       applyFilter();
     })
     .catch((err) => {
@@ -1918,6 +1936,194 @@ function ensurePlannedRetirementsLoaded() {
   return plannedRetirementsLoadingPromise;
 }
 
+// Coal-to-Clean (Nuclear / Data Center) Conversion overlay (Spec 04)
+function ensureCoalConversionsLoaded() {
+  if (coalConversionsLoadingPromise) return coalConversionsLoadingPromise;
+  coalConversionsLoadingPromise = fetch(COAL_CONVERSIONS_URL, { priority: "low" })
+    .then((r) => {
+      if (r.status === 404) return { assets: [] };
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then((payload) => {
+      recordRefreshDate(payload.generated_at, COAL_CONVERSIONS_URL);
+      coalConversionAssets = payload.assets || [];
+      coalConversionsSettled = true;      // even a genuine empty is settled
+      coalConversionsLoadFailed = false;  // — not retryable, unlike a failure
+      window.__coalAssets = coalConversionAssets; // e2e hook, like __sites
+      if (!coalConversionLayer) return;
+      for (const s of coalConversionAssets) {
+        if (s.latitude == null || s.longitude == null) continue;
+        // Glyph directly in the icon div (no inner span) — halves marker DOM
+        // cost; the 5,000-node first-paint budget has ~60 nodes of headroom.
+        const icon = L.divIcon({
+          className: "coal-repowering-icon",
+          html: "⬢",
+          iconSize: [18, 18],
+          iconAnchor: [9, 9],
+          popupAnchor: [0, -10],
+        });
+        const marker = L.marker([s.latitude, s.longitude], { icon, zIndexOffset: 410 });
+        coalMarkersByName.set(s.plant_name, marker);
+        const place = [s.county, s.state].filter(Boolean).join(" County, ");
+        const strandedM = (s.est_stranded_asset_value_usd / 1_000_000).toFixed(1);
+        const statusLabel = COAL_STATUS_LABELS[s.status] || s.status;
+        marker.bindPopup(
+          `<div class="ref-campus-popup">` +
+          `<strong>${escapeHtml(s.plant_name)}</strong>` +
+          `<div class="ref-campus-company">${escapeHtml(Math.round(s.nameplate_coal_mw).toLocaleString())} MW Coal (${escapeHtml(statusLabel)}) · ${escapeHtml(s.switchyard_kv)} kV Switchyard</div>` +
+          (place ? `<div class="ref-campus-prev">${escapeHtml(place)} · ${escapeHtml(s.iso_rto)}</div>` : "") +
+          `<div class="ref-campus-meta">` +
+            `<span>Modeled value: ~$${strandedM}M</span>` +
+            (s.has_water_intake ? `<span>Water intake</span>` : "") +
+            (s.has_rail ? `<span>Rail loop</span>` : "") +
+            (s.queue_transfer_eligible ? `<span style="color:var(--readiness-ready)">⚡ POI reusable</span>` : "") +
+          `</div>` +
+          `<div class="ref-campus-prev" style="margin-top:6px">Coal-to-Clean repowering candidate. Reusing stranded electrical, rail, and water assets cuts nuclear construction CapEx 15–35% (DOE/INL coal-to-nuclear studies); data-center campuses inherit the same switchyard, water, and rail assets. Value figure is a modeled screening estimate, not an appraisal.</div>` +
+          `<button type="button" class="coal-popup-btn">Explore in Coal Tab &rarr;</button>` +
+          `</div>`,
+          { maxWidth: 290 }
+        );
+        // Bind the popup button on open with the closured name — inline
+        // onclick + hand-rolled quote escaping is how names with apostrophes
+        // become injection/SyntaxError bugs (code review 2026-08-23 #1).
+        marker.on("popupopen", (ev) => {
+          const btn = ev.popup.getElement()?.querySelector(".coal-popup-btn");
+          if (btn) btn.addEventListener("click", () => window.__openCoalTabForPlant(s.plant_name), { once: true });
+        });
+        coalConversionLayer.addLayer(marker);
+      }
+      rerenderLegend();
+    })
+    .catch((err) => {
+      console.error("Coal conversions overlay load failed:", err);
+      coalConversionsLoadFailed = true;
+      coalConversionsLoadingPromise = null; // nulled so the next call retries
+      if (typeof buildCoalView === "function") buildCoalView();
+    });
+  return coalConversionsLoadingPromise;
+}
+
+// Federal Clean Energy & Mine Lands (CEML) overlay (Spec 08)
+function ensureFederalCleanEnergyLoaded() {
+  if (federalCleanEnergyLoadingPromise) return federalCleanEnergyLoadingPromise;
+  federalCleanEnergyLoadingPromise = fetch(FEDERAL_CLEAN_ENERGY_URL, { priority: "low" })
+    .then((r) => {
+      if (r.status === 404) return { sites: [] };
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then((payload) => {
+      recordRefreshDate(payload.generated_at, FEDERAL_CLEAN_ENERGY_URL);
+      if (!federalCleanEnergyLayer) return;
+      for (const s of payload.sites || []) {
+        if (s.latitude == null || s.longitude == null) continue;
+        const icon = L.divIcon({
+          className: "federal-site-icon",
+          html: "🏛",
+          iconSize: [20, 20],
+          iconAnchor: [10, 10],
+          popupAnchor: [0, -10],
+        });
+        const marker = L.marker([s.latitude, s.longitude], { icon, zIndexOffset: 420 });
+        const place = [s.county, s.state].filter(Boolean).join(" County, ");
+        // Render enum slugs as prose ("RFQ_Awarded" → "RFQ Awarded",
+        // "datacenter_ai" → "datacenter ai") — no raw underscores to users.
+        const deslug = (v) => String(v || "").replace(/_/g, " ");
+        const techList = (s.target_technologies || []).map(deslug).join(", ");
+        // Offered/developable acreage is the actionable number when the
+        // program has named one; the reservation total is context, not land
+        // on the table (INL offers ~44k of 570k ac — never conflate).
+        const acresLabel = s.offered_acreage != null
+          ? `${Math.round(s.offered_acreage).toLocaleString()} ac offered of ${Math.round(s.available_acreage).toLocaleString()}-ac site`
+          : `${Math.round(s.available_acreage).toLocaleString()} Acres`;
+        marker.bindPopup(
+          `<div class="ref-campus-popup">` +
+          `<strong>${escapeHtml(s.site_name)}</strong>` +
+          `<div class="ref-campus-company">${escapeHtml(s.managing_office)} · ${escapeHtml(acresLabel)} (${escapeHtml(deslug(s.program_stage))})</div>` +
+          (place ? `<div class="ref-campus-prev">${escapeHtml(place)}</div>` : "") +
+          (s.commercial_partner ? `<div class="ref-campus-meta"><span>Partner: ${escapeHtml(s.commercial_partner)}</span></div>` : "") +
+          `<div class="ref-campus-meta"><span>Target: ${escapeHtml(techList)}</span></div>` +
+          (s.solicitation_url ? `<div style="margin-top:6px"><a href="${escapeHtml(s.solicitation_url)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent);font-weight:600">View Federal Solicitation &rarr;</a></div>` : "") +
+          `</div>`,
+          { maxWidth: 300 }
+        );
+        federalCleanEnergyLayer.addLayer(marker);
+      }
+      rerenderLegend();
+    })
+    .catch((err) => {
+      console.error("Federal clean energy overlay load failed:", err);
+      federalCleanEnergyLoadingPromise = null;
+    });
+  return federalCleanEnergyLoadingPromise;
+}
+
+// Coal conversions proximity join (Spec 04)
+//
+// The payload is CACHED and the apply is IDEMPOTENT: when the page boots
+// with a restricted `?program=` URL the ACRES/FUDS/BRAC promises are null,
+// so the initial apply only reaches eager Superfund records — the three
+// program loaders call applyCoalProxJoin() again as their records land
+// (Codex review 2026-08-23 round 3), and the skip-if-present guard makes
+// every re-apply a cheap no-op for already-joined ids.
+let coalProxMatches = null;      // settled payload (even if empty)
+let coalProxLoadFailed = false;  // last attempt errored — retryable
+function applyCoalProxJoin({ refresh = false } = {}) {
+  if (!coalProxMatches) return;
+  let applied = 0;
+  for (const rec of coalProxMatches) {
+    const existing = sitesById.get(rec.id);
+    if (!existing || existing.coal_conversion_plant_name != null) continue;
+    existing.coal_conversion_plant_name = rec.coal_conversion_plant_name;
+    if (rec.coal_conversion_plant_mi != null) existing.coal_conversion_plant_mi = rec.coal_conversion_plant_mi;
+    if (rec.coal_conversion_mw != null) existing.coal_conversion_mw = rec.coal_conversion_mw;
+    if (rec.coal_conversion_switchyard_kv != null) existing.coal_conversion_switchyard_kv = rec.coal_conversion_switchyard_kv;
+    if (rec.coal_conversion_rail != null) existing.coal_conversion_rail = rec.coal_conversion_rail;
+    if (rec.coal_conversion_water != null) existing.coal_conversion_water = rec.coal_conversion_water;
+    if (rec.coal_conversion_stranded_val_usd != null) existing.coal_conversion_stranded_val_usd = rec.coal_conversion_stranded_val_usd;
+    if (rec.coal_conversion_queue_fasttrack != null) existing.coal_conversion_queue_fasttrack = rec.coal_conversion_queue_fasttrack;
+    applied++;
+  }
+  if (refresh && applied) {
+    applyFilter();
+    if (selectedId && sitesById.has(selectedId)) {
+      // Fail loud: a broken re-render here would otherwise leave a stale
+      // open detail panel with no diagnosable signal (Codex round 6).
+      try {
+        selectSite(selectedId);
+      } catch (err) {
+        console.error("selectSite re-render after coal join failed:", err);
+      }
+    }
+  }
+}
+
+function ensureCoalConversionsProxLoaded() {
+  if (coalProxLoadingPromise) return coalProxLoadingPromise;
+  coalProxLoadingPromise = fetch(COAL_PROX_URL, { priority: "low" })
+    .then((r) => {
+      if (r.status === 404) return { matches: [] };
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then(async (payload) => {
+      recordRefreshDate(payload.generated_at, COAL_PROX_URL);
+      coalProxMatches = payload.matches || [];
+      coalProxLoadFailed = false;
+      await Promise.allSettled(
+        [acresLoadingPromise, fudsLoadingPromise, bracLoadingPromise].filter(Boolean)
+      );
+      applyCoalProxJoin({ refresh: true });
+    })
+    .catch((err) => {
+      console.error("Coal conversions proximity load failed:", err);
+      coalProxLoadFailed = true;
+      coalProxLoadingPromise = null; // nulled so the next call retries
+    });
+  return coalProxLoadingPromise;
+}
+
 // ----- Civilian nuclear pipeline overlay -----
 //
 // docs/data/nuclear-civilian-sites.json — existing and planned CIVILIAN
@@ -2138,6 +2344,8 @@ function initMap() {
   // Civilian nuclear pipeline (⚛) — existing/planned reactor sites.
   nuclearSiteLayer = L.layerGroup().addTo(map);
   microCommitmentLayer = L.layerGroup().addTo(map);
+  coalConversionLayer = L.layerGroup().addTo(map);
+  federalCleanEnergyLayer = L.layerGroup().addTo(map);
 
   fitUsBoundsSafely();
 
@@ -2449,8 +2657,24 @@ function addLegend() {
         `<span class="legend-num">${microCommitmentLayer.getLayers().length}</span>` +
         `</div>`
       : "";
+    // Coal-to-Clean repowering assets (EIA/DOE)
+    const coalRow = (coalConversionLayer && coalConversionLayer.getLayers().length > 0)
+      ? `<div class="legend-row legend-row-ref">` +
+        `<span class="legend-coal">⬢</span>` +
+        `<span class="legend-label">Coal repowering asset</span>` +
+        `<span class="legend-num">${coalConversionLayer.getLayers().length}</span>` +
+        `</div>`
+      : "";
+    // Federal Clean Energy & Mine Lands (CEML) reservations
+    const fedRow = (federalCleanEnergyLayer && federalCleanEnergyLayer.getLayers().length > 0)
+      ? `<div class="legend-row legend-row-ref">` +
+        `<span class="legend-federal">🏛</span>` +
+        `<span class="legend-label">Federal clean energy</span>` +
+        `<span class="legend-num">${federalCleanEnergyLayer.getLayers().length}</span>` +
+        `</div>`
+      : "";
     div.innerHTML =
-      `<div class="legend-title"><span>Program</span></div>${rows}${refRow}${retRow}${plannedRow}${nukeRow}${microRow}` +
+      `<div class="legend-title"><span>Program</span></div>${rows}${refRow}${retRow}${plannedRow}${coalRow}${fedRow}${nukeRow}${microRow}` +
       `<div class="legend-foot">Marker size ∝ acreage (log)</div>`;
     L.DomEvent.disableClickPropagation(div);
     return div;
@@ -3460,6 +3684,7 @@ function wireTabs() {
   const tableTab = el("tab-table");
   const candidatesTab = el("tab-candidates");
   const retiredTab = el("tab-retired");
+  const coalTab = el("tab-coal");
   const ap1000Tab = el("tab-ap1000");
   const microTab = el("tab-micro");
   const aboutTab = el("tab-about");
@@ -3468,12 +3693,14 @@ function wireTabs() {
     const onTable = which === "table";
     const onCandidates = which === "candidates";
     const onRetired = which === "retired";
+    const onCoal = which === "coal";
     const onAp1000 = which === "ap1000";
     const onMicro = which === "micro";
     const onAbout = which === "about";
     for (const [tab, active] of [
       [mapTab, onMap], [tableTab, onTable],
       [candidatesTab, onCandidates], [retiredTab, onRetired],
+      [coalTab, onCoal],
       [ap1000Tab, onAp1000], [microTab, onMicro], [aboutTab, onAbout],
     ]) {
       if (!tab) continue;
@@ -3484,6 +3711,7 @@ function wireTabs() {
     const tableView = el("view-table");
     const candidatesView = el("view-candidates");
     const retiredView = el("view-retired");
+    const coalView = el("view-coal");
     const ap1000View = el("view-ap1000");
     const microView = el("view-micro");
     const aboutView = el("view-about");
@@ -3491,14 +3719,17 @@ function wireTabs() {
     if (tableView)      { tableView.classList.toggle("active", onTable);           tableView.hidden = !onTable; }
     if (candidatesView) { candidatesView.classList.toggle("active", onCandidates); candidatesView.hidden = !onCandidates; }
     if (retiredView)    { retiredView.classList.toggle("active", onRetired);       retiredView.hidden = !onRetired; }
+    if (coalView)       { coalView.classList.toggle("active", onCoal);             coalView.hidden = !onCoal; }
     if (ap1000View)     { ap1000View.classList.toggle("active", onAp1000);         ap1000View.hidden = !onAp1000; }
     if (microView)      { microView.classList.toggle("active", onMicro);           microView.hidden = !onMicro; }
     if (aboutView)      { aboutView.classList.toggle("active", onAbout);           aboutView.hidden = !onAbout; }
     const globalExportCsv = el("export-csv");
-    if (globalExportCsv) globalExportCsv.hidden = onAp1000 || onMicro;
+    if (globalExportCsv) globalExportCsv.hidden = onAp1000 || onMicro || onCoal;
     if (onMap) setTimeout(() => map.invalidateSize(), 50);
     if (onCandidates) buildCandidatesView();
-    if (onRetired) { ensureRetiredIndustrialLoaded(); buildRetiredView(); }
+    if (onRetired) { mountRetiredView(); ensureRetiredIndustrialLoaded(); buildRetiredView(); }
+    if (onCoal) { mountCoalView(); ensureCoalConversionsLoaded().then(() => buildCoalView()); }
+    if (onAbout) mountAboutView();
     if (onAp1000) {
       ensureAp1000Loaded(); buildAp1000View();
       ensureNuclearSitesLoaded(); buildNuclearCivilianView();
@@ -3517,16 +3748,18 @@ function wireTabs() {
     const newHash = which === "map" ? "" : "#" + which;
     history.replaceState(null, "", location.pathname + location.search + newHash);
   };
+  window.__setView = setView;
   mapTab.addEventListener("click", () => setView("map"));
   tableTab.addEventListener("click", () => setView("table"));
   if (candidatesTab) candidatesTab.addEventListener("click", () => setView("candidates"));
   if (retiredTab) retiredTab.addEventListener("click", () => setView("retired"));
+  if (coalTab) coalTab.addEventListener("click", () => setView("coal"));
   if (ap1000Tab) ap1000Tab.addEventListener("click", () => setView("ap1000"));
   if (microTab) microTab.addEventListener("click", () => setView("micro"));
   if (aboutTab) aboutTab.addEventListener("click", () => setView("about"));
 
   // Honor hash on initial load (e.g. shared URL with #ap1000).
-  const VALID_TABS = new Set(["map", "table", "candidates", "retired", "ap1000", "micro", "about"]);
+  const VALID_TABS = new Set(["map", "table", "candidates", "retired", "coal", "ap1000", "micro", "about"]);
   const initialHash = location.hash.replace(/^#/, "").toLowerCase();
   if (VALID_TABS.has(initialHash)) setView(initialHash);
 
@@ -3597,6 +3830,464 @@ function buildRetiredView() {
     + `</div>`
     + `<p class="retired-foot muted">Source: <a href="https://www.epa.gov/ghgreporting" target="_blank" rel="noopener">EPA Greenhouse Gas Reporting Program</a> facilities that ceased reporting (closed, idled, or below threshold), queried by <code>reporting_status</code> via the <a href="https://www.epa.gov/enviro/envirofacts-data-service-api" target="_blank" rel="noopener">Envirofacts data service</a>; every ◆ marker's popup deep-links to that facility's <a href="https://enviro.epa.gov/envirofacts/ghg/search" target="_blank" rel="noopener">EPA Envirofacts GHG record</a>. This is a screening signal for reusable grid infrastructure — verify ownership, interconnection, and closure before treating any site as available. <strong>Nearby records:</strong> ${retiredIndustrialSites.filter((s) => s.tracked_site_id).length.toLocaleString()} sites have a Superfund, ACRES, FUDS, or BRAC point within 1 mi. Those links are proximity context only, not parcel matches or availability evidence. Use the rust ◆ markers on the Map to locate them.</p>`;
 }
+
+// ----- About: lazy view mount -----
+// The whole About view (~190 static DOM nodes incl. the System Architecture
+// flow-card grid) lives in <template id="about-template"> and mounts on
+// first About activation. Template content is not part of the rendered
+// document, so first paint stays under the 5,000-node budget
+// (see test_dom_size_under_5k_nodes). Anything that writes into About
+// content (e.g. #about-refresh-date) must run AFTER this in setView.
+let aboutMounted = false;
+function mountAboutView() {
+  if (aboutMounted) return;
+  const tpl = el("about-template");
+  const view = el("view-about");
+  if (!tpl || !view || !tpl.content) return;
+  aboutMounted = true;
+  view.appendChild(tpl.content.cloneNode(true));
+}
+
+// Same lazy-mount mechanism for the Coal Repowering and Retired Sites view
+// skeletons — their interiors live in <template> until first activation, so
+// hidden tabs cost ~2 nodes each at first paint. Mount BEFORE any code that
+// queries elements inside the view (buildCoalView / buildRetiredView run
+// after their mount call in setView).
+let coalViewMounted = false;
+function mountCoalView() {
+  if (coalViewMounted) return;
+  const tpl = el("coal-template");
+  const view = el("view-coal");
+  if (!tpl || !view || !tpl.content) return;
+  coalViewMounted = true;
+  view.appendChild(tpl.content.cloneNode(true));
+}
+
+let retiredViewMounted = false;
+function mountRetiredView() {
+  if (retiredViewMounted) return;
+  const tpl = el("retired-template");
+  const view = el("view-retired");
+  if (!tpl || !view || !tpl.content) return;
+  retiredViewMounted = true;
+  view.appendChild(tpl.content.cloneNode(true));
+}
+
+// ----- Coal-to-Clean Repowering View (Spec 04) -----
+let coalFiltersBound = false;
+
+// Status labels for the coal catalog's actual value domain. Keep in sync with
+// schema.py CoalConversionAsset.status — the filter <option>s are generated
+// from the loaded data (drift-safe iteration, the PROGRAM_LEGEND/UAT-007
+// rule), so a new status only needs a label here to render nicely.
+const COAL_STATUS_LABELS = {
+  operating: "Operating",
+  planned_retirement: "Retiring soon",
+  retired: "Retired",
+  converted_gas: "Converted to gas",
+};
+
+// Rebuild a coal filter <select>'s options from the values present in the
+// data, preserving the current selection when still valid.
+function populateCoalFilterOptions(selectId, values, labelFor) {
+  const sel = el(selectId);
+  if (!sel) return;
+  const prev = sel.value;
+  const allLabel = sel.options.length ? sel.options[0].textContent : "All";
+  const allOpt = document.createElement("option");
+  allOpt.value = "all";
+  allOpt.textContent = allLabel;
+  const opts = [allOpt];
+  for (const v of values) {
+    const opt = document.createElement("option");
+    opt.value = v;
+    opt.textContent = labelFor ? (labelFor(v) || v) : v;
+    opts.push(opt);
+  }
+  sel.replaceChildren(...opts);
+  sel.value = opts.some((o) => o.value === prev) ? prev : "all";
+}
+
+function buildCoalView() {
+  const container = el("coal-table-container");
+  if (!container) return;
+  if (!coalConversionAssets || coalConversionAssets.length === 0) {
+    // Three distinct states, never a forever-"Loading…" (Codex review P2,
+    // same contract as the nuclear overlay): failed → retryable error;
+    // settled-but-empty → explicit empty (a successful empty is NOT
+    // retryable); otherwise genuinely still loading.
+    if (coalConversionsLoadFailed) {
+      container.replaceChildren();
+      const p = document.createElement("p");
+      p.className = "muted";
+      p.textContent = "Coal conversion assets failed to load. ";
+      const retry = document.createElement("button");
+      retry.type = "button";
+      retry.className = "coal-btn";
+      retry.textContent = "Retry";
+      retry.addEventListener("click", () => {
+        container.innerHTML = '<p class="muted">Loading coal conversion assets…</p>';
+        ensureCoalConversionsLoaded().then(() => buildCoalView());
+      });
+      p.appendChild(retry);
+      container.appendChild(p);
+    } else if (coalConversionsSettled) {
+      container.innerHTML = '<p class="muted">No coal conversion assets in this build.</p>';
+    } else {
+      container.innerHTML = '<p class="muted">Loading coal conversion assets…</p>';
+    }
+    return;
+  }
+
+  // Filter options come from the dataset's actual value domain — hardcoded
+  // lists are how the v1 "retiring"/"SERC" dead options shipped.
+  const statuses = [...new Set(coalConversionAssets.map((a) => a.status).filter(Boolean))].sort();
+  const isos = [...new Set(coalConversionAssets.map((a) => a.iso_rto).filter(Boolean))].sort();
+  populateCoalFilterOptions("coal-status-filter", statuses, (v) => COAL_STATUS_LABELS[v]);
+  populateCoalFilterOptions("coal-iso-filter", isos, null);
+  const suits = [...new Set(coalConversionAssets.map((a) => a.conversion_suitability).filter(Boolean))].sort();
+  populateCoalFilterOptions("coal-suitability-filter", suits, (v) => ({
+    nuclear_preferred: "Nuclear Preferred",
+    datacenter_preferred: "Data Center Preferred",
+    dual_feasible: "Dual Feasible",
+  })[v]);
+
+  // Update headline KPI counters
+  const totalMw = coalConversionAssets.reduce((sum, a) => sum + (a.nameplate_coal_mw || 0), 0);
+  const totalVal = coalConversionAssets.reduce((sum, a) => sum + (a.est_stranded_asset_value_usd || 0), 0);
+  const totalQueue = coalConversionAssets.filter((a) => a.queue_transfer_eligible).length;
+
+  const countEl = el("coal-kpi-count");
+  const mwEl = el("coal-kpi-mw");
+  const valEl = el("coal-kpi-val");
+  const queueEl = el("coal-kpi-queue");
+  if (countEl) countEl.textContent = coalConversionAssets.length;
+  if (mwEl) mwEl.textContent = `${(totalMw / 1000).toFixed(1)} GW`;
+  if (valEl) valEl.textContent = `$${(totalVal / 1_000_000_000).toFixed(2)}B`;
+  if (queueEl) queueEl.textContent = `${Math.round((totalQueue / coalConversionAssets.length) * 100)}%`;
+
+  if (!coalFiltersBound) {
+    coalFiltersBound = true;
+    const sFilter = el("coal-status-filter");
+    const iFilter = el("coal-iso-filter");
+    const uFilter = el("coal-suitability-filter");
+    if (sFilter) sFilter.addEventListener("change", renderCoalTable);
+    if (iFilter) iFilter.addEventListener("change", renderCoalTable);
+    if (uFilter) uFilter.addEventListener("change", renderCoalTable);
+    const closeBtn = el("coal-drawer-close");
+    if (closeBtn) {
+      closeBtn.addEventListener("click", () => {
+        const drawer = el("coal-site-drawer");
+        if (drawer) drawer.hidden = true;
+      });
+    }
+    const exportBtn = el("coal-export-csv");
+    if (exportBtn) exportBtn.addEventListener("click", downloadCoalCsv);
+    // Delegated row actions — the listener lives on the container so it
+    // survives every innerHTML rebuild, and the plant name travels via the
+    // row's data-plant attribute (dataset decodes entities), never via
+    // string-interpolated inline onclick (code review 2026-08-23 #1).
+    container.addEventListener("click", (e) => {
+      const btn = e.target.closest("button[data-act]");
+      if (!btn || !container.contains(btn)) return;
+      const row = btn.closest(".coal-row");
+      const plant = row && coalConversionAssets.find((a) => a.plant_name === row.dataset.plant);
+      if (!plant) return;
+      if (btn.dataset.act === "map") {
+        window.__focusCoalPlantOnMap(plant.latitude, plant.longitude, plant.plant_name);
+      } else if (btn.dataset.act === "inspect") {
+        window.__inspectCoalPlant(plant.plant_name);
+      }
+    });
+  }
+
+  renderCoalTable();
+}
+
+// The single filter predicate shared by the table renderer and the CSV
+// export, so "Export CSV" can never disagree with the rows on screen.
+function getFilteredCoalAssets() {
+  const statusFilter = (el("coal-status-filter") && el("coal-status-filter").value) || "all";
+  const isoFilter = (el("coal-iso-filter") && el("coal-iso-filter").value) || "all";
+  const suitFilter = (el("coal-suitability-filter") && el("coal-suitability-filter").value) || "all";
+  return coalConversionAssets.filter((a) => {
+    if (statusFilter !== "all" && a.status !== statusFilter) return false;
+    if (isoFilter !== "all" && a.iso_rto !== isoFilter) return false;
+    if (suitFilter !== "all" && a.conversion_suitability !== suitFilter) return false;
+    return true;
+  });
+}
+
+// Coal-tab CSV export (the ap1000-export-csv pattern) — the GLOBAL topbar
+// export always serves the brownfield corpus, so this tab ships its own
+// button for the coal catalog (Codex review 2026-08-23 round 2).
+function buildCoalCsv() {
+  const cols = [
+    ["plant_name", (a) => a.plant_name],
+    ["utility_operator", (a) => a.utility_operator],
+    ["state", (a) => a.state],
+    ["county", (a) => a.county],
+    ["status", (a) => a.status],
+    ["retired_year", (a) => a.retired_year ?? ""],
+    ["planned_retirement_year", (a) => a.planned_retirement_year ?? ""],
+    ["nameplate_coal_mw", (a) => a.nameplate_coal_mw],
+    ["switchyard_kv", (a) => a.switchyard_kv],
+    ["has_rail", (a) => a.has_rail],
+    ["has_water_intake", (a) => a.has_water_intake],
+    ["poi_occupied", (a) => a.poi_occupied ?? false],
+    ["iso_rto", (a) => a.iso_rto],
+    ["queue_transfer_eligible", (a) => a.queue_transfer_eligible],
+    ["modeled_stranded_value_usd", (a) => a.est_stranded_asset_value_usd],
+    ["conversion_suitability", (a) => a.conversion_suitability],
+    ["site_acreage", (a) => a.site_acreage ?? ""],
+    ["note", (a) => a.note ?? ""],
+    ["source_url", (a) => a.source_url],
+    ["verified_at", (a) => a.verified_at],
+  ];
+  const esc = (v) => {
+    const s = String(v ?? "");
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  const rows = [cols.map(([label]) => label)];
+  for (const a of getFilteredCoalAssets()) {
+    rows.push(cols.map(([, get]) => get(a)));
+  }
+  return rows.map((r) => r.map(esc).join(",")).join("\n");
+}
+
+function downloadCoalCsv() {
+  const csv = buildCoalCsv();
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `coal-conversions-${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+window.__buildCoalCsv = buildCoalCsv; // e2e hook, like __buildAp1000Csv
+
+function renderCoalTable() {
+  const container = el("coal-table-container");
+  if (!container) return;
+
+  const filtered = getFilteredCoalAssets();
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<p class="muted" style="padding:20px;">No coal conversion assets match the selected filters.</p>';
+    return;
+  }
+
+  // Sort descending by MW
+  const sorted = [...filtered].sort((a, b) => (b.nameplate_coal_mw || 0) - (a.nameplate_coal_mw || 0));
+
+  let html = `
+    <table class="coal-table">
+      <thead>
+        <tr>
+          <th>Plant &amp; Operator</th>
+          <th>Location</th>
+          <th class="num">Coal Capacity</th>
+          <th class="num">Switchyard</th>
+          <th>Water &amp; Rail Assets</th>
+          <th class="num">Stranded Value</th>
+          <th>Suitability &amp; ISO</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  for (const plant of sorted) {
+    const valM = (plant.est_stranded_asset_value_usd / 1_000_000).toFixed(1);
+    const suitLabel = plant.conversion_suitability === "nuclear_preferred"
+      ? '<span class="coal-tag nuclear">⚛ Nuclear Preferred</span>'
+      : plant.conversion_suitability === "datacenter_preferred"
+      ? '<span class="coal-tag dc">🖥 Data Center</span>'
+      : '<span class="coal-tag dual">⚡ Dual Feasible</span>';
+
+    const statusBadge = `<span class="coal-status-pill ${escapeAttr(plant.status)}">${escapeHtml(COAL_STATUS_LABELS[plant.status] || plant.status)}</span>`;
+
+    html += `
+      <tr class="coal-row" data-plant="${escapeAttr(plant.plant_name)}">
+        <td>
+          <strong>${escapeHtml(plant.plant_name)}</strong>
+          <span class="coal-op">${escapeHtml(plant.utility_operator || "")} ${statusBadge}</span>
+        </td>
+        <td>${escapeHtml(plant.county || "")} Co, ${escapeHtml(plant.state || "")}</td>
+        <td class="num font-num"><strong>${Math.round(plant.nameplate_coal_mw).toLocaleString()} MW</strong></td>
+        <td class="num font-num">${plant.switchyard_kv ? `${plant.switchyard_kv} kV` : "—"}</td>
+        <td>
+          <div class="coal-infra-badges">
+            ${plant.has_water_intake ? `<span class="coal-badge water" title="Water intake on-site${plant.intake_flow_gpm ? ` · ${plant.intake_flow_gpm.toLocaleString()} GPM` : ''}">💧 Water intake</span>` : '<span class="coal-badge muted">No intake</span>'}
+            ${plant.has_rail ? '<span class="coal-badge rail" title="On-site rail siding / loop">🚂 Rail siding</span>' : '<span class="coal-badge muted">No rail</span>'}
+            ${plant.queue_transfer_eligible ? '<span class="coal-badge queue" title="Retired or retiring POI — generator-replacement / surplus-interconnection candidate">⚡ POI reusable</span>' : ''}
+          </div>
+        </td>
+        <td class="num font-num"><strong>~$${valM}M</strong></td>
+        <td>
+          ${suitLabel}
+          <span class="coal-iso">${escapeHtml(plant.iso_rto || "")}</span>
+        </td>
+        <td>
+          <div class="coal-action-btns">
+            <button type="button" class="coal-btn map-btn" data-act="map">Map ↗</button>
+            <button type="button" class="coal-btn inspect-btn" data-act="inspect">Details ↓</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }
+
+  html += `</tbody></table>`;
+  container.innerHTML = html;
+}
+
+window.__openCoalTabForPlant = function(plantName) {
+  if (typeof window.__setView === "function") {
+    window.__setView("coal");
+  }
+  // Chain on the loader, not a fixed timer — if the catalog fetch failed at
+  // boot (loader nulls its promise for retry), setView('coal') retries it and
+  // this resolves once the data is actually there (code review 2026-08-23 #13).
+  ensureCoalConversionsLoaded().then(() => window.__inspectCoalPlant(plantName));
+};
+
+window.__focusCoalPlantOnMap = function(lat, lon, plantName) {
+  if (typeof window.__setView === "function") {
+    window.__setView("map");
+  }
+  setTimeout(() => {
+    if (map) {
+      map.setView([lat, lon], 12);
+      const marker = coalMarkersByName.get(plantName);
+      if (marker) marker.openPopup();
+    }
+  }, 150);
+};
+
+window.__inspectCoalPlant = function(plantName) {
+  const plant = coalConversionAssets.find((a) => a.plant_name === plantName);
+  if (!plant) return;
+
+  const drawer = el("coal-site-drawer");
+  const title = el("coal-drawer-title");
+  const body = el("coal-drawer-body");
+  if (!drawer || !body || !title) return;
+
+  // Find nearby brownfields in sitesById within 10 mi
+  const nearby = [];
+  for (const s of sitesById.values()) {
+    if (s.coal_conversion_plant_name === plant.plant_name) {
+      nearby.push(s);
+    }
+  }
+  // ?? not || — a legitimate 0.0-mi ("Adjacent") distance is falsy and would
+  // sort last under || (code review 2026-08-23 #9).
+  nearby.sort((a, b) => (a.coal_conversion_plant_mi ?? 999) - (b.coal_conversion_plant_mi ?? 999));
+
+  title.textContent = `${plant.plant_name} — Conversion Profile`;
+  const valM = (plant.est_stranded_asset_value_usd / 1_000_000).toFixed(1);
+
+  let nearbyHtml = '';
+  if (nearby.length > 0) {
+    nearbyHtml = `
+      <div class="coal-nearby-section">
+        <h4>Tracked Brownfields &amp; Superfund Sites Nearby (${nearby.length} within 10 mi)</h4>
+        <div class="coal-nearby-list">
+          ${nearby.slice(0, 15).map((s) => `
+            <button type="button" class="coal-nearby-item" data-site-id="${escapeAttr(s.id)}">
+              <div class="coal-nearby-head">
+                <strong>${escapeHtml(s.name)}</strong>
+                <span class="coal-nearby-dist">${fmt.miles(s.coal_conversion_plant_mi)}</span>
+              </div>
+              <div class="coal-nearby-sub">
+                ${escapeHtml(s.program.toUpperCase())} · ${s.acreage ? `${Math.round(s.acreage)} ac · ` : ''}${escapeHtml(s.city || s.county || '')}, ${escapeHtml(s.state)}
+                ${s.coal_conversion_queue_fasttrack ? '<span class="coal-fast-badge">⚡ POI-reuse zone (≤1.5 mi of retired/retiring switchyard)</span>' : ''}
+              </div>
+            </button>
+          `).join('')}
+          ${nearby.length > 15 ? `<p class="muted" style="margin-top:8px;">+ ${nearby.length - 15} more sites nearby</p>` : ''}
+        </div>
+      </div>
+    `;
+  } else if (coalProxLoadFailed) {
+    // A failed proximity load is UNKNOWN, never a negative claim — the
+    // "absence means unknown" doctrine (Codex review round 4).
+    nearbyHtml = `<p class="muted" style="margin-top:12px;">Nearby-sites data failed to load. <button type="button" class="coal-btn coal-nearby-retry">Retry</button></p>`;
+  } else if (coalProxMatches === null) {
+    nearbyHtml = `<p class="muted" style="margin-top:12px;">Loading nearby tracked sites…</p>`;
+  } else {
+    nearbyHtml = `<p class="muted" style="margin-top:12px;">No tracked brownfield sites recorded within 10 miles in the current filtered program set.</p>`;
+  }
+
+  body.innerHTML = `
+    <div class="coal-profile-grid">
+      <div class="coal-profile-card">
+        <h4>⚡ Electrical &amp; Grid POI</h4>
+        <dl class="coal-dl">
+          <dt>Nameplate Capacity</dt><dd><strong>${Math.round(plant.nameplate_coal_mw).toLocaleString()} MW</strong></dd>
+          <dt>Switchyard Voltage</dt><dd>${plant.switchyard_kv} kV High Voltage</dd>
+          <dt>Grid Region / RTO</dt><dd>${escapeHtml(plant.iso_rto)}</dd>
+          <dt>Status</dt><dd>${escapeHtml(COAL_STATUS_LABELS[plant.status] || plant.status)}${plant.retired_year ? ` (${plant.retired_year})` : plant.planned_retirement_year ? ` (${plant.planned_retirement_year})` : ''}</dd>
+          <dt>POI Reuse</dt><dd>${plant.queue_transfer_eligible ? 'Generator-replacement / surplus-interconnection candidate (retired or retiring POI)' : (plant.poi_occupied || plant.status === 'converted_gas') ? 'POI occupied by on-site successor units — surplus-interconnection headroom only' : 'Operating plant — POI not transferable'}</dd>
+        </dl>
+      </div>
+      <div class="coal-profile-card">
+        <h4>💧 Water, Rail &amp; Land Assets</h4>
+        <dl class="coal-dl">
+          <dt>Water Intake</dt><dd>${plant.has_water_intake ? `Intake on-site${plant.intake_flow_gpm ? ` (${plant.intake_flow_gpm.toLocaleString()} GPM)` : ''}` : 'None'}</dd>
+          <dt>NPDES Permit</dt><dd>${plant.npdes_permit_id ? escapeHtml(plant.npdes_permit_id) : 'Not verified — check EPA ECHO'}</dd>
+          <dt>Rail Access</dt><dd>${plant.has_rail ? 'Rail loop / siding on-site' : 'None'}</dd>
+          <dt>Site Acreage</dt><dd>${plant.site_acreage ? `${plant.site_acreage.toLocaleString()} Acres` : 'N/A'}</dd>
+        </dl>
+      </div>
+      <div class="coal-profile-card valuation-card">
+        <h4>💰 Modeled Stranded-Asset Value</h4>
+        <div class="coal-val-big">~$${valM} Million</div>
+        <p class="coal-val-desc">Screening estimate, not an appraisal: $180k/MW grid interconnect + $25M water + $12M rail + $8M civil, distance-decayed — anchored to the DOE/INL coal-to-nuclear 15–35% savings range. Gross of ash/CCR-closure and demolition liabilities.</p>
+        <button type="button" class="coal-jump-map-btn">View on Map ↗</button>
+      </div>
+    </div>
+    ${plant.note ? `<p class="coal-plant-note">${escapeHtml(plant.note)}</p>` : ''}
+    ${plant.source_url ? `<p class="coal-plant-cite muted">Source: <a href="${escapeAttr(plant.source_url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(plant.source_url.replace(/^https?:\/\//, ""))}</a>${plant.verified_at ? ` · verified ${escapeHtml(plant.verified_at)}` : ''}</p>` : ''}
+    ${nearbyHtml}
+  `;
+
+  // Bind drawer actions with closures — no string-interpolated inline
+  // handlers (code review 2026-08-23 #1/#8). Nearby items are real <button>s
+  // so keyboard/AT users can open them.
+  const jumpBtn = body.querySelector(".coal-jump-map-btn");
+  if (jumpBtn) {
+    jumpBtn.addEventListener("click", () =>
+      window.__focusCoalPlantOnMap(plant.latitude, plant.longitude, plant.plant_name));
+  }
+  for (const item of body.querySelectorAll(".coal-nearby-item[data-site-id]")) {
+    item.addEventListener("click", () => window.__selectAndOpenSite(item.dataset.siteId));
+  }
+  const proxRetry = body.querySelector(".coal-nearby-retry");
+  if (proxRetry) {
+    proxRetry.addEventListener("click", () => {
+      ensureCoalConversionsProxLoaded().then(() => window.__inspectCoalPlant(plant.plant_name));
+    });
+  }
+
+  drawer.hidden = false;
+  drawer.scrollIntoView({ behavior: "smooth", block: "nearest" });
+};
+
+window.__selectAndOpenSite = function(id) {
+  if (typeof window.__setView === "function") {
+    window.__setView("map");
+  }
+  setTimeout(() => {
+    if (typeof selectSite === "function") {
+      selectSite(id);
+    }
+  }, 150);
+};
 
 // ----- AP1000 reactor-siting view -----
 // Self-contained card view over docs/data/ap1000-sites.json (a curated
@@ -5722,6 +6413,8 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
   // Planned-retirement plant row — an operating plant with an announced
   // shutdown date (the interconnect frees on a known future date).
   setPlannedRetireCell("d-planned-retire-mi", s);
+  // Coal conversion asset row — evaluated stranded switchyard/water/rail value.
+  setCoalRepowerCell("d-coal-repower-mi", s);
   setMileCell("d-rail-mi", s.rail_mi, { offConus });
   setMileCell("d-highway-mi", s.highway_mi, { offConus });
   setMileCell("d-gas-pipeline-mi", s.gas_pipeline_mi, { offConus });
@@ -6642,6 +7335,43 @@ function setPlannedRetireCell(id, s) {
     span.className = "pp-chip sig-plant";
     span.textContent = parts.join(" · ");
     span.title = "Operating plant with an announced retirement — interconnect frees on a known date; repowering/co-location deals close before shutdown (Homer City pattern)";
+    node.appendChild(document.createTextNode(" "));
+    node.appendChild(span);
+  }
+}
+
+// Coal conversion repowering asset cell (Spec 04)
+function setCoalRepowerCell(id, s) {
+  const node = el(id);
+  if (!node) return;
+  if (s.coal_conversion_plant_mi == null) {
+    node.textContent = "Not available";
+    node.classList.add("muted-cell");
+    return;
+  }
+  node.classList.remove("muted-cell");
+  node.textContent = fmt.miles(s.coal_conversion_plant_mi);
+  const parts = [];
+  if (s.coal_conversion_plant_name) parts.push(s.coal_conversion_plant_name);
+  if (s.coal_conversion_mw != null) parts.push(`${Math.round(s.coal_conversion_mw).toLocaleString()} MW coal`);
+  if (s.coal_conversion_switchyard_kv != null) parts.push(`${s.coal_conversion_switchyard_kv} kV`);
+  if (s.coal_conversion_stranded_val_usd != null) {
+    const valM = (s.coal_conversion_stranded_val_usd / 1_000_000).toFixed(1);
+    parts.push(`~$${valM}M modeled`);
+  }
+  if (s.coal_conversion_queue_fasttrack) parts.push("⚡ POI reuse zone");
+  if (parts.length) {
+    const span = document.createElement("button");
+    span.type = "button";
+    span.className = "pp-chip sig-plant coal-clickable-chip";
+    span.textContent = parts.join(" · ") + " →";
+    span.title = "Click to explore this coal plant in the Coal Repowering tab (DOE/EIA data, stranded asset breakdown, nearby brownfield parcels)";
+    span.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (s.coal_conversion_plant_name && window.__openCoalTabForPlant) {
+        window.__openCoalTabForPlant(s.coal_conversion_plant_name);
+      }
+    });
     node.appendChild(document.createTextNode(" "));
     node.appendChild(span);
   }

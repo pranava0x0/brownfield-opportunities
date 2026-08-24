@@ -48,6 +48,7 @@
     CLEANUP: "data/acres-cleanup.json",
     RETIRED: "data/eia-retired-plants.json",
     PLANNED: "data/planned-retirements-proximity.json",
+    COAL_PROX: "data/coal-conversions-proximity.json",
     COORD: "data/coord-quality.json",
     TRIBAL: "data/tribal-areas.json",
     WORKFORCE: "data/census-workforce.json",
@@ -378,6 +379,18 @@
         + "announced retirement date, within 5 mi. Announced dates slip.",
       url: "https://www.eia.gov/electricity/data/eia860m/",
       verifyLabel: "EIA-860M monthly inventory",
+    },
+    coal_conversion_plant_name: {
+      group: "Infrastructure", label: "Coal conversion asset",
+      publisher: "This project (curated; per-row Global Energy Monitor citations)",
+      dataset: "Curated coal-to-clean conversion catalog (18 plants, quarterly re-audit)",
+      file: D.COAL_PROX, code: "scripts/build_coal_conversions.py",
+      derivation: "Nearest curated coal conversion candidate (≥100 MW) within 10 mi. "
+        + "Dollar figure is a MODELED screening estimate ($180k/MW grid + water/rail/civil, "
+        + "distance-decayed), anchored to the DOE/INL 15–35% coal-reuse savings range — "
+        + "each plant row carries its own source_url + verified_at (shown in the Coal tab).",
+      url: "https://www.energy.gov/ne/articles/doe-report-finds-hundreds-retiring-coal-plant-sites-could-convert-nuclear",
+      verifyLabel: "DOE/INL coal-to-nuclear study (methodology anchor)",
     },
 
     // --- programmatic / financial overlays ---
