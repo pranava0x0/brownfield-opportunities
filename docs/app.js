@@ -5843,24 +5843,25 @@ function buildHanfordView() {
   ).join("");
   host.innerHTML =
     `<div class="janus-limit"><strong>Screening, not siting:</strong> ${limits}</div>` +
+    `<details class="hanford-pathways hanford-sources" open><summary><strong>Sources &amp; methodology</strong> <span class="micro-note">(where every finding on this page comes from, and how it was pulled)</span></summary>` +
+    `<p class="hanford-summary">Every row in each parcel's environmental screen below comes from <a href="https://github.com/pnnl/nepa-mcp" target="_blank" rel="noopener">PNNL's nepa-mcp</a> — an open-source toolkit (BSD-3) that wraps live federal GIS and regulatory APIs behind one uniform interface. For each land unit, this dossier calls nepa-mcp's tools once per source below, at a ${escapeHtml(String(hanfordData.screening_buffer_miles || 5))}-mile radius around a representative point in that unit, caches the raw response, and normalizes it into the "Finding" column shown in each parcel's Environmental screen table. A source that times out or errors is recorded as <strong>unavailable</strong> — it is never silently counted as a no-hit. The Map Composer layers (the "Show features on map" button) are pulled the same way, as GeoJSON instead of tabular counts. Site history, ownership, and land-use-plan facts below are hand-curated and cited per row — see each row's own "Source ↗" link.</p>` +
+    `<div class="micro-table-wrap"><table class="micro-table hanford-pathway-table">` +
+    `<thead><tr><th scope="col">Source (nepa-mcp tool)</th><th scope="col">What it actually covers</th></tr></thead>` +
+    `<tbody>${sourceRows}</tbody></table></div></details>` +
     `<section class="hanford-overview">` +
     `<h3 class="hanford-section-title">Site history</h3>` +
     `<p class="hanford-summary">${escapeHtml(ov.summary || "")}</p>` +
-    `<h3 class="hanford-section-title">Who manages this land</h3>` +
+    `</section>` +
+    `<details class="hanford-pathways" open><summary><strong>Who manages this land</strong> <span class="micro-note">(landlord, regulators, and every overlapping jurisdiction)</span></summary>` +
     `<div class="hanford-mgrs">${managers}</div>` +
     (lup.label
       ? `<p class="hanford-lup micro-note">${escapeHtml(lup.note || "")} <a href="${escapeAttr(lup.url)}" target="_blank" rel="noopener">${escapeHtml(lup.label)} ↗</a></p>`
       : "") +
-    `</section>` +
+    `</details>` +
     `<details class="hanford-pathways"><summary><strong>Permitting &amp; licensing pathways</strong> <span class="micro-note">(what applies and who decides — never a schedule estimate)</span></summary>` +
     `<div class="micro-table-wrap"><table class="micro-table hanford-pathway-table">` +
     `<thead><tr><th scope="col">Regime</th><th scope="col">When it applies at Hanford</th><th scope="col">Authority</th></tr></thead>` +
     `<tbody>${pathways}</tbody></table></div></details>` +
-    `<details class="hanford-pathways hanford-sources" open><summary><strong>Sources &amp; methodology</strong> <span class="micro-note">(where every finding below comes from, and how it was pulled)</span></summary>` +
-    `<p class="hanford-summary">Every row in the environmental screen below comes from <a href="https://github.com/pnnl/nepa-mcp" target="_blank" rel="noopener">PNNL's nepa-mcp</a> — an open-source toolkit (BSD-3) that wraps live federal GIS and regulatory APIs behind one uniform interface. For each land unit, this dossier calls nepa-mcp's tools once per source below, at a ${escapeHtml(String(hanfordData.screening_buffer_miles || 5))}-mile radius around a representative point in that unit, caches the raw response, and normalizes it into the "Finding" column shown in each parcel's Environmental screen table. A source that times out or errors is recorded as <strong>unavailable</strong> — it is never silently counted as a no-hit. The Map Composer layers (the "Show features on map" button) are pulled the same way, as GeoJSON instead of tabular counts.</p>` +
-    `<div class="micro-table-wrap"><table class="micro-table hanford-pathway-table">` +
-    `<thead><tr><th scope="col">Source (nepa-mcp tool)</th><th scope="col">What it actually covers</th></tr></thead>` +
-    `<tbody>${sourceRows}</tbody></table></div></details>` +
     `<section class="hanford-parcels"><h3>NEPA-MCP screening report — the land, unit by unit</h3>${parcels}</section>` +
     `<p class="micro-note hanford-method">${escapeHtml(hanfordData.method || "")} nepa-mcp ${escapeHtml(hanfordData.nepa_mcp_version || "")} · generated ${escapeHtml((hanfordData.generated_at || "").slice(0, 10))}</p>`;
 

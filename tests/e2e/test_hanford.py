@@ -38,7 +38,10 @@ def test_hanford_tab_renders_nine_parcels_with_full_screen(page, base_url):
           return {
             cards: cards.length,
             managers: view.querySelectorAll('.hanford-mgr').length,
-            pathwayRows: view.querySelectorAll('.hanford-pathway-table tbody tr').length,
+            // Sources & methodology reuses the same .hanford-pathway-table
+            // look, so scope out of it to count only the permitting table.
+            pathwayRows: view.querySelectorAll('.hanford-pathways:not(.hanford-sources) .hanford-pathway-table tbody tr').length,
+            sourceRows: view.querySelectorAll('.hanford-sources .hanford-pathway-table tbody tr').length,
             screenRows: first.querySelectorAll('.hanford-screen-table tbody tr').length,
             limitStrip: !!view.querySelector('.janus-limit'),
           };
@@ -47,6 +50,7 @@ def test_hanford_tab_renders_nine_parcels_with_full_screen(page, base_url):
     assert state["cards"] == 9
     assert state["managers"] == 5
     assert state["pathwayRows"] == 8
+    assert state["sourceRows"] == 11
     assert state["screenRows"] == 10
     assert state["limitStrip"] is True
 
