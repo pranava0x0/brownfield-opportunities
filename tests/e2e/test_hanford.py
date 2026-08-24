@@ -161,3 +161,39 @@ def test_hanford_screen_shows_nmfs_lens_separately(page, base_url):
     assert "USFWS IPaC" in labels
     assert "NOAA critical habitat" in labels
     assert "Salmon EFH" in labels
+
+
+def test_partial_map_package_renders_warning_not_pure_success(page, base_url):
+    """A package with failed layers must say so on the card, the button
+    title, AND the post-click toast — an omitted layer is coverage, not
+    clearance (Codex PR #22 round 2). Shipped data has 0 failed layers, so
+    the test injects a partial summary and rebuilds the view."""
+    _open_hanford(page, base_url)
+    state = page.evaluate(
+        """(() => {
+          const p = window.__hanford.parcels.find(x => x.id === 'hanford-energy-northwest');
+          p.map_summary = { feature_count: 40, layers_ok: 11, layers_partial: 0, layers_failed: 3 };
+          window.__setView('map');
+          window.__setView('hanford');  // re-activation rebuilds the view
+          const card = document.getElementById('hp-hanford-energy-northwest');
+          card.open = true;
+          const warn = card.querySelector('.hanford-map-warn');
+          return {
+            warn: warn ? warn.textContent : null,
+            btnTitle: card.querySelector('.hanford-map-btn').title,
+          };
+        })()"""
+    )
+    assert state["warn"] and "3 of 14" in state["warn"]
+    assert "coverage, not clearance" in state["btnTitle"]
+    page.evaluate(
+        """(() => {
+          document.getElementById('hp-hanford-energy-northwest')
+            .querySelector('.hanford-map-btn').click();
+        })()"""
+    )
+    page.wait_for_function(
+        "document.getElementById('toast') && "
+        "document.getElementById('toast').textContent.includes('3 layers unavailable')",
+        timeout=15000,
+    )

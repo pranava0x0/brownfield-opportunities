@@ -215,3 +215,52 @@ def test_map_package_summary_counts_layer_statuses(screening):
     }
     out = screening.summarize_map_package(geojson)
     assert out == {"feature_count": 3, "layers_ok": 2, "layers_partial": 0, "layers_failed": 1}
+
+
+def test_loader_failure_serves_existing_cache_instead_of_clobbering(tmp_path, screening):
+    """A transient server-load failure must never overwrite previously
+    collected evidence with 'unavailable' (Codex PR #22 round 2, P1)."""
+    good = {"value": "evidence", "status": "ok", "retrieved_at": "2026-08-24T00:00:00Z"}
+    cached_path = tmp_path / "a--demo.json"
+    cached_path.write_text(json.dumps(good))
+
+    def loader(name):
+        raise ImportError("uv env broke this run")
+
+    cache_fn = lambda sid, key: tmp_path / f"{sid}--{key}.json"  # noqa: E731
+    out = screening.run_source_matrix(
+        [{"id": "a"}, {"id": "b"}],
+        _defs(screening, lambda s: {"v": 1}),
+        cache_fn, True, loader,
+    )
+    # Site with prior evidence keeps it — on disk AND in the result.
+    assert out["a"]["demo"] == good
+    assert json.loads(cached_path.read_text()) == good
+    # Site with nothing yet records explicit unavailability.
+    assert out["b"]["demo"]["status"] == "unavailable"
+
+
+def test_corrupt_cache_is_a_miss_not_a_permanent_unavailable(tmp_path, screening):
+    """A truncated cache file (killed mid-write, pre-atomic caches) must
+    degrade to 'query again', not to a cached parse error (round 2, P2)."""
+    path = tmp_path / "a--demo.json"
+    path.write_text('{"value": "evide')  # truncated JSON
+    calls = []
+
+    def fn(site_id):
+        calls.append(site_id)
+        return {"v": "fresh"}
+
+    loader = lambda name: _FakeModule(fn)  # noqa: E731
+    cache_fn = lambda sid, key: tmp_path / f"{sid}--{key}.json"  # noqa: E731
+    out = screening.run_source_matrix([{"id": "a"}], _defs(screening, fn), cache_fn, True, loader)
+    assert calls == ["a"]  # re-queried despite a cache file being present
+    assert out["a"]["demo"]["status"] == "ok"
+    assert json.loads(path.read_text())["value"] == "A" or json.loads(path.read_text())["status"] == "ok"
+
+
+def test_cache_writes_are_atomic_no_tmp_leftovers(tmp_path, screening):
+    path = tmp_path / "x--demo.json"
+    screening.cache_error_at(path, RuntimeError("boom"))
+    assert path.exists()
+    assert not list(tmp_path.glob("*.tmp")), "atomic write left a temp file behind"

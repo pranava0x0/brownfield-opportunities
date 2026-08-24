@@ -5510,7 +5510,11 @@ function showJanusMap(siteId) {
       el("tab-map")?.click();
       const bounds = _screeningFitBounds(displayPayload, janusNepaLayer);
       if (bounds) map.fitBounds(bounds, { padding: [30, 30], maxZoom: 11 });
-      showToast(`${site.name}: NEPA screening layers shown. Not a project footprint.`);
+      const failedLayers = site.map_summary?.layers_failed || 0;
+      showToast(
+        `${site.name}: NEPA screening layers shown. Not a project footprint.` +
+        (failedLayers > 0 ? ` ${failedLayers} layer${failedLayers === 1 ? "" : "s"} unavailable — not a no-hit.` : "")
+      );
     })
     .catch((err) => {
       console.error("Janus GeoJSON load failed:", err);
@@ -5719,9 +5723,17 @@ function _hanfordParcelCard(p) {
     `<a href="${escapeAttr(sr.url)}" target="_blank" rel="noopener">${escapeHtml(sr.label)} ↗</a>`
   ).join("");
   const featureCount = p.map_summary?.feature_count;
+  // A partial package (some layers timed out) must not read as a pure
+  // success — an omitted layer is not a no-hit (Codex PR #22 round 2).
+  const failedLayers = p.map_summary?.layers_failed || 0;
+  const totalLayers = failedLayers + (p.map_summary?.layers_ok || 0) + (p.map_summary?.layers_partial || 0);
+  const mapWarn = failedLayers > 0
+    ? `<span class="hanford-map-warn">${failedLayers} of ${totalLayers} map layers unavailable — not a no-hit</span>`
+    : "";
   const mapBtn = p.geojson_url
-    ? `<button type="button" class="ap1000-export hanford-map-btn" data-hanford-map="${escapeAttr(p.id)}">` +
-      `Show ${featureCount != null ? featureCount.toLocaleString() + " " : ""}features on map</button>`
+    ? `<button type="button" class="ap1000-export hanford-map-btn" data-hanford-map="${escapeAttr(p.id)}"` +
+      `${failedLayers > 0 ? ` title="${failedLayers} of ${totalLayers} layers failed to collect — their absence from the map is coverage, not clearance"` : ""}>` +
+      `Show ${featureCount != null ? featureCount.toLocaleString() + " " : ""}features on map</button>${mapWarn}`
     : `<button type="button" class="ap1000-export" disabled title="Map package not generated for this parcel yet">Map package pending</button>`;
   return (
     `<details class="hanford-parcel" id="hp-${escapeAttr(p.id)}">` +
@@ -5849,7 +5861,11 @@ function showHanfordScreeningMap(parcelId) {
       el("tab-map")?.click();
       const bounds = _screeningFitBounds(displayPayload, hanfordNepaLayer);
       if (bounds) map.fitBounds(bounds, { padding: [30, 30], maxZoom: 11 });
-      showToast(`${parcel.name}: NEPA screening layers shown. Not a project footprint.`);
+      const failed = parcel.map_summary?.layers_failed || 0;
+      showToast(
+        `${parcel.name}: NEPA screening layers shown. Not a project footprint.` +
+        (failed > 0 ? ` ${failed} layer${failed === 1 ? "" : "s"} unavailable — not a no-hit.` : "")
+      );
     })
     .catch((err) => {
       console.error("Hanford GeoJSON load failed:", err);

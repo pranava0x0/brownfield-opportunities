@@ -174,6 +174,33 @@ def error_result(exc: Exception) -> dict:
     return {"status": "unavailable", "error": str(exc), "retrieved_at": utc_now()}
 
 
+def _atomic_write(path: Path, text: str) -> None:
+    """Write via a same-directory temp file + rename so a killed run can
+    never leave a truncated cache file behind (Codex PR #22 round 2)."""
+    import os
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(path.name + ".tmp")
+    tmp.write_text(text)
+    os.replace(tmp, path)
+
+
+def read_cache(path: Path) -> Optional[dict]:
+    """Read a cache file, treating a missing OR unreadable file as a miss.
+
+    A run killed mid-write (pre-atomic-write caches) or a corrupted disk
+    must degrade to 'query again', never to a parse error that the caller's
+    failure isolation would then persist as a permanent 'unavailable'
+    (Codex PR #22 round 2)."""
+    if not path.exists():
+        return None
+    try:
+        return json.loads(path.read_text())
+    except (ValueError, OSError) as exc:
+        log.warning("unreadable cache %s (%s) — treating as a miss", path.name, exc)
+        return None
+
+
 def cached_query(
     path: Path,
     label: str,
@@ -188,16 +215,17 @@ def cached_query(
     and ``retrieved_at`` before hitting disk, so a cache file is always a
     complete, renderable evidence record on its own.
     """
-    if use_cache and path.exists():
-        log.info("cache hit  %s", path.name)
-        return json.loads(path.read_text())
+    if use_cache:
+        cached = read_cache(path)
+        if cached is not None:
+            log.info("cache hit  %s", path.name)
+            return cached
     log.info("querying   %s", label)
     raw = run_with_timeout(query, timeout_s)
     normalized = normalize(raw)
     normalized["status"] = "ok"
     normalized["retrieved_at"] = utc_now()
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(normalized, indent=2) + "\n")
+    _atomic_write(path, json.dumps(normalized, indent=2) + "\n")
     return normalized
 
 
@@ -210,8 +238,7 @@ def cache_error_at(path: Path, exc: Exception) -> dict:
     and the UI renders 'Unavailable', never a false no-hit.
     """
     result = error_result(exc)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(result, indent=2) + "\n")
+    _atomic_write(path, json.dumps(result, indent=2) + "\n")
     return result
 
 
@@ -501,8 +528,14 @@ def run_source_matrix(
         except Exception as exc:  # a missing server must not kill the others
             log.exception("loading server %s failed", source.server)
             for site in sites:
-                results[site["id"]][source.key] = cache_error_at(
-                    cache_path_fn(site["id"], source.key), exc
+                path = cache_path_fn(site["id"], source.key)
+                # A loader failure must never clobber previously collected
+                # evidence: serve the existing cache when one exists, and
+                # persist the unavailable record only for sites that had
+                # nothing yet (Codex PR #22 round 2, P1).
+                cached = read_cache(path) if use_cache else None
+                results[site["id"]][source.key] = (
+                    cached if cached is not None else cache_error_at(path, exc)
                 )
             continue
         for site in sites:
@@ -546,9 +579,11 @@ def collect_map_geojson(
     Janus probe found PAD-US/federal_lands ROI calls unreliable beyond a
     point-context buffer) without giving up the wide buffer everywhere else.
     """
-    if use_cache and cache_file.exists():
-        log.info("cache hit  %s", cache_file.name)
-        return json.loads(cache_file.read_text())
+    if use_cache:
+        cached = read_cache(cache_file)
+        if cached is not None:
+            log.info("cache hit  %s", cache_file.name)
+            return cached
 
     if module_loader is None:
         from nepa_mcp.loader import load_server_module
@@ -597,8 +632,7 @@ def collect_map_geojson(
             "limitations": limitations,
         },
     }
-    cache_file.parent.mkdir(parents=True, exist_ok=True)
-    cache_file.write_text(json.dumps(result, separators=(",", ":")))
+    _atomic_write(cache_file, json.dumps(result, separators=(",", ":")))
     return result
 
 
