@@ -230,6 +230,36 @@ def test_map_overlays_render_markers_and_legend(page, base_url):
     assert "Federal clean energy" in state["legendText"]
 
 
+def test_coal_join_reapplies_after_restricted_boot_then_reset(page, base_url):
+    """Codex round 3: booting with ?program=superfund leaves the ACRES/FUDS/
+    BRAC promises null, so the initial proximity apply only reaches Superfund.
+    Pressing Reset later loads those programs — the cached join must re-apply
+    so their matches carry the coal fields for the rest of the session."""
+    page.goto(f"{base_url}/index.html?program=superfund")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    acres_id = page.evaluate(
+        """(async () => {
+          const j = await (await fetch('data/coal-conversions-proximity.json')).json();
+          const m = (j.matches || []).find(x => x.id.startsWith('ACRES-'));
+          return m ? m.id : null;
+        })()"""
+    )
+    assert acres_id, "shipped proximity file has no ACRES match — test needs updating"
+    # Not loaded yet under the restricted URL.
+    assert page.evaluate(f"window.__sites.some(s => s.id === '{acres_id}')") is False
+    # Reset lives inside the (closed) filters panel — dispatch the click
+    # directly; the visibility of the button is covered by the Reset e2e
+    # tests, this one exercises the join re-apply.
+    page.evaluate("document.getElementById('filters-reset').click()")
+    page.wait_for_function(
+        f"""(() => {{
+          const s = window.__sites.find(x => x.id === '{acres_id}');
+          return !!(s && s.coal_conversion_plant_name);
+        }})()""",
+        timeout=30000,
+    )
+
+
 def test_coal_detail_cell_renders_for_joined_site(page, base_url):
     """A site inside the 10-mi join renders the 'Coal repowering' row with a
     clickable chip labeled as modeled; a site outside stays 'Not available'."""

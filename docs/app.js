@@ -1078,6 +1078,9 @@ function ensureAcresLoaded() {
       // the 36k ACRES markers light up. We resolve `acresLoadingPromise`
       // (and dispatch `brownfield:ready`) only after the last batch lands.
       return hydrateMarkersChunked(payload.sites || []).then(() => {
+        // Re-apply enrichment joins that may have landed while this program
+        // was skipped by a `?program=` URL (see applyCoalProxJoin).
+        applyCoalProxJoin();
         applyFilter();
         markAppReady();
       });
@@ -1109,6 +1112,7 @@ function ensureFudsLoaded() {
       rerenderLegend();
       updateKpiDeck();
       return hydrateMarkersChunked(payload.sites || []).then(() => {
+        applyCoalProxJoin(); // late-program re-apply (see its comment)
         applyFilter();
       });
     })
@@ -1136,6 +1140,7 @@ function ensureBracLoaded() {
       rerenderLegend();
       updateKpiDeck();
       addMarkersForRecords(payload.sites || []);
+      applyCoalProxJoin(); // late-program re-apply (see its comment)
       applyFilter();
     })
     .catch((err) => {
@@ -2055,6 +2060,38 @@ function ensureFederalCleanEnergyLoaded() {
 }
 
 // Coal conversions proximity join (Spec 04)
+//
+// The payload is CACHED and the apply is IDEMPOTENT: when the page boots
+// with a restricted `?program=` URL the ACRES/FUDS/BRAC promises are null,
+// so the initial apply only reaches eager Superfund records — the three
+// program loaders call applyCoalProxJoin() again as their records land
+// (Codex review 2026-08-23 round 3), and the skip-if-present guard makes
+// every re-apply a cheap no-op for already-joined ids.
+let coalProxMatches = null;
+function applyCoalProxJoin({ refresh = false } = {}) {
+  if (!coalProxMatches) return;
+  let applied = 0;
+  for (const rec of coalProxMatches) {
+    const existing = sitesById.get(rec.id);
+    if (!existing || existing.coal_conversion_plant_name != null) continue;
+    existing.coal_conversion_plant_name = rec.coal_conversion_plant_name;
+    if (rec.coal_conversion_plant_mi != null) existing.coal_conversion_plant_mi = rec.coal_conversion_plant_mi;
+    if (rec.coal_conversion_mw != null) existing.coal_conversion_mw = rec.coal_conversion_mw;
+    if (rec.coal_conversion_switchyard_kv != null) existing.coal_conversion_switchyard_kv = rec.coal_conversion_switchyard_kv;
+    if (rec.coal_conversion_rail != null) existing.coal_conversion_rail = rec.coal_conversion_rail;
+    if (rec.coal_conversion_water != null) existing.coal_conversion_water = rec.coal_conversion_water;
+    if (rec.coal_conversion_stranded_val_usd != null) existing.coal_conversion_stranded_val_usd = rec.coal_conversion_stranded_val_usd;
+    if (rec.coal_conversion_queue_fasttrack != null) existing.coal_conversion_queue_fasttrack = rec.coal_conversion_queue_fasttrack;
+    applied++;
+  }
+  if (refresh && applied) {
+    applyFilter();
+    if (selectedId && sitesById.has(selectedId)) {
+      try { selectSite(selectedId); } catch {}
+    }
+  }
+}
+
 function ensureCoalConversionsProxLoaded() {
   if (coalProxLoadingPromise) return coalProxLoadingPromise;
   coalProxLoadingPromise = fetch(COAL_PROX_URL, { priority: "low" })
@@ -2065,25 +2102,11 @@ function ensureCoalConversionsProxLoaded() {
     })
     .then(async (payload) => {
       recordRefreshDate(payload.generated_at, COAL_PROX_URL);
+      coalProxMatches = payload.matches || [];
       await Promise.allSettled(
         [acresLoadingPromise, fudsLoadingPromise, bracLoadingPromise].filter(Boolean)
       );
-      for (const rec of payload.matches || []) {
-        const existing = sitesById.get(rec.id);
-        if (!existing) continue;
-        if (rec.coal_conversion_plant_name) existing.coal_conversion_plant_name = rec.coal_conversion_plant_name;
-        if (rec.coal_conversion_plant_mi != null) existing.coal_conversion_plant_mi = rec.coal_conversion_plant_mi;
-        if (rec.coal_conversion_mw != null) existing.coal_conversion_mw = rec.coal_conversion_mw;
-        if (rec.coal_conversion_switchyard_kv != null) existing.coal_conversion_switchyard_kv = rec.coal_conversion_switchyard_kv;
-        if (rec.coal_conversion_rail != null) existing.coal_conversion_rail = rec.coal_conversion_rail;
-        if (rec.coal_conversion_water != null) existing.coal_conversion_water = rec.coal_conversion_water;
-        if (rec.coal_conversion_stranded_val_usd != null) existing.coal_conversion_stranded_val_usd = rec.coal_conversion_stranded_val_usd;
-        if (rec.coal_conversion_queue_fasttrack != null) existing.coal_conversion_queue_fasttrack = rec.coal_conversion_queue_fasttrack;
-      }
-      if (typeof applyFilter === "function") applyFilter();
-      if (selectedId && sitesById.has(selectedId)) {
-        try { selectSite(selectedId); } catch {}
-      }
+      applyCoalProxJoin({ refresh: true });
     })
     .catch((err) => {
       console.error("Coal conversions proximity load failed:", err);
