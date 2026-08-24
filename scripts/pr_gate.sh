@@ -43,6 +43,38 @@ seen = set()
 # rate-limited GEM wiki must not block every PR (Codex review round 2).
 INCONCLUSIVE_HTTP = {403, 429}
 last_hit: dict[str, float] = {}
+
+def check(fname: str, url: str) -> None:
+    global dead, unreachable
+    if not url or url in seen:
+        return
+    seen.add(url)
+    host = url.split("/", 3)[2]
+    wait = last_hit.get(host, 0) + 1.5 - time.monotonic()
+    if wait > 0:
+        time.sleep(wait)
+    status = None
+    for method in ("HEAD", "GET"):  # some hosts reject HEAD
+        req = urllib.request.Request(url, method=method,
+                                     headers={"User-Agent": "brownfield-pr-gate"})
+        try:
+            with urllib.request.urlopen(req, timeout=10) as r:
+                status = r.status
+            break
+        except urllib.error.HTTPError as e:
+            status = e.code  # definitive server answer
+            if status in INCONCLUSIVE_HTTP:
+                break        # don't hammer a throttling host with the GET retry
+        except Exception:
+            status = None    # network-level failure — inconclusive
+    last_hit[host] = time.monotonic()
+    if status is None or status in INCONCLUSIVE_HTTP:
+        unreachable += 1
+        print(f"  UNREACHABLE {fname}: {url}" + (f" (HTTP {status})" if status else ""))
+    elif status >= 400:
+        dead += 1
+        print(f"  DEAD CITATION {fname}: {url} (HTTP {status})")
+
 for fname, key, field in [
     ("coal-conversions.json", "assets", "source_url"),
     ("federal-clean-energy.json", "sites", "solicitation_url"),
@@ -50,35 +82,16 @@ for fname, key, field in [
 ]:
     payload = json.loads((Path("docs/data") / fname).read_text())
     for rec in payload.get(key, []):
-        url = rec.get(field)
-        if not url or url in seen:
-            continue
-        seen.add(url)
-        host = url.split("/", 3)[2]
-        wait = last_hit.get(host, 0) + 1.5 - time.monotonic()
-        if wait > 0:
-            time.sleep(wait)
-        status = None
-        for method in ("HEAD", "GET"):  # some hosts reject HEAD
-            req = urllib.request.Request(url, method=method,
-                                         headers={"User-Agent": "brownfield-pr-gate"})
-            try:
-                with urllib.request.urlopen(req, timeout=10) as r:
-                    status = r.status
-                break
-            except urllib.error.HTTPError as e:
-                status = e.code  # definitive server answer
-                if status in INCONCLUSIVE_HTTP:
-                    break        # don't hammer a throttling host with the GET retry
-            except Exception:
-                status = None    # network-level failure — inconclusive
-        last_hit[host] = time.monotonic()
-        if status is None or status in INCONCLUSIVE_HTTP:
-            unreachable += 1
-            print(f"  UNREACHABLE {fname}: {url}" + (f" (HTTP {status})" if status else ""))
-        elif status >= 400:
-            dead += 1
-            print(f"  DEAD CITATION {fname}: {url} (HTTP {status})")
+        check(fname, rec.get(field))
+
+# facility_types is a top-level dict (not a list), one row per facility
+# type rather than per parcel — the general "what this facility type needs"
+# claims (water demand, licensing pathway, acreage threshold) added
+# 2026-08-24, same provenance contract as everything else on the page.
+hanford = json.loads((Path("docs/data") / "hanford-e2e.json").read_text())
+for meta in hanford.get("facility_types", {}).values():
+    check("hanford-e2e.json (facility_types)", meta.get("source_url"))
+
 print(f"  checked {len(seen)} unique citation URLs: {dead} dead, {unreachable} unreachable/throttled")
 sys.exit(1 if dead else (2 if unreachable else 0))
 EOF

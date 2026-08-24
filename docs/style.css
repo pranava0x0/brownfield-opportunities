@@ -664,13 +664,17 @@ main:focus { outline: none; }
 /* ============================================================
    Filters — a persistent vertical sidebar on desktop/tablet/
    widescreen (better use of the wide unused side margin than a
-   toggled full-width strip that pushed the map down). Still opens
-   open-by-default (see wireFilters()/openFiltersUi() in app.js,
-   mirroring the KPI-disclosure default-open pattern) and the gear
-   button can collapse it back to reclaim width. Below 640px this
-   reverts to the original bottom-sheet overlay (see the mobile
-   media query) — `position: fixed` there takes it out of the
-   `.app-body` row entirely, so `main` gets the full width for free.
+   toggled full-width strip that pushed the map down) — but only when
+   OPENED. Still closed by default on every breakpoint, same as
+   before this pass; only the shape changed, not the default state
+   (see wireFilters() in app.js — an earlier draft made it open by
+   default and that silently narrowed the map's default render width
+   enough to break an unrelated pixel-positioned test; reverted).
+   The gear button toggles it open/closed exactly as it always did.
+   Below 640px this reverts to the original bottom-sheet overlay (see
+   the mobile media query) — `position: fixed` there takes it out of
+   the `.app-body` row entirely, so `main` gets the full width for
+   free whether or not the sheet is open.
    ============================================================ */
 .filters {
   display: flex;

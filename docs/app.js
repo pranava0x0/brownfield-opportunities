@@ -5767,8 +5767,11 @@ function _hanfordFacilityFitSummaryHtml(parcels, facilityTypes) {
   if (!parcels.length) return "";
   const considerationRows = HANFORD_FACILITY_ORDER.map((t) => {
     const meta = facilityTypes[t] || {};
+    const src = meta.source_url
+      ? ` <a href="${escapeAttr(meta.source_url)}" target="_blank" rel="noopener" class="micro-note">Source ↗</a>`
+      : "";
     return `<tr><th scope="row">${escapeHtml(meta.label || HANFORD_FACILITY_SHORT_LABEL[t] || t)}</th>` +
-      `<td>${escapeHtml(meta.considerations || "")}</td></tr>`;
+      `<td>${escapeHtml(meta.considerations || "")}${src}</td></tr>`;
   }).join("");
   const bodyRows = parcels.map((p) => {
     const byType = {};

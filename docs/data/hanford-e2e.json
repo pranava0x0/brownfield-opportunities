@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-24T17:19:48.951240Z",
+  "generated_at": "2026-08-24T17:51:24.841210Z",
   "nepa_mcp_version": "0.1.1",
   "screening_buffer_miles": 5.0,
   "flood_radius_miles": 2.0,
@@ -107,19 +107,27 @@
   "facility_types": {
     "data_center": {
       "label": "Data center",
-      "considerations": "Land + firm power + fiber. No NRC or DOE reactor authorization needed, so it is the fastest of the four to build once power is secured \u2014 but it competes for the same scarce federal-land interconnection queue as everything else on this page."
+      "considerations": "Land + firm power + fiber. No NRC or DOE reactor authorization needed, so it is the fastest of the four to build once power is secured \u2014 but it competes for the same scarce federal-land interconnection queue as everything else on this page.",
+      "source_url": "https://www.epa.gov/re-powering",
+      "verified_at": "2026-08-24"
     },
     "lwr_pwr": {
       "label": "Large reactor (LWR/PWR)",
-      "considerations": "A \u22651,000 MWe-class unit (e.g. AP1000). Needs an NRC construction permit and operating license \u2014 or DOE authorization on federal land \u2014 roughly 27 MGD of cooling water per unit, a multi-mile emergency planning zone, and is best sited where a high-voltage switchyard and EPZ infrastructure already exist."
+      "considerations": "A \u22651,000 MWe-class unit (e.g. AP1000). Needs an NRC construction permit and operating license \u2014 or DOE authorization on federal land \u2014 roughly 27 MGD of cooling water per unit, a multi-mile emergency planning zone, and is best sited where a high-voltage switchyard and EPZ infrastructure already exist.",
+      "source_url": "https://www.energy.gov/sites/default/files/EIS-0476-FEIS_Part1-2012.pdf",
+      "verified_at": "2026-08-24"
     },
     "smr": {
       "label": "Small modular reactor (SMR)",
-      "considerations": "A ~50-300 MWe modular unit (e.g. X-energy Xe-100). Same NRC/DOE licensing track as a large reactor, but a smaller footprint, lower water draw, and a tighter exclusion zone \u2014 the class Energy Northwest is already building at Hanford today."
+      "considerations": "A ~50-300 MWe modular unit (e.g. X-energy Xe-100). Same NRC/DOE licensing track as a large reactor, but a smaller footprint, lower water draw, and a tighter exclusion zone \u2014 the class Energy Northwest's Cascade Advanced Energy Facility is pursuing at Hanford (design-builder selected Oct 2025; NRC pre-application, no construction-permit application filed yet).",
+      "source_url": "https://www.energy-northwest.com/news-releases/energy-northwest-selects-design-builder-for-cascade-advanced-energy-facility-in-washington-state/",
+      "verified_at": "2026-08-24"
     },
     "microreactor": {
       "label": "Microreactor",
-      "considerations": "A 1-20 MWe factory-built unit. DOE authorization (not NRC) is the fast path on federal land, land is a 5-acre threshold rather than a ranked factor, and the best fit is a defined anchor load or a site without existing grid access \u2014 not simply the largest available parcel."
+      "considerations": "A 1-20 MWe factory-built unit. DOE authorization (not NRC) is the fast path on federal land, land is a 5-acre threshold rather than a ranked factor, and the best fit is a defined anchor load or a site without existing grid access \u2014 not simply the largest available parcel.",
+      "source_url": "https://www.datacenterfrontier.com/energy/article/55232808/westinghouse-evinci-microreactor-could-yield-5-mw-of-nuclear-power-every-8-years-for-ai-data-centers",
+      "verified_at": "2026-08-24"
     }
   },
   "limitations": [

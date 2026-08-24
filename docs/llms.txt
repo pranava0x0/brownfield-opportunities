@@ -54,4 +54,4 @@ The dashboard is a static, dependency-light site (Leaflet + vanilla JS — no ba
 - Distances are in miles; values over 100 mi are dropped as out-of-CONUS. A distance of `0.0` means "adjacent" (borders the boundary), not missing.
 - Acreage is unavailable for all ACRES brownfields and ~66% of FUDS sites (source-side gaps, not omissions) — those fall to the bottom of acreage sorts and render "—".
 - Flood-zone coverage is partial and being backfilled (per-site FEMA queries); a missing `in_sfha` means "not yet checked / unmapped", not "no risk", and carries no score penalty.
-- Data refreshes on a cron via GitHub Actions; the dashboard footer shows the refresh date.
+- Data refreshes on a cron via GitHub Actions; the dashboard shows the refresh date next to the site title (`#topbar-refresh`) — the single readout on the page as of 2026-08-24 (it used to be duplicated in the hero, footer, and subtitle tagline).

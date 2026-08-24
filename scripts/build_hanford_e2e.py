@@ -311,6 +311,8 @@ FACILITY_TYPES = {
             "secured — but it competes for the same scarce federal-land "
             "interconnection queue as everything else on this page."
         ),
+        "source_url": "https://www.epa.gov/re-powering",
+        "verified_at": VERIFIED_AT,
     },
     "lwr_pwr": {
         "label": "Large reactor (LWR/PWR)",
@@ -321,6 +323,8 @@ FACILITY_TYPES = {
             "emergency planning zone, and is best sited where a high-voltage "
             "switchyard and EPZ infrastructure already exist."
         ),
+        "source_url": "https://www.energy.gov/sites/default/files/EIS-0476-FEIS_Part1-2012.pdf",
+        "verified_at": VERIFIED_AT,
     },
     "smr": {
         "label": "Small modular reactor (SMR)",
@@ -328,8 +332,12 @@ FACILITY_TYPES = {
             "A ~50-300 MWe modular unit (e.g. X-energy Xe-100). Same NRC/DOE "
             "licensing track as a large reactor, but a smaller footprint, "
             "lower water draw, and a tighter exclusion zone — the class "
-            "Energy Northwest is already building at Hanford today."
+            "Energy Northwest's Cascade Advanced Energy Facility is pursuing "
+            "at Hanford (design-builder selected Oct 2025; NRC "
+            "pre-application, no construction-permit application filed yet)."
         ),
+        "source_url": "https://www.energy-northwest.com/news-releases/energy-northwest-selects-design-builder-for-cascade-advanced-energy-facility-in-washington-state/",
+        "verified_at": VERIFIED_AT,
     },
     "microreactor": {
         "label": "Microreactor",
@@ -340,6 +348,8 @@ FACILITY_TYPES = {
             "anchor load or a site without existing grid access — not simply "
             "the largest available parcel."
         ),
+        "source_url": "https://www.datacenterfrontier.com/energy/article/55232808/westinghouse-evinci-microreactor-could-yield-5-mw-of-nuclear-power-every-8-years-for-ai-data-centers",
+        "verified_at": VERIFIED_AT,
     },
 }
 
