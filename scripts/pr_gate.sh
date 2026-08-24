@@ -97,7 +97,7 @@ if [ "$FAST" -eq 1 ]; then
   step "4/4 e2e guards — SKIPPED (--fast)"
 else
   step "4/4 e2e guards (DOM budget, refresh date, coal tab, mobile overflow)"
-  run python3 -m pytest -q -p no:cacheprovider \
+  run python3 -m pytest -q -p no:cacheprovider -n 4 \
     tests/e2e/test_smoke.py::test_dom_size_under_5k_nodes \
     tests/e2e/test_smoke.py::test_refresh_date_reflects_freshest_data_file \
     tests/e2e/test_coal_repowering.py

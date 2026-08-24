@@ -11,6 +11,15 @@ import pytest
 pytestmark = pytest.mark.e2e
 
 
+def _open_filters(page):
+    """Ensure the filters panel is open, regardless of whether it starts
+    open (desktop/tablet/widescreen default — 2026-08-24, filters became a
+    persistent sidebar there) or closed (mobile default — still a
+    click-to-open bottom sheet below 640px)."""
+    if page.locator("#filters-toggle").get_attribute("aria-expanded") != "true":
+        page.locator("#filters-toggle").click()
+
+
 def test_page_loads_with_meta(page, base_url):
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("document.getElementById('meta').textContent.indexOf('sites') > -1", timeout=10000)
@@ -171,7 +180,7 @@ def test_retired_sites_stats_tab(page, base_url):
 def test_filters_panel_toggles(page, base_url):
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("document.getElementById('meta').textContent.indexOf('sites') > -1")
-    page.locator("#filters-toggle").click()
+    _open_filters(page)
     page.wait_for_selector("#filters:not([hidden])")
     assert page.locator("#f-state").is_visible()
     # NPL Status was a `<select multiple>` (UAT bug: hidden Cmd-click
@@ -191,7 +200,7 @@ def test_state_filter_narrows_table(page, base_url):
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
     page.locator("#tab-table").click()
-    page.locator("#filters-toggle").click()
+    _open_filters(page)
     page.wait_for_selector("#filters:not([hidden])")
 
     page.evaluate(
@@ -241,7 +250,7 @@ def test_state_filter_shows_acreage_summary(page, base_url):
     """v1.3: search-count includes total acres + state name when a state filter is on."""
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("document.getElementById('meta').textContent.indexOf('sites') > -1")
-    page.locator("#filters-toggle").click()
+    _open_filters(page)
     page.wait_for_selector("#filters:not([hidden])")
     page.evaluate(
         "() => { const sel = document.getElementById('f-state');"
@@ -322,7 +331,7 @@ def test_npl_status_checkboxes(page, base_url):
     with hidden Cmd-click semantics). Selecting Final NPL narrows the set."""
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("document.getElementById('meta').textContent.indexOf('sites') > -1")
-    page.locator("#filters-toggle").click()
+    _open_filters(page)
     page.wait_for_selector("#filters:not([hidden])")
 
     # All four checkboxes present and unchecked initially.
@@ -344,7 +353,7 @@ def test_state_dropdown_shows_full_names(page, base_url):
     with territories grouped under <optgroup label="Territories">."""
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
-    page.locator("#filters-toggle").click()
+    _open_filters(page)
 
     first_state_label = page.evaluate(
         "() => Array.from(document.querySelectorAll('#f-state > option')).filter(o=>o.value)[0].textContent"
@@ -364,7 +373,7 @@ def test_acreage_slider_has_visible_ticks(page, base_url):
     Tick labels (1, 10, 100, 1k, 10k, 100k, 1M) are now rendered below."""
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("document.getElementById('meta').textContent.indexOf('sites') > -1")
-    page.locator("#filters-toggle").click()
+    _open_filters(page)
     labels = page.evaluate(
         "Array.from(document.querySelectorAll('.acreage-ticks-labels span')).map(s => s.textContent)"
     )
@@ -467,7 +476,7 @@ def test_url_unwinds_on_filter_clear(page, base_url):
     `?min_ac=` in the URL. Verify the URL writer drops keys at default."""
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("document.getElementById('meta').textContent.indexOf('sites') > -1")
-    page.locator("#filters-toggle").click()
+    _open_filters(page)
 
     # Search round-trip
     page.locator("#search").fill("philly")
@@ -570,11 +579,13 @@ def test_owner_section_uses_user_friendly_copy(page, base_url):
 
 
 def test_hero_strip_renders(page, base_url):
-    """KPI deck above the map and footer refresh date are populated."""
+    """KPI deck above the map and the topbar refresh date are populated."""
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
-    # Footer refresh stamp filled in (not the dash placeholder)
-    refresh = page.locator("#footer-refresh").text_content()
+    # Topbar refresh stamp filled in (not empty) — the single "last
+    # refreshed" readout on the page (2026-08-24; used to be repeated in
+    # the hero/footer/tagline too).
+    refresh = page.locator("#topbar-refresh").text_content()
     assert refresh.startswith("Refreshed") and "—" not in refresh
     # KPI deck — five cells, each with a non-dash number
     for kpi_id in ("kpi-total", "kpi-acres", "kpi-dc", "kpi-hyperscale", "kpi-generation"):
@@ -583,7 +594,9 @@ def test_hero_strip_renders(page, base_url):
 
 
 def test_footer_with_sources(page, base_url):
-    """v1.8: footer cites the five data sources + refresh date + GitHub link."""
+    """v1.8: footer cites the five data sources + GitHub link. The refresh
+    date used to also live in the footer; it's now topbar-only (2026-08-24,
+    one date on the page instead of three)."""
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("document.getElementById('meta').textContent.indexOf('sites') > -1")
     footer = page.locator("footer.site-footer")
@@ -591,8 +604,7 @@ def test_footer_with_sources(page, base_url):
     text = footer.text_content()
     for source in ("EPA Superfund", "EPA ACRES", "USACE FUDS", "DOD BRAC", "EPA RE-Powering"):
         assert source in text, f"missing source: {source}"
-    refresh = page.locator("#footer-refresh").text_content()
-    assert refresh.startswith("Refreshed") and "—" not in refresh
+    assert "GitHub" in text
 
 
 def test_meta_text_shows_per_program_counts(page, base_url):
@@ -607,8 +619,9 @@ def test_meta_text_shows_per_program_counts(page, base_url):
     assert "brownfields" in text
     assert "FUDS" in text
     assert "BRAC" in text
-    # And it should still carry the refreshed date.
-    assert "refreshed" in text.lower()
+    # Refreshed date lives next to the title, not duplicated here (2026-08-24).
+    refresh = page.locator("#topbar-refresh").text_content()
+    assert "refreshed" in refresh.lower()
 
 
 def test_refresh_date_reflects_freshest_data_file(page, base_url):
@@ -867,42 +880,6 @@ def test_documents_block_renders_for_enriched_site(page, base_url):
     assert "second.docdata" in more_href
 
 
-def test_kpi_subtext_does_not_overflow_cell(page, base_url):
-    """UAT-006 (2026-05-03): At desktop widths the KPI subtext used to
-    overflow its cell because `.kpi-sub` was a `<span>` with `display:
-    inline` — `overflow: hidden` and `text-overflow: ellipsis` no-op on
-    inline elements, so the second cell's "4.9K sites with reported area"
-    bled visually into the third cell's "≥50 ac · power · water".
-
-    Guard: at 1280px (the desktop breakpoint we ship for), each
-    `.kpi-sub`'s rendered right edge must stay within its parent cell's
-    right edge minus the cell's right padding."""
-    page.set_viewport_size({"width": 1280, "height": 800})
-    page.goto(f"{base_url}/index.html")
-    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
-    overflows = page.evaluate(
-        "(() => Array.from(document.querySelectorAll('.kpi')).map((cell, i) => {"
-        "  const sub = cell.querySelector('.kpi-sub');"
-        "  if (!sub) return null;"
-        "  const cr = cell.getBoundingClientRect();"
-        "  const sr = sub.getBoundingClientRect();"
-        "  return {"
-        "    i,"
-        "    display: getComputedStyle(sub).display,"
-        "    overflows: sr.right - cr.right,"
-        "  };"
-        "}).filter(Boolean))()"
-    )
-    assert overflows, "no .kpi cells found"
-    for row in overflows:
-        # Subtext must be a block-level box for ellipsis to engage.
-        assert row["display"] == "block", f"kpi-sub[{row['i']}] display={row['display']!r}"
-        # Right edge must be inside the cell (allow up to 0px tolerance).
-        assert row["overflows"] <= 0, (
-            f"kpi-sub[{row['i']}] overflows cell by {row['overflows']:.1f}px"
-        )
-
-
 def test_reset_restores_all_four_programs(page, base_url):
     """UAT-007 (2026-05-03): the Reset button used to hard-code v1.6's
     `[superfund, brownfield]` defaults, silently dropping FUDS + BRAC on
@@ -922,7 +899,7 @@ def test_reset_restores_all_four_programs(page, base_url):
         assert page.locator(f"#f-program-{p}").is_checked(), f"{p} not checked at start"
 
     # Open the filters panel + uncheck Superfund.
-    page.locator("#filters-toggle").click()
+    _open_filters(page)
     page.locator("#f-program-superfund").uncheck()
     # Filter system writes URL state debounced 200ms; wait it out.
     page.wait_for_function(
@@ -1017,7 +994,7 @@ def test_reset_clears_filter_chip(page, base_url):
     )
 
     # Open filters + click Reset.
-    page.locator("#filters-toggle").click()
+    _open_filters(page)
     page.locator("#filters-reset").click()
 
     # Search input cleared and chip hidden.
@@ -1618,7 +1595,7 @@ def test_visible_bbox_cached_on_filter(page, base_url):
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
     # Apply a state filter — narrows the visible set significantly.
-    page.locator("#filters-toggle").click()
+    _open_filters(page)
     page.locator("#f-state").select_option("CA")
     # applyFilter runs synchronously off the change event; bbox is cached.
     bbox = page.evaluate(
@@ -1747,7 +1724,7 @@ def test_iso_rto_filter_facet_filters_sites(page, base_url):
     URL state as ?iso_rto=..."""
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
-    page.locator("#filters-toggle").click()
+    _open_filters(page)
     page.wait_for_selector("#filters:not([hidden])")
     page.locator("#f-iso-rto").select_option("PJM")
     page.wait_for_function(
@@ -1881,8 +1858,6 @@ def test_hyperscale_kpi_cell_populates(page, base_url):
     page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
     text = (page.locator("#kpi-hyperscale").text_content() or "").strip()
     assert text not in ("", "—"), f"hyperscale KPI not populated, got {text!r}"
-    sub = (page.locator("#kpi-hyperscale-sub").text_content() or "").strip()
-    assert "230 kV" in sub, f"subtext should cite the kV threshold, got {sub!r}"
 
 
 def test_dc_candidate_surfaces_criteria_in_detail_panel(page, base_url):
@@ -2018,11 +1993,12 @@ def test_marker_layer_created_before_fit_bounds(page, base_url):
 # *default* behavior at first paint so future refactors don't silently revert
 # to the desktop-only chrome that swamped the map on phones.
 
-def test_kpi_disclosure_collapsed_by_default_on_mobile(page, base_url):
-    """The hero KPI deck is wrapped in a <details disclosure>. On mobile the
-    summary strip shows two strongest numbers (sites + DC candidates) and
-    the carousel stays collapsed until the user taps. Guards against
-    accidentally hard-coding `open` on the details element."""
+def test_kpi_deck_always_open_no_summary_chip_on_mobile(page, base_url):
+    """2026-08-24: the KPI deck used to collapse behind a tap-to-expand
+    summary chip on mobile — the extra tap was the problem, not a feature.
+    The deck is now always open (same as desktop) and renders directly as
+    the horizontally-scrollable strip; the summary chip is hidden on every
+    breakpoint. Guards against regressing back to the collapsed pattern."""
     page.set_viewport_size({"width": 375, "height": 812})
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("window.__sitesLoaded === true", timeout=20000)
@@ -2033,16 +2009,16 @@ def test_kpi_disclosure_collapsed_by_default_on_mobile(page, base_url):
         "  return {"
         "    open: d.open,"
         "    summaryDisplay: getComputedStyle(sum).display,"
-        "    totalText: document.getElementById('kpi-summary-total').textContent,"
-        "    dcText: document.getElementById('kpi-summary-dc').textContent,"
+        "    totalText: document.getElementById('kpi-total').textContent,"
+        "    dcText: document.getElementById('kpi-dc').textContent,"
         "  };"
         "})()"
     )
-    assert state["open"] is False, "KPI disclosure should default closed on mobile"
-    assert state["summaryDisplay"] != "none", "summary strip should be visible on mobile"
+    assert state["open"] is True, "KPI disclosure should be open by default on mobile too"
+    assert state["summaryDisplay"] == "none", "summary chip should be hidden on mobile"
     # Numbers populated (not the "—" loading placeholder).
-    assert state["totalText"] not in ("—", ""), "summary total not populated"
-    assert state["dcText"] not in ("—", ""), "summary DC count not populated"
+    assert state["totalText"] not in ("—", ""), "KPI total not populated"
+    assert state["dcText"] not in ("—", ""), "KPI DC count not populated"
 
 
 def test_kpi_disclosure_open_by_default_on_desktop(page, base_url):
@@ -2220,7 +2196,7 @@ def test_footer_sources_collapsed_on_mobile(page, base_url):
 
 # ============================================================================
 # 2026-05-11 UAT — KPI shortcuts, search typeahead, nearby sites, chip tooltip,
-# share-link, IntersectionObserver scroll guard, hero version
+# IntersectionObserver scroll guard, hero version
 # ============================================================================
 
 
@@ -2328,7 +2304,7 @@ def test_kpi_filter_reset_clears_dc_candidate(page, base_url):
         timeout=2000,
     )
     # Open filter panel + click reset.
-    page.locator("#filters-toggle").click()
+    _open_filters(page)
     page.locator("#filters-reset").click()
     page.wait_for_function(
         "() => location.search.indexOf('dc_candidate=') === -1",
@@ -2558,44 +2534,6 @@ def test_filter_chip_tooltip_lists_active_filters(page, base_url):
         "() => document.getElementById('filters-chip').hidden === true",
         timeout=2000,
     )
-
-
-def test_kpi_subtext_has_title_attribute_for_truncation(page, base_url):
-    """KPI subtexts truncate with ellipsis on desktop; `title` attr surfaces
-    the unclipped value on hover. Verified for both static-string subtexts
-    (DC/hyperscale criteria) and dynamic ones (total/acreage)."""
-    page.goto(f"{base_url}/index.html")
-    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
-    for sub_id in ("kpi-total-sub", "kpi-acres-sub", "kpi-dc-sub",
-                   "kpi-hyperscale-sub", "kpi-generation-sub"):
-        title = page.locator(f"#{sub_id}").get_attribute("title")
-        text = (page.locator(f"#{sub_id}").text_content() or "").strip()
-        assert title, f"#{sub_id} missing title attribute"
-        assert title.strip() == text, (
-            f"#{sub_id} title {title!r} doesn't match text {text!r}"
-        )
-
-
-def test_share_link_button_present_and_writes_to_clipboard(page, base_url, context):
-    """Share-link button exists in the topbar. Granting clipboard
-    permissions lets us verify the actual clipboard write."""
-    # Grant clipboard read/write so the test can confirm the copy.
-    context.grant_permissions(["clipboard-read", "clipboard-write"])
-    page.goto(f"{base_url}/index.html")
-    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
-    btn = page.locator("#share-link")
-    assert btn.count() == 1, "share-link button missing from topbar"
-    # Apply a filter so the URL is non-trivial.
-    page.locator("[data-kpi='hyperscale']").click()
-    page.wait_for_function(
-        "() => location.search.indexOf('dc_tier=hyperscale') !== -1",
-        timeout=2000,
-    )
-    btn.click()
-    # Toast confirms copy (either success or fallback).
-    page.wait_for_selector("#toast", timeout=2000)
-    toast_text = (page.locator("#toast").text_content() or "").lower()
-    assert "link" in toast_text or "copy" in toast_text or "clipboard" in toast_text
 
 
 def test_table_intersection_observer_does_not_overfire(page, base_url):

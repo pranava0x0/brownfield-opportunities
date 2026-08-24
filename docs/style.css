@@ -173,6 +173,18 @@ main:focus { outline: none; }
   padding: 10px 24px;
   gap: 16px;
 }
+/* Tabs get their own row below the title/search row — tighten the shared
+   top padding so the two rows read as one header block, not two. Doubled
+   class selector so this outranks the plain `.topbar-row` padding
+   shorthand set at the mobile/tablet breakpoints below, regardless of
+   source order. */
+.topbar-row.topbar-row-tabs { padding-top: 0; }
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
 .brand h1 {
   margin: 0;
   font-family: var(--font-serif);
@@ -182,18 +194,27 @@ main:focus { outline: none; }
   line-height: 1.15;
   color: var(--text);
 }
-.brand .sub {
-  margin: 3px 0 0;
+/* Refreshed-date readout next to the title. Deliberately smaller than the
+   16px search-input floor (avoid-iOS-zoom) so the title stays the clear
+   visual anchor of the row. */
+.topbar-refresh {
   font-size: 11px;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.02em;
+  white-space: nowrap;
 }
+.topbar-refresh:empty { display: none; }
 .topbar-controls {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
+  /* nowrap, not wrap: with `justify-content: space-between` on the parent
+     row, a `flex-wrap: wrap` container here sizes itself to fit only SOME
+     of its children on the fits-in-place line and silently drops the rest
+     (theme-toggle) onto an orphaned second line, even with plenty of
+     spare width in the row. Search shrinks via its own min-width instead. */
+  flex-wrap: nowrap;
 }
 .search-wrap {
   position: relative;
@@ -202,6 +223,9 @@ main:focus { outline: none; }
   max-width: 360px;
   display: flex;
 }
+/* Search is corpus-only (map/table/rankings) — [hidden] trap guard, since
+   the rule above sets `display: flex` on this same element. */
+.search-wrap[hidden] { display: none; }
 .search {
   position: relative;
   display: flex;
@@ -445,7 +469,9 @@ main:focus { outline: none; }
 .topbar .kpi:first-child { padding-left: 24px; }
 .topbar .kpi-disclosure { display: block; }
 .topbar .kpi-disclosure > .kpi-summary { display: none; }
-}
+/* The stats deck is corpus-only (map/table) — [hidden] trap guard, since
+   both rules above set `display` on this same element. */
+.topbar .kpi-disclosure[hidden] { display: none; }
 .kpi {
   padding: 10px 12px;
   border-right: 1px solid var(--border);
@@ -461,9 +487,11 @@ main:focus { outline: none; }
   font-weight: 600;
   margin-bottom: 4px;
   /* Allow wrap so the label keeps its meaning rather than truncating to
-     "ACRES TRACK..." on narrow tablet columns. The KPI cell sets a min
-     line height so two-line and one-line labels align across cells. */
-  min-height: 2.4em;
+     "ACRES TRACK..." on narrow tablet columns — but don't reserve a full
+     second line when the labels are one-liners at the shipped widths
+     (2026-08-24: with no subtext left below the number, a 2-line reserve
+     read as a big dead gap above every number). */
+  min-height: 1.2em;
   line-height: 1.2;
 }
 .kpi-num {
@@ -476,26 +504,6 @@ main:focus { outline: none; }
   color: var(--text);
   display: block;
 }
-.kpi-sub {
-  font-size: 10.5px;
-  color: var(--muted);
-  margin-top: 3px;
-  line-height: 1.3;
-  /* Truncate at one line on desktop (avoids a tall second row); allow wrap
-     on the mobile carousel where each KPI gets generous min-width.
-     `display: block` is required for `overflow: hidden` + `text-overflow:
-     ellipsis` to take effect — those properties no-op on `display: inline`,
-     which is the default for `<span>`. Without this, the subtext bleeds
-     across the column boundary into the next KPI cell (UAT-006). */
-  display: block;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-@media (max-width: 640px) {
-  .kpi-sub { white-space: normal; overflow: visible; text-overflow: clip; }
-}
-.kpi-sub.kpi-sub-strong { color: var(--text-soft); }
 
 /* Actionable KPI cells (Hyperscale, DC reuse candidates) act as
    click-to-filter shortcuts. Cursor + faint hover hint signals
@@ -527,6 +535,18 @@ main:focus { outline: none; }
 .kpi-disclosure { display: block; }
 .kpi-disclosure > .kpi-summary { display: none; }
 .kpi-disclosure[open] > .kpi-deck { margin-top: 0; }
+/* The per-program tagline ("N sites (X Superfund + ...) · refreshed ...")
+   used to sit under the <h1>; it's now folded into the stats deck itself
+   (same <details>, expands/collapses with it) so it only ever appears
+   alongside the numbers it's summarizing. */
+.kpi-tagline {
+  margin: 0;
+  padding: 6px 24px 0;
+  font-size: 11px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
 
 /* ============================================================
    JTBD quick-start strip — "what are you siting?" in one click.
@@ -605,61 +625,15 @@ main:focus { outline: none; }
   .hero-eyebrow { font-size: 9.5px; }
   .hero h2 { font-size: 18px; }
   .hero p { font-size: 12.5px; }
-  /* On phones the map is the product — hide hero copy entirely; the KPI
-     deck collapses behind a disclosure with a compact summary strip. */
+  /* On phones the map is the product — hide hero copy entirely. The KPI
+     deck used to collapse behind a disclosure with a tap-to-expand summary
+     chip; that extra tap was the problem, not a feature, so the summary
+     chrome is hidden and wireKpiDisclosure() now always leaves the
+     <details> open — the deck renders directly as a horizontally
+     scrollable strip (below), same as the always-open desktop behavior. */
   .hero-copy { display: none; }
   .topbar .kpi-disclosure > .kpi-summary,
-  .kpi-disclosure > .kpi-summary {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    list-style: none;
-    cursor: pointer;
-    padding: 6px 10px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    font-size: 11.5px;
-    color: var(--muted);
-    letter-spacing: 0.01em;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .topbar .kpi-disclosure > .kpi-summary::-webkit-details-marker,
-  .kpi-disclosure > .kpi-summary::-webkit-details-marker { display: none; }
-  .kpi-summary-pair {
-    display: inline-flex;
-    align-items: baseline;
-    gap: 4px;
-  }
-  .kpi-summary-num {
-    font-family: var(--font-serif);
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--text);
-    font-variant-numeric: tabular-nums;
-    letter-spacing: -0.01em;
-  }
-  .kpi-summary-label {
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    font-size: 9.5px;
-    font-weight: 600;
-  }
-  .kpi-summary-dot { color: var(--border-strong); }
-  .kpi-summary-chevron {
-    margin-left: auto;
-    width: 8px;
-    height: 8px;
-    border-right: 1.5px solid var(--muted);
-    border-bottom: 1.5px solid var(--muted);
-    transform: rotate(45deg) translate(-1px, -1px);
-    transition: transform 150ms ease;
-  }
-  .kpi-disclosure[open] .kpi-summary-chevron {
-    transform: rotate(-135deg) translate(-1px, -1px);
-  }
-  .kpi-disclosure[open] > .kpi-deck { margin-top: 8px; }
+  .kpi-disclosure > .kpi-summary { display: none; }
   .kpi-deck {
     border-radius: 6px;
     overflow-x: auto;
@@ -674,20 +648,48 @@ main:focus { outline: none; }
 }
 
 /* ============================================================
-   Filters strip
+   App body — filters sidebar + main, side by side on desktop/
+   tablet/widescreen. `.app-body` wraps #filters and <main> only
+   (the topbar and footer stay full-width outside it); `#detail` and
+   `.filters-backdrop` are `position: fixed`, so this wrapper doesn't
+   affect them.
+   ============================================================ */
+.app-body {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ============================================================
+   Filters — a persistent vertical sidebar on desktop/tablet/
+   widescreen (better use of the wide unused side margin than a
+   toggled full-width strip that pushed the map down). Still opens
+   open-by-default (see wireFilters()/openFiltersUi() in app.js,
+   mirroring the KPI-disclosure default-open pattern) and the gear
+   button can collapse it back to reclaim width. Below 640px this
+   reverts to the original bottom-sheet overlay (see the mobile
+   media query) — `position: fixed` there takes it out of the
+   `.app-body` row entirely, so `main` gets the full width for free.
    ============================================================ */
 .filters {
   display: flex;
-  align-items: flex-end;
-  gap: 18px;
-  padding: 12px 24px;
+  flex-direction: column;
+  align-items: stretch;
+  flex: 0 0 260px;
+  width: 260px;
+  gap: 16px;
+  padding: 16px 18px;
   background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  flex-wrap: wrap;
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
 }
 .filters[hidden] { display: none; }
+.filters .filter select,
+.filters .filter input[type="range"] { width: 100%; min-width: 0; }
+.filters .filter-acreage { min-width: 0; }
 /* Desktop: the sheet chrome (drag handle, title, close, action footer)
-   doesn't render — the filters read as an inline strip below the hero. */
+   doesn't render — the filters read as a static sidebar column. */
 .filters-sheet-head,
 .filters-sheet-actions,
 .filters-backdrop { display: none; }
@@ -798,6 +800,7 @@ main:focus { outline: none; }
    ============================================================ */
 main {
   flex: 1;
+  min-width: 0;
   position: relative;
   overflow: hidden;
 }
@@ -1889,11 +1892,6 @@ main {
 }
 .suit-flood[hidden] { display: none; }
 
-/* The hero KPI deck's existing `.kpi-sub.kpi-sub-strong` rule already
-   styles the "≥50 ac · power · water" subtext for #kpi-dc — the new
-   #kpi-hyperscale subtext picks up the same treatment automatically
-   because the markup pattern is identical. No new rules needed here. */
-
 /* ============================================================
    Footer — sources (editorial sites cite, SaaS dashboards don't)
    ============================================================ */
@@ -1942,11 +1940,18 @@ main {
   .topbar-row { padding: 6px 12px; gap: 6px; flex-wrap: wrap; }
   .topbar .kpi { padding: 6px 12px; }
   .brand { flex: 1 1 auto; min-width: 0; }
-  .topbar-controls { width: 100%; gap: 4px; flex-wrap: wrap; }
+  .topbar-controls { width: 100%; gap: 4px; flex-wrap: nowrap; }
+  /* The base rule's `min-width: 220px` / `max-width: 360px` (sized for a
+     desktop toolbar) is what pushed the icon buttons onto their own line
+     on a 375px phone — let it shrink to whatever's left after the icons. */
+  .search-wrap { flex: 1 1 auto; min-width: 0; max-width: none; }
   .search { flex: 1; min-width: 0; order: -1; }
-  .search input { font-size: 16px; /* avoid iOS auto-zoom */ }
-  .brand h1 { font-size: 16px; }
-  .brand .sub { font-size: 10px; margin-top: 1px; }
+  .search input { font-size: 16px; /* avoid iOS auto-zoom — floor, don't go below */ }
+  /* Site title reads bigger than the search box (18px > the 16px input
+     floor above) rather than tying for the same size. */
+  .brand h1 { font-size: 18px; }
+  .topbar-refresh { font-size: 9.5px; }
+  .kpi-tagline { font-size: 10px; padding: 4px 12px 0; }
   .icon-btn { width: 30px; height: 30px; }
   .tab { padding: 6px 12px; font-size: 13px; }
   /* Seven tabs no longer fit a phone. Scroll the strip inside itself rather
@@ -1991,6 +1996,7 @@ main {
   /* Filters become a bottom sheet on phones — same pattern as the detail
      panel. The inline strip behavior is replaced with a slide-up overlay
      so the map stays visible underneath while the user picks filters. */
+  .app-body { flex-direction: column; }
   .filters {
     position: fixed;
     left: 0; right: 0; bottom: 0;
@@ -2001,6 +2007,7 @@ main {
     gap: 14px;
     background: var(--surface);
     border-bottom: none;
+    border-right: none;
     border-top: 1px solid var(--border);
     border-radius: 14px 14px 0 0;
     box-shadow: var(--shadow);
@@ -2523,6 +2530,7 @@ main {
 .ap1000-export:hover { border-color: var(--accent); }
 .ap1000-export:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 #export-csv[hidden] { display: none; }
+#filters-toggle[hidden] { display: none; }
 .ap1000-janus-key { color: var(--suit-amber); font-weight: 600; white-space: nowrap; }
 .ap1000-rflp-key { color: var(--accent); font-weight: 600; white-space: nowrap; }
 .ap1000-flag-amber { color: var(--suit-amber); font-weight: 600; }
@@ -3371,12 +3379,19 @@ button.coal-nearby-item:focus-visible { outline: 2px solid var(--accent); outlin
   text-shadow: 0 0 4px rgba(0,0,0,0.9);
 }
 
-.hanford-wrap { max-width: 1180px; margin: 0 auto; padding: 28px 24px 64px; }
+/* No horizontal cap here (unlike the About/Retired/AP1000/Micro/Coal
+   wraps, which intentionally cap at 1000-1240px for a magazine-style
+   read) — the dossier's own tables and the 5-across manager grid want
+   the full main width on wide monitors. Prose still reads cleanly at
+   any width because every paragraph carries its own max-width: 92ch. */
+.hanford-wrap { padding: 28px 32px 64px; }
 .hanford-lead h2 { margin: 0 0 6px; font-family: var(--font-serif); font-size: 22px; }
-.hanford-lead p { margin: 0 0 12px; color: var(--text-soft); line-height: 1.6; max-width: 92ch; font-size: 13.5px; }
+.hanford-lead p { margin: 0 0 12px; color: var(--text-soft); line-height: 1.6; font-size: 13.5px; }
 
 .hanford-overview { margin: 14px 0 10px; }
-.hanford-summary { color: var(--text-soft); line-height: 1.6; max-width: 92ch; font-size: 13.5px; margin: 0 0 12px; }
+.hanford-section-title { font-family: var(--font-serif); font-size: 18px; margin: 18px 0 10px; }
+.hanford-section-title:first-child { margin-top: 0; }
+.hanford-summary { color: var(--text-soft); line-height: 1.6; font-size: 13.5px; margin: 0 0 12px; }
 .hanford-mgrs {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
@@ -3401,7 +3416,7 @@ button.coal-nearby-item:focus-visible { outline: 2px solid var(--accent); outlin
 }
 .hanford-mgr p { margin: 0 0 6px; color: var(--text-soft); line-height: 1.5; }
 .hanford-mgr a { font-size: 12px; }
-.hanford-lup { max-width: 92ch; }
+.hanford-lup { }
 
 .hanford-pathways { margin: 12px 0 18px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
 .hanford-pathways > summary { cursor: pointer; padding: 10px 14px; font-size: 13px; }
@@ -3431,7 +3446,7 @@ button.coal-nearby-item:focus-visible { outline: 2px solid var(--accent); outlin
 .hanford-summary-meta { font-size: 12px; color: var(--muted); display: inline-flex; flex-wrap: wrap; gap: 6px; align-items: baseline; }
 .hanford-parcel-body { padding: 12px 14px 14px; }
 .hanford-parcel-body h5 { margin: 14px 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
-.hanford-status { margin: 0 0 10px; color: var(--text-soft); line-height: 1.6; font-size: 13px; max-width: 92ch; }
+.hanford-status { margin: 0 0 10px; color: var(--text-soft); line-height: 1.6; font-size: 13px; }
 
 .hanford-kind {
   display: inline-block;
@@ -3479,7 +3494,7 @@ button.coal-nearby-item:focus-visible { outline: 2px solid var(--accent); outlin
 .hp-opp:last-child { border-bottom: none; }
 .hp-opp .hp-fit { flex: 0 0 auto; margin-top: 1px; }
 .hp-opp strong { font-size: 13px; }
-.hp-opp p { margin: 2px 0 0; font-size: 12.5px; color: var(--text-soft); line-height: 1.55; max-width: 86ch; }
+.hp-opp p { margin: 2px 0 0; font-size: 12.5px; color: var(--text-soft); line-height: 1.55; }
 
 .hanford-nearby { list-style: none; margin: 0; padding: 0; font-size: 12.5px; }
 .hanford-nearby li { padding: 3px 0; }
