@@ -165,11 +165,15 @@ FEDERAL_SITES_CATALOG: list[dict[str, Any]] = [
         "target_technologies": ["nuclear_smr", "nuclear_micro", "datacenter_ai", "gas_generation", "solar_utility"],
         "program_stage": "Construction",
         "commercial_partner": "SoftBank Group / SB Energy (PORTS Technology Campus — 10 GW DC + ~9.2 GW gas, $33.3B; initial 800 MW phase, ops target 2028)",
-        "solicitation_url": DOE_SITE_SELECTION_URL,
-        "nepa_review_document_url": None,
+        # Citation fix 2026-08-24: the four-site DOE_SITE_SELECTION_URL
+        # announcement (Jul 2025) names INL/Oak Ridge/Paducah/SRS — NOT
+        # Portsmouth. Portsmouth's own primary source is the DOE-EM
+        # partnership article; its lease NEPA action is CX-270875.
+        "solicitation_url": "https://www.energy.gov/em/articles/partnership-ensures-affordable-energy-powers-ai-future-portsmouth-site",
+        "nepa_review_document_url": "https://www.energy.gov/node/4855269",
         "key_advantages": [
             "Groundbreaking held 2026-03-20 for the PORTS Technology Campus — the largest announced US AI-DC project on federal land",
-            "Massive 345 kV switchyards (enrichment cascade historically drew ~2 GW)",
+            "Legacy 330 kV switchyards delivered up to 2,200 MW to the enrichment cascade; X-530 remains active",
             "Scioto River water access and licensed discharge",
             "Centrus commercial HALEU enrichment cascade adjacent",
         ],

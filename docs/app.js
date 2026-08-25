@@ -1212,6 +1212,12 @@ function ensureSuperfundDocsLoaded() {
         const sel = sitesById.get(selectedId);
         if (sel) renderDocuments(sel);
       }
+      // A DOE Sites drawer open on an NPL sub-area reads rec.documents from
+      // the same join (_doeDecisionDocsHtml) — if it was mounted before this
+      // enrichment landed, its "prior federal decision documents" section
+      // rendered empty and never refreshed on its own (Codex PR #24
+      // finding). buildHanfordView() no-ops when the tab was never visited.
+      if (typeof buildHanfordView === "function" && el("hanford-content")) buildHanfordView();
     })
     .catch((err) => {
       console.error("Superfund docs enrichment load failed:", err);
@@ -2722,12 +2728,12 @@ function addLegend() {
         `<span class="legend-num">${federalCleanEnergyLayer.getLayers().length}</span>` +
         `</div>`
       : "";
-    // Hanford E2E dossier parcels (one DOE site, screened end-to-end).
+    // DOE-site dossier parcels (Hanford + the lazy-loaded sibling sites).
     // Static glyph/label plus an integer count — nothing untrusted.
     const hanfordRow = (hanfordParcelLayer && hanfordParcelLayer.getLayers().length > 0)
       ? `<div class="legend-row legend-row-ref">` +
         `<span class="legend-hanford">▣</span>` +
-        `<span class="legend-label">Hanford parcel</span>` +
+        `<span class="legend-label">DOE site parcel</span>` +
         `<span class="legend-num">${hanfordParcelLayer.getLayers().length}</span>` +
         `</div>`
       : "";
@@ -5568,20 +5574,44 @@ function showJanusMap(siteId) {
     });
 }
 
-// ----- Hanford E2E dossier (one DOE site, screened end-to-end) -----
-// Data: docs/data/hanford-e2e.json from scripts/build_hanford_e2e.py —
-// curated parcel ground truth + a ten-source nepa-mcp screen + corpus joins.
-// The tab interior mounts lazily from <template id="hanford-template">;
-// only the nine ▣ markers and a legend row exist before first activation.
+// ----- DOE site dossiers (federal sites, screened end-to-end) -----
+// Data: docs/data/<site>-e2e.json from scripts/build_hanford_e2e.py (Hanford)
+// and scripts/build_doe_sites_e2e.py (SRS / Portsmouth / Paducah / WIPP) —
+// curated parcel ground truth + a nepa-mcp screen + corpus joins. The tab
+// interior mounts lazily from <template id="hanford-template"> (ids keep
+// their historical hanford- names for test/CSS continuity — the naming-vs-
+// identifier split rule); only Hanford loads eagerly (its generated_at
+// drives the refresh date), the other sites lazy-load on pill selection and
+// therefore deliberately do NOT call recordRefreshDate (reference-campuses
+// rule: a file whose loader may never run must not drive the displayed date).
+
+// Site registry — drift-safe iteration rule (UAT-007): pills, loaders, and
+// markers all derive from this list; never hardcode the site set elsewhere.
+const DOE_SITES = [
+  { id: "hanford", label: "Hanford", state: "WA", url: HANFORD_E2E_URL },
+  { id: "srs", label: "Savannah River", state: "SC", url: "data/srs-e2e.json" },
+  { id: "portsmouth", label: "Portsmouth", state: "OH", url: "data/portsmouth-e2e.json" },
+  { id: "paducah", label: "Paducah", state: "KY", url: "data/paducah-e2e.json" },
+  { id: "wipp", label: "WIPP", state: "NM", url: "data/wipp-e2e.json" },
+];
+
+let doeActiveSite = "hanford";
+let doeUrlSiteApplied = false;        // one-shot ?doe= param read
+const doeSiteData = {};               // site id -> dossier payload
+const doeSitePromises = {};           // site id -> in-flight fetch promise
+const doeSiteFailed = {};             // site id -> last load failed
+const doeSelectedParcel = {};         // site id -> parcel id open in the drawer
 
 const HANFORD_KIND_LABEL = {
   cleanup_area: "Cleanup area",
   cleanup_core: "Cleanup core",
   transferred: "Transferred",
   leased_energy: "Leased for energy",
+  leased_industrial: "Leased for industry",
   conservation: "Conservation",
   cultural: "Historic",
   context_campus: "Context",
+  operating_mission: "Operating mission",
 };
 
 const HANFORD_FIT_LABEL = {
@@ -5589,6 +5619,19 @@ const HANFORD_FIT_LABEL = {
   strong: "Strong",
   conditional: "Conditional",
   precluded: "Precluded",
+};
+
+// Binding-constraint chip labels for facility-fit cells (schema
+// HanfordFacilityFit.constraint) — WHY a cell is what it is, at a glance.
+const DOE_CONSTRAINT_LABEL = {
+  mission: "mission occupies land",
+  land: "land status / designation",
+  licensing: "licensing path",
+  power: "speed to power",
+  water: "water",
+  gas: "gas supply",
+  workforce: "workforce",
+  security: "security perimeter",
 };
 
 // Facility-fit summary vocabulary — a dedicated data-center-vs-reactor-class
@@ -5604,62 +5647,99 @@ const HANFORD_FACILITY_SHORT_LABEL = {
   microreactor: "Microreactor",
 };
 
-function ensureHanfordLoaded() {
-  if (hanfordLoadingPromise) return hanfordLoadingPromise;
-  hanfordLoadFailed = false;
-  hanfordLoadingPromise = fetch(HANFORD_E2E_URL, { priority: "low" })
+// The seven-category infrastructure vocabulary (schema DoeInfrastructureRow).
+const DOE_INFRA_LABEL = {
+  power_td: "Power — transmission & distribution",
+  natural_gas: "Natural gas",
+  water: "Water",
+  rail: "Rail",
+  road: "Road",
+  fiber: "Fiber",
+  workforce: "Workforce",
+};
+const DOE_INFRA_ORDER = ["power_td", "natural_gas", "water", "rail", "road", "fiber", "workforce"];
+
+function _doeAddParcelMarkers(site, payload) {
+  if (!hanfordParcelLayer) return;
+  for (const p of payload.parcels || []) {
+    if (p.lat == null || p.lon == null) continue;
+    // Overlay markers need the inset remap whenever a row could sit outside
+    // US_BOUNDS (the microreactor/Eielson lesson) — all five DOE sites are
+    // CONUS today, but the call is cheap and future rows stay reachable.
+    // applyInsetRemap keys off `.state`, so pass the site's state code.
+    const pos = { lat: p.lat, lon: p.lon, state: (payload.site_overview || {}).state };
+    applyInsetRemap(pos);
+    // Glyph directly in the icon div (no inner span) — the divIcon
+    // DOM-cost rule every overlay follows.
+    const icon = L.divIcon({
+      className: "hanford-parcel-icon",
+      html: "▣",
+      iconSize: [18, 18],
+      iconAnchor: [9, 9],
+      popupAnchor: [0, -10],
+    });
+    const marker = L.marker([pos.lat, pos.lon], { icon, zIndexOffset: 420 });
+    const kindLabel = HANFORD_KIND_LABEL[p.kind] || p.kind;
+    marker.bindPopup(
+      `<div class="ref-campus-popup">` +
+      `<strong>${escapeHtml(p.name)}</strong>` +
+      `<div class="ref-campus-company">${escapeHtml(site.label)} · ${escapeHtml(kindLabel)} · ${_doeAcres(p)}</div>` +
+      `<div class="ref-campus-prev">${escapeHtml(p.availability)}</div>` +
+      `<button type="button" class="hanford-popup-btn">Open ${escapeHtml(site.label)} dossier &rarr;</button>` +
+      `</div>`,
+      { maxWidth: 290 }
+    );
+    // Closure-bound on popupopen — never string-interpolated inline
+    // handlers (code review 2026-08-23 #1).
+    marker.on("popupopen", (ev) => {
+      const btn = ev.popup.getElement()?.querySelector(".hanford-popup-btn");
+      if (btn) btn.addEventListener("click", () => window.__openDoeParcel(site.id, p.id), { once: true });
+    });
+    hanfordParcelLayer.addLayer(marker);
+  }
+  rerenderLegend();
+}
+
+function ensureDoeSiteLoaded(siteId) {
+  const site = DOE_SITES.find((s) => s.id === siteId);
+  if (!site) return Promise.resolve(null);
+  if (doeSitePromises[siteId]) return doeSitePromises[siteId];
+  doeSiteFailed[siteId] = false;
+  doeSitePromises[siteId] = fetch(site.url, { priority: "low" })
     .then((r) => {
       if (!r.ok) throw new Error("HTTP " + r.status);
       return r.json();
     })
     .then((payload) => {
-      recordRefreshDate(payload.generated_at, HANFORD_E2E_URL);
-      hanfordData = payload;
-      window.__hanford = payload; // e2e hook, like __sites / __coalAssets
-      if (hanfordParcelLayer) {
-        for (const p of payload.parcels || []) {
-          if (p.lat == null || p.lon == null) continue;
-          // Glyph directly in the icon div (no inner span) — the divIcon
-          // DOM-cost rule every overlay follows.
-          const icon = L.divIcon({
-            className: "hanford-parcel-icon",
-            html: "▣",
-            iconSize: [18, 18],
-            iconAnchor: [9, 9],
-            popupAnchor: [0, -10],
-          });
-          const marker = L.marker([p.lat, p.lon], { icon, zIndexOffset: 420 });
-          const kindLabel = HANFORD_KIND_LABEL[p.kind] || p.kind;
-          marker.bindPopup(
-            `<div class="ref-campus-popup">` +
-            `<strong>${escapeHtml(p.name)}</strong>` +
-            `<div class="ref-campus-company">${escapeHtml(kindLabel)} · ~${Math.round(p.approx_acres).toLocaleString()} ac</div>` +
-            `<div class="ref-campus-prev">${escapeHtml(p.availability)}</div>` +
-            `<button type="button" class="hanford-popup-btn">Open Hanford dossier &rarr;</button>` +
-            `</div>`,
-            { maxWidth: 290 }
-          );
-          // Closure-bound on popupopen — never string-interpolated inline
-          // handlers (code review 2026-08-23 #1).
-          marker.on("popupopen", (ev) => {
-            const btn = ev.popup.getElement()?.querySelector(".hanford-popup-btn");
-            if (btn) btn.addEventListener("click", () => window.__openHanfordParcel(p.id), { once: true });
-          });
-          hanfordParcelLayer.addLayer(marker);
-        }
-        rerenderLegend();
+      // Only the eager Hanford artifact drives the displayed refresh date —
+      // the other four load on demand, and a loader that may never run must
+      // not feed recordRefreshDate (reference-campuses rule).
+      if (siteId === "hanford") {
+        recordRefreshDate(payload.generated_at, HANFORD_E2E_URL);
+        hanfordData = payload;
+        window.__hanford = payload; // e2e hook, like __sites / __coalAssets
       }
+      doeSiteData[siteId] = payload;
+      window.__doeSites = doeSiteData; // e2e hook for the multi-site tab
+      _doeAddParcelMarkers(site, payload);
       // If the user is already sitting on the tab, upgrade the loading state.
       const view = el("view-hanford");
       if (view && view.classList.contains("active")) buildHanfordView();
     })
     .catch((err) => {
-      console.error("Hanford dossier load failed:", err);
-      hanfordLoadFailed = true;
-      hanfordLoadingPromise = null; // nulled so the next call retries
+      console.error(`DOE dossier load failed (${siteId}):`, err);
+      doeSiteFailed[siteId] = true;
+      doeSitePromises[siteId] = null; // nulled so the next call retries
+      if (siteId === "hanford") hanfordLoadFailed = true;
       const view = el("view-hanford");
       if (view && view.classList.contains("active")) buildHanfordView();
     });
+  return doeSitePromises[siteId];
+}
+
+function ensureHanfordLoaded() {
+  // Boot fan-out entry point (eager — the artifact drives the refresh date).
+  hanfordLoadingPromise = ensureDoeSiteLoaded("hanford");
   return hanfordLoadingPromise;
 }
 
@@ -5673,20 +5753,35 @@ function mountHanfordView() {
   view.appendChild(tpl.content.cloneNode(true));
 }
 
-// Jump from a map popup into the dossier with the parcel card open.
-window.__openHanfordParcel = function (parcelId) {
+// Jump from a map popup into the dossier with the unit drawer open.
+window.__openDoeParcel = function (siteId, parcelId) {
   if (typeof window.__setView === "function") window.__setView("hanford");
-  const card = document.getElementById("hp-" + parcelId);
-  if (card) {
-    card.open = true;
-    card.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
+  if (DOE_SITES.some((s) => s.id === siteId)) doeActiveSite = siteId;
+  doeSelectedParcel[siteId] = parcelId;
+  // A marker for a sibling site stays in the shared map layer after that
+  // site's dossier loads, so this can change the active site without going
+  // through the pill handler — sync the URL here too, or a copied/refreshed
+  // link reopens the wrong (or no) dossier (Codex PR #24 finding).
+  syncUrl();
+  buildHanfordView();
+  ensureDoeSiteLoaded(siteId);
+  const drawer = document.getElementById("doe-drawer");
+  if (drawer && !drawer.hidden) drawer.scrollIntoView({ behavior: "smooth", block: "start" });
+};
+
+// Back-compat alias (older popups/tests) — Hanford-scoped.
+window.__openHanfordParcel = function (parcelId) {
+  window.__openDoeParcel("hanford", parcelId);
 };
 
 // Compressed per-source headline for one parcel's screening record. Reuses
 // the Janus status helper so "Unavailable is never a no-hit" renders the
-// same way on both surfaces.
-function _hanfordScreenRows(s) {
+// same way on both surfaces. Rows are emitted only for sources the site's
+// dossier actually declares (payload.sources) — the four non-Pacific DOE
+// sites run an 8-source matrix (no NOAA West Coast CH / salmon EFH), and a
+// hardcoded ten-row table would render misleading "Unavailable" rows for
+// tools that were never applicable there.
+function _doeScreenRows(payload, s) {
   const ipac = s.ipac || {};
   const counts = ipac.counts || {};
   const noaa = s.noaa || {};
@@ -5700,35 +5795,40 @@ function _hanfordScreenRows(s) {
   const assist = s.nepa_assist || {};
   const districts = (usace.districts || []).map((d) => d.district_abbreviation || d.district_name).filter(Boolean);
   const noaaNames = (noaa.habitats || []).slice(0, 2).map((h) => h.listed_entity || h.common_name).filter(Boolean);
-  return [
-    ["USFWS IPaC", _janusStatus(ipac,
+  const floodNote = escapeHtml(payload.flood_unmapped_note || "unmapped in NFHL is not flood-free");
+  const rows = [
+    ["ipac", "USFWS IPaC", _janusStatus(ipac,
       `<strong>${counts.listed_species || 0}</strong> listed species · ${counts.critical_habitat || 0} critical-habitat records`), ipac],
-    ["NOAA critical habitat", _janusStatus(noaa,
+    ["noaa", "NOAA critical habitat", _janusStatus(noaa,
       `<strong>${noaa.count || 0}</strong> NMFS designations` +
       (noaaNames.length ? `<div class="micro-sub">${escapeHtml(noaaNames.join(" · "))}</div>` : "")), noaa],
-    ["Salmon EFH", _janusStatus(efh,
+    ["efh_salmon", "Salmon EFH", _janusStatus(efh,
       `<strong>${efh.count || 0}</strong> HUC-8 watersheds with mapped EFH`), efh],
-    ["Tribal geography", _janusStatus(tribal,
+    ["tribal", "Tribal geography", _janusStatus(tribal,
       `<strong>${tribal.count || 0}</strong> mapped geographies` +
       '<div class="micro-sub">consultation context, not a conclusion</div>'), tribal],
-    ["Historic (NRHP)", _janusStatus(nrhp,
+    ["nrhp", "Historic (NRHP)", _janusStatus(nrhp,
       `<strong>${nrhp.count || 0}</strong> listed properties · ${nrhp.national_historic_landmarks || 0} NHL`), nrhp],
-    ["Protected land", _janusStatus(padus,
+    ["padus", "Protected land", _janusStatus(padus,
       `<strong>${padus.count || 0}</strong> PAD-US records` +
       '<div class="micro-sub">0.1-mi point context</div>'), padus],
-    ["USACE district", _janusStatus(usace,
+    ["usace", "USACE district", _janusStatus(usace,
       districts.length ? escapeHtml(districts.join(" · ")) : '<span class="muted-cell">No district returned</span>'), usace],
-    ["Flood (NFHL)", _janusStatus(flood,
+    ["fema_nfhl", "Flood (NFHL)", _janusStatus(flood,
       flood.count
         ? `<strong>${flood.count}</strong> mapped zones in 2 mi · ${flood.sfha_count || 0} SFHA`
-        : 'No mapped zones in 2 mi<div class="micro-sub">much of Hanford is unmapped in NFHL — not flood-free</div>'), flood],
-    ["Biodiversity (GBIF)", _janusStatus(gbif,
+        : `No mapped zones in 2 mi<div class="micro-sub">${floodNote}</div>`), flood],
+    ["gbif", "Biodiversity (GBIF)", _janusStatus(gbif,
       `<strong>${(gbif.occurrence_count || 0).toLocaleString()}</strong> threatened-species records · ${gbif.species_count || 0} species since 2000`), gbif],
-    ["EPA NEPAssist", _janusStatus(assist,
+    ["nepa_assist", "EPA NEPAssist", _janusStatus(assist,
       assist.report_url
         ? `<a href="${escapeAttr(assist.report_url)}" target="_blank" rel="noopener">Screening report ↗</a>`
         : "Screen returned"), assist],
   ];
+  const declared = payload.sources || {};
+  return rows
+    .filter(([key]) => declared[key])
+    .map(([key, label, html, section]) => [label, html, section, (declared[key] || {}).url]);
 }
 
 // One parcel's corpus-join readout (the dashboard's own enrichments).
@@ -5756,14 +5856,65 @@ function _hanfordCorpusHtml(p) {
   );
 }
 
+// Acreage renderer that never invents a number — None/undefined means the
+// source publishes no figure (e.g. the Centrus ACP footprint).
+function _doeAcres(p, suffix) {
+  if (p.approx_acres == null) return "size not published";
+  return `~${Math.round(p.approx_acres).toLocaleString()} ${suffix || "ac"}`;
+}
+
 const HANFORD_FIT_RANK = { anchored: 4, strong: 3, conditional: 2, precluded: 1 };
 
-// Top-of-page comparison: what each facility type needs (from the build
-// script's FACILITY_TYPES, so the criteria text lives in one place) plus a
-// parcel × facility-type matrix with a computed "best fit" column. The
-// per-cell fit VALUES are curated (facility_fit on each parcel); only the
-// best-fit ranking itself is computed client-side from those values.
-function _hanfordFacilityFitSummaryHtml(parcels, facilityTypes) {
+// Best-fit ranking for one parcel's facility_fit set. 2026-08-24 fix: a
+// parcel whose every type is "precluded" must say "None — off the table",
+// never list all four types as ties (the old top-rank tie-listing read an
+// all-precluded row as fit-for-everything — the exact opposite of the
+// data). Only conditional-or-better ranks count as a fit.
+function doeBestFit(byType) {
+  let bestRank = 0;
+  for (const t of HANFORD_FACILITY_ORDER) {
+    const r = HANFORD_FIT_RANK[byType[t]?.fit] || 0;
+    if (r > bestRank) bestRank = r;
+  }
+  if (bestRank === 0) return { label: "Not assessed", none: true };
+  if (bestRank <= HANFORD_FIT_RANK.precluded) return { label: "None — off the table", none: true };
+  const types = HANFORD_FACILITY_ORDER.filter((t) => HANFORD_FIT_RANK[byType[t]?.fit] === bestRank);
+  return { label: types.map((t) => HANFORD_FACILITY_SHORT_LABEL[t]).join(" / "), none: false };
+}
+
+// One facility-fit cell's expanded reasoning block: fit chip + binding
+// constraint + full rationale + its citations (per-cell sources when the
+// rationale asserts an external fact, plus the parcel's own primary source).
+function _doeFitReasonHtml(p, t) {
+  const ff = (p.facility_fit || []).find((row) => row.type === t);
+  if (!ff) return "";
+  const cites = [
+    ...(ff.sources || []).map((sr) =>
+      `<a href="${escapeAttr(sr.url)}" target="_blank" rel="noopener">${escapeHtml(sr.label)} ↗</a>`),
+    `<a href="${escapeAttr(p.source_url)}" target="_blank" rel="noopener">Unit primary source ↗</a>`,
+  ].join(" ");
+  const why = ff.constraint
+    ? `<span class="hp-constraint" title="Binding factor">${escapeHtml(DOE_CONSTRAINT_LABEL[ff.constraint] || ff.constraint)}</span>`
+    : "";
+  return (
+    `<div class="doe-fit-reason" data-type="${escapeAttr(t)}">` +
+    `<div class="doe-fit-reason-head"><strong>${escapeHtml(HANFORD_FACILITY_SHORT_LABEL[t] || t)}</strong>` +
+    `<span class="hp-fit hp-fit-${escapeAttr(ff.fit)}">${escapeHtml(HANFORD_FIT_LABEL[ff.fit] || ff.fit)}</span>${why}</div>` +
+    `<p>${escapeHtml(ff.rationale)}</p>` +
+    `<div class="doe-fit-cites">${cites} <span class="micro-note">Verified ${escapeHtml(p.verified_at)}</span></div>` +
+    `</div>`
+  );
+}
+
+// The answer surface: parcel × facility-type matrix, open by default at the
+// top of the tab. The per-cell fit VALUES are curated (facility_fit on each
+// parcel); only the best-fit ranking is computed client-side. Every cell is
+// a real <button> — clicking it expands a full-width reasoning row with the
+// rationale, binding constraint, and citations (never tooltip-only: the old
+// title-attribute pattern was invisible on touch and to assistive tech).
+function _doeFitMatrixHtml(payload) {
+  const parcels = payload.parcels || [];
+  const facilityTypes = payload.facility_types || {};
   if (!parcels.length) return "";
   const considerationRows = HANFORD_FACILITY_ORDER.map((t) => {
     const meta = facilityTypes[t] || {};
@@ -5776,63 +5927,97 @@ function _hanfordFacilityFitSummaryHtml(parcels, facilityTypes) {
   const bodyRows = parcels.map((p) => {
     const byType = {};
     for (const ff of p.facility_fit || []) byType[ff.type] = ff;
-    let bestRank = 0;
-    for (const t of HANFORD_FACILITY_ORDER) {
-      const r = HANFORD_FIT_RANK[byType[t]?.fit] || 0;
-      if (r > bestRank) bestRank = r;
-    }
-    const bestTypes = bestRank > 0
-      ? HANFORD_FACILITY_ORDER.filter((t) => HANFORD_FIT_RANK[byType[t]?.fit] === bestRank)
-      : [];
-    const bestLabel = bestTypes.length
-      ? bestTypes.map((t) => HANFORD_FACILITY_SHORT_LABEL[t]).join(" / ")
-      : "None — not offered";
+    const best = doeBestFit(byType);
     const cells = HANFORD_FACILITY_ORDER.map((t) => {
       const ff = byType[t];
       if (!ff) return `<td class="hanford-fit-cell">—</td>`;
-      return `<td class="hanford-fit-cell"><span class="hp-fit hp-fit-${escapeAttr(ff.fit)}" title="${escapeAttr(ff.rationale)}">${escapeHtml(HANFORD_FIT_LABEL[ff.fit] || ff.fit)}</span></td>`;
+      const why = ff.constraint ? `<span class="hp-cell-why">${escapeHtml(ff.constraint)}</span>` : "";
+      return `<td class="hanford-fit-cell">` +
+        `<button type="button" class="doe-fit-cell-btn" data-parcel="${escapeAttr(p.id)}" data-type="${escapeAttr(t)}"` +
+        ` aria-expanded="false" aria-label="${escapeAttr(`${p.name} — ${HANFORD_FACILITY_SHORT_LABEL[t]}: ${HANFORD_FIT_LABEL[ff.fit]}. Show reasoning.`)}">` +
+        `<span class="hp-fit hp-fit-${escapeAttr(ff.fit)}">${escapeHtml(HANFORD_FIT_LABEL[ff.fit] || ff.fit)}</span>${why}</button></td>`;
     }).join("");
-    return `<tr><th scope="row"><a href="#hp-${escapeAttr(p.id)}">${escapeHtml(p.name)}</a> <span class="micro-note">~${Math.round(p.approx_acres).toLocaleString()} ac</span></th>` +
+    const reasonBlocks = HANFORD_FACILITY_ORDER.map((t) => _doeFitReasonHtml(p, t)).join("");
+    return `<tr class="doe-fit-row" data-parcel="${escapeAttr(p.id)}">` +
+      `<th scope="row"><button type="button" class="doe-open-parcel text-btn" data-parcel="${escapeAttr(p.id)}">${escapeHtml(p.name)}</button>` +
+      ` <span class="micro-note">${_doeAcres(p)}</span></th>` +
       cells +
-      `<td class="hanford-best-fit">${escapeHtml(bestLabel)}</td></tr>`;
+      `<td class="hanford-best-fit${best.none ? " doe-best-none" : ""}">${escapeHtml(best.label)}</td></tr>` +
+      `<tr class="doe-fit-detail" data-parcel="${escapeAttr(p.id)}" hidden><td colspan="${HANFORD_FACILITY_ORDER.length + 2}">` +
+      `<div class="doe-fit-reasons">${reasonBlocks}</div></td></tr>`;
   }).join("");
   return (
-    `<details class="hanford-pathways hanford-facility-summary"><summary><strong>Facility fit summary — data center vs. reactor class</strong> <span class="micro-note">(what each facility type needs, and the best-fit ranking per parcel)</span></summary>` +
-    `<p class="hanford-summary">Every parcel below is screened against the same four facility types. "Best fit" ties to the highest-ranked fit value (anchored &gt; strong &gt; conditional &gt; precluded); a tie lists every type at that rank. These are editorial judgements grounded in each parcel's curated status and availability, not a computed score — hover a fit badge (or open the parcel below) for the reasoning.</p>` +
+    `<section class="doe-fit-section" id="doe-fit">` +
+    `<h3 class="hanford-section-title">What fits where</h3>` +
+    `<p class="hanford-summary">Each land unit is assessed against the same four facility types. These are cited editorial judgements, not computed scores — <strong>click any cell</strong> for the reasoning, its binding constraint, and its sources. "Best fit" is the highest-ranked value per unit; a unit precluded across the board says <em>None — off the table</em>.</p>` +
+    `<div class="micro-table-wrap"><table class="micro-table hanford-pathway-table hanford-facility-matrix">` +
+    `<thead><tr><th scope="col">Land unit</th>${HANFORD_FACILITY_ORDER.map((t) => `<th scope="col">${escapeHtml(HANFORD_FACILITY_SHORT_LABEL[t])}</th>`).join("")}<th scope="col">Best fit</th></tr></thead>` +
+    `<tbody>${bodyRows}</tbody></table></div>` +
+    `<details class="hanford-pathways hanford-facility-summary"><summary><strong>What each facility type needs</strong> <span class="micro-note">(the assessment criteria, with sources)</span></summary>` +
     `<div class="micro-table-wrap"><table class="micro-table hanford-pathway-table hanford-facility-considerations">` +
     `<thead><tr><th scope="col">Facility type</th><th scope="col">What it needs</th></tr></thead>` +
     `<tbody>${considerationRows}</tbody></table></div>` +
-    `<div class="micro-table-wrap"><table class="micro-table hanford-facility-matrix">` +
-    `<thead><tr><th scope="col">Parcel</th>${HANFORD_FACILITY_ORDER.map((t) => `<th scope="col">${escapeHtml(HANFORD_FACILITY_SHORT_LABEL[t])}</th>`).join("")}<th scope="col">Best fit</th></tr></thead>` +
-    `<tbody>${bodyRows}</tbody></table></div>` +
-    `</details>`
+    `</details>` +
+    `</section>`
   );
 }
 
-function _hanfordParcelCard(p) {
+// Compact land-unit card for the explorer grid. Clicking opens the drawer —
+// the tab renders ONE unit's full dossier at a time instead of nine stacked
+// open accordions (the 2026-08-24 too-much-scrolling finding).
+function _doeParcelCardHtml(p, isOpen) {
   const kindLabel = HANFORD_KIND_LABEL[p.kind] || p.kind;
-  const fits = (p.opportunities || []).map((o) =>
-    `<span class="hp-fit hp-fit-${escapeAttr(o.fit)}" title="${escapeAttr((hanfordData.opportunity_kinds || {})[o.kind] || o.kind)}: ${escapeAttr(o.fit)}">` +
-    `${escapeHtml((hanfordData.opportunity_kinds || {})[o.kind] || o.kind)}</span>`
+  const availability = String(p.availability || "");
+  const firstSentence = availability.split(/(?<=\.)\s/)[0] || availability;
+  const byType = {};
+  for (const ff of p.facility_fit || []) byType[ff.type] = ff;
+  const best = doeBestFit(byType);
+  return (
+    `<button type="button" class="doe-parcel-card${isOpen ? " doe-card-open" : ""}" data-parcel="${escapeAttr(p.id)}" aria-expanded="${isOpen ? "true" : "false"}">` +
+    `<span class="doe-card-head"><strong>${escapeHtml(p.name)}</strong>` +
+    `<span class="hanford-kind hanford-kind-${escapeAttr(p.kind)}">${escapeHtml(kindLabel)}</span></span>` +
+    `<span class="doe-card-meta">${_doeAcres(p)} · Best fit: <strong>${escapeHtml(best.label)}</strong></span>` +
+    `<span class="doe-card-avail">${escapeHtml(firstSentence)}</span>` +
+    `<span class="doe-card-cta">${isOpen ? "Open below ↓" : "Open unit dossier →"}</span>` +
+    `</button>`
+  );
+}
+
+// Prior federal decision documents (CERCLA RODs, Five-Year Reviews …) for
+// units that ARE NPL sub-areas — reuses the epa-superfund-docs join already
+// loaded for the corpus (the 2026-08-24 backlog quick win). Client-side
+// only: no new fetch, the documents live on the corpus record in sitesById.
+function _doeDecisionDocsHtml(p) {
+  if (!p.corpus_site_id || typeof sitesById === "undefined") return "";
+  const rec = sitesById.get(p.corpus_site_id);
+  const docs = (rec && rec.documents) || [];
+  if (!docs.length) return "";
+  const items = docs.slice(0, 5).map((d) =>
+    `<li><a href="${escapeAttr(d.url)}" target="_blank" rel="noopener">${escapeHtml(d.title)}</a>` +
+    ` <span class="micro-note">${escapeHtml([d.date ? d.date.slice(0, 4) : null, d.category].filter(Boolean).join(" · "))}</span></li>`
   ).join("");
-  const screenRows = _hanfordScreenRows(p.screening || {}).map(([label, html, section]) =>
-    `<tr><th scope="row">${escapeHtml(label)}</th><td>${html}</td>` +
+  return (
+    `<h5>Prior federal decision documents <span class="micro-note">(EPA Superfund record for ${escapeHtml(p.corpus_site_id)} — CERCLA response-action history)</span></h5>` +
+    `<ul class="hanford-nearby doe-docs">${items}</ul>` +
+    (docs.length > 5 ? `<p class="micro-note">${docs.length - 5} more on the tracked site record below.</p>` : "")
+  );
+}
+
+// The full single-unit dossier, rendered into #doe-drawer for the selected
+// unit only. Every prose block carries its citation adjacent to the claim.
+function _doeDrawerHtml(payload, p) {
+  const kindLabel = HANFORD_KIND_LABEL[p.kind] || p.kind;
+  const screenRows = _doeScreenRows(payload, p.screening || {}).map(([label, html, section, srcUrl]) =>
+    `<tr><th scope="row">${srcUrl ? `<a href="${escapeAttr(srcUrl)}" target="_blank" rel="noopener">${escapeHtml(label)}</a>` : escapeHtml(label)}</th><td>${html}</td>` +
     `<td class="hanford-retrieved">${section && section.retrieved_at ? escapeHtml(section.retrieved_at.slice(0, 10)) : "—"}</td></tr>`
   ).join("");
+  const hasScreen = Object.keys(p.screening || {}).length > 0;
   const opps = (p.opportunities || []).map((o) =>
     `<li class="hp-opp"><span class="hp-fit hp-fit-${escapeAttr(o.fit)}">${escapeHtml(HANFORD_FIT_LABEL[o.fit] || o.fit)}</span>` +
-    `<div><strong>${escapeHtml((hanfordData.opportunity_kinds || {})[o.kind] || o.kind)}</strong>` +
+    `<div><strong>${escapeHtml((payload.opportunity_kinds || {})[o.kind] || o.kind)}</strong>` +
     `<p>${escapeHtml(o.rationale)}</p></div></li>`
   ).join("");
-  const facilityByType = {};
-  for (const ff of p.facility_fit || []) facilityByType[ff.type] = ff;
-  const facilityFitItems = HANFORD_FACILITY_ORDER.map((t) => {
-    const ff = facilityByType[t];
-    if (!ff) return "";
-    return `<li class="hp-opp"><span class="hp-fit hp-fit-${escapeAttr(ff.fit)}">${escapeHtml(HANFORD_FIT_LABEL[ff.fit] || ff.fit)}</span>` +
-      `<div><strong>${escapeHtml(HANFORD_FACILITY_SHORT_LABEL[t] || t)}</strong>` +
-      `<p>${escapeHtml(ff.rationale)}</p></div></li>`;
-  }).join("");
+  const fitReasons = HANFORD_FACILITY_ORDER.map((t) => _doeFitReasonHtml(p, t)).join("");
   const nearby = (p.nearby_tracked || []).map((n) =>
     `<li><a href="?site=${encodeURIComponent(n.id)}" class="hanford-site-link" data-site="${escapeAttr(n.id)}">${escapeHtml(prettyName(n.name) || n.id)}</a>` +
     ` <span class="micro-note">${escapeHtml((n.program || "").toUpperCase())} · ${fmt.miles(n.distance_mi)}</span></li>`
@@ -5853,100 +6038,198 @@ function _hanfordParcelCard(p) {
       `${failedLayers > 0 ? ` title="${failedLayers} of ${totalLayers} layers failed to collect — their absence from the map is coverage, not clearance"` : ""}>` +
       `Show ${featureCount != null ? featureCount.toLocaleString() + " " : ""}features on map</button>${mapWarn}`
     : `<button type="button" class="ap1000-export" disabled title="Map package not generated for this parcel yet">Map package pending</button>`;
+  const cite = `<a href="${escapeAttr(p.source_url)}" target="_blank" rel="noopener" class="doe-inline-cite" title="Primary source for this unit's status and availability">[source ↗]</a>`;
   return (
-    `<details class="hanford-parcel" id="hp-${escapeAttr(p.id)}">` +
-    `<summary><span class="hanford-parcel-name"><strong>${escapeHtml(p.name)}</strong>` +
-    `<span class="hanford-kind hanford-kind-${escapeAttr(p.kind)}">${escapeHtml(kindLabel)}</span></span>` +
-    `<span class="hanford-summary-meta">~${Math.round(p.approx_acres).toLocaleString()} ac${fits ? ` · ${fits}` : ""}</span></summary>` +
-    `<div class="hanford-parcel-body">` +
-    `<p class="hanford-status">${escapeHtml(p.status)}</p>` +
+    `<div class="coal-drawer-head"><h3 id="hp-${escapeAttr(p.id)}">${escapeHtml(p.name)} ` +
+    `<span class="hanford-kind hanford-kind-${escapeAttr(p.kind)}">${escapeHtml(kindLabel)}</span></h3>` +
+    `<button type="button" class="text-btn" id="doe-drawer-close" aria-label="Close unit dossier">✕ Close</button></div>` +
+    `<p class="hanford-status"><strong>Status.</strong> ${escapeHtml(p.status)} ${cite}</p>` +
+    `<p class="hanford-status"><strong>Availability.</strong> ${escapeHtml(p.availability)} ${cite}</p>` +
     `<dl class="hanford-kv hanford-kv-top">` +
-    `<dt>Availability</dt><dd>${escapeHtml(p.availability)}</dd>` +
     `<dt>Land-use plan</dt><dd>${p.clup_designation ? `<strong>${escapeHtml(p.clup_designation)}</strong> — ` : ""}${escapeHtml(p.clup_note)}</dd>` +
+    `<dt>Size</dt><dd>${_doeAcres(p, "acres")}</dd>` +
     `<dt>Coordinates</dt><dd>${p.lat.toFixed(4)}, ${p.lon.toFixed(4)} <span class="micro-note">${escapeHtml(p.coord_note)}</span></dd>` +
     `</dl>` +
-    `<h5>Environmental screen <span class="micro-note">(${escapeHtml(String(hanfordData.screening_buffer_miles || 5))}-mile context; unavailable ≠ no-hit)</span></h5>` +
-    `<div class="micro-table-wrap"><table class="micro-table hanford-screen-table">` +
-    `<thead><tr><th scope="col">Source</th><th scope="col">Finding</th><th scope="col">Retrieved</th></tr></thead>` +
-    `<tbody>${screenRows}</tbody></table></div>` +
-    _hanfordCorpusHtml(p) +
+    `<h5>Facility fit — the reasoning</h5>` +
+    `<div class="doe-fit-reasons">${fitReasons || '<p class="micro-note">None assessed.</p>'}</div>` +
     `<h5>Opportunities</h5><ul class="hp-opps">${opps || '<li class="micro-note">None assessed.</li>'}</ul>` +
-    `<h5>Facility fit <span class="micro-note">(data center vs. reactor class — see the summary above for how these compare across all nine parcels)</span></h5>` +
-    `<ul class="hp-opps">${facilityFitItems || '<li class="micro-note">None assessed.</li>'}</ul>` +
+    `<h5>Environmental screen <span class="micro-note">(${escapeHtml(String(payload.screening_buffer_miles || 5))}-mile context; unavailable ≠ no-hit)</span></h5>` +
+    (hasScreen
+      ? `<div class="micro-table-wrap"><table class="micro-table hanford-screen-table">` +
+        `<thead><tr><th scope="col">Source</th><th scope="col">Finding</th><th scope="col">Retrieved</th></tr></thead>` +
+        `<tbody>${screenRows}</tbody></table></div>`
+      : `<p class="micro-note">Environmental screen not yet run for this unit — evidence pending, which is not a no-hit.</p>`) +
+    _hanfordCorpusHtml(p) +
+    _doeDecisionDocsHtml(p) +
     (nearby ? `<h5>Nearby tracked records</h5><ul class="hanford-nearby">${nearby}</ul>` : "") +
     `<div class="janus-card-links hanford-cites">` +
     `<a href="${escapeAttr(p.source_url)}" target="_blank" rel="noopener">Primary source ↗</a>` +
     extraSources +
     `<span>Verified ${escapeHtml(p.verified_at)}</span>` +
     `${mapBtn}` +
+    `</div>`
+  );
+}
+
+function _doeSitePillsHtml() {
+  return DOE_SITES.map((s) => {
+    const active = s.id === doeActiveSite;
+    return `<button type="button" class="doe-pill${active ? " doe-pill-active" : ""}" data-doe-site="${escapeAttr(s.id)}"` +
+      ` role="tab" aria-selected="${active ? "true" : "false"}">` +
+      `${escapeHtml(s.label)} <span class="doe-pill-state">${escapeHtml(s.state)}</span></button>`;
+  }).join("");
+}
+
+// At-a-glance header: the answer a developer or practitioner came for,
+// before any scrolling — who runs the site, how big, how many units are
+// live vs. gated vs. off the table — plus jump links and the AI-narrative
+// disclosure (every AI-drafted surface says so and cites its inputs).
+// All interpolations pass through escapeHtml/escapeAttr (house pattern).
+function _doeGlanceHtml(payload) {
+  const ov = payload.site_overview || {};
+  const parcels = payload.parcels || [];
+  let viable = 0, offTable = 0;
+  for (const p of parcels) {
+    const byType = {};
+    for (const ff of p.facility_fit || []) byType[ff.type] = ff;
+    if (doeBestFit(byType).none) offTable += 1; else viable += 1;
+  }
+  const landlord = (ov.managers || [])[0];
+  const lup = ov.land_use_plan || {};
+  const jump = [
+    ["#doe-fit", "What fits where"],
+    ["#doe-units", "Land units"],
+    ["#doe-infra", "Infrastructure"],
+    ["#doe-permitting", "Permitting"],
+    ["#doe-sources", "Sources & method"],
+  ].map(([href, label]) => `<a href="${href}" class="doe-jump">${escapeHtml(label)}</a>`).join("");
+  return (
+    `<section class="doe-glance">` +
+    `<div class="doe-glance-head"><h3 class="hanford-section-title">${escapeHtml(ov.name || payload.site_label || "")}` +
+    `<span class="micro-note"> ${escapeHtml(ov.county || "")}${ov.county ? " County, " : ""}${escapeHtml(ov.state || "")}</span></h3></div>` +
+    `<div class="doe-stats">` +
+    `<span class="doe-stat"><strong>${ov.size_sq_mi ? escapeHtml(String(ov.size_sq_mi)) : "—"}</strong> sq mi</span>` +
+    `<span class="doe-stat"><strong>${parcels.length}</strong> land units</span>` +
+    `<span class="doe-stat doe-stat-viable"><strong>${viable}</strong> with a viable facility fit</span>` +
+    `<span class="doe-stat doe-stat-off"><strong>${offTable}</strong> off the table</span>` +
+    (landlord ? `<span class="doe-stat">Landlord: <a href="${escapeAttr(landlord.url)}" target="_blank" rel="noopener">${escapeHtml((landlord.who || "").split("—")[0].trim())}</a></span>` : "") +
     `</div>` +
-    `</div></details>`
+    `<p class="hanford-summary">${escapeHtml(ov.summary || "")}` +
+    (lup.url ? ` <a href="${escapeAttr(lup.url)}" target="_blank" rel="noopener" class="doe-inline-cite" title="${escapeAttr(lup.label || "Land-use plan")}">[land-use plan ↗]</a>` : "") +
+    `</p>` +
+    (payload.narrative_note ? `<p class="doe-ai-note">⚠ ${escapeHtml(payload.narrative_note)}</p>` : "") +
+    `<nav class="doe-jumps" aria-label="Dossier sections">${jump}</nav>` +
+    `</section>`
+  );
+}
+
+function _doeInfraHtml(payload) {
+  const rows = payload.infrastructure || [];
+  if (!rows.length) return "";
+  const byCat = {};
+  for (const r of rows) (byCat[r.category] = byCat[r.category] || []).push(r);
+  const items = DOE_INFRA_ORDER.filter((c) => byCat[c]).map((c) => {
+    const entries = byCat[c].map((r) => {
+      const extra = (r.extra_sources || []).map((sr) =>
+        ` · <a href="${escapeAttr(sr.url)}" target="_blank" rel="noopener">${escapeHtml(sr.label)} ↗</a>`).join("");
+      return `<p>${escapeHtml(r.summary)} <a href="${escapeAttr(r.source_url)}" target="_blank" rel="noopener" class="doe-inline-cite">[${escapeHtml(r.source_label)} ↗]</a>${extra}</p>`;
+    }).join("");
+    return `<div class="doe-infra-row"><h4>${escapeHtml(DOE_INFRA_LABEL[c] || c)}</h4>${entries}</div>`;
+  }).join("");
+  return (
+    `<section class="doe-infra" id="doe-infra">` +
+    `<h3 class="hanford-section-title">Site infrastructure</h3>` +
+    `<p class="hanford-summary micro-note">Cited site-level facts per category; a category with no verifiable public source is omitted rather than invented. Per-unit GIS distances (this dashboard's own joins) live in each unit's dossier.</p>` +
+    `<div class="doe-infra-grid">${items}</div>` +
+    `</section>`
   );
 }
 
 function buildHanfordView() {
   const host = el("hanford-content");
   if (!host) return;
-  if (hanfordLoadFailed) {
-    host.innerHTML =
-      '<p class="muted">Hanford dossier could not be loaded. ' +
+  // One-shot ?doe= deep-link read (parsed here, not at top level — the
+  // candidatesState ?lens= TDZ lesson).
+  if (!doeUrlSiteApplied) {
+    doeUrlSiteApplied = true;
+    const want = new URLSearchParams(location.search).get("doe");
+    if (want && DOE_SITES.some((s) => s.id === want)) doeActiveSite = want;
+  }
+  const site = DOE_SITES.find((s) => s.id === doeActiveSite) || DOE_SITES[0];
+  const payload = doeSiteData[site.id];
+  const pills = `<nav class="doe-pills" role="tablist" aria-label="DOE site selector">${_doeSitePillsHtml()}</nav>`;
+
+  if (!payload && doeSiteFailed[site.id]) {
+    host.innerHTML = pills +
+      `<p class="muted">${escapeHtml(site.label)} dossier could not be loaded. ` +
       '<button type="button" id="hanford-retry" class="text-btn">Retry</button></p>';
+    _wireDoePills(host);
     const retry = el("hanford-retry");
     if (retry) retry.addEventListener("click", () => {
-      hanfordLoadFailed = false;
+      doeSiteFailed[site.id] = false;
+      if (site.id === "hanford") hanfordLoadFailed = false;
       buildHanfordView();
-      ensureHanfordLoaded();
+      ensureDoeSiteLoaded(site.id);
     });
     return;
   }
-  if (!hanfordData) {
-    host.innerHTML = '<p class="muted">Loading Hanford dossier…</p>';
+  if (!payload) {
+    ensureDoeSiteLoaded(site.id);
+    host.innerHTML = pills + `<p class="muted">Loading ${escapeHtml(site.label)} dossier…</p>`;
+    _wireDoePills(host);
     return;
   }
-  const ov = hanfordData.site_overview || {};
+
+  const ov = payload.site_overview || {};
   const managers = (ov.managers || []).map((m) =>
     `<div class="hanford-mgr"><span class="hanford-mgr-role">${escapeHtml(m.role)}</span>` +
     `<p>${escapeHtml(m.who)}</p>` +
     `<a href="${escapeAttr(m.url)}" target="_blank" rel="noopener">Source ↗</a></div>`
   ).join("");
-  const pathways = (hanfordData.permitting_pathways || []).map((pw) =>
+  const pathways = (payload.permitting_pathways || []).map((pw) =>
     `<tr><th scope="row">${escapeHtml(pw.regime)}</th>` +
     `<td>${escapeHtml(pw.applies)}</td>` +
     `<td>${escapeHtml(pw.authority)} <a href="${escapeAttr(pw.url)}" target="_blank" rel="noopener">↗</a></td></tr>`
   ).join("");
-  const limits = (hanfordData.limitations || []).map((l) => escapeHtml(l)).join(" · ");
-  const parcels = (hanfordData.parcels || []).map((p) => _hanfordParcelCard(p)).join("");
+  const limits = (payload.limitations || []).map((l) => escapeHtml(l)).join(" · ");
+  const selectedId = doeSelectedParcel[site.id];
+  const selected = (payload.parcels || []).find((p) => p.id === selectedId) || null;
+  const cards = (payload.parcels || []).map((p) => _doeParcelCardHtml(p, selected && p.id === selected.id)).join("");
   const lup = ov.land_use_plan || {};
-  const sourceRows = Object.values(hanfordData.sources || {}).map((s) =>
+  const sourceRows = Object.values(payload.sources || {}).map((s) =>
     `<tr><th scope="row">${s.url ? `<a href="${escapeAttr(s.url)}" target="_blank" rel="noopener">${escapeHtml(s.label)} ↗</a>` : escapeHtml(s.label)}</th>` +
     `<td>${escapeHtml(s.covers || "")}</td></tr>`
   ).join("");
-  const facilityFitSummary = _hanfordFacilityFitSummaryHtml(hanfordData.parcels || [], hanfordData.facility_types || {});
+
   host.innerHTML =
-    `<details class="hanford-pathways hanford-sources" open><summary><strong>Sources &amp; methodology</strong> <span class="micro-note">(where every finding on this page comes from, and how it was pulled)</span></summary>` +
-    `<div class="janus-limit"><strong>Screening, not siting:</strong> ${limits}</div>` +
-    `<p class="hanford-summary">Every row in each parcel's environmental screen below comes from <a href="https://github.com/pnnl/nepa-mcp" target="_blank" rel="noopener">PNNL's nepa-mcp</a> — an open-source toolkit (BSD-3) that wraps live federal GIS and regulatory APIs behind one uniform interface. For each land unit, this dossier calls nepa-mcp's tools once per source below, at a ${escapeHtml(String(hanfordData.screening_buffer_miles || 5))}-mile radius around a representative point in that unit, caches the raw response, and normalizes it into the "Finding" column shown in each parcel's Environmental screen table. A source that times out or errors is recorded as <strong>unavailable</strong> — it is never silently counted as a no-hit. The Map Composer layers (the "Show features on map" button) are pulled the same way, as GeoJSON instead of tabular counts. Site history, ownership, and land-use-plan facts below are hand-curated and cited per row — see each row's own "Source ↗" link.</p>` +
-    `<div class="micro-table-wrap"><table class="micro-table hanford-pathway-table">` +
-    `<thead><tr><th scope="col">Source (nepa-mcp tool)</th><th scope="col">What it actually covers</th></tr></thead>` +
-    `<tbody>${sourceRows}</tbody></table></div></details>` +
-    facilityFitSummary +
-    `<section class="hanford-overview">` +
-    `<h3 class="hanford-section-title">Site history</h3>` +
-    `<p class="hanford-summary">${escapeHtml(ov.summary || "")}</p>` +
+    pills +
+    _doeGlanceHtml(payload) +
+    _doeFitMatrixHtml(payload) +
+    `<section class="hanford-parcels" id="doe-units"><h3 class="hanford-section-title">The land, unit by unit</h3>` +
+    `<p class="hanford-summary micro-note">Click a unit for its full dossier — status, environmental screen, corpus joins, and citations. One unit opens at a time.</p>` +
+    `<div class="doe-parcel-grid">${cards}</div>` +
+    `<div class="coal-drawer doe-drawer" id="doe-drawer"${selected ? "" : " hidden"}>${selected ? _doeDrawerHtml(payload, selected) : ""}</div>` +
     `</section>` +
-    `<details class="hanford-pathways" open><summary><strong>Who manages this land</strong> <span class="micro-note">(landlord, regulators, and every overlapping jurisdiction)</span></summary>` +
+    _doeInfraHtml(payload) +
+    `<details class="hanford-pathways" id="doe-permitting"><summary><strong>Permitting &amp; licensing pathways</strong> <span class="micro-note">(what applies and who decides — never a schedule estimate)</span></summary>` +
+    `<div class="micro-table-wrap"><table class="micro-table hanford-pathway-table">` +
+    `<thead><tr><th scope="col">Regime</th><th scope="col">When it applies at ${escapeHtml(site.label)}</th><th scope="col">Authority</th></tr></thead>` +
+    `<tbody>${pathways}</tbody></table></div></details>` +
+    `<details class="hanford-pathways"><summary><strong>Who manages this land</strong> <span class="micro-note">(landlord, regulators, and every overlapping jurisdiction)</span></summary>` +
     `<div class="hanford-mgrs">${managers}</div>` +
     (lup.label
       ? `<p class="hanford-lup micro-note">${escapeHtml(lup.note || "")} <a href="${escapeAttr(lup.url)}" target="_blank" rel="noopener">${escapeHtml(lup.label)} ↗</a></p>`
       : "") +
     `</details>` +
-    `<details class="hanford-pathways"><summary><strong>Permitting &amp; licensing pathways</strong> <span class="micro-note">(what applies and who decides — never a schedule estimate)</span></summary>` +
+    `<details class="hanford-pathways hanford-sources" id="doe-sources"><summary><strong>Sources &amp; methodology</strong> <span class="micro-note">(where every finding on this page comes from, and how it was pulled)</span></summary>` +
+    `<div class="janus-limit"><strong>Screening, not siting:</strong> ${limits}</div>` +
+    `<p class="hanford-summary">Every row in each unit's environmental screen comes from <a href="https://github.com/pnnl/nepa-mcp" target="_blank" rel="noopener">PNNL's nepa-mcp</a> — an open-source toolkit (BSD-3) that wraps live federal GIS and regulatory APIs behind one uniform interface. For each land unit, this dossier calls nepa-mcp's tools once per source below, at a ${escapeHtml(String(payload.screening_buffer_miles || 5))}-mile radius around a representative point in that unit, caches the raw response, and normalizes it into the "Finding" column shown in each unit's Environmental screen table. A source that times out or errors is recorded as <strong>unavailable</strong> — it is never silently counted as a no-hit. The Map Composer layers (the "Show features on map" button) are pulled the same way, as GeoJSON instead of tabular counts. Site history, ownership, and land-use-plan facts are hand-curated and cited per row — see each row's own "Source ↗" link.</p>` +
     `<div class="micro-table-wrap"><table class="micro-table hanford-pathway-table">` +
-    `<thead><tr><th scope="col">Regime</th><th scope="col">When it applies at Hanford</th><th scope="col">Authority</th></tr></thead>` +
-    `<tbody>${pathways}</tbody></table></div></details>` +
-    `<section class="hanford-parcels"><h3>NEPA-MCP screening report — the land, unit by unit</h3>${parcels}</section>` +
-    `<p class="micro-note hanford-method">${escapeHtml(hanfordData.method || "")} nepa-mcp ${escapeHtml(hanfordData.nepa_mcp_version || "")} · generated ${escapeHtml((hanfordData.generated_at || "").slice(0, 10))}</p>`;
+    `<thead><tr><th scope="col">Source (nepa-mcp tool)</th><th scope="col">What it actually covers</th></tr></thead>` +
+    `<tbody>${sourceRows}</tbody></table></div></details>` +
+    `<p class="micro-note hanford-method">${escapeHtml(payload.method || "")} nepa-mcp ${escapeHtml(payload.nepa_mcp_version || "")} · generated ${escapeHtml((payload.generated_at || "").slice(0, 10))}</p>`;
 
+  _wireDoePills(host);
   // Delegated bindings — no string-interpolated inline handlers.
   host.querySelectorAll("a.hanford-site-link").forEach((a) => {
     a.addEventListener("click", (e) => {
@@ -5957,14 +6240,60 @@ function buildHanfordView() {
   host.querySelectorAll(".hanford-map-btn").forEach((btn) => {
     btn.addEventListener("click", () => showHanfordScreeningMap(btn.dataset.hanfordMap));
   });
+  // Fit-matrix cell buttons toggle the full-width reasoning row.
+  host.querySelectorAll(".doe-fit-cell-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const pid = btn.dataset.parcel;
+      const detail = host.querySelector(`tr.doe-fit-detail[data-parcel="${CSS.escape(pid)}"]`);
+      if (!detail) return;
+      const opening = detail.hidden;
+      detail.hidden = !opening;
+      host.querySelectorAll(`.doe-fit-cell-btn[data-parcel="${CSS.escape(pid)}"]`)
+        .forEach((b) => b.setAttribute("aria-expanded", opening ? "true" : "false"));
+      if (opening) {
+        detail.querySelectorAll(".doe-fit-reason").forEach((r) =>
+          r.classList.toggle("doe-reason-hot", r.dataset.type === btn.dataset.type));
+      }
+    });
+  });
+  // Parcel-name buttons in the matrix + unit cards open the drawer.
+  const openDrawer = (pid) => {
+    doeSelectedParcel[site.id] = pid;
+    buildHanfordView();
+    const drawer = el("doe-drawer");
+    if (drawer) drawer.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+  host.querySelectorAll(".doe-open-parcel, .doe-parcel-card").forEach((btn) => {
+    btn.addEventListener("click", () => openDrawer(btn.dataset.parcel));
+  });
+  const closeBtn = el("doe-drawer-close");
+  if (closeBtn) closeBtn.addEventListener("click", () => {
+    delete doeSelectedParcel[site.id];
+    buildHanfordView();
+  });
+}
+
+function _wireDoePills(host) {
+  host.querySelectorAll(".doe-pill").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const id = btn.dataset.doeSite;
+      if (!id || id === doeActiveSite) return;
+      doeActiveSite = id;
+      syncUrl();
+      buildHanfordView();
+      ensureDoeSiteLoaded(id);
+    });
+  });
 }
 
 // Load one parcel's Map Composer GeoJSON package onto the main map. Mirrors
 // showJanusMap; WA is CONUS so the inset remap is a structural no-op but is
 // kept for symmetry (every overlay repeats the AK-rows lesson eventually).
 function showHanfordScreeningMap(parcelId) {
-  const parcel = (hanfordData?.parcels || []).find((row) => row.id === parcelId);
+  const sitePayload = doeSiteData[doeActiveSite] || hanfordData;
+  const parcel = (sitePayload?.parcels || []).find((row) => row.id === parcelId);
   if (!parcel?.geojson_url) return;
+  const stateCode = (sitePayload?.site_overview || {}).state || "WA";
   const button = document.querySelector(`[data-hanford-map="${CSS.escape(parcelId)}"]`);
   if (button) { button.disabled = true; button.textContent = "Loading map…"; }
   fetch(parcel.geojson_url)
@@ -5972,7 +6301,7 @@ function showHanfordScreeningMap(parcelId) {
     .then((payload) => {
       if (hanfordNepaLayer) map.removeLayer(hanfordNepaLayer);
       if (janusNepaLayer) { map.removeLayer(janusNepaLayer); janusNepaLayer = null; }
-      const displayPayload = _remapJanusGeoJson(payload, "WA");
+      const displayPayload = _remapJanusGeoJson(payload, stateCode);
       hanfordNepaLayer = L.geoJSON(displayPayload, {
         style: (feature) => ({
           color: _janusLayerColor(feature.properties?.layer || feature.properties?.type || "context"),
@@ -7821,6 +8150,8 @@ function syncUrl() {
     if (filterState.availableOnly) p.set("available", "1");
     // Candidates-view lens — only encoded off-default ("dc").
     if (candidatesState.lens !== "dc") p.set("lens", candidatesState.lens);
+    // DOE-sites tab: active site — only encoded off-default ("hanford").
+    if (doeActiveSite !== "hanford") p.set("doe", doeActiveSite);
     if (selectedId) p.set("site", selectedId);
     const qs = p.toString();
     const hash = location.hash; // preserve active-tab hash (e.g. "#ap1000")

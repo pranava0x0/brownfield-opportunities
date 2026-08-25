@@ -264,3 +264,37 @@ def test_cache_writes_are_atomic_no_tmp_leftovers(tmp_path, screening):
     screening.cache_error_at(path, RuntimeError("boom"))
     assert path.exists()
     assert not list(tmp_path.glob("*.tmp")), "atomic write left a temp file behind"
+
+
+def test_purge_server_src_namespace_isolates_server_packages(screening):
+    """2026-08-24 regression: every nepa-mcp 0.1.1 server ships its own
+    ``src`` package. The library loader purges sys.modules itself but its
+    'if dir not in sys.path' guard never re-fronts a directory later
+    servers pushed down — so in a multi-server process the second site's
+    loads resolved src.apis.* against the wrong server and failed ("No
+    module named 'src.apis.ipac_api'"), and the failures were cached as
+    unavailable. The engine's default loader now purges BOTH src/src.*
+    modules AND every nepa_mcp/_servers sys.path entry between loads."""
+    import os
+    import sys
+    import types
+
+    sys.modules["src"] = types.ModuleType("src")
+    sys.modules["src.apis"] = types.ModuleType("src.apis")
+    sys.modules["srcother_keepme"] = types.ModuleType("srcother_keepme")
+    fake_server_dir = os.path.join("/tmp", "x", "nepa_mcp", "_servers", "ipac")
+    fake_other_dir = os.path.join("/tmp", "x", "nepa_mcp", "elsewhere")
+    sys.path.insert(0, fake_server_dir)
+    sys.path.insert(0, fake_other_dir)
+    try:
+        removed = screening.purge_server_src_namespace()
+        assert removed == 3  # 2 modules + 1 server path entry
+        assert "src" not in sys.modules
+        assert "src.apis" not in sys.modules
+        assert "srcother_keepme" in sys.modules  # prefix match only on "src."
+        assert fake_server_dir not in sys.path
+        assert fake_other_dir in sys.path  # only _servers dirs are stripped
+    finally:
+        sys.modules.pop("srcother_keepme", None)
+        if fake_other_dir in sys.path:
+            sys.path.remove(fake_other_dir)
