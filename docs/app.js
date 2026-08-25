@@ -1212,6 +1212,12 @@ function ensureSuperfundDocsLoaded() {
         const sel = sitesById.get(selectedId);
         if (sel) renderDocuments(sel);
       }
+      // A DOE Sites drawer open on an NPL sub-area reads rec.documents from
+      // the same join (_doeDecisionDocsHtml) — if it was mounted before this
+      // enrichment landed, its "prior federal decision documents" section
+      // rendered empty and never refreshed on its own (Codex PR #24
+      // finding). buildHanfordView() no-ops when the tab was never visited.
+      if (typeof buildHanfordView === "function" && el("hanford-content")) buildHanfordView();
     })
     .catch((err) => {
       console.error("Superfund docs enrichment load failed:", err);
@@ -5752,6 +5758,11 @@ window.__openDoeParcel = function (siteId, parcelId) {
   if (typeof window.__setView === "function") window.__setView("hanford");
   if (DOE_SITES.some((s) => s.id === siteId)) doeActiveSite = siteId;
   doeSelectedParcel[siteId] = parcelId;
+  // A marker for a sibling site stays in the shared map layer after that
+  // site's dossier loads, so this can change the active site without going
+  // through the pill handler — sync the URL here too, or a copied/refreshed
+  // link reopens the wrong (or no) dossier (Codex PR #24 finding).
+  syncUrl();
   buildHanfordView();
   ensureDoeSiteLoaded(siteId);
   const drawer = document.getElementById("doe-drawer");

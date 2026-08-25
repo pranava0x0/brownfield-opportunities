@@ -97,6 +97,14 @@ for fname in DOE_SITE_FILES:
         check(f"{fname} (facility_types)", meta.get("source_url"))
     for row in payload.get("infrastructure", []):
         check(f"{fname} (infrastructure)", row.get("source_url"))
+    # facility_fit cells may carry their own per-cell `sources` when the
+    # rationale asserts a fact beyond the parcel's row-level citation — the
+    # click-revealed reasoning row can hold a dead link the top-level checks
+    # above never see (Codex PR #24 finding).
+    for parcel in payload.get("parcels", []):
+        for cell in parcel.get("facility_fit", []):
+            for src in cell.get("sources") or []:
+                check(f"{fname} (facility_fit/{parcel.get('id')}/{cell.get('type')})", src.get("url"))
 
 print(f"  checked {len(seen)} unique citation URLs: {dead} dead, {unreachable} unreachable/throttled")
 sys.exit(1 if dead else (2 if unreachable else 0))
