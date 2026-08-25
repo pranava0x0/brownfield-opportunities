@@ -5,8 +5,8 @@ What these pin:
     and renders the answers-first layout: site pills, at-a-glance header,
     the open facility-fit matrix, the land-unit card grid, and the cited
     infrastructure section — with methodology collapsed at the bottom
-  - the best-fit ranking regression: an all-precluded unit says
-    "None — off the table", never a list of all four types
+  - the best-fit ranking regression: an all-precluded unit says "None",
+    never a list of all four types
   - fit-matrix cells are real buttons whose click reveals the rationale,
     binding constraint, and citations (never tooltip-only)
   - the unit drawer renders ONE unit at a time with its environmental
@@ -80,7 +80,7 @@ def test_facility_fit_best_fit_ranking(page, base_url):
     """2026-08-24 regression: the old tie-listing rendered an all-precluded
     unit's best fit as "Data center / Large reactor / SMR / Microreactor" —
     fit-for-everything, the exact opposite of the data. All-precluded must
-    read "None — off the table"."""
+    read "None"."""
     _open_doe(page, base_url)
     result = page.evaluate(
         """() => {
@@ -98,8 +98,8 @@ def test_facility_fit_best_fit_ranking(page, base_url):
     )
     assert result["energyNorthwest"] == "Large reactor / SMR"
     assert result["area300"] == "Microreactor"
-    assert result["area200"] == "None — off the table"
-    assert result["monument"] == "None — off the table"
+    assert result["area200"] == "None"
+    assert result["monument"] == "None"
 
 
 def test_fit_cell_click_reveals_cited_reasoning(page, base_url):
@@ -269,7 +269,7 @@ def test_ai_disclosure_renders(page, base_url):
         "document.querySelector('.doe-ai-note') ? document.querySelector('.doe-ai-note').textContent : ''"
     )
     assert "AI-drafted" in note
-    assert "human-verified" in note
+    assert "checked by a person" in note
 
 
 def test_hanford_view_scrolls(page, base_url):
@@ -301,24 +301,24 @@ def test_hanford_template_mounts_exactly_once(page, base_url):
     assert count == 1, "template stamped more than once"
 
 
-def test_precluded_fits_render_out_loud(page, base_url):
-    """An honest siting dossier says 'off the table' out loud — precluded
-    badges render in the matrix, not just in the data."""
+def test_precluded_fits_render_in_the_matrix(page, base_url):
+    """Precluded units render their badges in the matrix, so a unit with no
+    viable use is visible on the page and not only in the data."""
     _open_doe(page, base_url)
     state = page.evaluate(
         """(() => {
           const view = document.getElementById('view-hanford');
           return {
-            precluded: view.querySelectorAll('.hp-fit-precluded').length,
+            precludedBadges: view.querySelectorAll('.hp-fit-precluded').length,
             anchored: view.querySelectorAll('.hp-fit-anchored').length,
-            offTable: [...view.querySelectorAll('.hanford-best-fit')]
-              .filter(td => td.textContent.includes('off the table')).length,
+            noneRows: [...view.querySelectorAll('.hanford-best-fit')]
+              .filter(td => td.textContent.trim() === 'None').length,
           };
         })()"""
     )
-    assert state["precluded"] >= 10
+    assert state["precludedBadges"] >= 10
     assert state["anchored"] >= 2
-    assert state["offTable"] == 5  # 100/200/Monument/B Reactor/PNNL
+    assert state["noneRows"] == 5  # 100/200/Monument/B Reactor/PNNL
 
 
 def test_hanford_markers_and_legend_present_at_ready(page, base_url):
