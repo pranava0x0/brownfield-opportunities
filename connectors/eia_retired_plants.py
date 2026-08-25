@@ -20,7 +20,7 @@ generator locations post-2002.
 
 Source: EIA Form EIA-860M, "Preliminary Monthly Electric Generator Inventory"
   URL:  https://www.eia.gov/electricity/data/eia860m/
-  File: https://www.eia.gov/electricity/data/eia860m/xls/april_generator2026.xlsx
+  File: https://www.eia.gov/electricity/data/eia860m/archive/xls/april_generator2026.xlsx
   Freq: monthly update; April 2026 = most current as of 2026-06-08.
   Note: "Starting with March 2017 data, the Preliminary Monthly Electric
         Generator Inventory includes a comprehensive list of generators which
@@ -78,8 +78,17 @@ DISPATCHABLE_FUELS: frozenset[str] = frozenset({
 
 # Public download URL (no auth required).  The April 2026 file is the most
 # current as of 2026-06-08 and covers all retirements through that date.
+# NOTE: the `/archive/xls/` path, NOT the primary `/xls/` one.  EIA retired the
+# primary path — it 301s to a 503 and serves a ~67 KB HTML error page, which
+# fails openpyxl with BadZipFile.  This shipped broken from ~June to 2026-08-25
+# and broke every refresh, local and CI alike.
+#
+# `scripts/build_planned_retirements.py` and `scripts/build_ap1000_sites.py` read
+# the same workbook under the same cache key and must keep the same URL — they
+# moved to /archive/ long before this connector did, which is the drift that hid
+# the bug.  `tests/test_eia_retired_plants.py` guards both facts.
 EIA_860M_URL = (
-    "https://www.eia.gov/electricity/data/eia860m/xls/april_generator2026.xlsx"
+    "https://www.eia.gov/electricity/data/eia860m/archive/xls/april_generator2026.xlsx"
 )
 
 # Source-file column indices (0-based) in the "Retired" sheet.
