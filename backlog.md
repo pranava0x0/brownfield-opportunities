@@ -277,6 +277,135 @@ that is the highest-value work available.
   users — the second half is computable from Census population centers. A
   partial proxy beats the current nothing.
 
+## Session checkpoint — 2026-08-25 (scheduled data-maintenance run)
+
+**No data gap to close — again — but the CI fault-isolation fix paid off and
+exposed a real connector bug that had been silently dead for ~11 weeks.**
+Coverage re-asserted, byte-identical to the last two runs: flood 42,576/46,759
+(**91.1%**, 4,422 SFHA), `parcel-owner` 11,463, `epa-superfund-docs` 1,888/1,908
+(**99.0%**), `epa-echo` 1,906, `ai-summary` 1,908. `scripts/validate_data.py`:
+**27 pass · 12 warn · 0 fail · 2 info** (41 checks — the count grew because the
+coal/federal overlay checks are new; **warn count is unchanged at 12**, all in
+the documented upstream set, nothing new). Unit suite 640 pass.
+
+### The isolation fix worked, and it earned its keep on the first look
+
+The 2026-08-24 cron was failure 14/14 — but for the first time one run surfaced
+**four** distinct failures instead of one per week:
+
+| Connector | Trigger | Verdict |
+|---|---|---|
+| `infra-proximity` | Overpass `504` | Known; chunk+backoff still open |
+| `eia-retired-plants` | `BadZipFile` | **Real bug — fixed this run** |
+| `iso-rto` | ArcGIS `499 Token Required` | **New: source went token-walled** |
+| `census-workforce` | `CENSUS_API_KEY` unset | Config gap; fail-loud working as designed |
+
+Two of the four were previously-unknown defects that the old single-abort
+behaviour would have hidden for weeks apiece. That is the diagnostic payoff the
+2026-08-18 fix was for.
+
+**The empty-payload hazard is no longer hypothetical.** The same log contains
+`WARNING [ai-summary] no records normalized; writing empty payload` — the write
+executed for real, harmless *only* because the commit step never runs. The
+[high] guard below is now backed by an observed event, not a prediction. Land it
+before any `continue-on-error` restructure of `refresh.yml`.
+
+### Fixed here: `eia-retired-plants` had been unable to refresh since ~June
+
+`EIA_860M_URL` still pointed at EIA's **primary** `/xls/` download path. That path
+is dead — it 301s to a 503 and serves a ~67 KB HTML error page, so
+`openpyxl.load_workbook` raises `BadZipFile`. Both sibling consumers of the same
+workbook (`scripts/build_planned_retirements.py`, `scripts/build_ap1000_sites.py`)
+were moved to `/archive/xls/` long ago; the connector never was. Its output has
+been frozen at `generated_at: 2026-06-08` the whole time.
+
+**Why nobody caught it:** a *stale* cache file (`51f37f3890e1b51e.bin` — the
+pre-2026-07-05 key shape, left behind by the fix in that issue) sat in
+`data/cache` looking like a warm cache, while the connector's actual key
+(`f5fc6a369570d33f.bin`) was absent. Reproducing the pre-fix state locally —
+stash the fix, remove the real cache entry — fails with the identical
+`BadZipFile`. So this was **never CI-only**; it was equally broken on this
+machine, and the "warm cache hides it" story I first wrote down was wrong. Worth
+remembering: *a cache file that exists is not evidence that the cache is warm for
+the key you care about.* CLAUDE.md/AGENTS.md documented that stale filename as
+the shared key and have been corrected.
+
+The fix is one URL. Verified end-to-end rather than assumed: cache entry deleted,
+connector re-run, downloaded 13,670,943 bytes whose SHA256 is **identical** to the
+cached workbook, parsed 466 qualifying plants, and emitted **byte-identical
+records** to the shipped file. So it is a pure no-op for the data — the rewritten
+file was reverted rather than committed (timestamp-only rewrite rule). Guards:
+`test_connector_uses_the_archive_download_path` and
+`test_every_consumer_of_the_workbook_agrees_on_the_url` (a drift guard that would
+have caught this the day the scripts moved), both **verified red before the fix**.
+
+### New: `iso-rto`'s source went token-walled
+
+- **[high] Replace the ISO/RTO polygon source.** `services3.arcgis.com/dNDFv7tc3OwOgyit/.../RTO_Regions/FeatureServer/0`
+  now returns `{"code":499,"message":"Token Required"}` at the layer query *and*
+  the service root. This mirror was chosen precisely because the official EIA
+  Atlas item is already permission-blocked; both paths are closed.
+  `docs/data/iso-rto.json` still serves 45,051 records fine — only refresh is
+  blocked. One candidate probed this session:
+  `services5.arcgis.com/DVqGhJCLPxzP119q/.../RTO_Regions_and_Hubs_WFL1` is public
+  and carries the **same fields** (`RTO_ISO`, `LOC_TYPE`, `LOC_NAME`), confirming
+  shared EIA/HIFLD lineage — but it is **not a drop-in**: 20 per-RTO layers
+  (regions *and* pricing hubs) rather than one, and **no NYISO or ISO-NE layer**,
+  two of the eight RTOs the connector must assign. Don't swap it in without
+  closing that gap. Supervised (code + tests).
+
+### Carried forward, re-confirmed
+
+- **[high] Guard the empty-payload write before re-enabling auto-commit** — now
+  evidence-backed (see above). 46,756 records exposed.
+- **[high] Then restructure `refresh.yml`** (`continue-on-error` + trailing fail
+  step). Order matters; the guard lands first.
+- **[med] Chunk + back off the Overpass substation queries.**
+- **[med] Two connectors can never succeed in CI, by construction.** `gh secret list`
+  returns **empty** and `refresh.yml` passes no `env:`/`secrets:` at all, so
+  `census-workforce` (`CENSUS_API_KEY`) and `ai-summary` (`ANTHROPIC_API_KEY`) fail
+  every scheduled run structurally — not transiently. Two of the four failures in
+  the 08-24 log are this. Fixes differ:
+  - `ai-summary` needs **no secret** — it has a documented keyless path. `--ai-static`
+    is a connector-registered CLI arg, so it is accepted on the `--all` parser;
+    adding it to the workflow's refresh command makes the connector succeed offline
+    in <1 s. **Deliberately NOT applied this run:** it would also silence the
+    `writing empty payload` warning, which is currently the only live evidence of the
+    empty-payload hazard. Land the [high] guard first, then add `--ai-static` —
+    doing it in the other order removes the symptom before the bug is fixed.
+  - `census-workforce` genuinely needs the secret (Census requires a key, and the
+    fail-loud "no key → no artifact" contract is correct). Add `CENSUS_API_KEY` to
+    repo secrets or drop the connector from the `--all` roster; today it is pure
+    noise in the failure list.
+- **[low] Bump the EIA-860M workbook month.** Quantified this run so nobody has to
+  guess: the newest published month is **May 2026** (June+ are not on the archive
+  path under that naming), and May adds **2** plants, of which exactly **1** clears
+  the connector's 100 MW threshold (MPH Elwood, 300 MW). The April pin is costing
+  essentially nothing. When it is bumped, all three consumers must move together —
+  the new drift guard enforces that.
+- **[low] 38 static summaries omit acreage for sub-1-acre sites.** Unchanged.
+- Producer files remain **2026-05-12**. Unchanged guardrail: no unattended
+  producer refreshes.
+
+### One more thing the gate turned up (not ours)
+
+`scripts/pr_gate.sh` goes red on an unmodified `main` tree — `test_dom_size_under_5k_nodes`
+reads **5,067** under the gate's `-n 4` xdist run but **4,849** standalone, and CI passes
+the same test on the same commit. Logged in `issues.md` with the per-view breakdown and
+the exact repro; **not root-caused, and deliberately not guessed at**. It does not block
+the connector fix (zero frontend/data files touched, 640 unit tests green, guard green
+standalone and in CI), but it does mean **the gate is not usable as a merge gate on a
+loaded dev machine right now** — worth fixing before it trains someone to ignore a red gate.
+
+### Method note for the next run
+
+A byte-range probe is not a liveness check. Checking whether newer EIA months
+existed with `curl -r 0-1023` returned `206 1024` for *every* month — including
+ones that don't exist — because the HTML error page satisfies a range request
+just as happily as a real workbook. Only `Content-Type` + full `Content-Length`
+distinguished the two (13.8 MB xlsx vs 280-byte 503). Check the content, not the
+status code.
+
 ## Session checkpoint — 2026-08-18 (scheduled data-maintenance run)
 
 **No data gap to close; landed the CI fault-isolation fix instead.** Coverage
