@@ -360,7 +360,7 @@ def test_janus_screen_has_nine_traceable_installations(page: Page, base_url: str
     assert page.locator(".janus-source-card a").count() >= 6
     detail = page.locator("#janus-detail").inner_text()
     assert "Screening, not siting" in detail
-    assert "Unavailable is not no-hit" in detail
+    assert "unavailable is different from a result of zero" in detail
 
 
 def test_janus_deep_link_and_lazy_map_package(page: Page, base_url: str):

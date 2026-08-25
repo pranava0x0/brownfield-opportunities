@@ -1334,7 +1334,10 @@ main {
 .kv dt[hidden], .kv dd[hidden] { display: none; }
 .kv dd .muted-cell { color: var(--muted); font-style: italic; margin-left: 2px; }
 /* Same muted treatment for table cells when a column doesn't apply to the
-   record's program — e.g. STATUS column for ACRES/BRAC (UAT-009). */
+   record's program — e.g. STATUS column for ACRES/BRAC (UAT-009). The class
+   sits on the <td> itself (makeRow) so the em-dash costs no extra DOM node;
+   the descendant form is kept for any cell that still wraps its content. */
+#sites-table td.muted-cell,
 #sites-table td .muted-cell { color: var(--muted); font-style: italic; }
 /* Inline acreage note for FUDS records lacking a digitized boundary. The
    parent `<dd>` itself isn't muted (acreage may say "N/A" but we still want
