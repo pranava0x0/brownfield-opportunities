@@ -1,10 +1,13 @@
 {
-  "generated_at": "2026-08-24T17:51:24.841210Z",
+  "generated_at": "2026-08-24T20:38:19.426576Z",
   "nepa_mcp_version": "0.1.1",
+  "site_id": "hanford",
+  "site_label": "Hanford",
   "screening_buffer_miles": 5.0,
   "flood_radius_miles": 2.0,
   "parcel_count": 9,
   "method": "PNNL nepa-mcp structured APIs and Map Composer layers, cached and rate-limited to at least 1.5 seconds between requests per host; curated parcel facts verified against primary sources; corpus fields joined from this project's own enrichment files.",
+  "narrative_note": "Narrative text in this dossier (site history, unit status, availability, and fit rationales) is AI-drafted from the primary sources cited on each row and human-verified against them on 2026-08-24. Numbers and dated facts each carry their citation; screening rows are live tool output, never prose. No text on this page is an agency determination.",
   "site_overview": {
     "name": "Hanford Site",
     "state": "WA",
@@ -130,6 +133,94 @@
       "verified_at": "2026-08-24"
     }
   },
+  "infrastructure": [
+    {
+      "category": "power_td",
+      "summary": "BPA's Ashe substation (500 kV) sits on the site adjacent to Columbia Generating Station; the rebuilt Midway-Ashe 230 kV line (18 miles, energized May 6, 2025) replaced a 70-year-old line and provides dual-circuit backup to CGS and the vitrification plant \u2014 BPA owns one circuit, DOE's Hanford field office operates the other.",
+      "source_label": "BPA newsroom, May 2025",
+      "source_url": "https://www.bpa.gov/about/newsroom/news-articles/20250508-new-high-voltage-tx-line-supports-reliability-for-the-hanford-site",
+      "verified_at": "2026-08-24"
+    },
+    {
+      "category": "power_td",
+      "summary": "Speed-to-power is the live constraint: BPA's four-project Tri-Cities Reinforcement program (new Webber Canyon substation + an 18.5-mile 115 kV line; construction slated Feb 2026, energization winter 2027) is driven by regional load growth, and Atlas Agro's proposed fertilizer plant \u2014 needing more than 300 MW \u2014 is gated on a new BPA line off the Ashe substation, with Richland approving a $51.3M design-and-materials cost agreement in June 2026.",
+      "source_label": "BPA fact sheet DOE/BP-5456 (May 2025)",
+      "source_url": "https://www.bpa.gov/-/media/Aep/about/publications/fact-sheets/fs-202505-tri-cities-reinforcement-project.pdf",
+      "extra_sources": [
+        {
+          "label": "Tri-Cities Area Journal of Business \u2014 Atlas Agro agreements",
+          "url": "https://www.tricitiesbusinessnews.com/articles/deal-advances-atlas-agros-fertilizer-plant"
+        }
+      ],
+      "verified_at": "2026-08-24"
+    },
+    {
+      "category": "natural_gas",
+      "summary": "Hanford has NO dedicated natural-gas pipeline. DOE scoped a ~29-mile, ~$35M lateral from an interstate tie-in north of Pasco (Cascade Natural Gas's 2012 proposal, EIS-0467) to serve the Waste Treatment Plant and 300 Area \u2014 the EIS was postponed and subsequently canceled, and the WTP plan moved to electrically generated steam instead.",
+      "source_label": "DOE NEPA database \u2014 EIS-0467",
+      "source_url": "https://www.energy.gov/node/300133",
+      "extra_sources": [
+        {
+          "label": "Cascade Natural Gas \u2014 2012 pipeline proposal",
+          "url": "https://www.hanford.gov/files.cfm/CascadeNaturalGasPressRelease.pdf"
+        }
+      ],
+      "verified_at": "2026-08-24"
+    },
+    {
+      "category": "water",
+      "summary": "The Columbia below Priest Rapids Dam (USGS gauge 12472800, drainage 96,000 sq mi) ran a 95,280 cfs annual mean in water year 2025, with the recent decade averaging ~110,800 cfs \u2014 below the ~120,700 cfs regulated-period (1960-2000) average. The river is also the drinking-water source for Richland, Pasco, and Kennewick.",
+      "source_label": "USGS NWIS (live RDB query)",
+      "source_url": "https://waterservices.usgs.gov/nwis/stat/?format=rdb&sites=12472800&statReportType=annual&statTypeCd=mean&parameterCd=00060",
+      "verified_at": "2026-08-24"
+    },
+    {
+      "category": "rail",
+      "summary": "DOE's on-site rail network ceased regular operation in 1997; Tri-City Railroad took a lease on the 37-mile 'Northern Connection' of the Hanford rail system in 2002, and the Port of Benton's 16-mile 'Southern Connection' short line (Center Parkway to Horn Rapids Road) has been operated by Columbia Rail Group since February 2023, with BNSF's mainline and yard at Pasco.",
+      "source_label": "Federal Register \u2014 Hanford rail lease (2002)",
+      "source_url": "https://www.federalregister.gov/documents/2002/05/30/02-13385/tri-city-railroad-company-llc-lease-and-operation-exemption-hanford-site-rail-system-in-richland-wa",
+      "extra_sources": [
+        {
+          "label": "Port of Benton \u2014 rail",
+          "url": "https://portofbenton.com/our-properties-facilities/rail/"
+        }
+      ],
+      "verified_at": "2026-08-24"
+    },
+    {
+      "category": "road",
+      "summary": "SR-240 runs 43 miles from the SR-24 junction at the site around Richland to US-395 in Kennewick (its busiest section carries ~76,000 vehicles/day), with I-182 and US-395 completing the regional connections.",
+      "source_label": "WSDOT route data (via Wikipedia)",
+      "source_url": "https://en.wikipedia.org/wiki/Washington_State_Route_240",
+      "verified_at": "2026-08-24"
+    },
+    {
+      "category": "fiber",
+      "summary": "Benton PUD extended its open-access fiber network to Richland and Rattlesnake Mountain in 2013 explicitly citing capacity for 'the Hanford project'; NoaNet's statewide network rides spare dark fiber on BPA transmission corridors, though no public route-mile figure specific to the Hanford corridor exists.",
+      "source_label": "CommunityNetworks \u2014 Benton PUD Richland build",
+      "source_url": "https://communitynetworks.org/content/benton-public-utility-district-brings-fiber-richland-washington",
+      "extra_sources": [
+        {
+          "label": "NoaNet \u2014 our story",
+          "url": "https://www.noanet.net/about/our-story/"
+        }
+      ],
+      "verified_at": "2026-08-24"
+    },
+    {
+      "category": "workforce",
+      "summary": "The cleanup mission employs roughly 13,000 workers against a $3.2B+ FY2026 budget; PNNL adds 6,043 scientists, engineers, and professional staff (FY2024) and Energy Northwest more than 1,000 \u2014 inside a Tri-Cities metro labor force of 150,521 (Dec 2025).",
+      "source_label": "Tri-Cities Area Journal of Business \u2014 FY26 funding",
+      "source_url": "https://www.tricitiesbusinessnews.com/articles/hanford-pnnl-funding-fy2026",
+      "extra_sources": [
+        {
+          "label": "PNNL \u2014 about (headcount)",
+          "url": "https://www.pnnl.gov/about"
+        }
+      ],
+      "verified_at": "2026-08-24"
+    }
+  ],
   "limitations": [
     "Coordinates are representative points inside named areas, not parcel boundaries.",
     "Counts mean features intersect the screening buffer, not a project footprint.",
@@ -227,22 +318,50 @@
         {
           "type": "data_center",
           "fit": "precluded",
-          "rationale": "Cocooned reactor cores (interim safe storage, a ~75-year DOE timeline) and an active groundwater remedy occupy the parcel today \u2014 not offered under DOE's current disposition plan for this facility type. That is a mission choice DOE could revisit, not a legal bar like the Monument's Antiquities Act protection next door."
+          "constraint": "mission",
+          "rationale": "Cocooned reactor cores (interim safe storage, a ~75-year DOE timeline) and an active groundwater remedy occupy the parcel today \u2014 not offered under DOE's current disposition plan for this facility type. That is a mission choice DOE could revisit, not a legal bar like the Monument's Antiquities Act protection next door.",
+          "sources": [
+            {
+              "label": "DOE \u2014 Hanford 100 Area reactor interim safe storage",
+              "url": "https://www.hanford.gov/page.cfm/RiverCorridor"
+            }
+          ]
         },
         {
           "type": "lwr_pwr",
           "fit": "precluded",
-          "rationale": "Cocooned reactor cores (interim safe storage, a ~75-year DOE timeline) and an active groundwater remedy occupy the parcel today \u2014 not offered under DOE's current disposition plan for this facility type. That is a mission choice DOE could revisit, not a legal bar like the Monument's Antiquities Act protection next door."
+          "constraint": "mission",
+          "rationale": "Cocooned reactor cores (interim safe storage, a ~75-year DOE timeline) and an active groundwater remedy occupy the parcel today \u2014 not offered under DOE's current disposition plan for this facility type. That is a mission choice DOE could revisit, not a legal bar like the Monument's Antiquities Act protection next door.",
+          "sources": [
+            {
+              "label": "DOE \u2014 Hanford 100 Area reactor interim safe storage",
+              "url": "https://www.hanford.gov/page.cfm/RiverCorridor"
+            }
+          ]
         },
         {
           "type": "smr",
           "fit": "precluded",
-          "rationale": "Cocooned reactor cores (interim safe storage, a ~75-year DOE timeline) and an active groundwater remedy occupy the parcel today \u2014 not offered under DOE's current disposition plan for this facility type. That is a mission choice DOE could revisit, not a legal bar like the Monument's Antiquities Act protection next door."
+          "constraint": "mission",
+          "rationale": "Cocooned reactor cores (interim safe storage, a ~75-year DOE timeline) and an active groundwater remedy occupy the parcel today \u2014 not offered under DOE's current disposition plan for this facility type. That is a mission choice DOE could revisit, not a legal bar like the Monument's Antiquities Act protection next door.",
+          "sources": [
+            {
+              "label": "DOE \u2014 Hanford 100 Area reactor interim safe storage",
+              "url": "https://www.hanford.gov/page.cfm/RiverCorridor"
+            }
+          ]
         },
         {
           "type": "microreactor",
           "fit": "precluded",
-          "rationale": "Cocooned reactor cores (interim safe storage, a ~75-year DOE timeline) and an active groundwater remedy occupy the parcel today \u2014 not offered under DOE's current disposition plan for this facility type. That is a mission choice DOE could revisit, not a legal bar like the Monument's Antiquities Act protection next door."
+          "constraint": "mission",
+          "rationale": "Cocooned reactor cores (interim safe storage, a ~75-year DOE timeline) and an active groundwater remedy occupy the parcel today \u2014 not offered under DOE's current disposition plan for this facility type. That is a mission choice DOE could revisit, not a legal bar like the Monument's Antiquities Act protection next door.",
+          "sources": [
+            {
+              "label": "DOE \u2014 Hanford 100 Area reactor interim safe storage",
+              "url": "https://www.hanford.gov/page.cfm/RiverCorridor"
+            }
+          ]
         }
       ],
       "screening": {
@@ -720,22 +839,50 @@
         {
           "type": "data_center",
           "fit": "precluded",
-          "rationale": "Industrial-Exclusive zoning protects the tank-waste mission; vitrification runs past mid-century, leaving no offerable footprint for any of these four facility types."
+          "constraint": "mission",
+          "rationale": "Industrial-Exclusive zoning protects the tank-waste mission; vitrification runs past mid-century, leaving no offerable footprint for any of these four facility types.",
+          "sources": [
+            {
+              "label": "WA Ecology \u2014 vitrification begins (Oct 2025)",
+              "url": "https://ecology.wa.gov/about-us/who-we-are/news/2025/hanford-site-waste-vitrification-begins"
+            }
+          ]
         },
         {
           "type": "lwr_pwr",
           "fit": "precluded",
-          "rationale": "Industrial-Exclusive zoning protects the tank-waste mission; vitrification runs past mid-century, leaving no offerable footprint for any of these four facility types."
+          "constraint": "mission",
+          "rationale": "Industrial-Exclusive zoning protects the tank-waste mission; vitrification runs past mid-century, leaving no offerable footprint for any of these four facility types.",
+          "sources": [
+            {
+              "label": "WA Ecology \u2014 vitrification begins (Oct 2025)",
+              "url": "https://ecology.wa.gov/about-us/who-we-are/news/2025/hanford-site-waste-vitrification-begins"
+            }
+          ]
         },
         {
           "type": "smr",
           "fit": "precluded",
-          "rationale": "Industrial-Exclusive zoning protects the tank-waste mission; vitrification runs past mid-century, leaving no offerable footprint for any of these four facility types."
+          "constraint": "mission",
+          "rationale": "Industrial-Exclusive zoning protects the tank-waste mission; vitrification runs past mid-century, leaving no offerable footprint for any of these four facility types.",
+          "sources": [
+            {
+              "label": "WA Ecology \u2014 vitrification begins (Oct 2025)",
+              "url": "https://ecology.wa.gov/about-us/who-we-are/news/2025/hanford-site-waste-vitrification-begins"
+            }
+          ]
         },
         {
           "type": "microreactor",
           "fit": "precluded",
-          "rationale": "Industrial-Exclusive zoning protects the tank-waste mission; vitrification runs past mid-century, leaving no offerable footprint for any of these four facility types."
+          "constraint": "mission",
+          "rationale": "Industrial-Exclusive zoning protects the tank-waste mission; vitrification runs past mid-century, leaving no offerable footprint for any of these four facility types.",
+          "sources": [
+            {
+              "label": "WA Ecology \u2014 vitrification begins (Oct 2025)",
+              "url": "https://ecology.wa.gov/about-us/who-we-are/news/2025/hanford-site-waste-vitrification-begins"
+            }
+          ]
         }
       ],
       "screening": {
@@ -1278,21 +1425,25 @@
         {
           "type": "data_center",
           "fit": "conditional",
+          "constraint": "land",
           "rationale": "Land and grid access support it, but groundwater-remedy compatibility review gates any new foundation, and the CLUP points this corridor at R&D rather than industrial load."
         },
         {
           "type": "lwr_pwr",
           "fit": "precluded",
+          "constraint": "land",
           "rationale": "Too small at 1,500 acres and no existing nuclear infrastructure or emergency-planning zone \u2014 a large reactor here starts from zero, next to an active groundwater remedy."
         },
         {
           "type": "smr",
           "fit": "conditional",
+          "constraint": "land",
           "rationale": "Same remedy-compatibility gate as advanced manufacturing; a single small module could plausibly coexist with R&D use, but no SMR offering exists on this parcel today."
         },
         {
           "type": "microreactor",
           "fit": "strong",
+          "constraint": "licensing",
           "rationale": "Contiguous with PNNL \u2014 the DOE-mission R&D campus that builds nepa-mcp itself \u2014 a small footprint easily clears the 5-acre threshold, and federal ownership keeps the fast DOE-authorization licensing path open. The best-matched facility type for this parcel."
         }
       ],
@@ -2145,6 +2296,10 @@
         {
           "label": "Framatome \u2014 TerraPower HALEU metallization line",
           "url": "https://www.framatome.com/medias/framatome-and-terrapower-achieve-breakthrough-in-uranium-metallization-for-advanced-reactor-fuel-commercialization/"
+        },
+        {
+          "label": "Tri-Cities Area Journal of Business \u2014 Atlas Agro deal status",
+          "url": "https://www.tricitiesbusinessnews.com/articles/deal-advances-atlas-agros-fertilizer-plant"
         }
       ],
       "verified_at": "2026-08-24",
@@ -2164,21 +2319,25 @@
         {
           "type": "data_center",
           "fit": "conditional",
+          "constraint": "power",
           "rationale": "Atlas Agro has bundled a ~$500M data center with its power request, gated on the same BPA large-load queue as the fertilizer plant."
         },
         {
           "type": "lwr_pwr",
           "fit": "precluded",
+          "constraint": "licensing",
           "rationale": "Non-federal (transferred to Port of Benton / City of Richland), with no existing nuclear infrastructure or emergency-planning zone \u2014 a large reactor would need an NRC license built from scratch on land DOE no longer controls."
         },
         {
           "type": "smr",
           "fit": "precluded",
+          "constraint": "licensing",
           "rationale": "Same missing-infrastructure problem as a large reactor; the smaller footprint doesn't change the non-federal ownership or the absent licensing precedent."
         },
         {
           "type": "microreactor",
           "fit": "conditional",
+          "constraint": "licensing",
           "rationale": "Transferred land loses the fast DOE-authorization path (would need NRC instead), but Framatome's operating fuel-fabrication plant is exactly the kind of anchor industrial load a microreactor could serve if the economics clear NRC licensing."
         }
       ],
@@ -3307,21 +3466,31 @@
         {
           "type": "data_center",
           "fit": "conditional",
+          "constraint": "power",
           "rationale": "Amazon's TRi Energy Partnership exists precisely to pair new nuclear output with data-center load, but it's gated on the Xe-100 fleet reaching operation."
         },
         {
           "type": "lwr_pwr",
           "fit": "anchored",
-          "rationale": "Columbia Generating Station (1,236 MW) has operated here since the 1980s with its own 500 kV interconnection and emergency-planning zone already in place \u2014 the strongest possible precedent for a large reactor."
+          "constraint": "licensing",
+          "rationale": "Columbia Generating Station (1,236 MW) has operated here since the 1980s with its own 500 kV interconnection and emergency-planning zone already in place \u2014 the strongest possible precedent for a large reactor.",
+          "sources": [
+            {
+              "label": "WA EFSEC \u2014 Columbia Generating Station",
+              "url": "https://efsec.wa.gov/facilities/columbia-generating-station"
+            }
+          ]
         },
         {
           "type": "smr",
           "fit": "anchored",
+          "constraint": "licensing",
           "rationale": "Energy Northwest's Cascade Advanced Energy Facility (Xe-100 modules, design-builder selected Oct 2025) is already under NRC pre-application review on this corridor."
         },
         {
           "type": "microreactor",
           "fit": "conditional",
+          "constraint": "mission",
           "rationale": "Grid-connected and licensing-mature for large and modular reactors, but that's the opposite case a microreactor optimizes for \u2014 a demonstration unit is plausible here, but not the priority use."
         }
       ],
@@ -4023,21 +4192,25 @@
         {
           "type": "data_center",
           "fit": "conditional",
+          "constraint": "land",
           "rationale": "The offered acreage is earmarked for solar plus storage under an active DOE lease negotiation; a data center would need its own separate federal land offering."
         },
         {
           "type": "lwr_pwr",
           "fit": "conditional",
+          "constraint": "land",
           "rationale": "The same attributes that drew the solar RFQ (federal control, grid, water, workforce) apply to a large reactor, but no nuclear offering exists on this parcel today."
         },
         {
           "type": "smr",
           "fit": "conditional",
+          "constraint": "land",
           "rationale": "Same reasoning as the large-reactor case, at smaller scale \u2014 no offering exists today."
         },
         {
           "type": "microreactor",
           "fit": "conditional",
+          "constraint": "land",
           "rationale": "8,000 acres is far more than any microreactor needs, and DOE's authorization pathway is available on this federal land, but the acreage is already committed to the solar lease negotiation."
         }
       ],
@@ -4421,22 +4594,50 @@
         {
           "type": "data_center",
           "fit": "precluded",
-          "rationale": "National Monument proclamation, listed-species critical habitat, and treaty-era cultural landscapes foreclose any industrial or energy development, including this one."
+          "constraint": "land",
+          "rationale": "National Monument proclamation, listed-species critical habitat, and treaty-era cultural landscapes foreclose any industrial or energy development, including this one.",
+          "sources": [
+            {
+              "label": "Proclamation \u2014 Hanford Reach National Monument (June 2000)",
+              "url": "https://clintonwhitehouse3.archives.gov/CEQ/hanford_reach.html"
+            }
+          ]
         },
         {
           "type": "lwr_pwr",
           "fit": "precluded",
-          "rationale": "National Monument proclamation, listed-species critical habitat, and treaty-era cultural landscapes foreclose any industrial or energy development, including this one."
+          "constraint": "land",
+          "rationale": "National Monument proclamation, listed-species critical habitat, and treaty-era cultural landscapes foreclose any industrial or energy development, including this one.",
+          "sources": [
+            {
+              "label": "Proclamation \u2014 Hanford Reach National Monument (June 2000)",
+              "url": "https://clintonwhitehouse3.archives.gov/CEQ/hanford_reach.html"
+            }
+          ]
         },
         {
           "type": "smr",
           "fit": "precluded",
-          "rationale": "National Monument proclamation, listed-species critical habitat, and treaty-era cultural landscapes foreclose any industrial or energy development, including this one."
+          "constraint": "land",
+          "rationale": "National Monument proclamation, listed-species critical habitat, and treaty-era cultural landscapes foreclose any industrial or energy development, including this one.",
+          "sources": [
+            {
+              "label": "Proclamation \u2014 Hanford Reach National Monument (June 2000)",
+              "url": "https://clintonwhitehouse3.archives.gov/CEQ/hanford_reach.html"
+            }
+          ]
         },
         {
           "type": "microreactor",
           "fit": "precluded",
-          "rationale": "National Monument proclamation, listed-species critical habitat, and treaty-era cultural landscapes foreclose any industrial or energy development, including this one."
+          "constraint": "land",
+          "rationale": "National Monument proclamation, listed-species critical habitat, and treaty-era cultural landscapes foreclose any industrial or energy development, including this one.",
+          "sources": [
+            {
+              "label": "Proclamation \u2014 Hanford Reach National Monument (June 2000)",
+              "url": "https://clintonwhitehouse3.archives.gov/CEQ/hanford_reach.html"
+            }
+          ]
         }
       ],
       "screening": {
@@ -4868,21 +5069,25 @@
         {
           "type": "data_center",
           "fit": "precluded",
+          "constraint": "land",
           "rationale": "Manhattan Project National Historical Park boundary and the Section 106 historic-preservation consultation it triggers rule out any new industrial or energy facility here, including this one."
         },
         {
           "type": "lwr_pwr",
           "fit": "precluded",
+          "constraint": "land",
           "rationale": "Manhattan Project National Historical Park boundary and the Section 106 historic-preservation consultation it triggers rule out any new industrial or energy facility here, including this one."
         },
         {
           "type": "smr",
           "fit": "precluded",
+          "constraint": "land",
           "rationale": "Manhattan Project National Historical Park boundary and the Section 106 historic-preservation consultation it triggers rule out any new industrial or energy facility here, including this one."
         },
         {
           "type": "microreactor",
           "fit": "precluded",
+          "constraint": "land",
           "rationale": "Manhattan Project National Historical Park boundary and the Section 106 historic-preservation consultation it triggers rule out any new industrial or energy facility here, including this one."
         }
       ],
@@ -5610,21 +5815,25 @@
         {
           "type": "data_center",
           "fit": "precluded",
+          "constraint": "mission",
           "rationale": "An operating DOE Office of Science lab campus, not offerable industrial land \u2014 its value to this comparison is as the workforce anchor the nearby 300 Area's microreactor fit leans on."
         },
         {
           "type": "lwr_pwr",
           "fit": "precluded",
+          "constraint": "mission",
           "rationale": "An operating DOE Office of Science lab campus, not offerable industrial land \u2014 its value to this comparison is as the workforce anchor the nearby 300 Area's microreactor fit leans on."
         },
         {
           "type": "smr",
           "fit": "precluded",
+          "constraint": "mission",
           "rationale": "An operating DOE Office of Science lab campus, not offerable industrial land \u2014 its value to this comparison is as the workforce anchor the nearby 300 Area's microreactor fit leans on."
         },
         {
           "type": "microreactor",
           "fit": "precluded",
+          "constraint": "mission",
           "rationale": "An operating DOE Office of Science lab campus, not offerable industrial land \u2014 its value to this comparison is as the workforce anchor the nearby 300 Area's microreactor fit leans on."
         }
       ],

@@ -72,7 +72,7 @@
       <button id="tab-coal" class="tab" role="tab" aria-selected="false" aria-controls="view-coal">Coal Reinvestment</button>
       <button id="tab-ap1000" class="tab" role="tab" aria-selected="false" aria-controls="view-ap1000">Nuclear Siting</button>
       <button id="tab-micro" class="tab" role="tab" aria-selected="false" aria-controls="view-micro">Microreactors</button>
-      <button id="tab-hanford" class="tab" role="tab" aria-selected="false" aria-controls="view-hanford">Hanford</button>
+      <button id="tab-hanford" class="tab" role="tab" aria-selected="false" aria-controls="view-hanford">DOE Sites</button>
       <button id="tab-about" class="tab" role="tab" aria-selected="false" aria-controls="view-about">About</button>
     </div>
   </div>
@@ -385,7 +385,9 @@
   </section>
 
   <section id="view-hanford" class="view hanford-view" role="tabpanel" aria-labelledby="tab-hanford" hidden>
-    <!-- End-to-end NEPA screening dossier for one DOE site (Hanford, WA).
+    <!-- End-to-end NEPA screening dossiers for five DOE sites (Hanford WA,
+         Savannah River SC, Portsmouth OH, Paducah KY, WIPP NM). Ids keep
+         their historical hanford- names (identifier-continuity rule).
          Interior mounts lazily from this <template> on first tab activation
          (app.js mountHanfordView) — template content is excluded from the
          rendered DOM, so the tab costs ~2 nodes at first paint against the
@@ -393,10 +395,10 @@
     <template id="hanford-template">
     <div class="hanford-wrap">
       <div class="hanford-lead">
-        <h2>Hanford end-to-end — one DOE site, every reuse outcome</h2>
-        <p>A worked example of what this dashboard plus <a href="https://github.com/pnnl/nepa-mcp" target="_blank" rel="noopener">PNNL's nepa-mcp</a> can say about a single federal cleanup site — one land unit at a time, with an honest reuse call for each, including where the answer is <strong>"this land is off the table."</strong> Sources and methodology below; screening evidence, never an agency determination.</p>
+        <h2>DOE sites, end to end — every reuse outcome, cited</h2>
+        <p>What this dashboard plus <a href="https://github.com/pnnl/nepa-mcp" target="_blank" rel="noopener">PNNL's nepa-mcp</a> can say about a federal cleanup site — one land unit at a time, with an honest facility-fit call for each, including where the answer is <strong>"this land is off the table."</strong> Every claim links its source; screening evidence, never an agency determination.</p>
       </div>
-      <div id="hanford-content" aria-live="polite"><p class="muted">Loading Hanford dossier…</p></div>
+      <div id="hanford-content" aria-live="polite"><p class="muted">Loading dossier…</p></div>
     </div>
     </template>
   </section>
