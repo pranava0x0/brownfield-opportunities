@@ -2,12 +2,14 @@
 # Pre-PR gate — run before opening or updating any PR on this repo.
 #
 # Encodes the guards that the 2026-08-23 coal-repowering PR shipped red on,
-# so the next PR can't repeat them without noticing. Two lenses:
+# so the next PR can't repeat them without noticing. Three lenses:
 #   1. Code/architecture: unit suite, provenance registry drift, the
 #      first-paint DOM budget, refresh-date drift, mobile tab-strip overflow.
 #   2. Data/domain: offline corpus validation incl. overlay Pydantic schemas,
 #      curated-row provenance (source_url + verified_at), and coal-catalog
 #      coherence (derived flags, valuation recompute, join distances).
+#   3. Writing: banned AI-slop phrasing in user-visible copy and in this
+#      branch's commit messages (scripts/check_writing.py).
 #
 # Usage:
 #   bash scripts/pr_gate.sh          # full gate (unit + validators + guard e2e)
@@ -24,13 +26,22 @@ fail=0
 step() { printf '\n\033[1m== %s ==\033[0m\n' "$1"; }
 run()  { "$@" || fail=1; }
 
-step "1/4 unit tests (includes provenance-registry drift guard)"
+step "1/5 unit tests (includes provenance-registry drift guard)"
 run python3 -m pytest tests/ -q --ignore=tests/e2e -p no:cacheprovider
 
-step "2/4 offline data validation (schema, joins, provenance, coherence)"
+step "2/5 offline data validation (schema, joins, provenance, coherence)"
 run python3 scripts/validate_data.py --fail-on FAIL
 
-step "3/4 curated-citation liveness (coal + federal + hanford overlays)"
+step "3/5 writing check (user-visible copy + this branch's commits)"
+# Banned AI-slop phrasing gates; the WARN tier is advisory. Commits are
+# scanned against origin/main when it is available, so a bad PR description
+# or commit subject is caught before review rather than after.
+run python3 scripts/check_writing.py
+if git rev-parse --verify --quiet origin/main >/dev/null; then
+  run python3 scripts/check_writing.py --commits origin/main..HEAD
+fi
+
+step "4/5 curated-citation liveness (coal + federal + hanford overlays)"
 # Exit codes: 0 = all resolve · 1 = at least one DEFINITIVE dead URL (gates)
 # · 2 = network unreachable (warns, does not gate — but verify before ship).
 python3 - <<'EOF'
@@ -121,9 +132,9 @@ elif [ "$live_rc" -ne 0 ]; then
 fi
 
 if [ "$FAST" -eq 1 ]; then
-  step "4/4 e2e guards — SKIPPED (--fast)"
+  step "5/5 e2e guards — SKIPPED (--fast)"
 else
-  step "4/4 e2e guards (DOM budget, refresh date, coal tab, mobile overflow)"
+  step "5/5 e2e guards (DOM budget, refresh date, coal tab, mobile overflow)"
   run python3 -m pytest -q -p no:cacheprovider -n 4 \
     tests/e2e/test_smoke.py::test_dom_size_under_5k_nodes \
     tests/e2e/test_smoke.py::test_refresh_date_reflects_freshest_data_file \

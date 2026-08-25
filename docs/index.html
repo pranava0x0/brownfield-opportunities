@@ -362,8 +362,8 @@
         <summary>How this ranking works &amp; data provenance</summary>
         <div class="ap1000-help-body">
           <p><strong>Priority order.</strong> Acreage is a threshold screen for now: the table keeps the developable-acreage estimate and citation, but sites that clear 500 developable acres are not ranked higher just for having more land. The weighted score then prioritizes water (40), electrical infrastructure (38 total: transmission 22 + substation 16), construction workforce within ~1&nbsp;hour (15), and fiber (7). Weights sum to 100.</p>
-          <p><strong>Data provenance.</strong> Transmission and substation distance/voltage are <em>computed</em> from the project's own infra-proximity spatial index (the same machinery behind every other site). Developable acreage, cooling-water adequacy, construction-workforce availability, and fiber are <em>analyst-researched</em> from public sources (cited in each row's detail) — this project has no federal water, workforce, or fiber GIS layer, so those are explicitly an analyst assessment, not a measured layer.</p>
-          <p><strong>Water demand &amp; rights citations.</strong> Per-unit water demand anchors on the as-built <a href="https://www.energy.gov/sites/default/files/EIS-0476-FEIS_Part1-2012.pdf" target="_blank" rel="noopener">Vogtle 3&amp;4 environmental record (DOE EIS-0476 / NUREG-1872)</a>: 26.8&nbsp;MGD withdrawal / 20.1&nbsp;MGD (31.1&nbsp;cfs) consumptive per AP1000; NRC accepted Vogtle at ~1% of average Savannah River discharge, which anchors the low-flow margin tiers. Per-site flow figures are validated against USGS streamgages in <a href="https://github.com/pranava0x0/brownfield-opportunities/blob/main/ap1000-water-validation.md" target="_blank" rel="noopener">ap1000-water-validation.md</a>. The water-rights obtainability class (obtainable ×1.0 / contested ×0.6 / fully-appropriated ×0.2, multiplied into the water score) is curated per site with its legal gatekeeper cited in the row detail — state doctrine background: <a href="https://www.fjc.gov/content/376802/water-and-law-sidebar-books-overview-surface-water-use-rights-united-states" target="_blank" rel="noopener">FJC surface-water rights overview</a>.</p>
+          <p><strong>Data provenance.</strong> Transmission and substation distance/voltage are <em>computed</em> from the project's own infra-proximity spatial index (the same machinery behind every other site). Developable acreage, cooling-water adequacy, construction-workforce availability, and fiber are <em>analyst-researched</em> from public sources, linked in each row's detail — this project has no federal water, workforce, or fiber GIS layer, so those are an analyst assessment rather than a measured layer.</p>
+          <p><strong>Where the water numbers come from.</strong> Per-unit water demand anchors on the as-built <a href="https://www.energy.gov/sites/default/files/EIS-0476-FEIS_Part1-2012.pdf" target="_blank" rel="noopener">Vogtle 3&amp;4 environmental record (DOE EIS-0476 / NUREG-1872)</a>: 26.8&nbsp;MGD withdrawal / 20.1&nbsp;MGD (31.1&nbsp;cfs) consumptive per AP1000; NRC accepted Vogtle at ~1% of average Savannah River discharge, which anchors the low-flow margin tiers. Per-site flow figures are validated against USGS streamgages in <a href="https://github.com/pranava0x0/brownfield-opportunities/blob/main/ap1000-water-validation.md" target="_blank" rel="noopener">ap1000-water-validation.md</a>. The water-rights obtainability class (obtainable ×1.0 / contested ×0.6 / fully-appropriated ×0.2, multiplied into the water score) is set per site, with the legal gatekeeper named in the row detail — state doctrine background: <a href="https://www.fjc.gov/content/376802/water-and-law-sidebar-books-overview-surface-water-use-rights-united-states" target="_blank" rel="noopener">FJC surface-water rights overview</a>.</p>
           <p><strong>Not in the score: acreage beyond threshold, seismic &amp; flood.</strong> Acreage is shown with source context but is not a differentiating score once the site clears the land threshold. Geohazards aren't folded into the number either — but they're genuinely deal-affecting for a reactor (Edwards, Fort Campbell, JBLM and Fort Wainwright all carry real flags), so each row surfaces them as <span class="ap1000-flag-amber">amber</span>/<span class="ap1000-flag-red">red</span> context chips. The Army's Janus interest is a microreactor (≤20&nbsp;MWe) signal — a permitting/intent precedent, not a like-for-like for a gigawatt-class AP1000.</p>
         </div>
       </details>
@@ -395,8 +395,8 @@
     <template id="hanford-template">
     <div class="hanford-wrap">
       <div class="hanford-lead">
-        <h2>DOE sites, end to end — every reuse outcome, cited</h2>
-        <p>What this dashboard plus <a href="https://github.com/pnnl/nepa-mcp" target="_blank" rel="noopener">PNNL's nepa-mcp</a> can say about a federal cleanup site — one land unit at a time, with an honest facility-fit call for each, including where the answer is <strong>"this land is off the table."</strong> Every claim links its source; screening evidence, never an agency determination.</p>
+        <h2>DOE cleanup sites</h2>
+        <p>Five federal cleanup sites, broken into land units and screened one at a time with <a href="https://github.com/pnnl/nepa-mcp" target="_blank" rel="noopener">PNNL's nepa-mcp</a>. Each unit gets a rating for four possible reuses — data center, large reactor, SMR, and microreactor — plus the environmental layers that overlap it and the sources behind both. This is screening evidence; agencies make the actual determinations.</p>
       </div>
       <div id="hanford-content" aria-live="polite"><p class="muted">Loading dossier…</p></div>
     </div>
@@ -585,7 +585,7 @@
             <div class="flow-card master-card">
               <div class="flow-card-head">
                 <span class="flow-card-badge">Master Pipeline</span>
-                <h4>End-to-End Platform Architecture</h4>
+                <h4>Platform Architecture</h4>
               </div>
               <div class="flow-diagram-visual">
                 <div class="flow-step-box">

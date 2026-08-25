@@ -3523,7 +3523,17 @@ function makeRow(s) {
   // signal — Eligible / Ineligible / No Further Action / Categorical
   // Exclusion). ACRES + BRAC have no comparable status field, so render
   // an em-dash rather than duplicating the PROGRAM pill (UAT-009).
+  // The "not applicable" em-dash carries `muted-cell` on the <td> itself
+  // rather than in a wrapper <span>. That span cost one DOM node per
+  // affected cell on every one of the 250 rendered rows, and because the
+  // number of rows needing it swings with which programs have finished
+  // lazy-loading, it also made `test_dom_size_under_5k_nodes` measure a
+  // moving target (255 muted spans vs 37 across two runs of the same
+  // commit — the whole 218-node spread). Styling the cell is visually
+  // identical and makes first-paint DOM deterministic. See issues.md
+  // 2026-08-25 and the `#sites-table td.muted-cell` rule in style.css.
   let statusHtml;
+  let statusCls = "";
   if (s.npl_status_code) {
     statusHtml = `<span class="pill" data-status="${escapeAttr(s.npl_status_code)}">${escapeHtml(s.npl_status || "Unknown")}</span>`;
   } else if (s.program === "fuds" && s.eligibility) {
@@ -3532,21 +3542,21 @@ function makeRow(s) {
     const cls = s.cleanup_status === "Completed" ? " ready" : "";
     statusHtml = `<span class="cleanup-status${cls}">${escapeHtml(s.cleanup_status)}</span>`;
   } else {
-    statusHtml = '<span class="muted-cell">—</span>';
+    statusHtml = "—";
+    statusCls = "muted-cell";
   }
   const dcScore = computeDcCompositeScore(s);
-  const dcScoreHtml = dcScore == null
-    ? '<span class="muted-cell">—</span>'
-    : String(dcScore);
+  const dcScoreHtml = dcScore == null ? "—" : String(dcScore);
+  const dcScoreCls = dcScore == null ? "num muted-cell" : "num";
   tr.innerHTML = `
     <td>${escapeHtml(s.name || "—")}</td>
     <td><span class="pill" data-program="${escapeAttr(s.program)}">${escapeHtml(programLabel)}</span></td>
     <td>${escapeHtml(s.state || "—")}</td>
     <td class="num">${fmt.acres(s.acreage)}</td>
-    <td>${statusHtml}</td>
+    <td${statusCls ? ` class="${statusCls}"` : ""}>${statusHtml}</td>
     <td>${escapeHtml(s.city || "—")}</td>
     <td>${escapeHtml(s.county || "—")}</td>
-    <td class="num">${dcScoreHtml}</td>
+    <td class="${dcScoreCls}">${dcScoreHtml}</td>
   `;
   tr.addEventListener("click", () => selectSite(s.id, { fromTable: true }));
   return tr;
@@ -4344,7 +4354,7 @@ function _coalNepaSectionHtml(plantName) {
   return `<div class="coal-nepa-section">` +
     `<h4>Permitting screen <span class="coal-nepa-note">(PNNL nepa-mcp · 5-mi context · screening evidence, not a determination)</span></h4>` +
     `<div class="coal-nepa-chips">${chips}</div>` +
-    `<p class="coal-nepa-note">Counts mean features intersect the screening buffer, not the plant parcel. Unavailable is never a no-hit.` +
+    `<p class="coal-nepa-note">Counts mean features intersect the screening buffer rather than the plant parcel itself. Unavailable means the source did not respond, which is different from a result of zero.` +
     `${retrieved ? ` Retrieved ${escapeHtml(retrieved)}.` : ""}${reportLink}</p>` +
     `</div>`;
 }
@@ -5469,7 +5479,7 @@ function _janusDetailHtml() {
       `<button type="button" class="ap1000-export janus-map-button" data-janus-map="${escapeAttr(site.id)}">` +
       `Show ${site.map_summary?.feature_count?.toLocaleString() || "available"} features on map</button></div>` +
     `<div class="janus-limit"><strong>Screening, not siting:</strong> installation point only; parcel unknown. ` +
-      `No count is a permit, agency, wetland-jurisdiction, or suitability conclusion. Unavailable is not no-hit.</div>` +
+      `No count here is a permit, an agency decision, a wetland-jurisdiction call, or a suitability conclusion. A source recorded as unavailable is different from a result of zero.</div>` +
     `<article class="janus-pathway"><div><p class="eyebrow">Announced deployment pathway</p>` +
       `<h4>${escapeHtml(pathway.reactor_regulator || "Authorization path not published")}</h4>` +
       `<p>${escapeHtml(pathway.acquisition || "Acquisition details unavailable")}</p>` +
@@ -5866,10 +5876,10 @@ function _doeAcres(p, suffix) {
 const HANFORD_FIT_RANK = { anchored: 4, strong: 3, conditional: 2, precluded: 1 };
 
 // Best-fit ranking for one parcel's facility_fit set. 2026-08-24 fix: a
-// parcel whose every type is "precluded" must say "None — off the table",
-// never list all four types as ties (the old top-rank tie-listing read an
-// all-precluded row as fit-for-everything — the exact opposite of the
-// data). Only conditional-or-better ranks count as a fit.
+// parcel whose every type is "precluded" must say "None", never list all
+// four types as ties (the old top-rank tie-listing read an all-precluded
+// row as fit-for-everything — the exact opposite of the data). Only
+// conditional-or-better ranks count as a fit.
 function doeBestFit(byType) {
   let bestRank = 0;
   for (const t of HANFORD_FACILITY_ORDER) {
@@ -5877,7 +5887,7 @@ function doeBestFit(byType) {
     if (r > bestRank) bestRank = r;
   }
   if (bestRank === 0) return { label: "Not assessed", none: true };
-  if (bestRank <= HANFORD_FIT_RANK.precluded) return { label: "None — off the table", none: true };
+  if (bestRank <= HANFORD_FIT_RANK.precluded) return { label: "None", none: true };
   const types = HANFORD_FACILITY_ORDER.filter((t) => HANFORD_FIT_RANK[byType[t]?.fit] === bestRank);
   return { label: types.map((t) => HANFORD_FACILITY_SHORT_LABEL[t]).join(" / "), none: false };
 }
@@ -5949,7 +5959,7 @@ function _doeFitMatrixHtml(payload) {
   return (
     `<section class="doe-fit-section" id="doe-fit">` +
     `<h3 class="hanford-section-title">What fits where</h3>` +
-    `<p class="hanford-summary">Each land unit is assessed against the same four facility types. These are cited editorial judgements, not computed scores — <strong>click any cell</strong> for the reasoning, its binding constraint, and its sources. "Best fit" is the highest-ranked value per unit; a unit precluded across the board says <em>None — off the table</em>.</p>` +
+    `<p class="hanford-summary">Every land unit is rated against the same four facility types. These ratings are editorial judgements rather than the computed scores used elsewhere in this dashboard — <strong>click any cell</strong> for the reasoning, its binding constraint, and sources. "Best fit" is the highest rating in the row.</p>` +
     `<div class="micro-table-wrap"><table class="micro-table hanford-pathway-table hanford-facility-matrix">` +
     `<thead><tr><th scope="col">Land unit</th>${HANFORD_FACILITY_ORDER.map((t) => `<th scope="col">${escapeHtml(HANFORD_FACILITY_SHORT_LABEL[t])}</th>`).join("")}<th scope="col">Best fit</th></tr></thead>` +
     `<tbody>${bodyRows}</tbody></table></div>` +
@@ -6088,11 +6098,11 @@ function _doeSitePillsHtml() {
 function _doeGlanceHtml(payload) {
   const ov = payload.site_overview || {};
   const parcels = payload.parcels || [];
-  let viable = 0, offTable = 0;
+  let viable = 0, precluded = 0;
   for (const p of parcels) {
     const byType = {};
     for (const ff of p.facility_fit || []) byType[ff.type] = ff;
-    if (doeBestFit(byType).none) offTable += 1; else viable += 1;
+    if (doeBestFit(byType).none) precluded += 1; else viable += 1;
   }
   const landlord = (ov.managers || [])[0];
   const lup = ov.land_use_plan || {};
@@ -6110,8 +6120,8 @@ function _doeGlanceHtml(payload) {
     `<div class="doe-stats">` +
     `<span class="doe-stat"><strong>${ov.size_sq_mi ? escapeHtml(String(ov.size_sq_mi)) : "—"}</strong> sq mi</span>` +
     `<span class="doe-stat"><strong>${parcels.length}</strong> land units</span>` +
-    `<span class="doe-stat doe-stat-viable"><strong>${viable}</strong> with a viable facility fit</span>` +
-    `<span class="doe-stat doe-stat-off"><strong>${offTable}</strong> off the table</span>` +
+    `<span class="doe-stat doe-stat-viable"><strong>${viable}</strong> with a viable fit</span>` +
+    `<span class="doe-stat doe-stat-off"><strong>${precluded}</strong> precluded</span>` +
     (landlord ? `<span class="doe-stat">Landlord: <a href="${escapeAttr(landlord.url)}" target="_blank" rel="noopener">${escapeHtml((landlord.who || "").split("—")[0].trim())}</a></span>` : "") +
     `</div>` +
     `<p class="hanford-summary">${escapeHtml(ov.summary || "")}` +
@@ -6139,7 +6149,7 @@ function _doeInfraHtml(payload) {
   return (
     `<section class="doe-infra" id="doe-infra">` +
     `<h3 class="hanford-section-title">Site infrastructure</h3>` +
-    `<p class="hanford-summary micro-note">Cited site-level facts per category; a category with no verifiable public source is omitted rather than invented. Per-unit GIS distances (this dashboard's own joins) live in each unit's dossier.</p>` +
+    `<p class="hanford-summary micro-note">What the site as a whole has to work with. Distances from any one land unit are in that unit's dossier.</p>` +
     `<div class="doe-infra-grid">${items}</div>` +
     `</section>`
   );
@@ -6211,7 +6221,7 @@ function buildHanfordView() {
     `<div class="coal-drawer doe-drawer" id="doe-drawer"${selected ? "" : " hidden"}>${selected ? _doeDrawerHtml(payload, selected) : ""}</div>` +
     `</section>` +
     _doeInfraHtml(payload) +
-    `<details class="hanford-pathways" id="doe-permitting"><summary><strong>Permitting &amp; licensing pathways</strong> <span class="micro-note">(what applies and who decides — never a schedule estimate)</span></summary>` +
+    `<details class="hanford-pathways" id="doe-permitting"><summary><strong>Permitting &amp; licensing pathways</strong> <span class="micro-note">(what applies and who decides)</span></summary>` +
     `<div class="micro-table-wrap"><table class="micro-table hanford-pathway-table">` +
     `<thead><tr><th scope="col">Regime</th><th scope="col">When it applies at ${escapeHtml(site.label)}</th><th scope="col">Authority</th></tr></thead>` +
     `<tbody>${pathways}</tbody></table></div></details>` +
@@ -6223,7 +6233,7 @@ function buildHanfordView() {
     `</details>` +
     `<details class="hanford-pathways hanford-sources" id="doe-sources"><summary><strong>Sources &amp; methodology</strong> <span class="micro-note">(where every finding on this page comes from, and how it was pulled)</span></summary>` +
     `<div class="janus-limit"><strong>Screening, not siting:</strong> ${limits}</div>` +
-    `<p class="hanford-summary">Every row in each unit's environmental screen comes from <a href="https://github.com/pnnl/nepa-mcp" target="_blank" rel="noopener">PNNL's nepa-mcp</a> — an open-source toolkit (BSD-3) that wraps live federal GIS and regulatory APIs behind one uniform interface. For each land unit, this dossier calls nepa-mcp's tools once per source below, at a ${escapeHtml(String(payload.screening_buffer_miles || 5))}-mile radius around a representative point in that unit, caches the raw response, and normalizes it into the "Finding" column shown in each unit's Environmental screen table. A source that times out or errors is recorded as <strong>unavailable</strong> — it is never silently counted as a no-hit. The Map Composer layers (the "Show features on map" button) are pulled the same way, as GeoJSON instead of tabular counts. Site history, ownership, and land-use-plan facts are hand-curated and cited per row — see each row's own "Source ↗" link.</p>` +
+    `<p class="hanford-summary">The environmental screen comes from <a href="https://github.com/pnnl/nepa-mcp" target="_blank" rel="noopener">PNNL's nepa-mcp</a>, an open-source toolkit (BSD-3) that wraps live federal GIS and regulatory APIs behind one interface. For each land unit, this dossier calls one tool per source listed below within ${escapeHtml(String(payload.screening_buffer_miles || 5))} miles of a representative point, caches the response, and normalizes it into the Finding column. A source that times out or errors is marked <strong>unavailable</strong>, which is different from a result of zero. The Map Composer layers behind "Show features on map" come from the same calls, returned as GeoJSON instead of counts. Site history, ownership, and land-use facts are drafted from the public sources linked in each row.</p>` +
     `<div class="micro-table-wrap"><table class="micro-table hanford-pathway-table">` +
     `<thead><tr><th scope="col">Source (nepa-mcp tool)</th><th scope="col">What it actually covers</th></tr></thead>` +
     `<tbody>${sourceRows}</tbody></table></div></details>` +

@@ -124,8 +124,9 @@ SITE_OVERVIEW = {
         "edges — a National Monument ring, an operating commercial reactor "
         "corridor, a transferred industrial park, and a gigawatt-scale solar "
         "lease negotiation — while the Central Plateau remains a dedicated "
-        "waste-treatment zone for decades. That spread makes it the ideal "
-        "end-to-end example: one federal site, every reuse outcome."
+        "waste-treatment zone for decades. One site therefore spans nearly "
+        "the full range of reuse outcomes, from an active solar lease to "
+        "land that is permanently closed."
     ),
     "managers": [
         {
@@ -240,8 +241,9 @@ PERMITTING_PATHWAYS = [
             "plus bull trout. NOAA Fisheries consults on Upper Columbia "
             "spring Chinook (endangered) and steelhead (threatened). A clean "
             "IPaC pull does not clear the NMFS side — the screen below "
-            "queries both. The Reach's famous fall Chinook run is NOT "
-            "ESA-listed; it binds through EFH, not Section 7."
+            "queries both. The Reach's fall Chinook run is not ESA-listed, so "
+            "it is covered by Magnuson-Stevens EFH consultation instead of "
+            "Section 7."
         ),
         "authority": "USFWS + NOAA Fisheries",
         "url": "https://www.federalregister.gov/documents/2013/04/23/2013-09404/endangered-and-threatened-wildlife-and-plants-designation-of-critical-habitat-for-eriogonum-codium",
@@ -251,8 +253,8 @@ PERMITTING_PATHWAYS = [
         "applies": (
             "The Hanford Reach is Essential Fish Habitat for Chinook and "
             "coho. EFH consultation triggers on federal actions affecting "
-            "EFH even for healthy, unlisted runs — the Reach's fall Chinook "
-            "are the textbook case."
+            "EFH even for healthy, unlisted runs, including the Reach's fall "
+            "Chinook."
         ),
         "authority": "NOAA Fisheries",
         "url": "https://www.fisheries.noaa.gov/national/habitat-conservation/consultations-essential-fish-habitat",
@@ -298,11 +300,11 @@ OPPORTUNITY_KINDS = {
 # the tab. The dashboard's attribution principle (every AI-generated surface
 # says so and cites its inputs) applied to curated narrative text.
 NARRATIVE_NOTE = (
-    "Narrative text in this dossier (site history, unit status, availability, "
-    "and fit rationales) is AI-drafted from the primary sources cited on each "
-    "row and human-verified against them on {date}. Numbers and dated facts "
-    "each carry their citation; screening rows are live tool output, never "
-    "prose. No text on this page is an agency determination."
+    "The written parts of this dossier — site history, unit status, "
+    "availability, and fit ratings — were AI-drafted from the sources linked "
+    "on each row, then checked by a person against those sources on {date}. "
+    "The environmental screen rows are live tool output. Agencies make the "
+    "actual determinations."
 ).format(date=VERIFIED_AT)
 
 # Site-level infrastructure facts — the seven-category vocabulary
@@ -460,10 +462,10 @@ FACILITY_TYPES = {
     "data_center": {
         "label": "Data center",
         "considerations": (
-            "Land + firm power + fiber. No NRC or DOE reactor authorization "
-            "needed, so it is the fastest of the four to build once power is "
-            "secured — but it competes for the same scarce federal-land "
-            "interconnection queue as everything else on this page."
+            "Needs land, steady power, and fiber. It requires no reactor "
+            "licence, so it is the quickest of the four to build once power "
+            "is lined up. The catch is that it competes for the same scarce "
+            "grid connection as everything else here."
         ),
         "source_url": "https://www.epa.gov/re-powering",
         "verified_at": VERIFIED_AT,
@@ -471,11 +473,11 @@ FACILITY_TYPES = {
     "lwr_pwr": {
         "label": "Large reactor (LWR/PWR)",
         "considerations": (
-            "A ≥1,000 MWe-class unit (e.g. AP1000). Needs an NRC construction "
-            "permit and operating license — or DOE authorization on federal "
-            "land — roughly 27 MGD of cooling water per unit, a multi-mile "
-            "emergency planning zone, and is best sited where a high-voltage "
-            "switchyard and EPZ infrastructure already exist."
+            "A 1,000 MWe-class reactor such as the AP1000. It needs an NRC "
+            "construction permit and operating licence, or DOE authorization "
+            "on federal land, about 27 million gallons of cooling water a "
+            "day, and an emergency planning zone several miles across. It "
+            "fits best where a high-voltage switchyard already exists."
         ),
         "source_url": "https://www.energy.gov/sites/default/files/EIS-0476-FEIS_Part1-2012.pdf",
         "verified_at": VERIFIED_AT,
@@ -483,12 +485,12 @@ FACILITY_TYPES = {
     "smr": {
         "label": "Small modular reactor (SMR)",
         "considerations": (
-            "A ~50-300 MWe modular unit (e.g. X-energy Xe-100). Same NRC/DOE "
-            "licensing track as a large reactor, but a smaller footprint, "
-            "lower water draw, and a tighter exclusion zone — the class "
-            "Energy Northwest's Cascade Advanced Energy Facility is pursuing "
-            "at Hanford (design-builder selected Oct 2025; NRC "
-            "pre-application, no construction-permit application filed yet)."
+            "A 50-300 MWe modular reactor such as X-energy's Xe-100. "
+            "Licensing works the same way as for a large reactor, but the "
+            "footprint, water draw, and exclusion zone are all smaller. This "
+            "is the class Energy Northwest is pursuing at Hanford with its "
+            "Cascade Advanced Energy Facility, which selected a "
+            "design-builder in Oct 2025 and is still in NRC pre-application."
         ),
         "source_url": "https://www.energy-northwest.com/news-releases/energy-northwest-selects-design-builder-for-cascade-advanced-energy-facility-in-washington-state/",
         "verified_at": VERIFIED_AT,
@@ -496,11 +498,11 @@ FACILITY_TYPES = {
     "microreactor": {
         "label": "Microreactor",
         "considerations": (
-            "A 1-20 MWe factory-built unit. DOE authorization (not NRC) is "
-            "the fast path on federal land, land is a 5-acre threshold "
-            "rather than a ranked factor, and the best fit is a defined "
-            "anchor load or a site without existing grid access — not simply "
-            "the largest available parcel."
+            "A 1-20 MWe factory-built unit. On federal land, DOE "
+            "authorization is the quick route rather than an NRC licence. It "
+            "needs only about 5 acres, so what matters is a steady customer "
+            "nearby, or a site with no grid connection at all, rather than "
+            "the largest parcel available."
         ),
         "source_url": "https://www.datacenterfrontier.com/energy/article/55232808/westinghouse-evinci-microreactor-could-yield-5-mw-of-nuclear-power-every-8-years-for-ai-data-centers",
         "verified_at": VERIFIED_AT,
@@ -604,8 +606,8 @@ PARCELS = [
         ),
         "availability": (
             "None. The Inner Area is the one part of Hanford with no "
-            "near-term reuse story — including it keeps this dossier "
-            "honest about what 'remaining land' means."
+            "near-term reuse prospect: tank farms, the Waste Treatment "
+            "Plant, and the groundwater remedy occupy it for decades."
         ),
         "source_url": "https://www.epa.gov/superfund/hanford-200",
         "extra_sources": [
@@ -1093,9 +1095,9 @@ PARCELS = [
             "the birthplace of the Washani faith."
         ),
         "availability": (
-            "None, permanently. Shown because an honest siting tool must "
-            "render 'this land is off the table' with the same confidence "
-            "as any opportunity."
+            "None, permanently. Monument designation, two listed endemic "
+            "plants with designated critical habitat, and treaty-era "
+            "cultural landscapes each independently rule out development."
         ),
         "source_url": "https://www.fws.gov/national-monument/hanford-reach",
         "extra_sources": [
@@ -1298,12 +1300,12 @@ SOURCE_META = {
 }
 
 LIMITATIONS = [
-    "Coordinates are representative points inside named areas, not parcel boundaries.",
-    "Counts mean features intersect the screening buffer, not a project footprint.",
-    "No result is an agency determination, permit conclusion, or suitability score.",
-    "An unavailable source is never treated as a no-hit.",
-    "Opportunity fits are curated editorial judgements with citations — screening evidence informs them, it does not compute them.",
-    "Much of Hanford is unmapped in FEMA's NFHL; zero mapped flood zones does not mean flood-free.",
+    "Coordinates are representative points inside each area, not surveyed parcel boundaries.",
+    "Counts show what falls inside the screening radius, which is wider than any project footprint.",
+    "Nothing here is an agency determination, a permit decision, or a suitability score.",
+    "A source that was unavailable is recorded as unavailable, which is different from a result of zero.",
+    "Fit ratings are editorial judgements informed by the screening results, not calculated from them.",
+    "Much of Hanford is not mapped in FEMA's flood layer, so zero mapped flood zones does not mean the land is flood-free.",
 ]
 
 
@@ -1614,10 +1616,11 @@ def write_output(
         "flood_radius_miles": FLOOD_RADIUS_MILES,
         "parcel_count": len(out_parcels),
         "method": (
-            "PNNL nepa-mcp structured APIs and Map Composer layers, cached and "
-            "rate-limited to at least 1.5 seconds between requests per host; "
-            "curated parcel facts verified against primary sources; corpus "
-            "fields joined from this project's own enrichment files."
+            "Screening data comes from PNNL nepa-mcp APIs and Map Composer "
+            "layers, cached and rate-limited to one request per host every "
+            "1.5 seconds. Parcel facts were checked against primary sources. "
+            "Corpus fields are joined from this project's own enrichment "
+            "files."
         ),
         "narrative_note": NARRATIVE_NOTE,
         "site_overview": SITE_OVERVIEW,

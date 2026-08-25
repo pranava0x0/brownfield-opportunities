@@ -95,10 +95,10 @@ FACILITY_TYPES = {
     "data_center": {
         "label": "Data center",
         "considerations": (
-            "Land + firm power + fiber. No NRC or DOE reactor authorization "
-            "needed, so it is the fastest of the four to build once power is "
-            "secured — but it competes for the same scarce federal-land "
-            "interconnection queue as everything else on this page."
+            "Needs land, steady power, and fiber. It requires no reactor "
+            "licence, so it is the quickest of the four to build once power "
+            "is lined up. The catch is that it competes for the same scarce "
+            "grid connection as everything else here."
         ),
         "source_url": "https://www.epa.gov/re-powering",
         "verified_at": VERIFIED_AT,
@@ -106,11 +106,11 @@ FACILITY_TYPES = {
     "lwr_pwr": {
         "label": "Large reactor (LWR/PWR)",
         "considerations": (
-            "A ≥1,000 MWe-class unit (e.g. AP1000). Needs an NRC construction "
-            "permit and operating license — or DOE authorization on federal "
-            "land — roughly 27 MGD of cooling water per unit, a multi-mile "
-            "emergency planning zone, and is best sited where a high-voltage "
-            "switchyard and EPZ infrastructure already exist."
+            "A 1,000 MWe-class reactor such as the AP1000. It needs an NRC "
+            "construction permit and operating licence, or DOE authorization "
+            "on federal land, about 27 million gallons of cooling water a "
+            "day, and an emergency planning zone several miles across. It "
+            "fits best where a high-voltage switchyard already exists."
         ),
         "source_url": "https://www.energy.gov/sites/default/files/EIS-0476-FEIS_Part1-2012.pdf",
         "verified_at": VERIFIED_AT,
@@ -118,12 +118,12 @@ FACILITY_TYPES = {
     "smr": {
         "label": "Small modular reactor (SMR)",
         "considerations": (
-            "A ~50-300 MWe modular unit. Same NRC/DOE licensing track as a "
-            "large reactor, but a smaller footprint, lower water draw, and a "
-            "tighter exclusion zone. Executive Order 14299 (May 23, 2025) "
-            "directs DOE to use its authorization authority for privately "
-            "funded advanced reactors on DOE sites — the pathway every "
-            "'advanced nuclear' plan on this page leans on."
+            "A 50-300 MWe modular reactor. Licensing works the same way as "
+            "for a large reactor, but the footprint, water draw, and "
+            "exclusion zone are all smaller. Executive Order 14299 (May 23, "
+            "2025) directs DOE to use its own authorization authority for "
+            "privately funded advanced reactors on DOE sites, which is the "
+            "route every advanced-nuclear plan on this page relies on."
         ),
         "source_url": "https://www.energy.gov/ne/articles/5-fast-facts-about-doe-reactor-authorization",
         "verified_at": VERIFIED_AT,
@@ -131,11 +131,11 @@ FACILITY_TYPES = {
     "microreactor": {
         "label": "Microreactor",
         "considerations": (
-            "A 1-20 MWe factory-built unit. DOE authorization (not NRC) is "
-            "the fast path on federal land, land is a 5-acre threshold "
-            "rather than a ranked factor, and the best fit is a defined "
-            "anchor load or a site without existing grid access — not simply "
-            "the largest available parcel."
+            "A 1-20 MWe factory-built unit. On federal land, DOE "
+            "authorization is the quick route rather than an NRC licence. It "
+            "needs only about 5 acres, so what matters is a steady customer "
+            "nearby, or a site with no grid connection at all, rather than "
+            "the largest parcel available."
         ),
         "source_url": "https://www.datacenterfrontier.com/energy/article/55232808/westinghouse-evinci-microreactor-could-yield-5-mw-of-nuclear-power-every-8-years-for-ai-data-centers",
         "verified_at": VERIFIED_AT,
@@ -149,23 +149,23 @@ SOURCE_META = {
 }
 
 NARRATIVE_NOTE_TEMPLATE = (
-    "Narrative text in this dossier (site history, unit status, availability, "
-    "and fit rationales) is AI-drafted from the primary sources cited on each "
-    "row and human-verified against them on {date}. Numbers and dated facts "
-    "each carry their citation; screening rows are live tool output, never "
-    "prose. No text on this page is an agency determination."
+    "The written parts of this dossier — site history, unit status, "
+    "availability, and fit ratings — were AI-drafted from the sources linked "
+    "on each row, then checked by a person against those sources on {date}. "
+    "The environmental screen rows are live tool output. Agencies make the "
+    "actual determinations."
 )
 
 SHARED_LIMITATIONS = [
-    "Coordinates are representative points inside named areas, not parcel boundaries.",
-    "Counts mean features intersect the screening buffer, not a project footprint.",
-    "No result is an agency determination, permit conclusion, or suitability score.",
-    "An unavailable source is never treated as a no-hit.",
-    "Opportunity and facility fits are curated editorial judgements with citations — screening evidence informs them, it does not compute them.",
-    "NFHL map coverage varies by county; zero mapped flood zones does not mean flood-free.",
+    "Coordinates are representative points inside each area, not surveyed parcel boundaries.",
+    "Counts show what falls inside the screening radius, which is wider than any project footprint.",
+    "Nothing here is an agency determination, a permit decision, or a suitability score.",
+    "A source that was unavailable is recorded as unavailable, which is different from a result of zero.",
+    "Fit ratings are editorial judgements informed by the screening results, not calculated from them.",
+    "FEMA flood-map coverage varies by county, so zero mapped flood zones does not mean the land is flood-free.",
 ]
 
-FLOOD_UNMAPPED_NOTE = "NFHL coverage varies here — unmapped is not flood-free"
+FLOOD_UNMAPPED_NOTE = "FEMA flood-map coverage varies here; unmapped is not the same as flood-free"
 
 
 # ---------------------------------------------------------------------------
@@ -752,9 +752,9 @@ SRS_SITE = {
                     "kind": "waste_disposal",
                     "fit": "anchored",
                     "rationale": (
-                        "The liquid-waste mission IS this land's use for the "
-                        "next decade-plus; saying so keeps 'remaining land' "
-                        "honest."
+                        "The liquid-waste mission is this land's use for the "
+                        "next decade and more, which leaves no room for "
+                        "another facility on it."
                     ),
                 },
             ],
@@ -1801,9 +1801,9 @@ PADUCAH_SITE = {
                 "generation plus up to 2.6 GW of battery storage (~4.6 GW "
                 "of dedicated generation), with Big Rivers Electric, "
                 "Jackson Purchase Energy, and Paducah Power as utility "
-                "partners. Total investment is cited at ~$100B with ~8,000 "
-                "construction and ~600 permanent jobs; completion is "
-                "reported as 2031 or 2032 depending on source."
+                "partners. The announced investment is about $100B, with "
+                "roughly 8,000 construction jobs and 600 permanent ones. "
+                "Sources give completion as either 2031 or 2032."
             ),
             "availability": (
                 "Committed under the July 2026 award (following DOE's "
@@ -2329,9 +2329,9 @@ WIPP_SITE = {
             "category": "road",
             "summary": (
                 "US-62/180 is the designated WIPP transportation corridor. "
-                "DOE's own pages disagree on the Carlsbad distance — 26 "
-                "miles (wipp.energy.gov, NM EMNRD) vs 33 miles (the DOE-EM "
-                "page); both are cited, unresolved."
+                "DOE's own pages disagree on how far Carlsbad is: 26 miles "
+                "on wipp.energy.gov and NM EMNRD, 33 miles on the DOE-EM "
+                "page. The difference is unexplained."
             ),
             "source_label": "WIPP — about the site",
             "source_url": "https://wipp.energy.gov/about-us.asp",
@@ -2719,10 +2719,11 @@ def write_output(
         "flood_unmapped_note": FLOOD_UNMAPPED_NOTE,
         "parcel_count": len(out_parcels),
         "method": (
-            "PNNL nepa-mcp structured APIs and Map Composer layers, cached and "
-            "rate-limited to at least 1.5 seconds between requests per host; "
-            "curated parcel facts verified against primary sources; corpus "
-            "fields joined from this project's own enrichment files."
+            "Screening data comes from PNNL nepa-mcp APIs and Map Composer "
+            "layers, cached and rate-limited to one request per host every "
+            "1.5 seconds. Parcel facts were checked against primary sources. "
+            "Corpus fields are joined from this project's own enrichment "
+            "files."
         ),
         "narrative_note": NARRATIVE_NOTE_TEMPLATE.format(date=VERIFIED_AT),
         "site_overview": site["site_overview"],
