@@ -2763,15 +2763,22 @@ def main() -> int:
 
     corpus_by_id, all_records = hanford.load_corpus_index()
 
+    requested_parcels = set(args.parcel)
+    matched_parcels: "set[str]" = set()
     throttled = False
     for site_id in site_ids:
         site = SITES[site_id]
-        parcels = [p for p in site["parcels"] if not args.parcel or p["id"] in set(args.parcel)]
+        parcels = [p for p in site["parcels"] if not args.parcel or p["id"] in requested_parcels]
         if not parcels:
             if args.parcel:
                 continue  # selected parcels belong to another site
             raise SystemExit(f"{site_id}: no parcels selected")
-        merge = bool(args.parcel) and output_path(site_id).exists()
+        matched_parcels.update(p["id"] for p in parcels)
+        # A --parcel refresh is always a merge onto the published dossier —
+        # never fall back to a full rebuild silently if that dossier is
+        # missing (Codex PR #24 finding: write_output()'s own guard for this
+        # never ran because merge was False whenever out_path was absent).
+        merge = bool(args.parcel)
 
         if args.skip_screening:
             write_output(site, parcels, {}, {}, corpus_by_id, all_records, merge_existing=merge)
@@ -2810,6 +2817,10 @@ def main() -> int:
                         "metadata": {"status": "unavailable", "error": str(exc)},
                     }
         write_output(site, parcels, tabular, geojson_by_id, corpus_by_id, all_records, merge_existing=merge)
+
+    unmatched = requested_parcels - matched_parcels
+    if unmatched:
+        raise SystemExit(f"--parcel id(s) not found in any selected site: {sorted(unmatched)}")
     return 0
 
 

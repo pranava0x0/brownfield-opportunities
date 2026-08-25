@@ -1649,9 +1649,13 @@ def main() -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     args = parse_args()
     validate_parcels()
-    parcels = [p for p in PARCELS if not args.parcel or p["id"] in set(args.parcel)]
+    requested_parcels = set(args.parcel)
+    parcels = [p for p in PARCELS if not args.parcel or p["id"] in requested_parcels]
     if not parcels:
         raise SystemExit("no parcels selected")
+    unmatched = requested_parcels - {p["id"] for p in parcels}
+    if unmatched:
+        raise SystemExit(f"--parcel id(s) not found: {sorted(unmatched)}")
 
     corpus_by_id, all_records = load_corpus_index()
 

@@ -749,8 +749,9 @@ class HanfordFacilityFit(BaseModel):
     type: Literal["data_center", "lwr_pwr", "smr", "microreactor"]
     fit: Literal["anchored", "strong", "conditional", "precluded"]
     rationale: str
-    constraint: Optional[str] = Field(
-        default=None,
+    constraint: Literal[
+        "mission", "water", "licensing", "land", "power", "gas", "workforce", "security"
+    ] = Field(
         description="Short label of the binding factor deciding this fit "
         "(mission/water/licensing/land/power/gas/workforce/security).",
     )
