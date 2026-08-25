@@ -412,3 +412,67 @@ def test_max_distance_mi_constant():
 def test_min_plant_mw_constant():
     """The 100 MW floor should match the scoring and badge threshold."""
     assert MIN_PLANT_MW == 100.0
+
+
+# ---------------------------------------------------------------------------
+# Source-URL drift guard (added 2026-08-25)
+#
+# The connector shipped the PRIMARY `/xls/` download path while both sibling
+# consumers of the same workbook used the `/archive/xls/` path.  EIA retired
+# the primary path: it 301s to a 503, and the bytes that come back are a 67 KB
+# HTML error page, so `openpyxl.load_workbook` raises `BadZipFile`.
+#
+# The defect was invisible locally because the workbook's cache key is
+# `{"src": "eia_860m_retired"}` — deliberately URL-independent — so a warm
+# cache never re-downloaded.  It only surfaced in CI, which runs `--no-cache`,
+# where it aborted the connector on every scheduled refresh.
+# ---------------------------------------------------------------------------
+
+def _url_constant(module_path: str) -> str:
+    """Read EIA_860M_URL out of a module without importing it.
+
+    `scripts/` are top-level scripts with import-time side effects, so this
+    parses the assignment rather than importing.
+    """
+    import ast
+
+    tree = ast.parse(pathlib.Path(module_path).read_text())
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign):
+            for target in node.targets:
+                if isinstance(target, ast.Name) and target.id == "EIA_860M_URL":
+                    return ast.literal_eval(node.value)
+    raise AssertionError(f"EIA_860M_URL not found in {module_path}")
+
+
+def test_connector_uses_the_archive_download_path():
+    """The primary /xls/ path serves HTML, not a workbook — must use /archive/."""
+    from connectors.eia_retired_plants import EIA_860M_URL
+
+    assert "/archive/xls/" in EIA_860M_URL, (
+        "EIA_860M_URL must use the /archive/xls/ path; the primary /xls/ path "
+        "301s to a 503 and returns an HTML error page, which fails openpyxl "
+        "with BadZipFile in any --no-cache run (e.g. CI)."
+    )
+
+
+def test_every_consumer_of_the_workbook_agrees_on_the_url():
+    """Drift guard: the connector and both build scripts share one workbook.
+
+    They also share a cache file, so a URL that disagrees means one consumer
+    silently re-downloads (or fails) while the others ride the warm cache.
+    """
+    from connectors.eia_retired_plants import EIA_860M_URL as connector_url
+
+    script_urls = {
+        path: _url_constant(path)
+        for path in (
+            "scripts/build_planned_retirements.py",
+            "scripts/build_ap1000_sites.py",
+        )
+    }
+    disagreeing = {p: u for p, u in script_urls.items() if u != connector_url}
+    assert not disagreeing, (
+        "EIA-860M URL drift — every consumer must point at the same workbook. "
+        f"connector={connector_url!r}, disagreeing={disagreeing!r}"
+    )
