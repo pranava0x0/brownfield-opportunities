@@ -156,6 +156,8 @@ COVERED_BY_PARENT = {
     "summary_meta": "summary",
     "coord_actual_state": "coord_flags", "coord_state_gap_mi": "coord_flags",
     "coord_shared_count": "coord_flags",
+    "port_name": "port_mi", "port_type": "port_mi", "port_hurricane_freq": "port_mi",
+    "shipyard_name": "shipyard_mi", "shipyard_capability": "shipyard_mi",
 }
 
 # Internal plumbing — identifiers, program-specific labels already shown with

@@ -73,6 +73,7 @@
       <button id="tab-ap1000" class="tab" role="tab" aria-selected="false" aria-controls="view-ap1000">Nuclear Siting</button>
       <button id="tab-micro" class="tab" role="tab" aria-selected="false" aria-controls="view-micro">Microreactors</button>
       <button id="tab-hanford" class="tab" role="tab" aria-selected="false" aria-controls="view-hanford">DOE Sites</button>
+      <button id="tab-maritime" class="tab" role="tab" aria-selected="false" aria-controls="view-maritime">Maritime Siting</button>
       <button id="tab-about" class="tab" role="tab" aria-selected="false" aria-controls="view-about">About</button>
     </div>
   </div>
@@ -399,6 +400,47 @@
         <p>Five federal cleanup sites, broken into land units and screened one at a time with <a href="https://github.com/pnnl/nepa-mcp" target="_blank" rel="noopener">PNNL's nepa-mcp</a>. Each unit gets a rating for four possible reuses — data center, large reactor, SMR, and microreactor — plus the environmental layers that overlap it and the sources behind both. This is screening evidence; agencies make the actual determinations.</p>
       </div>
       <div id="hanford-content" aria-live="polite"><p class="muted">Loading dossier…</p></div>
+    </div>
+    </template>
+  </section>
+
+  <section id="view-maritime" class="view maritime-view" role="tabpanel" aria-labelledby="tab-maritime" hidden>
+    <!-- Ranks the whole corpus for sites near a coastal or Great Lakes port,
+         for floating/offshore nuclear or coastal on-site generation / data
+         centers. Interior mounts lazily from this <template> on first tab
+         activation (app.js mountMaritimeView) — keeps skeleton nodes out of
+         the 5,000-node first-paint budget. -->
+    <template id="maritime-template">
+    <div class="maritime-wrap">
+      <div class="maritime-lead">
+        <h2>Maritime Siting</h2>
+        <p>Brownfield sites near a BTS/USACE Principal Port (top 150 US ports by tonnage; Coastal or Great Lakes type) or a major US heavy-shipbuilding yard, ranked for two different uses. <strong>Floating/offshore nuclear</strong> weights shipyard proximity highest &mdash; every built or proposed floating-reactor program (Russia's Akademik Lomonosov, the 1970s Offshore Power Systems study, ThorCon, Core Power) assembles at an existing large-vessel or offshore-module shipyard and tows the unit to site. <strong>Coastal generation &amp; data centers</strong> weights grid interconnection highest, with port access as a secondary signal for delivering heavy equipment (transformers, turbines, SMR modules) by ship. Water depth is <strong>not assessed</strong> &mdash; this dashboard has no bathymetry layer.</p>
+      </div>
+
+      <div class="cand-filter-group" role="group" aria-label="Scoring lens">
+        <button type="button" class="cand-filter active" data-maritime-lens="offshore">Floating / Offshore Nuclear</button>
+        <button type="button" class="cand-filter" data-maritime-lens="coastal">Coastal Generation &amp; Data Centers</button>
+      </div>
+
+      <div id="maritime-stats" class="maritime-stats" aria-live="polite">Loading port/shipyard proximity data&hellip;</div>
+
+      <div class="maritime-table-wrap" id="maritime-wrap">
+        <table id="maritime-table" class="micro-table">
+          <thead>
+            <tr>
+              <th class="num" scope="col">#</th>
+              <th scope="col">Site</th>
+              <th scope="col">State</th>
+              <th class="num" scope="col">Acreage</th>
+              <th class="num" scope="col" id="th-maritime-score">Score</th>
+              <th scope="col">Nearest port</th>
+              <th scope="col">Nearest shipyard</th>
+              <th scope="col">Grid</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
     </template>
   </section>
@@ -884,6 +926,8 @@
       <dt>Rail line</dt><dd id="d-rail-mi" class="muted-cell">Not available</dd>
       <dt>Highway</dt><dd id="d-highway-mi" class="muted-cell">Not available</dd>
       <dt>Gas pipeline</dt><dd id="d-gas-pipeline-mi" class="muted-cell">Not available</dd>
+      <dt>Nearest port</dt><dd id="d-port-mi" class="muted-cell">Not available</dd>
+      <dt>Nearest shipyard</dt><dd id="d-shipyard-mi" class="muted-cell">Not available</dd>
       <dt>Flood zone</dt><dd id="d-flood-zone" class="muted-cell">Not available</dd>
       <dt>ISO/RTO</dt><dd id="d-iso-rto" class="muted-cell">Not available</dd>
       <dt>Climate zone</dt><dd id="d-climate-zone" class="muted-cell">Not available</dd>
@@ -968,6 +1012,7 @@
 <script defer src="dc-score.js"></script>
 <script defer src="ap1000-score.js"></script>
 <script defer src="microreactor-score.js"></script>
+<script defer src="maritime-score.js"></script>
 <script defer src="app.js"></script>
 </body>
 </html>

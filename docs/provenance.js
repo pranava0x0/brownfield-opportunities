@@ -52,6 +52,7 @@
     COORD: "data/coord-quality.json",
     TRIBAL: "data/tribal-areas.json",
     WORKFORCE: "data/census-workforce.json",
+    PORT_PROXIMITY: "data/port-proximity.json",
   };
 
   // ---- per-site verification link builders --------------------------------
@@ -99,6 +100,9 @@
     ffeArea:
       "https://arcgis.netl.doe.gov/server/rest/services/Hosted/" +
       "2024_MSAs_NonMSAs_that_are_Energy_Communities/FeatureServer/0/query",
+    ports:
+      "https://services.arcgis.com/xOi1kZaI0eWDREZv/ArcGIS/rest/services/" +
+      "NTAD_Hazard_Exposure_Principal_Ports/FeatureServer/0/query",
   };
 
   // Point-containment query — returns the polygon this site actually falls
@@ -391,6 +395,29 @@
         + "each plant row carries its own source_url + verified_at (shown in the Coal tab).",
       url: "https://www.energy.gov/ne/articles/doe-report-finds-hundreds-retiring-coal-plant-sites-could-convert-nuclear",
       verifyLabel: "DOE/INL coal-to-nuclear study (methodology anchor)",
+    },
+    port_mi: {
+      group: "Infrastructure", label: "Nearest port",
+      publisher: "US DOT / Bureau of Transportation Statistics (USACE-sourced)",
+      dataset: "NTAD Principal Ports (top 150 US ports by tonnage; Coastal + Great Lakes types)",
+      file: D.PORT_PROXIMITY, code: "connectors/port_proximity.py",
+      derivation: "Nearest Coastal or Great Lakes principal port (Internal river "
+        + "ports excluded), within 75 mi. Port coordinate is the polygon's "
+        + "bounding-box center, not a surveyed point.",
+      verify: (s) => bboxQuery(ARC.ports, s, radiusFor(s, "port_mi", 8)),
+      verifyLabel: "NTAD principal ports near this site",
+    },
+    shipyard_mi: {
+      group: "Infrastructure", label: "Nearest shipyard",
+      publisher: "This project (curated; per-row Wikipedia/company/CLUI citations)",
+      dataset: "Curated major US heavy-shipbuilding yards (16 yards, source_url per row)",
+      file: D.PORT_PROXIMITY, code: "scripts/build_shipyards.py",
+      derivation: "Nearest curated shipyard within 150 mi. No public GIS layer of "
+        + "US shipyards exists (MARAD publishes PDF surveys only), so this is a "
+        + "curated benchmark, not a live queryable service — each yard's own "
+        + "citation is in docs/data/shipyards.json.",
+      url: "https://www.maritime.dot.gov/data-reports",
+      verifyLabel: "MARAD shipyard data & reports (context; not per-row source)",
     },
 
     // --- programmatic / financial overlays ---

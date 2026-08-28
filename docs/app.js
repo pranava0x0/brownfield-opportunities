@@ -37,6 +37,9 @@ const COAL_PROX_URL = "data/coal-conversions-proximity.json";
 const FEDERAL_CLEAN_ENERGY_URL = "data/federal-clean-energy.json";
 const HANFORD_E2E_URL = "data/hanford-e2e.json";
 const COAL_NEPA_URL = "data/coal-nepa.json";
+const PORT_PROXIMITY_URL = "data/port-proximity.json";
+const PORTS_URL = "data/ports.json";
+const SHIPYARDS_URL = "data/shipyards.json";
 // Vector basemap: US states (always) + US counties (lazy at zoom ≥ COUNTY_MIN_ZOOM).
 // No tiles — Canada/Mexico literally don't exist on the map. Choropleth-style
 // look (think CNN election tracker / datacenterbans.com) with bold state borders
@@ -536,7 +539,7 @@ const TAX_STATUS_NOTE = {
 
 // ----- State -----
 let sites = [];
-let map, markerLayer, referenceCampusLayer, retiredIndustrialLayer, plannedRetirementLayer, nuclearSiteLayer, coalConversionLayer, federalCleanEnergyLayer;
+let map, markerLayer, referenceCampusLayer, retiredIndustrialLayer, plannedRetirementLayer, nuclearSiteLayer, coalConversionLayer, federalCleanEnergyLayer, portLayer, shipyardLayer;
 const markersById = new Map(); // id -> Leaflet marker
 const tableRowsById = new Map(); // id -> tr
 const sitesById = new Map();
@@ -637,6 +640,9 @@ let coalNepaLoadFailed = false;   // fetch errored — drawer offers retry
 let coalNepaByPlant = null;       // null = not loaded yet; Map when settled
 let iraEcLoadingPromise = null;
 let femaNriLoadingPromise = null;
+let portProximityLoadingPromise = null;
+let portsLoadingPromise = null;
+let shipyardsLoadingPromise = null;
 
 // Programmatic ready signal so UAT / Playwright / agent automation can wait
 // on a stable event instead of polling network responses. Fires once after
@@ -999,12 +1005,18 @@ fetch(PRIMARY_DATA_URL)
     // artifact its generated_at must drive the displayed refresh date
     // (a tab-gated load would make the hero date depend on tab clicks).
     lazyLoads.push(ensureHanfordLoaded());
+    // Port/shipyard join + the two small map overlays — same eager
+    // treatment as every other overlay (markers + legend row belong on the
+    // map from first paint; only the tab's own ranked table is lazy).
+    lazyLoads.push(ensurePortProximityLoaded());
+    lazyLoads.push(ensurePortsLoaded());
+    lazyLoads.push(ensureShipyardsLoaded());
     applyUrlSelection();
     if (lazyLoads.length === 0) {
       markAppReady();
       maybeRefreshCandidates();
     } else {
-      Promise.allSettled(lazyLoads).then(() => { markAppReady(); maybeRefreshCandidates(); });
+      Promise.allSettled(lazyLoads).then(() => { markAppReady(); maybeRefreshCandidates(); maybeRefreshMaritime(); });
     }
   })
   .catch((err) => {
@@ -1082,6 +1094,7 @@ function ensureAcresLoaded() {
         // Re-apply enrichment joins that may have landed while this program
         // was skipped by a `?program=` URL (see applyCoalProxJoin).
         applyCoalProxJoin();
+        applyPortProximityJoin({ refresh: true });
         applyFilter();
         markAppReady();
       });
@@ -1114,6 +1127,7 @@ function ensureFudsLoaded() {
       updateKpiDeck();
       return hydrateMarkersChunked(payload.sites || []).then(() => {
         applyCoalProxJoin(); // late-program re-apply (see its comment)
+        applyPortProximityJoin({ refresh: true });
         applyFilter();
       });
     })
@@ -1142,6 +1156,7 @@ function ensureBracLoaded() {
       updateKpiDeck();
       addMarkersForRecords(payload.sites || []);
       applyCoalProxJoin(); // late-program re-apply (see its comment)
+      applyPortProximityJoin({ refresh: true });
       applyFilter();
     })
     .catch((err) => {
@@ -1454,6 +1469,71 @@ function ensureInfraLoaded() {
       infraLoadingPromise = null;
     });
   return infraLoadingPromise;
+}
+
+// Port / shipyard proximity enrichment (connectors/port_proximity.py). Joins
+// onto every program by `id` to add port_mi/port_name/port_type/
+// port_hurricane_freq and shipyard_mi/shipyard_name/shipyard_capability —
+// feeds the two Maritime Siting lenses in maritime-score.js.
+//
+// The payload is CACHED and the apply is IDEMPOTENT — same pattern as
+// applyCoalProxJoin(): a page that boots with a restricted `?program=` URL
+// only reaches eager Superfund records on the first apply, so
+// ensureAcresLoaded()/ensureFudsLoaded()/ensureBracLoaded() call
+// applyPortProximityJoin() again as their records land (Codex review,
+// this PR). `_portChecked` doubles as the skip-if-already-applied guard —
+// it's the same "we looked" marker the score gate reads.
+let portProximityRecords = null; // settled payload (even if empty)
+function applyPortProximityJoin({ refresh = false } = {}) {
+  if (!portProximityRecords) return;
+  let applied = 0;
+  for (const rec of portProximityRecords) {
+    const existing = sitesById.get(rec.id);
+    if (!existing || existing._portChecked) continue;
+    if (rec.port_mi != null) existing.port_mi = rec.port_mi;
+    if (rec.port_name != null) existing.port_name = rec.port_name;
+    if (rec.port_type != null) existing.port_type = rec.port_type;
+    if (rec.port_hurricane_freq != null) existing.port_hurricane_freq = rec.port_hurricane_freq;
+    if (rec.shipyard_mi != null) existing.shipyard_mi = rec.shipyard_mi;
+    if (rec.shipyard_name != null) existing.shipyard_name = rec.shipyard_name;
+    if (rec.shipyard_capability != null) existing.shipyard_capability = rec.shipyard_capability;
+    // Marker, not data: both maritime lenses gate on this — a null port_mi
+    // means "off-coast" only once the join has actually run. See
+    // maritimeScorable() in maritime-score.js.
+    existing._portChecked = true;
+    applied++;
+  }
+  if (refresh && applied) {
+    if (selectedId && sitesById.has(selectedId)) {
+      try { selectSite(selectedId); } catch {}
+    }
+    maybeRefreshMaritime();
+  }
+}
+
+function ensurePortProximityLoaded() {
+  if (portProximityLoadingPromise) return portProximityLoadingPromise;
+  portProximityLoadingPromise = fetch(PORT_PROXIMITY_URL, { priority: "low" })
+    .then((r) => {
+      if (r.status === 404) return { sites: [] };
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then(async (payload) => {
+      recordRefreshDate(payload.generated_at, PORT_PROXIMITY_URL);
+      portProximityRecords = payload.sites || [];
+      // All-programs join — wait on ACRES/FUDS/BRAC first or the `!existing`
+      // guard above can silently drop them (load-order race, see CLAUDE.md).
+      await Promise.allSettled(
+        [acresLoadingPromise, fudsLoadingPromise, bracLoadingPromise].filter(Boolean)
+      );
+      applyPortProximityJoin({ refresh: true });
+    })
+    .catch((err) => {
+      console.error("Port-proximity enrichment load failed:", err);
+      portProximityLoadingPromise = null;
+    });
+  return portProximityLoadingPromise;
 }
 
 // Opportunity Zone enrichment. Joins onto every program by `id` to add
@@ -1868,6 +1948,107 @@ function ensureReferenceCampusesLoaded() {
       referenceCampusesLoadingPromise = null;
     });
   return referenceCampusesLoadingPromise;
+}
+
+// BTS/USACE Principal Ports (⚓) — map overlay for the Maritime Siting tab.
+// Mirrors the reference-campus overlay pattern (lazy-loaded, own layer +
+// legend row). Generated live by scripts/build_ports_overlay.py.
+function ensurePortsLoaded() {
+  if (portsLoadingPromise) return portsLoadingPromise;
+  portsLoadingPromise = fetch(PORTS_URL, { priority: "low" })
+    .then((r) => {
+      if (r.status === 404) return { sites: [] };
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then((payload) => {
+      if (!portLayer) return; // map not yet initialized
+      for (const port of payload.sites || []) {
+        if (port.lat == null || port.lon == null) continue;
+        // AK/HI/PR/VI ports use raw coordinates otherwise and are
+        // unreachable outside the lower-48 US_BOUNDS (Codex review, this PR
+        // — the same latent gap every other overlay has until it gains a
+        // non-CONUS row; see CLAUDE.md).
+        applyInsetRemap(port);
+        const icon = L.divIcon({
+          className: "port-icon",
+          html: "⚓",
+          iconSize: [16, 16],
+          iconAnchor: [8, 8],
+          popupAnchor: [0, -8],
+        });
+        const marker = L.marker([port.lat, port.lon], { icon, zIndexOffset: 300 });
+        const hurr = port.hurricane_freq != null
+          ? `${port.hurricane_freq.toFixed(2)} hurricanes/yr (FEMA NRI)` : null;
+        marker.bindPopup(
+          `<div class="ref-campus-popup">` +
+          `<strong>${escapeHtml(port.name)}</strong>` +
+          (port._inset ? `<div class="ref-campus-company"><span class="micro-note">shown in the ${escapeHtml(port._inset)} inset ` +
+            `(${port.lat_real.toFixed(3)}, ${port.lon_real.toFixed(3)})</span></div>` : "") +
+          `<div class="ref-campus-meta"><span>${escapeHtml(port.port_type)} port</span>` +
+          (hurr ? `<span>${escapeHtml(hurr)}</span>` : "") + `</div>` +
+          `<a href="${escapeHtml(port.source_url)}" target="_blank" rel="noopener" class="ref-campus-link">Source ↗</a>` +
+          `</div>`,
+          { maxWidth: 260 }
+        );
+        portLayer.addLayer(marker);
+      }
+      rerenderLegend();
+    })
+    .catch((err) => {
+      console.error("Ports overlay load failed:", err);
+      portsLoadingPromise = null;
+    });
+  return portsLoadingPromise;
+}
+
+// Curated major US shipyards (⚒) — map overlay for the Maritime Siting tab.
+// Generated by scripts/build_shipyards.py (no public GIS layer exists).
+function ensureShipyardsLoaded() {
+  if (shipyardsLoadingPromise) return shipyardsLoadingPromise;
+  shipyardsLoadingPromise = fetch(SHIPYARDS_URL, { priority: "low" })
+    .then((r) => {
+      if (r.status === 404) return { sites: [] };
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then((payload) => {
+      if (!shipyardLayer) return; // map not yet initialized
+      const CAPABILITY_LABEL = {
+        heavy_module: "Heavy-module fabrication",
+        large_hull: "Large-hull new construction",
+        naval_repair: "Naval repair / overhaul",
+      };
+      for (const yard of payload.sites || []) {
+        if (yard.lat == null || yard.lon == null) continue;
+        const icon = L.divIcon({
+          className: "shipyard-icon",
+          html: "⚒",
+          iconSize: [18, 18],
+          iconAnchor: [9, 9],
+          popupAnchor: [0, -9],
+        });
+        const marker = L.marker([yard.lat, yard.lon], { icon, zIndexOffset: 300 });
+        marker.bindPopup(
+          `<div class="ref-campus-popup">` +
+          `<strong>${escapeHtml(yard.name)}</strong>` +
+          `<div class="ref-campus-company">${escapeHtml(yard.operator)}</div>` +
+          `<div class="ref-campus-meta"><span>${escapeHtml(CAPABILITY_LABEL[yard.capability] || yard.capability)}</span>` +
+          `<span>${escapeHtml(yard.city)}, ${escapeHtml(yard.state)}</span></div>` +
+          (yard.note ? `<div class="ref-campus-prev">${escapeHtml(yard.note)}</div>` : "") +
+          `<a href="${escapeHtml(yard.source_url)}" target="_blank" rel="noopener" class="ref-campus-link">Source ↗</a>` +
+          `</div>`,
+          { maxWidth: 300 }
+        );
+        shipyardLayer.addLayer(marker);
+      }
+      rerenderLegend();
+    })
+    .catch((err) => {
+      console.error("Shipyards overlay load failed:", err);
+      shipyardsLoadingPromise = null;
+    });
+  return shipyardsLoadingPromise;
 }
 
 // Retired heavy-industrial overlay — large closed smelters / mills / plants
@@ -2401,6 +2582,9 @@ function initMap() {
   federalCleanEnergyLayer = L.layerGroup().addTo(map);
   // Hanford E2E parcel markers (▣) — nine named land units of one DOE site.
   hanfordParcelLayer = L.layerGroup().addTo(map);
+  // Principal ports (⚓) and curated shipyards (⚒) — Maritime Siting tab.
+  portLayer = L.layerGroup().addTo(map);
+  shipyardLayer = L.layerGroup().addTo(map);
 
   fitUsBoundsSafely();
 
@@ -2740,10 +2924,37 @@ function addLegend() {
     div.innerHTML =
       `<div class="legend-title"><span>Program</span></div>${rows}${refRow}${retRow}${plannedRow}${coalRow}${fedRow}${nukeRow}${microRow}${hanfordRow}` +
       `<div class="legend-foot">Marker size ∝ acreage (log)</div>`;
+    // Principal ports (⚓) and shipyards (⚒) — built via safe DOM methods
+    // (createElement/textContent, no HTML-string interpolation) rather than
+    // appended into the innerHTML template above.
+    const foot = div.querySelector(".legend-foot");
+    _appendLegendGlyphRow(div, foot, "⚓", "Principal port", portLayer);
+    _appendLegendGlyphRow(div, foot, "⚒", "Shipyard", shipyardLayer);
     L.DomEvent.disableClickPropagation(div);
     return div;
   };
   legend.addTo(map);
+}
+
+// Inserts one `<div class="legend-row legend-row-ref">` before `before`,
+// via createElement/textContent — no HTML-string parsing, so it needs no
+// escaping and no innerHTML call. `layer` is a Leaflet layerGroup; the row
+// is omitted entirely when it holds no markers.
+function _appendLegendGlyphRow(container, before, glyph, label, layer) {
+  if (!layer || layer.getLayers().length === 0) return;
+  const row = document.createElement("div");
+  row.className = "legend-row legend-row-ref";
+  const glyphSpan = document.createElement("span");
+  glyphSpan.className = "legend-anchor";
+  glyphSpan.textContent = glyph;
+  const labelSpan = document.createElement("span");
+  labelSpan.className = "legend-label";
+  labelSpan.textContent = label;
+  const numSpan = document.createElement("span");
+  numSpan.className = "legend-num";
+  numSpan.textContent = layer.getLayers().length.toLocaleString();
+  row.append(glyphSpan, labelSpan, numSpan);
+  container.insertBefore(row, before);
 }
 
 function rerenderLegend() {
@@ -2863,6 +3074,9 @@ function applyFilter() {
   // Same contract for the microreactor siting screen — it ranks
   // tableState.filtered, so a filter change has to rebuild it live.
   maybeRefreshMicro();
+  // Same contract for the Maritime Siting screen — it ranks
+  // tableState.filtered too.
+  maybeRefreshMaritime();
   syncUrl();
 }
 
@@ -3750,6 +3964,7 @@ function wireTabs() {
   const ap1000Tab = el("tab-ap1000");
   const microTab = el("tab-micro");
   const hanfordTab = el("tab-hanford");
+  const maritimeTab = el("tab-maritime");
   const aboutTab = el("tab-about");
   const setView = (which) => {
     const onMap = which === "map";
@@ -3760,13 +3975,14 @@ function wireTabs() {
     const onAp1000 = which === "ap1000";
     const onMicro = which === "micro";
     const onHanford = which === "hanford";
+    const onMaritime = which === "maritime";
     const onAbout = which === "about";
     for (const [tab, active] of [
       [mapTab, onMap], [tableTab, onTable],
       [candidatesTab, onCandidates], [retiredTab, onRetired],
       [coalTab, onCoal],
       [ap1000Tab, onAp1000], [microTab, onMicro],
-      [hanfordTab, onHanford], [aboutTab, onAbout],
+      [hanfordTab, onHanford], [maritimeTab, onMaritime], [aboutTab, onAbout],
     ]) {
       if (!tab) continue;
       tab.classList.toggle("active", active);
@@ -3780,6 +3996,7 @@ function wireTabs() {
     const ap1000View = el("view-ap1000");
     const microView = el("view-micro");
     const hanfordView = el("view-hanford");
+    const maritimeView = el("view-maritime");
     const aboutView = el("view-about");
     if (mapView)        { mapView.classList.toggle("active", onMap);               mapView.hidden = !onMap; }
     if (tableView)      { tableView.classList.toggle("active", onTable);           tableView.hidden = !onTable; }
@@ -3789,17 +4006,19 @@ function wireTabs() {
     if (ap1000View)     { ap1000View.classList.toggle("active", onAp1000);         ap1000View.hidden = !onAp1000; }
     if (microView)      { microView.classList.toggle("active", onMicro);           microView.hidden = !onMicro; }
     if (hanfordView)    { hanfordView.classList.toggle("active", onHanford);       hanfordView.hidden = !onHanford; }
+    if (maritimeView)   { maritimeView.classList.toggle("active", onMaritime);     maritimeView.hidden = !onMaritime; }
     if (aboutView)      { aboutView.classList.toggle("active", onAbout);           aboutView.hidden = !onAbout; }
     const globalExportCsv = el("export-csv");
-    if (globalExportCsv) globalExportCsv.hidden = onAp1000 || onMicro || onCoal || onHanford;
+    if (globalExportCsv) globalExportCsv.hidden = onAp1000 || onMicro || onCoal || onHanford || onMaritime;
     // Search only makes sense against the corpus views that read
     // tableState.filtered (map/table/rankings/microreactors — the
     // microreactor siting screen's microRankedSites() sources from the same
     // globally-filtered set Rankings does, so it needs the same controls;
-    // Codex PR #23 review). The remaining curated tabs (Retired, Coal,
+    // Codex PR #23 review). Maritime Siting reads the same tableState.filtered
+    // for the same reason. The remaining curated tabs (Retired, Coal,
     // Nuclear Siting, Hanford, About) have their own local content and read
     // no global filter state at all.
-    const searchOnThisTab = onMap || onTable || onCandidates || onMicro;
+    const searchOnThisTab = onMap || onTable || onCandidates || onMicro || onMaritime;
     const searchWrapEl = el("search-wrap");
     if (searchWrapEl) searchWrapEl.hidden = !searchOnThisTab;
     const searchCountEl = el("search-count");
@@ -3842,6 +4061,13 @@ function wireTabs() {
       ensureHanfordLoaded();
       buildHanfordView();
     }
+    if (onMaritime) {
+      mountMaritimeView();
+      ensurePortProximityLoaded();
+      ensurePortsLoaded();
+      ensureShipyardsLoaded();
+      buildMaritimeView();
+    }
     if (onAbout) {
       const d = el("about-refresh-date");
       if (d && window.__refreshedAt) d.textContent = window.__refreshedAt;
@@ -3860,10 +4086,11 @@ function wireTabs() {
   if (ap1000Tab) ap1000Tab.addEventListener("click", () => setView("ap1000"));
   if (microTab) microTab.addEventListener("click", () => setView("micro"));
   if (hanfordTab) hanfordTab.addEventListener("click", () => setView("hanford"));
+  if (maritimeTab) maritimeTab.addEventListener("click", () => setView("maritime"));
   if (aboutTab) aboutTab.addEventListener("click", () => setView("about"));
 
   // Honor hash on initial load (e.g. shared URL with #ap1000).
-  const VALID_TABS = new Set(["map", "table", "candidates", "retired", "coal", "ap1000", "micro", "hanford", "about"]);
+  const VALID_TABS = new Set(["map", "table", "candidates", "retired", "coal", "ap1000", "micro", "hanford", "maritime", "about"]);
   const initialHash = location.hash.replace(/^#/, "").toLowerCase();
   if (VALID_TABS.has(initialHash)) setView(initialHash);
 
@@ -3975,6 +4202,20 @@ function mountRetiredView() {
   if (!tpl || !view || !tpl.content) return;
   retiredViewMounted = true;
   view.appendChild(tpl.content.cloneNode(true));
+}
+
+let maritimeViewMounted = false;
+function mountMaritimeView() {
+  if (maritimeViewMounted) return;
+  const tpl = el("maritime-template");
+  const view = el("view-maritime");
+  if (!tpl || !view || !tpl.content) return;
+  maritimeViewMounted = true;
+  view.appendChild(tpl.content.cloneNode(true));
+  // The lens toggle buttons live inside the template, so they don't exist
+  // in the live DOM until this clone runs — wire them here, not at boot
+  // (same lazy-mount lesson as coalFiltersBound / mountCoalView).
+  wireMaritimeFilters();
 }
 
 // ----- Coal Reinvestment View (Spec 04) -----
@@ -7010,6 +7251,138 @@ function maybeRefreshCandidates() {
   if (view && view.classList.contains("active")) buildCandidatesView();
 }
 
+// ----- Maritime Siting view -----
+// Ranks the whole corpus (sourced from tableState.filtered, same global-
+// filter contract as Rankings/Microreactors) for two lenses defined in
+// maritime-score.js: floating/offshore nuclear, and coastal on-site
+// generation/data centers. Simpler than Rankings' infinite-scroll table —
+// capped at the top MARITIME_PAGE sites, no pagination, since both lenses
+// gate on port_mi != null and only a fraction of the corpus is coastal.
+const MARITIME_PAGE = 150;
+const maritimeState = {
+  lens: "offshore", // "offshore" | "coastal" — URL state ?mlens=
+};
+
+function _maritimeScoreFn() {
+  return maritimeState.lens === "coastal" ? computeCoastalGenerationScore : computeFloatingNuclearScore;
+}
+
+function makeMaritimeRow(s, rank, scoreFn) {
+  const tr = document.createElement("tr");
+  tr.dataset.id = s.id;
+  const score = scoreFn(s);
+  const scoreTier = score == null ? null
+    : score >= 75 ? "strong" : score >= 50 ? "moderate"
+    : score >= 25 ? "marginal" : "weak";
+  const scoreHtml = score == null
+    ? '<span class="muted-cell">—</span>'
+    : `<span class="suit-score" data-tier="${escapeAttr(scoreTier)}">${score}</span>`;
+  const portHtml = s.port_mi != null
+    ? `${fmt.miles(s.port_mi)}<div class="micro-sub">${escapeHtml(s.port_name || "")}${s.port_type ? ` · ${escapeHtml(s.port_type)}` : ""}</div>`
+    : '<span class="muted-cell">—</span>';
+  const yardHtml = s.shipyard_mi != null
+    ? `${fmt.miles(s.shipyard_mi)}<div class="micro-sub">${escapeHtml(s.shipyard_name || "")}</div>`
+    : '<span class="muted-cell">—</span>';
+  const gridMi = s.transmission_mi != null ? s.transmission_mi : null;
+  const gridHtml = gridMi != null ? fmt.miles(gridMi) : '<span class="muted-cell">—</span>';
+  const progLabel = PROGRAM_LABEL[s.program] || s.program;
+  tr.innerHTML = `
+    <td class="num cand-rank">${rank}</td>
+    <td class="cand-name">${escapeHtml(s.name || "—")}<span class="cand-prog"><span class="pill" data-program="${escapeAttr(s.program)}">${escapeHtml(progLabel)}</span></span></td>
+    <td>${escapeHtml(s.state || "—")}</td>
+    <td class="num">${fmt.acres(s.acreage)}</td>
+    <td class="num cand-score">${scoreHtml}</td>
+    <td>${portHtml}</td>
+    <td>${yardHtml}</td>
+    <td class="num">${gridHtml}</td>
+  `;
+  tr.addEventListener("click", () => selectSite(s.id, { fromTable: true }));
+  return tr;
+}
+
+function buildMaritimeView() {
+  const scoreFn = _maritimeScoreFn();
+  // maritimeScorable() (the score gate) only checks that the join has RUN
+  // (`_portChecked`) — it deliberately still returns a (low) score for a
+  // landlocked tombstone, so the score itself stays a valid signal even for
+  // a site with nothing maritime nearby. The RANKED LIST is a stricter
+  // filter on top of that: it only lists sites actually within reach of a
+  // port or shipyard, or every one of the ~23k landlocked tombstones would
+  // otherwise appear as "sites within reach of a port" (Codex review, this
+  // PR).
+  //
+  // The eligibility test is LENS-AWARE, not a shared OR of both fields:
+  // computeCoastalGenerationScore has NO shipyard component and the tab's
+  // own copy says "within reach of a port" for that lens, so a shipyard-
+  // only match (no port_mi) is not a coastal candidate — 1,233 shipped
+  // records are exactly this shape. The offshore lens DOES score shipyard
+  // proximity (32/100, its largest weight), so a shipyard-only site is a
+  // legitimate offshore candidate there (Codex round 2, this PR).
+  const eligible = maritimeState.lens === "coastal"
+    ? (s) => s.port_mi != null
+    : (s) => s.port_mi != null || s.shipyard_mi != null;
+  const sorted = tableState.filtered
+    .filter((s) => scoreFn(s) != null && eligible(s))
+    .sort((a, b) => (scoreFn(b) || 0) - (scoreFn(a) || 0));
+
+  // Same single-source-of-truth tooltip pattern as the DC-score column
+  // (app.js's #th-dc-score wiring) — the formula text lives in
+  // maritime-score.js, not duplicated here.
+  const scoreTh = el("th-maritime-score");
+  if (scoreTh) {
+    const tooltip = maritimeState.lens === "coastal" ? MARITIME_SCORE_TOOLTIP_COASTAL : MARITIME_SCORE_TOOLTIP_OFFSHORE;
+    scoreTh.setAttribute("title", tooltip);
+    scoreTh.setAttribute("aria-label", `Score. ${tooltip}`);
+  }
+
+  const statsEl = el("maritime-stats");
+  if (statsEl) {
+    const filtered = filtersActive() || filterState.q !== "";
+    const lensLabel = maritimeState.lens === "coastal" ? "coastal generation/data-center" : "floating/offshore nuclear";
+    statsEl.textContent = sorted.length > 0
+      ? `${sorted.length.toLocaleString()} sites within reach of a port · sorted by ${lensLabel} score` +
+        (filtered ? " · global filters applied" : "") +
+        (sorted.length > MARITIME_PAGE ? ` · showing top ${MARITIME_PAGE}` : "")
+      : "No sites within reach of a coastal or Great Lakes port match the current filters.";
+  }
+
+  const tbody = document.querySelector("#maritime-table tbody");
+  if (!tbody) return;
+  tbody.innerHTML = "";
+  const frag = document.createDocumentFragment();
+  const shown = sorted.slice(0, MARITIME_PAGE);
+  for (let i = 0; i < shown.length; i++) {
+    frag.appendChild(makeMaritimeRow(shown[i], i + 1, scoreFn));
+  }
+  tbody.appendChild(frag);
+}
+
+function refreshMaritimeLensButtons() {
+  document.querySelectorAll("[data-maritime-lens]").forEach((b) =>
+    b.classList.toggle("active", b.dataset.maritimeLens === maritimeState.lens));
+}
+
+function wireMaritimeFilters() {
+  // `?mlens=` is parsed here, not at top level — same TDZ lesson as
+  // wireCandidatesFilters()'s `?lens=` parsing.
+  const urlLens = new URLSearchParams(location.search).get("mlens");
+  if (urlLens === "coastal") maritimeState.lens = urlLens;
+  document.querySelectorAll("[data-maritime-lens]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      maritimeState.lens = btn.dataset.maritimeLens;
+      refreshMaritimeLensButtons();
+      syncUrl();
+      if (el("view-maritime")?.classList.contains("active")) buildMaritimeView();
+    });
+  });
+  refreshMaritimeLensButtons();
+}
+
+function maybeRefreshMaritime() {
+  const view = el("view-maritime");
+  if (view && view.classList.contains("active") && maritimeViewMounted) buildMaritimeView();
+}
+
 // ----- Detail panel -----
 function wireDetailPanel() {
   el("detail-close").addEventListener("click", closeDetail);
@@ -7420,6 +7793,9 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
   setMileCell("d-rail-mi", s.rail_mi, { offConus });
   setMileCell("d-highway-mi", s.highway_mi, { offConus });
   setMileCell("d-gas-pipeline-mi", s.gas_pipeline_mi, { offConus });
+  // Port / shipyard proximity (port-proximity enrichment) — Maritime Siting.
+  setPortCell("d-port-mi", s);
+  setShipyardCell("d-shipyard-mi", s);
   // Flood zone is a string code, not a mile-distance, so it gets its own
   // renderer. Critical permitting signal: a site in an SFHA effectively
   // can't be permitted as critical infrastructure (DC, energy plant) without
@@ -8160,6 +8536,7 @@ function syncUrl() {
     if (filterState.availableOnly) p.set("available", "1");
     // Candidates-view lens — only encoded off-default ("dc").
     if (candidatesState.lens !== "dc") p.set("lens", candidatesState.lens);
+    if (maritimeState.lens !== "offshore") p.set("mlens", maritimeState.lens);
     // DOE-sites tab: active site — only encoded off-default ("hanford").
     if (doeActiveSite !== "hanford") p.set("doe", doeActiveSite);
     if (selectedId) p.set("site", selectedId);
@@ -8305,6 +8682,66 @@ function setPlannedRetireCell(id, s) {
     span.className = "pp-chip sig-plant";
     span.textContent = parts.join(" · ");
     span.title = "Operating plant with an announced retirement — interconnect frees on a known date; replacement-generation/co-location deals close before shutdown (Homer City pattern)";
+    node.appendChild(document.createTextNode(" "));
+    node.appendChild(span);
+  }
+}
+
+// Nearest principal port cell (port-proximity enrichment).
+//
+// `_portChecked` distinguishes two different null states that otherwise
+// both read as "Not available": the join hasn't loaded yet (genuinely
+// unknown), vs. the join HAS run and found nothing within 75 mi (a real
+// negative result — the site is checked and landlocked). Rendering both the
+// same way discards the distinction `_portChecked` exists to preserve
+// (Codex round 2, this PR) — same principle as `offConus` in setMileCell.
+function setPortCell(id, s) {
+  const node = el(id);
+  if (!node) return;
+  if (s.port_mi == null) {
+    node.textContent = s._portChecked ? "None within 75 mi" : "Not available";
+    node.classList.add("muted-cell");
+    return;
+  }
+  node.classList.remove("muted-cell");
+  node.textContent = fmt.miles(s.port_mi);
+  const parts = [];
+  if (s.port_name) parts.push(s.port_name);
+  if (s.port_type) parts.push(s.port_type);
+  if (parts.length) {
+    const span = document.createElement("span");
+    span.className = "pp-chip";
+    span.textContent = parts.join(" · ");
+    node.appendChild(document.createTextNode(" "));
+    node.appendChild(span);
+  }
+}
+
+// Nearest curated shipyard cell (port-proximity enrichment). Same
+// checked-vs-unchecked distinction as setPortCell, at the 150-mi radius.
+function setShipyardCell(id, s) {
+  const node = el(id);
+  if (!node) return;
+  if (s.shipyard_mi == null) {
+    node.textContent = s._portChecked ? "None within 150 mi" : "Not available";
+    node.classList.add("muted-cell");
+    return;
+  }
+  node.classList.remove("muted-cell");
+  node.textContent = fmt.miles(s.shipyard_mi);
+  const CAPABILITY_LABEL = {
+    heavy_module: "heavy-module fabrication",
+    large_hull: "large-hull construction",
+    naval_repair: "naval repair",
+  };
+  const parts = [];
+  if (s.shipyard_name) parts.push(s.shipyard_name);
+  if (s.shipyard_capability) parts.push(CAPABILITY_LABEL[s.shipyard_capability] || s.shipyard_capability);
+  if (parts.length) {
+    const span = document.createElement("span");
+    span.className = "pp-chip" + (s.shipyard_capability === "heavy_module" ? " ready" : "");
+    span.textContent = parts.join(" · ");
+    span.title = "heavy_module = offshore module/topsides fabrication — the capability most relevant to floating/offshore nuclear assembly";
     node.appendChild(document.createTextNode(" "));
     node.appendChild(span);
   }
