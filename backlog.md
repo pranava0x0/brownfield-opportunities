@@ -1528,6 +1528,13 @@ Phase 2 (other federal-land contamination universes):
 
 ---
 
+## Maritime Siting follow-ups (2026-08-27)
+
+- **[med] Wire `OFFSHORE_NUCLEAR_SUIT_GROUPS`/`COASTAL_GENERATION_SUIT_GROUPS` into a detail-panel breakdown UI.** `docs/maritime-score.js` already exports the grouped-component structure (same shape as `_DC_SUIT_GROUPS`) for a score-breakdown chip display, mirroring `renderSuitability()`'s DC/Generation/Manufacturing meters — the Maritime Siting tab currently shows only the composite 0-100 score in the ranked table, not a per-component breakdown in the detail panel. Straightforward follow-on once someone wants it; low risk since the underlying `computeFloatingNuclearBreakdown`/`computeCoastalGenerationBreakdown` functions already exist and are tested.
+- **[low] Bathymetry / channel-depth data for the offshore-nuclear lens.** The lens explicitly does NOT score water depth (no bathymetry layer on hand) even though the 1970s Offshore Power Systems precedent cites 70 ft as the deep-water threshold for a viable breakwater. NOAA's ENC (Electronic Navigational Charts) or bathymetric grids could fill this, but are a much heavier integration (raster/vector marine data, not a simple ArcGIS point/polygon layer) — worth a dedicated research pass before committing to a source.
+- **[low] Expand the curated shipyard list past 16.** `docs/data/shipyards.json` covers the major heavy-shipbuilding yards this session could confidently verify (Wikipedia/company/CLUI citations, curl-checked). MARAD's own annual survey lists ~154 active private shipyards + ~300 repair-capable; most build vessels far too small to be relevant, but a systematic pass through MARAD's PDF survey could surface a few more `heavy_module`/`large_hull` yards (e.g. additional Gulf Coast offshore-fabrication yards) worth adding.
+- **[low] Named 2026 floating-nuclear pilots as map context.** The research pass that grounded the scoring weights surfaced two concrete 2026 precedents — Bluecore Energy's prototype reactor-module berth at Port of Long Beach, and Core Power + Port of Corpus Christi's Aug-2026 feasibility MOC — that aren't yet rendered anywhere on the map. Could become a small curated overlay (same pattern as `reference-campuses.json`) once there's enough of a track record to justify a dedicated file rather than a one-off citation in `maritime-score.js`'s header comment.
+
 ## v1 follow-ups (data completeness)
 
 - ~~**[high] Expand beyond top-100.**~~ Done 2026-04-27 — all 1,908 unique NPL sites now load (~1.6MB JSON, ~200KB gzipped). Connector handles pagination through the FeatureServer's 2000-record cap.

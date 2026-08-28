@@ -283,6 +283,51 @@ class SiteRecord(BaseModel):
         description="Whether site is eligible for ISO/RTO generator replacement fast-track queue transfer (within 1.5 mi).",
     )
 
+    # Port / shipyard proximity (port-proximity enrichment connector).
+    # port_* comes from BTS/USACE NTAD Principal Ports (the top 150
+    # US ports by tonnage; Coastal + Great Lakes types only — internal
+    # river ports are excluded, see docs/data/ports.json).  shipyard_*
+    # comes from a curated overlay of major US heavy-shipbuilding /
+    # fabrication yards (docs/data/shipyards.json). Tombstone convention
+    # (infra-proximity, v1.11.5): every site gets a record from the
+    # connector; these fields populate only within the connector's search
+    # radius, so null means "genuinely nothing that close", not "not yet
+    # checked" — the frontend gates on a `_portChecked` stamp set by
+    # ensurePortProximityLoaded(), mirroring `_infraChecked`.
+    port_mi: Optional[float] = Field(
+        default=None,
+        description="Miles to the nearest BTS/USACE Principal Port (Coastal "
+                    "or Great Lakes type).",
+    )
+    port_name: Optional[str] = Field(
+        default=None, description="Name of the nearest principal port."
+    )
+    port_type: Optional[str] = Field(
+        default=None,
+        description="'Coastal' or 'Great Lakes' — the nearest port's NTAD TYPE.",
+    )
+    port_hurricane_freq: Optional[float] = Field(
+        default=None,
+        description="Annual hurricane-strike frequency at the nearest port "
+                    "(FEMA NRI, via the NTAD hazard-exposure port layer) — "
+                    "a coastal-risk proxy for offshore/floating siting.",
+    )
+    shipyard_mi: Optional[float] = Field(
+        default=None,
+        description="Miles to the nearest curated major US heavy-shipbuilding "
+                    "/ fabrication yard.",
+    )
+    shipyard_name: Optional[str] = Field(
+        default=None, description="Name of the nearest shipyard."
+    )
+    shipyard_capability: Optional[str] = Field(
+        default=None,
+        description="'heavy_module' (offshore module/topsides fabrication — "
+                    "the capability most relevant to floating/offshore reactor "
+                    "assembly), 'large_hull' (large-vessel new construction), "
+                    "or 'naval_repair'.",
+    )
+
     flood_zone: Optional[str] = Field(
         default=None,
         description="FEMA NFHL flood-zone code at the site (`A`, `AE`, `V`, `VE`, "
@@ -812,3 +857,64 @@ class HanfordParcel(BaseModel):
     map_summary: Optional[dict] = None
     corpus_record: Optional[dict] = None
     nearby_tracked: Optional[list[dict]] = None
+
+
+class Port(BaseModel):
+    """One BTS/USACE NTAD Principal Port — a map-overlay catalog row.
+
+    Live-fetched (not curated) by scripts/build_ports_overlay.py from the
+    public NTAD_Hazard_Exposure_Principal_Ports FeatureServer (150 top-
+    tonnage US ports; TYPE in {Coastal, Great Lakes} kept, Internal river
+    ports dropped). `lat`/`lon` are the polygon's bounding-box center
+    (envelope_center — same convention BRAC uses for polygon geometry),
+    not a true centroid. This is an OVERLAY like reference-campuses.json,
+    NOT a SiteRecord set, so it stays out of refresh.py's Payload pipeline.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    name: str
+    port_type: Literal["Coastal", "Great Lakes"]
+    lat: float
+    lon: float
+    hurricane_freq: Optional[float] = Field(
+        default=None,
+        description="Annual hurricane-strike frequency (FEMA NRI, from the "
+                    "same hazard-exposure layer).",
+    )
+    source_url: str = Field(pattern=r"^https://")
+    verified_at: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}$")
+
+
+class Shipyard(BaseModel):
+    """One curated major US heavy-shipbuilding / fabrication yard.
+
+    Curated by scripts/build_shipyards.py — no public GIS layer of US
+    shipyards exists (MARAD publishes PDF surveys, not a geodata service),
+    so this follows the reference-campuses.json / coal-conversions.json
+    curated-provenance contract: every row carries `source_url` (verified
+    resolving) + `verified_at` (YYYY-MM-DD). Coordinates are facility- or
+    city-approximate, not surveyed — `coord_note` says which.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    name: str
+    operator: str
+    city: str
+    state: str = Field(min_length=2, max_length=2)
+    lat: float
+    lon: float
+    coord_note: str
+    capability: Literal["heavy_module", "large_hull", "naval_repair"] = Field(
+        description="'heavy_module' = offshore module/topsides fabrication "
+                    "(graving dock or heavy-lift crane rated for reactor-scale "
+                    "modules) — the capability most relevant to floating/"
+                    "offshore nuclear assembly. 'large_hull' = large-vessel new "
+                    "construction (naval or commercial). 'naval_repair' = "
+                    "drydock/repair capacity without new-construction fabrication."
+    )
+    note: Optional[str] = Field(default=None, description="Capability detail / notable programs.")
+    source_url: str = Field(pattern=r"^https://")
+    verified_at: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}$")

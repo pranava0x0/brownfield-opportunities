@@ -654,6 +654,7 @@ def test_refresh_date_reflects_freshest_data_file(page, base_url):
             'microreactor-fleet.json', 'janus-nepa.json', 'tribal-areas.json',
             'coal-conversions.json', 'coal-conversions-proximity.json',
             'federal-clean-energy.json', 'hanford-e2e.json',
+            'port-proximity.json',
           ];
           // coal-nepa.json is deliberately ABSENT: its loader is drawer-lazy
           // and does not call recordRefreshDate (reference-campuses rule —
@@ -661,6 +662,11 @@ def test_refresh_date_reflects_freshest_data_file(page, base_url):
           // srs/portsmouth/paducah/wipp-e2e.json are ABSENT for the same
           // reason: they lazy-load on DOE-site pill selection and their
           // loaders deliberately skip recordRefreshDate.
+          // ports.json / shipyards.json are ABSENT for the same reason —
+          // they're small map-overlay catalogs (like reference-campuses.json)
+          // whose loaders (ensurePortsLoaded/ensureShipyardsLoaded)
+          // deliberately don't call recordRefreshDate; only the corpus-wide
+          // join (port-proximity.json) drives the displayed date.
           const fmt = (s) => new Date(Date.parse(s)).toISOString().slice(0, 10);
           let coreDate = null;
           const dates = [];

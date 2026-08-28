@@ -24,6 +24,7 @@ from connectors.iso_rto import IsoRto
 from connectors.opportunity_zone import OpportunityZone
 from connectors.parcel_owner import ParcelOwner
 from connectors.planned_retirements import PlannedRetirements
+from connectors.port_proximity import PortProximity
 from connectors.superfund_npl import SuperfundNPL
 from connectors.tribal_areas import TribalAreas
 from connectors.climate_zone import ClimateZone
@@ -62,6 +63,7 @@ register("fema-nri", FemaNri)
 register("climate-zone", ClimateZone)
 register("eia-retired-plants", EiaRetiredPlants)
 register("planned-retirements-proximity", PlannedRetirements)
+register("port-proximity", PortProximity)
 register("iso-rto", IsoRto)
 register("epa-echo", EpaEcho)
 register("acres-cleanup", EpaAcresCleanup)

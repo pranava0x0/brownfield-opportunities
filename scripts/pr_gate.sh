@@ -41,7 +41,7 @@ if git rev-parse --verify --quiet origin/main >/dev/null; then
   run python3 scripts/check_writing.py --commits origin/main..HEAD
 fi
 
-step "4/5 curated-citation liveness (coal + federal + hanford overlays)"
+step "4/5 curated-citation liveness (coal + federal + hanford + maritime overlays)"
 # Exit codes: 0 = all resolve · 1 = at least one DEFINITIVE dead URL (gates)
 # · 2 = network unreachable (warns, does not gate — but verify before ship).
 python3 - <<'EOF'
@@ -93,6 +93,8 @@ DOE_SITE_FILES = [
 for fname, key, field in [
     ("coal-conversions.json", "assets", "source_url"),
     ("federal-clean-energy.json", "sites", "solicitation_url"),
+    ("ports.json", "sites", "source_url"),
+    ("shipyards.json", "sites", "source_url"),
 ] + [(f, "parcels", "source_url") for f in DOE_SITE_FILES]:
     payload = json.loads((Path("docs/data") / fname).read_text())
     for rec in payload.get(key, []):
