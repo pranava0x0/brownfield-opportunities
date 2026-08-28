@@ -40,6 +40,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import logging
+import re
 import sys
 import time
 import urllib.parse
@@ -71,6 +72,19 @@ QUERY_URL = (
 USER_AGENT = "brownfield-opportunities/ports-overlay (services.arcgis.com NTAD)"
 KEPT_TYPES = {"Coastal", "Great Lakes"}
 VERIFIED_AT = "2026-08-27"
+
+# Every NTAD PRINCIPAL_PORT name ends with its 2-letter state/territory code
+# ("Galveston, TX", "Honolulu, O'ahu, HI") — confirmed against all 108 kept
+# rows on 2026-08-28. Used only to remap AK/HI/PR/VI ports into the map's
+# cartographic insets (see applyInsetRemap() in app.js) — those markers use
+# raw coordinates otherwise and are unreachable outside the lower-48
+# US_BOUNDS (Codex review, this PR).
+_STATE_SUFFIX_RE = re.compile(r",\s*([A-Z]{2})$")
+
+
+def _parse_state(name: str) -> str | None:
+    m = _STATE_SUFFIX_RE.search(name)
+    return m.group(1) if m else None
 
 
 def _fetch() -> list[dict]:
@@ -116,6 +130,7 @@ def build() -> None:
         raw = {
             "name": name,
             "port_type": port_type,
+            "state": _parse_state(name),
             "lat": round(lat, 5),
             "lon": round(lon, 5),
             "hurricane_freq": round(float(freq), 4) if freq is not None else None,

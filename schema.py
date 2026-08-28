@@ -875,6 +875,13 @@ class Port(BaseModel):
 
     name: str
     port_type: Literal["Coastal", "Great Lakes"]
+    state: Optional[str] = Field(
+        default=None, pattern=r"^[A-Z]{2}$",
+        description="2-letter state/territory code parsed from the port name "
+                    "(e.g. 'Honolulu, O'ahu, HI' -> 'HI'). Used only to remap "
+                    "AK/HI/PR/VI ports into the map's cartographic insets — "
+                    "see applyInsetRemap() in app.js.",
+    )
     lat: float
     lon: float
     hurricane_freq: Optional[float] = Field(

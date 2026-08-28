@@ -188,6 +188,94 @@ def test_score_clamped_to_0_100(page: Page, base_url: str) -> None:
     assert coastal is not None and 0 <= coastal <= 100
 
 
+def test_port_join_reapplies_after_restricted_boot_then_reset(page: Page, base_url: str) -> None:
+    """Codex review (this PR): booting with ?program=superfund leaves the
+    ACRES/FUDS/BRAC promises null, so the initial port-proximity apply only
+    reaches Superfund. Pressing Reset later loads those programs — the
+    cached join (applyPortProximityJoin) must re-apply so their matches
+    carry port_mi for the rest of the session. Same pattern as
+    test_coal_join_reapplies_after_restricted_boot_then_reset in
+    test_coal_repowering.py."""
+    page.goto(f"{base_url}/index.html?program=superfund")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30_000)
+    acres_id = page.evaluate(
+        """(async () => {
+          const j = await (await fetch('data/port-proximity.json')).json();
+          const m = (j.sites || []).find(x => x.id.startsWith('ACRES-') && x.port_mi != null);
+          return m ? m.id : null;
+        })()"""
+    )
+    assert acres_id, "shipped port-proximity file has no ACRES port match — test needs updating"
+    # Not loaded yet under the restricted URL.
+    assert page.evaluate(f"window.__sites.some(s => s.id === '{acres_id}')") is False
+    page.evaluate("document.getElementById('filters-reset').click()")
+    page.wait_for_function(
+        f"""(() => {{
+          const s = window.__sites.find(x => x.id === '{acres_id}');
+          return !!(s && s.port_mi != null);
+        }})()""",
+        timeout=30_000,
+    )
+
+
+def test_ranked_table_excludes_landlocked_tombstones(page: Page, base_url: str) -> None:
+    """Codex review (this PR): maritimeScorable() gates on `_portChecked`
+    alone, which every one of the ~46,759 sites gets once the join has run —
+    including the ~23,821 landlocked tombstones with no port or shipyard
+    within range. Those still score (low, but non-null), so the ranked
+    table's own filter has to additionally require an actual port_mi or
+    shipyard_mi, or the tab would claim every landlocked site is 'within
+    reach of a port'. Every row in the rendered table must have at least
+    one of the two distance columns populated."""
+    _ready(page, base_url)
+    page.evaluate("document.getElementById('tab-maritime').click()")
+    page.wait_for_selector("#maritime-table tbody tr", timeout=15_000)
+    counts = page.evaluate(
+        """() => {
+          const rows = Array.from(document.querySelectorAll('#maritime-table tbody tr'));
+          const neitherPopulated = rows.filter(
+            (tr) => tr.cells[5].textContent.trim() === '—' && tr.cells[6].textContent.trim() === '—'
+          ).length;
+          return { total: rows.length, neitherPopulated };
+        }"""
+    )
+    assert counts["total"] > 0
+    assert counts["neitherPopulated"] == 0
+
+
+def test_non_conus_port_markers_are_remapped_into_the_inset(page: Page, base_url: str) -> None:
+    """Codex review (this PR): ports.json ships AK/HI/PR/VI ports with real
+    coordinates outside the lower-48 US_BOUNDS — a raw marker there is
+    unreachable behind maxBoundsViscosity. ensurePortsLoaded() must call
+    applyInsetRemap() on each port before placing its marker, the same
+    treatment every other overlay gets once it gains a non-CONUS row."""
+    _ready(page, base_url)
+    page.wait_for_function(
+        "window.__map && document.querySelectorAll('.port-icon').length > 0",
+        timeout=15_000,
+    )
+    result = page.evaluate(
+        """() => {
+          const bounds = window.__leafletMap.options.maxBounds;
+          const layers = Object.values(window.__map._layers || {});
+          const hiMarker = layers.find(
+            (l) => l.getPopup && l.getPopup() && l.getPopup().getContent
+              && String(l.getPopup().getContent()).includes('Honolulu')
+          );
+          if (!hiMarker) return { found: false };
+          const ll = hiMarker.getLatLng();
+          return {
+            found: true,
+            withinBounds: bounds.contains(ll),
+            insetNoted: String(hiMarker.getPopup().getContent()).includes('shown in the HI inset'),
+          };
+        }"""
+    )
+    assert result["found"], "Honolulu port marker not found — is ports.json still shipping HI ports?"
+    assert result["withinBounds"]
+    assert result["insetNoted"]
+
+
 def test_dc_lens_still_computes_after_maritime_score_loads(page: Page, base_url: str) -> None:
     """Regression guard for the 2026-08-27 name-collision bug: loading
     maritime-score.js after dc-score.js must not corrupt dc-score.js's own

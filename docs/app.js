@@ -1094,6 +1094,7 @@ function ensureAcresLoaded() {
         // Re-apply enrichment joins that may have landed while this program
         // was skipped by a `?program=` URL (see applyCoalProxJoin).
         applyCoalProxJoin();
+        applyPortProximityJoin({ refresh: true });
         applyFilter();
         markAppReady();
       });
@@ -1126,6 +1127,7 @@ function ensureFudsLoaded() {
       updateKpiDeck();
       return hydrateMarkersChunked(payload.sites || []).then(() => {
         applyCoalProxJoin(); // late-program re-apply (see its comment)
+        applyPortProximityJoin({ refresh: true });
         applyFilter();
       });
     })
@@ -1154,6 +1156,7 @@ function ensureBracLoaded() {
       updateKpiDeck();
       addMarkersForRecords(payload.sites || []);
       applyCoalProxJoin(); // late-program re-apply (see its comment)
+      applyPortProximityJoin({ refresh: true });
       applyFilter();
     })
     .catch((err) => {
@@ -1472,6 +1475,42 @@ function ensureInfraLoaded() {
 // onto every program by `id` to add port_mi/port_name/port_type/
 // port_hurricane_freq and shipyard_mi/shipyard_name/shipyard_capability —
 // feeds the two Maritime Siting lenses in maritime-score.js.
+//
+// The payload is CACHED and the apply is IDEMPOTENT — same pattern as
+// applyCoalProxJoin(): a page that boots with a restricted `?program=` URL
+// only reaches eager Superfund records on the first apply, so
+// ensureAcresLoaded()/ensureFudsLoaded()/ensureBracLoaded() call
+// applyPortProximityJoin() again as their records land (Codex review,
+// this PR). `_portChecked` doubles as the skip-if-already-applied guard —
+// it's the same "we looked" marker the score gate reads.
+let portProximityRecords = null; // settled payload (even if empty)
+function applyPortProximityJoin({ refresh = false } = {}) {
+  if (!portProximityRecords) return;
+  let applied = 0;
+  for (const rec of portProximityRecords) {
+    const existing = sitesById.get(rec.id);
+    if (!existing || existing._portChecked) continue;
+    if (rec.port_mi != null) existing.port_mi = rec.port_mi;
+    if (rec.port_name != null) existing.port_name = rec.port_name;
+    if (rec.port_type != null) existing.port_type = rec.port_type;
+    if (rec.port_hurricane_freq != null) existing.port_hurricane_freq = rec.port_hurricane_freq;
+    if (rec.shipyard_mi != null) existing.shipyard_mi = rec.shipyard_mi;
+    if (rec.shipyard_name != null) existing.shipyard_name = rec.shipyard_name;
+    if (rec.shipyard_capability != null) existing.shipyard_capability = rec.shipyard_capability;
+    // Marker, not data: both maritime lenses gate on this — a null port_mi
+    // means "off-coast" only once the join has actually run. See
+    // maritimeScorable() in maritime-score.js.
+    existing._portChecked = true;
+    applied++;
+  }
+  if (refresh && applied) {
+    if (selectedId && sitesById.has(selectedId)) {
+      try { selectSite(selectedId); } catch {}
+    }
+    maybeRefreshMaritime();
+  }
+}
+
 function ensurePortProximityLoaded() {
   if (portProximityLoadingPromise) return portProximityLoadingPromise;
   portProximityLoadingPromise = fetch(PORT_PROXIMITY_URL, { priority: "low" })
@@ -1482,30 +1521,13 @@ function ensurePortProximityLoaded() {
     })
     .then(async (payload) => {
       recordRefreshDate(payload.generated_at, PORT_PROXIMITY_URL);
+      portProximityRecords = payload.sites || [];
       // All-programs join — wait on ACRES/FUDS/BRAC first or the `!existing`
-      // guard below can silently drop them (load-order race, see CLAUDE.md).
+      // guard above can silently drop them (load-order race, see CLAUDE.md).
       await Promise.allSettled(
         [acresLoadingPromise, fudsLoadingPromise, bracLoadingPromise].filter(Boolean)
       );
-      for (const rec of payload.sites || []) {
-        const existing = sitesById.get(rec.id);
-        if (!existing) continue;
-        if (rec.port_mi != null) existing.port_mi = rec.port_mi;
-        if (rec.port_name != null) existing.port_name = rec.port_name;
-        if (rec.port_type != null) existing.port_type = rec.port_type;
-        if (rec.port_hurricane_freq != null) existing.port_hurricane_freq = rec.port_hurricane_freq;
-        if (rec.shipyard_mi != null) existing.shipyard_mi = rec.shipyard_mi;
-        if (rec.shipyard_name != null) existing.shipyard_name = rec.shipyard_name;
-        if (rec.shipyard_capability != null) existing.shipyard_capability = rec.shipyard_capability;
-        // Marker, not data: both maritime lenses gate on this — a null
-        // port_mi means "off-coast" only once the join has actually run.
-        // See maritimeScorable() in maritime-score.js.
-        existing._portChecked = true;
-      }
-      if (selectedId && sitesById.has(selectedId)) {
-        try { selectSite(selectedId); } catch {}
-      }
-      maybeRefreshMaritime();
+      applyPortProximityJoin({ refresh: true });
     })
     .catch((err) => {
       console.error("Port-proximity enrichment load failed:", err);
@@ -1943,6 +1965,11 @@ function ensurePortsLoaded() {
       if (!portLayer) return; // map not yet initialized
       for (const port of payload.sites || []) {
         if (port.lat == null || port.lon == null) continue;
+        // AK/HI/PR/VI ports use raw coordinates otherwise and are
+        // unreachable outside the lower-48 US_BOUNDS (Codex review, this PR
+        // — the same latent gap every other overlay has until it gains a
+        // non-CONUS row; see CLAUDE.md).
+        applyInsetRemap(port);
         const icon = L.divIcon({
           className: "port-icon",
           html: "⚓",
@@ -1956,6 +1983,8 @@ function ensurePortsLoaded() {
         marker.bindPopup(
           `<div class="ref-campus-popup">` +
           `<strong>${escapeHtml(port.name)}</strong>` +
+          (port._inset ? `<div class="ref-campus-company"><span class="micro-note">shown in the ${escapeHtml(port._inset)} inset ` +
+            `(${port.lat_real.toFixed(3)}, ${port.lon_real.toFixed(3)})</span></div>` : "") +
           `<div class="ref-campus-meta"><span>${escapeHtml(port.port_type)} port</span>` +
           (hurr ? `<span>${escapeHtml(hurr)}</span>` : "") + `</div>` +
           `<a href="${escapeHtml(port.source_url)}" target="_blank" rel="noopener" class="ref-campus-link">Source ↗</a>` +
@@ -7273,8 +7302,16 @@ function makeMaritimeRow(s, rank, scoreFn) {
 
 function buildMaritimeView() {
   const scoreFn = _maritimeScoreFn();
+  // maritimeScorable() (the score gate) only checks that the join has RUN
+  // (`_portChecked`) — it deliberately still returns a (low) score for a
+  // landlocked tombstone, so the score itself stays a valid signal even for
+  // a site with nothing maritime nearby. The RANKED LIST is a stricter
+  // filter on top of that: it only lists sites actually within reach of a
+  // port or shipyard, or every one of the ~23k landlocked tombstones would
+  // otherwise appear as "sites within reach of a port" (Codex review, this
+  // PR).
   const sorted = tableState.filtered
-    .filter((s) => scoreFn(s) != null)
+    .filter((s) => scoreFn(s) != null && (s.port_mi != null || s.shipyard_mi != null))
     .sort((a, b) => (scoreFn(b) || 0) - (scoreFn(a) || 0));
 
   // Same single-source-of-truth tooltip pattern as the DC-score column
