@@ -7310,8 +7310,19 @@ function buildMaritimeView() {
   // port or shipyard, or every one of the ~23k landlocked tombstones would
   // otherwise appear as "sites within reach of a port" (Codex review, this
   // PR).
+  //
+  // The eligibility test is LENS-AWARE, not a shared OR of both fields:
+  // computeCoastalGenerationScore has NO shipyard component and the tab's
+  // own copy says "within reach of a port" for that lens, so a shipyard-
+  // only match (no port_mi) is not a coastal candidate — 1,233 shipped
+  // records are exactly this shape. The offshore lens DOES score shipyard
+  // proximity (32/100, its largest weight), so a shipyard-only site is a
+  // legitimate offshore candidate there (Codex round 2, this PR).
+  const eligible = maritimeState.lens === "coastal"
+    ? (s) => s.port_mi != null
+    : (s) => s.port_mi != null || s.shipyard_mi != null;
   const sorted = tableState.filtered
-    .filter((s) => scoreFn(s) != null && (s.port_mi != null || s.shipyard_mi != null))
+    .filter((s) => scoreFn(s) != null && eligible(s))
     .sort((a, b) => (scoreFn(b) || 0) - (scoreFn(a) || 0));
 
   // Same single-source-of-truth tooltip pattern as the DC-score column
@@ -8677,11 +8688,18 @@ function setPlannedRetireCell(id, s) {
 }
 
 // Nearest principal port cell (port-proximity enrichment).
+//
+// `_portChecked` distinguishes two different null states that otherwise
+// both read as "Not available": the join hasn't loaded yet (genuinely
+// unknown), vs. the join HAS run and found nothing within 75 mi (a real
+// negative result — the site is checked and landlocked). Rendering both the
+// same way discards the distinction `_portChecked` exists to preserve
+// (Codex round 2, this PR) — same principle as `offConus` in setMileCell.
 function setPortCell(id, s) {
   const node = el(id);
   if (!node) return;
   if (s.port_mi == null) {
-    node.textContent = "Not available";
+    node.textContent = s._portChecked ? "None within 75 mi" : "Not available";
     node.classList.add("muted-cell");
     return;
   }
@@ -8699,12 +8717,13 @@ function setPortCell(id, s) {
   }
 }
 
-// Nearest curated shipyard cell (port-proximity enrichment).
+// Nearest curated shipyard cell (port-proximity enrichment). Same
+// checked-vs-unchecked distinction as setPortCell, at the 150-mi radius.
 function setShipyardCell(id, s) {
   const node = el(id);
   if (!node) return;
   if (s.shipyard_mi == null) {
-    node.textContent = "Not available";
+    node.textContent = s._portChecked ? "None within 150 mi" : "Not available";
     node.classList.add("muted-cell");
     return;
   }

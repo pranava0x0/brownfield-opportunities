@@ -276,6 +276,56 @@ def test_non_conus_port_markers_are_remapped_into_the_inset(page: Page, base_url
     assert result["insetNoted"]
 
 
+def test_coastal_lens_excludes_shipyard_only_sites(page: Page, base_url: str) -> None:
+    """Codex round 2 (this PR): computeCoastalGenerationScore has NO shipyard
+    component and the tab's own copy says 'within reach of a port' for this
+    lens — a shipyard-only match (port_mi null, shipyard_mi set) is not a
+    coastal candidate even though it passes the offshore lens's eligibility
+    test. Every rendered row on the coastal lens must have a real port_mi."""
+    _ready(page, base_url)
+    page.evaluate("document.getElementById('tab-maritime').click()")
+    page.wait_for_selector("#maritime-table tbody tr", timeout=15_000)
+    page.evaluate('document.querySelector(\'[data-maritime-lens="coastal"]\').click()')
+    page.wait_for_function(
+        "document.querySelector('[data-maritime-lens=\"coastal\"]').classList.contains('active')"
+    )
+    page.wait_for_selector("#maritime-table tbody tr", timeout=15_000)
+    result = page.evaluate(
+        """() => {
+          const rows = Array.from(document.querySelectorAll('#maritime-table tbody tr'));
+          const bad = rows.filter((tr) => {
+            const s = window.__sites.find((x) => x.id === tr.dataset.id);
+            return !s || s.port_mi == null;
+          }).length;
+          return { total: rows.length, bad };
+        }"""
+    )
+    assert result["total"] > 0
+    assert result["bad"] == 0
+
+
+def test_detail_panel_distinguishes_checked_negative_from_not_loaded(page: Page, base_url: str) -> None:
+    """Codex round 2 (this PR): `_portChecked === true` with a null port_mi
+    is a real negative result (checked, nothing within 75 mi), not the same
+    'not yet loaded' state — the two must render different text."""
+    _ready(page, base_url)
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30_000)
+    result = page.evaluate(
+        """() => {
+          const landlocked = window.__sites.find(
+            (s) => s._portChecked === true && s.port_mi == null
+          );
+          if (!landlocked) return { found: false };
+          window.__selectSite(landlocked.id);
+          const text = document.getElementById('d-port-mi').textContent;
+          return { found: true, text };
+        }"""
+    )
+    assert result["found"], "no checked-negative port record in the shipped data — test needs updating"
+    assert result["text"] == "None within 75 mi"
+    assert "Not available" not in result["text"]
+
+
 def test_dc_lens_still_computes_after_maritime_score_loads(page: Page, base_url: str) -> None:
     """Regression guard for the 2026-08-27 name-collision bug: loading
     maritime-score.js after dc-score.js must not corrupt dc-score.js's own
