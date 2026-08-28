@@ -73,6 +73,7 @@ ENRICHMENT_FILES = [
     "opportunity-zone.json",
     "parcel-owner.json",
     "planned-retirements-proximity.json",
+    "port-proximity.json",
 ]
 
 # Overlay files: NOT SiteRecords, own shapes, validated separately.
@@ -93,6 +94,8 @@ OVERLAY_FILES = [
     "planned-retirements.json",
     "reference-campuses.json",
     "retired-industrial.json",
+    "ports.json",
+    "shipyards.json",
 ]
 
 STATES = set(
@@ -1689,6 +1692,8 @@ OVERLAY_SCHEMA_FILES = {
     "portsmouth-e2e.json": ("HanfordParcel", "parcels"),
     "paducah-e2e.json": ("HanfordParcel", "parcels"),
     "wipp-e2e.json": ("HanfordParcel", "parcels"),
+    "ports.json": ("Port", "sites"),
+    "shipyards.json": ("Shipyard", "sites"),
 }
 
 # Curated overlays whose every row must carry the provenance pair
@@ -1702,6 +1707,8 @@ CURATED_PROVENANCE_FILES = {
     "portsmouth-e2e.json": ("parcels", "source_url", "verified_at"),
     "paducah-e2e.json": ("parcels", "source_url", "verified_at"),
     "wipp-e2e.json": ("parcels", "source_url", "verified_at"),
+    "ports.json": ("sites", "source_url", "verified_at"),
+    "shipyards.json": ("sites", "source_url", "verified_at"),
 }
 
 

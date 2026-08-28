@@ -516,3 +516,20 @@ Python 3.9+ and the machine default is 3.9.6, so it can never be a
 them (BLM, Census, eCFR/GPO, NOAA Fisheries, EPA AQS/NEPAssist, FEMA NFHL, GBIF,
 USFWS IPaC, NPS NRHP, USGS PAD-US, Census TIGERweb, USACE). Several overlap
 endpoints already logged above.
+
+## §33 — Principal ports / shipyards (probed 2026-08-27)
+
+For the Maritime Siting tab (brownfield sites near ports/coastline, for
+floating/offshore nuclear or coastal on-site generation/data centers).
+
+| Query | Result | Notes |
+|---|---|---|
+| `coast.noaa.gov/arcgismc/rest/services/hosted/PrincipalPorts/FeatureServer/0` | **HTTP 200 body, but `{"error":{"code":499,"message":"Token Required"}}`** | NOAA's mirror of the BTS Principal Ports layer is token-gated. Don't use it — the ArcGIS-error-with-200-status gotcha (CLAUDE.md) applies here too. |
+| `services.arcgis.com/xOi1kZaI0eWDREZv/ArcGIS/rest/services` (BTS's public org) enumerated via `?f=json` | **200, no token** | This is USDOT/BTS's own public ArcGIS Online org. Found `NTAD_Hazard_Exposure_Principal_Ports` (polygons, 150 features, fields `PRINCIPAL_PORT`/`TYPE`/18 FEMA-NRI hazard columns incl. `Hurricane_NRI_AnnualFreq`) and `NTAD_Commercial_Strategic_Seaports` (18 points, National Port Readiness Network, `port_name`/`latitude`/`longitude`/tonnage). **Use the Principal Ports layer** — it's the full top-150-by-tonnage list (`TYPE` in `Coastal`/`Great Lakes`/`Internal`), polygon geometry (compute centroid via `connectors.geom.envelope_center`, same bbox-midpoint convention BRAC uses), and comes with hurricane-frequency data for free (no second hazard-layer call needed). |
+| MARAD shipyard directory — WebSearch for a GIS/dataset equivalent | **No public GIS layer** | MARAD's Office of Shipyards & Marine Engineering publishes an annual PDF survey (`maritime.dot.gov/data-reports`), not a geodata service. 154 active private shipyards + 300 repair-capable, across 29 states — too many, and too undifferentiated by heavy-lift capability, to curate wholesale. **Verdict:** curate a short list (~16) of yards with actual heavy-module or large-hull capability, cited per-row to Wikipedia / company / CLUI pages (all curl-checked 200 on 2026-08-27) — same contract as `coal-conversions.json`. See `scripts/build_shipyards.py`. |
+
+**Replicate for future refreshes:** `scripts/build_ports_overlay.py` re-fetches
+the live NTAD layer (BTS updates it periodically; no caching needed at 150
+rows). `scripts/build_shipyards.py` re-emits the curated list — re-audit its
+citations annually (shipyard ownership/ capability changes slowly: e.g. VT
+Halter's sale to Bollinger, Austal USA ownership).
