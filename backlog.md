@@ -347,6 +347,77 @@ that is the highest-value work available.
   users — the second half is computable from Census population centers. A
   partial proxy beats the current nothing.
 
+## Session checkpoint — 2026-09-08 (scheduled data-maintenance run)
+
+**No data gap, for the fourth run running — but the empty-payload hazard fired
+again in CI, so the [high] guard that blocks the pipeline restart was landed
+here.** Coverage re-asserted byte-identical to the last three runs: flood
+42,576/46,759 (**91.1%**, 4,422 SFHA), `parcel-owner` 11,463,
+`epa-superfund-docs` 1,888/1,908 (**99.0%**), `epa-echo` 1,906, `ai-summary`
+1,908. Producers unchanged at 2026-05-12. `scripts/validate_data.py`: **27 pass
+· 12 warn · 0 fail · 2 info** (41 checks) — warn count unchanged at 12, all in
+the documented upstream set, and the 12 new maritime/port data files from PR #26
+validate clean. Unit suite 709 pass.
+
+### CI: two more failures, no new defects, one repeat offender
+
+`gh run list` showed the cron failing on 2026-08-31 and 2026-09-07 (16/16). The
+2026-09-07 log surfaced three isolated failures plus the empty write:
+
+| Connector | Trigger | Verdict |
+|---|---|---|
+| `infra-proximity` | Overpass **429** (was 504) | Known; chunk+backoff still open |
+| `iso-rto` | ArcGIS `499 Token Required` | Known since 08-25; source token-walled |
+| `census-workforce` | `CENSUS_API_KEY` unset | Known config gap |
+| `ai-summary` | `ANTHROPIC_API_KEY` unset | **Wrote an empty payload — again** |
+
+Nothing new, which is itself the finding: the 2026-08-18 isolation fix is
+holding, and the failure set has stabilised into three known-and-triaged items.
+
+### Fixed here: an empty write can no longer blank a populated enrichment file
+
+**Read the code before implementing the logged fix — the recorded diagnosis was
+half stale.** This item has been carried as "only `superfund-npl` is guarded,
+46,756 records exposed" since 2026-08-18. It is not what the code says: a
+`Connector.authoritative_inventory` flag (commit `6b6634c`) already covers all
+four program inventories. Had I implemented the item as written I would have
+re-implemented a guard that exists.
+
+The half that was genuinely missing is the one that had actually been firing.
+Enrichment connectors are deliberately allowed to write an empty payload so a
+first run can create its file — and that permission never distinguished
+*creating* a file from *erasing* one. Measured exposure:
+
+| | records |
+|---|---:|
+| `fema-nri` / `infra-proximity` / `ira-energy-community` / `opportunity-zone` / `port-proximity` | 46,759 each |
+| `climate-zone` 45,543 · `iso-rto` 45,051 · `parcel-owner` 11,463 · `eia-retired-plants` 7,620 | |
+| 8 more (`coord-quality` … `acres-cleanup`) | 10,538 |
+| **total across 17 files** | **357,911** |
+
+An order of magnitude above the figure the item quoted, and it includes
+`infra-proximity`, whose 46,759 records carry the flood backfill built up over
+nine sessions of this routine.
+
+`_run_one` now refuses an empty write whenever the target already holds records,
+and exits nonzero. First-run creation stays legal; a missing or corrupt prior
+payload fails open so it cannot wedge a connector. Verified the way this repo
+expects: the blanking test was **proven red first** (1 failed, 3 controls
+green), and the fix was confirmed against the live case —
+`ANTHROPIC_API_KEY= python3 refresh.py --source ai-summary` now logs *refusing to
+blank it*, exits 1, and leaves `ai-summary.json` byte-identical (md5 unchanged).
+
+**This unblocks the `refresh.yml` `continue-on-error` restructure**, which is now
+the top pipeline item — still supervised, because the guard protects against
+blanking, not against a source returning a small-but-wrong non-empty result.
+
+### Next run
+
+No data-only gap of any size remains; verify coverage and stop rather than
+manufacture work. The live items are all code+supervised: the `refresh.yml`
+restructure (now unblocked), `iso-rto`'s token wall, the Overpass chunk/backoff,
+and `CENSUS_API_KEY` (add the secret or drop `census-workforce` from `--all`).
+
 ## Session checkpoint — 2026-08-25 (scheduled data-maintenance run)
 
 **No data gap to close — again — but the CI fault-isolation fix paid off and
@@ -521,19 +592,28 @@ diagnostic: one run now surfaces *every* failing connector instead of one per
 week of whack-a-mole. Restoring auto-commit needs a `continue-on-error`
 restructure of `refresh.yml`, and that was deliberately left supervised —
 
-- **[high] Guard the empty-payload write before re-enabling auto-commit.**
-  `_run_one` aborts on an empty record set only for `CANONICAL_SLUG`; every
-  other producer gets `log.warning` and an **empty payload written over the live
-  file**. Harmless today only because the commit step never runs. Re-enable
-  committing without fixing this and a source outage that returns HTTP 200 with
-  zero features blanks the dataset: **46,756 records exposed** — `epa-acres`
-  36,003, `dod-fuds` 8,821, `epa-redev` 1,905, `dod-brac` 27. A producer
-  returning zero rows is an outage, not a legitimate state; it should refuse the
-  write the way the canonical file already does.
-- **[high] Then restructure `refresh.yml`** so a partially-successful run still
+- **[DONE 2026-09-08] Guard the empty-payload write before re-enabling
+  auto-commit.** Landed in two halves. The program inventories were covered
+  first by `Connector.authoritative_inventory` (`superfund-npl`, `epa-acres`,
+  `dod-fuds`, `dod-brac` — commit `6b6634c`), which is why the 46,756-record
+  figure this item used to quote was already stale. The **enrichment** half
+  landed 2026-09-08: `_run_one` now refuses an empty write whenever the target
+  file already holds records, which is the case that had actually been firing.
+  Real exposure was **357,911 records across 17 enrichment files** — an order of
+  magnitude above the producer figure, and including `infra-proximity`'s 46,759
+  records, which carry the flood backfill accumulated over nine sessions.
+  First-run creation stays legal (empty write to a file that does not exist or
+  already holds zero rows); a corrupt prior payload fails open so it cannot
+  wedge a connector. Guard: `tests/test_refresh_empty_inventory_guard.py`
+  (5 tests; the blanking case was verified red first, and the fix was confirmed
+  against the live `ai-summary` reproduction — file byte-identical, exit 1).
+- **[high] Now restructure `refresh.yml`** so a partially-successful run still
   commits what it refreshed: `id` + `continue-on-error: true` on the Refresh
-  step, commit, then a final step that fails the job if refresh failed. Order
-  matters — the guard above lands first.
+  step, commit, then a final step that fails the job if refresh failed. **The
+  guard that blocked this is now in place**, so this is the next move on the
+  pipeline — but it is still a supervised change: it re-enables auto-commit, and
+  the empty-write guard protects against *blanking* only, not against a source
+  that returns a small, wrong, non-empty result.
 - **[med] Chunk + back off the Overpass substation queries** (carried forward).
   A 504 on a 12°×25° bbox is the expected response from a free endpoint under
   load, not an anomaly worth aborting on.
