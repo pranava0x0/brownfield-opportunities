@@ -129,6 +129,23 @@ def _serialize_payload(payload: Payload, pretty: bool) -> str:
     return payload.model_dump_json(exclude_none=True)
 
 
+def _prior_record_count(out_path: Path) -> int:
+    """How many records the file at `out_path` already holds (0 if none/unreadable).
+
+    Deliberately fails open: a missing or corrupt prior payload must not wedge
+    a connector that is otherwise ready to write. The count is only ever used
+    to decide whether an empty write would destroy data.
+    """
+    if not out_path.exists():
+        return 0
+    try:
+        return len(json.loads(out_path.read_text()).get("sites", []))
+    except (OSError, ValueError, AttributeError) as exc:
+        log.warning("could not read prior payload %s (%s); allowing the write",
+                    out_path, exc)
+        return 0
+
+
 def _run_one(
     slug: str,
     args: argparse.Namespace,
@@ -153,9 +170,24 @@ def _run_one(
         if inst.authoritative_inventory:
             log.error("[%s] authoritative inventory returned no records; aborting", slug)
             return 1, None, inst.source_label
-        log.warning("[%s] no records normalized; writing empty payload", slug)
 
     out_path = _resolve_output_path(slug, output_override or args.output)
+
+    if not records and _prior_record_count(out_path):
+        # An enrichment run may legitimately write an empty payload to CREATE a
+        # first-run file, but never to erase one that already holds records.
+        # Zero rows from a connector is an outage (a missing API key, a
+        # token-walled source, an HTTP 200 with no features), not a new state
+        # of the world. Observed live: the 2026-08-24 and 2026-09-07 `--all`
+        # cron runs both blanked ai-summary.json because ANTHROPIC_API_KEY is
+        # unset in CI — harmless only because the commit step is skipped.
+        log.error("[%s] returned no records but %s already holds data; refusing "
+                  "to blank it (source outage, not an empty state)", slug, out_path)
+        return 1, None, inst.source_label
+
+    if not records:
+        log.warning("[%s] no records normalized; writing empty payload", slug)
+
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     # Snapshot prior payload before overwrite — used for diff log.
