@@ -39,11 +39,12 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import math
 from pathlib import Path
 from typing import Any, Iterable
 
 from connectors.base import Connector
-from connectors.spatial import PointIndex
+from connectors.spatial import DEFAULT_CELL_DEG, PointIndex
 
 log = logging.getLogger("connector.water_proximity")
 
@@ -52,6 +53,36 @@ log = logging.getLogger("connector.water_proximity")
 # — but tight enough that the number still describes the site's own basin
 # rather than the next watershed over.
 MAX_DISTANCE_MI = 50.0
+EARTH_RADIUS_MI = 3958.8
+# Longitude degrees shrink with latitude, so a fixed ring budget covers fewer
+# miles the further north a site sits. At 71°N a 0.25° cell is only ~5.6 mi
+# wide, and the index's default eight rings reach ~45 mi — short of the cap.
+MILES_PER_DEG_LAT = 69.17
+
+
+def _haversine_mi(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """Great-circle distance, used to re-measure the index's candidate.
+
+    PointIndex measures with a local equirectangular projection. Near the
+    radius cap that approximation decides membership: ANIAK AIRWAY & AIR COMM
+    (FUDS-F10AK0520) has gage 15304010 at 49.99 mi by haversine, which the
+    projection reports as 50.19 mi — just over the 50 mi cap, so the site was
+    emitted as having no gage at all. Re-measuring the winner is exact and
+    costs one trig call per site.
+    """
+    p1, p2 = math.radians(lat1), math.radians(lat2)
+    dphi = p2 - p1
+    dlam = math.radians(lon2 - lon1)
+    h = (math.sin(dphi / 2) ** 2
+         + math.cos(p1) * math.cos(p2) * math.sin(dlam / 2) ** 2)
+    return 2 * EARTH_RADIUS_MI * math.asin(math.sqrt(h))
+
+
+def _rings_for_latitude(lat: float, cell_deg: float = DEFAULT_CELL_DEG) -> int:
+    """Ring budget that actually reaches MAX_DISTANCE_MI at this latitude."""
+    mi_per_cell = max(cell_deg * MILES_PER_DEG_LAT * math.cos(math.radians(lat)),
+                      0.5)
+    return max(8, int(math.ceil(MAX_DISTANCE_MI / mi_per_cell)) + 1)
 
 GAGES_FILE = "streamgages.json"
 
@@ -122,9 +153,13 @@ class WaterProximity(Connector):
                 continue
 
             rec: dict[str, Any] = {"id": sid, "program": program}
-            hit = idx.nearest_with_attr(lat_f, lon_f)
+            hit = idx.nearest_with_attr(
+                lat_f, lon_f, max_rings=_rings_for_latitude(lat_f))
             if hit is not None:
-                dist_mi, attr = hit
+                _projected, attr = hit
+                # Cap on the EXACT distance, not the projection's estimate —
+                # see _haversine_mi.
+                dist_mi = _haversine_mi(lat_f, lon_f, attr["lat"], attr["lon"])
                 if dist_mi <= MAX_DISTANCE_MI:
                     rec["water_gage_mi"] = round(dist_mi, 2)
                     rec["water_flow_cfs"] = attr["mean_flow_cfs"]
@@ -188,5 +223,8 @@ class WaterProximity(Connector):
                 "gage_id": row.get("gage_id"),
                 "name": row.get("name"),
                 "mean_flow_cfs": flow,
+                # Carried so the winner can be re-measured exactly.
+                "lat": float(lat),
+                "lon": float(lon),
             })
         return idx

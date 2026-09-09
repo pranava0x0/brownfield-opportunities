@@ -214,14 +214,28 @@ def _f(raw: str | None) -> float | None:
         return None
 
 
-def build(states: list[str], refresh: bool) -> None:
+def _existing_rows() -> list[dict]:
+    """Whatever is already in the catalog, or [] if there is none."""
+    if not OUT_PATH.exists():
+        return []
+    try:
+        return json.loads(OUT_PATH.read_text()).get("sites") or []
+    except (OSError, json.JSONDecodeError) as e:
+        log.warning("could not read existing %s (%s) — treating as empty",
+                    OUT_PATH.name, e)
+        return []
+
+
+def build(states: list[str], refresh: bool) -> int:
     rows: list[dict] = []
     verified_at = time.strftime("%Y-%m-%d")
+    failed_states: list[str] = []
 
     for state in states:
         sites = _fetch_sites(state, refresh)
         if not sites:
             log.warning("[%s] no gage inventory returned", state)
+            failed_states.append(state)
             continue
         by_id = {}
         for s in sites:
@@ -264,6 +278,21 @@ def build(states: list[str], refresh: bool) -> None:
         log.info("[%s] %d gages inventoried, %d with usable mean flow",
                  state, len(by_id), kept)
 
+    # NEVER let a partial run truncate the catalog. A scoped build
+    # (`--states MI,ME`, which this module's own docstring recommends) or a
+    # transient NWIS failure would otherwise replace the national artifact
+    # with whatever subset happened to succeed — and the downstream water join
+    # turns those missing gages into negative tombstones and lower scores,
+    # silently (Codex review, this PR). Merge over what is already on disk,
+    # keyed by gage_id, with freshly fetched rows winning.
+    merged: dict[str, dict] = {r["gage_id"]: r for r in _existing_rows()}
+    before = len(merged)
+    merged.update({r["gage_id"]: r for r in rows})
+    if before:
+        log.info("merged %d fetched rows into %d existing = %d total",
+                 len(rows), before, len(merged))
+    rows = list(merged.values())
+
     rows.sort(key=lambda r: (r["state"] or "", r["gage_id"]))
     payload = {
         "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
@@ -280,6 +309,12 @@ def build(states: list[str], refresh: bool) -> None:
     OUT_PATH.write_text(json.dumps(payload, separators=(",", ":"), ensure_ascii=False))
     log.info("wrote %s (%d gages, %.1f KB)",
              OUT_PATH, len(rows), OUT_PATH.stat().st_size / 1024)
+    if failed_states:
+        log.error("inventory failed for %d state(s): %s — their prior rows "
+                  "were preserved, but re-run before treating the catalog as "
+                  "current", len(failed_states), ",".join(failed_states))
+        return 1
+    return 0
 
 
 def main() -> int:
@@ -290,8 +325,7 @@ def main() -> int:
                     help="Ignore the on-disk cache and refetch.")
     args = ap.parse_args()
     states = [s.strip().upper() for s in args.states.split(",")] if args.states else STATES
-    build(states, args.refresh)
-    return 0
+    return build(states, args.refresh)
 
 
 if __name__ == "__main__":

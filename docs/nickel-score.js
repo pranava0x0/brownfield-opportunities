@@ -270,12 +270,22 @@ function nickelAcreageStatus(site) {
 
 // The score gate. `transmission_mi` null means the infra join has not run or
 // found nothing — "cannot assess", which is not the same as "bad", so the
-// score is null rather than 0. `_waterChecked` is the same guard the
-// microreactor lens applies with `_infraChecked`: before the water join
-// resolves, every site would look water-less and score zero on a 20-point
-// component for the second or two until the lazy fetch lands.
+// score is null rather than 0.
+//
+// `_waterChecked` is the same guard the microreactor lens applies with
+// `_infraChecked`: before the water join resolves, every site would look
+// water-less and score zero on a 24-point component.
+//
+// `_nickelChecked` gates the supply-chain join for exactly the same reason,
+// and it matters more now that the join is lazy: without it the import lens
+// silently awards zero for its 12-point demand term and the domestic lens
+// zero for its 23-point feedstock term, producing a ranking that looks
+// complete and is materially understated (Codex review, this PR).
 function nickelScorable(site) {
-  return site && site.transmission_mi != null && site._waterChecked === true;
+  return site
+    && site.transmission_mi != null
+    && site._waterChecked === true
+    && site._nickelChecked === true;
 }
 
 function computeNickelImportBreakdown(site) {

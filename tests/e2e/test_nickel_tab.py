@@ -186,3 +186,28 @@ def test_deep_link_shows_loading_not_a_false_empty_result(
     false_empty = [t for t in seen if "No sites match" in t]
     assert not false_empty, (
         f"showed a false empty-result message while loading: {false_empty[0]!r}")
+
+
+def test_sites_known_to_be_under_the_land_threshold_are_excluded(
+        page: Page, base_url: str) -> None:
+    """Land is stated as a threshold, so a site KNOWN to be smaller than it is
+    not a candidate. The tie-break alone only reordered equal scores, which
+    left under-threshold sites outranking buildable ones whenever the scores
+    differed (Codex review). Unknown acreage still qualifies — EPA publishes
+    none for its ~36k brownfields, and excluding unknowns would delete most of
+    the corpus on a fact we do not have.
+    """
+    _open_tab(page, base_url)
+    bad = page.eval_on_selector_all(
+        "#nickel-table tbody tr",
+        """els => els.map(e => {
+             const s = window.__sites.find(x => x.id === e.dataset.id);
+             return {id: e.dataset.id, status: window.nickelAcreageStatus(s)};
+           }).filter(r => r.status === false)""")
+    assert bad == [], f"under-threshold sites in the ranking: {bad[:5]}"
+    # And unknowns must still be there, or the filter went too far.
+    unknown = page.eval_on_selector_all(
+        "#nickel-table tbody tr",
+        """els => els.filter(e => window.nickelAcreageStatus(
+             window.__sites.find(x => x.id === e.dataset.id)) === null).length""")
+    assert unknown > 0, "unknown-acreage sites were wrongly excluded"

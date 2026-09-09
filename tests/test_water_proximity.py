@@ -123,3 +123,74 @@ def test_an_empty_gage_index_aborts_rather_than_writing_a_waterless_file(
 def test_run_order_places_the_join_after_the_producers():
     from connectors.water_proximity import WaterProximity
     assert WaterProximity.run_order > 100
+
+
+def test_a_scoped_build_never_truncates_the_national_catalog(tmp_path, monkeypatch):
+    """`--states MI,ME` is a documented invocation. Writing only the fetched
+    subset would replace the national artifact with two states, and the water
+    join turns every dropped gage into a negative tombstone and a lower score
+    — silently. Fetched rows win; everything else is preserved."""
+    mod = _load_builder()
+    out = tmp_path / "streamgages.json"
+    out.write_text(json.dumps({"sites": [
+        {"gage_id": "11111111", "name": "OLD A", "state": "CA", "lat": 34.0,
+         "lon": -118.0, "mean_flow_cfs": 100.0, "record_years": 10,
+         "drainage_sqmi": None, "source_url": "https://x/", "verified_at": "2026-01-01"},
+        {"gage_id": "22222222", "name": "OLD B", "state": "ME", "lat": 44.0,
+         "lon": -69.0, "mean_flow_cfs": 200.0, "record_years": 10,
+         "drainage_sqmi": None, "source_url": "https://x/", "verified_at": "2026-01-01"},
+    ]}))
+    monkeypatch.setattr(mod, "OUT_PATH", out)
+    monkeypatch.setattr(mod, "_fetch_sites", lambda st, r: [
+        {"site_no": "22222222", "station_nm": "NEW B", "dec_lat_va": "44.5",
+         "dec_long_va": "-69.5", "drain_area_va": "50"}])
+    monkeypatch.setattr(mod, "_fetch_flows", lambda ids, r: {"22222222": [250.0]})
+
+    assert mod.build(["ME"], False) == 0
+    rows = {r["gage_id"]: r for r in json.loads(out.read_text())["sites"]}
+    assert set(rows) == {"11111111", "22222222"}, "California gage was dropped"
+    assert rows["22222222"]["name"] == "NEW B", "fetched row should win"
+    assert rows["11111111"]["mean_flow_cfs"] == 100.0
+
+
+def test_a_failed_state_preserves_its_rows_and_reports_nonzero(tmp_path, monkeypatch):
+    """A transient NWIS failure must not look like a clean run."""
+    mod = _load_builder()
+    out = tmp_path / "streamgages.json"
+    out.write_text(json.dumps({"sites": [
+        {"gage_id": "33333333", "name": "KEEP", "state": "WY", "lat": 43.0,
+         "lon": -107.0, "mean_flow_cfs": 300.0, "record_years": 5,
+         "drainage_sqmi": None, "source_url": "https://x/", "verified_at": "2026-01-01"}]}))
+    monkeypatch.setattr(mod, "OUT_PATH", out)
+    monkeypatch.setattr(mod, "_fetch_sites", lambda st, r: [])
+    monkeypatch.setattr(mod, "_fetch_flows", lambda ids, r: {})
+
+    assert mod.build(["WY"], False) == 1, "a failed inventory must exit nonzero"
+    rows = json.loads(out.read_text())["sites"]
+    assert [r["gage_id"] for r in rows] == ["33333333"]
+
+
+def test_the_radius_cap_is_applied_to_the_exact_distance():
+    """PointIndex measures with a local equirectangular projection, and near
+    the cap that approximation decides membership. ANIAK AIRWAY & AIR COMM
+    (FUDS-F10AK0520) has gage 15304010 at 49.99 mi by haversine, which the
+    projection reported as 50.19 — just over the 50 mi cap, so the site
+    shipped as having no gage at all. The index's winner is now re-measured
+    exactly before the cap is applied.
+    """
+    from connectors.water_proximity import _haversine_mi, MAX_DISTANCE_MI
+
+    aniak = (61.575431, -159.53038)
+    gage_15304010 = (61.89, -158.15444)   # CROOKED C AB AIRPORT RD, per the catalog
+    exact = _haversine_mi(*aniak, *gage_15304010)
+    assert exact < MAX_DISTANCE_MI, (
+        f"the real pair must fall inside the cap, got {exact:.2f} mi")
+    assert exact == pytest.approx(50.0, abs=1.0)
+
+
+def test_ring_budget_grows_with_latitude(connector):
+    """A 0.25-degree cell is ~17 mi wide at the equator and ~5.6 mi at 71N, so
+    a fixed eight-ring budget stops reaching the 50 mi cap in the far north."""
+    from connectors.water_proximity import _rings_for_latitude
+    assert _rings_for_latitude(30.0) >= 8
+    assert _rings_for_latitude(71.0) > _rings_for_latitude(30.0)

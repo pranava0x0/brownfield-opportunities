@@ -35,7 +35,7 @@ import math
 import re
 import sys
 from collections import Counter, defaultdict
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Iterable, Optional
 
@@ -1658,7 +1658,12 @@ def _state_fips() -> dict[str, str]:
 @check("enrichment-freshness", "derived")
 def c_freshness(c: Corpus):
     ages = {}
-    today = datetime.now().date()
+    # Compare in UTC. `generated_at` is written as UTC ("...Z"), but this used
+    # local `datetime.now()`, so a file regenerated after local midnight in
+    # UTC terms — any evening run west of Greenwich — read as future-dated.
+    # Tripped by water-proximity.json and streamgages.json on 2026-09-08 with
+    # nothing wrong in either file.
+    today = datetime.now(timezone.utc).date()
     stale = []
     for fname, payload in c.raw.items():
         if not isinstance(payload, dict):

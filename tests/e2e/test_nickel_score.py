@@ -57,6 +57,7 @@ _STRONG = {
     "nickel_feedstock_mi": 20, "nickel_demand_mi": 60,
     "acreage": 800,
     "_waterChecked": True,
+    "_nickelChecked": True,
 }
 
 
@@ -106,6 +107,12 @@ def test_no_scored_component_reads_a_field_that_is_never_populated(
     """
     _ready(page, base_url)
     page.wait_for_function("window.__APP_READY__ === true", timeout=60_000)
+    # The supply-chain join is lazy — it starts on tab activation — so the
+    # nickel_* inputs are legitimately null until the tab is opened. Open it,
+    # then check.
+    page.click("#tab-nickel")
+    page.wait_for_function(
+        "window.__sites.some(s => s.nickel_demand_mi != null)", timeout=60_000)
     inputs = ["port_mi", "water_flow_cfs", "transmission_mi", "transmission_kv",
               "substation_mi", "rail_mi", "nickel_demand_mi", "nickel_feedstock_mi"]
     populated = page.evaluate(
@@ -130,6 +137,19 @@ def test_score_is_null_without_transmission(page: Page, base_url: str) -> None:
     _ready(page, base_url)
     assert _imp(page, _rec(transmission_mi=None)) is None
     assert _dom(page, _rec(transmission_mi=None)) is None
+
+
+def test_score_is_null_before_the_supply_chain_join_has_run(
+        page: Page, base_url: str) -> None:
+    """The anchor join is lazy — it starts on tab activation. Without a gate
+    the import lens silently awards zero for its 12-point demand term and the
+    domestic lens zero for its 23-point feedstock term, producing a ranking
+    that looks complete and is materially understated (Codex review)."""
+    _ready(page, base_url)
+    r = _rec()
+    del r["_nickelChecked"]
+    assert _imp(page, r) is None
+    assert _dom(page, r) is None
 
 
 def test_score_is_null_before_the_water_join_has_run(page: Page, base_url: str) -> None:

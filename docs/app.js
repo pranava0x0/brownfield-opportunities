@@ -1017,12 +1017,17 @@ fetch(PRIMARY_DATA_URL)
     lazyLoads.push(ensurePortProximityLoaded());
     lazyLoads.push(ensurePortsLoaded());
     lazyLoads.push(ensureShipyardsLoaded());
-    // Water join + the nickel supply-chain join and its ◈ overlay. Eager for
-    // the same two reasons as every other overlay: the markers and legend row
-    // belong on the map from first paint, and only the tab's own ranked table
-    // is lazy.
+    // The water join is eager: it is a general infrastructure signal, shown
+    // in the detail panel for every site. The 16-row anchor CATALOG is eager
+    // too, because its ◈ markers and legend row belong on the map from first
+    // paint.
+    //
+    // The corpus-wide anchor JOIN is NOT: it is ~10 MB uncompressed across
+    // 46,759 rows, has no map markers, and is consumed only by the Nickel
+    // Refining tab, so every visitor who never opens that tab was paying its
+    // request, parse and merge (Codex review, this PR). It loads on tab
+    // activation instead.
     lazyLoads.push(ensureWaterProximityLoaded());
-    lazyLoads.push(ensureNickelAnchorProxLoaded());
     lazyLoads.push(ensureNickelAnchorsLoaded());
     applyUrlSelection();
     if (lazyLoads.length === 0) {
@@ -7680,9 +7685,16 @@ function buildNickelView() {
   // The RANKED LIST asks a stricter question — does this site actually have
   // the thing the lens's own copy claims. The import lens says "port", so a
   // portless site is not an import candidate however well it scores on grid.
+  // Land is stated as a threshold, so a site KNOWN to be under it is not a
+  // candidate — the tie-break alone only reordered equal scores, which left
+  // under-threshold sites outranking buildable ones whenever the scores
+  // differed (Codex review, this PR). `null` still qualifies: EPA publishes
+  // no acreage at all for its ~36k brownfields, and excluding unknowns would
+  // delete most of the corpus on a fact we do not have.
+  const bigEnough = (s) => nickelAcreageStatus(s) !== false;
   const eligible = nickelState.lens === "domestic"
-    ? (s) => s.rail_mi != null
-    : (s) => s.port_mi != null;
+    ? (s) => s.rail_mi != null && bigEnough(s)
+    : (s) => s.port_mi != null && bigEnough(s);
   // Land breaks ties, because the score cannot use it. Acreage is a
   // threshold rather than a weighted component, and it is unknown for most of
   // the corpus, so two sites can tie on infrastructure while one is a
@@ -7730,7 +7742,12 @@ function buildNickelView() {
     // than on the two individual join flags: the joins land in a varying
     // order, and a rebuild triggered between two of them can see an empty set
     // with both flags already true.
-    const stillLoading = sorted.length === 0 && !lazyLoadsSettled;
+    // `nickelAnchorRecords` is checked alongside the boot fan-out because the
+    // supply-chain join is lazy — it starts on tab activation, after the
+    // fan-out has already settled, so the fan-out alone would declare "no
+    // matches" while this tab's own data was still in flight.
+    const stillLoading = sorted.length === 0
+      && (!lazyLoadsSettled || !nickelAnchorRecords);
     const filtered = filtersActive() || filterState.q !== "";
     const lensLabel = nickelState.lens === "domestic"
       ? "domestic-feed (rail)" : "imported-feed (port)";
