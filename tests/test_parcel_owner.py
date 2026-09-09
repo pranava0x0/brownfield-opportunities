@@ -14,8 +14,8 @@ import pytest
 from connectors.parcel_owner import ParcelOwner, STATE_PARCEL_SOURCES
 
 
-def _args(state=None, limit=200):
-    return argparse.Namespace(parcel_state=state, parcel_limit=limit)
+def _args(state=None, limit=200, upgrade_acreage=False):
+    return argparse.Namespace(parcel_state=state, parcel_limit=limit, parcel_upgrade_acreage=upgrade_acreage)
 
 
 def test_registry_states_are_well_formed():
@@ -321,3 +321,16 @@ def test_state_filter_restricts_to_one_state(tmp_path):
     c = _conn(tmp_path, sites, response_for={(35.5, -80.5): _OWNER_RESP})
     out = c.fetch_records(_args(state="nc"), use_cache=False)  # lowercased → NC
     assert any(r.get("current_owner") for r in out)
+
+
+def test_parcel_upgrade_acreage_with_zero_limit_is_unlimited(tmp_path):
+    """--parcel-limit 0 is documented as unlimited. With --parcel-upgrade-acreage,
+    it must upgrade uncached records across the network without stopping."""
+    sites = [{"id": "NC0", "program": "superfund", "state": "NC", "lat": 35.5, "lon": -80.5}]
+    existing = [{"id": "NC0", "program": "superfund",
+                 "current_owner": "KNOWN INC", "current_owner_source": "x"}]
+    c = _conn(tmp_path, sites, existing=existing, response_for={(35.5, -80.5): _OWNER_RESP})
+    out = c.fetch_records(_args(limit=0, upgrade_acreage=True), use_cache=False)
+    assert len(out) == 1
+    assert out[0].get("parcel_acreage") == 200.0
+    assert out[0].get("parcel_id") == "123"

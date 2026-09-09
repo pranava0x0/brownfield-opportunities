@@ -960,6 +960,7 @@ fetch(PRIMARY_DATA_URL)
     // Expose the prettifiers + CSV schema so e2e tests can exercise the
     // curated column set without intercepting a download.
     window.__prettyName = prettyName;
+    window.__renderSuitability = renderSuitability;
     window.__csvColumns = CSV_COLUMNS;
     window.__buildCsv = () => {
       const rows = [CSV_COLUMNS.map((c) => c.label)];
@@ -1034,7 +1035,7 @@ fetch(PRIMARY_DATA_URL)
       markAppReady();
       maybeRefreshCandidates();
     } else {
-      Promise.allSettled(lazyLoads).then(() => { lazyLoadsSettled = true; markAppReady(); maybeRefreshCandidates(); maybeRefreshMaritime(); maybeRefreshNickel(); });
+      Promise.allSettled(lazyLoads).then(() => { lazyLoadsSettled = true; markAppReady(); maybeRefreshCandidates(); maybeRefreshMaritime(); maybeRefreshNickel(); maybeRefreshMicro(); });
     }
   })
   .catch((err) => {
@@ -1484,6 +1485,7 @@ function ensureInfraLoaded() {
       // and re-render an open detail panel so the new pill / chip lights up
       // without requiring the user to reselect the site.
       updateKpiDeck();
+      maybeRefreshMicro();
       if (selectedId && sitesById.has(selectedId)) {
         try { selectSite(selectedId); } catch {}
       }
@@ -7677,8 +7679,8 @@ function _nickelWaterCell(s) {
 // Land is a threshold, and the null case is the one that matters: EPA
 // publishes no acreage at all for its ~36k brownfield properties, so "unknown"
 // is the honest answer for most rows and must not read as "too small".
-function _nickelLandCell(s) {
-  const status = nickelAcreageStatus(s);
+function _nickelLandCell(s, minAcres = NICKEL_MIN_ACRES) {
+  const status = nickelAcreageStatus(s, minAcres);
   if (status === null) return '<span class="muted-cell">Unknown</span>';
   const ac = s.acreage ?? s.parcel_acreage;
   return status
@@ -7686,7 +7688,7 @@ function _nickelLandCell(s) {
     : `<span class="nickel-land under">${fmt.acres(ac)}</span>`;
 }
 
-function makeNickelRow(s, rank, scoreFn) {
+function makeNickelRow(s, rank, scoreFn, minAcres = NICKEL_MIN_ACRES) {
   const tr = document.createElement("tr");
   tr.dataset.id = s.id;
   const score = scoreFn(s);
@@ -7720,7 +7722,7 @@ function makeNickelRow(s, rank, scoreFn) {
     <td>${_nickelWaterCell(s)}</td>
     <td class="num">${gridHtml}</td>
     <td>${railPort}</td>
-    <td>${_nickelLandCell(s)}</td>
+    <td>${_nickelLandCell(s, minAcres)}</td>
   `;
   tr.addEventListener("click", () => selectSite(s.id, { fromTable: true }));
   return tr;
@@ -7760,7 +7762,7 @@ function buildNickelView() {
   // rail spur next to it. Ordering confirmed-adequate land first costs
   // nothing and puts the buildable site above the one we cannot size.
   const landRank = (s) => {
-    const st = nickelAcreageStatus(s);
+    const st = nickelAcreageStatus(s, minAcres);
     return st === true ? 2 : st === null ? 1 : 0;  // adequate > unknown > too small
   };
   // Score ONCE per site, then sort on the stored value. A comparator that
@@ -7786,7 +7788,7 @@ function buildNickelView() {
     const tooltip = "0-100. " +
       Object.entries(w).map(([k, v]) => `${k} ${v}`).join(", ") +
       "; minus 18 in a mapped SFHA flood zone and up to 10 for drought risk. " +
-      `Land is a separate ${NICKEL_MIN_ACRES}-acre threshold, not a scored factor.`;
+      `Land is a separate ${minAcres}-acre threshold, not a scored factor.`;
     scoreTh.setAttribute("title", tooltip);
     scoreTh.setAttribute("aria-label", `Score. ${tooltip}`);
   }
@@ -7850,7 +7852,7 @@ function buildNickelView() {
   const frag = document.createDocumentFragment();
   const shown = sorted.slice(0, NICKEL_PAGE);
   for (let i = 0; i < shown.length; i++) {
-    frag.appendChild(makeNickelRow(shown[i], i + 1, scoreFn));
+    frag.appendChild(makeNickelRow(shown[i], i + 1, scoreFn, minAcres));
   }
   tbody.appendChild(frag);
 }
@@ -8833,6 +8835,11 @@ const CSV_COLUMNS = [
   { key: "in_sfha", label: "in_sfha" },
   { key: "iso_rto", label: "iso_rto" },
   { key: "climate_zone", label: "climate_zone" },
+  // Water proximity (v1.23 streamgages / USGS)
+  { key: "water_gage_mi", label: "water_gage_mi" },
+  { key: "water_flow_cfs", label: "water_flow_cfs" },
+  { key: "water_gage_name", label: "water_gage_name" },
+  { key: "water_gage_id", label: "water_gage_id" },
   // FEMA National Risk Index (v1.19) — climate / natural-hazard risk
   { key: "nri_risk_score", label: "nri_risk_score" },
   { key: "nri_risk_rating", label: "nri_risk_rating" },
@@ -9601,16 +9608,24 @@ function renderSuitability(s) {
   const nickImpEl = el("d-suit-nickel-import");
   const nickDomEl = el("d-suit-nickel-domestic");
   const scorable = typeof nickelScorable === "function" && nickelScorable(s);
-  if (nickImpEl && nickDomEl) {
-    nickImpEl.hidden = !scorable;
-    nickDomEl.hidden = !scorable;
-    if (scorable) {
-      nickImpEl.innerHTML = _suitLensHtml(
-        "Nickel refinery — imported feed", computeNickelImportScore(s),
-        computeNickelImportBreakdown(s) || {}, _NICKEL_IMPORT_GROUPS);
+  const domScorable = scorable;
+  // Imported feed needs the port join to have run, or the 24-point port term
+  // is silently charged as 0 when port data has not loaded or failed (Codex review).
+  const impScorable = scorable && s._portChecked === true;
+  if (nickDomEl) {
+    nickDomEl.hidden = !domScorable;
+    if (domScorable) {
       nickDomEl.innerHTML = _suitLensHtml(
         "Nickel refinery — domestic feed", computeNickelDomesticScore(s),
         computeNickelDomesticBreakdown(s) || {}, _NICKEL_DOMESTIC_GROUPS);
+    }
+  }
+  if (nickImpEl) {
+    nickImpEl.hidden = !impScorable;
+    if (impScorable) {
+      nickImpEl.innerHTML = _suitLensHtml(
+        "Nickel refinery — imported feed", computeNickelImportScore(s),
+        computeNickelImportBreakdown(s) || {}, _NICKEL_IMPORT_GROUPS);
     }
   }
   const nickLandEl = el("d-suit-nickel-land");
@@ -9620,7 +9635,7 @@ function renderSuitability(s) {
     // while being far too small. Say so next to the score.
     const status = typeof nickelAcreageStatus === "function"
       ? nickelAcreageStatus(s) : undefined;
-    nickLandEl.hidden = !scorable || status === undefined;
+    nickLandEl.hidden = !domScorable || status === undefined;
     if (!nickLandEl.hidden) {
       const ac = s.acreage ?? s.parcel_acreage;
       // Two thresholds: a refinery needs ~300 acres, a black-mass recycling

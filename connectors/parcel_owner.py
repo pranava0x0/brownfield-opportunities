@@ -388,7 +388,7 @@ class ParcelOwner(Connector):
                     # default keeps the original guarantee: an upgrade is free
                     # or it does not happen.
                     if src and (cached or (upgrade_acreage
-                                           and (limit is None or new_queries < limit))):
+                                           and (not limit or new_queries < limit))):
                         if not cached:
                             new_queries += 1
                         try:

@@ -339,3 +339,63 @@ def test_the_lead_block_does_not_swallow_the_table(page: Page, base_url: str) ->
     lead_h = page.evaluate(
         "document.querySelector('.nickel-lead').getBoundingClientRect().height")
     assert lead_h < 1200, f"lead block is {lead_h}px tall — it is wrapping more than copy"
+
+
+def test_recycling_threshold_updates_score_tooltip_and_row_styling(
+        page: Page, base_url: str) -> None:
+    """When switching to recycling (≥100 ac), the score header tooltip must
+    announce the 100-acre threshold, and sites between 100 and 299 acres must
+    render as adequate (class 'ok'), not under-threshold."""
+    _open_tab(page, base_url)
+    tip_default = page.locator("#th-nickel-score").get_attribute("title")
+    assert "300-acre threshold" in (tip_default or "")
+
+    page.click("[data-nickel-land='recycling']")
+    tip_recycling = page.locator("#th-nickel-score").get_attribute("title")
+    assert "100-acre threshold" in (tip_recycling or "")
+
+    under_count = page.evaluate("""() => {
+        const rows = document.querySelectorAll("#nickel-table tbody tr");
+        let bad = 0;
+        for (const r of rows) {
+            const el = r.querySelector(".nickel-land");
+            if (!el) continue;
+            const ac = parseFloat(el.textContent.replace(/,/g, ""));
+            if (!isNaN(ac) && ac >= 100 && ac < 300 && !el.classList.contains("ok")) {
+                bad++;
+            }
+        }
+        return bad;
+    }""")
+    assert under_count == 0, "Valid recycling acreage styled as under-threshold"
+
+
+def test_csv_columns_include_water_proximity(page: Page, base_url: str) -> None:
+    """Universal CSV export must include the quantitative water proximity columns."""
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("typeof window.__csvColumns !== 'undefined'", timeout=30_000)
+    keys = page.evaluate("() => window.__csvColumns.map(c => c.key)")
+    for expected in ["water_gage_mi", "water_flow_cfs", "water_gage_name", "water_gage_id"]:
+        assert expected in keys, f"{expected} missing from CSV_COLUMNS"
+
+
+def test_detail_panel_hides_import_refinery_score_when_port_unchecked(
+        page: Page, base_url: str) -> None:
+    """Detail panel must not show the imported-feed refinery score when port proximity
+    data has not loaded or is unchecked, avoiding a false zero for port distance."""
+    _open_tab(page, base_url)
+    res = page.evaluate("""() => {
+        const s = window.__sites.find(x => x.rail_mi != null && x.water_flow_cfs != null);
+        if (!s) return null;
+        const fakeSite = Object.assign({}, s, { _portChecked: false, port_mi: null });
+        window.__renderSuitability(fakeSite);
+        const impEl = document.getElementById("d-suit-nickel-import");
+        const domEl = document.getElementById("d-suit-nickel-domestic");
+        return {
+            impHidden: impEl ? impEl.hidden : null,
+            domHidden: domEl ? domEl.hidden : null
+        };
+    }""")
+    assert res is not None
+    assert res["impHidden"] is True, "Imported score must be hidden when port is not checked"
+    assert res["domHidden"] is False, "Domestic score must remain visible when water/nickel ready"

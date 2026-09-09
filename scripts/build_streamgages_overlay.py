@@ -104,7 +104,7 @@ STATES = [
     "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN",
     "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH",
     "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA",
-    "WV", "WI", "WY", "PR", "VI",
+    "WV", "WI", "WY", "PR",  # VI is not served by USGS NWIS streamflow services (returns 404)
 ]
 
 _last_request = 0.0
