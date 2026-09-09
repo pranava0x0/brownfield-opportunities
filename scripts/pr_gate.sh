@@ -137,11 +137,15 @@ fi
 if [ "$FAST" -eq 1 ]; then
   step "5/5 e2e guards — SKIPPED (--fast)"
 else
-  step "5/5 e2e guards (DOM budget, refresh date, coal tab, mobile overflow)"
-  run python3 -m pytest -q -p no:cacheprovider -n 4 \
+  step "5/5 e2e guards (DOM budget, refresh date, coal tab, tab scrolling + overflow)"
+  # -n 2, not 4: four Chromium workers plus this machine's other load got the
+  # run OS-killed for memory on 2026-09-08 and produced a scatter of spurious
+  # TimeoutErrors that read like regressions.
+  run python3 -m pytest -q -p no:cacheprovider -n 2 \
     tests/e2e/test_smoke.py::test_dom_size_under_5k_nodes \
     tests/e2e/test_smoke.py::test_refresh_date_reflects_freshest_data_file \
-    tests/e2e/test_coal_repowering.py
+    tests/e2e/test_coal_repowering.py \
+    tests/e2e/test_tab_scrolling.py
 fi
 
 echo

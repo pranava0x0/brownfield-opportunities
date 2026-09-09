@@ -3228,6 +3228,9 @@ main {
 /* Maritime Siting tab — same page-shell shape as .coal-wrap/.coal-lead;
    the lens toggle reuses .cand-filter-group/.cand-filter (Rankings tab)
    and the table body reuses .micro-table for row styling. */
+/* Shipped without this in PR #26: 14,475px of content in a 649px box with
+   no way to reach row two, at every viewport. See .nickel-view above. */
+.maritime-view { overflow: auto; }
 .maritime-wrap { max-width: 1240px; margin: 0 auto; padding: 28px 24px 64px; }
 .maritime-lead h2 { margin: 0 0 6px; font-family: var(--font-serif); font-size: 24px; color: var(--text); }
 .maritime-lead p { margin: 0 0 16px; color: var(--text-soft); max-width: 86ch; line-height: 1.55; font-size: 13px; }
@@ -3765,7 +3768,13 @@ button.coal-nearby-item:focus-visible { outline: 2px solid var(--accent); outlin
   text-shadow: 0 0 2px var(--surface), 0 0 3px var(--surface);
 }
 
-.nickel-wrap { padding: 16px 20px 40px; max-width: 1400px; }
+/* Every tab view is `position: absolute; inset: 0`, so it fills its container
+   and CANNOT scroll the document — each scrolling view has to declare its own
+   overflow. Missing this is why the Nickel table rendered 10,261px of content
+   inside a 592px box with no way to reach row 2. */
+.nickel-view { overflow: auto; }
+/* Matches .maritime-wrap / .micro-wrap / .coal-wrap so the tabs line up. */
+.nickel-wrap { max-width: 1240px; margin: 0 auto; padding: 28px 24px 64px; }
 .nickel-lead h2 { margin: 0 0 8px; font-family: var(--font-serif); font-size: 1.6rem; }
 .nickel-lead p { margin: 0 0 10px; max-width: 78ch; line-height: 1.55; color: var(--text); }
 .nickel-lead .nickel-caveat {
@@ -3776,6 +3785,21 @@ button.coal-nearby-item:focus-visible { outline: 2px solid var(--accent); outlin
 }
 .nickel-stats { margin: 12px 0 8px; font-size: 0.9rem; color: var(--muted); }
 .nickel-table-wrap { overflow-x: auto; }
+/* The table is wider than a phone and its wrap scrolls sideways — the same
+   pattern .maritime-table-wrap uses. What is NOT shared is row height: the
+   gage name in the water column and the port name in the rail/port column are
+   long enough to wrap two or three lines each, which pushed rows to 125px
+   against Maritime's 74px and made the list unreadable on a phone. Clamp the
+   secondary lines to one ellipsised line; the full value is in the detail
+   panel. */
+#nickel-table .micro-sub {
+  max-width: 30ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#nickel-table td, #nickel-table th { vertical-align: top; }
+#nickel-table .cand-rank { width: 3ch; }
 .nickel-land.ok { color: var(--readiness-ready); font-weight: 600; }
 .nickel-land.under { color: var(--muted); }
 .nickel-sources { margin-top: 24px; font-size: 0.85rem; color: var(--muted); }

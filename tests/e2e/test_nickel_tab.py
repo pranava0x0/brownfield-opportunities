@@ -157,3 +157,32 @@ def test_confirmed_land_breaks_ties_ahead_of_unknown_land(
         if a["score"] == b["score"]:
             assert a["land"] >= b["land"], (
                 f"tied at {a['score']} but land rank fell {a['land']}->{b['land']}")
+
+
+def test_deep_link_shows_loading_not_a_false_empty_result(
+        page: Page, base_url: str) -> None:
+    """Landing straight on #nickel builds the view before the lazy water and
+    port joins resolve, so the first pass has nothing to rank. Saying "no
+    sites match the current filters" there blames the user's filters for a
+    fetch that has not finished — the same conflation the water cell avoids
+    between "not checked" and "nothing in range".
+
+    Caught in the browser, not by a test: every existing test clicked the tab
+    after __APP_READY__, which is after the joins land.
+    """
+    page.goto(f"{base_url}/index.html#nickel")
+    stats = page.locator("#nickel-stats")
+    stats.wait_for(timeout=30_000)
+    # Whatever the state, it must never claim the filters excluded everything
+    # while the data is still arriving.
+    seen = []
+    for _ in range(40):
+        txt = stats.inner_text()
+        seen.append(txt)
+        if "sorted by" in txt:
+            break
+        page.wait_for_timeout(250)
+    assert any("sorted by" in t for t in seen), f"never populated: {seen[-1]!r}"
+    false_empty = [t for t in seen if "No sites match" in t]
+    assert not false_empty, (
+        f"showed a false empty-result message while loading: {false_empty[0]!r}")

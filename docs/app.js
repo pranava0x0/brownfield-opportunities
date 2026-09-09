@@ -1029,7 +1029,7 @@ fetch(PRIMARY_DATA_URL)
       markAppReady();
       maybeRefreshCandidates();
     } else {
-      Promise.allSettled(lazyLoads).then(() => { markAppReady(); maybeRefreshCandidates(); maybeRefreshMaritime(); maybeRefreshNickel(); });
+      Promise.allSettled(lazyLoads).then(() => { lazyLoadsSettled = true; markAppReady(); maybeRefreshCandidates(); maybeRefreshMaritime(); maybeRefreshNickel(); });
     }
   })
   .catch((err) => {
@@ -1503,6 +1503,12 @@ function ensureInfraLoaded() {
 // this PR). `_portChecked` doubles as the skip-if-already-applied guard —
 // it's the same "we looked" marker the score gate reads.
 let portProximityRecords = null; // settled payload (even if empty)
+// Set once the whole boot fan-out has settled. Per-join flags were tried
+// first and are not enough: the joins land in a varying order, and a view
+// rebuilt between two of them can see an empty ranked set while both of its
+// own flags are already true. Until every lazy load has settled, an empty
+// list is a loading state, never a filter result.
+let lazyLoadsSettled = false;
 function applyPortProximityJoin({ refresh = false } = {}) {
   if (!portProximityRecords) return;
   let applied = 0;
@@ -1980,6 +1986,7 @@ function ensureReferenceCampusesLoaded() {
 // reaches only the eager Superfund records on the first pass, so the ACRES /
 // FUDS / BRAC loaders re-run the join as their records land.
 let waterProximityRecords = null;
+
 function applyWaterProximityJoin({ refresh = false } = {}) {
   if (!waterProximityRecords) return;
   let applied = 0;
@@ -7706,6 +7713,24 @@ function buildNickelView() {
 
   const statsEl = el("nickel-stats");
   if (statsEl) {
+    // Loading and empty are different states and must not share a message.
+    // Landing straight on #nickel builds this view before the lazy water and
+    // port joins resolve, so the first pass legitimately has nothing to rank —
+    // and saying "no sites match the current filters" there blames the user's
+    // filters for a fetch that has not finished. Same conflation the water
+    // cell avoids between "not checked" and "nothing in range".
+    //
+    // Gated on `sorted.length === 0` as well, so a fetch that never lands
+    // shows "loading" only while there is genuinely nothing to show, and a
+    // real empty result still reads as empty.
+    // An empty ranked set only means "no matches" once every lazy load has
+    // settled. Before that it means the data has not all arrived — and saying
+    // "no sites match the current filters" there blames the user's filters
+    // for a fetch in flight. Deliberately gated on the whole fan-out rather
+    // than on the two individual join flags: the joins land in a varying
+    // order, and a rebuild triggered between two of them can see an empty set
+    // with both flags already true.
+    const stillLoading = sorted.length === 0 && !lazyLoadsSettled;
     const filtered = filtersActive() || filterState.q !== "";
     const lensLabel = nickelState.lens === "domestic"
       ? "domestic-feed (rail)" : "imported-feed (port)";
@@ -7714,7 +7739,9 @@ function buildNickelView() {
       ? `${sorted.length.toLocaleString()} ${noun} · sorted by ${lensLabel} refinery score` +
         (filtered ? " · global filters applied" : "") +
         (sorted.length > NICKEL_PAGE ? ` · showing top ${NICKEL_PAGE}` : "")
-      : "No sites match the current filters for this feed model.";
+      : stillLoading
+        ? "Loading water and supply-chain data…"
+        : "No sites match the current filters for this feed model.";
   }
 
   const tbody = document.querySelector("#nickel-table tbody");
