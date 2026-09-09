@@ -74,6 +74,7 @@
       <button id="tab-micro" class="tab" role="tab" aria-selected="false" aria-controls="view-micro">Microreactors</button>
       <button id="tab-hanford" class="tab" role="tab" aria-selected="false" aria-controls="view-hanford">DOE Sites</button>
       <button id="tab-maritime" class="tab" role="tab" aria-selected="false" aria-controls="view-maritime">Maritime Siting</button>
+      <button id="tab-nickel" class="tab" role="tab" aria-selected="false" aria-controls="view-nickel">Nickel Refining</button>
       <button id="tab-about" class="tab" role="tab" aria-selected="false" aria-controls="view-about">About</button>
     </div>
   </div>
@@ -440,6 +441,72 @@
           </thead>
           <tbody></tbody>
         </table>
+      </div>
+    </div>
+    </template>
+  </section>
+
+  <section id="view-nickel" class="view nickel-view" role="tabpanel" aria-labelledby="tab-nickel" hidden>
+    <!-- Ranks the corpus for a nickel hydrometallurgical refinery under two
+         opposite feed models. Interior mounts lazily from this <template> on
+         first tab activation (app.js mountNickelView) — keeps the skeleton
+         out of the 5,000-node first-paint budget. -->
+    <template id="nickel-template">
+    <div class="nickel-wrap">
+      <div class="nickel-lead">
+        <h2>Nickel Refining</h2>
+        <p>The only nickel mine in the United States ships its ore to Canada to be processed. This ranks brownfield and federal sites on how well each one would suit a <strong>nickel refinery</strong> &mdash; a chemical plant that turns nickel feedstock into battery-grade material.</p>
+        <p><strong>Imported feed</strong> ranks sites near a deep-water port, for a plant supplied by ship. <strong>Domestic feed</strong> ranks rail-served sites near US mines and battery recyclers. The two live US projects each chose one of these, so they are scored separately rather than averaged.</p>
+        <details class="nickel-caveat">
+          <summary>What this score does and doesn&rsquo;t tell you</summary>
+          <ul>
+            <li><strong>Land is a pass/fail check, not part of the score.</strong> A refinery needs about 300 acres, a battery-recycling plant about 100. EPA publishes no acreage for most brownfields, so the default view shows only sites where it is confirmed.</li>
+            <li><strong>Water is a long-run average river flow</strong>, not the amount you could get a permit to withdraw &mdash; which is usually far less. It can rule a site out; it can&rsquo;t clear one.</li>
+            <li><strong>Not assessed at all:</strong> who owns the land or whether it is for sale, local workforce, and the nickel price. A high score means the infrastructure is there.</li>
+            <li><strong>Smelters are not ranked.</strong> No nickel smelter operates in the US to benchmark against, and a smelter is a different project &mdash; it needs its own power plant and a mine next door.</li>
+          </ul>
+        </details>
+      </div>
+
+      <div class="cand-filter-group" role="group" aria-label="Feed model">
+        <button type="button" class="cand-filter active" data-nickel-lens="import">Imported feed (port)</button>
+        <button type="button" class="cand-filter" data-nickel-lens="domestic">Domestic feed (rail)</button>
+      </div>
+
+      <div class="cand-filter-group" role="group" aria-label="Land basis">
+        <button type="button" class="cand-filter active" data-nickel-land="confirmed" title="Vale Long Harbour is 371 acres including residue containment; Westwin's Lawton tract is 480. Both land at ~7 acres per kt Ni/yr.">Refinery &ge;300 acres</button>
+        <button type="button" class="cand-filter" data-nickel-land="recycling" title="Cirba Solutions Lancaster OH is 36.8 acres; Li-Cycle's Rochester Hub 41-65. A black-mass plant is roughly a third the size of a refinery.">Recycling &ge;100 acres</button>
+        <button type="button" class="cand-filter" data-nickel-land="any">Include unpublished acreage</button>
+      </div>
+
+      <div id="nickel-stats" class="nickel-stats" aria-live="polite">Loading water and supply-chain data&hellip;</div>
+
+      <div class="nickel-table-wrap" id="nickel-wrap">
+        <table id="nickel-table" class="micro-table">
+          <thead>
+            <tr>
+              <th class="num" scope="col">#</th>
+              <th scope="col">Site</th>
+              <th scope="col">State</th>
+              <th class="num" scope="col" id="th-nickel-score">Score</th>
+              <th scope="col">Water</th>
+              <th scope="col">Grid</th>
+              <th scope="col">Rail / port</th>
+              <th scope="col">Land</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="nickel-sources">
+        <h3>Sources</h3>
+        <ul>
+          <li>Siting criteria: <a href="https://www.globenewswire.com/news-release/2026/06/08/3307955/0/en/electra-advances-engineering-study-for-battery-grade-nickel-refinery-in-the-united-states.html" target="_blank" rel="noopener">Electra Battery Materials, June 2026</a> and <a href="https://lawtonedc.com/news/article/westwin-elements-breaks-ground-on-americas-only-critical-mineralspilot-plant" target="_blank" rel="noopener">Westwin Elements, Lawton OK</a>.</li>
+          <li>Brownfield reuse as permitting strategy: <a href="https://me.smenet.org/talon-plans-433-million-processing-facility-in-north-dakota/" target="_blank" rel="noopener">Talon Metals, Beulah ND</a>.</li>
+          <li>Water: <a href="https://waterservices.usgs.gov/" target="_blank" rel="noopener">USGS NWIS</a> active streamgages, mean of annual mean discharge.</li>
+          <li>Supply-chain anchors: <code>docs/data/nickel-anchors.json</code>, which carries a source link and an audit date per row. There is no live GIS layer of US mineral processing plants &mdash; the USGS dataset is a 2003 layer package.</li>
+        </ul>
       </div>
     </div>
     </template>
@@ -874,6 +941,9 @@
     <div class="suitability" id="d-suitability">
       <div class="suit-lens" id="d-suit-dc"></div>
       <div class="suit-lens" id="d-suit-gen"></div>
+      <div class="suit-lens" id="d-suit-nickel-import"></div>
+      <div class="suit-lens" id="d-suit-nickel-domestic"></div>
+      <div class="suit-note" id="d-suit-nickel-land" hidden></div>
       <p class="suit-flood" id="d-suit-flood" hidden></p>
       <p class="suit-flood" id="d-suit-climate" hidden></p>
       <p class="suit-flood" id="d-suit-reg" hidden></p>
@@ -928,6 +998,7 @@
       <dt>Gas pipeline</dt><dd id="d-gas-pipeline-mi" class="muted-cell">Not available</dd>
       <dt>Nearest port</dt><dd id="d-port-mi" class="muted-cell">Not available</dd>
       <dt>Nearest shipyard</dt><dd id="d-shipyard-mi" class="muted-cell">Not available</dd>
+      <dt>Surface water</dt><dd id="d-water-flow" class="muted-cell">Not available</dd>
       <dt>Flood zone</dt><dd id="d-flood-zone" class="muted-cell">Not available</dd>
       <dt>ISO/RTO</dt><dd id="d-iso-rto" class="muted-cell">Not available</dd>
       <dt>Climate zone</dt><dd id="d-climate-zone" class="muted-cell">Not available</dd>
@@ -1013,6 +1084,7 @@
 <script defer src="ap1000-score.js"></script>
 <script defer src="microreactor-score.js"></script>
 <script defer src="maritime-score.js"></script>
+<script defer src="nickel-score.js"></script>
 <script defer src="app.js"></script>
 </body>
 </html>

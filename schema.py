@@ -504,6 +504,50 @@ class SiteRecord(BaseModel):
                     "coordinate.",
     )
 
+    # --- Water proximity (connectors/water_proximity.py) --------------------
+    # The project's first quantitative water signal. Everything before this
+    # was electrons, freight or fuel; process water is the binding constraint
+    # for every metallurgical facility type the siting tabs screen for.
+    water_gage_mi: Optional[float] = Field(
+        default=None, ge=0,
+        description="Miles to the nearest active USGS streamflow gage with a "
+                    "published mean annual discharge.",
+    )
+    water_flow_cfs: Optional[float] = Field(
+        default=None, gt=0,
+        description="That gage's mean annual discharge in cubic feet per "
+                    "second, averaged over its period of record. A LONG-RUN "
+                    "AVERAGE, not a permittable low-flow (7Q10) statistic — it "
+                    "screens a candidate and never clears one.",
+    )
+    water_gage_name: Optional[str] = Field(default=None)
+    water_gage_id: Optional[str] = Field(
+        default=None, description="USGS site number, for the NWIS deep link."
+    )
+
+    # --- Nickel supply-chain proximity (connectors/nickel_anchor_proximity.py)
+    nickel_anchor_mi: Optional[float] = Field(
+        default=None, ge=0, description="Miles to the nearest nickel-anchor of any kind."
+    )
+    nickel_anchor_name: Optional[str] = Field(default=None)
+    nickel_anchor_kind: Optional[str] = Field(default=None)
+    nickel_feedstock_mi: Optional[float] = Field(
+        default=None, ge=0,
+        description="Miles to the nearest nickel feedstock source — a mine, "
+                    "mill, or tailings/black-mass reprocessing project.",
+    )
+    nickel_demand_mi: Optional[float] = Field(
+        default=None, ge=0,
+        description="Miles to the nearest nickel offtake — a battery cell/CAM "
+                    "plant or a stainless mill.",
+    )
+    nickel_acid_mi: Optional[float] = Field(
+        default=None, ge=0,
+        description="Miles to the nearest bulk sulfuric-acid source. A "
+                    "hydromet refinery either rails acid in or burns sulfur "
+                    "on site, so this is a cost signal, not a gate.",
+    )
+
     current_owner: Optional[str] = None
     current_owner_source: Optional[str] = Field(
         default=None,
@@ -923,5 +967,105 @@ class Shipyard(BaseModel):
                     "drydock/repair capacity without new-construction fabrication."
     )
     note: Optional[str] = Field(default=None, description="Capability detail / notable programs.")
+    source_url: str = Field(pattern=r"^https://")
+    verified_at: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}$")
+
+
+class Streamgage(BaseModel):
+    """One active USGS streamflow gage with a long-term mean annual discharge.
+
+    Live-fetched (not curated) by scripts/build_streamgages_overlay.py from
+    the public USGS NWIS RDB web services — see data-source-research.md §16
+    (the JS-rendered monitoring-location pages are useless to a scraper; the
+    RDB endpoints are the scriptable contract) and §34 for this pass.
+
+    This is the project's FIRST quantitative water signal. Every other infra
+    layer (transmission, substation, rail, highway, gas, ports) was already
+    collected; process water was not, and it is the binding constraint for
+    every metallurgical facility type this dashboard screens for. The
+    qualitative `near_water_supply` / `near_water_body` fields on SiteRecord
+    are EPA RE-Powering strings covering ~1,905 Superfund sites only.
+
+    `mean_flow_cfs` is the mean of the gage's ANNUAL mean discharges across
+    its full published period of record (USGS statTypeCd=mean,
+    statReportType=annual, parameterCd=00060). It is a long-run average, NOT
+    a low-flow (7Q10) statistic — a withdrawal permit is written against low
+    flow, so this field screens candidates and never clears one. Callers
+    must not present it as available water.
+
+    An OVERLAY like ports.json, NOT a SiteRecord set, so it stays out of
+    refresh.py's Payload pipeline.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    gage_id: str = Field(pattern=r"^\d{8,15}$", description="USGS site number.")
+    name: str
+    state: Optional[str] = Field(default=None, pattern=r"^[A-Z]{2}$")
+    lat: float
+    lon: float
+    mean_flow_cfs: float = Field(
+        gt=0,
+        description="Mean of annual mean discharges over the period of "
+                    "record, cubic feet per second. Long-run average, not a "
+                    "permittable low flow.",
+    )
+    record_years: int = Field(
+        gt=0, description="Count of years of annual means behind mean_flow_cfs."
+    )
+    drainage_sqmi: Optional[float] = Field(
+        default=None, gt=0,
+        description="Contributing drainage area (NWIS drain_area_va).",
+    )
+    source_url: str = Field(pattern=r"^https://")
+    verified_at: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}$")
+
+
+class NickelAnchor(BaseModel):
+    """One node in the US nickel supply chain — a map-overlay catalog row.
+
+    Curated by scripts/build_nickel_anchors.py against the two research memos
+    in research/ (nickel-refining-siting-2026-09.md and
+    nickel-supply-chain-geography-2026-09.md). Follows the same
+    curated-provenance contract as coal-conversions.json: every row carries a
+    resolving `source_url` and a `verified_at`, checked by
+    scripts/validate_data.py.
+
+    An OVERLAY, not a SiteRecord set — it stays out of refresh.py's Payload
+    pipeline. The `nickel-anchor-proximity` connector distance-joins it onto
+    the corpus.
+
+    `coord_precision` is load-bearing and must not be quietly upgraded. A
+    `site` row's lat/lon comes from a cited source that located that specific
+    facility. A `locality` row's lat/lon is the Census Gazetteer internal
+    point for the named place — good to a few miles, which is fine for a
+    join measured in tens of miles and dishonest for anything tighter. No
+    surface may render a `locality` row as a facility coordinate.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    id: str = Field(pattern=r"^NIA-[a-z0-9-]+$")
+    name: str
+    kind: Literal[
+        "feedstock_mine",       # ore or concentrate at the mine/mill
+        "feedstock_recycled",   # black mass / tailings reprocessing
+        "refinery_planned",     # announced or under construction
+        "refinery_historic",    # operated and closed — a reuse precedent
+        "demand_battery",       # cell or CAM plant that buys nickel sulfate
+        "demand_stainless",     # stainless mill that buys Class 1 nickel
+        "reagent_acid",         # bulk sulfuric acid supply
+    ]
+    state: str = Field(pattern=r"^[A-Z]{2}$")
+    lat: float
+    lon: float
+    coord_precision: Literal["site", "locality"]
+    locality: Optional[str] = Field(
+        default=None,
+        description="Census Gazetteer place used for a `locality` coordinate, "
+                    "e.g. 'Lawton city'. Absent on `site` rows.",
+    )
+    status: Optional[str] = None
+    note: str = Field(description="Why this row matters to a refinery siting.")
     source_url: str = Field(pattern=r"^https://")
     verified_at: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}$")

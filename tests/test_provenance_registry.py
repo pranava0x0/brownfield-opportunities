@@ -122,6 +122,11 @@ def test_derived_values_cite_the_code_that_produced_them(registry):
 
 # Sub-fields deliberately covered by a parent row rather than their own.
 COVERED_BY_PARENT = {
+    "water_flow_cfs": "water_gage_mi", "water_gage_name": "water_gage_mi",
+    "water_gage_id": "water_gage_mi",
+    "nickel_anchor_name": "nickel_anchor_mi", "nickel_anchor_kind": "nickel_anchor_mi",
+    "nickel_feedstock_mi": "nickel_anchor_mi", "nickel_demand_mi": "nickel_anchor_mi",
+    "nickel_acid_mi": "nickel_anchor_mi",
     "transmission_kv": "transmission_mi", "substation_kv": "substation_mi",
     "power_plant_mw": "power_plant_mi", "power_plant_fuel": "power_plant_mi",
     "power_plant_retired": "power_plant_mi",

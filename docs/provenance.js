@@ -53,6 +53,8 @@
     TRIBAL: "data/tribal-areas.json",
     WORKFORCE: "data/census-workforce.json",
     PORT_PROXIMITY: "data/port-proximity.json",
+    WATER_PROXIMITY: "data/water-proximity.json",
+    NICKEL_ANCHOR_PROX: "data/nickel-anchor-proximity.json",
   };
 
   // ---- per-site verification link builders --------------------------------
@@ -418,6 +420,39 @@
         + "citation is in docs/data/shipyards.json.",
       url: "https://www.maritime.dot.gov/data-reports",
       verifyLabel: "MARAD shipyard data & reports (context; not per-row source)",
+    },
+    water_gage_mi: {
+      group: "Infrastructure", label: "Surface water",
+      publisher: "US Geological Survey",
+      dataset: "NWIS active streamflow gages with a published mean annual discharge",
+      file: D.WATER_PROXIMITY, code: "connectors/water_proximity.py",
+      derivation: "Nearest active USGS streamgage within 50 mi, and the mean of "
+        + "that gage's annual mean discharges over its full period of record. "
+        + "The flow figure is a LONG-RUN AVERAGE: a withdrawal permit is "
+        + "written against a low-flow statistic (7Q10) that is routinely an "
+        + "order of magnitude lower, so this screens a site and never clears "
+        + "one. The distance is to a GAGE, not to water — gages sit tens of "
+        + "miles apart on a large river.",
+      url: "https://waterdata.usgs.gov/monitoring-location/",
+      verify: (s) => s.water_gage_id
+        ? `https://waterdata.usgs.gov/monitoring-location/${encodeURIComponent(s.water_gage_id)}/`
+        : null,
+      verifyLabel: "This site's nearest USGS streamgage",
+    },
+    nickel_anchor_mi: {
+      group: "Infrastructure", label: "Nickel supply chain",
+      publisher: "This project (curated; per-row citations)",
+      dataset: "US nickel supply-chain anchors — feedstock, offtake, bulk sulfuric acid, and the one former US nickel refinery",
+      file: D.NICKEL_ANCHOR_PROX, code: "scripts/build_nickel_anchors.py",
+      derivation: "Distance to the nearest anchor of each kind, within 1,000 mi "
+        + "(a continental range, because 'how far from the battery corridor' "
+        + "has a real answer at 600 miles). No authoritative public GIS layer "
+        + "of US mineral processing plants exists — the USGS dataset is a 2003 "
+        + "layer package — so each anchor carries its own citation in "
+        + "docs/data/nickel-anchors.json. Rows marked locality precision are "
+        + "located to a Census Gazetteer place, not to the facility.",
+      url: "https://www.usgs.gov/centers/national-minerals-information-center/nickel-statistics-and-information",
+      verifyLabel: "USGS nickel statistics (context; per-row sources in the anchor file)",
     },
 
     // --- programmatic / financial overlays ---

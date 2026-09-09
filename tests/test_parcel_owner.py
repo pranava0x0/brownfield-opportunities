@@ -14,8 +14,8 @@ import pytest
 from connectors.parcel_owner import ParcelOwner, STATE_PARCEL_SOURCES
 
 
-def _args(state=None, limit=200):
-    return argparse.Namespace(parcel_state=state, parcel_limit=limit)
+def _args(state=None, limit=200, upgrade_acreage=False):
+    return argparse.Namespace(parcel_state=state, parcel_limit=limit, parcel_upgrade_acreage=upgrade_acreage)
 
 
 def test_registry_states_are_well_formed():
@@ -182,6 +182,33 @@ def test_api_error_skips_site_without_tombstone_or_crash(tmp_path):
     assert "FL_BAD" not in ids     # no tombstone — retryable next run
 
 
+def test_a_non_json_response_skips_the_site_instead_of_killing_the_run(tmp_path):
+    """A state server can answer 200 with an HTML error or maintenance page.
+    `requests` then raises JSONDecodeError, which was not in the caught set and
+    killed a 2,200-site backfill outright on 2026-09-09. It belongs with the
+    other per-site failures: skip, stay retryable, keep going."""
+    import requests
+
+    sites = [
+        {"id": "NC_HTML", "program": "superfund", "state": "NC", "lat": 35.2, "lon": -80.8},
+        {"id": "NC_OK", "program": "brownfield", "state": "NC", "lat": 35.3, "lon": -80.9},
+    ]
+    ok = {"features": [{"attributes": {"ownname": "ACME", "gisacres": 12.0,
+                                       "parno": "P1"}}]}
+    c = _conn(tmp_path, sites)
+
+    def fake_get(url, params, use_cache=True, cache_key=None):
+        if cache_key["lat"] == 35.2:
+            raise requests.exceptions.JSONDecodeError("Expecting value", "<html>", 0)
+        return ok
+
+    c.http_get_json = fake_get  # type: ignore
+    out = c.fetch_records(_args(), use_cache=False)
+    ids = {r["id"] for r in out}
+    assert "NC_OK" in ids, "the run must continue past a non-JSON response"
+    assert "NC_HTML" not in ids, "no tombstone — the site stays retryable"
+
+
 def test_consecutive_api_errors_drop_state_not_run(tmp_path):
     """15 consecutive API errors in one state drop THAT state for the run
     (systemically-broken config guard) while other states keep processing."""
@@ -294,3 +321,16 @@ def test_state_filter_restricts_to_one_state(tmp_path):
     c = _conn(tmp_path, sites, response_for={(35.5, -80.5): _OWNER_RESP})
     out = c.fetch_records(_args(state="nc"), use_cache=False)  # lowercased → NC
     assert any(r.get("current_owner") for r in out)
+
+
+def test_parcel_upgrade_acreage_with_zero_limit_is_unlimited(tmp_path):
+    """--parcel-limit 0 is documented as unlimited. With --parcel-upgrade-acreage,
+    it must upgrade uncached records across the network without stopping."""
+    sites = [{"id": "NC0", "program": "superfund", "state": "NC", "lat": 35.5, "lon": -80.5}]
+    existing = [{"id": "NC0", "program": "superfund",
+                 "current_owner": "KNOWN INC", "current_owner_source": "x"}]
+    c = _conn(tmp_path, sites, existing=existing, response_for={(35.5, -80.5): _OWNER_RESP})
+    out = c.fetch_records(_args(limit=0, upgrade_acreage=True), use_cache=False)
+    assert len(out) == 1
+    assert out[0].get("parcel_acreage") == 200.0
+    assert out[0].get("parcel_id") == "123"
