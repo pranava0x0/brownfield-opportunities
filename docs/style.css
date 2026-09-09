@@ -382,7 +382,26 @@ main:focus { outline: none; }
   padding: 3px;
   border-radius: 8px;
   border: 1px solid var(--border);
+  /* Scroll the strip itself at EVERY width, not only under 640px. With
+     eleven tabs the row stops fitting somewhere around 1000px, and the
+     <640px media query left a band in between where the overflow escaped
+     onto the document and scrolled the whole page sideways by a few pixels
+     (measured: 5px at 900px wide, against 0 on the prior ten-tab build).
+     `overflow-x: auto` is inert while the content fits, so this costs
+     nothing at desktop widths; `flex: 0 0 auto` on .tab is the load-bearing
+     half — without it the buttons compress into unreadable slivers instead
+     of scrolling.
+
+     The scrollbar is hidden here too, not only in the <640px block where it
+     used to live: now that the strip scrolls at every width, a platform with
+     classic (non-overlay) scrollbars would render a horizontal bar inside an
+     unsized tab strip in the 640-1000px band this change targets, eating
+     ~15px of its height. */
+  overflow-x: auto;
+  scrollbar-width: none;
 }
+.tabs::-webkit-scrollbar { display: none; }
+.tab { flex: 0 0 auto; }
 .tab {
   background: transparent;
   color: var(--muted);
@@ -3217,6 +3236,9 @@ main {
 /* Maritime Siting tab — same page-shell shape as .coal-wrap/.coal-lead;
    the lens toggle reuses .cand-filter-group/.cand-filter (Rankings tab)
    and the table body reuses .micro-table for row styling. */
+/* Shipped without this in PR #26: 14,475px of content in a 649px box with
+   no way to reach row two, at every viewport. See .nickel-view above. */
+.maritime-view { overflow: auto; }
 .maritime-wrap { max-width: 1240px; margin: 0 auto; padding: 28px 24px 64px; }
 .maritime-lead h2 { margin: 0 0 6px; font-family: var(--font-serif); font-size: 24px; color: var(--text); }
 .maritime-lead p { margin: 0 0 16px; color: var(--text-soft); max-width: 86ch; line-height: 1.55; font-size: 13px; }
@@ -3728,3 +3750,86 @@ button.coal-nearby-item:focus-visible { outline: 2px solid var(--accent); outlin
   font-style: italic;
   margin-left: 8px;
 }
+
+/* ----- Nickel Refining tab ------------------------------------------------
+   The ◈ anchor overlay shares the reference-campus popup chrome; only the
+   glyph colour is its own. Per the marker lesson in CLAUDE.md the rule
+   targets the ICON CLASS itself, never `.nickel-anchor-icon span` — a
+   descendant rule silently orphans the moment someone removes an inner
+   wrapper, and the glyph renders unstyled with no test to catch it. */
+:root {
+  --nickel-anchor: #7a6a12;
+}
+:root:not([data-theme="light"]) {
+  --nickel-anchor: #7a6a12;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --nickel-anchor: #d8c65a; }
+}
+:root[data-theme="dark"] { --nickel-anchor: #d8c65a; }
+
+.nickel-anchor-icon {
+  color: var(--nickel-anchor);
+  font-size: 15px;
+  line-height: 16px;
+  text-align: center;
+  text-shadow: 0 0 2px var(--surface), 0 0 3px var(--surface);
+}
+
+/* Every tab view is `position: absolute; inset: 0`, so it fills its container
+   and CANNOT scroll the document — each scrolling view has to declare its own
+   overflow. Missing this is why the Nickel table rendered 10,261px of content
+   inside a 592px box with no way to reach row 2. */
+.nickel-view { overflow: auto; }
+/* Matches .maritime-wrap / .micro-wrap / .coal-wrap so the tabs line up. */
+.nickel-wrap { max-width: 1240px; margin: 0 auto; padding: 28px 24px 64px; }
+.nickel-lead h2 { margin: 0 0 8px; font-family: var(--font-serif); font-size: 1.6rem; }
+.nickel-lead p { margin: 0 0 10px; max-width: 78ch; line-height: 1.55; color: var(--text); }
+.nickel-lead .nickel-caveat {
+  font-size: 0.88rem;
+  color: var(--muted);
+  border-left: 3px solid var(--suit-amber, var(--accent));
+  padding-left: 12px;
+}
+.nickel-stats { margin: 12px 0 8px; font-size: 0.9rem; color: var(--muted); }
+.nickel-table-wrap { overflow-x: auto; }
+/* The table is wider than a phone and its wrap scrolls sideways — the same
+   pattern .maritime-table-wrap uses. What is NOT shared is row height: the
+   gage name in the water column and the port name in the rail/port column are
+   long enough to wrap two or three lines each, which pushed rows to 125px
+   against Maritime's 74px and made the list unreadable on a phone. Clamp the
+   secondary lines to one ellipsised line; the full value is in the detail
+   panel. */
+#nickel-table .micro-sub {
+  max-width: 30ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#nickel-table td, #nickel-table th { vertical-align: top; }
+#nickel-table .cand-rank { width: 3ch; }
+.nickel-land.ok { color: var(--readiness-ready); font-weight: 600; }
+.nickel-land.under { color: var(--muted); }
+.nickel-sources { margin-top: 24px; font-size: 0.85rem; color: var(--muted); }
+.nickel-sources h3 { font-size: 0.9rem; margin: 0 0 6px; color: var(--text); }
+.nickel-sources ul { margin: 0; padding-left: 18px; }
+.nickel-sources li { margin-bottom: 4px; }
+
+/* The caveats are real and have to be available, but they were a wall of
+   jargon above the table — collapsed by default, opened by anyone who wants
+   them. */
+details.nickel-caveat { margin: 0 0 12px; max-width: 78ch; }
+details.nickel-caveat > summary {
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--muted);
+  padding: 4px 0;
+}
+details.nickel-caveat > summary:hover { color: var(--text); }
+details.nickel-caveat ul {
+  margin: 8px 0 0; padding-left: 18px;
+  font-size: 0.88rem; color: var(--muted); line-height: 1.5;
+  border-left: 3px solid var(--suit-amber, var(--accent));
+  padding: 8px 0 8px 20px; list-style-position: outside;
+}
+details.nickel-caveat li { margin-bottom: 6px; }

@@ -334,6 +334,7 @@ def test_land_is_a_screen_not_a_ranked_factor(page: Page, base_url: str):
 
 def _open_tab(page: Page, base_url: str) -> None:
     _ready(page, base_url)
+    page.wait_for_function("window.__APP_READY__ === true", timeout=30_000)
     page.click("#tab-micro")
     page.wait_for_selector(".micro-rank-table tbody tr", timeout=30_000)
 

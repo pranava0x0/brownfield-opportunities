@@ -220,6 +220,11 @@ class ParcelOwner(Connector):
                        help="Only query this state code (e.g. NC). Default: all covered states.")
         p.add_argument("--parcel-limit", type=int, default=200,
                        help="Max NEW point queries this run (resumable; cache makes re-runs cheap). 0 = unlimited.")
+        p.add_argument("--parcel-upgrade-acreage", action="store_true",
+                       help="Also re-query owner-resolved records that predate "
+                            "parcel_acreage and have no cached response. Spends "
+                            "the same budget as new-owner discovery, so it is "
+                            "opt-in rather than automatic.")
 
     # ---- site loading -----------------------------------------------------
     def _load_sites(self) -> list[dict[str, Any]]:
@@ -323,6 +328,7 @@ class ParcelOwner(Connector):
             return []
 
         # Seed prior owners from on-disk output so progress is never lost.
+        upgrade_acreage = bool(getattr(args, "parcel_upgrade_acreage", False))
         seeded: dict[str, dict[str, Any]] = {r["id"]: r for r in self.existing_records() if r.get("id")}
         log.info("seeded %d owners from existing output", len(seeded))
 
@@ -367,10 +373,29 @@ class ParcelOwner(Connector):
                         latf, lonf = float(s["lat"]), float(s["lon"])
                     except (TypeError, ValueError):
                         continue
-                    if src and self._cache_exists(src, latf, lonf):
+                    cached = src and self._cache_exists(src, latf, lonf)
+                    # A record resolved BEFORE parcel_acreage was emitted has
+                    # no acreage and often no cache either — its response
+                    # predates the field. Cache-only upgrading can never reach
+                    # those, so they stay acreage-less however often the
+                    # connector runs. Wisconsin proved it: 782 owners resolved
+                    # 2026-06-19, zero acreage, and re-running changed nothing.
+                    #
+                    # Re-querying them is OPT-IN (--parcel-upgrade-acreage)
+                    # because it spends the same budget as finding NEW owners,
+                    # and silently trading owner discovery for acreage backfill
+                    # is not a call this connector should make on its own. The
+                    # default keeps the original guarantee: an upgrade is free
+                    # or it does not happen.
+                    if src and (cached or (upgrade_acreage
+                                           and (not limit or new_queries < limit))):
+                        if not cached:
+                            new_queries += 1
                         try:
                             res = self._query_owner(src, latf, lonf, use_cache=True)
-                        except (requests.ConnectionError, requests.Timeout, requests.HTTPError):
+                        except (requests.ConnectionError, requests.Timeout,
+                                requests.HTTPError, RuntimeError,
+                                requests.exceptions.JSONDecodeError):
                             res = None
                         if res and res.get("parcel_acreage") is not None:
                             rec["parcel_acreage"] = res["parcel_acreage"]
@@ -387,9 +412,14 @@ class ParcelOwner(Connector):
             except (requests.ConnectionError, requests.Timeout) as e:
                 log.warning("[%s] network error (%s) — skipping", sid, type(e).__name__)
                 continue
-            except (requests.HTTPError, RuntimeError) as e:
+            except (requests.HTTPError, RuntimeError,
+                    requests.exceptions.JSONDecodeError) as e:
                 # RuntimeError = ArcGIS error payload from http_get_json (e.g.
                 # code 400 "Invalid query parameters" on a pathological parcel).
+                # JSONDecodeError = a 200 carrying a non-JSON body — an HTML
+                # error or maintenance page from a state's server. Uncaught, it
+                # killed a 2,200-site backfill outright (2026-09-09); it belongs
+                # with the other per-site failures that skip and continue.
                 # Skip WITHOUT a tombstone — the site stays retryable — and
                 # track the per-state streak so a systemically-broken state
                 # config aborts that state instead of erroring 1,900 times.

@@ -25,6 +25,8 @@ from connectors.opportunity_zone import OpportunityZone
 from connectors.parcel_owner import ParcelOwner
 from connectors.planned_retirements import PlannedRetirements
 from connectors.port_proximity import PortProximity
+from connectors.water_proximity import WaterProximity
+from connectors.nickel_anchor_proximity import NickelAnchorProximity
 from connectors.superfund_npl import SuperfundNPL
 from connectors.tribal_areas import TribalAreas
 from connectors.climate_zone import ClimateZone
@@ -64,6 +66,8 @@ register("climate-zone", ClimateZone)
 register("eia-retired-plants", EiaRetiredPlants)
 register("planned-retirements-proximity", PlannedRetirements)
 register("port-proximity", PortProximity)
+register("water-proximity", WaterProximity)
+register("nickel-anchor-proximity", NickelAnchorProximity)
 register("iso-rto", IsoRto)
 register("epa-echo", EpaEcho)
 register("acres-cleanup", EpaAcresCleanup)
