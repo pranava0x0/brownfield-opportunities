@@ -182,6 +182,33 @@ def test_api_error_skips_site_without_tombstone_or_crash(tmp_path):
     assert "FL_BAD" not in ids     # no tombstone — retryable next run
 
 
+def test_a_non_json_response_skips_the_site_instead_of_killing_the_run(tmp_path):
+    """A state server can answer 200 with an HTML error or maintenance page.
+    `requests` then raises JSONDecodeError, which was not in the caught set and
+    killed a 2,200-site backfill outright on 2026-09-09. It belongs with the
+    other per-site failures: skip, stay retryable, keep going."""
+    import requests
+
+    sites = [
+        {"id": "NC_HTML", "program": "superfund", "state": "NC", "lat": 35.2, "lon": -80.8},
+        {"id": "NC_OK", "program": "brownfield", "state": "NC", "lat": 35.3, "lon": -80.9},
+    ]
+    ok = {"features": [{"attributes": {"ownname": "ACME", "gisacres": 12.0,
+                                       "parno": "P1"}}]}
+    c = _conn(tmp_path, sites)
+
+    def fake_get(url, params, use_cache=True, cache_key=None):
+        if cache_key["lat"] == 35.2:
+            raise requests.exceptions.JSONDecodeError("Expecting value", "<html>", 0)
+        return ok
+
+    c.http_get_json = fake_get  # type: ignore
+    out = c.fetch_records(_args(), use_cache=False)
+    ids = {r["id"] for r in out}
+    assert "NC_OK" in ids, "the run must continue past a non-JSON response"
+    assert "NC_HTML" not in ids, "no tombstone — the site stays retryable"
+
+
 def test_consecutive_api_errors_drop_state_not_run(tmp_path):
     """15 consecutive API errors in one state drop THAT state for the run
     (systemically-broken config guard) while other states keep processing."""

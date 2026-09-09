@@ -624,3 +624,42 @@ registry, which does not exist yet — logged in backlog.md rather than built
 here.
 
 Michigan remains rejected (§19): no statewide parcel layer at all.
+
+### 34.6 Parcel-acreage expansion — CA and PA rejected (probed 2026-09-09)
+
+Chasing the acreage gap (only 19.1% of the corpus has any acreage; MI 3,418
+sites missing, CA 2,907, IL 1,591, PA 1,352, NY 1,135).
+
+- **California — BLOCKED.** `CA_Statewide_Parcels_Public_View` on
+  `services1.arcgis.com/jUJYIo9tSA7EHvfZ` returns
+  `{"code":499,"message":"Token Required"}`. The other statewide-looking hit,
+  `CA_State_Parcels` on `services2.arcgis.com/zr3KAIbsRSUyARHG`, is actually
+  "Earthquake Hazard Parcels Labels" — fields are `PARCEL_APN, SITE_CITY,
+  SITE_ADDR, FaultZone, LandslideZone, LiquefactionZone, Shape__Area` with
+  **no owner and no native acreage** (Shape__Area is Web Mercator, unusable —
+  the Iowa lesson). Same token wall as TX (§24).
+- **Pennsylvania — county-fragmented.** PASDA serves parcels **per county**
+  (`maps.pasda.psu.edu/arcgis/rest/services/pasda/AlleghenyCounty/MapServer/25`,
+  `mapservices.pasda.psu.edu/.../AdamsCounty/...`). No statewide layer, so it
+  fails the registry's one-endpoint-per-state contract. 67 counties is the
+  same shape as the Kansas rejection (§23).
+- **Michigan — still nothing.** Re-probed; §19's rejection stands. This is the
+  most painful gap in the corpus (3,418 sites) and the one that matters most
+  for the Eagle Mine thesis.
+- **New York** — only `NYS Tax Parcels State Owned` and centroid POINTS are
+  public; the full parcel polygon layer with owner is not. Consistent with the
+  2026-07-05 NY rejection (§18).
+
+**What worked instead**: Wisconsin was already in the registry with
+`GISACRES`, but its 782 owner-resolved records were resolved 2026-06-19,
+before `parcel_acreage` was emitted, and the free upgrade path only reads the
+disk cache — which those old queries no longer had. So re-running produced
+nothing, forever. `--parcel-upgrade-acreage` re-queries exactly that case
+under the normal budget (opt-in, because it spends the same budget as finding
+new owners). WI went 0 → 491 immediately; 2,729 records across ten states were
+in the same state.
+
+**Resilience note**: a state server answering 200 with an HTML error page makes
+`requests` raise `JSONDecodeError`, which was not in the connector's caught set
+and killed a 2,200-site run outright. Now handled like the other per-site
+failures — skip, stay retryable, continue.

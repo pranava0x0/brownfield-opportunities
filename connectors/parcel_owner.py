@@ -393,7 +393,9 @@ class ParcelOwner(Connector):
                             new_queries += 1
                         try:
                             res = self._query_owner(src, latf, lonf, use_cache=True)
-                        except (requests.ConnectionError, requests.Timeout, requests.HTTPError):
+                        except (requests.ConnectionError, requests.Timeout,
+                                requests.HTTPError, RuntimeError,
+                                requests.exceptions.JSONDecodeError):
                             res = None
                         if res and res.get("parcel_acreage") is not None:
                             rec["parcel_acreage"] = res["parcel_acreage"]
@@ -410,9 +412,14 @@ class ParcelOwner(Connector):
             except (requests.ConnectionError, requests.Timeout) as e:
                 log.warning("[%s] network error (%s) — skipping", sid, type(e).__name__)
                 continue
-            except (requests.HTTPError, RuntimeError) as e:
+            except (requests.HTTPError, RuntimeError,
+                    requests.exceptions.JSONDecodeError) as e:
                 # RuntimeError = ArcGIS error payload from http_get_json (e.g.
                 # code 400 "Invalid query parameters" on a pathological parcel).
+                # JSONDecodeError = a 200 carrying a non-JSON body — an HTML
+                # error or maintenance page from a state's server. Uncaught, it
+                # killed a 2,200-site backfill outright (2026-09-09); it belongs
+                # with the other per-site failures that skip and continue.
                 # Skip WITHOUT a tombstone — the site stays retryable — and
                 # track the per-state streak so a systemically-broken state
                 # config aborts that state instead of erroring 1,900 times.
