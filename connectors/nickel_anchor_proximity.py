@@ -220,7 +220,24 @@ class NickelAnchorProximity(Connector):
     @staticmethod
     def _subset(anchors: list[dict[str, Any]],
                 kinds: tuple[str, ...]) -> list[dict[str, Any]]:
-        return [a for a in anchors if a.get("kind") in kinds]
+        """Anchors of the given kinds, dropping any row that cannot be used.
+
+        `_nearest` reads lat/lon/name directly, so a hand-edited or otherwise
+        malformed row would raise KeyError and abort the whole 46,759-site
+        pass. Filtering here (rather than guarding the hot loop) keeps the
+        distance computation branch-free and matches what the sibling water
+        connector's index build does.
+        """
+        out: list[dict[str, Any]] = []
+        for a in anchors:
+            if a.get("kind") not in kinds:
+                continue
+            if a.get("lat") is None or a.get("lon") is None or not a.get("name"):
+                log.warning("anchor %s missing name/lat/lon — skipped",
+                            a.get("id") or "<no id>")
+                continue
+            out.append(a)
+        return out
 
     @staticmethod
     def _haversine_mi(lat1: float, lon1: float, lat2: float, lon2: float) -> float:

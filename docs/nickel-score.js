@@ -62,8 +62,9 @@
 // Sulfuric acid distance is also deliberately unscored. Large hydromet plants
 // normally burn sulfur on site and make their own acid — the acid plant
 // doubles as the SO2 control device and recovers process steam — so distance
-// to merchant acid is a cost input, not a siting determinant. It is carried
-// on the record and displayed, never scored.
+// to merchant acid is a cost input, not a siting determinant. `nickel_acid_mi`
+// is joined onto every record and available to any surface that wants it, but
+// nothing renders it today — see backlog.md.
 const NICKEL_WEIGHTS_IMPORT = {
   port: 24,        // Electra's own first-named criterion
   water: 24,       // process + cooling makeup; the binding constraint

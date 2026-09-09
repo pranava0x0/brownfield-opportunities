@@ -228,7 +228,9 @@ def _existing_rows() -> list[dict]:
 
 def build(states: list[str], refresh: bool) -> int:
     rows: list[dict] = []
-    verified_at = time.strftime("%Y-%m-%d")
+    # UTC, to match the payload's own generated_at — a local stamp put rows a
+    # day behind the file on any evening run west of Greenwich.
+    verified_at = time.strftime("%Y-%m-%d", time.gmtime())
     failed_states: list[str] = []
 
     for state in states:

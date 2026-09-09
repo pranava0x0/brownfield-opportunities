@@ -390,9 +390,17 @@ main:focus { outline: none; }
      `overflow-x: auto` is inert while the content fits, so this costs
      nothing at desktop widths; `flex: 0 0 auto` on .tab is the load-bearing
      half — without it the buttons compress into unreadable slivers instead
-     of scrolling. */
+     of scrolling.
+
+     The scrollbar is hidden here too, not only in the <640px block where it
+     used to live: now that the strip scrolls at every width, a platform with
+     classic (non-overlay) scrollbars would render a horizontal bar inside an
+     unsized tab strip in the 640-1000px band this change targets, eating
+     ~15px of its height. */
   overflow-x: auto;
+  scrollbar-width: none;
 }
+.tabs::-webkit-scrollbar { display: none; }
 .tab { flex: 0 0 auto; }
 .tab {
   background: transparent;

@@ -1561,6 +1561,7 @@ function ensurePortProximityLoaded() {
     })
     .then(async (payload) => {
       recordRefreshDate(payload.generated_at, PORT_PROXIMITY_URL);
+      nickelDataErrors.delete("port");    // a retry succeeded
       portProximityRecords = payload.sites || [];
       // All-programs join — wait on ACRES/FUDS/BRAC first or the `!existing`
       // guard above can silently drop them (load-order race, see CLAUDE.md).
@@ -2039,6 +2040,7 @@ function ensureWaterProximityLoaded() {
     })
     .then(async (payload) => {
       recordRefreshDate(payload.generated_at, WATER_PROXIMITY_URL);
+      nickelDataErrors.delete("water");   // a retry succeeded
       waterProximityRecords = payload.sites || [];
       await Promise.allSettled(
         [acresLoadingPromise, fudsLoadingPromise, bracLoadingPromise].filter(Boolean)
@@ -2087,6 +2089,7 @@ function ensureNickelAnchorProxLoaded() {
     })
     .then(async (payload) => {
       recordRefreshDate(payload.generated_at, NICKEL_ANCHOR_PROX_URL);
+      nickelDataErrors.delete("supply chain");  // a retry succeeded
       nickelAnchorRecords = payload.sites || [];
       await Promise.allSettled(
         [acresLoadingPromise, fudsLoadingPromise, bracLoadingPromise].filter(Boolean)

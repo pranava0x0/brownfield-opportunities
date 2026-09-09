@@ -12,15 +12,25 @@
 #      branch's commit messages (scripts/check_writing.py).
 #
 # Usage:
-#   bash scripts/pr_gate.sh          # full gate (unit + validators + guard e2e)
-#   bash scripts/pr_gate.sh --fast   # skip the browser-based e2e guards
+#   bash scripts/pr_gate.sh             # full gate (unit + validators + guard e2e)
+#   bash scripts/pr_gate.sh --fast      # skip the browser-based e2e guards
+#   bash scripts/pr_gate.sh --impacted  # run only the e2e that can see the diff
+#
+# --impacted uses scripts/select_tests.py, which FAILS OPEN: an unrecognised
+# path, or any shared foundation (schema.py, conftest, connectors/base.py),
+# returns the full suite rather than guessing narrow. Use it while iterating —
+# CI still runs everything on the PR.
 #
 # The full e2e suite still runs in CI; this is the fast local gate (~2-4 min).
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
 FAST=0
-[ "${1:-}" = "--fast" ] && FAST=1
+IMPACTED=0
+case "${1:-}" in
+  --fast)     FAST=1 ;;
+  --impacted) IMPACTED=1 ;;
+esac
 
 fail=0
 step() { printf '\n\033[1m== %s ==\033[0m\n' "$1"; }
@@ -136,6 +146,20 @@ fi
 
 if [ "$FAST" -eq 1 ]; then
   step "5/5 e2e guards — SKIPPED (--fast)"
+elif [ "$IMPACTED" = "1" ]; then
+  # Impacted-only mode: run just the tests that can observe what changed.
+  # scripts/select_tests.py fails OPEN — an unrecognised path or a shared
+  # foundation (schema.py, conftest, connectors/base.py) returns the full
+  # suite rather than guessing narrow. Use this while iterating; the full
+  # suite still runs in CI on the PR.
+  TARGETS=$(python3 scripts/select_tests.py --explain)
+  step "5/5 e2e guards — IMPACTED ONLY: ${TARGETS:-none}"
+  if [ -n "$TARGETS" ]; then
+    # shellcheck disable=SC2086
+    run python3 -m pytest -q -p no:cacheprovider -n 2 $TARGETS
+  else
+    echo "  nothing impacted"
+  fi
 else
   step "5/5 e2e guards (DOM budget, refresh date, coal tab, tab scrolling + overflow)"
   # -n 2, not 4: four Chromium workers plus this machine's other load got the
