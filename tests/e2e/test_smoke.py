@@ -654,7 +654,8 @@ def test_refresh_date_reflects_freshest_data_file(page, base_url):
             'microreactor-fleet.json', 'janus-nepa.json', 'tribal-areas.json',
             'coal-conversions.json', 'coal-conversions-proximity.json',
             'federal-clean-energy.json', 'hanford-e2e.json',
-            'port-proximity.json',
+            'port-proximity.json', 'water-proximity.json',
+            'nickel-anchor-proximity.json',
           ];
           // coal-nepa.json is deliberately ABSENT: its loader is drawer-lazy
           // and does not call recordRefreshDate (reference-campuses rule —
@@ -662,6 +663,10 @@ def test_refresh_date_reflects_freshest_data_file(page, base_url):
           // srs/portsmouth/paducah/wipp-e2e.json are ABSENT for the same
           // reason: they lazy-load on DOE-site pill selection and their
           // loaders deliberately skip recordRefreshDate.
+          // streamgages.json / nickel-anchors.json are ABSENT for the same
+          // reason as ports/shipyards below: small map-overlay catalogs whose
+          // loaders don't call recordRefreshDate; only their corpus-wide
+          // joins (water-proximity, nickel-anchor-proximity) drive the date.
           // ports.json / shipyards.json are ABSENT for the same reason —
           // they're small map-overlay catalogs (like reference-campuses.json)
           // whose loaders (ensurePortsLoaded/ensureShipyardsLoaded)

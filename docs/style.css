@@ -382,7 +382,18 @@ main:focus { outline: none; }
   padding: 3px;
   border-radius: 8px;
   border: 1px solid var(--border);
+  /* Scroll the strip itself at EVERY width, not only under 640px. With
+     eleven tabs the row stops fitting somewhere around 1000px, and the
+     <640px media query left a band in between where the overflow escaped
+     onto the document and scrolled the whole page sideways by a few pixels
+     (measured: 5px at 900px wide, against 0 on the prior ten-tab build).
+     `overflow-x: auto` is inert while the content fits, so this costs
+     nothing at desktop widths; `flex: 0 0 auto` on .tab is the load-bearing
+     half — without it the buttons compress into unreadable slivers instead
+     of scrolling. */
+  overflow-x: auto;
 }
+.tab { flex: 0 0 auto; }
 .tab {
   background: transparent;
   color: var(--muted);
@@ -3728,3 +3739,46 @@ button.coal-nearby-item:focus-visible { outline: 2px solid var(--accent); outlin
   font-style: italic;
   margin-left: 8px;
 }
+
+/* ----- Nickel Refining tab ------------------------------------------------
+   The ◈ anchor overlay shares the reference-campus popup chrome; only the
+   glyph colour is its own. Per the marker lesson in CLAUDE.md the rule
+   targets the ICON CLASS itself, never `.nickel-anchor-icon span` — a
+   descendant rule silently orphans the moment someone removes an inner
+   wrapper, and the glyph renders unstyled with no test to catch it. */
+:root {
+  --nickel-anchor: #7a6a12;
+}
+:root:not([data-theme="light"]) {
+  --nickel-anchor: #7a6a12;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --nickel-anchor: #d8c65a; }
+}
+:root[data-theme="dark"] { --nickel-anchor: #d8c65a; }
+
+.nickel-anchor-icon {
+  color: var(--nickel-anchor);
+  font-size: 15px;
+  line-height: 16px;
+  text-align: center;
+  text-shadow: 0 0 2px var(--surface), 0 0 3px var(--surface);
+}
+
+.nickel-wrap { padding: 16px 20px 40px; max-width: 1400px; }
+.nickel-lead h2 { margin: 0 0 8px; font-family: var(--font-serif); font-size: 1.6rem; }
+.nickel-lead p { margin: 0 0 10px; max-width: 78ch; line-height: 1.55; color: var(--text); }
+.nickel-lead .nickel-caveat {
+  font-size: 0.88rem;
+  color: var(--muted);
+  border-left: 3px solid var(--suit-amber, var(--accent));
+  padding-left: 12px;
+}
+.nickel-stats { margin: 12px 0 8px; font-size: 0.9rem; color: var(--muted); }
+.nickel-table-wrap { overflow-x: auto; }
+.nickel-land.ok { color: var(--readiness-ready); font-weight: 600; }
+.nickel-land.under { color: var(--muted); }
+.nickel-sources { margin-top: 24px; font-size: 0.85rem; color: var(--muted); }
+.nickel-sources h3 { font-size: 0.9rem; margin: 0 0 6px; color: var(--text); }
+.nickel-sources ul { margin: 0; padding-left: 18px; }
+.nickel-sources li { margin-bottom: 4px; }

@@ -74,6 +74,7 @@
       <button id="tab-micro" class="tab" role="tab" aria-selected="false" aria-controls="view-micro">Microreactors</button>
       <button id="tab-hanford" class="tab" role="tab" aria-selected="false" aria-controls="view-hanford">DOE Sites</button>
       <button id="tab-maritime" class="tab" role="tab" aria-selected="false" aria-controls="view-maritime">Maritime Siting</button>
+      <button id="tab-nickel" class="tab" role="tab" aria-selected="false" aria-controls="view-nickel">Nickel Refining</button>
       <button id="tab-about" class="tab" role="tab" aria-selected="false" aria-controls="view-about">About</button>
     </div>
   </div>
@@ -440,6 +441,58 @@
           </thead>
           <tbody></tbody>
         </table>
+      </div>
+    </div>
+    </template>
+  </section>
+
+  <section id="view-nickel" class="view nickel-view" role="tabpanel" aria-labelledby="tab-nickel" hidden>
+    <!-- Ranks the corpus for a nickel hydrometallurgical refinery under two
+         opposite feed models. Interior mounts lazily from this <template> on
+         first tab activation (app.js mountNickelView) — keeps the skeleton
+         out of the 5,000-node first-paint budget. -->
+    <template id="nickel-template">
+    <div class="nickel-wrap">
+      <div class="nickel-lead">
+        <h2>Nickel Refining</h2>
+        <p>The only operating primary nickel mine in the United States ships its concentrate to Ontario to be smelted. This screen ranks brownfield and federal sites for a <strong>nickel hydrometallurgical refinery</strong> &mdash; the one facility type that plausibly fits a US brownfield &mdash; under the two opposite feed models the live US projects have actually published.</p>
+        <p><strong>Imported feed</strong> weights deep-water port access highest, following Electra's stated criteria: land globally sourced MHP or MSP intermediate at a port, near the southeastern battery corridor. <strong>Domestic feed</strong> weights rail and feedstock proximity highest, following Westwin Elements, which built in landlocked Lawton, Oklahoma inside a rail industrial park because its feed is domestic ore and recycled batteries.</p>
+        <p class="nickel-caveat">A sulfide <strong>smelter is not scored</strong>. None operates in the US, EPA never wrote a nickel-smelting emissions standard so a proposal would face a case-by-case MACT determination, and the continuous furnace load pairs with a captive mine and captive generation rather than a grid-tied brownfield. Land is a <strong>threshold, not a ranked factor</strong> &mdash; about 300 acres &mdash; and EPA publishes no acreage at all for its brownfield properties, so most rows read &ldquo;unknown&rdquo;. Water flow is a <strong>long-run annual mean, not a permittable low flow</strong>; it screens a candidate and never clears one. <strong>Workforce is not scored</strong> &mdash; Electra names it as a criterion, but county employment by industry needs a Census key this project does not yet hold, and a factor computed from a field no record carries is a constant dressed as an assessment. And a siting score says nothing about the nickel price: BHP mothballed its entire Western Australia nickel chain in 2024 on Indonesian oversupply, not on anything about the sites.</p>
+      </div>
+
+      <div class="cand-filter-group" role="group" aria-label="Feed model">
+        <button type="button" class="cand-filter active" data-nickel-lens="import">Imported feed (port)</button>
+        <button type="button" class="cand-filter" data-nickel-lens="domestic">Domestic feed (rail)</button>
+      </div>
+
+      <div id="nickel-stats" class="nickel-stats" aria-live="polite">Loading water and supply-chain data&hellip;</div>
+
+      <div class="nickel-table-wrap" id="nickel-wrap">
+        <table id="nickel-table" class="micro-table">
+          <thead>
+            <tr>
+              <th class="num" scope="col">#</th>
+              <th scope="col">Site</th>
+              <th scope="col">State</th>
+              <th class="num" scope="col" id="th-nickel-score">Score</th>
+              <th scope="col">Water</th>
+              <th scope="col">Grid</th>
+              <th scope="col">Rail / port</th>
+              <th scope="col">Land</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="nickel-sources">
+        <h3>Sources</h3>
+        <ul>
+          <li>Siting criteria: <a href="https://www.globenewswire.com/news-release/2026/06/08/3307955/0/en/electra-advances-engineering-study-for-battery-grade-nickel-refinery-in-the-united-states.html" target="_blank" rel="noopener">Electra Battery Materials, June 2026</a> and <a href="https://lawtonedc.com/news/article/westwin-elements-breaks-ground-on-americas-only-critical-mineralspilot-plant" target="_blank" rel="noopener">Westwin Elements, Lawton OK</a>.</li>
+          <li>Brownfield reuse as permitting strategy: <a href="https://me.smenet.org/talon-plans-433-million-processing-facility-in-north-dakota/" target="_blank" rel="noopener">Talon Metals, Beulah ND</a>.</li>
+          <li>Water: <a href="https://waterservices.usgs.gov/" target="_blank" rel="noopener">USGS NWIS</a> active streamgages, mean of annual mean discharge.</li>
+          <li>Supply-chain anchors: <code>docs/data/nickel-anchors.json</code>, which carries a source link and an audit date per row. There is no live GIS layer of US mineral processing plants &mdash; the USGS dataset is a 2003 layer package.</li>
+        </ul>
       </div>
     </div>
     </template>
@@ -928,6 +981,7 @@
       <dt>Gas pipeline</dt><dd id="d-gas-pipeline-mi" class="muted-cell">Not available</dd>
       <dt>Nearest port</dt><dd id="d-port-mi" class="muted-cell">Not available</dd>
       <dt>Nearest shipyard</dt><dd id="d-shipyard-mi" class="muted-cell">Not available</dd>
+      <dt>Surface water</dt><dd id="d-water-flow" class="muted-cell">Not available</dd>
       <dt>Flood zone</dt><dd id="d-flood-zone" class="muted-cell">Not available</dd>
       <dt>ISO/RTO</dt><dd id="d-iso-rto" class="muted-cell">Not available</dd>
       <dt>Climate zone</dt><dd id="d-climate-zone" class="muted-cell">Not available</dd>
@@ -1013,6 +1067,7 @@
 <script defer src="ap1000-score.js"></script>
 <script defer src="microreactor-score.js"></script>
 <script defer src="maritime-score.js"></script>
+<script defer src="nickel-score.js"></script>
 <script defer src="app.js"></script>
 </body>
 </html>

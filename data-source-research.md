@@ -533,3 +533,94 @@ the live NTAD layer (BTS updates it periodically; no caching needed at 150
 rows). `scripts/build_shipyards.py` re-emits the curated list — re-audit its
 citations annually (shipyard ownership/ capability changes slowly: e.g. VT
 Halter's sale to Bollinger, Austal USA ownership).
+
+---
+
+## §34 — Water, and a nickel supply chain (probed 2026-09-08)
+
+Motivated by the Nickel Refining tab. Two questions: is there a national water
+layer this project can actually use, and is there an authoritative layer of US
+mineral processing plants.
+
+### 34.1 USGS NWIS — the only national water source that works. **WORKS**
+
+§16 already established the RDB endpoints as the scriptable contract (the
+`waterdata.usgs.gov/monitoring-location/...` pages are JS-rendered). This pass
+turned that into a national catalog.
+
+- **Site inventory, per state** — returns dec_lat/dec_lon, station name, and
+  `drain_area_va`:
+  `waterservices.usgs.gov/nwis/site/?format=rdb&stateCd=<ST>&parameterCd=00060&hasDataTypeCd=dv&siteType=ST&siteStatus=active&siteOutput=expanded`
+  MI 223 active gages, ME 65, CA 729, FL 408.
+- **Annual mean discharge, per gage** — one row per site per water year:
+  `waterservices.usgs.gov/nwis/stat/?format=rdb&sites=<...>&statReportType=annual&statTypeCd=mean&parameterCd=00060`
+
+**Two hard limits, both found by probing, both shaping the builder:**
+
+1. **The stat service caps `sites` at TEN.** 40 sites returns HTTP 400: *"the
+   number of siteNo elements input by the user exceeds the maximum limit for
+   this web service [max=[10]]"*. That ceiling is why
+   `scripts/build_streamgages_overlay.py` is a batched, disk-cached, resumable
+   script rather than a one-shot fetch — a national run is ~800 requests.
+2. **The stat service does NOT accept `stateCd`.** It returns HTTP 400
+   *"lexical error: unrecognized keyword: stateCd"*. There is no bulk
+   per-state flow query; batching by site is the only route.
+
+### 34.2 NHD / NHDPlus — **REJECTED for flowlines, viable for waterbodies**
+
+- `hydro.nationalmap.gov/arcgis/rest/services/nhd/MapServer` layer 4
+  ("Flowline - Small Scale") is **2,691,353 features** despite the name. At
+  2,000/page that is ~1,350 paged requests with geometry. Not worth it when
+  the gage network already answers the question that matters (how much flow),
+  which a flowline cannot.
+- Layer 10 ("Waterbody - Small Scale") filters usefully: `AREASQKM>=10` is
+  **3,064** features, `>=25` is 1,268, `>=100` is 281. Layer 7 ("Area - Small
+  Scale", wide rivers as polygons) is **17,020**. Together ~20k polygons — a
+  cheap "large surface water" index if a future pass needs distance-to-water
+  as distinct from distance-to-gage.
+- EPA WATERS `NHDPlus_NP21/NHDSnapshot_NP21` flowlines carry **no flow
+  attribute** (mean annual flow lives in the NHDPlus VAA tables, not the
+  snapshot service). Its `NAVIGABLE` field is **useless as a filter**:
+  `NAVIGABLE='Y'` returns 2,697,669 — i.e. everything.
+
+### 34.3 US mineral processing plants — **no authoritative live layer**
+
+ArcGIS-Online search for a USGS mineral-operations FeatureServer returns only
+third-party storymap copies; the authoritative USGS "Active Mines and Mineral
+Processing Plants in the United States" is a **2003 layer package**, not a
+service. So `docs/data/nickel-anchors.json` is curated with a per-row citation,
+following the coal-conversions provenance contract.
+
+### 34.4 Census Gazetteer place file — the fix for curated coordinates. **WORKS**
+
+The Census **geocoder** (`geocoding.geo.census.gov/geocoder/locations/onelineaddress`)
+needs a street address; a city-only query returns zero matches. The
+**gazetteer** is the right tool for locality coordinates:
+`www2.census.gov/geo/docs/maps-data/data/gazetteer/2024_Gazetteer/2024_Gaz_place_national.zip`
+(1.2 MB, tab-delimited, `INTPTLAT`/`INTPTLONG` per place). Lawton city, OK →
+34.617172, −98.4214.
+
+This is how the anchor catalog avoids typing town coordinates from memory. Two
+gotchas: place NAMEs carry their legal suffix and must match exactly
+("Lawton city", "Miami town", "Magna metro township"), and **unincorporated
+places are simply absent** — Glendale, KY (the BlueOval SK site) is not in the
+file, so that row carries Elizabethtown's point ~10 mi away with the
+displacement disclosed in the row's own note.
+
+### 34.5 Maine statewide parcels — **acreage yes, owner no**
+
+`services1.arcgis.com/RbMX0mRVOFNTdLzd/.../Maine_Parcels_Organized_Towns/FeatureServer/10`
+(MEGIS, maine.gov-owned), **708,382** polygons, no token. Fields:
+`TOWN, COUNTY, GEOCODE, STATE_ID, MAP_BK_LOT, PARENT, PROP_LOC, TYPE, ...`
+plus `Shape__Area`.
+
+**No owner field**, so it fails `connectors/parcel_owner.py`'s current
+registry contract — but `Shape__Area` is in **esriMeters** (the layer is
+wkid 26919, UTM 19N, a projected CRS), so it is a real area convertible to
+acres. Maine is therefore the mirror image of Iowa's owner-only case: an
+**acreage-only** state. Point-in-polygon confirmed working against a Bucksport
+test coordinate. Adding it requires an acreage-only path in the parcel
+registry, which does not exist yet — logged in backlog.md rather than built
+here.
+
+Michigan remains rejected (§19): no statewide parcel layer at all.
