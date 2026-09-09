@@ -84,12 +84,26 @@ must not be used to justify raising the number.
 
 **Screening thresholds: 300 acres for a refinery, 100 acres for a black-mass
 recycling plant.** Both are screening floors, not engineering requirements.
-The evidence base is genuinely thin — two confirmed refinery footprints — and
-a refinery that dry-stacks or trucks residue off-site could plausibly fit
-nearer Long Harbour's plant-only 161 acres. Several footprints could not be
-found at all (Sumitomo Niihama, Nornickel Harjavalta, the Sudbury and
-Kalgoorlie smelters); they are embedded in larger complexes or simply not
-published, and are recorded as unknown rather than estimated.
+The evidence base is thin — two confirmed refinery footprints — but the
+dry-stack question is answered directly by Long Harbour's own EIS above: a
+refinery that stacks residue instead of ponding it fits on 259 acres.
+
+**Smelter footprints are not published, and that is itself the finding.**
+Searches for standalone site areas at Sumitomo Niihama, Nornickel Harjavalta,
+Vale's Copper Cliff and BHP's Kalgoorlie all failed for a consistent reason:
+each sits inside a larger complex or a shared industrial park with no
+facility-only boundary published. Harjavalta shares the Suurteollisuuspuisto
+park with Boliden's smelter; Copper Cliff is one plant inside the
+multi-thousand-acre Sudbury Complex. The one large number that does surface —
+Indonesia's Weda Bay industrial park at 5,000 ha — is a whole park with a
+dozen captive coal units, not a smelter. For US copper smelters the only
+figures found were secondary (Hayden AZ ~200 ac) or historical (Miami AZ's
+32-acre 1918 land purchase), and Kennecott's Garfield tailings impoundment at
+over 5,000 acres shows only how far a tailings system can dwarf the plant it
+serves.
+
+So **no smelter threshold is set**, which matches the tab not scoring smelters
+at all. Setting one would mean inventing a number.
 
 **Power.** Hydromet is a large but interruptible load — autoclave agitators,
 oxygen plant, SX pumps, EW rectifiers — not the frozen-furnace failure mode of

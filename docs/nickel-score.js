@@ -92,15 +92,22 @@ const NICKEL_DROUGHT_PENALTY = { "Very High": 10, "Relatively High": 5 };
 // Land thresholds, in acres. Validated 2026-09-09 against published site
 // footprints (research/nickel-refining-siting-2026-09.md §Land):
 //
-//   Vale Long Harbour — 65 ha plant (161 ac) PLUS 85 ha of residue pipeline
-//     and containment (210 ac) = 371 ac total, at 50 kt Ni/yr → 7.4 ac/kt.
-//     https://www.gov.nl.ca/eccc/projects/project-1243/
+//   Vale Long Harbour, from its EIS — the strongest evidence here, because
+//     the same document sizes TWO residue-handling designs for the same
+//     50 kt Ni/yr plant:
+//       ponded residue:    65 ha plant + 85 ha pipeline/ponds = 150 ha = 371 ac
+//       dry (sub-aerial):  65 ha plant + 40 ha gypsum stack   = 105 ha = 259 ac
+//     https://www.gov.nl.ca/eccc/files/env-assessment-projects-y2008-1243-04-eis-amend-executive-summary.pdf
+//     (project record: https://www.gov.nl.ca/eccc/projects/project-1243/)
 //   Westwin Elements, Lawton OK — 480-acre tract at a 68 kt/yr nameplate
-//     → 7.06 ac/kt. Two independent facilities landing within 5% of each
-//     other on acres-per-kt is the strongest evidence available here.
+//     → 7.06 ac/kt, against Long Harbour's ponded 7.4 ac/kt. Two independent
+//     facilities within 5% of each other on acres-per-kt.
+//     https://www.okcommerce.gov/westwin-elements-breaks-ground-on-americas-only-critical-minerals-pilot-plant/
 //
-// So 300 acres sits sensibly between Long Harbour's plant-only 161 and its
-// residue-inclusive 371 — a real refinery floor rather than a round number.
+// 300 acres therefore sits BETWEEN the same plant's two published designs —
+// above the 259-acre dry-stack variant and below the 371-acre ponded one.
+// That is a far better justification than a round number, and it means the
+// threshold does not silently assume a residue pond.
 //
 // A BLACK-MASS RECYCLING plant is a different size of thing entirely, and a
 // single flat threshold misscreened it by roughly 3x. Confirmed pure

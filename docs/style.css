@@ -3814,3 +3814,22 @@ button.coal-nearby-item:focus-visible { outline: 2px solid var(--accent); outlin
 .nickel-sources h3 { font-size: 0.9rem; margin: 0 0 6px; color: var(--text); }
 .nickel-sources ul { margin: 0; padding-left: 18px; }
 .nickel-sources li { margin-bottom: 4px; }
+
+/* The caveats are real and have to be available, but they were a wall of
+   jargon above the table — collapsed by default, opened by anyone who wants
+   them. */
+details.nickel-caveat { margin: 0 0 12px; max-width: 78ch; }
+details.nickel-caveat > summary {
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--muted);
+  padding: 4px 0;
+}
+details.nickel-caveat > summary:hover { color: var(--text); }
+details.nickel-caveat ul {
+  margin: 8px 0 0; padding-left: 18px;
+  font-size: 0.88rem; color: var(--muted); line-height: 1.5;
+  border-left: 3px solid var(--suit-amber, var(--accent));
+  padding: 8px 0 8px 20px; list-style-position: outside;
+}
+details.nickel-caveat li { margin-bottom: 6px; }
