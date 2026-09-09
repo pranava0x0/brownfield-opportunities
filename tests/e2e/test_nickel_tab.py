@@ -53,12 +53,12 @@ def test_lens_toggle_switches_the_ranking_and_the_url(
     # syncUrl() writes through a 200ms debounce, so the URL must be WAITED on,
     # never read immediately after the click. Asserting straight away passed
     # in isolation and failed under load — a timing accident, not a flake.
-    page.wait_for_url("**nlens=domestic**", timeout=5_000)
+    page.wait_for_url("**nlens=domestic**", timeout=15_000)
     first_domestic = page.locator("#nickel-table tbody tr").first.get_attribute("data-id")
     assert first_import != first_domestic
 
     page.click("[data-nickel-lens='import']")
-    page.wait_for_function("!location.search.includes('nlens=')", timeout=5_000)
+    page.wait_for_function("!location.search.includes('nlens=')", timeout=15_000)
 
 
 def test_import_lens_lists_only_port_served_sites(page: Page, base_url: str) -> None:

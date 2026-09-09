@@ -7574,9 +7574,17 @@ function buildMaritimeView() {
   const eligible = maritimeState.lens === "coastal"
     ? (s) => s.port_mi != null
     : (s) => s.port_mi != null || s.shipyard_mi != null;
-  const sorted = tableState.filtered
-    .filter((s) => scoreFn(s) != null && eligible(s))
-    .sort((a, b) => (scoreFn(b) || 0) - (scoreFn(a) || 0));
+  // Same decorate-sort-undecorate as buildNickelView — a comparator calling
+  // scoreFn() recomputes the score on every comparison.
+  const scored = [];
+  for (const s of tableState.filtered) {
+    if (!eligible(s)) continue;
+    const score = scoreFn(s);
+    if (score == null) continue;
+    scored.push({ s, score });
+  }
+  scored.sort((a, b) => b.score - a.score);
+  const sorted = scored.map((r) => r.s);
 
   // Same single-source-of-truth tooltip pattern as the DC-score column
   // (app.js's #th-dc-score wiring) — the formula text lives in
@@ -7726,10 +7734,20 @@ function buildNickelView() {
     const st = nickelAcreageStatus(s);
     return st === true ? 2 : st === null ? 1 : 0;  // adequate > unknown > too small
   };
-  const sorted = tableState.filtered
-    .filter((s) => scoreFn(s) != null && eligible(s))
-    .sort((a, b) => (scoreFn(b) || 0) - (scoreFn(a) || 0)
-      || landRank(b) - landRank(a));
+  // Score ONCE per site, then sort on the stored value. A comparator that
+  // calls scoreFn() recomputes on every comparison: measured at 356,059 score
+  // computations for a 46,759-site corpus, roughly 7x more work than needed,
+  // and slow enough on a CI runner to delay the debounced URL write past a
+  // 5-second wait. Decorate-sort-undecorate keeps it at one call per site.
+  const scored = [];
+  for (const s of tableState.filtered) {
+    if (!eligible(s)) continue;
+    const score = scoreFn(s);
+    if (score == null) continue;
+    scored.push({ s, score, land: landRank(s) });
+  }
+  scored.sort((a, b) => b.score - a.score || b.land - a.land);
+  const sorted = scored.map((r) => r.s);
 
   // Weights come from nickel-score.js, never restated here — the same
   // single-source-of-truth pattern as the DC and Maritime score columns.
