@@ -317,3 +317,25 @@ def test_a_port_failure_does_not_blame_the_domestic_lens(
     stats = page.locator("#nickel-stats").inner_text()
     assert "Could not load" not in stats, stats
     assert page.locator("#nickel-table tbody tr").count() > 0
+
+
+def test_the_lead_block_does_not_swallow_the_table(page: Page, base_url: str) -> None:
+    """A copy edit once ate `.nickel-lead`'s closing </div>, so the lead block
+    wrapped the entire table. The browser auto-recovers from unbalanced tags,
+    so nothing looked broken — it surfaced only because a UAT measurement
+    reported the lead block as 13,164px tall.
+
+    Asserting the table is NOT a descendant of the lead is the cheap
+    structural check that would have caught it immediately.
+    """
+    _open_tab(page, base_url)
+    swallowed = page.evaluate(
+        """() => {
+             const lead = document.querySelector('.nickel-lead');
+             const table = document.getElementById('nickel-table');
+             return !!(lead && table && lead.contains(table));
+           }""")
+    assert not swallowed, ".nickel-lead contains the results table — unbalanced markup"
+    lead_h = page.evaluate(
+        "document.querySelector('.nickel-lead').getBoundingClientRect().height")
+    assert lead_h < 1200, f"lead block is {lead_h}px tall — it is wrapping more than copy"
