@@ -98,3 +98,13 @@ def test_every_rule_points_at_a_test_path_that_exists(sel):
         if not (ROOT / t.split("::")[0]).exists():
             missing.append(t)
     assert not missing, f"rules point at missing paths: {missing}"
+
+
+def test_a_broken_diff_fails_open_instead_of_selecting_nothing(sel, monkeypatch):
+    """A missing base makes git exit nonzero with empty stdout. Treating that
+    as "nothing changed" selected no targets, and `pr_gate.sh --impacted` then
+    skipped every e2e guard AND exited successfully — a green gate that ran
+    nothing, which is the worst outcome for a tool like this (Codex round 3).
+    """
+    with pytest.raises(sel.DiffUnavailable):
+        sel.changed_files("this-ref-does-not-exist")

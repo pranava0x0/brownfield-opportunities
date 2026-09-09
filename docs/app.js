@@ -7648,7 +7648,15 @@ function wireMaritimeFilters() {
 // defined in nickel-score.js.
 const NICKEL_PAGE = 150;
 const nickelState = {
-  lens: "import", // "import" | "domestic" — URL state ?nlens=
+  lens: "import",        // "import" | "domestic" — URL state ?nlens=
+  // Land basis. Defaults to CONFIRMED, and that default is the difference
+  // between a useful screen and a misleading one: 95% of otherwise-eligible
+  // sites have no published acreage, they are mostly small urban parcels, and
+  // because every scored component is a distance that is near zero downtown
+  // they dominated the ranking outright — 0 of the top 150 had confirmed land
+  // before this. Showing them by default answers "which brownfield sits in
+  // the densest infrastructure", which is not the question this tab asks.
+  landBasis: "confirmed", // "confirmed" | "any" — URL state ?land=any
 };
 
 function _nickelScoreFn() {
@@ -7696,9 +7704,15 @@ function makeNickelRow(s, rank, scoreFn) {
         ? `${fmt.miles(s.port_mi)} port<div class="micro-sub">${escapeHtml(s.port_name || "")}</div>`
         : '<span class="muted-cell">No port in 75 mi</span>');
   const progLabel = PROGRAM_LABEL[s.program] || s.program;
+  // Owner is the closest thing this dataset has to an availability signal, and
+  // it is absent far more often than not — saying so per row is more honest
+  // than letting the reader assume every listing is acquirable.
+  const ownerHtml = s.current_owner
+    ? `<div class="micro-sub">${escapeHtml(s.current_owner)}</div>`
+    : `<div class="micro-sub muted-cell">Owner not established</div>`;
   tr.innerHTML = `
     <td class="num cand-rank">${rank}</td>
-    <td class="cand-name">${escapeHtml(s.name || "—")}<span class="cand-prog"><span class="pill" data-program="${escapeAttr(s.program)}">${escapeHtml(progLabel)}</span></span></td>
+    <td class="cand-name">${escapeHtml(s.name || "—")}<span class="cand-prog"><span class="pill" data-program="${escapeAttr(s.program)}">${escapeHtml(progLabel)}</span></span>${ownerHtml}</td>
     <td>${escapeHtml(s.state || "—")}</td>
     <td class="num cand-score">${scoreHtml}</td>
     <td>${_nickelWaterCell(s)}</td>
@@ -7723,7 +7737,13 @@ function buildNickelView() {
   // differed (Codex review, this PR). `null` still qualifies: EPA publishes
   // no acreage at all for its ~36k brownfields, and excluding unknowns would
   // delete most of the corpus on a fact we do not have.
-  const bigEnough = (s) => nickelAcreageStatus(s) !== false;
+  // `false` is never eligible. `null` (acreage unpublished) is eligible only
+  // when the user asks for it — see nickelState.landBasis.
+  const allowUnknownLand = nickelState.landBasis === "any";
+  const bigEnough = (s) => {
+    const st = nickelAcreageStatus(s);
+    return st === true || (st === null && allowUnknownLand);
+  };
   const eligible = nickelState.lens === "domestic"
     ? (s) => s.rail_mi != null && bigEnough(s)
     : (s) => s.port_mi != null && bigEnough(s);
@@ -7788,19 +7808,30 @@ function buildNickelView() {
     // supply-chain join is lazy — it starts on tab activation, after the
     // fan-out has already settled, so the fan-out alone would declare "no
     // matches" while this tab's own data was still in flight.
-    const dataFailed = sorted.length === 0 && nickelDataErrors.size > 0;
+    // Scope the failure to the ACTIVE lens. The domestic lens deliberately has
+    // no port term, so a failed port fetch leaves it fully rankable — reporting
+    // "could not load port data" there would blame missing data for what is a
+    // genuine empty-filter result (Codex round 3).
+    const lensNeeds = nickelState.lens === "domestic"
+      ? ["water", "supply chain"]
+      : ["water", "supply chain", "port"];
+    const relevantErrors = lensNeeds.filter((k) => nickelDataErrors.has(k));
+    const dataFailed = sorted.length === 0 && relevantErrors.length > 0;
     const stillLoading = sorted.length === 0 && !dataFailed
       && (!lazyLoadsSettled || !nickelAnchorRecords);
     const filtered = filtersActive() || filterState.q !== "";
     const lensLabel = nickelState.lens === "domestic"
       ? "domestic-feed (rail)" : "imported-feed (port)";
     const noun = nickelState.lens === "domestic" ? "rail-served sites" : "sites within reach of a port";
+    const landNote = nickelState.landBasis === "confirmed"
+      ? ` · land confirmed ≥${NICKEL_MIN_ACRES} ac`
+      : " · includes unpublished acreage";
     statsEl.textContent = sorted.length > 0
-      ? `${sorted.length.toLocaleString()} ${noun} · sorted by ${lensLabel} refinery score` +
+      ? `${sorted.length.toLocaleString()} ${noun}${landNote} · sorted by ${lensLabel} refinery score` +
         (filtered ? " · global filters applied" : "") +
         (sorted.length > NICKEL_PAGE ? ` · showing top ${NICKEL_PAGE}` : "")
       : dataFailed
-        ? `Could not load ${[...nickelDataErrors].join(" and ")} data, so nothing can be ranked. Reopen this tab to retry.`
+        ? `Could not load ${relevantErrors.join(" and ")} data, so nothing can be ranked. Reopen this tab to retry.`
         : stillLoading
           ? "Loading water and supply-chain data…"
           : "No sites match the current filters for this feed model.";
@@ -7820,13 +7851,25 @@ function buildNickelView() {
 function refreshNickelLensButtons() {
   document.querySelectorAll("[data-nickel-lens]").forEach((b) =>
     b.classList.toggle("active", b.dataset.nickelLens === nickelState.lens));
+  document.querySelectorAll("[data-nickel-land]").forEach((b) =>
+    b.classList.toggle("active", b.dataset.nickelLand === nickelState.landBasis));
 }
 
 function wireNickelFilters() {
   // `?nlens=` parsed here, not at top level — the same TDZ lesson as
   // wireCandidatesFilters()'s `?lens=`.
-  const urlLens = new URLSearchParams(location.search).get("nlens");
+  const params = new URLSearchParams(location.search);
+  const urlLens = params.get("nlens");
   if (urlLens === "domestic") nickelState.lens = urlLens;
+  if (params.get("land") === "any") nickelState.landBasis = "any";
+  document.querySelectorAll("[data-nickel-land]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      nickelState.landBasis = btn.dataset.nickelLand;
+      refreshNickelLensButtons();
+      syncUrl();
+      if (el("view-nickel")?.classList.contains("active")) buildNickelView();
+    });
+  });
   document.querySelectorAll("[data-nickel-lens]").forEach((btn) => {
     btn.addEventListener("click", () => {
       nickelState.lens = btn.dataset.nickelLens;
@@ -9004,6 +9047,7 @@ function syncUrl() {
     if (candidatesState.lens !== "dc") p.set("lens", candidatesState.lens);
     if (maritimeState.lens !== "offshore") p.set("mlens", maritimeState.lens);
     if (nickelState.lens !== "import") p.set("nlens", nickelState.lens);
+    if (nickelState.landBasis !== "confirmed") p.set("land", nickelState.landBasis);
     // DOE-sites tab: active site — only encoded off-default ("hanford").
     if (doeActiveSite !== "hanford") p.set("doe", doeActiveSite);
     if (selectedId) p.set("site", selectedId);
@@ -9509,7 +9553,11 @@ function _suitLensHtml(title, score, breakdown, groups) {
   }
   const chips = [];
   for (const g of groups) {
-    const pts = g.keys.reduce((sum, k) => sum + (breakdown[k] || 0), 0);
+    // Round for display. The DC and generation lenses happen to produce whole
+    // numbers, so this was invisible until the nickel lenses' continuous
+    // curves rendered a chip reading "Feed logistics 41.980799999999995".
+    const pts = Math.round(
+      g.keys.reduce((sum, k) => sum + (breakdown[k] || 0), 0) * 10) / 10;
     if (pts > 0) chips.push(`<span class="suit-chip ${g.cls}">${escapeHtml(g.label)} ${pts}</span>`);
   }
   const penalty = breakdown.flood_penalty || 0;
@@ -9539,6 +9587,45 @@ function renderSuitability(s) {
     "Data center", computeDcCompositeScore(s), computeDcScoreBreakdown(s) || {}, _DC_SUIT_GROUPS);
   genEl.innerHTML = _suitLensHtml(
     "Power generation", computeGenerationScore(s), computeGenerationScoreBreakdown(s) || {}, _GEN_SUIT_GROUPS);
+  // Nickel refining. Rendered only once the joins this lens depends on have
+  // run — before that `nickelScorable()` is false for every site and showing
+  // a zero would read as a verdict rather than as missing data.
+  const nickImpEl = el("d-suit-nickel-import");
+  const nickDomEl = el("d-suit-nickel-domestic");
+  const scorable = typeof nickelScorable === "function" && nickelScorable(s);
+  if (nickImpEl && nickDomEl) {
+    nickImpEl.hidden = !scorable;
+    nickDomEl.hidden = !scorable;
+    if (scorable) {
+      nickImpEl.innerHTML = _suitLensHtml(
+        "Nickel refinery — imported feed", computeNickelImportScore(s),
+        computeNickelImportBreakdown(s) || {}, _NICKEL_IMPORT_GROUPS);
+      nickDomEl.innerHTML = _suitLensHtml(
+        "Nickel refinery — domestic feed", computeNickelDomesticScore(s),
+        computeNickelDomesticBreakdown(s) || {}, _NICKEL_DOMESTIC_GROUPS);
+    }
+  }
+  const nickLandEl = el("d-suit-nickel-land");
+  if (nickLandEl) {
+    // Land is a threshold rather than a scored term, so it never appears in
+    // the chips above — which means a site can show a strong refinery score
+    // while being far too small. Say so next to the score.
+    const status = typeof nickelAcreageStatus === "function"
+      ? nickelAcreageStatus(s) : undefined;
+    nickLandEl.hidden = !scorable || status === undefined;
+    if (!nickLandEl.hidden) {
+      const ac = s.acreage ?? s.parcel_acreage;
+      nickLandEl.textContent = status === true
+        ? `⚑ Land: ${fmt.acres(ac)} — clears the ${NICKEL_MIN_ACRES}-acre refinery threshold. `
+          + "Land is a threshold, not a scored factor, so it is not in the chips above."
+        : status === false
+          ? `⚑ Land: ${fmt.acres(ac)} — below the ${NICKEL_MIN_ACRES}-acre refinery threshold. `
+            + "The score reflects infrastructure only; this site is too small for a refinery."
+          : `⚑ Land: acreage not published for this site, so the ${NICKEL_MIN_ACRES}-acre `
+            + "refinery threshold cannot be checked. The score reflects infrastructure only.";
+    }
+  }
+
   const floodEl = el("d-suit-flood");
   if (floodEl) {
     const flooded = s.in_sfha === true;

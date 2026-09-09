@@ -181,7 +181,7 @@ def _fetch_sites(state: str, refresh: bool) -> list[dict[str, str]]:
 
 def _fetch_flows(gage_ids: list[str], refresh: bool) -> dict[str, list[float]]:
     """Annual mean discharge per gage, batched at the service's 10-site cap."""
-    out: dict[str, list[float]] = {}
+    by_year: dict[str, dict[str, list[float]]] = {}
     for i in range(0, len(gage_ids), STAT_BATCH):
         batch = gage_ids[i:i + STAT_BATCH]
         params = {
@@ -196,13 +196,25 @@ def _fetch_flows(gage_ids: list[str], refresh: bool) -> dict[str, list[float]]:
         for row in _parse_rdb(body):
             site = row.get("site_no")
             raw = row.get("mean_va")
-            if not site or not raw:
+            year = row.get("year_nu")
+            if not site or not raw or not year:
                 continue
             try:
-                out.setdefault(site, []).append(float(raw))
+                value = float(raw)
             except ValueError:
                 continue
-    return out
+            # Key by (site, WATER YEAR), not by row. NWIS publishes the same
+            # site-year under multiple time-series ids — gage 06208500 returns
+            # 170 rows across ts_ids 81537 and 247095 for just 85 distinct
+            # years. Appending rows double-counted every duplicated year in
+            # the mean and made `record_years` a row count, so that gage
+            # claimed 170 years of record (Codex review). Twelve gages were
+            # reporting over 130 years this way.
+            by_year.setdefault(site, {}).setdefault(year, []).append(value)
+    # One value per year: average the duplicate time-series for that year
+    # rather than letting the year vote twice.
+    return {site: [statistics.fmean(vals) for _year, vals in sorted(years.items())]
+            for site, years in by_year.items()}
 
 
 def _f(raw: str | None) -> float | None:

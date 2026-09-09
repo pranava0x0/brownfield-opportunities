@@ -51,9 +51,16 @@ def test_lens_toggle_switches_the_ranking_and_the_url(
 
     page.click("[data-nickel-lens='domestic']")
     # syncUrl() writes through a 200ms debounce, so the URL must be WAITED on,
-    # never read immediately after the click. Asserting straight away passed
-    # in isolation and failed under load — a timing accident, not a flake.
-    page.wait_for_url("**nlens=domestic**", timeout=15_000)
+    # never read immediately after the click.
+    #
+    # It must be waited on with wait_for_function, NOT page.wait_for_url():
+    # syncUrl uses history.replaceState, which is a same-document URL change
+    # and not a navigation, so wait_for_url sits on a navigation event that
+    # never fires ("waiting for navigation ... until 'load'") and times out.
+    # It passed locally only because the URL already matched by the time the
+    # call was made; on a slower runner it did not, and CI went red.
+    page.wait_for_function(
+        "location.search.includes('nlens=domestic')", timeout=15_000)
     first_domestic = page.locator("#nickel-table tbody tr").first.get_attribute("data-id")
     assert first_import != first_domestic
 
@@ -77,13 +84,41 @@ def test_import_lens_lists_only_port_served_sites(page: Page, base_url: str) -> 
 def test_land_column_says_unknown_rather_than_failing_the_threshold(
         page: Page, base_url: str) -> None:
     """EPA publishes no acreage at all for its ~36k brownfield properties, so
-    most rows are genuinely unknown. Rendering that as a failed threshold
-    would be a fabricated negative."""
+    those rows are genuinely unknown and must never render as a failed
+    threshold — that would be a fabricated negative.
+
+    They are excluded from the DEFAULT view (see the land-basis test below),
+    so this switches to the inclusive basis to reach them.
+    """
     _open_tab(page, base_url)
+    page.click("[data-nickel-land='any']")
+    page.wait_for_function(
+        "document.getElementById('nickel-stats')"
+        "?.textContent.includes('unpublished acreage')", timeout=30_000)
     cells = page.eval_on_selector_all(
         "#nickel-table tbody tr td:last-child",
         "els => els.map(e => e.textContent.trim())")
     assert any(c == "Unknown" for c in cells), cells[:10]
+    assert not any("ac" in c and c != "Unknown" and c.startswith("0") for c in cells)
+
+
+def test_the_default_view_only_lists_land_confirmed_above_the_threshold(
+        page: Page, base_url: str) -> None:
+    """95% of otherwise-eligible sites have no published acreage, they are
+    mostly small urban parcels, and because every scored component is a
+    distance that is near zero downtown they dominated the ranking outright —
+    0 of the top 150 had confirmed land. Defaulting to confirmed land is what
+    makes this screen answer the question the tab actually asks.
+    """
+    _open_tab(page, base_url)
+    statuses = page.eval_on_selector_all(
+        "#nickel-table tbody tr",
+        """els => els.map(e => window.nickelAcreageStatus(
+             window.__sites.find(x => x.id === e.dataset.id)))""")
+    assert statuses, "no rows"
+    assert all(st is True for st in statuses), (
+        f"default view leaked non-confirmed land: {set(map(str, statuses))}")
+    assert "land confirmed" in page.locator("#nickel-stats").inner_text()
 
 
 def test_water_column_distinguishes_unchecked_from_nothing_in_range(
@@ -205,12 +240,18 @@ def test_sites_known_to_be_under_the_land_threshold_are_excluded(
              return {id: e.dataset.id, status: window.nickelAcreageStatus(s)};
            }).filter(r => r.status === false)""")
     assert bad == [], f"under-threshold sites in the ranking: {bad[:5]}"
-    # And unknowns must still be there, or the filter went too far.
-    unknown = page.eval_on_selector_all(
+    # Under the inclusive basis, unknowns must appear but `false` must still
+    # not — "we cannot check" and "too small" are different answers.
+    page.click("[data-nickel-land='any']")
+    page.wait_for_function(
+        "document.getElementById('nickel-stats')"
+        "?.textContent.includes('unpublished acreage')", timeout=30_000)
+    rows = page.eval_on_selector_all(
         "#nickel-table tbody tr",
-        """els => els.filter(e => window.nickelAcreageStatus(
-             window.__sites.find(x => x.id === e.dataset.id)) === null).length""")
-    assert unknown > 0, "unknown-acreage sites were wrongly excluded"
+        """els => els.map(e => window.nickelAcreageStatus(
+             window.__sites.find(x => x.id === e.dataset.id)))""")
+    assert any(st is None for st in rows), "unknown-acreage sites wrongly excluded"
+    assert not any(st is False for st in rows), "under-threshold sites leaked in"
 
 
 def test_a_failed_data_load_reports_an_error_not_a_false_empty(
@@ -258,4 +299,21 @@ def test_the_nickel_tab_retries_a_failed_port_load(
     # The retry fires on tab activation; the ranking must recover without a
     # reload.
     page.wait_for_selector("#nickel-table tbody tr", timeout=60_000)
+    assert page.locator("#nickel-table tbody tr").count() > 0
+
+
+def test_a_port_failure_does_not_blame_the_domestic_lens(
+        page: Page, base_url: str) -> None:
+    """The domestic lens deliberately has no port term, so a failed port fetch
+    leaves it fully rankable. Reporting "could not load port data" there would
+    blame missing data for what is a normal result (Codex round 3).
+    """
+    page.route("**/data/port-proximity.json", lambda route: route.abort())
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=60_000)
+    page.click("#tab-nickel")
+    page.click("[data-nickel-lens='domestic']")
+    page.wait_for_selector("#nickel-table tbody tr", timeout=60_000)
+    stats = page.locator("#nickel-stats").inner_text()
+    assert "Could not load" not in stats, stats
     assert page.locator("#nickel-table tbody tr").count() > 0

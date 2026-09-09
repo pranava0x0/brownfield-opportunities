@@ -457,12 +457,17 @@
         <h2>Nickel Refining</h2>
         <p>The only operating primary nickel mine in the United States ships its concentrate to Ontario to be smelted. This screen ranks brownfield and federal sites for a <strong>nickel hydrometallurgical refinery</strong> &mdash; the one facility type that plausibly fits a US brownfield &mdash; under the two opposite feed models the live US projects have actually published.</p>
         <p><strong>Imported feed</strong> weights deep-water port access highest, following Electra's stated criteria: land globally sourced MHP or MSP intermediate at a port, near the southeastern battery corridor. <strong>Domestic feed</strong> weights rail and feedstock proximity highest, following Westwin Elements, which built in landlocked Lawton, Oklahoma inside a rail industrial park because its feed is domestic ore and recycled batteries.</p>
-        <p class="nickel-caveat">A sulfide <strong>smelter is not scored</strong>. None operates in the US, EPA never wrote a nickel-smelting emissions standard so a proposal would face a case-by-case MACT determination, and the continuous furnace load pairs with a captive mine and captive generation rather than a grid-tied brownfield. Land is a <strong>threshold, not a ranked factor</strong> &mdash; about 300 acres &mdash; and EPA publishes no acreage at all for its brownfield properties, so most rows read &ldquo;unknown&rdquo;. Water flow is a <strong>long-run annual mean, not a permittable low flow</strong>; it screens a candidate and never clears one. <strong>Workforce is not scored</strong> &mdash; Electra names it as a criterion, but county employment by industry needs a Census key this project does not yet hold, and a factor computed from a field no record carries is a constant dressed as an assessment. And a siting score says nothing about the nickel price: BHP mothballed its entire Western Australia nickel chain in 2024 on Indonesian oversupply, not on anything about the sites.</p>
+        <p class="nickel-caveat">A sulfide <strong>smelter is not scored</strong>. None operates in the US, EPA never wrote a nickel-smelting emissions standard so a proposal would face a case-by-case MACT determination, and the continuous furnace load pairs with a captive mine and captive generation rather than a grid-tied brownfield. Land is a <strong>threshold, not a ranked factor</strong> &mdash; about 300 acres. EPA publishes no acreage at all for its brownfield properties, so <strong>95% of otherwise-eligible sites have unpublished land area</strong>; the default view shows only sites whose acreage is confirmed to clear the threshold. Switching to &ldquo;include unpublished acreage&rdquo; surfaces the rest, which are mostly small urban parcels that rank well on infrastructure density and could not host a refinery. <strong>Ownership and availability are not assessed at all</strong> &mdash; a high score means the infrastructure is there, not that the land can be acquired. Water flow is a <strong>long-run annual mean, not a permittable low flow</strong>; it screens a candidate and never clears one. <strong>Workforce is not scored</strong> &mdash; Electra names it as a criterion, but county employment by industry needs a Census key this project does not yet hold, and a factor computed from a field no record carries is a constant dressed as an assessment. And a siting score says nothing about the nickel price: BHP mothballed its entire Western Australia nickel chain in 2024 on Indonesian oversupply, not on anything about the sites.</p>
       </div>
 
       <div class="cand-filter-group" role="group" aria-label="Feed model">
         <button type="button" class="cand-filter active" data-nickel-lens="import">Imported feed (port)</button>
         <button type="button" class="cand-filter" data-nickel-lens="domestic">Domestic feed (rail)</button>
+      </div>
+
+      <div class="cand-filter-group" role="group" aria-label="Land basis">
+        <button type="button" class="cand-filter active" data-nickel-land="confirmed">Confirmed &ge;300 acres</button>
+        <button type="button" class="cand-filter" data-nickel-land="any">Include unpublished acreage</button>
       </div>
 
       <div id="nickel-stats" class="nickel-stats" aria-live="polite">Loading water and supply-chain data&hellip;</div>
@@ -927,6 +932,9 @@
     <div class="suitability" id="d-suitability">
       <div class="suit-lens" id="d-suit-dc"></div>
       <div class="suit-lens" id="d-suit-gen"></div>
+      <div class="suit-lens" id="d-suit-nickel-import"></div>
+      <div class="suit-lens" id="d-suit-nickel-domestic"></div>
+      <div class="suit-note" id="d-suit-nickel-land" hidden></div>
       <p class="suit-flood" id="d-suit-flood" hidden></p>
       <p class="suit-flood" id="d-suit-climate" hidden></p>
       <p class="suit-flood" id="d-suit-reg" hidden></p>

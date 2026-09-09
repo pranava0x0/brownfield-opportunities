@@ -105,10 +105,22 @@ RULES: list[tuple[str, list[str]]] = [
 ]
 
 
+class DiffUnavailable(Exception):
+    """git could not tell us what changed — the caller must fail open."""
+
+
 def changed_files(base: str) -> list[str]:
     out = subprocess.run(
         ["git", "diff", "--name-only", f"{base}...HEAD"],
         cwd=ROOT, capture_output=True, text=True, check=False)
+    # A missing base (a checkout without origin/main, a typo'd range) makes git
+    # exit nonzero with empty stdout. Treating that as "nothing changed" would
+    # select no targets, and `pr_gate.sh --impacted` would then skip every e2e
+    # guard AND exit successfully — a green gate that ran nothing, which is the
+    # worst possible failure for a tool like this (Codex round 3).
+    if out.returncode != 0:
+        raise DiffUnavailable(
+            f"git diff against {base!r} failed: {out.stderr.strip() or 'unknown error'}")
     files = [f for f in out.stdout.splitlines() if f.strip()]
     # Uncommitted work counts too — the gate runs before a commit as often as
     # after one.
@@ -161,7 +173,13 @@ def main() -> int:
                     help="Print the mapping to stderr.")
     args = ap.parse_args()
 
-    files = changed_files(args.range)
+    try:
+        files = changed_files(args.range)
+    except DiffUnavailable as e:
+        # Fail OPEN: run everything rather than silently narrowing to nothing.
+        print(f"# {e} — falling back to the full suite", file=sys.stderr)
+        print("tests/")
+        return 0
     targets, reasons = select(files)
     if args.explain:
         print(f"# {len(files)} changed file(s)", file=sys.stderr)

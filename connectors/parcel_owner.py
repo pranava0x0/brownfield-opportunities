@@ -220,6 +220,11 @@ class ParcelOwner(Connector):
                        help="Only query this state code (e.g. NC). Default: all covered states.")
         p.add_argument("--parcel-limit", type=int, default=200,
                        help="Max NEW point queries this run (resumable; cache makes re-runs cheap). 0 = unlimited.")
+        p.add_argument("--parcel-upgrade-acreage", action="store_true",
+                       help="Also re-query owner-resolved records that predate "
+                            "parcel_acreage and have no cached response. Spends "
+                            "the same budget as new-owner discovery, so it is "
+                            "opt-in rather than automatic.")
 
     # ---- site loading -----------------------------------------------------
     def _load_sites(self) -> list[dict[str, Any]]:
@@ -323,6 +328,7 @@ class ParcelOwner(Connector):
             return []
 
         # Seed prior owners from on-disk output so progress is never lost.
+        upgrade_acreage = bool(getattr(args, "parcel_upgrade_acreage", False))
         seeded: dict[str, dict[str, Any]] = {r["id"]: r for r in self.existing_records() if r.get("id")}
         log.info("seeded %d owners from existing output", len(seeded))
 
@@ -367,7 +373,24 @@ class ParcelOwner(Connector):
                         latf, lonf = float(s["lat"]), float(s["lon"])
                     except (TypeError, ValueError):
                         continue
-                    if src and self._cache_exists(src, latf, lonf):
+                    cached = src and self._cache_exists(src, latf, lonf)
+                    # A record resolved BEFORE parcel_acreage was emitted has
+                    # no acreage and often no cache either — its response
+                    # predates the field. Cache-only upgrading can never reach
+                    # those, so they stay acreage-less however often the
+                    # connector runs. Wisconsin proved it: 782 owners resolved
+                    # 2026-06-19, zero acreage, and re-running changed nothing.
+                    #
+                    # Re-querying them is OPT-IN (--parcel-upgrade-acreage)
+                    # because it spends the same budget as finding NEW owners,
+                    # and silently trading owner discovery for acreage backfill
+                    # is not a call this connector should make on its own. The
+                    # default keeps the original guarantee: an upgrade is free
+                    # or it does not happen.
+                    if src and (cached or (upgrade_acreage
+                                           and (limit is None or new_queries < limit))):
+                        if not cached:
+                            new_queries += 1
                         try:
                             res = self._query_owner(src, latf, lonf, use_cache=True)
                         except (requests.ConnectionError, requests.Timeout, requests.HTTPError):
