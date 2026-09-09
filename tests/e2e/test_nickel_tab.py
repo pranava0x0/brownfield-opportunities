@@ -211,3 +211,51 @@ def test_sites_known_to_be_under_the_land_threshold_are_excluded(
         """els => els.filter(e => window.nickelAcreageStatus(
              window.__sites.find(x => x.id === e.dataset.id)) === null).length""")
     assert unknown > 0, "unknown-acreage sites were wrongly excluded"
+
+
+def test_a_failed_data_load_reports_an_error_not_a_false_empty(
+        page: Page, base_url: str) -> None:
+    """The loaders swallow their own rejections and a 404 becomes an empty
+    payload, so the boot fan-out settles either way. Without tracking the
+    failure the tab told the user their filters matched nothing, when in fact
+    the data it ranks on never arrived (Codex round 2).
+
+    Forced by aborting the request, which is the only way to reach the branch.
+    """
+    page.route("**/data/water-proximity.json", lambda route: route.abort())
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=60_000)
+    page.click("#tab-nickel")
+    stats = page.locator("#nickel-stats")
+    stats.wait_for(timeout=30_000)
+    page.wait_for_function(
+        "document.getElementById('nickel-stats')"
+        "?.textContent.includes('Could not load')", timeout=30_000)
+    txt = stats.inner_text()
+    assert "water" in txt, txt
+    assert "No sites match" not in txt
+
+
+def test_the_nickel_tab_retries_a_failed_port_load(
+        page: Page, base_url: str) -> None:
+    """The import lens ranks on `port_mi`. A failed eager fetch clears its
+    promise, so opening the tab has to retry it — otherwise the default
+    ranking stays empty until a reload or a visit to Maritime (Codex round 2).
+    """
+    state = {"failed": False}
+
+    def handler(route):
+        if not state["failed"]:
+            state["failed"] = True
+            route.abort()
+        else:
+            route.continue_()
+
+    page.route("**/data/port-proximity.json", handler)
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=60_000)
+    page.click("#tab-nickel")
+    # The retry fires on tab activation; the ranking must recover without a
+    # reload.
+    page.wait_for_selector("#nickel-table tbody tr", timeout=60_000)
+    assert page.locator("#nickel-table tbody tr").count() > 0

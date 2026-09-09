@@ -58,8 +58,19 @@ from connectors.base import Connector
 
 log = logging.getLogger("connector.nickel_anchor_proximity")
 
-# Continental range — see the module docstring. Only AK/HI/territories exceed it.
+# Continental range — see the module docstring. Only AK/HI/territories exceed
+# the default; demand reaches further because the scoring curve does.
+#
+# These caps MUST cover the range the matching curve in docs/nickel-score.js
+# still awards credit over, or the join silently zeroes a term the scorer
+# intended to be nonzero. `_nickelScoreDemand` tapers to zero at 1,200 mi, and
+# a flat 1,000 mi cap dropped 1,501 sites whose nearest demand anchor sits in
+# between (Codex review round 2). Change a curve's far anchor and this table
+# changes with it.
 MAX_DISTANCE_MI = 1000.0
+MAX_DISTANCE_MI_BY_FIELD: dict[str, float] = {
+    "nickel_demand_mi": 1200.0,
+}
 EARTH_RADIUS_MI = 3958.8
 
 ANCHORS_FILE = "nickel-anchors.json"
@@ -150,8 +161,9 @@ class NickelAnchorProximity(Connector):
 
             rec: dict[str, Any] = {"id": sid, "program": program}
             for field, group in groups.items():
+                cap = MAX_DISTANCE_MI_BY_FIELD.get(field, MAX_DISTANCE_MI)
                 hit = self._nearest(lat_f, lon_f, group)
-                if hit is not None and hit[0] <= MAX_DISTANCE_MI:
+                if hit is not None and hit[0] <= cap:
                     rec[field] = round(hit[0], 1)
             hit = self._nearest(lat_f, lon_f, every)
             if hit is not None and hit[0] <= MAX_DISTANCE_MI:

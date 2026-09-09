@@ -1514,6 +1514,12 @@ let portProximityRecords = null; // settled payload (even if empty)
 // own flags are already true. Until every lazy load has settled, an empty
 // list is a loading state, never a filter result.
 let lazyLoadsSettled = false;
+// Loaders the Nickel Refining tab CANNOT rank without. Their own catch blocks
+// swallow the rejection (and a 404 becomes an empty payload), so
+// `Promise.allSettled` settles either way and the view would otherwise report
+// a failed fetch as "no sites match the current filters" — telling the user
+// their filters are wrong when the data never arrived (Codex round 2).
+const nickelDataErrors = new Set();
 function applyPortProximityJoin({ refresh = false } = {}) {
   if (!portProximityRecords) return;
   let applied = 0;
@@ -1538,6 +1544,10 @@ function applyPortProximityJoin({ refresh = false } = {}) {
       try { selectSite(selectedId); } catch {}
     }
     maybeRefreshMaritime();
+    // The Nickel import lens ranks on `port_mi`, so it needs this join too —
+    // refreshing only Maritime left that tab empty after a late port load
+    // (Codex round 2).
+    maybeRefreshNickel();
   }
 }
 
@@ -1561,7 +1571,9 @@ function ensurePortProximityLoaded() {
     })
     .catch((err) => {
       console.error("Port-proximity enrichment load failed:", err);
+      nickelDataErrors.add("port");
       portProximityLoadingPromise = null;
+      maybeRefreshNickel();
     });
   return portProximityLoadingPromise;
 }
@@ -2035,7 +2047,9 @@ function ensureWaterProximityLoaded() {
     })
     .catch((err) => {
       console.error("Water proximity load failed:", err);
+      nickelDataErrors.add("water");
       waterProximityLoadingPromise = null;
+      maybeRefreshNickel();
     });
   return waterProximityLoadingPromise;
 }
@@ -2081,7 +2095,9 @@ function ensureNickelAnchorProxLoaded() {
     })
     .catch((err) => {
       console.error("Nickel anchor proximity load failed:", err);
+      nickelDataErrors.add("supply chain");
       nickelAnchorProxLoadingPromise = null;
+      maybeRefreshNickel();
     });
   return nickelAnchorProxLoadingPromise;
 }
@@ -4284,6 +4300,11 @@ function wireTabs() {
       ensureWaterProximityLoaded();
       ensureNickelAnchorProxLoaded();
       ensureNickelAnchorsLoaded();
+      // The import lens ranks on `port_mi`. If the eager port fetch failed at
+      // boot, its catch cleared the promise, so this retries it rather than
+      // leaving the default ranking empty until a reload or a visit to the
+      // Maritime tab (Codex round 2).
+      ensurePortProximityLoaded();
       buildNickelView();
     }
     if (onAbout) {
@@ -7746,7 +7767,8 @@ function buildNickelView() {
     // supply-chain join is lazy — it starts on tab activation, after the
     // fan-out has already settled, so the fan-out alone would declare "no
     // matches" while this tab's own data was still in flight.
-    const stillLoading = sorted.length === 0
+    const dataFailed = sorted.length === 0 && nickelDataErrors.size > 0;
+    const stillLoading = sorted.length === 0 && !dataFailed
       && (!lazyLoadsSettled || !nickelAnchorRecords);
     const filtered = filtersActive() || filterState.q !== "";
     const lensLabel = nickelState.lens === "domestic"
@@ -7756,9 +7778,11 @@ function buildNickelView() {
       ? `${sorted.length.toLocaleString()} ${noun} · sorted by ${lensLabel} refinery score` +
         (filtered ? " · global filters applied" : "") +
         (sorted.length > NICKEL_PAGE ? ` · showing top ${NICKEL_PAGE}` : "")
-      : stillLoading
-        ? "Loading water and supply-chain data…"
-        : "No sites match the current filters for this feed model.";
+      : dataFailed
+        ? `Could not load ${[...nickelDataErrors].join(" and ")} data, so nothing can be ranked. Reopen this tab to retry.`
+        : stillLoading
+          ? "Loading water and supply-chain data…"
+          : "No sites match the current filters for this feed model.";
   }
 
   const tbody = document.querySelector("#nickel-table tbody");
