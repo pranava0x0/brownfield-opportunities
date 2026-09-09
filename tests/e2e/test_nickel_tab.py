@@ -399,3 +399,69 @@ def test_detail_panel_hides_import_refinery_score_when_port_unchecked(
     assert res is not None
     assert res["impHidden"] is True, "Imported score must be hidden when port is not checked"
     assert res["domHidden"] is False, "Domestic score must remain visible when water/nickel ready"
+
+
+def test_detail_panel_shows_nickel_flood_and_drought_penalties(
+        page: Page, base_url: str) -> None:
+    """Detail panel must render penalty chips for flood and drought when present on a site."""
+    _open_tab(page, base_url)
+    res = page.evaluate("""() => {
+        const s = window.__sites.find(x => x.rail_mi != null && x.water_flow_cfs != null);
+        if (!s) return null;
+        const fake = Object.assign({}, s, {
+            _waterChecked: true,
+            _nickelChecked: true,
+            _portChecked: true,
+            in_sfha: true,
+            nri_drought_rating: "Very High",
+        });
+        window.__renderSuitability(fake);
+        const domEl = document.getElementById("d-suit-nickel-domestic");
+        const text = domEl ? domEl.innerHTML : "";
+        return {
+            hasFlood: text.includes("Flood -"),
+            hasClimate: text.includes("Climate -") || text.includes("Drought -"),
+        };
+    }""")
+    assert res is not None
+    assert res["hasFlood"] is True, "Flood penalty chip missing from nickel detail panel"
+    assert res["hasClimate"] is True, "Climate/Drought penalty chip missing from nickel detail panel"
+
+
+def test_detail_panel_uses_nickel_tier_thresholds(
+        page: Page, base_url: str) -> None:
+    """Nickel score in detail panel must use calibrated nickelTier (80/68/55) instead of
+    generic _suitTier (75/50/25), so score 76 is styled as moderate rather than strong."""
+    _open_tab(page, base_url)
+    tier = page.evaluate("""() => {
+        const s = window.__sites.find(x => x.rail_mi != null && x.water_flow_cfs != null);
+        if (!s) return null;
+        // Construct a site whose score falls between 68 and 79 (e.g. 76)
+        const fake = Object.assign({}, s, {
+            _waterChecked: true,
+            _nickelChecked: true,
+            _portChecked: true,
+            rail_mi: 2,
+            nickel_feedstock_mi: 150,
+            water_gage_mi: 5,
+            water_flow_cfs: 500,
+            transmission_mi: 3,
+            transmission_kv: 138,
+            substation_mi: 3,
+            substation_kv: 138,
+            in_sfha: false,
+            nri_drought_rating: "None",
+        });
+        const score = window.computeNickelDomesticScore(fake);
+        window.__renderSuitability(fake);
+        const domScoreEl = document.querySelector("#d-suit-nickel-domestic .suit-score");
+        return {
+            score: score,
+            dataTier: domScoreEl ? domScoreEl.getAttribute("data-tier") : null,
+        };
+    }""")
+    assert tier is not None
+    assert tier["dataTier"] is not None
+    # If the score is in moderate range [68, 79], it must have dataTier == 'moderate'
+    if 68 <= tier["score"] < 80:
+        assert tier["dataTier"] == "moderate", f"Expected moderate for score {tier['score']}, got {tier['dataTier']}"

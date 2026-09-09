@@ -335,6 +335,8 @@ function computeNickelImportBreakdown(site) {
   };
   b.flood = -_nickelFloodPenalty(site);
   b.drought = -_nickelDroughtPenalty(site);
+  b.flood_penalty = b.flood;
+  b.climate_penalty = b.drought;
   b._viaSubstation = grid.viaSubstation;
   b.total = Math.max(0, Math.min(100, Object.keys(w)
     .reduce((sum, k) => sum + b[k], 0) + b.flood + b.drought));
@@ -355,6 +357,8 @@ function computeNickelDomesticBreakdown(site) {
   };
   b.flood = -_nickelFloodPenalty(site);
   b.drought = -_nickelDroughtPenalty(site);
+  b.flood_penalty = b.flood;
+  b.climate_penalty = b.drought;
   b._viaSubstation = grid.viaSubstation;
   b.total = Math.max(0, Math.min(100, Object.keys(w)
     .reduce((sum, k) => sum + b[k], 0) + b.flood + b.drought));

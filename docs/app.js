@@ -9560,7 +9560,7 @@ function _suitTier(score) {
   return score >= 75 ? "strong" : score >= 50 ? "moderate" : score >= 25 ? "marginal" : "weak";
 }
 
-function _suitLensHtml(title, score, breakdown, groups) {
+function _suitLensHtml(title, score, breakdown, groups, tierFn = _suitTier) {
   if (score == null) {
     return `<div class="suit-lens-head"><span class="suit-lens-name">${escapeHtml(title)}</span>`
       + `<span class="suit-score muted-cell">N/A</span></div>`
@@ -9573,15 +9573,16 @@ function _suitLensHtml(title, score, breakdown, groups) {
     // curves rendered a chip reading "Feed logistics 41.980799999999995".
     const pts = Math.round(
       g.keys.reduce((sum, k) => sum + (breakdown[k] || 0), 0) * 10) / 10;
-    if (pts > 0) chips.push(`<span class="suit-chip ${g.cls}">${escapeHtml(g.label)} ${pts}</span>`);
+    if (pts > 0) chips.push(`<span class="suit-chip ${g.cls || ""}">${escapeHtml(g.label)} ${pts}</span>`);
   }
-  const penalty = breakdown.flood_penalty || 0;
+  const penalty = breakdown.flood_penalty ?? breakdown.flood ?? 0;
   if (penalty < 0) chips.push(`<span class="suit-chip suit-penalty">Flood ${penalty}</span>`);
-  const climate = breakdown.climate_penalty || 0;
+  const climate = breakdown.climate_penalty ?? breakdown.drought ?? 0;
   if (climate < 0) chips.push(`<span class="suit-chip suit-penalty">Climate ${climate}</span>`);
   const reg = breakdown.regulatory_penalty || 0;
   if (reg < 0) chips.push(`<span class="suit-chip suit-penalty">Zoning ${reg}</span>`);
-  const tier = _suitTier(score);
+  const rawTier = tierFn ? tierFn(score) : _suitTier(score);
+  const tier = (typeof rawTier === "object" && rawTier !== null) ? rawTier.key : (rawTier || _suitTier(score));
   return `<div class="suit-lens-head">`
     + `<span class="suit-lens-name">${escapeHtml(title)}</span>`
     + `<span class="suit-score" data-tier="${tier}">${score}<span class="suit-score-max">/100</span></span>`
@@ -9617,7 +9618,8 @@ function renderSuitability(s) {
     if (domScorable) {
       nickDomEl.innerHTML = _suitLensHtml(
         "Nickel refinery — domestic feed", computeNickelDomesticScore(s),
-        computeNickelDomesticBreakdown(s) || {}, _NICKEL_DOMESTIC_GROUPS);
+        computeNickelDomesticBreakdown(s) || {}, _NICKEL_DOMESTIC_GROUPS,
+        typeof nickelTier === "function" ? nickelTier : undefined);
     }
   }
   if (nickImpEl) {
@@ -9625,7 +9627,8 @@ function renderSuitability(s) {
     if (impScorable) {
       nickImpEl.innerHTML = _suitLensHtml(
         "Nickel refinery — imported feed", computeNickelImportScore(s),
-        computeNickelImportBreakdown(s) || {}, _NICKEL_IMPORT_GROUPS);
+        computeNickelImportBreakdown(s) || {}, _NICKEL_IMPORT_GROUPS,
+        typeof nickelTier === "function" ? nickelTier : undefined);
     }
   }
   const nickLandEl = el("d-suit-nickel-land");
