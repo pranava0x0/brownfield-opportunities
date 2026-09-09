@@ -7656,7 +7656,9 @@ const nickelState = {
   // they dominated the ranking outright — 0 of the top 150 had confirmed land
   // before this. Showing them by default answers "which brownfield sits in
   // the densest infrastructure", which is not the question this tab asks.
-  landBasis: "confirmed", // "confirmed" | "any" — URL state ?land=any
+  // "confirmed" (refinery, 300 ac) | "recycling" (100 ac) | "any"
+  // URL state ?land=recycling / ?land=any
+  landBasis: "confirmed",
 };
 
 function _nickelScoreFn() {
@@ -7740,8 +7742,12 @@ function buildNickelView() {
   // `false` is never eligible. `null` (acreage unpublished) is eligible only
   // when the user asks for it — see nickelState.landBasis.
   const allowUnknownLand = nickelState.landBasis === "any";
+  // Two thresholds, because a black-mass recycling plant is roughly a third
+  // the size of a refinery — see NICKEL_MIN_ACRES_RECYCLING for the evidence.
+  const minAcres = nickelState.landBasis === "recycling"
+    ? NICKEL_MIN_ACRES_RECYCLING : NICKEL_MIN_ACRES;
   const bigEnough = (s) => {
-    const st = nickelAcreageStatus(s);
+    const st = nickelAcreageStatus(s, minAcres);
     return st === true || (st === null && allowUnknownLand);
   };
   const eligible = nickelState.lens === "domestic"
@@ -7823,9 +7829,10 @@ function buildNickelView() {
     const lensLabel = nickelState.lens === "domestic"
       ? "domestic-feed (rail)" : "imported-feed (port)";
     const noun = nickelState.lens === "domestic" ? "rail-served sites" : "sites within reach of a port";
-    const landNote = nickelState.landBasis === "confirmed"
-      ? ` · land confirmed ≥${NICKEL_MIN_ACRES} ac`
-      : " · includes unpublished acreage";
+    const landNote = nickelState.landBasis === "any"
+      ? " · includes unpublished acreage"
+      : ` · land confirmed ≥${minAcres} ac (${nickelState.landBasis === "recycling"
+          ? "recycling plant" : "refinery"})`;
     statsEl.textContent = sorted.length > 0
       ? `${sorted.length.toLocaleString()} ${noun}${landNote} · sorted by ${lensLabel} refinery score` +
         (filtered ? " · global filters applied" : "") +
@@ -7861,7 +7868,8 @@ function wireNickelFilters() {
   const params = new URLSearchParams(location.search);
   const urlLens = params.get("nlens");
   if (urlLens === "domestic") nickelState.lens = urlLens;
-  if (params.get("land") === "any") nickelState.landBasis = "any";
+  const urlLand = params.get("land");
+  if (urlLand === "any" || urlLand === "recycling") nickelState.landBasis = urlLand;
   document.querySelectorAll("[data-nickel-land]").forEach((btn) => {
     btn.addEventListener("click", () => {
       nickelState.landBasis = btn.dataset.nickelLand;
@@ -9615,14 +9623,24 @@ function renderSuitability(s) {
     nickLandEl.hidden = !scorable || status === undefined;
     if (!nickLandEl.hidden) {
       const ac = s.acreage ?? s.parcel_acreage;
+      // Two thresholds: a refinery needs ~300 acres, a black-mass recycling
+      // plant ~100. Reporting only the refinery figure would call a 150-acre
+      // site "too small" when it comfortably fits the other in-scope route.
+      const recyclingOk = nickelAcreageStatus(s, NICKEL_MIN_ACRES_RECYCLING);
       nickLandEl.textContent = status === true
         ? `⚑ Land: ${fmt.acres(ac)} — clears the ${NICKEL_MIN_ACRES}-acre refinery threshold. `
           + "Land is a threshold, not a scored factor, so it is not in the chips above."
         : status === false
-          ? `⚑ Land: ${fmt.acres(ac)} — below the ${NICKEL_MIN_ACRES}-acre refinery threshold. `
-            + "The score reflects infrastructure only; this site is too small for a refinery."
-          : `⚑ Land: acreage not published for this site, so the ${NICKEL_MIN_ACRES}-acre `
-            + "refinery threshold cannot be checked. The score reflects infrastructure only.";
+          ? (recyclingOk
+              ? `⚑ Land: ${fmt.acres(ac)} — below the ${NICKEL_MIN_ACRES}-acre refinery `
+                + `threshold, but above the ${NICKEL_MIN_ACRES_RECYCLING}-acre floor for a `
+                + "black-mass recycling plant, which is the smaller of the two in-scope routes."
+              : `⚑ Land: ${fmt.acres(ac)} — below both land thresholds `
+                + `(${NICKEL_MIN_ACRES} ac for a refinery, ${NICKEL_MIN_ACRES_RECYCLING} ac for `
+                + "a recycling plant). The score reflects infrastructure only.")
+          : `⚑ Land: acreage not published for this site, so neither the `
+            + `${NICKEL_MIN_ACRES}-acre refinery nor the ${NICKEL_MIN_ACRES_RECYCLING}-acre `
+            + "recycling threshold can be checked. The score reflects infrastructure only.";
     }
   }
 

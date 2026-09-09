@@ -61,13 +61,35 @@ Michigan is a live question rather than a hypothetical one.
 
 ## 4. Numbers worth screening against
 
-**Footprint.** Vale's Long Harbour, Newfoundland — the closest real comparable
-to a US matte/MHP-fed refinery — is 65 ha of hydromet plant plus 85 ha of
-pipelines and residue ponds, about **370 acres**, with the plant itself roughly
-1 km × 750 m ([Government of NL](https://www.gov.nl.ca/eccc/projects/project-1243/)).
-Westwin's Lawton tract is 480 acres. A black-mass recycling plant alone is
-smaller, but no clean benchmark was found. **Screening threshold: 300 acres
-for a full refinery, with 100 acres as a floor for a recycling-only plant.**
+**Footprint — validated 2026-09-09, and it is two thresholds, not one.**
+
+Vale's Long Harbour, Newfoundland is the closest real comparable to a US
+matte/MHP-fed refinery: **65 ha of process plant (161 acres) plus 85 ha of
+residue pipeline and containment (210 acres) = 371 acres total**, at 50 kt
+Ni/yr ([Government of NL](https://www.gov.nl.ca/eccc/projects/project-1243/)).
+That is **7.4 acres per kt of annual nickel**. Westwin's 480-acre Lawton tract
+at a 68 kt/yr nameplate is **7.06 ac/kt**. Two independent facilities landing
+within 5% of each other on acres-per-kt is the strongest evidence available,
+and **300 acres sits between Long Harbour's plant-only 161 and its
+residue-inclusive 371** — a real floor rather than a round number.
+
+A **black-mass recycling plant is a materially smaller thing**, and a single
+flat threshold misscreens it by roughly 3x. Confirmed pure
+recycling-to-sulfate sites: **Cirba Solutions Lancaster OH at 36.8 acres**
+([DOE/EA-2213](https://www.energy.gov/nepa/doeea-2213-cirba-solutions-lithium-ion-battery-recycling-produce-battery-grade-raw-materials))
+and **Li-Cycle's Rochester Hub at 41–65 acres**. The larger sites usually
+quoted as "recycling" — Ascend Apex 1 at 140 ac, Cirba SC at 206 ac, Redwood's
+900+ ac campus — are integrated precursor/CAM plants, not recycling alone, and
+must not be used to justify raising the number.
+
+**Screening thresholds: 300 acres for a refinery, 100 acres for a black-mass
+recycling plant.** Both are screening floors, not engineering requirements.
+The evidence base is genuinely thin — two confirmed refinery footprints — and
+a refinery that dry-stacks or trucks residue off-site could plausibly fit
+nearer Long Harbour's plant-only 161 acres. Several footprints could not be
+found at all (Sumitomo Niihama, Nornickel Harjavalta, the Sudbury and
+Kalgoorlie smelters); they are embedded in larger complexes or simply not
+published, and are recorded as unknown rather than estimated.
 
 **Power.** Hydromet is a large but interruptible load — autoclave agitators,
 oxygen plant, SX pumps, EW rectifiers — not the frozen-furnace failure mode of

@@ -89,9 +89,33 @@ const NICKEL_WEIGHTS_DOMESTIC = {
 const NICKEL_FLOOD_SFHA_PENALTY = 18;
 const NICKEL_DROUGHT_PENALTY = { "Very High": 10, "Relatively High": 5 };
 
-// Land threshold, in acres. Long Harbour ~370 including pipelines and residue
-// ponds; Westwin's Lawton tract 480. 300 is the conservative floor.
-const NICKEL_MIN_ACRES = 300;
+// Land thresholds, in acres. Validated 2026-09-09 against published site
+// footprints (research/nickel-refining-siting-2026-09.md §Land):
+//
+//   Vale Long Harbour — 65 ha plant (161 ac) PLUS 85 ha of residue pipeline
+//     and containment (210 ac) = 371 ac total, at 50 kt Ni/yr → 7.4 ac/kt.
+//     https://www.gov.nl.ca/eccc/projects/project-1243/
+//   Westwin Elements, Lawton OK — 480-acre tract at a 68 kt/yr nameplate
+//     → 7.06 ac/kt. Two independent facilities landing within 5% of each
+//     other on acres-per-kt is the strongest evidence available here.
+//
+// So 300 acres sits sensibly between Long Harbour's plant-only 161 and its
+// residue-inclusive 371 — a real refinery floor rather than a round number.
+//
+// A BLACK-MASS RECYCLING plant is a different size of thing entirely, and a
+// single flat threshold misscreened it by roughly 3x. Confirmed pure
+// recycling-to-sulfate sites: Cirba Solutions Lancaster OH 36.8 ac
+// (DOE/EA-2213), Li-Cycle Rochester Hub 41–65 ac. The larger "recycling"
+// campuses often quoted (Ascend Apex 1 at 140 ac, Cirba SC at 206 ac,
+// Redwood's 900+ ac) are integrated precursor/CAM plants, not recycling
+// alone — do not use them to justify raising this number.
+//
+// Caveat worth keeping: this rests on two confirmed refinery footprints and
+// a handful of recycler ones. It is a screening floor, not an engineering
+// requirement, and a refinery that dry-stacks or trucks residue off-site
+// could plausibly fit nearer Long Harbour's plant-only 161 acres.
+const NICKEL_MIN_ACRES = 300;            // hydromet refinery on imported feed
+const NICKEL_MIN_ACRES_RECYCLING = 100;  // black-mass recycling to nickel sulfate
 
 function _nickelInterp(x, pts) {
   if (x == null) return 0;
@@ -263,10 +287,10 @@ function _nickelDroughtPenalty(site) {
 // at all) and two-thirds of FUDS. Reading null as "too small" would silently
 // delete most of the corpus from the lens; reading it as "big enough" would
 // invent a fact. It is reported as unknown and the UI says so.
-function nickelAcreageStatus(site) {
+function nickelAcreageStatus(site, minAcres = NICKEL_MIN_ACRES) {
   const ac = _nickelEffectiveAcreage(site);
   if (ac == null) return null;
-  return ac >= NICKEL_MIN_ACRES;
+  return ac >= minAcres;
 }
 
 // The score gate. `transmission_mi` null means the infra join has not run or
@@ -394,6 +418,7 @@ if (typeof window !== "undefined") {
   window.NICKEL_WEIGHTS_IMPORT = NICKEL_WEIGHTS_IMPORT;
   window.NICKEL_WEIGHTS_DOMESTIC = NICKEL_WEIGHTS_DOMESTIC;
   window.NICKEL_MIN_ACRES = NICKEL_MIN_ACRES;
+  window.NICKEL_MIN_ACRES_RECYCLING = NICKEL_MIN_ACRES_RECYCLING;
   window._NICKEL_IMPORT_GROUPS = _NICKEL_IMPORT_GROUPS;
   window._NICKEL_DOMESTIC_GROUPS = _NICKEL_DOMESTIC_GROUPS;
 }
@@ -401,5 +426,6 @@ if (typeof module !== "undefined" && module.exports) {
   module.exports = { computeNickelImportScore, computeNickelDomesticScore,
     computeNickelImportBreakdown, computeNickelDomesticBreakdown,
     nickelScorable, nickelAcreageStatus, nickelTier,
-    NICKEL_WEIGHTS_IMPORT, NICKEL_WEIGHTS_DOMESTIC, NICKEL_MIN_ACRES };
+    NICKEL_WEIGHTS_IMPORT, NICKEL_WEIGHTS_DOMESTIC, NICKEL_MIN_ACRES,
+    NICKEL_MIN_ACRES_RECYCLING };
 }

@@ -238,10 +238,33 @@ def test_acreage_status_is_tri_state(page: Page, base_url: str) -> None:
 
 
 def test_min_acres_matches_the_documented_precedent(page: Page, base_url: str) -> None:
-    """Long Harbour is ~370 acres including residue ponds; Westwin's tract is
-    480. 300 is the conservative floor and is stated in the tab copy."""
+    """Validated against published footprints. Vale Long Harbour is 371 acres
+    total (65 ha plant + 85 ha residue pipeline and containment) at 50 kt
+    Ni/yr; Westwin's Lawton tract is 480 acres at a 68 kt/yr nameplate. Both
+    land within 5% of each other at ~7 acres per kt, and 300 sits between
+    Long Harbour's plant-only 161 and its residue-inclusive 371."""
     _ready(page, base_url)
     assert page.evaluate("window.NICKEL_MIN_ACRES") == 300
+
+
+def test_recycling_has_its_own_smaller_threshold(page: Page, base_url: str) -> None:
+    """A single flat threshold misscreened black-mass recycling by roughly 3x.
+    Confirmed pure recycling-to-sulfate sites are far smaller than a refinery:
+    Cirba Lancaster OH 36.8 acres, Li-Cycle Rochester 41-65. The bigger
+    "recycling" campuses often quoted (Ascend Apex 1 at 140 ac, Redwood's
+    900+) are integrated precursor/CAM plants, not recycling alone."""
+    _ready(page, base_url)
+    recycling = page.evaluate("window.NICKEL_MIN_ACRES_RECYCLING")
+    assert recycling == 100
+    assert recycling < page.evaluate("window.NICKEL_MIN_ACRES")
+    # A 150-acre site fails the refinery floor and clears the recycling one.
+    ev = lambda r, m: page.evaluate(
+        "([r, m]) => window.nickelAcreageStatus(r, m)", [r, m])
+    assert ev({"acreage": 150}, 300) is False
+    assert ev({"acreage": 150}, 100) is True
+    # Unknown stays tri-state under BOTH thresholds.
+    assert ev({"acreage": None}, 300) is None
+    assert ev({"acreage": None}, 100) is None
 
 
 # --- penalties -------------------------------------------------------------
