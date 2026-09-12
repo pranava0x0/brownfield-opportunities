@@ -55,6 +55,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import hashlib
+import math
+from datetime import datetime, timezone
 import logging
 from pathlib import Path
 from typing import Any, Iterable
@@ -152,18 +155,7 @@ TRANSMISSION_NULL_KV = -999999.0
 # (something electrical is genuinely there) but withhold the voltage, so
 # scoring can't mistake a 600 V rectifier for a switchyard.
 MIN_SUBSTATION_KV = 1.0
-# Map of HIFLD `VOLT_CLASS` strings to representative kV for the cases
-# where `VOLTAGE` is null but `VOLT_CLASS` is populated. Conservative —
-# we pick the lower bound of each class so the ≥230kV filter is strict.
-VOLT_CLASS_TO_KV: dict[str, float] = {
-    "UNDER 100": 69.0,
-    "100-161": 100.0,
-    "220-287": 220.0,
-    "345": 345.0,
-    "500": 500.0,
-    "735 AND ABOVE": 735.0,
-    "DC": 500.0,  # HVDC ties — typically ≥500kV; conservative.
-}
+# Voltage classes remain source labels; never invent a numeric voltage.
 
 # Sites whose JSON we'll enrich. Order doesn't matter — each record carries
 # its own `id` and `program`. Missing files are skipped (e.g. a partial run).
@@ -230,7 +222,7 @@ def _parse_osm_voltage(raw: object) -> float | None:
             v = float(part)
         except ValueError:
             continue
-        if v <= 0:
+        if not math.isfinite(v) or v <= 0:
             continue
         # Convert volts → kV.
         kv = v / 1000.0
@@ -273,7 +265,7 @@ def _flood_cache_key(lat: float, lon: float) -> dict[str, Any]:
 
 class InfraProximity(Connector):
     slug = "infra-proximity"
-    source_label = "HIFLD + Census TIGER (transmission, rail, highways, gas pipelines)"
+    source_label = "HIFLD + Census TIGER + OpenStreetMap + FEMA (mapped infrastructure context)"
     source_url = "https://hifld-geoplatform.opendata.arcgis.com/"
 
     # Run AFTER all producer connectors have written their per-source JSON.
@@ -318,9 +310,89 @@ class InfraProximity(Connector):
                      "budget. Use this for resumable checkpointed backfills.",
             )
 
+    def _source_inventory(self, url: str, where: str) -> tuple[int, str]:
+        """Fresh metadata and expected count; fail before publishing partial pulls."""
+        meta = self.http_get_json(url.removesuffix("/query"), {"f": "json"}, use_cache=False)
+        if meta.get("error") or not meta.get("objectIdField"):
+            raise ValueError("Infrastructure source lacks object ID metadata")
+        count = self.http_get_json(url, {"f": "json", "where": where, "returnCountOnly": "true"}, use_cache=False)
+        if not isinstance(count.get("count"), int):
+            raise ValueError("Infrastructure source lacks expected count")
+        if not hasattr(self, "_inventory_dates"):
+            self._inventory_dates = {}
+        stamp = (meta.get("editingInfo") or {}).get("dataLastEditDate")
+        self._inventory_dates[url] = datetime.fromtimestamp(stamp / 1000, timezone.utc).isoformat() if stamp else None
+        return count["count"], meta["objectIdField"]
+
+    def _metadata(self, layer: str, **values: Any) -> None:
+        if not hasattr(self, "source_metadata"):
+            self.source_metadata: dict[str, dict[str, Any]] = {}
+        self.source_metadata.setdefault(layer, {}).update(values)
+
+    def compact_evidence(self, records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        """Share asset provenance once; retain row exceptions and coordinates."""
+        for layer, meta in getattr(self, "source_metadata", {}).items():
+            if "assets_by_id" in meta:
+                meta["assets_by_id"] = {key.replace(layer + ":geometry:", "local:"): value for key, value in meta["assets_by_id"].items()}
+        legacy_flood = sum((r.get("infra_evidence", {}).get("flood_zone") or {}).get("status") == "legacy_coordinate_unverified" for r in records)
+        if legacy_flood > len(records) / 2:
+            self._metadata("flood_zone", status="legacy_coordinate_unverified")
+        for rec in records:
+            for layer in ("transmission", "substation", "power_plant"):
+                key = layer + "_asset_id"
+                if rec.get(key):
+                    rec[key] = rec[key].replace(layer + ":geometry:", "local:")
+            plant_id = rec.get("power_plant_asset_id")
+            if plant_id and rec.get("power_plant_name"):
+                self._metadata("power_plant")
+                self.source_metadata["power_plant"].setdefault("assets_by_id", {}).setdefault(plant_id, {})["name"] = rec.pop("power_plant_name")
+            for layer, observation in list((rec.get("infra_evidence") or {}).items()):
+                status = observation.get("status")
+                asset_id = rec.get(layer + "_asset_id")
+                asset = {k: v for k, v in observation.items() if k not in {"status", "asset_id"}}
+                if asset_id and asset:
+                    self._metadata(layer)
+                    self.source_metadata[layer].setdefault("assets_by_id", {}).setdefault(asset_id, {}).update(asset)
+                if status == "matched_context":
+                    self._metadata(layer)
+                    self.source_metadata[layer].setdefault("status", "matched_context")
+                default_status = getattr(self, "source_metadata", {}).get(layer, {}).get("status")
+                if status and status == default_status:
+                    del rec["infra_evidence"][layer]
+                else:
+                    rec["infra_evidence"][layer] = {"status": status or "not_assessed"}
+        return records
+
+    @staticmethod
+    def _page_features(data: dict[str, Any]) -> list[dict[str, Any]]:
+        if data.get("error") or data.get("remark"):
+            raise RuntimeError(f"Incomplete infrastructure response: {data.get('error') or data.get('remark')}")
+        if "features" not in data or not isinstance(data["features"], list):
+            raise ValueError("Infrastructure response missing features array")
+        if not data["features"] and data.get("exceededTransferLimit"):
+            raise ValueError("Infrastructure paging made no progress")
+        return data["features"]
+
+    @staticmethod
+    def _asset_id(feature: dict[str, Any], layer: str) -> tuple[str, str]:
+        attrs = feature.get("attributes") or {}
+        for key in ("GlobalID", "ID", "Plant_Code", "Plant_ID", "OBJECTID_1", "OBJECTID", "ObjectId"):
+            if attrs.get(key) is not None:
+                return f"{layer}:{attrs[key]}", "source_id"
+        # Legacy geometry-only caches cannot recover source IDs. Mark the
+        # local fingerprint explicitly; never present it as an agency ID.
+        digest = hashlib.sha256(json.dumps(feature, sort_keys=True).encode()).hexdigest()[:16]
+        return f"local:{digest}", "local_geometry_fingerprint"
+
     def fetch_records(
         self, args: argparse.Namespace, use_cache: bool
     ) -> list[dict[str, Any]]:
+        self.source_metadata = {}
+        if self.existing_output_path().exists():
+            prior_meta = json.loads(self.existing_output_path().read_text()).get("source_metadata") or {}
+            for layer, metadata in prior_meta.items():
+                if getattr(args, f"infra_skip_{layer}", False):
+                    self.source_metadata[layer] = metadata
         sites = list(self._load_sites())
         if not sites:
             log.error(
@@ -351,6 +423,7 @@ class InfraProximity(Connector):
                 existing = self.existing_records()
                 log.info("--missing-only: nothing to fetch; returning %d existing records",
                          len(existing))
+                self.source_metadata = json.loads(self.existing_output_path().read_text()).get("source_metadata") or {}
                 return existing
 
         # Build one SegmentIndex per polyline layer.
@@ -399,7 +472,7 @@ class InfraProximity(Connector):
         # run. We only seed sites that already carry a flood field — sites with
         # null flood are left for retry. Cheap (one file read) and a no-op on a
         # cold cache (no existing file → empty seed).
-        flood_seed: dict[str, tuple[str | None, bool | None]] = {}
+        flood_seed: dict[str, dict[str, Any]] = {}
         flood_budget = int(getattr(args, "infra_flood_budget", 0) or 0)
         if do_flood:
             for prev in self.existing_records():
@@ -409,11 +482,12 @@ class InfraProximity(Connector):
                 fz = prev.get("flood_zone")
                 sf = prev.get("in_sfha")
                 if fz is not None or sf is not None:
-                    flood_seed[pid] = (fz, sf)
+                    flood_seed[pid] = prev
             log.info("[flood_zone] seeded %d sites from existing output%s",
                      len(flood_seed),
                      f", new-fetch budget={flood_budget}" if flood_budget else "")
 
+        previous_by_id = {r["id"]: r for r in self.existing_records()}
         records: list[dict[str, Any]] = []
         skipped_no_geom = 0
         out_of_range: dict[str, int] = {
@@ -429,7 +503,9 @@ class InfraProximity(Connector):
         consecutive_flood_errors = 0  # circuit-breaker counter for FEMA failure waves
         # Per-program counts for telemetry.
         program_counts: dict[str, int] = {}
-        for site in sites:
+        for site_number, site in enumerate(sites, 1):
+            if site_number == 1 or site_number % 10000 == 0:
+                log.info("infrastructure observations: %d/%d sites", site_number, len(sites))
             sid = site.get("id")
             program = site.get("program")
             lat = site.get("lat")
@@ -443,7 +519,29 @@ class InfraProximity(Connector):
             except (TypeError, ValueError):
                 skipped_no_geom += 1
                 continue
-            rec: dict[str, Any] = {"id": sid, "program": program}
+            if not (math.isfinite(lat_f) and math.isfinite(lon_f) and -90 <= lat_f <= 90 and -180 <= lon_f <= 180):
+                skipped_no_geom += 1
+                continue
+            rec: dict[str, Any] = {"id": sid, "program": program,
+                                   "infra_assessed_lat": lat_f, "infra_assessed_lon": lon_f}
+            evidence: dict[str, dict[str, Any]] = {}
+            previous = previous_by_id.get(sid, {})
+            same_coordinate = (previous.get("infra_assessed_lat") == lat_f and
+                               previous.get("infra_assessed_lon") == lon_f)
+            for layer in list(LAYERS) + ["substation", "power_plant", "flood_zone"]:
+                skipped = getattr(args, f"infra_skip_{layer}", False)
+                available = layer in seg_indexes or layer in point_indexes or (layer == "flood_zone" and do_flood)
+                evidence[layer] = {"status": "not_assessed" if skipped else "no_mapped_asset_within_radius" if available else "source_unavailable"}
+                if skipped or not available:
+                    prefix = "flood_" if layer == "flood_zone" else layer + "_"
+                    for key, value in previous.items():
+                        if key.startswith(prefix) or (layer == "flood_zone" and key == "in_sfha"):
+                            rec[key] = value
+                    if any(key.startswith(prefix) for key in previous):
+                        evidence[layer] = dict((previous.get("infra_evidence") or {}).get(layer, {}))
+                        old_status = evidence[layer].get("status") or self.source_metadata.get(layer, {}).get("status")
+                        evidence[layer]["status"] = "source_unavailable" if not available and not skipped else old_status if old_status in {"legacy_coordinate_unverified", "unsupported_region", "not_assessed", "source_unavailable"} else "retained_previous" if same_coordinate else "legacy_coordinate_unverified"
+            rec["infra_evidence"] = evidence
 
             # ---- polyline layers ----
             for layer, idx in seg_indexes.items():
@@ -452,11 +550,16 @@ class InfraProximity(Connector):
                     if hit is None:
                         out_of_range[layer] += 1
                         continue
-                    d, kv = hit
+                    d, attr = hit
+                    kv = attr.get("kv") if isinstance(attr, dict) else attr
+                    if isinstance(attr, dict):
+                        evidence[layer] = {k: v for k, v in attr.items() if k != "kv" and v is not None}
+                        rec["transmission_asset_id"] = attr["asset_id"]
                     if d > MAX_DISTANCE_MI:
                         out_of_range[layer] += 1
                         continue
                     rec[DISTANCE_FIELD[layer]] = round(d, 1)
+                    evidence[layer]["status"] = "matched_context"
                     if kv is not None:
                         rec["transmission_kv"] = round(float(kv), 1)
                 else:
@@ -465,6 +568,7 @@ class InfraProximity(Connector):
                         out_of_range[layer] += 1
                         continue
                     rec[DISTANCE_FIELD[layer]] = round(d, 1)
+                    evidence[layer]["status"] = "matched_context"
 
             # ---- point layers (substation + power plant) ----
             for layer, pidx in point_indexes.items():
@@ -477,7 +581,17 @@ class InfraProximity(Connector):
                     out_of_range[layer] += 1
                     continue
                 rec[DISTANCE_FIELD[layer]] = round(d, 1)
+                evidence[layer]["status"] = "matched_context"
                 if isinstance(attr, dict):
+                    for key in ("asset_id", "id_basis", "role", "voltage_basis"):
+                        if attr.get(key) is not None:
+                            evidence[layer][key] = attr[key]
+                    if attr.get("asset_id"):
+                        rec[layer + "_asset_id"] = attr["asset_id"]
+                    if layer == "substation":
+                        rec["substation_role"] = attr.get("role", "unspecified")
+                    if layer == "power_plant" and attr.get("name"):
+                        rec["power_plant_name"] = attr["name"]
                     if layer == "substation" and attr.get("kv") is not None:
                         kv = round(float(attr["kv"]), 1)
                         # Sub-1 kV OSM `power=substation` nodes are traction /
@@ -505,14 +619,31 @@ class InfraProximity(Connector):
                                 "RE", "OA", "OS"
                             }
 
+            if not any(s <= lat_f <= n and w <= lon_f <= e for s, w, n, e in OVERPASS_SUBSTATION_BBOXES):
+                evidence["substation"] = {"status": "unsupported_region"}
+                for key in list(rec):
+                    if key.startswith("substation_"):
+                        del rec[key]
+
             # ---- per-site flood zone ----
             if do_flood:
                 seeded = flood_seed.get(sid)
                 if seeded is not None:
+                    stamp = seeded.get("flood_source_observed_at")
+                    try:
+                        observed = datetime.fromisoformat(stamp.replace("Z", "+00:00")) if stamp else None
+                        fresh = observed is not None and 0 <= (datetime.now(timezone.utc) - observed).total_seconds() <= 365 * 86400
+                    except (ValueError, TypeError):
+                        fresh = False
+                    if not (use_cache and fresh and seeded.get("flood_assessed_lat") == lat_f and seeded.get("flood_assessed_lon") == lon_f):
+                        seeded = None
+                if seeded is not None:
                     # Already populated in a prior run — carry it forward
-                    # verbatim, no query (the FEMA answer for a fixed lat/lon
-                    # doesn't change between runs).
-                    s_fz, s_sfha = seeded
+                    # only while coordinates match and the observation is <=365 days old.
+                    s_fz, s_sfha = seeded.get("flood_zone"), seeded.get("in_sfha")
+                    for key in ("flood_assessed_lat", "flood_assessed_lon", "flood_source_observed_at"):
+                        rec[key] = seeded[key]
+                    evidence["flood_zone"] = {"status": "matched_context"}
                     if s_fz is not None:
                         rec["flood_zone"] = s_fz
                     if s_sfha is not None:
@@ -530,6 +661,11 @@ class InfraProximity(Connector):
                         try:
                             fz, sfha = self._query_flood_zone(lat_f, lon_f, use_cache=use_cache)
                             flood_lookups += 1
+                            rec["flood_assessed_lat"] = lat_f
+                            rec["flood_assessed_lon"] = lon_f
+                            evidence["flood_zone"] = {"status": "cached_snapshot_date_unknown" if cache_exists and use_cache else "matched_context"}
+                            if not cache_exists or not use_cache:
+                                rec["flood_source_observed_at"] = datetime.now(timezone.utc).isoformat()
                             if fz is not None:
                                 rec["flood_zone"] = fz
                             if sfha is not None:
@@ -646,6 +782,10 @@ class InfraProximity(Connector):
         page_size = cfg["page_size"]
         out_fields = cfg.get("out_fields", "") or ""
         kv_features = 0  # telemetry: how many transmission features carry kV
+        expected, oid = self._source_inventory(cfg["url"], cfg["where"]) if not use_cache else (None, None)
+        fetched = 0
+        seen_ids: set[str] = set()
+        seen_pages: set[str] = set()
         while True:
             params = {
                 "where": cfg["where"],
@@ -657,6 +797,8 @@ class InfraProximity(Connector):
                 "resultOffset": str(offset),
                 "f": "json",
             }
+            if oid:
+                params.update(outFields="*", orderByFields=oid)
             data = self.http_get_json(
                 cfg["url"], params,
                 use_cache=use_cache,
@@ -670,37 +812,61 @@ class InfraProximity(Connector):
                     "out_fields": out_fields,
                 },
             )
-            features = data.get("features") or []
+            features = self._page_features(data)
+            digest = hashlib.sha256(json.dumps(features, sort_keys=True).encode()).hexdigest()
+            if features and digest in seen_pages:
+                raise ValueError("Infrastructure endpoint repeated a page; refusing incomplete inventory")
+            seen_pages.add(digest)
             log.info("[%s] page offset=%d got=%d", layer, offset, len(features))
             if not features:
                 break
+            fetched += len(features)
             for feat in features:
+                if oid:
+                    source_id = str((feat.get("attributes") or {}).get(oid))
+                    if source_id == "None" or source_id in seen_ids:
+                        raise ValueError("Missing or repeated infrastructure asset ID")
+                    seen_ids.add(source_id)
                 geom = feat.get("geometry") or {}
                 # ESRI polyline: { "paths": [[[lon, lat], ...], ...] }
                 paths = geom.get("paths") or []
-                attr = self._extract_attr(layer, feat.get("attributes") or {})
-                if layer == "transmission" and attr is not None:
-                    kv_features += 1
+                attrs = feat.get("attributes") or {}
+                attr = self._extract_attr(layer, attrs)
+                if layer == "transmission":
+                    if attr is not None:
+                        kv_features += 1
+                    asset_id, basis = self._asset_id(feat, layer)
+                    attr = {"kv": attr, "asset_id": asset_id, "id_basis": basis,
+                            "voltage_basis": "reported" if attr is not None else "class_only" if attrs.get("VOLT_CLASS") else "unknown",
+                            "voltage_class": attrs.get("VOLT_CLASS"), "asset_status": attrs.get("STATUS")}
+
                 for path in paths:
                     added = idx.add_polyline(path, attr=attr)
                     if added > 0:
                         polylines_added += 1
-            if len(features) < page_size:
+            if len(features) < page_size and not data.get("exceededTransferLimit"):
                 break
-            offset += page_size
+            offset += len(features)
         if layer == "transmission":
             log.info("[transmission] %d / %d polylines carry kV",
                      kv_features, polylines_added)
         log.info("[%s] indexed %d polylines / %d segments",
                  layer, polylines_added, idx.segment_count)
+        if expected is not None and fetched != expected:
+            raise ValueError(f"Incomplete {layer}: expected {expected}, fetched {fetched}")
+        self._metadata(layer, source_url=cfg["url"].removesuffix("/query"),
+                       source_snapshot_at=datetime.now(timezone.utc).isoformat() if not use_cache else None, feature_count=fetched,
+                       snapshot_basis="legacy_cache_unknown_retrieval_date" if use_cache else "retrieved_this_run",
+                       count_reconciled=expected is not None, search_radius_mi=MAX_DISTANCE_MI,
+                       data_last_edit=getattr(self, "_inventory_dates", {}).get(cfg["url"]))
         return idx
 
     @staticmethod
     def _extract_attr(layer: str, attrs: dict[str, Any]) -> float | None:
         """Pull the per-feature attribute we want carried on the segment.
 
-        For transmission: prefer `VOLTAGE` (Double, kV); fall back to
-        `VOLT_CLASS` mapped via `VOLT_CLASS_TO_KV`. Sentinel value
+        For transmission: retain only reported `VOLTAGE` (Double, kV).
+        Source `VOLT_CLASS` is preserved separately. Sentinel value
         `-999999` (HIFLD's null marker) collapses to None.
 
         Returns None for layers that don't carry attributes.
@@ -711,15 +877,10 @@ class InfraProximity(Connector):
         if v is not None:
             try:
                 vf = float(v)
-                if vf > 0 and vf != TRANSMISSION_NULL_KV:
+                if math.isfinite(vf) and vf > 0 and vf != TRANSMISSION_NULL_KV:
                     return vf
             except (TypeError, ValueError):
                 pass
-        vclass = attrs.get("VOLT_CLASS")
-        if isinstance(vclass, str):
-            mapped = VOLT_CLASS_TO_KV.get(vclass.strip().upper())
-            if mapped is not None:
-                return mapped
         return None
 
     # ---- point-layer fetchers ----
@@ -737,11 +898,16 @@ class InfraProximity(Connector):
         log.info("[substation] fetching OSM via Overpass across %d bboxes",
                  len(OVERPASS_SUBSTATION_BBOXES))
         idx = PointIndex()
+        seen: set[tuple[str, int]] = set()
         for i, bbox in enumerate(OVERPASS_SUBSTATION_BBOXES, 1):
             elements = self._fetch_overpass_substations(bbox, use_cache=use_cache)
             log.info("[substation] bbox %d/%d %s → %d features",
                      i, len(OVERPASS_SUBSTATION_BBOXES), bbox, len(elements))
             for el in elements:
+                identity = (el.get("type", "unknown"), el.get("id"))
+                if identity[1] is not None and identity in seen:
+                    continue
+                seen.add(identity)
                 # node: lat/lon at top level; way: center.lat/lon.
                 lat = el.get("lat") or (el.get("center") or {}).get("lat")
                 lon = el.get("lon") or (el.get("center") or {}).get("lon")
@@ -749,9 +915,20 @@ class InfraProximity(Connector):
                     continue
                 tags = el.get("tags") or {}
                 kv = _parse_osm_voltage(tags.get("voltage"))
-                attr = {"kv": kv} if kv is not None else None
+                role = tags.get("substation", "unspecified")
+                if role in {"gas", "valve", "compression", "heat-exchanger", "internet"}:
+                    continue
+                attr = {"kv": kv, "role": role,
+                        "asset_id": f"osm:{identity[0]}/{identity[1]}" if identity[1] is not None else None,
+                        "id_basis": "source_id" if identity[1] is not None else "unknown", "voltage_basis": "reported" if kv is not None else "unknown"}
                 idx.add_point(lat, lon, attr=attr)
         log.info("[substation] indexed %d points", idx.point_count)
+        self._metadata("substation", source_url="https://www.openstreetmap.org/copyright",
+                       query_url=OVERPASS_URL, feature_count=idx.point_count,
+                       geometry_basis="OSM node or bounding-box center; not a surveyed connection point",
+                       geographic_coverage="CONUS, AK, HI, PR, VI; excludes GU, MP, AS",
+                       feature_coverage="nodes and ways; legacy snapshots exclude relations",
+                       search_radius_mi=MAX_DISTANCE_MI)
         return idx
 
     def _fetch_overpass_substations(
@@ -774,7 +951,14 @@ class InfraProximity(Connector):
         if use_cache and path.exists():
             log.info("cache hit  %s", path.name)
             try:
-                return json.loads(path.read_text()).get("elements", [])
+                data = json.loads(path.read_text())
+                if data.get("remark") or not isinstance(data.get("elements"), list):
+                    raise ValueError("Incomplete cached Overpass response")
+                stamp = (data.get("osm3s") or {}).get("timestamp_osm_base")
+                current = getattr(self, "source_metadata", {}).get("substation", {}).get("source_snapshot_at")
+                self._metadata("substation", source_snapshot_at=min(stamp, current) if stamp and current else stamp or current,
+                               snapshot_basis="osm_base_timestamp")
+                return data["elements"]
             except (OSError, json.JSONDecodeError):
                 log.warning("[substation] cache file %s unreadable; refetching", path.name)
 
@@ -791,6 +975,9 @@ class InfraProximity(Connector):
         )
         resp.raise_for_status()
         data = resp.json()
+        if data.get("remark") or not isinstance(data.get("elements"), list):
+            raise ValueError("Incomplete Overpass response; refusing cache write")
+        self._metadata("substation", source_snapshot_at=(data.get("osm3s") or {}).get("timestamp_osm_base"), snapshot_basis="osm_base_timestamp")
         path.write_text(json.dumps(data))
         log.info("cached     %s (%d elements)", path.name, len(data.get("elements", [])))
         return data.get("elements", [])
@@ -806,6 +993,10 @@ class InfraProximity(Connector):
         idx = PointIndex()
         offset = 0
         page_size = 2000
+        expected, oid = self._source_inventory(POWER_PLANT_QUERY_URL, "1=1") if not use_cache else (None, None)
+        fetched = 0
+        seen_ids: set[str] = set()
+        seen_pages: set[str] = set()
         while True:
             params = {
                 "where": "1=1",
@@ -824,23 +1015,37 @@ class InfraProximity(Connector):
                 "resultOffset": str(offset),
                 "f": "json",
             }
+            if oid:
+                params.update(outFields="*", orderByFields=oid)
             data = self.http_get_json(
                 POWER_PLANT_QUERY_URL, params,
                 use_cache=use_cache,
                 cache_key={"src": "power_plants", "offset": offset},
             )
-            features = data.get("features") or []
+            features = self._page_features(data)
+            digest = hashlib.sha256(json.dumps(features, sort_keys=True).encode()).hexdigest()
+            if features and digest in seen_pages:
+                raise ValueError("Infrastructure endpoint repeated a page; refusing incomplete inventory")
+            seen_pages.add(digest)
             log.info("[power_plant] page offset=%d got=%d", offset, len(features))
             if not features:
                 break
+            fetched += len(features)
             for feat in features:
+                if oid:
+                    source_id = str((feat.get("attributes") or {}).get(oid))
+                    if source_id == "None" or source_id in seen_ids:
+                        raise ValueError("Missing or repeated power plant ID")
+                    seen_ids.add(source_id)
                 geom = feat.get("geometry") or {}
                 lon = geom.get("x")
                 lat = geom.get("y")
                 if lat is None or lon is None:
                     continue
                 a = feat.get("attributes") or {}
+                asset_id, basis = self._asset_id(feat, "power_plant")
                 attr = {
+                    "asset_id": asset_id, "id_basis": basis,
                     "name": a.get("Plant_Name"),
                     "mw": a.get("Total_MW"),
                     "fuel": a.get("PrimSource"),
@@ -848,10 +1053,16 @@ class InfraProximity(Connector):
                     "status": None,
                 }
                 idx.add_point(lat, lon, attr=attr)
-            if len(features) < page_size:
+            if len(features) < page_size and not data.get("exceededTransferLimit"):
                 break
-            offset += page_size
+            offset += len(features)
         log.info("[power_plant] indexed %d points", idx.point_count)
+        if expected is not None and fetched != expected:
+            raise ValueError(f"Incomplete plants: expected {expected}, fetched {fetched}")
+        self._metadata("power_plant", source_url=POWER_PLANT_QUERY_URL.removesuffix("/query"),
+                       feature_count=fetched, source_snapshot_at=datetime.now(timezone.utc).isoformat() if not use_cache else None,
+                       capacity_basis="maximum_summer_capacity", count_reconciled=expected is not None,
+                       data_last_edit=getattr(self, "_inventory_dates", {}).get(POWER_PLANT_QUERY_URL))
         return idx
 
     # ---- per-site flood-zone ----
@@ -887,7 +1098,9 @@ class InfraProximity(Connector):
             use_cache=use_cache,
             cache_key=cache_key,
         )
-        features = data.get("features") or []
+        features = self._page_features(data)
+        if data.get("exceededTransferLimit"):
+            raise ValueError("Truncated FEMA point query")
         if not features:
             return (None, None)
         # FEMA polygons don't overlap; one feature is the expected case. If

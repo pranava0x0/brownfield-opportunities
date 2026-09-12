@@ -76,20 +76,7 @@ DISPATCHABLE_FUELS: frozenset[str] = frozenset({
     "OIL",                       # generic oil
 })
 
-# Public download URL (no auth required).  The April 2026 file is the most
-# current as of 2026-06-08 and covers all retirements through that date.
-# NOTE: the `/archive/xls/` path, NOT the primary `/xls/` one.  EIA retired the
-# primary path — it 301s to a 503 and serves a ~67 KB HTML error page, which
-# fails openpyxl with BadZipFile.  This shipped broken from ~June to 2026-08-25
-# and broke every refresh, local and CI alike.
-#
-# `scripts/build_planned_retirements.py` and `scripts/build_ap1000_sites.py` read
-# the same workbook under the same cache key and must keep the same URL — they
-# moved to /archive/ long before this connector did, which is the drift that hid
-# the bug.  `tests/test_eia_retired_plants.py` guards both facts.
-EIA_860M_URL = (
-    "https://www.eia.gov/electricity/data/eia860m/archive/xls/april_generator2026.xlsx"
-)
+from connectors.eia860m_source import EIA_860M_URL, EIA_CACHE_KEY, EIA_WORKBOOK_MONTH
 
 # Source-file column indices (0-based) in the "Retired" sheet.
 # Row 0 = title banner, row 1 = blank, row 2 = header — data starts row 3.
@@ -114,7 +101,7 @@ class EiaRetiredPlants(Connector):
     slug = "eia-retired-plants"
     source_label = (
         "EIA Form EIA-860M — Preliminary Monthly Electric Generator Inventory "
-        "(Retired sheet, April 2026)"
+        f"(Retired sheet, {EIA_WORKBOOK_MONTH}; preliminary)"
     )
     source_url = "https://www.eia.gov/electricity/data/eia860m/"
 
@@ -277,8 +264,9 @@ class EiaRetiredPlants(Connector):
             EIA_860M_URL,
             params={},
             use_cache=use_cache,
-            cache_key={"src": "eia_860m_retired"},
+            cache_key=EIA_CACHE_KEY,
         )
+        self.source_metadata = {"retired_plant": {"source_url": EIA_860M_URL, "source_period": EIA_WORKBOOK_MONTH, "status": "preliminary", "capacity_basis": "nameplate"}}
         workbook = openpyxl.load_workbook(io.BytesIO(raw), read_only=True)
         sheet = workbook["Retired"]
         rows = list(sheet.iter_rows(values_only=True))
@@ -420,6 +408,8 @@ class EiaRetiredPlants(Connector):
         resp.raise_for_status()
 
         data = resp.content
+        if not data.startswith(b"PK"):
+            raise ValueError("EIA returned non-XLSX content; refusing cache write")
         cache_path.write_bytes(data)
         log.info("[eia-retired-plants] cached %d bytes → %s", len(data), cache_path.name)
         return data

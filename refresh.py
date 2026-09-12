@@ -158,6 +158,8 @@ def _run_one(
     log.info("=== %s ===", slug)
 
     records = inst.fetch_records(args, use_cache=use_cache)
+    if hasattr(inst, "compact_evidence"):
+        records = inst.compact_evidence(records)
     if args.fetch_only:
         log.info("--fetch-only: skipping output write (%d records)", len(records))
         return 0, records, inst.source_label
@@ -201,6 +203,7 @@ def _run_one(
     payload = Payload(
         generated_at=generated_at,
         source=inst.source_label,
+        source_metadata=getattr(inst, "source_metadata", None),
         source_url=inst.source_url,
         limit=getattr(args, "limit", None),
         count=len(records),

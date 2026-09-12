@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+import math
 from typing import Any
 
 from connectors.base import Connector
@@ -180,7 +181,10 @@ class EpaRedev(Connector):
         acreage: float | None = None
         if raw_acres is not None:
             try:
-                acreage = round(float(raw_acres), 1)
+                candidate = round(float(raw_acres), 1)
+                # Zero is an unknown-area sentinel, not a measured empty parcel.
+                if math.isfinite(candidate) and candidate > 0:
+                    acreage = candidate
             except (TypeError, ValueError):
                 pass
 

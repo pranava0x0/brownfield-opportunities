@@ -69,5 +69,24 @@ def test_eia_workbook_month_reads_the_connector_url_not_generated_at():
     assert month is not None
     assert month.day == 1
     # Must match the month named in the connector source, not any file date.
-    src = (ROOT / "connectors" / "eia_retired_plants.py").read_text()
+    from connectors.eia860m_source import EIA_860M_URL
+    src = EIA_860M_URL
     assert f"{mod._EIA_MONTHS[month.month - 1]}_generator{month.year}.xlsx" in src
+
+
+def test_current_workbook_discovery_uses_published_href(monkeypatch):
+    from connectors.eia860m_source import published_workbooks
+    links = published_workbooks('<a href="xls/july_generator2026.xlsx">July</a><a href="archive/xls/june_generator2026.xlsx">June</a><a href="https://evil.test/xls/august_generator2026.xlsx">bad</a>')
+    assert links[0] == (dt.date(2026, 7, 1), "https://www.eia.gov/electricity/data/eia860m/xls/july_generator2026.xlsx")
+    assert len(links) == 2
+
+
+def test_infra_generated_date_cannot_hide_unknown_snapshot(tmp_path, monkeypatch):
+    import json
+    mod = _load()
+    monkeypatch.setattr(mod, "DATA_DIR", tmp_path)
+    (tmp_path / "infra-proximity.json").write_text(json.dumps({"generated_at": "2099-01-01T00:00:00Z", "source_metadata": {}}))
+    monkeypatch.setattr(mod, "arcgis_last_edit", lambda u: dt.date(2023, 9, 5))
+    result = mod.check_source({"name":"line", "file":"infra-proximity.json", "kind":"arcgis", "url":"https://example.test/0"}, dt.date.today())
+    assert result["ours"] is None
+    assert result["verdict"] != "current"

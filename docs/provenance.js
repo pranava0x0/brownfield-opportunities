@@ -305,10 +305,9 @@
       publisher: "OpenStreetMap contributors",
       dataset: "power=substation (via Overpass API)",
       file: D.INFRA, code: "connectors/infra_proximity.py",
-      derivation: "Nearest OSM substation node/way centroid. Voltage is the "
-        + "OSM `voltage` tag converted from volts; values under 1 kV are "
-        + "withheld as distribution gear. HIFLD's substation layer went "
-        + "private in 2025, so OSM is the remaining public national source.",
+      derivation: "Nearest OSM node or way bounding-box center within the physical search radius. "
+        + "Voltage belongs to this asset; observed low voltage is retained. Equipment role distinguishes transmission, distribution and traction where tagged. "
+        + "OSM coverage is incomplete and does not establish service or spare capacity.",
       verify: (s) => (s.lat == null ? null :
         `https://www.openstreetmap.org/#map=13/${(s.lat_real ?? s.lat).toFixed(5)}/${(s.lon_real ?? s.lon).toFixed(5)}`),
       verifyLabel: "OpenStreetMap at this location",
@@ -319,7 +318,7 @@
       dataset: "Power Plants in the US",
       file: D.INFRA, code: "connectors/infra_proximity.py",
       derivation: "Nearest ACTIVE generating plant. HIFLD's layer contains no "
-        + "retired plants — those come from EIA-860M separately.",
+        + "retired plants — those come from EIA-860M separately. Reported MW is maximum summer capacity, not nameplate, spare capacity or a service commitment.",
       verify: (s) => bboxQuery(ARC.powerPlant, s, radiusFor(s, "power_plant_mi", 8)),
       verifyLabel: "HIFLD power plants near this site",
     },
@@ -422,22 +421,47 @@
       verifyLabel: "MARAD shipyard data & reports (context; not per-row source)",
     },
     water_gage_mi: {
-      group: "Infrastructure", label: "Surface water",
+      group: "Infrastructure", label: "Streamgage context",
       publisher: "US Geological Survey",
       dataset: "NWIS active streamflow gages with a published mean annual discharge",
       file: D.WATER_PROXIMITY, code: "connectors/water_proximity.py",
-      derivation: "Nearest active USGS streamgage within 50 mi, and the mean of "
-        + "that gage's annual mean discharges over its full period of record. "
-        + "The flow figure is a LONG-RUN AVERAGE: a withdrawal permit is "
-        + "written against a low-flow statistic (7Q10) that is routinely an "
-        + "order of magnitude lower, so this screens a site and never clears "
-        + "one. The distance is to a GAGE, not to water — gages sit tens of "
-        + "miles apart on a large river.",
+      derivation: "Nearest qualifying active USGS streamgage within 50 mi. Flow is the mean of annual means across its recorded years. "
+        + "Record start, end and count are preserved, including gaps. No basin connection, low-flow reliability, intake or water allocation is established. "
+        + "Distance is to a monitoring gage; unobserved regions and failed queries remain unassessed.",
       url: "https://waterdata.usgs.gov/monitoring-location/",
       verify: (s) => s.water_gage_id
-        ? `https://waterdata.usgs.gov/monitoring-location/${encodeURIComponent(s.water_gage_id)}/`
+        ? `https://waterdata.usgs.gov/monitoring-location/USGS-${encodeURIComponent(String(s.water_gage_id).replace(/^USGS-/, ""))}/`
         : null,
       verifyLabel: "This site's nearest USGS streamgage",
+    },
+    water_gage_record_years: {
+      group: "Infrastructure", label: "Annual flow observations", publisher: "US Geological Survey",
+      dataset: "Annual discharge statistics", file: D.WATER_PROXIMITY, code: "scripts/build_streamgages_overlay.py",
+      derivation: "Count and first/last year of returned annual means. Gaps are possible; this is not a continuous low-flow record.",
+      verify: (s) => s.water_gage_source_url || null, verifyLabel: "USGS monitoring location",
+    },
+    water_gage_record_start_year: {
+      group: "Infrastructure", label: "Flow record starts", publisher: "US Geological Survey",
+      dataset: "Annual discharge statistics", file: D.WATER_PROXIMITY, code: "scripts/build_streamgages_overlay.py",
+      derivation: "Count and first/last year of returned annual means. Gaps are possible; this is not a continuous low-flow record.",
+      verify: (s) => s.water_gage_source_url || null, verifyLabel: "USGS monitoring location",
+    },
+    water_gage_record_end_year: {
+      group: "Infrastructure", label: "Flow record ends", publisher: "US Geological Survey",
+      dataset: "Annual discharge statistics", file: D.WATER_PROXIMITY, code: "scripts/build_streamgages_overlay.py",
+      derivation: "Count and first/last year of returned annual means. Gaps are possible; this is not a continuous low-flow record.",
+      verify: (s) => s.water_gage_source_url || null, verifyLabel: "USGS monitoring location",
+    },
+    water_evidence_status: {
+      group: "Infrastructure", label: "Water coverage status", publisher: "This project (USGS source coverage)",
+      dataset: "Streamgage query completeness", file: D.WATER_PROXIMITY, code: "connectors/water_proximity.py",
+      derivation: "Distinguishes a matched monitoring gage, no qualifying match, unsupported region and incomplete source query. It never measures available supply.",
+    },
+    substation_role: {
+      group: "Infrastructure", label: "Substation role", publisher: "OpenStreetMap contributors",
+      dataset: "power=substation tags", file: D.INFRA, code: "connectors/infra_proximity.py",
+      derivation: "Reported equipment role on the matched OSM feature. An unspecified role stays unknown; traction and distribution assets do not imply transmission access.",
+      url: "https://wiki.openstreetmap.org/wiki/Key:substation",
     },
     nickel_anchor_mi: {
       group: "Infrastructure", label: "Nickel supply chain",

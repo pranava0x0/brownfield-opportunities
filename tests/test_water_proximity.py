@@ -194,3 +194,130 @@ def test_ring_budget_grows_with_latitude(connector):
     from connectors.water_proximity import _rings_for_latitude
     assert _rings_for_latitude(30.0) >= 8
     assert _rings_for_latitude(71.0) > _rings_for_latitude(30.0)
+
+
+def test_cache_replay_retains_usgs_snapshot_date_and_record_period(tmp_path, monkeypatch):
+    mod = _load_builder()
+    monkeypatch.setattr(mod, 'OUT_PATH', tmp_path / 'streamgages.json')
+    inventory = '# retrieved: 2026-01-02 23:30:00 -04:00\n' + RDB
+    inventory = inventory.replace('station_nm\t', 'state_cd\tstation_nm\t').replace('USGS\t04001000\t', 'USGS\t04001000\t26\t').replace('USGS\t04040500\t', 'USGS\t04040500\t26\t')
+    stat = ('# retrieved: 2026-01-03 01:00:00 -04:00\n'
+            'site_no\tyear_nu\tmean_va\n'
+            '04001000\t2001\t10\n04001000\t2010\t30\n'
+            '04040500\t2000\t100\n')
+    monkeypatch.setattr(mod, '_cached', lambda key, url, refresh: inventory if key.startswith('sites:') else stat)
+    assert mod.build(['MI'], False) == 0
+    rows = json.loads(mod.OUT_PATH.read_text())['sites']
+    row = next(r for r in rows if r['gage_id'] == '04001000')
+    assert row['verified_at'] == '2026-01-03'
+    assert row['source_retrieved_at'] == '2026-01-03T05:00:00Z'
+    assert (row['record_start_year'], row['record_end_year'], row['record_years']) == (2001, 2010, 2)
+    assert row['state'] == 'MI'
+    assert row['mean_flow_cfs'] == 20
+
+
+def test_failed_statistics_preserve_prior_region_and_report_incomplete(tmp_path, monkeypatch):
+    mod = _load_builder()
+    out = tmp_path / 'streamgages.json'
+    prior = {'gage_id': '04001000', 'state': 'MI', 'mean_flow_cfs': 77}
+    out.write_text(json.dumps({'sites': [prior]}))
+    monkeypatch.setattr(mod, 'OUT_PATH', out)
+    monkeypatch.setattr(mod, '_cached', lambda key, url, refresh: RDB if key.startswith('sites:') else None)
+    assert mod.build(['MI'], False) == 1
+    payload = json.loads(out.read_text())
+    assert payload['sites'] == [prior]
+    assert payload['coverage']['incomplete_regions'] == ['MI']
+    assert payload['coverage']['failed_stat_batches'] == 1
+
+
+def test_successful_region_replacement_retires_old_gages(tmp_path, monkeypatch):
+    mod = _load_builder()
+    out = tmp_path / 'streamgages.json'
+    out.write_text(json.dumps({'sites': [
+        {'gage_id': '99999999', 'state': 'MI'}, {'gage_id': '88888888', 'state': 'CA'}]}))
+    monkeypatch.setattr(mod, 'OUT_PATH', out)
+    monkeypatch.setattr(mod, '_fetch_sites', lambda st, r: [
+        {'site_no': '04001000', 'station_nm': 'NEW', 'state_cd': '26',
+         'dec_lat_va': '46', 'dec_long_va': '-88'}])
+    monkeypatch.setattr(mod, '_fetch_flows', lambda ids, r: {'04001000': [10]})
+    assert mod.build(['MI'], False) == 0
+    assert {r['gage_id'] for r in json.loads(out.read_text())['sites']} == {'04001000', '88888888'}
+
+
+def test_request_scope_is_not_geographic_state_and_missing_dates_stay_unknown(tmp_path, monkeypatch):
+    mod = _load_builder()
+    monkeypatch.setattr(mod, 'OUT_PATH', tmp_path / 'streamgages.json')
+    monkeypatch.setattr(mod, '_fetch_sites', lambda st, r: [
+        {'site_no': '12355000', 'station_nm': 'CANADA', 'state_cd': '08',
+         'country_cd': 'CA', 'dec_lat_va': '49', 'dec_long_va': '-114'}])
+    monkeypatch.setattr(mod, '_fetch_flows', lambda ids, r: {'12355000': [10]})
+    assert mod.build(['AK'], False) == 0
+    row = json.loads(mod.OUT_PATH.read_text())['sites'][0]
+    assert row.get('state') is None
+    assert row['requested_region'] == 'AK'
+    assert row.get('verified_at') is None
+
+
+def test_unsupported_region_is_not_negative_water_evidence(connector, monkeypatch):
+    monkeypatch.setattr(connector, '_load_sites', lambda: iter([
+        {'id': 'VI1', 'program': 'fuds', 'lat': 46.5, 'lon': -88.7, 'state': 'VI'}]))
+    row = connector.fetch_records(argparse.Namespace(limit=None), True)[0]
+    assert row['water_evidence_status'] == 'unsupported_region'
+    assert 'water_flow_cfs' not in row
+
+
+def test_join_carries_statistic_period_and_snapshot(connector):
+    path = connector._data_dir() / 'streamgages.json'
+    payload = json.loads(path.read_text())
+    payload['sites'][0].update(record_years=3, record_start_year=2000, record_end_year=2002,
+                              source_retrieved_at='2026-01-02T00:00:00Z',
+                              source_url='https://waterdata.usgs.gov/monitoring-location/USGS-04040500/')
+    path.write_text(json.dumps(payload))
+    row = connector.fetch_records(argparse.Namespace(limit=None), True)[0]
+    assert connector.source_metadata['statistic'] == 'mean_of_annual_means'
+    metadata = connector.source_metadata['gages_by_id'][row['water_gage_id']]
+    assert row['water_evidence_status'] == 'matched_context'
+    assert metadata['water_gage_record_years'] == 3
+    assert metadata['water_gage_record_end_year'] == 2002
+    assert metadata['water_gage_source_retrieved_at'] == '2026-01-02T00:00:00Z'
+
+
+def test_signed_annual_flows_and_duplicate_years_are_preserved(monkeypatch):
+    mod = _load_builder()
+    # Reversing/tidal flows can be negative. Dropping them inflates the mean.
+    rdb = 'site_no\tyear_nu\tmean_va\n04001000\t2000\t-10\n04001000\t2000\t-10\n04001000\t2001\t30\n'
+    monkeypatch.setattr(mod, '_cached', lambda *a: rdb)
+    values = mod._fetch_flows(['04001000'], False)['04001000']
+    assert values == [-10, 30]
+    assert mod._FLOW_METADATA['04001000']['record_start_year'] == 2000
+
+
+def test_cache_only_never_requests_missing_snapshot(tmp_path, monkeypatch):
+    mod = _load_builder()
+    monkeypatch.setattr(mod, 'CACHE_DIR', tmp_path)
+    monkeypatch.setattr(mod, '_CACHE_ONLY', True)
+    def unexpected_get(url):
+        raise AssertionError('cache-only accessed the network')
+    monkeypatch.setattr(mod, '_get', unexpected_get)
+    assert mod._cached('missing', 'https://example.org/', False) is None
+
+
+def test_invalid_inventory_geometry_preserves_prior_scope(tmp_path, monkeypatch):
+    mod = _load_builder()
+    out = tmp_path / 'streamgages.json'
+    prior = {'gage_id': '04001000', 'state': 'MI'}
+    out.write_text(json.dumps({'sites': [prior]}))
+    monkeypatch.setattr(mod, 'OUT_PATH', out)
+    monkeypatch.setattr(mod, '_fetch_sites', lambda st, r: [
+        {'site_no': '04001000', 'dec_lat_va': 'NaN', 'dec_long_va': '-88'}])
+    monkeypatch.setattr(mod, '_fetch_flows', lambda *a: {})
+    assert mod.build(['MI'], False) == 1
+    assert json.loads(out.read_text())['sites'] == [prior]
+
+
+def test_missing_only_keeps_shared_gage_provenance_when_all_ids_exist(connector, monkeypatch):
+    monkeypatch.setattr(connector, 'existing_ids', lambda: {'A1', 'A2', 'A3'})
+    monkeypatch.setattr(connector, 'existing_records', lambda: [{'id': 'A1', 'program': 'superfund'}])
+    result = connector.fetch_records(argparse.Namespace(limit=None, missing_only=True), True)
+    assert result
+    assert '04040500' in connector.source_metadata['gages_by_id']

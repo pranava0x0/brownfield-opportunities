@@ -24,6 +24,8 @@ Run:  python3 scripts/build_nuclear_civilian_sites.py
 """
 import json
 import math
+import argparse
+from datetime import datetime, timezone
 from pathlib import Path
 
 DATA = Path(__file__).resolve().parent.parent / "docs" / "data"
@@ -1108,6 +1110,42 @@ def _find_nearby_brownfields(nuclear_lat, nuclear_lon, brownfields, max_results=
     return nearby[:max_results]
 
 
+def build_proximity_records(nuclear_sites: list, brownfields: list) -> list:
+    records = []
+    for site in nuclear_sites:
+        lat, lon = site.get("lat"), site.get("lon")
+        if lat is None or lon is None:
+            continue
+        nearby = _find_nearby_brownfields(lat, lon, brownfields)
+        records.append({
+            "nuclear_site_id": site["id"], "nuclear_site_name": site["name"],
+            "state": site["state"], "lat": lat, "lon": lon,
+            "inl_category": site["inl_category"],
+            "nearby_brownfields": nearby, "nearby_count": len(nearby),
+        })
+    return records
+
+
+def rebuild_proximity_only(data: Path = DATA) -> dict:
+    """Recompute geography without restamping the curated source catalog."""
+    catalog = json.loads((data / "nuclear-civilian-sites.json").read_text())
+    core = json.loads((data / "sites.json").read_text())
+    brownfields = [s for s in core["sites"] if s.get("lat") is not None and s.get("lon") is not None]
+    path = data / "nuclear-brownfield-proximity.json"
+    payload = json.loads(path.read_text())
+    # Keep the join compact; do not copy every enriched core field.
+    fields = ("id", "name", "city", "state", "lat", "lon", "program", "npl_status", "acreage")
+    payload["records"] = build_proximity_records(catalog["sites"], [{k: s.get(k) for k in fields} for s in brownfields])
+    payload["generated_at"] = datetime.now(timezone.utc).isoformat()
+    payload["source_metadata"] = {
+        "nuclear_catalog_generated_at": catalog.get("generated_at"),
+        "brownfield_generated_at": core.get("generated_at"),
+        "method": "Straight-line great-circle distance to current Superfund reference coordinates; no facility or parcel identity implied.",
+    }
+    path.write_text(json.dumps(payload, indent=2))
+    return payload
+
+
 def main():
     print("Loading brownfields from sites.json...", flush=True)
     brownfields = _load_brownfields()
@@ -1190,4 +1228,9 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--proximity-only", action="store_true", help="Recompute join using existing catalog and current core; preserve catalog source date")
+    if parser.parse_args().proximity_only:
+        rebuild_proximity_only()
+    else:
+        main()

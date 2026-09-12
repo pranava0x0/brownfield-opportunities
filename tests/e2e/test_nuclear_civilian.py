@@ -58,6 +58,8 @@ def test_nuclear_overlay_loads(page, base_url):
     """The ⚛ overlay lazy-loads exactly one marker per promising-tier site —
     the yellow / red tiers are tracked in the data but stay off the map."""
     _ready(page, base_url)
+    # Overlay hydration starts when the user requests Map.
+    page.locator("#tab-map").click()
     data = _dataset(page)
     assert data["promising"] > 0 and data["remainder"] > 0, data
     page.wait_for_function(
@@ -75,6 +77,8 @@ def test_nuclear_legend_row_appears(page, base_url):
     """One legend row for the whole overlay — the readiness tier lives in the
     popup, not in three sub-rows."""
     _ready(page, base_url)
+    # Overlay hydration starts when the user requests Map.
+    page.locator("#tab-map").click()
     page.wait_for_function(
         "() => document.querySelectorAll('.nuclear-site-icon').length > 0",
         timeout=15_000,
@@ -163,7 +167,7 @@ def test_load_failure_shows_error_state_with_working_retry(page: Page, base_url:
     _ready(page, base_url)  # allSettled tolerates the abort; app still readies
 
     page.click("#tab-ap1000")
-    err = page.locator("#nuclear-civilian p.muted")
+    err = page.locator("#nuclear-civilian p.muted").filter(has_text="Couldn’t load")
     err.wait_for(state="visible", timeout=10_000)
     assert "Couldn’t load" in err.text_content()
     retry = page.locator("#nuke-civ-retry")
@@ -187,7 +191,7 @@ def test_missing_primary_dataset_404_shows_error_not_forever_loading(page: Page,
     )
     _ready(page, base_url)
     page.click("#tab-ap1000")
-    err = page.locator("#nuclear-civilian p.muted")
+    err = page.locator("#nuclear-civilian p.muted").filter(has_text="Couldn’t load")
     err.wait_for(state="visible", timeout=10_000)
     assert "Couldn’t load" in err.text_content()
     assert page.locator("#nuke-civ-retry").count() == 1
@@ -241,7 +245,7 @@ def test_empty_primary_dataset_shows_empty_state_not_loading(page: Page, base_ur
     )
     _ready(page, base_url)
     page.click("#tab-ap1000")
-    msg = page.locator("#nuclear-civilian p.muted")
+    msg = page.locator("#nuclear-civilian p.muted").filter(has_text="No civilian nuclear pipeline data available")
     msg.wait_for(state="visible", timeout=10_000)
     assert "No civilian nuclear pipeline data available" in msg.text_content()
     assert page.locator("#nuke-civ-retry").count() == 0

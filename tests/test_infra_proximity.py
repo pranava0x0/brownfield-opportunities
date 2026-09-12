@@ -266,7 +266,9 @@ def test_flood_seed_and_budget(tmp_path, monkeypatch):
     ])
     # Prior output: S1 already has a flood determination.
     _write_existing_output(tmp_path, [
-        {"id": "S1", "program": "superfund", "flood_zone": "AE", "in_sfha": True},
+        { "id": "S1", "program": "superfund", "flood_zone": "AE", "in_sfha": True,
+          "flood_assessed_lat": 40.0, "flood_assessed_lon": -74.0,
+          "flood_source_observed_at": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat()},
         {"id": "S2", "program": "superfund"},  # unpopulated
     ])
 
@@ -544,12 +546,11 @@ def test_extract_attr_voltage_field_takes_precedence():
     assert kv == 230.0
 
 
-def test_extract_attr_falls_back_to_volt_class():
-    """When VOLTAGE is HIFLD's null sentinel, map VOLT_CLASS to a kV
-    floor so the ≥230 kV filter is conservatively strict."""
+def test_extract_attr_keeps_class_separate_from_numeric_voltage():
+    """A source class is not silently converted into a measured voltage."""
     from connectors.infra_proximity import InfraProximity
     kv = InfraProximity._extract_attr("transmission", {"VOLTAGE": -999999, "VOLT_CLASS": "345"})
-    assert kv == 345.0
+    assert kv is None
 
 
 def test_extract_attr_returns_none_when_both_missing():
@@ -710,7 +711,9 @@ def test_build_substation_index_attaches_kv_attr(tmp_path, monkeypatch):
     assert hit is not None
     d, attr = hit
     assert d == pytest.approx(0.0, abs=0.001)
-    assert attr == {"kv": 230.0}
+    assert attr["kv"] == 230.0
+    assert attr["voltage_basis"] == "reported"
+    assert attr["role"] == "unspecified"
 
 
 def test_build_substation_index_skips_missing_geometry(tmp_path, monkeypatch):
@@ -969,3 +972,138 @@ def test_schema_new_fields_excluded_when_none():
     for f in ("substation_mi", "substation_kv", "power_plant_mi",
               "power_plant_mw", "power_plant_fuel", "flood_zone", "in_sfha"):
         assert f not in dumped
+
+
+@pytest.mark.parametrize("voltage_class", ["UNDER 100", "100-161", "220-287", "735 AND ABOVE", "DC"])
+def test_voltage_ranges_and_dc_never_become_precise_voltage(voltage_class):
+    assert InfraProximity._extract_attr("transmission", {"VOLT_CLASS": voltage_class}) is None
+
+
+def test_short_transfer_limited_page_continues(tmp_path, monkeypatch):
+    inst = InfraProximity(tmp_path)
+    offsets = []
+    def get(url, params, **kwargs):
+        offsets.append(params["resultOffset"])
+        if len(offsets) == 1:
+            return {"features": [_polyline_feature([[-74, 40], [-74, 41]])], "exceededTransferLimit": True}
+        return {"features": [_polyline_feature([[-75, 40], [-75, 41]])]}
+    monkeypatch.setattr(inst, "http_get_json", get)
+    assert inst._build_index("rail", LAYERS["rail"], True).segment_count == 2
+    assert offsets == ["0", "1"]
+
+
+@pytest.mark.parametrize("response", [{"error": {"code": 500}}, {}, {"features": [], "exceededTransferLimit": True}])
+def test_malformed_or_stalled_arcgis_pages_fail(response):
+    with pytest.raises((RuntimeError, ValueError)):
+        InfraProximity._page_features(response)
+
+
+def test_substation_roles_ids_dedup_and_gas_exclusion(tmp_path, monkeypatch):
+    inst = InfraProximity(tmp_path)
+    monkeypatch.setattr(inst, "_fetch_overpass_substations", lambda *a, **kw: [
+        {"type": "node", "id": 1, "lat": 40, "lon": -74, "tags": {"substation": "traction", "voltage": "25000"}},
+        {"type": "node", "id": 2, "lat": 40, "lon": -74, "tags": {"substation": "gas"}},
+    ])
+    idx = inst._build_substation_index(True)
+    assert idx.point_count == 1
+    attr = idx.nearest_with_attr(40, -74)[1]
+    assert attr["role"] == "traction" and attr["asset_id"] == "osm:node/1"
+
+
+def test_cached_overpass_timeout_is_not_empty_success(tmp_path):
+    inst = InfraProximity(tmp_path)
+    bbox = (38, -100, 50, -65)
+    inst.cache_path({"src": "overpass_substations", "bbox": list(bbox)}).write_text(json.dumps({"elements": [], "remark": "runtime error: timeout"}))
+    with pytest.raises(ValueError, match="Incomplete cached"):
+        inst._fetch_overpass_substations(bbox, True)
+
+
+def test_fresh_arcgis_count_mismatch_rejects_output(tmp_path, monkeypatch):
+    inst = InfraProximity(tmp_path)
+    monkeypatch.setattr(inst, "_source_inventory", lambda *a: (2, "OID"))
+    monkeypatch.setattr(inst, "http_get_json", lambda *a, **kw: {"features": [{"attributes": {"OID": 1}, "geometry": {"paths": [[[-74,40],[-74,41]]]}}]})
+    with pytest.raises(ValueError, match="Incomplete rail"):
+        inst._build_index("rail", LAYERS["rail"], False)
+
+
+def test_partial_run_preserves_previous_layer_with_warning(tmp_path, monkeypatch):
+    monkeypatch.setattr(InfraProximity, "_data_dir", staticmethod(lambda: tmp_path))
+    monkeypatch.setattr(InfraProximity, "OUTPUT_DIR", tmp_path)
+    _write_program_file(tmp_path, "superfund-npl.json", [{"id": "S1", "program": "superfund", "lat": 40, "lon": -74}])
+    _write_existing_output(tmp_path, [{"id": "S1", "program": "superfund", "substation_mi": 2.0}])
+    inst = InfraProximity(tmp_path / "cache")
+    monkeypatch.setattr(inst, "http_get_json", lambda *a, **kw: {"features": [_polyline_feature([[-74,40],[-74,41]])]})
+    result = inst.fetch_records(_make_args(), True)[0]
+    assert result["substation_mi"] == 2.0
+    assert result["infra_evidence"]["substation"]["status"] == "legacy_coordinate_unverified"
+
+
+@pytest.mark.parametrize("case", ["moved", "old", "unknown_date", "future"])
+def test_flood_seed_requires_current_coordinate_and_recent_observation(tmp_path, monkeypatch, case):
+    from datetime import datetime, timezone
+    monkeypatch.setattr(InfraProximity, "_data_dir", staticmethod(lambda: tmp_path))
+    monkeypatch.setattr(InfraProximity, "OUTPUT_DIR", tmp_path)
+    _write_program_file(tmp_path, "superfund-npl.json", [{"id":"S1", "program":"superfund", "lat":40, "lon":-74}])
+    previous = {"id":"S1", "program":"superfund", "flood_zone":"AE", "in_sfha":True,
+                "flood_assessed_lat": 41 if case == "moved" else 40, "flood_assessed_lon": -74,
+                "flood_source_observed_at": datetime.now(timezone.utc).isoformat()}
+    if case == "old":
+        previous["flood_source_observed_at"] = "2000-01-01T00:00:00Z"
+    if case == "unknown_date":
+        previous.pop("flood_source_observed_at")
+    if case == "future":
+        previous["flood_source_observed_at"] = "2099-01-01T00:00:00Z"
+    _write_existing_output(tmp_path, [previous])
+    inst = InfraProximity(tmp_path / "cache")
+    calls = []
+    def query(lat, lon, use_cache):
+        calls.append((lat, lon))
+        return "X", False
+    monkeypatch.setattr(inst, "_query_flood_zone", query)
+    flags = _make_args(infra_skip_transmission=True, infra_skip_highway=True, infra_skip_rail=True,
+                       infra_skip_gas_pipeline=True, infra_skip_flood_zone=False)
+    result = inst.fetch_records(flags, True)[0]
+    assert calls == [(40, -74)]
+    assert result["flood_zone"] == "X" and result["in_sfha"] is False
+
+
+def test_unsupported_region_does_not_borrow_substation(tmp_path, monkeypatch):
+    from connectors.spatial import PointIndex
+    monkeypatch.setattr(InfraProximity, "_data_dir", staticmethod(lambda: tmp_path))
+    _write_program_file(tmp_path, "superfund-npl.json", [{"id":"GU", "program":"superfund", "lat":13.5, "lon":144.8}])
+    inst = InfraProximity(tmp_path / "cache")
+    index = PointIndex()
+    index.add_point(13.5, 144.8, attr={"kv":115, "role":"transmission"})
+    monkeypatch.setattr(inst, "_build_substation_index", lambda **kw: index)
+    flags = _make_args(infra_skip_transmission=True, infra_skip_highway=True, infra_skip_rail=True,
+                       infra_skip_gas_pipeline=True, infra_skip_substation=False)
+    result = inst.fetch_records(flags, True)[0]
+    assert result["infra_evidence"]["substation"]["status"] == "unsupported_region"
+    assert "substation_mi" not in result
+
+
+
+def test_asset_provenance_compaction_is_lossless_and_idempotent(tmp_path):
+    inst = InfraProximity(tmp_path)
+    rows = [
+        {"id": "A", "transmission_asset_id": "line:1", "infra_evidence": {"transmission": {"status":"matched_context", "asset_id":"line:1", "voltage_basis":"reported", "asset_status":"IN SERVICE"}}},
+        {"id": "B", "transmission_asset_id": "line:1", "infra_evidence": {"transmission": {"status":"matched_context", "asset_id":"line:1", "voltage_basis":"reported", "asset_status":"IN SERVICE"}, "substation":{"status":"unsupported_region"}}},
+    ]
+    inst.compact_evidence(rows)
+    assets = inst.source_metadata["transmission"]["assets_by_id"]
+    assert len(assets) == 1
+    assert assets["line:1"]["asset_status"] == "IN SERVICE"
+    assert inst.source_metadata["transmission"]["status"] == "matched_context"
+    assert rows[1]["infra_evidence"]["substation"]["status"] == "unsupported_region"
+    before = json.dumps([rows, inst.source_metadata], sort_keys=True)
+    inst.compact_evidence(rows)
+    assert json.dumps([rows, inst.source_metadata], sort_keys=True) == before
+
+
+
+def test_repeated_arcgis_page_cannot_publish_partial_inventory(tmp_path, monkeypatch):
+    inst = InfraProximity(tmp_path)
+    response = {"features": [_polyline_feature([[-74,40],[-74,41]])], "exceededTransferLimit": True}
+    monkeypatch.setattr(inst, "http_get_json", lambda *a, **kw: response)
+    with pytest.raises(ValueError, match="repeated a page"):
+        inst._build_index("rail", LAYERS["rail"], True)

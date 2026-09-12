@@ -509,3 +509,47 @@ def test_polygon_index_count_grows_with_adds():
     assert idx.polygon_count == 1
     idx.add_polygon(_SQUARE, attr="y")
     assert idx.polygon_count == 2
+
+
+@pytest.mark.parametrize("latitude", [60.0, 70.0])
+@pytest.mark.parametrize("index_class", [PointIndex, SegmentIndex])
+def test_physical_radius_covers_alaska_longitude(latitude, index_class):
+    """An asset 79 miles east must not disappear after eight narrow cells."""
+    delta = 79 * 1609.344 / (111320 * math.cos(math.radians(latitude)))
+    idx = index_class()
+    if isinstance(idx, PointIndex):
+        idx.add_point(latitude, -150 + delta, attr="target")
+    else:
+        idx.add_polyline([[-150 + delta, latitude], [-150 + delta, latitude + .01]], attr="target")
+    hit = idx.nearest_with_attr(latitude, -150)
+    assert hit is not None and hit[0] == pytest.approx(79, abs=.1)
+    assert hit[1] == "target"
+
+
+@pytest.mark.parametrize("index_class", [PointIndex, SegmentIndex])
+def test_physical_radius_does_not_emit_asset_beyond_limit(index_class):
+    idx = index_class()
+    if isinstance(idx, PointIndex):
+        idx.add_point(62, -150)
+    else:
+        idx.add_polyline([[-150, 62], [-150, 63]])
+    assert idx.nearest_with_attr(60, -150) is None
+
+
+@pytest.mark.parametrize("index_class", [PointIndex, SegmentIndex])
+def test_nearest_crosses_antimeridian(index_class):
+    idx = index_class()
+    if isinstance(idx, PointIndex):
+        idx.add_point(60, -179.8, attr="near")
+    else:
+        idx.add_polyline([[-179.8,60],[-179.8,60.1]], attr="near")
+    hit = idx.nearest_with_attr(60,179.8)
+    assert hit and hit[0] == pytest.approx(13.83,abs=.05)
+
+
+def test_crossing_polyline_does_not_create_world_spanning_segment():
+    idx = SegmentIndex()
+    idx.add_polyline([[179.8,60],[-179.8,60]], attr="crossing")
+    assert idx.segment_count == 2
+    assert idx.nearest_distance_mi(60, 180) == pytest.approx(0,abs=1e-6)
+    assert idx.nearest_distance_mi(60, 0) is None

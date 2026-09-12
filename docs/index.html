@@ -6,9 +6,8 @@
 <meta name="theme-color" content="#f1f2f4" id="theme-color-meta">
 <meta name="color-scheme" content="light dark">
 <title>Brownfield Opportunities — Superfund, Brownfield, FUDS &amp; BRAC Atlas</title>
-<meta name="description" content="An interactive atlas of every federally-tracked contaminated site in America: ~47,000 EPA Superfund (NPL), ACRES brownfield, DOD FUDS, and BRAC properties — with infrastructure-proximity scoring for data-center reuse.">
+<meta name="description" content="An interactive atlas of every federally-tracked contaminated site in America: ~47,000 EPA Superfund (NPL), ACRES brownfield, DOD FUDS, and BRAC properties — with separate grid, fiber, water, land and logistics evidence for reuse screening.">
 <link rel="preload" href="data/sites.json" as="fetch" crossorigin>
-<link rel="preload" href="data/us-states.json" as="fetch" crossorigin>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
       integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
       crossorigin="">
@@ -65,9 +64,9 @@
   </div>
   <div class="topbar-row topbar-row-tabs">
     <div class="tabs" role="tablist" aria-label="View">
-      <button id="tab-map" class="tab active" role="tab" aria-selected="true" aria-controls="view-map">Map</button>
+      <button id="tab-candidates" class="tab active" role="tab" aria-selected="true" aria-controls="view-candidates">Explore</button>
+      <button id="tab-map" class="tab" role="tab" aria-selected="false" aria-controls="view-map">Map</button>
       <button id="tab-table" class="tab" role="tab" aria-selected="false" aria-controls="view-table">Table</button>
-      <button id="tab-candidates" class="tab" role="tab" aria-selected="false" aria-controls="view-candidates">Rankings</button>
       <button id="tab-retired" class="tab" role="tab" aria-selected="false" aria-controls="view-retired">Retired Sites</button>
       <button id="tab-coal" class="tab" role="tab" aria-selected="false" aria-controls="view-coal">Coal Reinvestment</button>
       <button id="tab-ap1000" class="tab" role="tab" aria-selected="false" aria-controls="view-ap1000">Nuclear Siting</button>
@@ -75,7 +74,7 @@
       <button id="tab-hanford" class="tab" role="tab" aria-selected="false" aria-controls="view-hanford">DOE Sites</button>
       <button id="tab-maritime" class="tab" role="tab" aria-selected="false" aria-controls="view-maritime">Maritime Siting</button>
       <button id="tab-nickel" class="tab" role="tab" aria-selected="false" aria-controls="view-nickel">Nickel Refining</button>
-      <button id="tab-about" class="tab" role="tab" aria-selected="false" aria-controls="view-about">About</button>
+      <button id="tab-about" class="tab" role="tab" aria-selected="false" aria-controls="view-about">Data &amp; methods</button>
     </div>
   </div>
   <details class="kpi-disclosure" id="kpi-disclosure">
@@ -87,30 +86,30 @@
       <span class="kpi-summary-dot" aria-hidden="true">·</span>
       <span class="kpi-summary-pair">
         <span class="kpi-summary-num" id="kpi-summary-dc">—</span>
-        <span class="kpi-summary-label">datacenter-ready</span>
+        <span class="kpi-summary-label">land unknown</span>
       </span>
       <span class="kpi-summary-chevron" aria-hidden="true"></span>
     </summary>
     <p class="sub kpi-tagline" id="meta">Loading…</p>
     <div class="kpi-deck" id="kpi-deck" aria-label="Headline metrics">
       <div class="kpi" data-kpi="total">
-        <span class="kpi-label">Sites tracked</span>
+        <span class="kpi-label">Sites in selection</span>
         <span class="kpi-num" id="kpi-total">—</span>
       </div>
       <div class="kpi" data-kpi="acreage">
-        <span class="kpi-label">Acres tracked</span>
+        <span class="kpi-label">Area reported</span>
         <span class="kpi-num" id="kpi-acres">—</span>
       </div>
       <div class="kpi" data-kpi="dc">
-        <span class="kpi-label">Datacenter-ready</span>
+        <span class="kpi-label">Grid mapped</span>
         <span class="kpi-num" id="kpi-dc">—</span>
       </div>
       <div class="kpi" data-kpi="hyperscale">
-        <span class="kpi-label">Hyperscale-ready</span>
+        <span class="kpi-label">Gage context</span>
         <span class="kpi-num" id="kpi-hyperscale">—</span>
       </div>
       <div class="kpi" data-kpi="generation">
-        <span class="kpi-label">Generation-ready</span>
+        <span class="kpi-label">Fiber cited</span>
         <span class="kpi-num" id="kpi-generation">—</span>
       </div>
     </div>
@@ -176,17 +175,13 @@
       <span>1</span><span>10</span><span>100</span><span>1k</span><span>10k</span><span>100k</span><span>1M</span>
     </span>
   </label>
-  <fieldset class="filter filter-personas" aria-label="Data-center suitability">
-    <legend>Data-center tier</legend>
-    <div id="f-personas" class="persona-row" role="group" aria-label="Data-center suitability tier"></div>
-  </fieldset>
   <label class="filter filter-opp-zone">
     <input id="f-opp-zone" type="checkbox" aria-label="Show only sites inside a Treasury Opportunity Zone">
     <span>Opportunity Zone only</span>
   </label>
   <label class="filter filter-available">
-    <input id="f-available" type="checkbox" aria-label="Show only sites available for development (cleanup complete or transferred)">
-    <span>Available sites only</span>
+    <input id="f-available" type="checkbox" aria-label="Show only sites with reported cleanup or transfer status">
+    <span>Cleanup / transfer reported</span>
   </label>
   <button id="filters-reset" class="text-btn">Reset</button>
   <footer class="filters-sheet-actions" aria-hidden="true">
@@ -196,7 +191,7 @@
 </section>
 
 <main id="main" role="main" tabindex="-1">
-  <section id="view-map" class="view active" role="tabpanel" aria-labelledby="tab-map">
+  <section id="view-map" class="view" role="tabpanel" aria-labelledby="tab-map" hidden>
     <div id="map" aria-label="Map of EPA Superfund, brownfield, FUDS, and BRAC sites"></div>
   </section>
 
@@ -212,7 +207,7 @@
             <th data-sort="npl_status">Status</th>
             <th data-sort="city">City</th>
             <th data-sort="county">County</th>
-            <th data-sort="dc_score" class="num" id="th-dc-score">DC score</th>
+            <th data-sort="transmission_mi" class="num" id="th-dc-score">Grid context</th>
           </tr>
         </thead>
         <tbody><!-- rows injected --></tbody>
@@ -220,45 +215,31 @@
     </div>
   </section>
 
-  <section id="view-candidates" class="view" role="tabpanel" aria-labelledby="tab-candidates" hidden>
+  <section id="view-candidates" class="view active" role="tabpanel" aria-labelledby="tab-candidates">
     <div class="candidates-header">
-      <div class="candidates-filters" role="group" aria-label="Rankings filters">
+      <div class="candidates-filters" role="group" aria-label="Explore filters">
         <div class="cand-filter-group">
           <span class="cand-filter-label">Lens</span>
           <button class="cand-filter active" data-cand-lens="dc">Data Center</button>
           <button class="cand-filter" data-cand-lens="gen">Generation</button>
           <button class="cand-filter" data-cand-lens="mfg">Manufacturing</button>
         </div>
-        <span class="cand-filter-note">Narrow with the global filters (⚙) — search, state, program, tier, and acreage all apply here too.</span>
+        <span class="cand-filter-note">Search or filter sites, then open a name to inspect sources and missing evidence.</span>
       </div>
       <p class="candidates-stats" id="candidates-stats" aria-live="polite">Loading…</p>
+      <div class="evidence-filters" role="group" aria-label="Evidence filters">
+        <label>Category <select id="evidence-category-filter"><option value="grid">Grid</option><option value="fiber">Fiber</option><option value="water">Water</option><option value="land">Land</option><option value="logistics">Logistics</option><option value="hazards">Hazards</option></select></label>
+        <label>Finding <select id="evidence-status-filter"><option value="">Any</option><option value="context">Evidence found</option><option value="constraint">Constraint documented</option><option value="unknown">Unknown</option></select></label>
+        <label>Confidence <select id="evidence-confidence-filter"><option value="">Any</option><option value="High">High</option><option value="Medium">Medium</option><option value="Low">Low</option></select></label>
+      </div>
       <details class="cand-help">
-        <summary>How this ranking works</summary>
-        <div class="cand-help-body">
-          <p>Every site gets a <strong>0–100 suitability score</strong> from the data already on its record — no opinions, just public federal signals. Pick a <strong>lens</strong> above: <em>Data Center</em> (siting a compute load), <em>Generation</em> (siting new power), or <em>Manufacturing</em> (siting a plant — rail access is a gate for heavy-materials plants, then a mid-size-acreage sweet spot). The table is sorted best-first for the chosen lens.</p>
-          <p><strong>Power access leads the weighting</strong> because speed-to-power is the #1 site-selection screen in 2026 — the median new interconnection request now waits about <strong>55 months</strong> (<a href="https://emp.lbl.gov/queues" target="_blank" rel="noopener">LBNL, “Queued Up” 2025</a>), so a site next to a retired or retiring plant that can inherit an existing interconnection skips years of queue. The score is a weighted sum of <strong>power access</strong> (transmission distance &amp; voltage, substation, grid inheritance), <strong>land</strong> (acreage), <strong>gas</strong>, <strong>logistics</strong> (highway/rail), and <strong>readiness</strong> (cleanup status, reuse, EPA flag, incentives) — minus penalties for <strong>flood zones</strong>, <strong>climate risk</strong>, and (Data Center lens only) a <strong>restrictive state regulatory climate</strong>. Sites with no transmission data show “—”.</p>
-          <p class="cand-help-tiers"><strong>Tier</strong> is a quick capacity bucket: Edge → Colo → Hyperscale → Mega, driven by acreage and grid headroom.</p>
-          <p><strong>Signals</strong> badges explain the score at a glance — <span class="cand-help-pos">green/blue = upside</span> (Land Ready, OZ, IRA, EPA DC, Grid Inherit, Nuclear, Fed Fast Lane, Water), <span class="cand-help-neg">red = risk/drag</span> (Flood, Climate, Zoning). Open any row for the full per-component breakdown.</p>
-        </div>
+        <summary>How to read the evidence</summary>
+        <div class="cand-help-body"><p class="cand-filter-note">Use changes the next checks: data centers need firm power and carrier service; generation needs an export study; manufacturing needs process utilities and freight access. The mapped facts stay the same.</p><p>Compare <strong>grid, fiber, water, land and logistics</strong> separately. Sites appear alphabetically. Confidence describes the support for a finding, not whether a site is suitable. <strong>Unknown</strong> means the question is unassessed. A mapped feature does not establish service, capacity, ownership or permission to use it.</p><p>Open a site for its sources and remaining checks. See <a href="#about">Data &amp; methods</a> for coverage and limitations.</p></div>
       </details>
     </div>
     <div id="candidates-wrap">
-      <table id="candidates-table">
-        <thead>
-          <tr>
-            <th class="num" title="Rank by score">#</th>
-            <th>Site</th>
-            <th>ST</th>
-            <th class="num">Acres</th>
-            <th class="num" title="Composite suitability score 0–100">Score</th>
-            <th title="Data-center capacity tier; not applicable to the Generation or Manufacturing lenses">DC tier</th>
-            <th class="num" title="Nearest transmission line voltage">kV</th>
-            <th class="num" title="Distance to nearest substation">Sub mi</th>
-            <th title="Nearest power plant — distance, capacity, fuel">Plant</th>
-            <th class="num" title="Distance to nearest gas pipeline">Gas mi</th>
-            <th title="Readiness and risk signals">Signals</th>
-          </tr>
-        </thead>
+      <table id="candidates-table" class="evidence-table">
+          <thead><tr><th scope="col">Site</th><th scope="col">Grid</th><th scope="col">Fiber</th><th scope="col">Water</th><th scope="col">Land</th><th scope="col">Logistics</th></tr></thead>
         <tbody><!-- rows injected by buildCandidatesView() --></tbody>
       </table>
     </div>
@@ -269,7 +250,8 @@
     <div class="retired-wrap">
       <div class="retired-lead">
         <h2>Retired industrial sites — by prior use</h2>
-        <p>Large facilities that ceased EPA GHGRP reporting — which can mean closed, idled, <em>or</em> simply dropping below the reporting threshold. Treat it as a <strong>screening signal</strong>: a former smelter, mill, refinery, or mine may retain reusable grid infrastructure worth investigating for data-center or generation reuse. It does not by itself confirm the site is available or still connected. Counts by the facility's prior use. The reuse case has a federal precedent: DOE's coal-to-nuclear study screened 394 retiring and recently retired coal sites and found <strong>roughly 80% suitable for an SMR</strong> (33 for a large reactor), with <strong>15–35% construction savings</strong> from reusing the existing grid, cooling, and civil infrastructure (<a href="https://www.energy.gov/ne/articles/doe-report-finds-hundreds-retiring-coal-plant-sites-could-convert-nuclear" target="_blank" rel="noopener">DOE Office of Nuclear Energy</a>).</p>
+        <p>Facilities that stopped EPA greenhouse-gas reporting, grouped by prior use. They may have closed, idled or fallen below the reporting threshold. Infrastructure, ownership, operating status and availability require verification.</p>
+        <details><summary>Study context</summary><p><a href="https://www.energy.gov/ne/articles/doe-report-finds-hundreds-retiring-coal-plant-sites-could-convert-nuclear" target="_blank" rel="noopener">DOE's 2022 coal-to-nuclear study</a> identified potential advanced-reactor candidates among coal sites. Its screening and modeled savings do not establish suitability or savings for this broader industrial catalog.</p></details>
       </div>
       <div id="retired-stats" aria-live="polite"><p class="muted">Loading retired-site data…</p></div>
     </div>
@@ -284,17 +266,18 @@
     <div class="coal-wrap">
       <div class="coal-lead">
         <h2>Coal Reinvestment &amp; Stranded Asset Screening</h2>
-        <p>A curated catalogue of operating, retiring, retired, and gas-converted coal plants evaluated for <strong>nuclear SMR</strong> and <strong>hyperscale AI data center conversion</strong>. Reusing existing high-voltage switchyards, water intakes, and heavy rail loops can cut construction CapEx <strong>15–35%</strong> (<a href="https://www.energy.gov/ne/articles/doe-report-finds-hundreds-retiring-coal-plant-sites-could-convert-nuclear" target="_blank" rel="noopener">DOE/INL coal-to-nuclear studies</a>), and a retired or retiring interconnection can be reused via generator-replacement and surplus-interconnection processes instead of a new queue position. Dollar figures are <em>modeled screening estimates</em>; every plant row carries its own citation and audit date, and retirement dates can slip in both directions (DOE §202(c) extensions, data-center-driven life extensions).</p>
+        <p>Curated coal plants, including operating, retiring, retired and gas-converted sites. Compare reported infrastructure and proposed reuse pathways. Dollar values are modeled screening estimates; site readiness and interconnection capacity remain unverified.</p>
+        <details><summary>Reuse assumptions and limits</summary><p><a href="https://www.energy.gov/ne/articles/doe-report-finds-hundreds-retiring-coal-plant-sites-could-convert-nuclear" target="_blank" rel="noopener">DOE's coal-to-nuclear study</a> modeled potential savings from infrastructure reuse for advanced nuclear projects. Those estimates do not establish savings for a specific plant or data center. Generator replacement or surplus-interconnection eligibility requires project-specific study and utility or grid-operator approval; retirement does not guarantee reuse or queue exemption.</p></details>
       </div>
 
       <div class="coal-kpis" id="coal-kpi-deck">
         <div class="coal-kpi">
-          <span class="coal-kpi-label">Conversion Assets</span>
+          <span class="coal-kpi-label">Cataloged Facilities</span>
           <span class="coal-kpi-val" id="coal-kpi-count">—</span>
           <span class="coal-kpi-sub">major coal facilities</span>
         </div>
         <div class="coal-kpi">
-          <span class="coal-kpi-label">Total Coal Capacity</span>
+          <span class="coal-kpi-label">Coal Nameplate</span>
           <span class="coal-kpi-val" id="coal-kpi-mw">—</span>
           <span class="coal-kpi-sub">current &amp; former coal nameplate at cataloged sites</span>
         </div>
@@ -304,9 +287,9 @@
           <span class="coal-kpi-sub">switchyard, intake &amp; rail (screening estimate)</span>
         </div>
         <div class="coal-kpi">
-          <span class="coal-kpi-label">Reusable POI</span>
+          <span class="coal-kpi-label">Interconnection Review</span>
           <span class="coal-kpi-val" id="coal-kpi-queue">—</span>
-          <span class="coal-kpi-sub">retired / retiring interconnections</span>
+          <span class="coal-kpi-sub">retired / retiring flags; reuse unverified</span>
         </div>
       </div>
 
@@ -326,7 +309,7 @@
           </select>
         </div>
         <div class="coal-filter-group">
-          <label for="coal-suitability-filter">Suitability:</label>
+          <label for="coal-suitability-filter">Reported pathway:</label>
           <select id="coal-suitability-filter" class="coal-select">
             <option value="all">All Pathways</option>
           </select>
@@ -355,24 +338,17 @@
     <div class="ap1000-wrap">
       <div class="ap1000-lead">
         <h2>Nuclear reactor siting — 14 military installations</h2>
-        <p>A screening of named DoD installations for hosting a nuclear plant, by <strong>reactor class</strong>: large Gen&nbsp;III+ PWRs (<strong>AP1000</strong> 1,117&nbsp;MWe / <strong>APR1400</strong> 1,400&nbsp;MWe — wet-cooled, certified designs) are a separate category from <strong>SMRs</strong> (AP300-class) and <strong>microreactors</strong> (Janus-class), whose 3–300× smaller water demand and dry-cooling options change which sites are viable at all. Acreage is treated as a per-class eligibility threshold, while each base scores 0–100 across <strong>cooling water</strong> (availability × <em>rights obtainability</em>), <strong>electrical infrastructure</strong> (transmission + substation), <strong>construction workforce</strong>, and <strong>fiber</strong>. Click any row for the full breakdown, sources, and unscored geohazard flags. <span class="ap1000-janus-key">★ Janus</span> marks the 9 sites on the U.S.&nbsp;Army's Nov&nbsp;2025 microreactor shortlist; the other 5 (all Air&nbsp;Force-led) come from the Air&nbsp;Force's AI-data-center <strong>Request for Lease</strong> (AFCEC-26-R-0002) — <strong>selection still pending as of July&nbsp;2026</strong> (the original January&nbsp;2026 target passed with no public award), and the program has since <strong>expanded to Alaska</strong> under <strong>AFCEC-26-R-0006</strong> (JBER, Eielson&nbsp;AFB, and Clear&nbsp;SFS, ~4,700&nbsp;ac, proposals due June&nbsp;29&nbsp;2026) — marked <span class="ap1000-rflp-key">AF&nbsp;RFLP</span>.</p>
+        <p>Fourteen curated military installations, with separate infrastructure findings and confidence. Select a reactor class, then open a site for sources. Land availability, grid capacity and usable cooling water remain unverified.</p>
         <button id="ap1000-export-csv" class="ap1000-export" type="button" aria-label="Download AP1000 table as CSV" title="Download only the AP1000 table as CSV with source URLs">
           <span aria-hidden="true">↓</span> Download AP1000 table CSV
         </button>
       </div>
       <details class="ap1000-help">
-        <summary>How this ranking works &amp; data provenance</summary>
+        <summary>Sources and limits of this screen</summary>
         <div class="ap1000-help-body">
-          <p><strong>Priority order.</strong> Acreage is a threshold screen for now: the table keeps the developable-acreage estimate and citation, but sites that clear 500 developable acres are not ranked higher just for having more land. The weighted score then prioritizes water (40), electrical infrastructure (38 total: transmission 22 + substation 16), construction workforce within ~1&nbsp;hour (15), and fiber (7). Weights sum to 100.</p>
-          <p><strong>Data provenance.</strong> Transmission and substation distance/voltage are <em>computed</em> from the project's own infra-proximity spatial index (the same machinery behind every other site). Developable acreage, cooling-water adequacy, construction-workforce availability, and fiber are <em>analyst-researched</em> from public sources, linked in each row's detail — this project has no federal water, workforce, or fiber GIS layer, so those are an analyst assessment rather than a measured layer.</p>
-          <p><strong>Where the water numbers come from.</strong> Per-unit water demand anchors on the as-built <a href="https://www.energy.gov/sites/default/files/EIS-0476-FEIS_Part1-2012.pdf" target="_blank" rel="noopener">Vogtle 3&amp;4 environmental record (DOE EIS-0476 / NUREG-1872)</a>: 26.8&nbsp;MGD withdrawal / 20.1&nbsp;MGD (31.1&nbsp;cfs) consumptive per AP1000; NRC accepted Vogtle at ~1% of average Savannah River discharge, which anchors the low-flow margin tiers. Per-site flow figures are validated against USGS streamgages in <a href="https://github.com/pranava0x0/brownfield-opportunities/blob/main/ap1000-water-validation.md" target="_blank" rel="noopener">ap1000-water-validation.md</a>. The water-rights obtainability class (obtainable ×1.0 / contested ×0.6 / fully-appropriated ×0.2, multiplied into the water score) is set per site, with the legal gatekeeper named in the row detail — state doctrine background: <a href="https://www.fjc.gov/content/376802/water-and-law-sidebar-books-overview-surface-water-use-rights-united-states" target="_blank" rel="noopener">FJC surface-water rights overview</a>.</p>
-          <p><strong>Not in the score: acreage beyond threshold, seismic &amp; flood.</strong> Acreage is shown with source context but is not a differentiating score once the site clears the land threshold. Geohazards aren't folded into the number either — but they're genuinely deal-affecting for a reactor (Edwards, Fort Campbell, JBLM and Fort Wainwright all carry real flags), so each row surfaces them as <span class="ap1000-flag-amber">amber</span>/<span class="ap1000-flag-red">red</span> context chips. The Army's Janus interest is a microreactor (≤20&nbsp;MWe) signal — a permitting/intent precedent, not a like-for-like for a gigawatt-class AP1000.</p>
-        </div>
-      </details>
-      <details class="ap1000-help ap1000-adjacent">
-        <summary>Adjacent DoD &amp; DOE programs (2026)</summary>
-        <div class="ap1000-help-body">
-          <p>The Air Force / Space Force <strong>ANPI</strong> microreactor program has already paired vendors to three bases — Radiant at Buckley&nbsp;SFB&nbsp;CO, Westinghouse eVinci at Malmstrom&nbsp;AFB&nbsp;MT, and Antares at Joint&nbsp;Base&nbsp;San&nbsp;Antonio&nbsp;TX (April&nbsp;2026; <a href="https://www.ans.org/news/2026-04-13/article-7930/" target="_blank" rel="noopener">ANS</a>, <a href="https://www.powermag.com/air-force-anpi-picks-put-radiant-antares-westinghouse-on-track-for-first-on%E2%80%91base-microreactors-by-2028/" target="_blank" rel="noopener">POWER</a>) — so vendor-to-base pairing is now happening ahead of any Janus award. On the DOE side, NNSA selected Amentum in July&nbsp;2026 for a <strong>1&nbsp;GW AI data center with ~2&nbsp;GW of on-site generation at the Savannah&nbsp;River&nbsp;Site</strong> (<a href="https://www.energy.gov/nnsa/articles/nnsa-selects-amentum-ai-data-center-and-energy-project-savannah-river-site" target="_blank" rel="noopener">NNSA</a>), the clearest federal-land precedent yet for co-locating compute with new generation.</p>
+          <p>These installations are a curated population, separate from the shared site database. Grid distances use selected cleanup-site reference points; they are not distances from a proposed construction parcel. Reported installation area does not establish available land.</p>
+          <p>Water-source descriptions are analyst research. River flow and historical facility demand do not establish spare supply, drought reliability or a project allocation. Fiber ratings without site-specific citations are shown as unknown. Reactor classes do not resolve those evidence gaps.</p>
+          <p>Janus program interest is not a reactor award or a large-reactor approval. Inspect project-specific sources and dates in each site. <a href="#about">Read the data methods</a>.</p>
         </div>
       </details>
       <div id="ap1000-cards" aria-live="polite"><p class="muted">Loading AP1000 siting data…</p></div>
@@ -415,10 +391,10 @@
     <div class="maritime-wrap">
       <div class="maritime-lead">
         <h2>Maritime Siting</h2>
-        <p>Brownfield sites near a BTS/USACE Principal Port (top 150 US ports by tonnage; Coastal or Great Lakes type) or a major US heavy-shipbuilding yard, ranked for two different uses. <strong>Floating/offshore nuclear</strong> weights shipyard proximity highest &mdash; every built or proposed floating-reactor program (Russia's Akademik Lomonosov, the 1970s Offshore Power Systems study, ThorCon, Core Power) assembles at an existing large-vessel or offshore-module shipyard and tows the unit to site. <strong>Coastal generation &amp; data centers</strong> weights grid interconnection highest, with port access as a secondary signal for delivering heavy equipment (transformers, turbines, SMR modules) by ship. Water depth is <strong>not assessed</strong> &mdash; this dashboard has no bathymetry layer.</p>
+        <p>Sites with a mapped port or shipyard nearby. Compare their infrastructure evidence separately. Port distance does not establish waterfront access, channel depth, berth availability or a towing route.</p>
       </div>
 
-      <div class="cand-filter-group" role="group" aria-label="Scoring lens">
+      <div class="cand-filter-group" role="group" aria-label="Maritime use">
         <button type="button" class="cand-filter active" data-maritime-lens="offshore">Floating / Offshore Nuclear</button>
         <button type="button" class="cand-filter" data-maritime-lens="coastal">Coastal Generation &amp; Data Centers</button>
       </div>
@@ -426,19 +402,8 @@
       <div id="maritime-stats" class="maritime-stats" aria-live="polite">Loading port/shipyard proximity data&hellip;</div>
 
       <div class="maritime-table-wrap" id="maritime-wrap">
-        <table id="maritime-table" class="micro-table">
-          <thead>
-            <tr>
-              <th class="num" scope="col">#</th>
-              <th scope="col">Site</th>
-              <th scope="col">State</th>
-              <th class="num" scope="col">Acreage</th>
-              <th class="num" scope="col" id="th-maritime-score">Score</th>
-              <th scope="col">Nearest port</th>
-              <th scope="col">Nearest shipyard</th>
-              <th scope="col">Grid</th>
-            </tr>
-          </thead>
+        <table id="maritime-table" class="micro-table evidence-table">
+          <thead><tr><th scope="col">Site</th><th scope="col">Grid</th><th scope="col">Fiber</th><th scope="col">Water</th><th scope="col">Land</th><th scope="col">Logistics</th></tr></thead>
           <tbody></tbody>
         </table>
       </div>
@@ -455,17 +420,12 @@
     <div class="nickel-wrap">
       <div class="nickel-lead">
         <h2>Nickel Refining</h2>
-        <p>The only nickel mine in the United States ships its ore to Canada to be processed. This ranks brownfield and federal sites on how well each one would suit a <strong>nickel refinery</strong> &mdash; a chemical plant that turns nickel feedstock into battery-grade material.</p>
-        <p><strong>Imported feed</strong> ranks sites near a deep-water port, for a plant supplied by ship. <strong>Domestic feed</strong> ranks rail-served sites near US mines and battery recyclers. The two live US projects each chose one of these, so they are scored separately rather than averaged.</p>
-        <details class="nickel-caveat">
-          <summary>What this score does and doesn&rsquo;t tell you</summary>
-          <ul>
-            <li><strong>Land is a pass/fail check, not part of the score.</strong> A refinery needs about 300 acres, a battery-recycling plant about 100. EPA publishes no acreage for most brownfields, so the default view shows only sites where it is confirmed.</li>
-            <li><strong>Water is a long-run average river flow</strong>, not the amount you could get a permit to withdraw &mdash; which is usually far less. It can rule a site out; it can&rsquo;t clear one.</li>
-            <li><strong>Not assessed at all:</strong> who owns the land or whether it is for sale, local workforce, and the nickel price. A high score means the infrastructure is there.</li>
-            <li><strong>Smelters are not ranked.</strong> No nickel smelter operates in the US to benchmark against, and a smelter is a different project &mdash; it needs its own power plant and a mine next door.</li>
-          </ul>
-        </details>
+        <p>Explore sites near ports for imported feed, or rail and supply-chain locations for domestic feed. Each category shows evidence and confidence; no combined suitability score.</p>
+        <details class="nickel-caveat"><summary>What remains unverified</summary><ul>
+          <li>Land thresholds are screening choices, not proof of a usable or available parcel. Include unpublished acreage to see the missing-data population.</li>
+          <li>Annual mean flow at a streamgage is not available water supply. Catchment, low flow, intake and allocation remain unassessed.</li>
+          <li>Mapped ports, rail and supply-chain anchors do not establish a freight route, available feedstock or a contract.</li>
+        </ul></details>
       </div>
 
       <div class="cand-filter-group" role="group" aria-label="Feed model">
@@ -474,27 +434,16 @@
       </div>
 
       <div class="cand-filter-group" role="group" aria-label="Land basis">
-        <button type="button" class="cand-filter active" data-nickel-land="confirmed" title="Vale Long Harbour is 371 acres including residue containment; Westwin's Lawton tract is 480. Both land at ~7 acres per kt Ni/yr.">Refinery &ge;300 acres</button>
-        <button type="button" class="cand-filter" data-nickel-land="recycling" title="Cirba Solutions Lancaster OH is 36.8 acres; Li-Cycle's Rochester Hub 41-65. A black-mass plant is roughly a third the size of a refinery.">Recycling &ge;100 acres</button>
+        <button type="button" class="cand-filter active" data-nickel-land="confirmed" title="Planning filter for reported area. Project footprint and developable land require verification.">Refinery &ge;300 acres</button>
+        <button type="button" class="cand-filter" data-nickel-land="recycling" title="Illustrative recycling planning filter; not a universal minimum or verified developable area.">Recycling &ge;100 acres</button>
         <button type="button" class="cand-filter" data-nickel-land="any">Include unpublished acreage</button>
       </div>
 
       <div id="nickel-stats" class="nickel-stats" aria-live="polite">Loading water and supply-chain data&hellip;</div>
 
       <div class="nickel-table-wrap" id="nickel-wrap">
-        <table id="nickel-table" class="micro-table">
-          <thead>
-            <tr>
-              <th class="num" scope="col">#</th>
-              <th scope="col">Site</th>
-              <th scope="col">State</th>
-              <th class="num" scope="col" id="th-nickel-score">Score</th>
-              <th scope="col">Water</th>
-              <th scope="col">Grid</th>
-              <th scope="col">Rail / port</th>
-              <th scope="col">Land</th>
-            </tr>
-          </thead>
+        <table id="nickel-table" class="micro-table evidence-table">
+          <thead><tr><th scope="col">Site</th><th scope="col">Grid</th><th scope="col">Fiber</th><th scope="col">Water</th><th scope="col">Land</th><th scope="col">Logistics</th></tr></thead>
           <tbody></tbody>
         </table>
       </div>
@@ -519,386 +468,41 @@
          first-paint budget (test_dom_size_under_5k_nodes). -->
     <template id="about-template">
     <div class="about-wrap">
-
-      <div class="about-lead">
-        <h2>US Brownfield &amp; Federal Site Atlas</h2>
-        <p>This dashboard indexes <strong>46,700+ contaminated federal and brownfield sites</strong> across four programs and scores each one for data-center, power-generation, manufacturing, and microreactor suitability using public infrastructure, financial, and risk signals.</p>
-      </div>
-
+      <h2>Data, coverage and confidence</h2>
+      <p>Use this atlas to identify questions worth investigating. It combines government site records, mapped infrastructure and separately curated project evidence. It does not establish that a site is available or ready for a project.</p>
+      <section id="about-source-coverage" aria-label="Infrastructure source coverage" aria-live="polite"><p>Loading source coverage…</p></section>
       <div class="about-grid">
-
-        <div class="about-section">
-          <h3>The four programs</h3>
-          <dl class="about-programs">
-            <dt><span class="about-dot" style="background:var(--program-superfund)"></span>Superfund (EPA NPL)</dt>
-            <dd>The National Priorities List — the most contaminated sites in the US under EPA's CERCLA authority. ~1,908 sites. Strongest remediation data: documents, ECHO enforcement, AI summaries, milestone dates.</dd>
-
-            <dt><span class="about-dot" style="background:var(--program-brownfield)"></span>Brownfields (EPA ACRES)</dt>
-            <dd>~36,000 brownfield properties tracked by EPA's Assessment, Cleanup and Redevelopment Exchange System. Former gas stations, factories, and rail yards. Acreage data is not available from EPA's source.</dd>
-
-            <dt><span class="about-dot" style="background:var(--program-fuds)"></span>FUDS (US Army Corps)</dt>
-            <dd>~8,800 Formerly Used Defense Sites — military land conveyed out of federal ownership before 1986, where DoD still has cleanup obligations. USACE tracks eligibility and active projects. ~66% lack digitized polygon boundaries.</dd>
-
-            <dt><span class="about-dot" style="background:var(--program-brac)"></span>BRAC (DoD Base Closures)</dt>
-            <dd>27 installations closed under Base Realignment and Closure rounds. Large-acreage sites (often 500–4,000+ acres) with existing utilities, roads, and sometimes grid connections.</dd>
-          </dl>
-          <h4 class="about-subhead">Map overlays</h4>
-          <dl class="about-programs">
-            <dt><span class="about-glyph" style="color:#c8960c">★</span>Confirmed deals</dt>
-            <dd>10 confirmed hyperscale/colo data-center projects already built on brownfield or former-industrial land (Google/Widows Creek, AWS/Susquehanna, Aligned/Conesville, etc.) — reference points for what a successful conversion looks like.</dd>
-
-            <dt><span class="about-glyph" style="color:#9a5b2e">◆</span>Retired industrial</dt>
-            <dd>~660 large retired industrial sites nationwide that ceased EPA GHGRP reporting — ~530 <strong>manufacturing</strong> (chemical plants, smelters, steel/paper mills, cement, glass, refineries, auto-assembly) plus ~125 <strong>mining</strong> (mostly coal mines / prep plants). A <strong>screening signal</strong> — a former smelter, mill, or refinery may retain reusable grid infrastructure (not confirmed available or still connected; the overlay isn't yet joined to transmission/closure evidence). These often sit outside the four programs above.</dd>
-
-            <dt><span class="about-glyph" style="color:#7a3fa8">⬣</span>Microreactor commitments</dt>
-            <dd>24 named microreactor deployments with a fixed location — the three Air Force ANPI base pairings, the nine Army Janus candidate installations, the DOE pilot reactors that reached criticality in 2026, and sited commercial deals. Curated from public announcements and regulator filings; each popup carries its evidence band and sources. Alaska rows appear in the Alaska inset with their real coordinates shown.</dd>
-          </dl>
-        </div>
-
-        <div class="about-section">
-          <h3>Siting scores explained</h3>
-          <dl class="about-dl">
-            <dt>DC composite score (0–100)</dt>
-            <dd>Weighted rubric for siting a data-center <em>load</em>. Positive weights sum to 100: transmission distance (16 pts), voltage class (14), substation proximity (12), grid inheritance from a large co-located / retired / nuclear plant (8), acreage (20), gas pipeline (10), logistics — highway + rail (6), readiness signals (14). Then <strong>subtractive penalties</strong>: −18 for a FEMA Special Flood Hazard Area, up to −10 for Very-High FEMA wildfire/drought risk, and up to −8 for a restrictive state regulatory climate (DC-lens only). The result is clamped to 0–100. Returns <em>N/A</em> when no transmission data is available (can't assess power access ≠ a bad site).</dd>
-
-            <dt>Generation score (0–100)</dt>
-            <dd>Weighted rubric for siting new <em>power generation</em> — weighted differently because what suits a 200 MW compute load ≠ a 200 MW solar/gas build. Positive weights sum to 100: acreage (24 pts, the dominant constraint), transmission-to-export (18), substation interconnection (14), voltage headroom (12), gas pipeline (10), grid reuse — reusing a retired plant's interconnection (8), ISO/RTO market access (8), readiness (6). It has <strong>no active-plant component</strong> (you are the plant) and gives <strong>no credit for active reuse</strong> (occupied land is a liability for a ground-up build). Carries the same flood (−18) and climate (−10) penalties and the same transmission gate as the DC lens, but <strong>not</strong> the regulatory penalty (a DC moratorium doesn't block a power plant).</dd>
-
-            <dt>Manufacturing score (0&ndash;100)</dt>
-            <dd>Weighted rubric for siting a <em>manufacturing plant</em>. Positive weights sum to 100: rail access (22 pts &mdash; a gate for heavy-materials plants), acreage (18, <em>peaked</em> rather than rising: a 100&ndash;500&nbsp;ac plateau decaying past 2,000, because a plant wants a right-sized site, not the largest one), transmission (16), substation (12), gas (12), highway (10), readiness (10). Carries the same flood and climate penalties and the same transmission gate as the other lenses.</dd>
-
-            <dt>Microreactor score (0&ndash;100)</dt>
-            <dd>Weighted rubric for siting a <em>1&ndash;20&nbsp;MWe factory-built microreactor</em>, and the one lens that <strong>inverts the grid signal</strong>: distance from grid access scores <em>higher</em>, because a microreactor's commercial case is displacing diesel where the grid is weak or absent &mdash; not competing for interconnection where it is strong. Positive weights sum to 100: federal-land licensing pathway (24 &mdash; every US microreactor to reach criticality has done so under a DOE authorization, not an NRC licence), grid isolation (22), anchor load (18 &mdash; an identified local load in or near the 1&ndash;20&nbsp;MWe band, gated on the nearest plant's fuel, since a solar farm is not evidence of demand), deliverability by road and rail (18 &mdash; a 70-tonne unit has to physically arrive), and site readiness (18). Flood subtracts 12 (less than the DC lens: a small reactor pad can dodge a floodplain inside a larger parcel) and severe wildfire up to 8; drought is <strong>not</strong> charged, because the heat-pipe and HTGR designs in the fleet are air-coolable. Land is a 5-acre threshold screen, not a ranked factor. Seismic is not scored &mdash; no seismic layer covers the corpus.</dd>
-
-            <dt>DC tier (Edge / Colo / Hyperscale / Mega)</dt>
-            <dd>Quick-filter bucket derived from acreage + transmission distance + voltage class. Used by the persona buttons and <code>?dc_tier=</code> URL parameter. Separate from the 0–100 composite score.</dd>
-
-            <dt>Datacenter-ready</dt>
-            <dd>EPA's official RE-Powering designation: Superfund sites with ≥50 acres, electric transmission, and water service area. ~821 sites. EPA's own flag, not a computed score.</dd>
-
-            <dt>Hyperscale-ready</dt>
-            <dd>Sites meeting the hyperscale tier threshold: ≥100 acres, ≥230 kV transmission within 1 mile. ~250 sites across all four programs.</dd>
-
-            <dt>Generation-ready</dt>
-            <dd>Sites scoring ≥75 on the Generation lens — strong land, grid export, and market combination. ~114 sites.</dd>
-          </dl>
-        </div>
-
-        <div class="about-section">
-          <h3>Infrastructure signals</h3>
-          <dl class="about-dl">
-            <dt>Transmission line</dt>
-            <dd>Miles to the nearest HIFLD high-voltage line, plus its voltage (kV). Source: HIFLD Electric Power Transmission Lines (~52k polylines).</dd>
-
-            <dt>Substation</dt>
-            <dd>Miles to the nearest HV substation (≥69 kV). Source: OpenStreetMap <code>power=substation</code> via Overpass API. HIFLD substations went private in 2025.</dd>
-
-            <dt>Power plant</dt>
-            <dd>Miles to the nearest plant, its capacity (MW), and primary fuel. Co-located coal/gas plants ≥500 MW within 1 mile earn the <strong>Grid Inherit</strong> signal — they may carry stranded FERC interconnection agreements worth hundreds of millions in avoided queue costs. Source: HIFLD (~13,400 EIA-860 plants).</dd>
-
-            <dt>Gas pipeline</dt>
-            <dd>Miles to the nearest interstate or intrastate natural gas pipeline. Relevant for behind-the-meter generation. Source: HIFLD (~33k polylines).</dd>
-
-            <dt>Highway / Rail</dt>
-            <dd>Miles to the nearest primary road (Census TIGER S1100) and railroad (Census TIGER). Logistics signals for construction and supply chains.</dd>
-
-            <dt>Flood zone</dt>
-            <dd>FEMA NFHL zone code. Sites in Special Flood Hazard Areas (Zone A/AE/V/VE) receive a −18 point penalty in both scores. Sites with no FEMA data are not penalized.</dd>
-
-            <dt>Natural-hazard risk</dt>
-            <dd>FEMA National Risk Index county composite plus three DC-relevant hazard ratings — wildfire (insurability / continuity), drought (cooling-water), and heat wave (cooling load). The worst of wildfire/drought drives a climate penalty (−10 Very High, −5 Relatively High) in both scores; heat wave is shown but not penalized. Source: FEMA NRI county FeatureServer.</dd>
-
-            <dt>Retired power plant</dt>
-            <dd>Miles to the nearest large (≥100 MW) <em>retired</em> dispatchable plant from EIA-860M. A retired plant ≤1 mile is the strongest grid-inheritance signal — stranded interconnection with no active load competing for it (the Conesville / Widows Creek pattern). Drives the <strong>Ret. Plant</strong> badge and full grid-inheritance scoring credit. Source: EIA Form EIA-860M.</dd>
-
-            <dt>IRA energy community</dt>
-            <dd>Whether the site is in an Inflation Reduction Act energy community (coal-closure tract or fossil-fuel-employment county) — a +10pp ITC/PTC bonus on a clean-energy build. Source: DOE NETL 2024 layers.</dd>
-
-            <dt>Opportunity Zone</dt>
-            <dd>Treasury-designated QOZ tract status and whether it is Rural (~700 of 8,765 tracts). Rural OZ sites also qualify for IRA energy-community credits. Source: HUD FeatureServer.</dd>
-
-            <dt>ISO / RTO</dt>
-            <dd>Regional transmission organization: PJM, MISO, ERCOT, CAISO, SPP, NYISO, ISO-NE, or non-RTO. Affects interconnection queue access and electricity market structure. Source: EIA Atlas.</dd>
-
-            <dt>Climate zone</dt>
-            <dd>IECC/ASHRAE zone (e.g. 5B, 3A) from DOE Building America county data. Cooler zones mean lower cooling-energy overhead (lower PUE).</dd>
-          </dl>
-        </div>
-
-        <div class="about-section">
-          <h3>Readiness signals</h3>
-          <dl class="about-dl">
-            <dt>Cleanup Complete</dt>
-            <dd>Superfund sites formally deleted from the NPL — EPA certifies cleanup meets health and environmental standards. ~300 of 1,908 NPL sites.</dd>
-
-            <dt>Active Reuse</dt>
-            <dd>Sites in active reuse per EPA's RedevelopmentAppSitePoints. Superfund-only.</dd>
-
-            <dt>EPA Candidate</dt>
-            <dd>EPA's official data-center reuse designation: ≥50 acres, electric transmission, water service area. ~821 sites.</dd>
-
-            <dt>Fed Fast Lane (EO 14318)</dt>
-            <dd>Executive Order 14318 (July 2025) created NEPA categorical exclusions and fast-tracked Army Corps permits for qualifying data center developments on Superfund and brownfield sites.</dd>
-
-            <dt>OZ / OZ·Rural</dt>
-            <dd>Qualified Opportunity Zone status. Rural OZ sites receive the higher IRA bonus (+10pp PTC/ITC) and a 30% OZ basis step-up vs. 15% standard.</dd>
-
-            <dt>Land Ready</dt>
-            <dd>EPA Sitewide Ready for Anticipated Use (SWRAU) — EPA's own determination that <em>all</em> of a site's land is ready for its anticipated use. The strongest public land-availability signal. ~940 Superfund sites meet the measure.</dd>
-
-            <dt>IRA / IRA·Coal</dt>
-            <dd>Inflation Reduction Act energy community (coal-closure tract = "IRA·Coal", or fossil-fuel-employment county). +10pp ITC/PTC bonus on a paired clean-energy build.</dd>
-
-            <dt>Ret. Plant / Grid Inherit / Nuclear</dt>
-            <dd>Grid-inheritance signals: a large retired plant ≤1 mi (<strong>Ret. Plant</strong>), a large active coal/gas plant ≤1 mi (<strong>Grid Inherit</strong>), or an operating nuclear plant ≥500 MW ≤5 mi (<strong>Nuclear</strong> — the AWS/Susquehanna PPA pattern). Each implies an inheritable / nearby high-voltage interconnection.</dd>
-
-            <dt>Water</dt>
-            <dd>An active CWA/NPDES discharge permit on the site (EPA ECHO) — a proxy for legacy industrial water infrastructure (intake, treated-effluent rights). Water is the #2 DC siting constraint after grid.</dd>
-
-            <dt>Climate / Zoning (risk)</dt>
-            <dd>Red risk badges that lower the score: <strong>Climate</strong> flags Very-High FEMA wildfire/drought (−10); <strong>Zoning</strong> flags a restrictive state regulatory climate — moratorium bills, by-right repeals, ratepayer cost-shift laws (−8, DC-lens only).</dd>
-          </dl>
-        </div>
-
-        <div class="about-section">
-          <h3>How to use this tool</h3>
-          <dl class="about-dl">
-            <dt>Map view</dt>
-            <dd>Click any marker to open the site detail panel. Markers are sized by acreage. Zoom in to see all sites in a dense region — markers are decimated at low zoom for performance.</dd>
-
-            <dt>Filters</dt>
-            <dd>The gear (⚙) button opens filters: program, NPL status, state, acreage, DC tier persona, Opportunity Zone, and DC candidate toggle. All filters round-trip via the URL — copy the address bar to share a filtered view.</dd>
-
-            <dt>Rankings tab</dt>
-            <dd>Ranked table of all scored sites. Switch between the Data Center, Generation, and Manufacturing lenses; the global filters apply here too.</dd>
-
-            <dt>Microreactors tab</dt>
-            <dd>The 1&ndash;20&nbsp;MWe microreactor market and a siting screen for it: the vendor fleet, 32 named commitments, and every corpus site ranked by a fourth lens that <strong>inverts the grid signal</strong> &mdash; distance from the grid scores <em>higher</em>, because a microreactor's case is displacing diesel where the grid is weak or absent. Global filters apply here too.</dd>
-
-            <dt>KPI cells</dt>
-            <dd>The Datacenter-ready and Hyperscale-ready cells are clickable — they toggle a filter to show only those sites.</dd>
-
-            <dt>Export</dt>
-            <dd>The ↓ button exports the current filtered set as a CSV, including all infrastructure distances, scores, and enrichment fields.</dd>
-
-            <dt>Site detail panel</dt>
-            <dd>Opens on any marker or table-row click. Shows siting score breakdowns, infrastructure distances, federal documents, ECHO enforcement, and state tax incentive context. The Summary tab shows the AI-generated narrative.</dd>
-          </dl>
-        </div>
-
-        <div class="about-section about-arch-full" id="about-arch-mount" style="grid-column: 1 / -1;">
-          <h3>System Architecture &amp; Data Flow Pipelines</h3>
-          <p class="about-arch-intro">How 46,759 contaminated and federal properties are ingested, spatially indexed against nationwide infrastructure, scored across four suitability lenses, and rendered in real-time in the browser without server dependencies.</p>
-          <div class="arch-flow-grid">
-            <!-- Master Platform Flow -->
-            <div class="flow-card master-card">
-              <div class="flow-card-head">
-                <span class="flow-card-badge">Master Pipeline</span>
-                <h4>Platform Architecture</h4>
-              </div>
-              <div class="flow-diagram-visual">
-                <div class="flow-step-box">
-                  <span class="step-num">1</span>
-                  <strong>Upstream Federal Sources</strong>
-                  <span class="step-desc">EPA, DoD, USACE, EIA, FEMA, Census, NETL, HUD, PNNL</span>
-                </div>
-                <div class="flow-arrow-down">↓</div>
-                <div class="flow-step-box">
-                  <span class="step-num">2</span>
-                  <strong>Connector Ingestion &amp; Sanitization</strong>
-                  <span class="step-desc">Deduplication, Title-Casing, Sentinel Scrubbing, Pydantic Schema Validation</span>
-                </div>
-                <div class="flow-arrow-down">↓</div>
-                <div class="flow-step-box">
-                  <span class="step-num">3</span>
-                  <strong>Spatial Indexing &amp; Proximity Joins</strong>
-                  <span class="step-desc">SegmentIndex (52k transmission lines) &amp; PointIndex (70k substations, 13k plants, curated coal assets)</span>
-                </div>
-                <div class="flow-arrow-down">↓</div>
-                <div class="flow-step-box">
-                  <span class="step-num">4</span>
-                  <strong>Offline Static JSON Artifacts</strong>
-                  <span class="step-desc">Eager sites.json (170 KB) + Lazy program files &amp; Overlays (Zero runtime backend)</span>
-                </div>
-                <div class="flow-arrow-down">↓</div>
-                <div class="flow-step-box">
-                  <span class="step-num">5</span>
-                  <strong>Client-Side Engine &amp; Reactive UI</strong>
-                  <span class="step-desc">Chunked marker hydration, paginated virtual tables, multi-lens scoring, URL state sync</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Feature 1: Universal Brownfield Ingestion -->
-            <div class="flow-card">
-              <div class="flow-card-head">
-                <span class="flow-card-badge">Feature 1</span>
-                <h4>Universal Brownfields Ingestion</h4>
-              </div>
-              <p class="flow-desc">Unifies 4 disparate federal environmental programs into a single normalized <code>SiteRecord</code> schema with cross-source unique IDs and clean coordinate resolution.</p>
-              <div class="pipeline-tags">
-                <span class="ptag">EPA Superfund (1.9k)</span>
-                <span class="ptag">EPA ACRES (36.0k)</span>
-                <span class="ptag">USACE FUDS (8.8k)</span>
-                <span class="ptag">DoD BRAC (27)</span>
-              </div>
-              <ul class="flow-points">
-                <li><strong>Idempotent ID Namespacing:</strong> <code>ACRES-{id}</code>, <code>FUDS-{id}</code>, <code>BRAC-{slug}</code>, <code>{EPA_ID}</code>.</li>
-                <li><strong>Place-Name Prettifier:</strong> Converts ALL-CAPS uppercase EPA/USACE records into Title-Case and scrubs placeholder sentinels (<code>NO CITY</code>, <code>_NULL_</code>).</li>
-                <li><strong>Lazy Multi-Source Hydration:</strong> Superfund loads eagerly for &lt;100ms first paint; 36k ACRES &amp; 8.8k FUDS load in 800-record chunks per idle frame.</li>
-              </ul>
-            </div>
-
-            <!-- Feature 2: Spatial Proximity & Grid Indexing -->
-            <div class="flow-card">
-              <div class="flow-card-head">
-                <span class="flow-card-badge">Feature 2</span>
-                <h4>Power &amp; Grid Spatial Indexing</h4>
-              </div>
-              <p class="flow-desc">High-performance spatial grid indexing that joins 46,759 brownfields against national energy, transportation, and hydrologic infrastructure.</p>
-              <div class="pipeline-tags">
-                <span class="ptag">HIFLD 52k Lines</span>
-                <span class="ptag">OSM 70k Substations</span>
-                <span class="ptag">EIA 13.4k Plants</span>
-                <span class="ptag">TIGER Rail/Roads</span>
-              </div>
-              <ul class="flow-points">
-                <li><strong>Local Equirectangular Projections:</strong> O(1) grid-cell hashing with Chebyshev ring expansion for nearest-neighbor lookups.</li>
-                <li><strong>1-Lipschitz Invariant:</strong> |d(A) − d(B)| ≤ dist(A, B), verified offline across 511,927 distance fields.</li>
-                <li><strong>Infrastructure Inheritance:</strong> Detects shared switchyards, bus voltages (69–765 kV), and proximity to operating/retired thermal generators.</li>
-              </ul>
-            </div>
-
-            <!-- Feature 3: Multi-Lens Siting Scoring -->
-            <div class="flow-card">
-              <div class="flow-card-head">
-                <span class="flow-card-badge">Feature 3</span>
-                <h4>Multi-Lens Siting Scoring Engine</h4>
-              </div>
-              <p class="flow-desc">Evaluates site suitability across 4 distinct industrial development personas with dedicated weighting matrices and constraint penalties.</p>
-              <div class="pipeline-tags">
-                <span class="ptag">Data Center (0–100)</span>
-                <span class="ptag">Power Gen (0–100)</span>
-                <span class="ptag">Manufacturing (0–100)</span>
-                <span class="ptag">Microreactors (0–100)</span>
-              </div>
-              <ul class="flow-points">
-                <li><strong>Data Center Lens:</strong> Prioritizes developable land, transmission voltage &amp; distance, substation and gas proximity, minus flood / climate / moratorium penalties (exact weights live in <code>dc-score.js</code> and its score tooltips — the single source of truth).</li>
-                <li><strong>Generation Lens:</strong> Prioritizes developable land (24%), export capacity (18%), substation POI (14%), market access (8%).</li>
-                <li><strong>Inverted Microreactor Lens:</strong> Inverts the grid signal—sites further from high-voltage transmission score <em>higher</em> to reward diesel replacement in islanded/remote regions.</li>
-              </ul>
-            </div>
-
-            <!-- Feature 4: Coal Conversion & Stranded Valuation Engine -->
-            <div class="flow-card">
-              <div class="flow-card-head">
-                <span class="flow-card-badge">Feature 4</span>
-                <h4>Coal Reindustrialization</h4>
-              </div>
-              <p class="flow-desc">Screens national coal facilities for conversion to advanced nuclear SMRs and AI data center campuses, modeling replacement CapEx value.</p>
-              <div class="pipeline-tags">
-                <span class="ptag">GEM / EIA Plant Records</span>
-                <span class="ptag">DOE Coal-to-Nuclear</span>
-                <span class="ptag">Stranded Asset Val ($B)</span>
-                <span class="ptag">POI Reuse (Order 845)</span>
-              </div>
-              <ul class="flow-points">
-                <li><strong>Modeled Stranded Valuation:</strong> V = (MW × $180k + $25M water + $12M rail + $8M civil) × e^(−0.25 · miles) — a screening estimate, not an appraisal.</li>
-                <li><strong>CapEx Advantage:</strong> Reusing heavy electrical and water-intake infrastructure saves 15–35% on nuclear construction (DOE/INL coal-to-nuclear studies); compute campuses inherit the same switchyard/water/rail assets, though the studied figure is nuclear-specific.</li>
-                <li><strong>POI Reuse:</strong> Flags sites ≤ 1.5 mi from a retired/retiring switchyard — generator-replacement / surplus-interconnection candidates.</li>
-              </ul>
-            </div>
-
-            <!-- Feature 5: Advanced Nuclear & Microreactor Pipeline -->
-            <div class="flow-card">
-              <div class="flow-card-head">
-                <span class="flow-card-badge">Feature 5</span>
-                <h4>Advanced Nuclear &amp; Microreactor Pipeline</h4>
-              </div>
-              <p class="flow-desc">Combines Idaho National Laboratory's 4-tier civilian AP1000 study, USAF ANPI base awards, and PNNL Janus environmental screens.</p>
-              <div class="pipeline-tags">
-                <span class="ptag">INL AP1000 Siting</span>
-                <span class="ptag">USAF ANPI Picks</span>
-                <span class="ptag">PNNL Janus NEPA</span>
-                <span class="ptag">USGS 7Q10 Low-Flow</span>
-              </div>
-              <ul class="flow-points">
-                <li><strong>Reactor Class Separation:</strong> Segregates Gigawatt Gen III+ PWRs (wet-cooled) from SMRs (dry-coolable) and 1–20 MWe microreactors.</li>
-                <li><strong>Cooling &amp; Water Rights:</strong> Low-flow margin modeling against USGS streamgages with state-by-state surface water rights obtainability multipliers.</li>
-                <li><strong>NEPA Environmental Overlays:</strong> Integrates PNNL PermitAI/NEPA MCP screens for DoD installations covering wetlands, floodplains, and air basins.</li>
-              </ul>
-            </div>
-
-            <!-- Feature 6: Federal land-program portfolio -->
-            <div class="flow-card">
-              <div class="flow-card-head">
-                <span class="flow-card-badge">Feature 6</span>
-                <h4>Federal Land Programs (DOE EM / OCED)</h4>
-              </div>
-              <p class="flow-desc">Catalogs massive federal reservations (DOE-EM) and reclaimed coal mine lands (DOE-OCED) offered for gigawatt-scale energy and data-center development.</p>
-              <div class="pipeline-tags">
-                <span class="ptag">DOE-EM Reservations</span>
-                <span class="ptag">DOE-OCED Mine Lands</span>
-                <span class="ptag">1.5M+ Federal Acres</span>
-                <span class="ptag">Active RFP Solicitations</span>
-              </div>
-              <ul class="flow-points">
-                <li><strong>Federal Security &amp; Land Scale:</strong> Flagship reservations including Savannah River Site (~198k ac), NNSS (860k ac), and INL (570k ac).</li>
-                <li><strong>Gigawatt Compute Campus Precedents:</strong> Tracks awards such as Amentum at SRS and Brookfield/NextEra at Paducah (1.8 GW AI campus + 2 GW gas + 2.6 GW BESS).</li>
-                <li><strong>Clean Energy on Mine Lands (CEML):</strong> demonstrations on former surface coal mines — solar (Mineral Basin PA, 402 MW) and pumped storage (Lewis Ridge KY, 266 MW).</li>
-              </ul>
-            </div>
-
-            <!-- Feature 7: Financial Stacking & Regulatory Intelligence -->
-            <div class="flow-card">
-              <div class="flow-card-head">
-                <span class="flow-card-badge">Feature 7</span>
-                <h4>Financial Stacking &amp; Regulatory Tracking</h4>
-              </div>
-              <p class="flow-desc">Synthesizes tax credit eligibility, Opportunity Zones, state data center incentives, and quarterly-audited regulatory climate signals (an automated eCFR diff tracker is specced, not yet built).</p>
-              <div class="pipeline-tags">
-                <span class="ptag">Treasury QOZ Tracts</span>
-                <span class="ptag">NETL IRA Energy Comm.</span>
-                <span class="ptag">State DC Incentives</span>
-                <span class="ptag">Quarterly Reg. Re-Audit</span>
-              </div>
-              <ul class="flow-points">
-                <li><strong>IRA Energy Community +10% Bonus:</strong> Point-in-polygon resolution against coal-closure tracts and fossil-fuel-employment areas.</li>
-                <li><strong>Opportunity Zone Tax Step-Up:</strong> Distinguishes standard vs. Rural QOZ tracts (30% basis step-up).</li>
-                <li><strong>State Regulatory Index:</strong> Audits 50-state data center tax exemptions, sales tax holidays, and moratorium risk legislation.</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <div class="about-section about-sources">
-          <h3>Data sources &amp; freshness</h3>
-          <ul class="about-source-list">
-            <li><a href="https://www.epa.gov/superfund/superfund-national-priorities-list-npl" target="_blank" rel="noopener">EPA Superfund NPL</a> — EPA FeatureServer</li>
-            <li><a href="https://www.epa.gov/brownfields/epas-brownfields-program" target="_blank" rel="noopener">EPA ACRES Brownfields</a> — EPA FeatureServer (2021 snapshot)</li>
-            <li><a href="https://www.usace.army.mil/Missions/Environmental/Formerly-Used-Defense-Sites/" target="_blank" rel="noopener">USACE FUDS</a> — ArcGIS FeatureServer</li>
-            <li><a href="https://www.acq.osd.mil/eie/brac/index.html" target="_blank" rel="noopener">DoD BRAC</a> — ESRI milbases FeatureServer</li>
-            <li><a href="https://www.epa.gov/re-powering" target="_blank" rel="noopener">EPA RE-Powering</a> — RedevelopmentAppSitePoints FeatureServer</li>
-            <li><a href="https://hifld-geoplatform.hub.arcgis.com/" target="_blank" rel="noopener">HIFLD</a> — Transmission lines, power plants, gas pipelines</li>
-            <li><a href="https://www.openstreetmap.org/" target="_blank" rel="noopener">OpenStreetMap</a> — Substations via Overpass API</li>
-            <li><a href="https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html" target="_blank" rel="noopener">Census TIGER</a> — Roads, railroads, county boundaries</li>
-            <li><a href="https://hazards.fema.gov/nhl/" target="_blank" rel="noopener">FEMA NFHL</a> — Flood Hazard Zones (per-site query)</li>
-            <li><a href="https://www.gem.wiki/" target="_blank" rel="noopener">Global Energy Monitor</a> — Per-plant citations for the curated coal conversion catalog</li>
-            <li><a href="https://www.energy.gov/em/em-clean-energy-land-reuse" target="_blank" rel="noopener">DOE EM / OCED</a> — Cleanup to Clean Energy, AI-data-center site selections, CEML mine-lands awards</li>
-            <li><a href="https://opportunityzones.hud.gov/" target="_blank" rel="noopener">HUD Opportunity Zones</a> — QOZ tracts</li>
-            <li><a href="https://www.eia.gov/" target="_blank" rel="noopener">EIA Atlas</a> — ISO/RTO region polygons</li>
-            <li><a href="https://www.energycodes.gov/development/buildings/climate_zones" target="_blank" rel="noopener">DOE Building America</a> — ASHRAE climate zones</li>
-            <li><a href="https://echo.epa.gov/" target="_blank" rel="noopener">EPA ECHO</a> — Enforcement history + NPDES water permits (Superfund only)</li>
-            <li><a href="https://hazards.fema.gov/nri/" target="_blank" rel="noopener">FEMA National Risk Index</a> — County natural-hazard ratings (wildfire, drought, heat)</li>
-            <li><a href="https://energycommunities.gov/" target="_blank" rel="noopener">DOE NETL</a> — IRA energy communities (coal-closure tracts, fossil-fuel-employment counties)</li>
-            <li><a href="https://www.eia.gov/electricity/data/eia860m/" target="_blank" rel="noopener">EIA-860M</a> — Retired power-plant generators</li>
-            <li><a href="https://www.epa.gov/ghgreporting" target="_blank" rel="noopener">EPA GHGRP</a> — Retired heavy-industrial facilities (Envirofacts REST)</li>
-          </ul>
-          <p class="about-note">Dashboard <span id="hero-version">v1.29</span> · Last data refresh: <span id="about-refresh-date">—</span>. Source code and raw data files: <a href="https://github.com/pranava0x0/brownfield-opportunities" target="_blank" rel="noopener">GitHub</a>. The AI Summary on each site detail panel is generated from these federal records — see any site's Summary tab.</p>
-        </div>
-
-      </div><!-- .about-grid -->
-    </div><!-- .about-wrap -->
+        <section class="about-section"><h3>Read findings separately</h3>
+          <p><strong>Evidence found</strong> means a source supports the stated observation. <strong>Constraint documented</strong> means a source identifies a potential limit. <strong>Unknown</strong> means the question remains unassessed; it is neither a favorable nor unfavorable finding.</p>
+          <p><strong>High, Medium and Low confidence</strong> describe support for that finding. High needs current, direct, site-specific evidence. Medium fits recent mapped context with a known source. Low fits old, indirect or proxy observations. Unknown findings have no confidence rating. Current public proximity data generally supports context, not High-confidence service availability.</p>
+          <p>There is no composite total or best-first ranking. The same category evidence is used across the reuse tabs. Exact distances are measurements from reference points, not precision in suitability.</p>
+        </section>
+        <section class="about-section"><h3>Grid</h3>
+          <p>Transmission lines come from the public HIFLD-derived ArcGIS layer. Substations come from OpenStreetMap through Overpass. These sources have different coverage, dates and asset definitions; OSM can include railway traction and distribution equipment. Line or substation proximity does not establish available capacity or a connection agreement.</p>
+          <p>A missing mapped match cannot establish off-grid status. Distances originate at reported site points or cleanup-site proxies, not surveyed development boundaries.</p>
+          <p><a href="data/infra-proximity.json">Infrastructure records</a> · <a href="https://www.openstreetmap.org/" target="_blank" rel="noopener">OpenStreetMap</a></p>
+        </section>
+        <section class="about-section"><h3>Fiber</h3>
+          <p>No nationwide parcel-level enterprise fiber dataset is joined. Regional carrier networks and broadband availability do not establish service at a parcel, usable capacity or independent routes. The curated military-site ratings lacked fiber-specific citations and are treated as unknown.</p>
+          <p>Verification needs a carrier serviceability response identifying the parcel, capacity, construction requirements and route diversity. Adding broadband data alone would not answer those questions.</p>
+        </section>
+        <section class="about-section"><h3>Water</h3>
+          <p>USGS streamgages provide monitoring locations and flow context. Distance to the nearest qualifying gage is not distance to water. An annual mean is not drought yield, permitted withdrawal or remaining supply. A nearby gage may belong to a different catchment.</p>
+          <p>Assess intake access, source-matched low flow, competing uses and the project supply agreement separately. An NPDES discharge permit does not establish withdrawal rights.</p>
+          <p><a href="data/water-proximity.json">Water context records</a> · <a href="https://waterdata.usgs.gov/" target="_blank" rel="noopener">USGS Water Data</a> · <a href="https://www.epa.gov/npdes/npdes-permit-basics" target="_blank" rel="noopener">EPA permit basics</a></p>
+        </section>
+        <section class="about-section"><h3>Population and completeness</h3>
+          <p>Explore, Map, Table, Manufacturing, Microreactor candidates, Maritime and Nickel use the shared Superfund, ACRES, FUDS and BRAC records. Coverage differs by program; many records lack acreage. A complete list of processed IDs does not mean complete infrastructure coverage.</p>
+          <p>Nuclear Siting uses 14 curated installations. Microreactor vendors and commitments, coal assets, and DOE dossiers are separate curated populations. Their inclusion does not validate land control, infrastructure access or project completion. Nickel demand also depends on chemistry and project status; identified LFP-only conversions and discontinued projects are excluded from the relevant proximity matches.</p>
+          <p>Headline counts describe records with particular evidence, within the current selection. They are not counts of buildable sites. Loaded-file dates indicate artifact freshness, not when every underlying feature was verified.</p>
+        </section>
+        <section class="about-section"><h3>Sources and next checks</h3>
+          <p>Open a site to inspect category sources and limitations. Keep capacity, water entitlement, usable land, freight access and project approvals as separate checks. Historical ownership, nearby facilities and program membership do not establish those facts.</p>
+          <p><a href="infrastructure-data-guide.md">Infrastructure data guide</a> · <a href="data/ap1000-sites.json">Curated installation evidence</a> · <a href="https://github.com/pranava0x0/brownfield-opportunities" target="_blank" rel="noopener">Source repository and full audit reports</a></p>
+          <p class="about-note">Dashboard <span id="hero-version">v1.30</span> · Latest loaded artifact: <span id="about-refresh-date">—</span>. Documents, AI summaries and optional map catalogs load when requested. AI summaries are secondary narrative, not independent evidence.</p>
+        </section>
+      </div>
+    </div>
     </template>
   </section>
 </main>
@@ -937,7 +541,7 @@
   </dl>
 
   <details class="d-section" data-section="suitability" id="d-suitability-block" open>
-    <summary><h3>Siting suitability</h3></summary>
+    <summary><h3>Infrastructure evidence</h3></summary>
     <div class="suitability" id="d-suitability">
       <div class="suit-lens" id="d-suit-dc"></div>
       <div class="suit-lens" id="d-suit-gen"></div>
@@ -947,7 +551,7 @@
       <p class="suit-flood" id="d-suit-flood" hidden></p>
       <p class="suit-flood" id="d-suit-climate" hidden></p>
       <p class="suit-flood" id="d-suit-reg" hidden></p>
-      <p class="suit-note muted">Computed from grid, gas, land, market, flood, FEMA climate-risk, and state regulatory signals already on this record. Higher = stronger candidate.</p>
+      <p class="suit-note muted">Confidence describes support for each finding. Unknown capacity, supply and permissions remain unresolved.</p>
     </div>
   </details>
 
@@ -998,7 +602,7 @@
       <dt>Gas pipeline</dt><dd id="d-gas-pipeline-mi" class="muted-cell">Not available</dd>
       <dt>Nearest port</dt><dd id="d-port-mi" class="muted-cell">Not available</dd>
       <dt>Nearest shipyard</dt><dd id="d-shipyard-mi" class="muted-cell">Not available</dd>
-      <dt>Surface water</dt><dd id="d-water-flow" class="muted-cell">Not available</dd>
+      <dt>Streamgage context</dt><dd id="d-water-flow" class="muted-cell">Not available</dd>
       <dt>Flood zone</dt><dd id="d-flood-zone" class="muted-cell">Not available</dd>
       <dt>ISO/RTO</dt><dd id="d-iso-rto" class="muted-cell">Not available</dd>
       <dt>Climate zone</dt><dd id="d-climate-zone" class="muted-cell">Not available</dd>
@@ -1080,11 +684,8 @@
         integrity="sha256-Jc0CrkhsxQY+AhWk5M+xXeg3AMh6xIusTVfcaq8+u4k="
         crossorigin=""></script>
 <script defer src="provenance.js"></script>
-<script defer src="dc-score.js"></script>
-<script defer src="ap1000-score.js"></script>
-<script defer src="microreactor-score.js"></script>
-<script defer src="maritime-score.js"></script>
-<script defer src="nickel-score.js"></script>
+<script defer src="siting-context.js"></script>
+<script defer src="evidence-categories.js"></script>
 <script defer src="app.js"></script>
 </body>
 </html>

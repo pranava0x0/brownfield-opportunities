@@ -133,9 +133,20 @@ class NickelAnchorProximity(Connector):
                       "first; aborting rather than writing an anchor-less file")
             return self.existing_records() if missing_only else []
 
+        # Catalog audit stamps describe the retained observations, not this
+        # compilation run. Keep each typed match traceable without repeating
+        # source URLs and notes in tens of thousands of site records.
+        self.source_metadata = {"anchors_by_id": {
+            a["id"]: {k: a[k] for k in (
+                "name", "kind", "source_url", "verified_at", "status",
+                "coord_precision", "lat", "lon", "note", "nickel_demand_eligible", "proximity_eligible") if k in a}
+            for a in anchors if a.get("id")
+        }}
+
         # One anchor list per scored group, plus one over everything for the
         # "nearest anchor of any kind" label.
-        groups = {field: self._subset(anchors, kinds)
+        groups = {field: [a for a in self._subset(anchors, kinds)
+                          if field != "nickel_demand_mi" or a.get("nickel_demand_eligible") is not False]
                   for field, kinds in KIND_GROUPS.items()}
         every = self._subset(anchors, tuple(
             k for kinds in KIND_GROUPS.values() for k in kinds
@@ -165,6 +176,8 @@ class NickelAnchorProximity(Connector):
                 hit = self._nearest(lat_f, lon_f, group)
                 if hit is not None and hit[0] <= cap:
                     rec[field] = round(hit[0], 1)
+                    if hit[1].get("id"):
+                        rec[field.removesuffix("_mi") + "_id"] = hit[1]["id"]
             hit = self._nearest(lat_f, lon_f, every)
             if hit is not None and hit[0] <= MAX_DISTANCE_MI:
                 dist_mi, anchor = hit
@@ -230,7 +243,7 @@ class NickelAnchorProximity(Connector):
         """
         out: list[dict[str, Any]] = []
         for a in anchors:
-            if a.get("kind") not in kinds:
+            if a.get("kind") not in kinds or a.get("proximity_eligible") is False:
                 continue
             if a.get("lat") is None or a.get("lon") is None or not a.get("name"):
                 log.warning("anchor %s missing name/lat/lon — skipped",

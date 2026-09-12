@@ -321,8 +321,10 @@ def test_precluded_fits_render_in_the_matrix(page, base_url):
     assert state["noneRows"] == 5  # 100/200/Monument/B Reactor/PNNL
 
 
-def test_hanford_markers_and_legend_present_at_ready(page, base_url):
+def test_hanford_markers_and_legend_present_after_map_requested(page, base_url):
     _goto_ready(page, base_url)
+    page.click("#tab-map")
+    page.wait_for_selector(".hanford-parcel-icon", timeout=15000)
     state = page.evaluate(
         """(() => ({
           markers: document.querySelectorAll('.hanford-parcel-icon').length,

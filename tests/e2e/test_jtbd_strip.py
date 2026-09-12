@@ -36,8 +36,8 @@ def test_strip_renders_four_job_chips(page, base_url):
     assert page.locator("#jtbd-dismiss").is_visible()
 
 
-def test_generation_chip_routes_to_rankings_with_gen_lens(page, base_url):
-    """"Power generation" activates the Rankings tab on the Generation lens,
+def test_generation_chip_routes_to_evidence_with_gen_lens(page, base_url):
+    """"Power generation" activates Explore on the Generation lens,
     with the lens button lit and ?lens=gen round-tripped through the URL —
     i.e. it reuses the real lens-click path rather than a parallel one."""
     _ready(page, base_url)
@@ -47,7 +47,7 @@ def test_generation_chip_routes_to_rankings_with_gen_lens(page, base_url):
     page.wait_for_function("location.search.includes('lens=gen')")
     page.wait_for_function(
         "() => document.getElementById('candidates-stats').textContent"
-        ".includes('generation score')"
+        ".includes('alphabetical')"
     )
     active = page.evaluate(
         "document.querySelector('[data-cand-lens].active')?.dataset.candLens"
@@ -64,7 +64,7 @@ def test_factory_chip_routes_to_manufacturing_lens(page, base_url):
     page.wait_for_function("location.search.includes('lens=mfg')")
     page.wait_for_function(
         "() => document.getElementById('candidates-stats').textContent"
-        ".includes('manufacturing score')"
+        ".includes('alphabetical')"
     )
 
 

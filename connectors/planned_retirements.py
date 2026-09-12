@@ -67,7 +67,7 @@ class PlannedRetirements(Connector):
     slug = "planned-retirements-proximity"
     source_label = (
         "EIA Form EIA-860M — Preliminary Monthly Electric Generator Inventory "
-        "(Operating sheet, Planned Retirement Year; April 2026)"
+        "(Operating sheet, announced retirement year; see source vintage)"
     )
     source_url = "https://www.eia.gov/electricity/data/eia860m/"
 
@@ -234,6 +234,7 @@ class PlannedRetirements(Connector):
             return PointIndex()
         # The overlay wraps its plant list under "sites" (same envelope the
         # build script writes); tolerate a bare list too.
+        self.source_metadata = payload.get("source_metadata") if isinstance(payload, dict) else None
         plants = payload.get("sites") if isinstance(payload, dict) else payload
         plants = plants or []
 

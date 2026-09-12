@@ -43,16 +43,8 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(mess
 
 OUT_PATH = Path(__file__).resolve().parent.parent / "docs" / "data" / "planned-retirements.json"
 
-# Same workbook + cache key as connectors/eia_retired_plants.py — the archive
-# URL is the working one (the primary /xls/ path returns an HTML page).
-EIA_860M_URL = (
-    "https://www.eia.gov/electricity/data/eia860m/archive/xls/april_generator2026.xlsx"
-)
-_EIA_CACHE_KEY = {"src": "eia_860m_retired"}
-_EIA_CACHE_FILENAME = (
-    hashlib.sha256(json.dumps(_EIA_CACHE_KEY, sort_keys=True).encode()).hexdigest()[:16]
-    + ".bin"
-)
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from connectors.eia860m_source import EIA_860M_URL, EIA_CACHE_KEY as _EIA_CACHE_KEY, EIA_CACHE_FILENAME as _EIA_CACHE_FILENAME, EIA_WORKBOOK_MONTH
 
 MIN_PLANT_MW = 100.0
 
@@ -92,6 +84,9 @@ def _get_eia_bytes() -> bytes | None:
     except Exception as exc:  # noqa: BLE001 — log + abort, nothing to salvage
         log.error("EIA-860M: download failed (%s)", exc)
         return None
+    if not data.startswith(b"PK"):
+        log.error("EIA returned non-XLSX content; refusing cache write")
+        return None
     cache_path = OUT_PATH.parents[2] / "data" / "cache" / _EIA_CACHE_FILENAME
     cache_path.parent.mkdir(parents=True, exist_ok=True)
     cache_path.write_bytes(data)
@@ -103,7 +98,7 @@ def main() -> int:
     try:
         import openpyxl  # type: ignore
     except ImportError:
-        log.error("openpyxl is required (pip install openpyxl)")
+        log.error("openpyxl is required in the project runtime")
         return 1
 
     data = _get_eia_bytes()
@@ -176,7 +171,8 @@ def main() -> int:
     payload = {
         "generated_at": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "source": "EIA-860M Preliminary Monthly Electric Generator Inventory — "
-                  "operating generators with announced retirement dates (April 2026)",
+                  f"operating generators with announced retirement dates ({EIA_WORKBOOK_MONTH}; preliminary)",
+        "source_metadata": {"planned_retirement": {"source_url": EIA_860M_URL, "source_period": EIA_WORKBOOK_MONTH, "status": "preliminary"}},
         "source_url": "https://www.eia.gov/electricity/data/eia860m/",
         "count": len(sites),
         "total_mw": total_mw,

@@ -93,42 +93,45 @@ def test_coal_drawer_opens_with_modeled_label_and_citation(page, base_url):
     page.wait_for_selector("#coal-site-drawer[hidden]", state="attached", timeout=5000)
 
 
-def test_about_arch_section_mounts_lazily_from_template(page, base_url):
-    """At first paint the arch flow-card grid lives in <template> (0 rendered
-    nodes); activating About stamps it exactly once."""
+def test_retired_connection_flags_do_not_claim_reusable_capacity(page, base_url):
     _goto_ready(page, base_url)
-    before = page.evaluate(
-        "document.querySelectorAll('#about-arch-mount .flow-card').length"
-    )
-    assert before == 0, "arch cards must not render before About activation"
-    page.click("#tab-about")
-    page.wait_for_selector("#about-arch-mount .flow-card", timeout=5000)
-    counts = page.evaluate(
-        """(() => ({
-          cards: document.querySelectorAll('#about-arch-mount .flow-card').length,
-          master: document.querySelectorAll('#about-arch-mount .master-card').length,
-        }))()"""
-    )
-    assert counts["cards"] >= 7, counts
-    assert counts["master"] == 1, counts
-    # Re-activating About must not double-mount.
-    page.click("#tab-map")
-    page.click("#tab-about")
-    again = page.evaluate(
-        "document.querySelectorAll('#about-arch-mount .master-card').length"
-    )
-    assert again == 1, "template stamped more than once"
+    page.click("#tab-coal")
+    page.wait_for_selector("#coal-table-container table.coal-table")
+    plant = page.evaluate("window.__coalAssets.find(p => p.queue_transfer_eligible).plant_name")
+    page.evaluate("name => window.__inspectCoalPlant(name)", plant)
+    page.wait_for_selector("#coal-site-drawer:not([hidden])")
+    text = page.locator("#coal-drawer-body").inner_text()
+    assert "eligibility, rights and capacity require utility/operator review" in text
+    for selector in ("#coal-table-container", "#coal-drawer-body"):
+        rendered = page.locator(selector).inner_text().lower()
+        for claim in ("poi reusable", "poi reuse zone", "available headroom", "dual feasible"):
+            assert claim not in rendered
 
 
-def test_arch_section_contains_no_raw_latex(page, base_url):
-    """The v1 draft shipped $\\text{...}$ LaTeX into plain HTML where it
-    renders as literal dollar-sign soup — no MathJax exists on this page."""
+def test_about_methods_mount_lazily_once_with_category_sources(page, base_url):
+    """Data/methods content stays absent until its tab is requested."""
+    _goto_ready(page, base_url)
+    assert page.locator("#view-about .about-wrap").count() == 0
+    page.click("#tab-about")
+    page.wait_for_selector("#view-about .about-wrap")
+    text = page.locator("#view-about").inner_text()
+    for term in ("grid", "fiber", "water", "unknown", "confidence"):
+        assert term in text.lower()
+    assert page.locator('#view-about a[href="data/infra-proximity.json"]').count() == 1
+    assert page.locator('#view-about a[href="data/water-proximity.json"]').count() == 1
+    page.click("#tab-table")
+    page.click("#tab-about")
+    assert page.locator("#view-about .about-wrap").count() == 1
+
+
+def test_methods_section_contains_no_raw_latex(page, base_url):
+    """No math renderer exists; scientific notation must remain readable."""
     _goto_ready(page, base_url)
     page.click("#tab-about")
-    page.wait_for_selector("#about-arch-mount .flow-card", timeout=5000)
-    text = page.evaluate("document.getElementById('about-arch-mount').textContent")
+    page.wait_for_selector("#view-about .about-wrap")
+    text = page.locator("#view-about").inner_text()
     for marker in ("\\text", "\\le", "\\times", "$O(", "$V ="):
-        assert marker not in text, f"raw LaTeX marker {marker!r} in About arch copy"
+        assert marker not in text, f"raw LaTeX marker {marker!r} in methods copy"
 
 
 def test_tab_strip_no_horizontal_page_scroll_mobile(page, base_url):
@@ -207,6 +210,9 @@ def test_map_overlays_render_markers_and_legend(page, base_url):
     This is the path findings #1/#2 of the 2026-08-23 review shipped through
     untested."""
     _goto_ready(page, base_url)
+    page.click("#tab-map")
+    page.wait_for_selector(".coal-repowering-icon", timeout=15000)
+    page.wait_for_selector(".federal-site-icon", timeout=15000)
     state = page.evaluate(
         """(() => {
           const coal = [...document.querySelectorAll('.coal-repowering-icon')];
@@ -249,6 +255,7 @@ def test_drawer_nearby_shows_unavailable_not_negative_on_prox_failure(page, base
     page.wait_for_selector("#coal-table-container table.coal-table", timeout=15000)
     page.click("#coal-table-container .coal-btn.inspect-btn")
     page.wait_for_selector("#coal-site-drawer:not([hidden])", timeout=5000)
+    page.wait_for_selector("#coal-drawer-body .coal-nearby-retry", timeout=10000)
     text = page.evaluate("document.getElementById('coal-drawer-body').textContent")
     assert "failed to load" in text, text
     assert "No tracked brownfield sites" not in text, "negative claim rendered for a failed load"
@@ -264,6 +271,9 @@ def test_coal_join_reapplies_after_restricted_boot_then_reset(page, base_url):
     so their matches carry the coal fields for the rest of the session."""
     page.goto(f"{base_url}/index.html?program=superfund")
     page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    # Detail selection deliberately requests its deferred proximity evidence.
+    page.evaluate("window.__selectSite(window.__sites[0].id)")
+    page.wait_for_function("window.__sites.some(s => s.coal_conversion_plant_name)", timeout=30000)
     acres_id = page.evaluate(
         """(async () => {
           const j = await (await fetch('data/coal-conversions-proximity.json')).json();
@@ -291,6 +301,9 @@ def test_coal_detail_cell_renders_for_joined_site(page, base_url):
     """A site inside the 10-mi join renders the 'Coal reinvestment' row with a
     clickable chip labeled as modeled; a site outside stays 'Not available'."""
     _goto_ready(page, base_url)
+    # Detail selection deliberately requests its deferred proximity evidence.
+    page.evaluate("window.__selectSite(window.__sites[0].id)")
+    page.wait_for_function("window.__sites.some(s => s.coal_conversion_plant_name)", timeout=30000)
     result = page.evaluate(
         """(async () => {
           // Wait for the proximity join to land on some site.

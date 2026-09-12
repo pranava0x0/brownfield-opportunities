@@ -48,11 +48,10 @@ from connectors.spatial import DEFAULT_CELL_DEG, PointIndex
 
 log = logging.getLogger("connector.water_proximity")
 
-# Past this a gage tells you nothing useful about the site's water. Wider than
-# the transmission bands because the gage network is far sparser than the grid
-# — but tight enough that the number still describes the site's own basin
-# rather than the next watershed over.
+# Catalog search radius only. Euclidean proximity never establishes that a
+# gage and site share a basin, intake, or available water supply.
 MAX_DISTANCE_MI = 50.0
+UNSUPPORTED_REGIONS = frozenset({"VI", "GU", "MP", "AS", "FM", "PW", "MH"})
 EARTH_RADIUS_MI = 3958.8
 # Longitude degrees shrink with latitude, so a fixed ring budget covers fewer
 # miles the further north a site sits. At 71°N a 0.25° cell is only ~5.6 mi
@@ -119,6 +118,14 @@ class WaterProximity(Connector):
                       self._data_dir())
             return []
 
+        idx = self._build_index()
+        if idx.point_count == 0:
+            log.error("gage index empty — run scripts/build_streamgages_overlay.py "
+                      "first; aborting rather than writing a water-less file")
+            return self.existing_records() if bool(getattr(args, "missing_only", False)) else []
+        log.info("[water-proximity] indexed %d gages", idx.point_count)
+
+
         missing_only = bool(getattr(args, "missing_only", False))
         if missing_only:
             covered = self.existing_ids()
@@ -129,13 +136,6 @@ class WaterProximity(Connector):
                          before - len(sites), before, len(sites))
             if not sites:
                 return self.existing_records()
-
-        idx = self._build_index()
-        if idx.point_count == 0:
-            log.error("gage index empty — run scripts/build_streamgages_overlay.py "
-                      "first; aborting rather than writing a water-less file")
-            return self.existing_records() if missing_only else []
-        log.info("[water-proximity] indexed %d gages", idx.point_count)
 
         records: list[dict[str, Any]] = []
         skipped_no_geom = 0
@@ -152,7 +152,18 @@ class WaterProximity(Connector):
                 skipped_no_geom += 1
                 continue
 
-            rec: dict[str, Any] = {"id": sid, "program": program}
+            if not math.isfinite(lat_f) or not math.isfinite(lon_f) or not (-90 <= lat_f <= 90 and -180 <= lon_f <= 180):
+                log.warning("invalid coordinates for %s", sid)
+                skipped_no_geom += 1
+                continue
+            rec: dict[str, Any] = {
+                "id": sid, "program": program,
+                "water_evidence_status": "no_qualifying_gage",
+            }
+            if site.get("state") in UNSUPPORTED_REGIONS:
+                rec["water_evidence_status"] = "unsupported_region"
+                records.append(rec)
+                continue
             hit = idx.nearest_with_attr(
                 lat_f, lon_f, max_rings=_rings_for_latitude(lat_f))
             if hit is not None:
@@ -165,6 +176,7 @@ class WaterProximity(Connector):
                     rec["water_flow_cfs"] = attr["mean_flow_cfs"]
                     rec["water_gage_name"] = attr["name"]
                     rec["water_gage_id"] = attr["gage_id"]
+                    rec["water_evidence_status"] = "matched_context"
                     matched += 1
             records.append(rec)
 
@@ -214,6 +226,21 @@ class WaterProximity(Connector):
         except (OSError, json.JSONDecodeError) as e:
             log.error("failed to read %s: %s", GAGES_FILE, e)
             return idx
+        snapshots = sorted({r.get("source_retrieved_at") for r in payload.get("sites", [])
+                            if r.get("source_retrieved_at")})
+        self.source_metadata = {
+            "statistic": "mean_of_annual_means", "supply_assessment": "unassessed",
+            "gage_catalog_generated_at": payload.get("generated_at"),
+            "source_retrieved_at_range": [snapshots[0], snapshots[-1]] if snapshots else [],
+            "coverage": payload.get("coverage", {}),
+            "gages_by_id": {
+                row["gage_id"]: {"water_gage_" + key: row[key] for key in (
+                    "record_years", "record_start_year", "record_end_year",
+                    "source_retrieved_at", "source_url") if row.get(key) is not None}
+                for row in payload.get("sites", [])
+            },
+            "note": "Distance to selected monitoring gage, not water or an intake. Basin identity, low-flow reliability and allocation are unassessed.",
+        }
         for row in payload.get("sites") or []:
             lat, lon = row.get("lat"), row.get("lon")
             flow = row.get("mean_flow_cfs")
@@ -223,6 +250,9 @@ class WaterProximity(Connector):
                 "gage_id": row.get("gage_id"),
                 "name": row.get("name"),
                 "mean_flow_cfs": flow,
+                **{key: row.get(key) for key in (
+                    "record_years", "record_start_year", "record_end_year",
+                    "source_retrieved_at", "source_url")},
                 # Carried so the winner can be re-measured exactly.
                 "lat": float(lat),
                 "lon": float(lon),

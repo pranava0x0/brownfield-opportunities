@@ -34,7 +34,14 @@ DEFAULT_CELL_DEG = 0.25
 # Hard cap on rings we'll expand before giving up. 8 rings × 0.25° ≈ 140 mi
 # search radius — past that, "nearest infra" stops being a useful signal
 # anyway (Alaskan FUDS sites, etc).
-MAX_RINGS = 8
+MAX_RINGS = 8  # Legacy explicit ring limit; default queries use miles.
+SEARCH_RADIUS_MI = 100.0
+
+def _query_rings(lat: float, cell_deg: float) -> int:
+    """Cover 100 physical miles even where longitude cells narrow in Alaska."""
+    meters_per_cell = cell_deg * min(110_540.0, 111_320.0 * abs(math.cos(math.radians(lat))))
+    return math.ceil(SEARCH_RADIUS_MI * 1609.344 / max(meters_per_cell, 1.0)) + 1
+
 
 
 def haversine_mi(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
@@ -90,15 +97,26 @@ def _cell_for(lat: float, lon: float, cell_deg: float) -> tuple[int, int]:
     return int(math.floor(lat / cell_deg)), int(math.floor(lon / cell_deg))
 
 
+def _wrap_cell(cell: tuple[int, int], cell_deg: float) -> tuple[int, int]:
+    """Wrap neighboring longitude cells across the antimeridian."""
+    cy, cx = cell
+    if cx * cell_deg < -180 or cx * cell_deg >= 180:
+        longitude = ((cx + .5) * cell_deg + 180) % 360 - 180
+        cx = math.floor(longitude / cell_deg)
+    return cy, cx
+
+
 def _cells_in_ring(cy: int, cx: int, ring: int) -> Iterable[tuple[int, int]]:
     """Yield grid cells exactly `ring` steps from (cy, cx) in Chebyshev distance."""
     if ring == 0:
         yield (cy, cx)
         return
-    for dy in range(-ring, ring + 1):
-        for dx in range(-ring, ring + 1):
-            if max(abs(dy), abs(dx)) == ring:
-                yield (cy + dy, cx + dx)
+    for dx in range(-ring, ring + 1):
+        yield (cy - ring, cx + dx)
+        yield (cy + ring, cx + dx)
+    for dy in range(-ring + 1, ring):
+        yield (cy + dy, cx - ring)
+        yield (cy + dy, cx + ring)
 
 
 class SegmentIndex:
@@ -178,6 +196,14 @@ class SegmentIndex:
                 last_lon = last_lat = None
                 continue
             if last_lat is not None and last_lon is not None:
+                if abs(lon - last_lon) > 180:
+                    unwrapped = lon + (360 if lon < last_lon else -360)
+                    boundary = 180.0 if last_lon > 0 else -180.0
+                    cross_lat = last_lat + (lat - last_lat) * (boundary - last_lon) / (unwrapped - last_lon)
+                    added += self.add_polyline([[last_lon, last_lat], [boundary, cross_lat]], attr)
+                    added += self.add_polyline([[-boundary, cross_lat], [lon, lat]], attr)
+                    last_lat, last_lon = lat, lon
+                    continue
                 idx = len(self._segments)
                 self._segments.append((last_lat, last_lon, lat, lon))
                 if self._attrs is not None:
@@ -193,7 +219,7 @@ class SegmentIndex:
                 cy_hi, cx_hi = _cell_for(lat_hi, lon_hi, self.cell_deg)
                 for cy in range(cy_lo, cy_hi + 1):
                     for cx in range(cx_lo, cx_hi + 1):
-                        self._cells[(cy, cx)].append(idx)
+                        self._cells[_wrap_cell((cy, cx), self.cell_deg)].append(idx)
             last_lat = lat
             last_lon = lon
         return added
@@ -202,7 +228,7 @@ class SegmentIndex:
         self,
         lat: float,
         lon: float,
-        max_rings: int = MAX_RINGS,
+        max_rings: int | None = None,
     ) -> float | None:
         """Return min distance in miles from (lat, lon) to any segment.
 
@@ -217,7 +243,7 @@ class SegmentIndex:
         self,
         lat: float,
         lon: float,
-        max_rings: int = MAX_RINGS,
+        max_rings: int | None = None,
     ) -> tuple[float, object] | None:
         """Return (distance_mi, attr) for the nearest segment.
 
@@ -238,11 +264,16 @@ class SegmentIndex:
         self,
         lat: float,
         lon: float,
-        max_rings: int,
+        max_rings: int | None,
         return_idx: bool,
     ) -> tuple[float, int] | tuple[float] | None:
         if not self._segments:
             return None
+        if not (math.isfinite(lat) and math.isfinite(lon) and -90 <= lat <= 90 and -180 <= lon <= 180):
+            return None
+        physical_radius = max_rings is None
+        if max_rings is None:
+            max_rings = _query_rings(lat, self.cell_deg)
         cy, cx = _cell_for(lat, lon, self.cell_deg)
         best_m: float | None = None
         best_idx: int = -1
@@ -253,16 +284,18 @@ class SegmentIndex:
         px = lon * m_per_deg_lon
         py = lat * m_per_deg_lat
         seen: set[int] = set()
-        for ring in range(max_rings + 1):
-            for cell in _cells_in_ring(cy, cx, ring):
-                for idx in self._cells.get(cell, ()):
+        exhaustive = physical_radius and max_rings > 100
+        for ring in range(1 if exhaustive else max_rings + 1):
+            for cell in self._cells if exhaustive else _cells_in_ring(cy, cx, ring):
+                for idx in self._cells.get(_wrap_cell(cell, self.cell_deg), ()):
                     if idx in seen:
                         continue
                     seen.add(idx)
                     a_lat, a_lon, b_lat, b_lon = self._segments[idx]
-                    ax = a_lon * m_per_deg_lon
+                    shift = 360 * round((lon - (a_lon + b_lon) / 2) / 360)
+                    ax = (a_lon + shift) * m_per_deg_lon
                     ay = a_lat * m_per_deg_lat
-                    bx = b_lon * m_per_deg_lon
+                    bx = (b_lon + shift) * m_per_deg_lon
                     by = b_lat * m_per_deg_lat
                     d = _segment_distance_m(px, py, ax, ay, bx, by)
                     if best_m is None or d < best_m:
@@ -280,6 +313,8 @@ class SegmentIndex:
         if best_m is None:
             return None
         d_mi = best_m / 1609.344  # meters → miles
+        if physical_radius and d_mi > SEARCH_RADIUS_MI:
+            return None
         if return_idx:
             return (d_mi, best_idx)
         return (d_mi,)
@@ -341,20 +376,25 @@ class PointIndex:
         self._lons.append(lon_f)
         self._attrs.append(attr)
         cy, cx = _cell_for(lat_f, lon_f, self.cell_deg)
-        self._cells[(cy, cx)].append(idx)
+        self._cells[_wrap_cell((cy, cx), self.cell_deg)].append(idx)
         return True
 
     def nearest_with_attr(
         self,
         lat: float,
         lon: float,
-        max_rings: int = MAX_RINGS,
+        max_rings: int | None = None,
     ) -> tuple[float, object] | None:
         """Return `(distance_mi, attr)` for the nearest point, or None if
         nothing is found within `max_rings * cell_deg` of search radius.
         """
         if not self._lats:
             return None
+        if not (math.isfinite(lat) and math.isfinite(lon) and -90 <= lat <= 90 and -180 <= lon <= 180):
+            return None
+        physical_radius = max_rings is None
+        if max_rings is None:
+            max_rings = _query_rings(lat, self.cell_deg)
         cy, cx = _cell_for(lat, lon, self.cell_deg)
         best_m: float | None = None
         best_idx: int = -1
@@ -364,13 +404,14 @@ class PointIndex:
         px = lon * m_per_deg_lon
         py = lat * m_per_deg_lat
         seen: set[int] = set()
-        for ring in range(max_rings + 1):
-            for cell in _cells_in_ring(cy, cx, ring):
-                for idx in self._cells.get(cell, ()):
+        exhaustive = physical_radius and max_rings > 100
+        for ring in range(1 if exhaustive else max_rings + 1):
+            for cell in self._cells if exhaustive else _cells_in_ring(cy, cx, ring):
+                for idx in self._cells.get(_wrap_cell(cell, self.cell_deg), ()):
                     if idx in seen:
                         continue
                     seen.add(idx)
-                    qx = self._lons[idx] * m_per_deg_lon
+                    qx = (lon + (self._lons[idx] - lon + 180) % 360 - 180) * m_per_deg_lon
                     qy = self._lats[idx] * m_per_deg_lat
                     d = math.hypot(px - qx, py - qy)
                     if best_m is None or d < best_m:
@@ -383,13 +424,15 @@ class PointIndex:
         if best_m is None:
             return None
         d_mi = best_m / 1609.344
+        if physical_radius and d_mi > SEARCH_RADIUS_MI:
+            return None
         return (d_mi, self._attrs[best_idx])
 
     def nearest_distance_mi(
         self,
         lat: float,
         lon: float,
-        max_rings: int = MAX_RINGS,
+        max_rings: int | None = None,
     ) -> float | None:
         """Convenience: distance only, no attr."""
         hit = self.nearest_with_attr(lat, lon, max_rings=max_rings)
@@ -492,7 +535,7 @@ class PolygonIndex:
         cy_hi, cx_hi = _cell_for(lat_hi, lon_hi, self.cell_deg)
         for cy in range(cy_lo, cy_hi + 1):
             for cx in range(cx_lo, cx_hi + 1):
-                self._cells[(cy, cx)].append(idx)
+                self._cells[_wrap_cell((cy, cx), self.cell_deg)].append(idx)
         return True
 
     def containing(self, lat: float, lon: float) -> object | None:

@@ -122,6 +122,13 @@ def test_handles_string_acreage():
     assert rec["acreage"] == 150.3
 
 
+@pytest.mark.parametrize("value", [0, "0", -1, 0.001, float("nan"), float("inf"), ""])
+def test_unknown_or_invalid_acreage_is_not_zero(value):
+    rec = EpaRedev.normalize(_feature({"Acres": value}))
+    assert rec["acreage"] is None
+    assert rec["data_center_reuse_candidate"] is False
+
+
 def test_region_parsed_from_numeric():
     rec = EpaRedev.normalize(_feature({"Region": 10}))
     assert rec["region"] == 10

@@ -971,10 +971,20 @@ PORTSMOUTH_SITE = {
             "source_url": "https://www.aep.com/news/stories/view/10823/",
             "extra_sources": [
                 {
+                    "label": "DOE PORTS contract — X-530/X-515 and OVEC agreement",
+                    "url": "https://www.energy.gov/sites/default/files/2024-02/PORTS%20FBP%20Conformed%20Contract%20to%20Mod%20446%2001-30-24.pdf",
+                },
+                {
                     "label": "PORTS Virtual Museum — X-533 switchyard",
                     "url": "https://www.portsvirtualmuseum.org/virtual-tour/x533/index.html",
                 },
             ],
+            "evidence_scope": "asset",
+            "asset_ids": ["X-530 Complex", "X-515 330 kV tie-line", "Don Marquis Substation"],
+            "unresolved": (
+                "The named equipment and DOE/OVEC agreement establish an active site grid asset. "
+                "They do not establish spare capacity, service for a new parcel, or transferable rights."
+            ),
             "verified_at": VERIFIED_AT,
         },
         {
