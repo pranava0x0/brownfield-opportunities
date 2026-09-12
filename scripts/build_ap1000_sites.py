@@ -14,7 +14,7 @@ Provenance, by field:
     REAL, joined from docs/data/infra-proximity.json (the project's own
     spatial-index computation) by `infra_source_id` — the best whole-installation
     record in the dataset, or an on-base proxy (Fort Benning uses Lawson AAF).
-  • retired_plant_*: REAL, from EIA Form EIA-860M April 2026 ("Retired" sheet),
+  • retired_plant_*: REAL, from the pinned EIA Form EIA-860M workbook ("Retired" sheet),
     computed by this script at build time by finding the nearest ≥100 MW
     dispatchable plant within RETIRED_PLANT_RADIUS_MI for each installation's
     lat/lon. Same source as the eia-retired-plants connector.
@@ -35,7 +35,6 @@ derivation.
 Run:  python3 scripts/build_ap1000_sites.py
 """
 import datetime as dt
-import hashlib
 import io
 import json
 import math
@@ -44,20 +43,17 @@ import urllib.request
 from collections import defaultdict
 from pathlib import Path
 
-DATA = Path(__file__).resolve().parent.parent / "docs" / "data"
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+from connectors.eia860m_source import EIA_860M_URL, EIA_WORKBOOK_MONTH, EIA_CACHE_FILENAME
+
+DATA = ROOT / "docs" / "data"
 INFRA_PATH = DATA / "infra-proximity.json"
 OUT_PATH = DATA / "ap1000-sites.json"
 
 # ---- EIA-860M retired plant enrichment ------------------------------------
-# Same source and column schema as connectors/eia_retired_plants.py.
-# April 2026 is now in the archive; use that stable URL so the data matches
-# what the eia-retired-plants connector last pulled.
-EIA_860M_URL = (
-    "https://www.eia.gov/electricity/data/eia860m/archive/xls/april_generator2026.xlsx"
-)
-_EIA_CACHE_KEY = "ap1000_eia_860m_apr2026"
-_EIA_CACHE_HASH = hashlib.sha256(_EIA_CACHE_KEY.encode()).hexdigest()[:16]
-_EIA_CACHE_FILENAME = f"{_EIA_CACHE_HASH}.bin"
+# One pinned source vintage/cache identity shared with retired/planned producers.
+_EIA_CACHE_FILENAME = EIA_CACHE_FILENAME
 
 # Search within 25 mi — wider than the connector's 5 mi so we surface context
 # for "nearby but not on-site" retired plants useful for nuclear siting.
@@ -169,13 +165,13 @@ SITES = [
         "developable_basis": "Overwhelmingly undeveloped forest/buffer — the built test-facility core is a few thousand acres; the rest is the ~25,000-ac AEDC Wildlife Management Area, with large contiguous parcels around Woods Reservoir. Estimate from total minus developed core.",
         "acreage_source": "https://tennesseeencyclopedia.net/entries/arnold-engineering-development-center/",
         "water_source": "Woods Reservoir (on-site, Elk River impoundment)",
-        "water_distance_mi": 0, "water_adequacy": "abundant",
-        "water_note": "Woods Reservoir (~26 billion gal storage, Elk River impoundment) purpose-built as AEDC cooling supply. AEDC already withdraws >22.4 billion gal/yr (~61 MGD) — well above an AP1000's ~9.8 Bgal/yr withdrawal (~26.8 MGD) / ~7.3 Bgal/yr consumptive. Elk River (USGS 03579100) mean ~470 cfs, ~10x the ~42 cfs screen.",
+        "water_distance_mi": 0, "water_adequacy": "unknown",
+        "water_note": "Woods Reservoir was constructed for AEDC cooling. The cited historical article does not establish current annual demand or spare capacity. Historical use does not establish available reactor supply. Current firm yield, competing demands, intake capacity and a project allocation are unassessed.",
         "water_source_url": "https://www.arnold.af.mil/News/Article-Display/Article/3163926/woods-reservoir-completed-70-years-ago-this-month/",
-        "fiber": "good",
-        "fiber_note": "DISN-served major test complex on the I-24 corridor (Tullahoma/Manchester); well-connected but not metro-dense.",
+        "fiber": "unknown",
+        "fiber_note": "No site-specific carrier, service, capacity or route evidence retained. Fiber availability is unassessed.",
         "seismic_flag": "moderate", "flood_flag": "low",
-        "siting_note": "Moderate seismic (regional New Madrid / East TN influence). Already operates power + cooling infrastructure at the right scale — physically among the best-suited, though not a Janus site.",
+        "siting_note": "Moderate seismic (regional New Madrid / East TN influence). Historical test-facility cooling infrastructure is documented; capacity for a new project is unassessed. Not a Janus site.",
         "nuclear_notes": "No documented DoD/DOE reactor-program interest, but uniquely large on-site power and cooling infrastructure.",
     },
     {
@@ -185,13 +181,13 @@ SITES = [
         "developable_basis": "Heavily built airfield + ~2,600-ac AMARG 'boneyard' consume most of the footprint; remaining open land is constrained. No EUL land record found.",
         "acreage_source": "https://en.wikipedia.org/wiki/309th_Aerospace_Maintenance_and_Regeneration_Group",
         "water_source": "Tucson AMA aquifer / CAP (Colorado River) delivery",
-        "water_distance_mi": 7, "water_adequacy": "severe",
-        "water_note": "Tucson AMA is in admitted groundwater overdraft (statutory 2025 safe-yield goal unmet, ADWR). The CAP (Colorado River) backstop was cut by 512,000 acre-ft — ~30% of CAP's normal supply — with nearly all Arizona reductions falling on CAP users. A ~30,000 acre-ft/yr consumptive demand is not sustainable; dry-cooling required.",
+        "water_distance_mi": 7, "water_adequacy": "unknown",
+        "water_note": "Tucson groundwater and CAP imports are potential source contexts. The retained source discusses historical Colorado River shortage conditions; it is not a current project allocation or a site supply study. Present entitlement, firm yield and cooling design remain unassessed.",
         "water_source_url": "https://www.cap-az.com/water/water-supply/colorado-river-operations-2/",
-        "fiber": "excellent",
-        "fiber_note": "DISN plus dense Tucson metro carrier fiber.",
+        "fiber": "unknown",
+        "fiber_note": "No site-specific carrier, service, capacity or route evidence retained. Fiber availability is unassessed.",
         "seismic_flag": "low", "flood_flag": "low",
-        "siting_note": "Water scarcity, not geohazards, is the binding constraint. Dry-cooling penalty would cut output and economics.",
+        "siting_note": "Historical water constraints warrant a current supply study; cooling design and project feasibility remain unassessed.",
         "nuclear_notes": "Not on the Janus shortlist or any AF reactor pilot.",
     },
     {
@@ -201,11 +197,11 @@ SITES = [
         "developable_basis": "~301,000 ac is largely undeveloped / semi-improved test-range and dry-lake land; vast contiguous open parcels away from the lakebeds and flight lines. Land is the least-constrained resource.",
         "acreage_source": "https://en.wikipedia.org/wiki/Edwards_Air_Force_Base",
         "water_source": "Antelope Valley groundwater basin / AVEK (State Water Project)",
-        "water_distance_mi": 0, "water_adequacy": "severe",
-        "water_note": "Antelope Valley basin is in court-adjudicated overdraft: USGS documents >6 ft of basin-wide land subsidence (~4 ft at the base, 'adversely affecting the runways on the lakebed') and ~8.7M acre-ft cumulative storage depletion. The SWP import via AVEK delivered just 5% of requested supplies in 2022-23. Wet-cooling is not viable — dry-cooling required.",
+        "water_distance_mi": 0, "water_adequacy": "unknown",
+        "water_note": "USGS documents historical Antelope Valley groundwater depletion and subsidence. These are material source constraints; they do not establish the feasibility of a specific cooling design. Imported supply, entitlement and project-scale reliability remain unassessed.",
         "water_source_url": "https://ca.water.usgs.gov/projects/antelope-valley/antelope-valley-land-subsidence.html",
-        "fiber": "good",
-        "fiber_note": "DISN + AFRL/test-range data infrastructure; Lancaster-Palmdale metro ~30+ mi.",
+        "fiber": "unknown",
+        "fiber_note": "No site-specific carrier, service, capacity or route evidence retained. Fiber availability is unassessed.",
         "seismic_flag": "elevated", "flood_flag": "low",
         "siting_note": "Elevated seismic — Mojave, near the Garlock & San Andreas systems; a serious AP1000 design factor. Enormous land but marginal water + weak 115 kV access.",
         "nuclear_notes": "No documented reactor-program interest despite abundant remote land.",
@@ -217,15 +213,16 @@ SITES = [
         "developable_basis": "Built-out depot/airfield (WR-ALC); the eastern Ocmulgee buffer holds undeveloped land but is partly flood-constrained. Usable upland parcels limited. Estimate; no EUL figure found.",
         "acreage_source": "https://en.wikipedia.org/wiki/Robins_Air_Force_Base",
         "water_source": "Ocmulgee River (forms the eastern boundary)",
-        "water_distance_mi": 0.5, "water_adequacy": "adequate",
-        # Documented drought-of-record flow (Macon gauge 02213000, 2012 drought)
-        # — used by the scorer's computed-margin path in preference to the
-        # adequacy bucket. 854 ÷ 31.1 cfs ≈ 27× margin for one AP1000.
-        "water_low_flow_cfs": 854,
-        "water_note": "Ocmulgee on the eastern boundary (USGS 02213700, drainage 2,690 sq mi); mean annual ~2,680 cfs (via upstream Macon gauge 02213000) comfortably covers a ~42 cfs AP1000 withdrawal. Downgraded from abundant: the smallest of the big-river sites, it fell to 854 cfs in the 2012 drought (withdrawal ~7.3% of that), so a non-interruptible nuclear load is drought-exposed.",
+        "water_distance_mi": 0.5, "water_adequacy": "unknown",
+        # Retained USGS observation is an annual mean, never 7Q10/low flow.
+        "water_drought_year_mean_cfs": 854.1,
+        "water_drought_year": 2012,
+        "water_statistic": "annual_mean",
+        "water_statistic_source_url": "https://waterservices.usgs.gov/nwis/stat/?format=rdb&sites=02213000&statReportType=annual&statTypeCd=mean&parameterCd=00060",
+        "water_note": "Ocmulgee River is mapped along the installation. Upstream Macon gage 02213000 reports a 2012 ANNUAL MEAN of 854.1 cfs; this is not a daily minimum, 7Q10 or firm supply. A 42 cfs withdrawal is approximately 4.9% of that annual mean, which does not establish a permissible withdrawal or drought margin. Site intake, low-flow reliability and allocation remain unassessed.",
         "water_source_url": "https://waterdata.usgs.gov/monitoring-location/USGS-02213700/",
-        "fiber": "excellent",
-        "fiber_note": "DISN + WR-ALC is a major IT/depot hub; Macon metro carrier fiber nearby.",
+        "fiber": "unknown",
+        "fiber_note": "No site-specific carrier, service, capacity or route evidence retained. Fiber availability is unassessed.",
         "seismic_flag": "low", "flood_flag": "moderate",
         "siting_note": "Low seismic (stable GA coastal plain) — favorable. The Ocmulgee floodplain along the eastern boundary is the cooling asset but also the flood vector; site on upland.",
         "nuclear_notes": "No documented interest at Robins (though GA hosts the Vogtle AP1000s).",
@@ -238,11 +235,11 @@ SITES = [
         "developable_basis": "Vast majority is training/range/maneuver land; only a modest cantonment is built out. Estimate from total minus core; no published EUL figure.",
         "acreage_source": "https://home.army.mil/benning/About",
         "water_source": "Chattahoochee River",
-        "water_distance_mi": 0.5, "water_adequacy": "abundant",
-        "water_note": "The base's own Water Resource Facility withdraws directly from the Chattahoochee (base flow ~900 cfs; range 780-13,800 cfs at Columbus) — comfortably covers AP1000 withdrawal.",
+        "water_distance_mi": 0.5, "water_adequacy": "unknown",
+        "water_note": "Chattahoochee River gage 02341460 provides regional streamflow context. No site-specific low-flow assessment, spare intake capacity or allocation for a new reactor is retained.",
         "water_source_url": "https://waterdata.usgs.gov/monitoring-location/USGS-02341460/",
-        "fiber": "good",
-        "fiber_note": "Columbus GA metro carrier fiber + DISN; large established post adjacent to a mid-size metro.",
+        "fiber": "unknown",
+        "fiber_note": "No site-specific carrier, service, capacity or route evidence retained. Fiber availability is unassessed.",
         "seismic_flag": "low", "flood_flag": "low",
         "siting_note": "Low seismicity; riverine flood confined to the Chattahoochee floodplain — site on an upland terrace.",
         "nuclear_notes": "Army Janus microreactor shortlist (Nov 2025).",
@@ -254,11 +251,11 @@ SITES = [
         "developable_basis": "~142,000+ ac of training land, but explicitly described as 'every acre at a premium' — real siting competition. No EUL acreage published.",
         "acreage_source": "https://www.globalsecurity.org/military/facility/fort-bragg.htm",
         "water_source": "Cape Fear River (~10 mi, via Fayetteville PWC)",
-        "water_distance_mi": 10, "water_adequacy": "marginal",
-        "water_note": "Source corrected: the post is supplied from the Cape Fear River (USGS 02102500 at Lillington, mean annual 3,224 cfs, drainage 3,464 sq mi) — NOT the Little River (USGS 02103000, only 407 cfs mean / 131.5 cfs in the 2011 drought, too small for a dedicated intake). The Cape Fear easily covers ~42 cfs (1.3%) but a dedicated ~10-mi intake into an allocation-contested basin keeps this marginal, not comfortably adequate.",
+        "water_distance_mi": 10, "water_adequacy": "unknown",
+        "water_note": "The retained supply research identifies Fayetteville PWC and the Cape Fear River, rather than the Little River. The approximately 10-mile distance is an analyst estimate, not a surveyed intake route. New project service capacity, low-flow reliability and allocation remain unassessed.",
         "water_source_url": "https://waterdata.usgs.gov/monitoring-location/USGS-02102500/",
-        "fiber": "excellent",
-        "fiber_note": "World's largest Army installation; dense DISN backbone, airborne/SOCOM C2 infrastructure, Fayetteville metro carriers.",
+        "fiber": "unknown",
+        "fiber_note": "No site-specific carrier, service, capacity or route evidence retained. Fiber availability is unassessed.",
         "seismic_flag": "low", "flood_flag": "low",
         "siting_note": "Low-moderate seismic (Sandhills); well-drained sandy terrain, low flood risk. Best transmission of the 14 (230 kV adjacent).",
         "nuclear_notes": "Army Janus microreactor shortlist (Nov 2025).",
@@ -270,11 +267,11 @@ SITES = [
         "developable_basis": "Large training reservation, compact cantonment; ~20,000-35,000 ac of range/impact/maneuver land. No EUL figure found.",
         "acreage_source": "https://en.wikipedia.org/wiki/Fort_Campbell",
         "water_source": "Cumberland River (~12-15 mi S); on-post karst groundwater today",
-        "water_distance_mi": 13, "water_adequacy": "marginal",
-        "water_note": "Post supply is on-post karst groundwater — cannot sustain ~27 MGD. The Cumberland River (USGS 03431500 at Nashville, mean 23,765 cfs; the downstream Clarksville reach is larger) is abundant — a ~42 cfs withdrawal is ~0.18% — but it is ~12-15 mi away and ~400 ft lower, needing a pumped pipeline. The limit is infrastructure, not water.",
+        "water_distance_mi": 13, "water_adequacy": "unknown",
+        "water_note": "The retained research identifies on-post groundwater and the Cumberland River as possible source contexts. The river distance and lift are analyst estimates, not an engineered conveyance route. Groundwater sustainable yield and a new surface supply allocation remain unassessed.",
         "water_source_url": "https://waterdata.usgs.gov/monitoring-location/USGS-03431500/",
-        "fiber": "good",
-        "fiber_note": "Clarksville TN metro carrier fiber + DISN; 101st Airborne C2 infrastructure.",
+        "fiber": "unknown",
+        "fiber_note": "No site-specific carrier, service, capacity or route evidence retained. Fiber availability is unassessed.",
         "seismic_flag": "elevated", "flood_flag": "low",
         "siting_note": "Within New Madrid Seismic Zone influence (~150 mi E) — elevated design basis vs. the others. Karst terrain adds foundation diligence. Water is the weakest of the Janus sites.",
         "nuclear_notes": "Army Janus microreactor shortlist (Nov 2025).",
@@ -286,11 +283,11 @@ SITES = [
         "developable_basis": "Large undeveloped training/range tracts. Existing behind-the-meter precedent (ReEnergy Black River 60 MW supplied up to 100% of post load) shows on-base generation siting is workable. No EUL acreage published.",
         "acreage_source": "https://en.wikipedia.org/wiki/Fort_Drum",
         "water_source": "Black River",
-        "water_distance_mi": 0.5, "water_adequacy": "abundant",
-        "water_note": "Black River (USGS 04260500) drains 1,864 sq mi; mean annual 4,242 cfs — a ~42 cfs AP1000 withdrawal is ~1.0%. Hudson-Black River Regulating District augments low flows; Lake Ontario ~25 mi W is an effectively unlimited backup.",
+        "water_distance_mi": 0.5, "water_adequacy": "unknown",
+        "water_note": "Black River gage 04260500 provides regional flow context. Nearby Lake Ontario is a separate potential source, not unlimited or allocated backup supply. Intake routing, low-flow reliability and applicable allocation remain unassessed.",
         "water_source_url": "https://waterdata.usgs.gov/monitoring-location/USGS-04260500/",
-        "fiber": "moderate",
-        "fiber_note": "Rural North Country; DISN + regional carriers present, but less metro density than Bragg/Benning.",
+        "fiber": "unknown",
+        "fiber_note": "No site-specific carrier, service, capacity or route evidence retained. Fiber availability is unassessed.",
         "seismic_flag": "low", "flood_flag": "low",
         "siting_note": "Low seismicity; Black River floodplain localized — site on upland. Cold-climate / heavy-snow design considerations.",
         "nuclear_notes": "Army Janus shortlist (Nov 2025), AND NY legislators have specifically called for an SMR here — the strongest documented siting interest of the 14.",
@@ -302,11 +299,11 @@ SITES = [
         "developable_basis": "One of 4 Army posts in the 2026 commercial data-center EUL RFP (50-yr leases on underutilized land); peer site Fort Bliss listed 1,384 ac after culling and Fort Hood is a larger 'multi-modal' site. Already hosts a 132-ac on-post solar field.",
         "acreage_source": "https://defensescoop.com/2026/02/06/trump-military-bases-army-lease-land-data-centers/",
         "water_source": "Belton Lake (Leon River)",
-        "water_distance_mi": 8, "water_adequacy": "poor",
-        "water_note": "Belton Lake (Leon River; BRA-operated) firm yield is 100,257 acre-ft/yr (Bell County WCID No.1). An AP1000's ~22,400 acre-ft/yr consumptive is ~22% of that — securable but tight in a semi-arid, drought-prone, already-allocated basin (BRA is building the Belton-to-Stillhouse pipeline to rebalance supply). Existing Fort Hood water-supply storage (~12,000 acre-ft) is far short, so poor stands absent a large new regional allocation.",
+        "water_distance_mi": 8, "water_adequacy": "unknown",
+        "water_note": "The retained source reports Belton Lake yield of 100,257 acre-feet per year. An AP1000 reference consumptive demand of approximately 22,400 acre-feet/year is about 22% of that reported system yield. This comparison excludes existing commitments and does not establish spare yield, a supply contract or project feasibility.",
         "water_source_url": "https://wcid1.org/about-us/",
-        "fiber": "good",
-        "fiber_note": "Regional DISN integration hub on the I-35 Austin-Waco-DFW corridor (dense long-haul/metro fiber).",
+        "fiber": "unknown",
+        "fiber_note": "No site-specific carrier, service, capacity or route evidence retained. Fiber availability is unassessed.",
         "seismic_flag": "low", "flood_flag": "low",
         "siting_note": "Low seismicity, geotechnically easy; the binding risk is drought / water scarcity, not geohazards. ERCOT market.",
         "nuclear_notes": "Army Janus microreactor shortlist (Nov 2025).",
@@ -318,11 +315,11 @@ SITES = [
         "developable_basis": "Cantonment land-rich (main post ~4,500 ac) with vast adjacent training land, but PERMAFROST severely limits truly buildable area — discontinuous permafrost, thermokarst, and floodplain constrain siting. Practical buildable footprint is a fraction of nominal acreage.",
         "acreage_source": "https://en.wikipedia.org/wiki/Fort_Wainwright",
         "water_source": "Chena River (on-post) -> Tanana River",
-        "water_distance_mi": 0, "water_adequacy": "abundant",
-        "water_note": "Post straddles the Chena (a 100-mi Tanana tributary); ample surface water + high-yield alluvial aquifer. Water quantity is not the constraint — permafrost and seismic engineering are.",
-        "water_source_url": "https://en.wikipedia.org/wiki/Fort_Wainwright",
-        "fiber": "limited",
-        "fiber_note": "Interior-Alaska terrestrial long-haul is thin; served via the Fairbanks metro and a small number of fiber routes — no dense carrier mesh.",
+        "water_distance_mi": 0, "water_adequacy": "unknown",
+        "water_note": "Chena River gage 15514000 provides regional streamflow context. The Tanana is a different potential source requiring a confirmed intake and route; winter ice and seasonal flow require separate assessment. Project water availability and entitlement remain unassessed.",
+        "water_source_url": "https://waterdata.usgs.gov/monitoring-location/USGS-15514000/",
+        "fiber": "unknown",
+        "fiber_note": "No site-specific carrier, service, capacity or route evidence retained. Fiber availability is unassessed.",
         "seismic_flag": "high", "flood_flag": "moderate",
         "siting_note": "Highest-geohazard site: discontinuous permafrost (thaw-settlement → deep/refrigerated foundations), extreme cold, very active Interior-Alaska seismicity (Denali fault region), plus Chena/Tanana floodplain. But the islanded Railbelt grid makes the energy-resilience case among the strongest.",
         "nuclear_notes": "Army Janus shortlist (Nov 2025); islanded GVEA grid drives a strong resilience case.",
@@ -334,11 +331,11 @@ SITES = [
         "developable_basis": "~80,000 ac of ranges, but constrained by rare prairie/oak ecosystems, wetlands, and a Real Property Master Plan / Joint Land Use review. Realistically several thousand acres of non-sensitive land; no published AP1000-parcel figure.",
         "acreage_source": "https://installations.militaryonesource.mil/in-depth-overview/joint-base-lewis-mcchord",
         "water_source": "Nisqually River + glacial-outwash aquifer (Puget Sound ~12 mi N)",
-        "water_distance_mi": 1, "water_adequacy": "adequate",
-        "water_note": "JBLM runs a city-scale groundwater system on the high-yield Vashon glacial-outwash aquifer; the Nisqually River (USGS 12089500) borders the south at >2,000 cfs mean (~42 cfs ≈ <2%) and Puget Sound is ~12 mi N. Volume is abundant, but a new ~27 MGD surface-water right is unproven and several base wells exceed PFAS limits — so adequate, not abundant.",
+        "water_distance_mi": 1, "water_adequacy": "unknown",
+        "water_note": "Nisqually River gage 12089500 provides regional context; groundwater and Puget Sound are distinct potential supplies with different treatment and regulatory requirements. No current project allocation or low-flow reliability study is retained.",
         "water_source_url": "https://waterdata.usgs.gov/monitoring-location/USGS-12089500/",
-        "fiber": "excellent",
-        "fiber_note": "Seattle-Tacoma I-5 metro corridor, dense carrier + long-haul fiber; new JBLM Information Systems Facility (2024).",
+        "fiber": "unknown",
+        "fiber_note": "No site-specific carrier, service, capacity or route evidence retained. Fiber availability is unassessed.",
         "seismic_flag": "high", "flood_flag": "low",
         "siting_note": "Cascadia subduction-zone risk — ~37% chance of M7.1+ in 50 yr; M9 megathrust ground motions + localized liquefaction (saturated outwash) are the dominant nuclear-foundation challenge.",
         "nuclear_notes": "Army Janus microreactor shortlist (Nov 2025).",
@@ -350,11 +347,11 @@ SITES = [
         "developable_basis": "Substantial undeveloped land (former Fort Dix ranges, Pinelands buffer) but heavily constrained by Pinelands National Reserve regulation + PFAS groundwater plumes. Realistically a few thousand acres of non-sensitive land.",
         "acreage_source": "https://en.wikipedia.org/wiki/Joint_Base_McGuire%E2%80%93Dix%E2%80%93Lakehurst",
         "water_source": "Kirkwood-Cohansey aquifer (on-site)",
-        "water_distance_mi": 0, "water_adequacy": "poor",
-        "water_note": "No large adjacent river; the unconfined Kirkwood-Cohansey aquifer is voluminous in storage but yield-limited and Pinelands-capped. An AP1000's ~27 MGD ≈ 9.9 Bgal/yr is ~28% of the aquifer's entire statewide annual pumping (~35 Bgal/yr across ~3,000 wells), concentrated at one point and tightly coupled to Pinelands wetlands/streams. Two on-base supply wells tested 264,300 ppt PFOS/PFOA. Poor absent an external surface-water supply.",
+        "water_distance_mi": 0, "water_adequacy": "unknown",
+        "water_note": "The Kirkwood-Cohansey aquifer is a potential groundwater source context. Aquifer storage and statewide pumping totals do not establish sustainable yield at a project wellfield. Source identity, project demand, environmental constraints and allocation require assessment.",
         "water_source_url": "https://pinelandsalliance.org/water-supply-aquifer/",
-        "fiber": "excellent",
-        "fiber_note": "Central NJ between the Philadelphia and NYC metros — the densest fiber corridor in the US.",
+        "fiber": "unknown",
+        "fiber_note": "No site-specific carrier, service, capacity or route evidence retained. Fiber availability is unassessed.",
         "seismic_flag": "low", "flood_flag": "low",
         "siting_note": "Low seismicity, flat coastal-plain terrain. Constraints are Pinelands environmental regulation + PFAS, not geohazards. The one site NOT on the Janus shortlist.",
         "nuclear_notes": "Not on the Janus shortlist; no documented current SMR/microreactor study found.",
@@ -366,11 +363,11 @@ SITES = [
         "developable_basis": "Plant B (~5,900 ac, Hawkins County) is largely undeveloped and hosts a state-certified industrial site ('Technology Park II'). But much buffer land carries RDX/HMX legacy contamination with land-use controls — 'available' != 'unencumbered.'",
         "acreage_source": "https://tnecd.com/certifiedsite/technology-park-ii-at-holston-army-ammunition-plant/",
         "water_source": "Holston River (South Fork)",
-        "water_distance_mi": 0, "water_adequacy": "abundant",
-        "water_note": "Plant sits directly on the South Fork Holston (USGS 03487500, drainage 1,935 sq mi, mean annual ~2,910 cfs; ~42 cfs withdrawal ≈ 1.4%) and already withdraws river water for RDX/HMX manufacturing. TVA-regulated minimum flows via three upstream dams. South Fork only, so abundant rather than vast.",
+        "water_distance_mi": 0, "water_adequacy": "unknown",
+        "water_note": "South Fork Holston gage 03487500 provides regional flow context. Regulated flows and existing industrial use do not establish spare supply or a new project allocation. Site intake capacity and low-flow reliability remain unassessed.",
         "water_source_url": "https://waterservices.usgs.gov/nwis/site/?format=rdb&sites=03487500&siteOutput=expanded",
-        "fiber": "moderate",
-        "fiber_note": "Ordnance site in the Kingsport (Tri-Cities) metro with regional carrier presence, but not a major IT/telecom hub.",
+        "fiber": "unknown",
+        "fiber_note": "No site-specific carrier, service, capacity or route evidence retained. Fiber availability is unassessed.",
         "seismic_flag": "moderate", "flood_flag": "moderate",
         "siting_note": "Northern Eastern-Tennessee Seismic Zone (USGS models M7.5 possible) — a real but moderate design-basis factor; plus direct Holston River floodplain exposure. TVA region (active SMR utility).",
         "nuclear_notes": "Army Janus shortlist (Nov 2025). TVA is the most aggressive SMR utility in the US (Clinch River BWRX-300).",
@@ -382,11 +379,11 @@ SITES = [
         "developable_basis": "Active EUL/real-estate program; Redstone Gateway EUL = 468 ac with ~214 still undeveloped, and the arsenal is mostly open/wooded test & buffer land with large tracts beyond Gateway. Estimate well above the documented 214 ac.",
         "acreage_source": "https://www.army.mil/article/34408/redstone_plans_to_lease_land_for_growth",
         "water_source": "Tennessee River / Wheeler Reservoir (southern boundary)",
-        "water_distance_mi": 0, "water_adequacy": "abundant",
-        "water_note": "Redstone operates two intakes on the Tennessee River (USGS 03575500 at Whitesburg, drainage 25,610 sq mi, mean annual ~41,650 cfs; ~42 cfs withdrawal ≈ 0.10%, the strongest of the 14). Wheeler Reservoir is a large TVA mainstem impoundment — effectively unlimited.",
+        "water_distance_mi": 0, "water_adequacy": "unknown",
+        "water_note": "Tennessee River / Wheeler Reservoir and gage 03575500 provide source context. A large mean river flow does not establish unlimited supply, spare intake capacity or a new allocation. Project reliability and entitlement remain unassessed.",
         "water_source_url": "https://waterdata.usgs.gov/monitoring-location/03575500/",
-        "fiber": "excellent",
-        "fiber_note": "Major DoD/IT hub — FBI's 2nd-largest HQ, NASA Marshall, Space Command, MDA; adjacent Cummings Research Park + DC BLOX Tier III data center + carrier-dense metro fiber.",
+        "fiber": "unknown",
+        "fiber_note": "No site-specific carrier, service, capacity or route evidence retained. Fiber availability is unassessed.",
         "seismic_flag": "moderate", "flood_flag": "moderate",
         "siting_note": "Southern terminus of the Eastern-Tennessee Seismic Zone — moderate design factor; Tennessee River/Wheeler floodplain on the southern boundary. TVA region + huge co-located mission demand.",
         "nuclear_notes": "Army Janus shortlist (Nov 2025). TVA region (Clinch River BWRX-300 + 6 GW SMR program).",
@@ -564,84 +561,78 @@ USGS_SEISMIC = {
 # analysis; the AP1000's certified design can accommodate up to 0.3g.
 AP1000_SSE_THRESHOLD_G = 0.30
 
-# Water RIGHTS per site — availability ≠ obtainability (curated 2026-07-02;
-# re-audit annually alongside STATE_DC_INCENTIVES, western basins are actively
-# re-adjudicating). `regime` is the state doctrine; `cls` is the obtainability
-# class the scorer multiplies by (obtainable ×1.0 / contested ×0.6 /
-# fully_appropriated ×0.2 — a new ~22,400 acre-ft/yr consumptive right).
-# Every row cites its gatekeeper. Companion low-flow figures go on the site
-# dict as `water_low_flow_cfs` where a documented drought/low value exists
-# (only Robins today — see ap1000-water-validation.md; scripting the full
-# USGS 7Q10 backfill is a logged backlog item).
+# Regulatory source contacts retained from July 2026 research. General basin
+# rules do not establish project entitlement, so all allocation classes remain
+# unknown pending a documented project-specific permit or supply contract.
 WATER_RIGHTS = {
     "arnold-afb-tn": {
-        "regime": "riparian (regulated)", "cls": "obtainable",
-        "note": "Woods Reservoir is an Air Force-owned impoundment purpose-built for AEDC cooling; Elk River is in the Tennessee River watershed, so new intake/discharge structures need TVA §26a approval (routinely granted for existing federal users). TN withdrawal registration under the Inter-Basin Water Transfer Act.",
+        "regime": "riparian (regulated)", "cls": "unknown",
+        "note": "Agency/source link identifies a regulatory contact or historical context. No project-specific withdrawal entitlement, supply contract, allocation or approval outcome has been verified.",
         "source": "https://www.tva.com/environment/shoreline-construction-permits",
     },
     "davis-monthan-afb-az": {
-        "regime": "prior appropriation + AZ groundwater code", "cls": "fully_appropriated",
-        "note": "Inside the Tucson Active Management Area: groundwater is managed to safe-yield, surface water is fully appropriated, and a new ~22,400 acre-ft/yr consumptive right is effectively unobtainable. CAP allocation transfers are the only theoretical path and are politically contested.",
+        "regime": "prior appropriation + AZ groundwater code", "cls": "unknown",
+        "note": "Agency/source link identifies a regulatory contact or historical context. No project-specific withdrawal entitlement, supply contract, allocation or approval outcome has been verified.",
         "source": "https://www.azwater.gov/ama/tucson-ama",
     },
     "edwards-afb-ca": {
-        "regime": "hybrid (CA) — adjudicated basin", "cls": "fully_appropriated",
-        "note": "Antelope Valley groundwater basin was adjudicated (2015 judgment, physical solution caps pumping); no surface supply exists on the high desert. A new large consumptive right would require purchasing adjudicated allocations plus SWRCB process.",
+        "regime": "hybrid (CA) — adjudicated basin", "cls": "unknown",
+        "note": "Agency/source link identifies a regulatory contact or historical context. No project-specific withdrawal entitlement, supply contract, allocation or approval outcome has been verified.",
         "source": "https://www.avek.org/adjudication",
     },
     "robins-afb-ga": {
-        "regime": "regulated riparian (GA permit)", "cls": "obtainable",
-        "note": "GA EPD surface-water withdrawal permit; Ocmulgee is in the Altamaha basin — NOT part of the ACF/ACT interstate compact litigation — so the permit path is ordinary, though drought-of-record flow (854 cfs, 2012) is the binding constraint, not the permit.",
+        "regime": "regulated riparian (GA permit)", "cls": "unknown",
+        "note": "Agency/source link identifies a regulatory contact or historical context. No project-specific withdrawal entitlement, supply contract, allocation or approval outcome has been verified.",
         "source": "https://epd.georgia.gov/watershed-protection-branch/water-withdrawal-permits",
     },
     "fort-benning-ga": {
-        "regime": "regulated riparian (GA permit)", "cls": "contested",
-        "note": "Chattahoochee River is the ACF basin — the GA/AL/FL 'water wars' reach: allocations litigated to the Supreme Court (Florida v. Georgia, 2021) and managed under the ACF Master Water Control Manual. A large new consumptive use would draw interstate scrutiny even though Georgia prevailed.",
+        "regime": "regulated riparian (GA permit)", "cls": "unknown",
+        "note": "Agency/source link identifies a regulatory contact or historical context. No project-specific withdrawal entitlement, supply contract, allocation or approval outcome has been verified.",
         "source": "https://www.supremecourt.gov/opinions/20pdf/142orig_1qm2.pdf",
     },
     "fort-bragg-nc": {
-        "regime": "regulated riparian (NC)", "cls": "obtainable",
-        "note": "Cape Fear River basin; NC DEQ water-withdrawal registration + capacity-use rules. Harnett County/PWC intake precedent at Lillington. No interstate compact; basin has competing municipal growth but a workable regulatory path.",
+        "regime": "regulated riparian (NC)", "cls": "unknown",
+        "note": "Agency/source link identifies a regulatory contact or historical context. No project-specific withdrawal entitlement, supply contract, allocation or approval outcome has been verified.",
         "source": "https://www.deq.nc.gov/about/divisions/water-resources/water-planning/water-supply-planning",
     },
     "fort-campbell-ky": {
-        "regime": "riparian (regulated, KY/TN)", "cls": "obtainable",
-        "note": "Cumberland River (USACE-managed, not TVA): KY Division of Water withdrawal permit; USACE real-estate/intake easement at Lake Barkley reach. Volume is trivial vs. flow (~23,800 cfs at Nashville); the 12-mi conveyance is the real cost, not the right.",
+        "regime": "riparian (regulated, KY/TN)", "cls": "unknown",
+        "note": "Agency/source link identifies a regulatory contact or historical context. No project-specific withdrawal entitlement, supply contract, allocation or approval outcome has been verified.",
         "source": "https://eec.ky.gov/Environmental-Protection/Water/Pages/default.aspx",
     },
     "fort-drum-ny": {
-        "regime": "regulated riparian (NY DEC permit)", "cls": "obtainable",
-        "note": "NY DEC water-withdrawal permit (ECL Art. 15); Black River flow is regulated/augmented by the Hudson River–Black River Regulating District. Great Lakes Compact applies to the Lake Ontario basin but permits within-basin consumptive use with review.",
+        "regime": "regulated riparian (NY DEC permit)", "cls": "unknown",
+        "note": "Agency/source link identifies a regulatory contact or historical context. No project-specific withdrawal entitlement, supply contract, allocation or approval outcome has been verified.",
         "source": "https://dec.ny.gov/environmental-protection/water/water-withdrawals",
     },
     "fort-hood-tx": {
-        "regime": "hybrid (TX) — appropriated surface water", "cls": "contested",
-        "note": "Texas surface water is state-owned and the Brazos basin is essentially fully appropriated with a watermaster; the practical path is a raw-water supply CONTRACT from the Brazos River Authority's Belton Lake storage, not a new appropriation — available but negotiated and drought-curtailable.",
+        "regime": "hybrid (TX) — appropriated surface water", "cls": "unknown",
+        "note": "Agency/source link identifies a regulatory contact or historical context. No project-specific withdrawal entitlement, supply contract, allocation or approval outcome has been verified.",
         "source": "https://www.brazos.org/About-Us/Water-Supply",
     },
     "fort-wainwright-ak": {
-        "regime": "prior appropriation (AK)", "cls": "obtainable",
-        "note": "Alaska DNR water-right appropriation; the Tanana River (~41,000 cfs mean, ~7,100 cfs under winter ice) is essentially unappropriated at this scale. Glacial silt and ice engineering, not rights, are the binding water issues.",
+        "regime": "prior appropriation (AK)", "cls": "unknown",
+        "note": "Agency/source link identifies a regulatory contact or historical context. No project-specific withdrawal entitlement, supply contract, allocation or approval outcome has been verified.",
         "source": "https://dnr.alaska.gov/mlw/water/wrfact/",
     },
     "jblm-wa": {
-        "regime": "prior appropriation (WA)", "cls": "fully_appropriated",
-        "note": "The Nisqually basin is closed to new consumptive surface appropriations by the instream-flow rule (WAC 173-511), and Puget Sound groundwater is hydraulically continuous (Postema doctrine) — a new ~22,400 acre-ft/yr right would face near-certain denial or decades of mitigation banking.",
+        "regime": "prior appropriation (WA)", "cls": "unknown",
+        "note": "Agency/source link identifies a regulatory contact or historical context. No project-specific withdrawal entitlement, supply contract, allocation or approval outcome has been verified.",
         "source": "https://ecology.wa.gov/water-shorelines/water-supply/protecting-stream-flows",
     },
     "jbmdl-nj": {
-        "regime": "regulated riparian (NJDEP allocation)", "cls": "contested",
-        "note": "NJDEP water-allocation permit PLUS a Delaware River Basin Commission docket (consumptive use >100,000 gpd triggers DRBC review and drought-emergency curtailment provisions; Salem/Hope Creek precedent shows the path works but adds a compact-level gate).",
+        "regime": "regulated riparian (NJDEP allocation)", "cls": "unknown",
+        "note": "Agency/source link identifies a regulatory contact or historical context. No project-specific withdrawal entitlement, supply contract, allocation or approval outcome has been verified.",
         "source": "https://www.nj.gov/drbc/programs/project/",
     },
     "holston-aap-tn": {
-        "regime": "riparian (regulated, TN)", "cls": "obtainable",
-        "note": "Holston River is TVA-regulated (Cherokee/Fort Patrick Henry dams upstream): TVA §26a approval for intake structures + TN ARAP; the plant already operates industrial withdrawals at scale.",
+        "regime": "riparian (regulated, TN)", "cls": "unknown",
+        "note": "Agency/source link identifies a regulatory contact or historical context. No project-specific withdrawal entitlement, supply contract, allocation or approval outcome has been verified.",
         "source": "https://www.tva.com/environment/shoreline-construction-permits",
     },
     "redstone-arsenal-al": {
-        "regime": "riparian (AL — registration only)", "cls": "obtainable",
-        "note": "Alabama has no comprehensive withdrawal-permit program (Certificate-of-Use registration via ADECA OWR); Wheeler Reservoir is the TVA mainstem, so TVA §26a governs the intake. The Tennessee River at ~40,000+ cfs makes the volume trivial.",
+        "regime": "riparian (AL — registration only)", "cls": "unknown",
+        "note": "Agency/source link identifies a regulatory contact or historical context. No project-specific withdrawal entitlement, supply contract, allocation or approval outcome has been verified.",
         "source": "https://adeca.alabama.gov/water/",
     },
 }
@@ -657,7 +648,7 @@ def _haversine_mi(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
 
 
 def _get_eia_bytes():
-    """Return EIA-860M April 2026 bytes from the connector's binary cache or
+    """Return pinned EIA-860M bytes from the connector's binary cache or
     download fresh. Returns None on failure (retired-plant data is optional)."""
     # Walk up from this script looking for the connector's binary cache.
     candidate = Path(__file__).resolve().parent
@@ -681,16 +672,9 @@ def _get_eia_bytes():
         print(f"EIA-860M: download failed ({exc}) — skipping retired-plant data", file=sys.stderr)
         return None
 
-    # Try to cache where the connector would look next run.
-    for base in [Path(__file__).resolve().parent.parent.parent.parent.parent / "data" / "cache",
-                 DATA.parent]:
-        try:
-            base.mkdir(parents=True, exist_ok=True)
-            (base / _EIA_CACHE_FILENAME).write_bytes(data)
-            print(f"EIA-860M: cached {len(data)//1024}KB → {base / _EIA_CACHE_FILENAME}")
-            break
-        except OSError:
-            continue
+    cache_dir = ROOT / "data" / "cache"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    (cache_dir / _EIA_CACHE_FILENAME).write_bytes(data)
 
     return data
 
@@ -799,6 +783,10 @@ def main() -> None:
     out = []
     for s in SITES:
         rec = dict(s)
+        rec["water_evidence_confidence"] = "low"
+        rec["water_supply_assessment"] = "unassessed"
+        rec["water_evidence_reviewed_at"] = "2026-09-12"
+        rec["fiber_evidence_confidence"] = "unknown"
         rec["janus_site"] = s["id"] in JANUS_SITES
         if rec["janus_site"]:
             rec["janus_source_url"] = JANUS_SOURCE
@@ -830,8 +818,12 @@ def main() -> None:
         rec["lon"] = _site_latlon(s["infra_source_id"])[1]
         for k in ("transmission_mi", "transmission_kv", "substation_mi",
                   "substation_kv", "gas_pipeline_mi", "rail_mi", "highway_mi",
-                  "power_plant_mi", "power_plant_mw", "power_plant_fuel"):
+                  "power_plant_mi", "power_plant_mw", "power_plant_fuel",
+                  "transmission_asset_id", "substation_asset_id", "power_plant_asset_id",
+                  "substation_role", "infra_evidence", "infra_assessed_lat", "infra_assessed_lon"):
             rec[k] = src.get(k)
+        rec["infra_coordinate_basis"] = "borrowed_reference_record"
+        rec["infra_confidence"] = "low"
 
         # Nearest large retired plant from EIA-860M (within RETIRED_PLANT_RADIUS_MI).
         if retired_plants:
@@ -878,9 +870,25 @@ def main() -> None:
 
         out.append(rec)
 
+    # Share layer provenance, but only asset metadata actually referenced by
+    # these fourteen rows. Do not copy the national catalog into this overlay.
+    infra_metadata = {}
+    for layer, metadata in (infra.get("source_metadata") or {}).items():
+        if not isinstance(metadata, dict):
+            infra_metadata[layer] = metadata
+            continue
+        selected = dict(metadata)
+        if "assets_by_id" in selected:
+            referenced = {r.get(layer + "_asset_id") for r in out}
+            selected["assets_by_id"] = {key: value for key, value in selected["assets_by_id"].items()
+                                       if key in referenced}
+        infra_metadata[layer] = selected
+
     payload = {
         "generated_at": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "analysis_verified_at": ANALYSIS_VERIFIED_AT,
+        "evidence_contract_reviewed_at": "2026-09-12",
+        "source_metadata": {"infra": infra_metadata},
         "source": "Curated AP1000-siting analysis overlay (analyst-researched land/water/fiber; transmission/substation joined from infra-proximity.json)",
         "source_urls": {
             "ap1000_specs": AP1000_SOURCE,
@@ -889,6 +897,8 @@ def main() -> None:
             "air_force_rflp": AF_RFLP_SOURCE,
             "air_force_rflp_public_qa": AF_RFLP_ARTICLE_SOURCE,
         },
+        "retired_plant_source_month": EIA_WORKBOOK_MONTH,
+        "retired_plant_source_url": EIA_860M_URL,
         "ap1000_mwe": 1117,
         "count": len(out),
         "sites": out,

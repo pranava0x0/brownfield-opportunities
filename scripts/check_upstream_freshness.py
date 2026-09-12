@@ -128,16 +128,12 @@ def our_date(fname: str) -> Optional[dt.date]:
 
 
 def our_eia_workbook_month() -> Optional[dt.date]:
-    """The month of the EIA-860M workbook the connector actually PARSES —
-    from EIA_860M_URL in the connector source, never our generated_at (a
-    June re-run of the April workbook is still April data; comparing
-    generated_at hid exactly that on this script's first live run)."""
-    import re
-    src = (ROOT / "connectors" / "eia_retired_plants.py").read_text()
-    m = re.search(r"(\w+)_generator(\d{4})\.xlsx", src)
-    if not m or m.group(1).lower() not in _EIA_MONTHS:
+    """Read the shipped workbook period, never the output build timestamp."""
+    path = DATA_DIR / "eia-retired-plants.json"
+    if not path.exists():
         return None
-    return dt.date(int(m.group(2)), _EIA_MONTHS.index(m.group(1).lower()) + 1, 1)
+    period = ((json.loads(path.read_text()).get("source_metadata") or {}).get("retired_plant") or {}).get("source_period")
+    return dt.date.fromisoformat(period + "-01") if period else None
 
 
 def arcgis_last_edit(url: str) -> Optional[dt.date]:
@@ -158,26 +154,27 @@ _EIA_MONTHS = ["january", "february", "march", "april", "may", "june",
 
 
 def eia860m_latest(url_template: str, today: dt.date) -> Optional[dt.date]:
-    """Probe backward from the current month for the newest published
-    workbook (EIA publishes ~2 months in arrears; the URL pattern is
-    stable). Returns the first month whose XLSX exists."""
-    probe = dt.date(today.year, today.month, 1)
-    for _ in range(8):
-        url = url_template.format(month=_EIA_MONTHS[probe.month - 1], year=probe.year)
-        try:
-            resp = _get(url, stream=True)
-            ok = resp.status_code == 200 and "html" not in (resp.headers.get("Content-Type") or "")
-            resp.close()
-        except requests.RequestException:
-            ok = False
-        if ok:
-            return probe
-        probe = (probe.replace(day=1) - dt.timedelta(days=1)).replace(day=1)
-    return None
+    """Read EIA's actual published links, including the current /xls path."""
+    from connectors.eia860m_source import EIA_INDEX_URL, published_workbooks
+    response = _get(EIA_INDEX_URL)
+    response.raise_for_status()
+    links = published_workbooks(response.text)
+    eligible = [month for month, _ in links if month <= today]
+    return max(eligible) if eligible else None
 
 
 def check_source(src: "dict[str, Any]", today: dt.date) -> "dict[str, Any]":
     ours = our_date(src["file"])
+    if src["file"] == "infra-proximity.json":
+        ours = None
+        path = DATA_DIR / src["file"]
+        if path.exists():
+            metadata = json.loads(path.read_text()).get("source_metadata") or {}
+            for item in metadata.values():
+                if item.get("source_url", "").removesuffix("/query") == src["url"].removesuffix("/query"):
+                    stamp = item.get("source_snapshot_at")
+                    if stamp:
+                        ours = dt.datetime.fromisoformat(stamp.replace("Z", "+00:00")).date()
     upstream: Optional[dt.date] = None
     error: Optional[str] = None
     if src["kind"] == "arcgis":

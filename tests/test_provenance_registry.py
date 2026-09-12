@@ -124,6 +124,12 @@ def test_derived_values_cite_the_code_that_produced_them(registry):
 COVERED_BY_PARENT = {
     "water_flow_cfs": "water_gage_mi", "water_gage_name": "water_gage_mi",
     "water_gage_id": "water_gage_mi",
+    "water_statistic": "water_gage_mi", "water_gage_source_url": "water_gage_mi",
+    "water_gage_source_retrieved_at": "water_gage_mi",
+    # Shared match statuses are explained by the infrastructure parent rows.
+    "infra_evidence": "transmission_mi",
+    "transmission_asset_id": "transmission_mi", "substation_asset_id": "substation_mi",
+    "power_plant_asset_id": "power_plant_mi", "power_plant_name": "power_plant_mi",
     "nickel_anchor_name": "nickel_anchor_mi", "nickel_anchor_kind": "nickel_anchor_mi",
     "nickel_feedstock_mi": "nickel_anchor_mi", "nickel_demand_mi": "nickel_anchor_mi",
     "nickel_acid_mi": "nickel_anchor_mi",
@@ -194,7 +200,7 @@ def test_no_rendered_schema_field_is_left_uncited(registry, schema_fields):
     Scoped to fields app.js actually reads off a site, so internal plumbing
     doesn't force a citation — but anything new and user-facing does.
     """
-    app_js = (ROOT / "docs" / "app.js").read_text()
+    app_js = (ROOT / "docs" / "app.js").read_text() + (ROOT / "docs" / "evidence-categories.js").read_text()
     referenced = set(re.findall(r"\bs\.([a-z_][a-z0-9_]*)\b", app_js))
     rendered = referenced & schema_fields
     uncited = sorted(

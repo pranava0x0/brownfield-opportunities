@@ -428,51 +428,15 @@ def test_min_plant_mw_constant():
 # where it aborted the connector on every scheduled refresh.
 # ---------------------------------------------------------------------------
 
-def _url_constant(module_path: str) -> str:
-    """Read EIA_860M_URL out of a module without importing it.
-
-    `scripts/` are top-level scripts with import-time side effects, so this
-    parses the assignment rather than importing.
-    """
-    import ast
-
-    tree = ast.parse(pathlib.Path(module_path).read_text())
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Assign):
-            for target in node.targets:
-                if isinstance(target, ast.Name) and target.id == "EIA_860M_URL":
-                    return ast.literal_eval(node.value)
-    raise AssertionError(f"EIA_860M_URL not found in {module_path}")
-
-
-def test_connector_uses_the_archive_download_path():
-    """The primary /xls/ path serves HTML, not a workbook — must use /archive/."""
+def test_connector_uses_shared_published_workbook_pin():
     from connectors.eia_retired_plants import EIA_860M_URL
-
-    assert "/archive/xls/" in EIA_860M_URL, (
-        "EIA_860M_URL must use the /archive/xls/ path; the primary /xls/ path "
-        "301s to a 503 and returns an HTML error page, which fails openpyxl "
-        "with BadZipFile in any --no-cache run (e.g. CI)."
-    )
+    from connectors.eia860m_source import EIA_860M_URL as pinned, EIA_CACHE_KEY
+    assert EIA_860M_URL == pinned
+    assert EIA_CACHE_KEY["url"] == pinned
 
 
 def test_every_consumer_of_the_workbook_agrees_on_the_url():
-    """Drift guard: the connector and both build scripts share one workbook.
-
-    They also share a cache file, so a URL that disagrees means one consumer
-    silently re-downloads (or fails) while the others ride the warm cache.
-    """
     from connectors.eia_retired_plants import EIA_860M_URL as connector_url
-
-    script_urls = {
-        path: _url_constant(path)
-        for path in (
-            "scripts/build_planned_retirements.py",
-            "scripts/build_ap1000_sites.py",
-        )
-    }
-    disagreeing = {p: u for p, u in script_urls.items() if u != connector_url}
-    assert not disagreeing, (
-        "EIA-860M URL drift — every consumer must point at the same workbook. "
-        f"connector={connector_url!r}, disagreeing={disagreeing!r}"
-    )
+    from scripts.build_planned_retirements import EIA_860M_URL as planned_url
+    from scripts.build_ap1000_sites import EIA_860M_URL as nuclear_url
+    assert connector_url == planned_url == nuclear_url

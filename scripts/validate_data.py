@@ -1214,9 +1214,9 @@ def c_infra_sub_vs_line(c: Corpus):
         "infra-substation-vs-line", "infra", verdict(bad, warn_only=True),
         checked, bad,
         "transmission_mi exceeds substation_mi by >2 mi — HIFLD line coverage "
-        "is sparser than OSM substations. COMPENSATED in scoring since "
-        "2026-08-09 (dc-score.js _effectiveGridAccess); this stays visible as "
-        "a measure of the source gap, not an unhandled defect",
+        "differs from OSM substation coverage. Categories retain each asset's "
+        "own distance and voltage; neither observation establishes connection "
+        "capacity. This check measures disagreement between source layers",
         examples,
         {"by_state": dict(by_state.most_common(15)),
          "gap_over_10mi": over_10, "gap_over_25mi": over_25,
@@ -1684,7 +1684,7 @@ def c_freshness(c: Corpus):
             stale.append(f"{fname}:future={gen}")
     yield Finding(
         "enrichment-freshness", "derived", verdict(len(stale), warn_only=True),
-        len(ages), len(stale), "no data file is >1 year stale or dated in the future",
+        len(ages), len(stale), "artifact generation dates are within one year and not future-dated; source observation freshness is separate",
         stale[:8], {"age_days": dict(sorted(ages.items(), key=lambda kv: -kv[1]))},
     )
 

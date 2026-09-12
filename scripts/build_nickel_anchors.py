@@ -81,12 +81,10 @@ ANCHORS: list[dict] = [
     {
         "id": "NIA-humboldt-mill", "name": "Humboldt Mill", "kind": "feedstock_mine",
         "state": "MI", "lat": 46.484, "lon": -87.898, "coord_precision": "site",
-        "status": "Operating; a candidate processing site in Talon's own review",
-        "note": "Eagle Mine's concentrator, on a Cleveland-Cliffs iron-ore "
-                "brownfield, rail-served by a CN spur. Talon was reported in "
-                "July 2026 to be weighing a Michigan processing facility here "
-                "against its North Dakota site.",
-        "source_url": "https://kfgo.com/2026/07/28/plans-for-north-dakota-nickel-processing-unclear-as-company-also-evaluates-michigan-site-2/",
+        "status": "Operating; selected for Tamarack processing September 10, 2026",
+        "note": "Talon selected its existing Humboldt Mill for Tamarack processing on September 10, 2026. Future Tamarack processing remains dependent on project development; existing plant proximity does not establish available toll-processing capacity.",
+        "verified_at": "2026-09-12",
+        "source_url": "https://talonmetals.com/talon-metals-selects-humboldt-mill-as-the-processing-location-for-tamarack-project/",
     },
     {
         "id": "NIA-tamarack", "name": "Tamarack nickel-copper project",
@@ -144,12 +142,11 @@ ANCHORS: list[dict] = [
         "id": "NIA-beulah-bmpf", "name": "Talon Battery Minerals Processing Facility",
         "kind": "refinery_planned", "state": "ND", "locality": "Beulah city",
         "coord_precision": "locality",
-        "status": "Permitting; construction targeted 2027",
-        "note": "$114.8M DOE award on a former Westmoreland coal mine. Talon "
-                "sited processing away from its Minnesota mine explicitly to "
-                "narrow the mine's environmental review — legacy-industrial "
-                "reuse used as permitting strategy.",
-        "source_url": "https://talonmetals.com/talon-metals-battery-minerals-processing-facility-selected-by-us-department-of-energy-for-114-million-in-bipartisan-infrastructure-law-funding/",
+        "status": "Not advancing construction (Talon decision September 10, 2026)",
+        "proximity_eligible": False,
+        "note": "Talon discontinued advancement of the proposed Beulah processing facility after selecting its existing Humboldt Mill in Michigan. Retained as historical project context, not a forthcoming refinery.",
+        "verified_at": "2026-09-12",
+        "source_url": "https://talonmetals.com/talon-metals-selects-humboldt-mill-as-the-processing-location-for-tamarack-project/",
     },
     # --- Refinery: historic, and the reuse precedent ------------------------
     {
@@ -177,24 +174,26 @@ ANCHORS: list[dict] = [
     {
         "id": "NIA-ultium-spring-hill", "name": "Ultium Cells, Spring Hill",
         "kind": "demand_battery", "state": "TN", "locality": "Spring Hill city",
-        "coord_precision": "locality", "status": "Operating",
-        "note": "Cell plant in the Tennessee node of the battery corridor "
-                "Electra names as a siting driver.",
-        "source_url": "https://news.gm.com/home.detail.html/Pages/news/us/en/2025/jul/0714-Tennessee-Michigan-battery-powered-future.html",
+        "coord_precision": "locality", "status": "Existing cells plus LFP conversion; nickel demand volume unverified",
+        "note": "GM says Spring Hill will add LFP alongside existing cells, with commercial LFP production targeted for late 2027. Retained as mixed-chemistry context; not all battery output requires nickel and available nickel offtake is unverified.",
+        "verified_at": "2026-09-12",
+        "source_url": "https://news.gm.com/home.detail.html/Pages/news/us/en/2025/jul/0714-Ultium-Cells-upgrade-Tennessee-plant-low-cost-EV-battery-cell-production.html",
     },
     {
         "id": "NIA-ultium-warren", "name": "Ultium Cells, Warren",
         "kind": "demand_battery", "state": "OH", "locality": "Warren city",
         "coord_precision": "locality", "status": "Operating",
         "note": "The Ohio Valley anchor of the same corridor.",
-        "source_url": "https://news.gm.com/home.detail.html/Pages/news/us/en/2025/jul/0714-Tennessee-Michigan-battery-powered-future.html",
+        "source_url": "https://news.gm.com/home.detail.html/Pages/news/us/en/2025/jul/0714-Ultium-Cells-upgrade-Tennessee-plant-low-cost-EV-battery-cell-production.html",
     },
     {
-        "id": "NIA-blueoval-glendale", "name": "BlueOval SK, Glendale",
+        "id": "NIA-blueoval-glendale", "name": "Ford Energy Systems, Glendale (former BlueOval SK)",
         "kind": "demand_battery", "state": "KY", "locality": "Elizabethtown city",
-        "coord_precision": "locality", "status": "Operating",
-        "note": "Ford/SK cell plant at Glendale, Hardin County. Glendale is unincorporated and absent from the Census place file, so this row carries the Elizabethtown internal point ~10 mi away — locality precision, and the note is the disclosure.",
-        "source_url": "https://www.ky71alliance.com/news-center/p/item/48606/north-american-stainlesss-kentucky-operation-to-grow-with-expansion-and-job-opportunities",
+        "coord_precision": "locality", "status": "Retooling for LFP stationary storage; production planned late 2027",
+        "nickel_demand_eligible": False,
+        "verified_at": "2026-09-12",
+        "note": "Ford reports EV battery production ended in December 2025 and the Kentucky plant is converting to lithium iron phosphate (LFP) storage batteries. LFP does not establish nickel demand; retained as manufacturing context, excluded from nickel-demand distance. The Elizabethtown Census point is about 10 miles from Glendale, not the factory footprint.",
+        "source_url": "https://www.fordenergy.com/newsroom/kentucky-gigafactory",
     },
     # --- Bulk sulfuric acid -------------------------------------------------
     {
@@ -276,7 +275,7 @@ def build() -> int:
                           row["id"], row["locality"], row["state"])
                 return 1
             row["lat"], row["lon"] = round(hit[0], 5), round(hit[1], 5)
-        row["verified_at"] = VERIFIED_AT
+        row.setdefault("verified_at", VERIFIED_AT)
         rows.append(NickelAnchor.model_validate(row).model_dump())
 
     rows.sort(key=lambda r: (r["kind"], r["id"]))

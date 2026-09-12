@@ -21,7 +21,7 @@ Two families:
   infra  — independently recompute the nearest-infrastructure distances. For
            each sampled site we ask the SOURCE layer for the features inside
            a bounding box around the site, then compute the minimum distance
-           locally with the same geometry primitives the connector uses.
+           locally with an independent brute-force segment calculation.
            This is the only check that can falsify `transmission_mi` and
            friends, because it never touches our own spatial index.
 
@@ -450,14 +450,26 @@ def _measure(lat: float, lon: float, layer: dict,
         "where": layer.get("where", "1=1"),
     }
     payload = get_json(layer["url"], params, "infra")
-    feats = payload.get("features") or []
+    if payload.get("error") or payload.get("exceededTransferLimit") or "features" not in payload:
+        raise ValueError("Incomplete infrastructure validation response")
+    feats = payload["features"]
     if not feats:
         return None, 0
-    idx = SegmentIndex()
-    for f in feats:
-        for path in (f.get("geometry") or {}).get("paths") or []:
-            idx.add_polyline(path)
-    return idx.nearest_distance_mi(lat, lon), len(feats)
+    # Independent brute-force geometry check: do not reuse production index.
+    best = None
+    sx = 111320.0 * math.cos(math.radians(lat)) / 1609.344
+    sy = 110540.0 / 1609.344
+    for feature in feats:
+        for path in (feature.get("geometry") or {}).get("paths") or []:
+            for a, b in zip(path, path[1:]):
+                ax, ay = (a[0] - lon) * sx, (a[1] - lat) * sy
+                bx, by = (b[0] - lon) * sx, (b[1] - lat) * sy
+                dx, dy = bx - ax, by - ay
+                denominator = dx * dx + dy * dy
+                t = max(0.0, min(1.0, -(ax * dx + ay * dy) / denominator)) if denominator else 0.0
+                distance = math.hypot(ax + t * dx, ay + t * dy)
+                best = distance if best is None else min(best, distance)
+    return best, len(feats)
 
 
 # --------------------------------------------------------------------------
@@ -634,7 +646,7 @@ def main() -> int:
     if args.json:
         args.json.write_text(json.dumps(out, indent=1))
         print(f"\nfull detail → {args.json}")
-    return 0
+    return int(any(row.get("status") not in {"OK", "SKIP"} for rows in out.values() for row in rows))
 
 
 def _tally(res: list[dict]) -> None:

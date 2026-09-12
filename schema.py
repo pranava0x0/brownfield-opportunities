@@ -121,6 +121,24 @@ class SiteRecord(BaseModel):
     # HIFLD + Census TIGER at refresh time by the `infra-proximity`
     # enrichment connector. Available across all programs (Superfund,
     # ACRES, FUDS, BRAC). Distances >100 mi are dropped (out-of-CONUS).
+    infra_evidence: Optional[dict[str, dict]] = Field(default=None, description="Per-layer observation state and matched-asset provenance; absence never proves absent infrastructure.")
+    infra_assessed_lat: Optional[float] = None
+    infra_assessed_lon: Optional[float] = None
+    substation_role: Optional[str] = None
+    transmission_asset_id: Optional[str] = None
+    substation_asset_id: Optional[str] = None
+    power_plant_asset_id: Optional[str] = None
+    power_plant_name: Optional[str] = None
+    flood_assessed_lat: Optional[float] = None
+    flood_assessed_lon: Optional[float] = None
+    flood_source_observed_at: Optional[str] = None
+    water_gage_record_years: Optional[int] = None
+    water_gage_record_start_year: Optional[int] = None
+    water_gage_record_end_year: Optional[int] = None
+    water_gage_source_retrieved_at: Optional[str] = None
+    water_gage_source_url: Optional[str] = None
+    water_evidence_status: Optional[str] = None
+    water_statistic: Optional[str] = None
     transmission_mi: Optional[float] = Field(
         default=None,
         description="Miles to nearest HIFLD electric power transmission line.",
@@ -128,10 +146,7 @@ class SiteRecord(BaseModel):
     transmission_kv: Optional[float] = Field(
         default=None,
         description="Nominal kV of the nearest HIFLD transmission line "
-                    "(VOLTAGE field, or VOLT_CLASS lower-bound when VOLTAGE "
-                    "is HIFLD's null sentinel). Drives the data-center "
-                    "scoring tiers (≥230 kV for hyperscale, ≥500 kV for "
-                    "AI mega-campus).",
+                    "(reported VOLTAGE field only). Source classes are retained separately in asset provenance; voltage does not establish available capacity.",
     )
     rail_mi: Optional[float] = Field(
         default=None,
@@ -144,15 +159,11 @@ class SiteRecord(BaseModel):
     gas_pipeline_mi: Optional[float] = Field(
         default=None,
         description="Miles to nearest HIFLD natural-gas pipeline (interstate + "
-                    "intrastate + gathering, EIA-sourced). <2 mi enables "
-                    "behind-the-meter gas-turbine viability for hyperscale DCs.",
+                    "intrastate + gathering, EIA-sourced). Proximity does not establish pipeline capacity or delivery rights.",
     )
     substation_mi: Optional[float] = Field(
         default=None,
-        description="Miles to nearest electric substation (OpenStreetMap "
-                    "power=substation, ways centered + nodes). Pairs with "
-                    "transmission_mi: a 500 kV line within 0.5 mi is only "
-                    "actionable if a substation is close enough to interconnect.",
+        description="Miles to nearest mapped OSM power=substation node or bounding-box center; role and service availability require verification.",
     )
     substation_kv: Optional[float] = Field(
         default=None,
@@ -162,14 +173,11 @@ class SiteRecord(BaseModel):
     )
     power_plant_mi: Optional[float] = Field(
         default=None,
-        description="Miles to nearest HIFLD power plant (EIA-860 sourced). "
-                    "Co-location with existing generation is a strong DC siting "
-                    "signal — implies PPA / behind-the-meter potential and "
-                    "demonstrated local grid capacity.",
+        description="Miles to nearest HIFLD power plant (EIA-860 sourced). Nearby generation does not establish spare grid capacity or a supply agreement.",
     )
     power_plant_mw: Optional[float] = Field(
         default=None,
-        description="Total nameplate MW of the nearest power plant.",
+        description="Maximum summer capacity MW of the nearest power plant (HIFLD Total_MW); not spare capacity.",
     )
     power_plant_fuel: Optional[str] = Field(
         default=None,
@@ -531,6 +539,9 @@ class SiteRecord(BaseModel):
     )
     nickel_anchor_name: Optional[str] = Field(default=None)
     nickel_anchor_kind: Optional[str] = Field(default=None)
+    nickel_feedstock_id: Optional[str] = Field(default=None)
+    nickel_demand_id: Optional[str] = Field(default=None)
+    nickel_acid_id: Optional[str] = Field(default=None)
     nickel_feedstock_mi: Optional[float] = Field(
         default=None, ge=0,
         description="Miles to the nearest nickel feedstock source — a mine, "
@@ -642,6 +653,7 @@ class Payload(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     generated_at: str
+    source_metadata: Optional[dict] = None
     source: str
     source_url: str
     limit: Optional[int] = Field(
@@ -999,6 +1011,13 @@ class Streamgage(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
+    source_inventory_retrieved_at: Optional[str] = None
+    requested_region: Optional[str] = None
+    record_start_year: Optional[int] = None
+    record_end_year: Optional[int] = None
+    source_retrieved_at: Optional[str] = None
+    state_identity_note: Optional[str] = None
+
     gage_id: str = Field(pattern=r"^\d{8,15}$", description="USGS site number.")
     name: str
     state: Optional[str] = Field(default=None, pattern=r"^[A-Z]{2}$")
@@ -1018,7 +1037,7 @@ class Streamgage(BaseModel):
         description="Contributing drainage area (NWIS drain_area_va).",
     )
     source_url: str = Field(pattern=r"^https://")
-    verified_at: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}$")
+    verified_at: Optional[str] = Field(default=None, pattern=r"^\d{4}-\d{2}-\d{2}$")
 
 
 class NickelAnchor(BaseModel):
@@ -1065,6 +1084,8 @@ class NickelAnchor(BaseModel):
         description="Census Gazetteer place used for a `locality` coordinate, "
                     "e.g. 'Lawton city'. Absent on `site` rows.",
     )
+    proximity_eligible: Optional[bool] = Field(default=None, description="False retains catalog history but excludes the anchor from all proximity matches.")
+    nickel_demand_eligible: Optional[bool] = Field(default=None, description="False excludes a retained non-nickel chemistry location from demand matching.")
     status: Optional[str] = None
     note: str = Field(description="Why this row matters to a refinery siting.")
     source_url: str = Field(pattern=r"^https://")
