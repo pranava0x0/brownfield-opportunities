@@ -30,8 +30,8 @@ def test_tab_switch(page, base_url):
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("document.getElementById('meta').textContent.indexOf('sites') > -1")
 
-    # Default: map view
-    assert page.locator("#view-map").is_visible()
+    # Default: Explore; map remains available in one action.
+    assert page.locator("#view-candidates").is_visible()
     assert not page.locator("#view-table").is_visible()
 
     page.locator("#tab-table").click()
@@ -71,7 +71,8 @@ def test_escape_closes_detail(page, base_url):
 
 
 def test_map_marker_click_opens_detail(page, base_url):
-    page.goto(f"{base_url}/index.html")
+    page.goto(f"{base_url}/index.html#map")
+    page.wait_for_function("window.__MAP_READY__ === true", timeout=45000)
     page.wait_for_function("document.getElementById('meta').textContent.indexOf('sites') > -1")
 
     # Markers are Canvas-rendered (no DOM nodes). Trigger via JS — hits the
@@ -118,7 +119,8 @@ def test_search_filters_table(page, base_url):
 def test_legend_renders(page, base_url):
     """Legend shows program rows that exist in loaded data — Superfund first paint
     only includes 'Superfund'; 'Brownfield' shows up after lazy-load completes."""
-    page.goto(f"{base_url}/index.html")
+    page.goto(f"{base_url}/index.html#map")
+    page.wait_for_function("window.__MAP_READY__ === true", timeout=45000)
     page.wait_for_function("document.getElementById('meta').textContent.indexOf('sites') > -1")
     legend = page.locator(".legend")
     legend.wait_for()
@@ -130,7 +132,8 @@ def test_legend_renders(page, base_url):
 def test_retired_industrial_overlay_loads(page, base_url):
     """The GHGRP retired-industrial overlay lazy-loads rust ◆ markers and adds
     a 'Retired industrial' legend row (candidate sites with stranded grid)."""
-    page.goto(f"{base_url}/index.html")
+    page.goto(f"{base_url}/index.html#map")
+    page.wait_for_function("window.__MAP_READY__ === true", timeout=45000)
     page.wait_for_function("window.__APP_READY__ === true", timeout=30_000)
     # Markers populate after the low-priority lazy fetch resolves.
     page.wait_for_function(
@@ -147,7 +150,8 @@ def test_planned_retirements_overlay_loads(page, base_url):
     """The EIA-860M announced-retirement overlay lazy-loads teal ⬢ markers
     and adds a 'Retiring plant' legend row (interconnects freeing up on a
     known future date)."""
-    page.goto(f"{base_url}/index.html")
+    page.goto(f"{base_url}/index.html#map")
+    page.wait_for_function("window.__MAP_READY__ === true", timeout=45000)
     page.wait_for_function("window.__APP_READY__ === true", timeout=30_000)
     page.wait_for_function(
         "() => document.querySelectorAll('.planned-retirement-icon').length > 0",
@@ -164,6 +168,7 @@ def test_retired_sites_stats_tab(page, base_url):
     (KPI cards + sector/state bars) from the retired-industrial overlay."""
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("window.__APP_READY__ === true", timeout=30_000)
+    page.locator("#tab-retired").click()
     page.wait_for_function(
         "() => window.__sites && document.querySelectorAll('.retired-industrial-icon').length > 0",
         timeout=15_000,
@@ -460,6 +465,8 @@ def test_url_site_resolves_for_lazy_loaded_program(page, base_url):
     # Reload with the real lazy-program id; toast must not appear, panel must open.
     page.goto(f"{base_url}/index.html?site={target}")
     page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    # This deep link activates Map; core readiness precedes marker hydration.
+    page.wait_for_function("window.__MAP_READY__ === true", timeout=45000)
     page.wait_for_selector("#detail:not([hidden])", timeout=5000)
     title = page.locator("#detail-title").text_content().strip()
     assert title and title != "—", f"detail panel should be populated, got {title!r}"
@@ -503,7 +510,8 @@ def test_search_auto_fits_map(page, base_url):
     """When a filter narrows to a small set, the map auto-fits to the
     visible bbox. UAT: searching 'picillo' (1 result) left the lower-48
     view active and the marker was nearly invisible."""
-    page.goto(f"{base_url}/index.html")
+    page.goto(f"{base_url}/index.html#map")
+    page.wait_for_function("window.__MAP_READY__ === true", timeout=45000)
     page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
     initial_zoom = page.evaluate("window.__map.getZoom()")
     page.locator("#search").fill("picillo")
@@ -586,7 +594,7 @@ def test_hero_strip_renders(page, base_url):
     # refreshed" readout on the page (2026-08-24; used to be repeated in
     # the hero/footer/tagline too).
     refresh = page.locator("#topbar-refresh").text_content()
-    assert refresh.startswith("Refreshed") and "—" not in refresh
+    assert refresh.startswith("Compiled") and "—" not in refresh
     # KPI deck — five cells, each with a non-dash number
     for kpi_id in ("kpi-total", "kpi-acres", "kpi-dc", "kpi-hyperscale", "kpi-generation"):
         text = page.locator(f"#{kpi_id}").text_content()
@@ -621,93 +629,25 @@ def test_meta_text_shows_per_program_counts(page, base_url):
     assert "BRAC" in text
     # Refreshed date lives next to the title, not duplicated here (2026-08-24).
     refresh = page.locator("#topbar-refresh").text_content()
-    assert "refreshed" in refresh.lower()
+    assert "compiled" in refresh.lower()
 
 
 def test_refresh_date_reflects_freshest_data_file(page, base_url):
-    """The hero / footer / subtitle 'last update' date is the MAX generated_at
-    across EVERY loaded data file — not pinned to sites.json. Regression: the
-    date used to key off sites.json alone, so it understated freshness whenever
-    an enrichment file (e.g. epa-superfund-docs) refreshed on a later cadence.
-    No date is hardcoded here — the expected max is computed from the files
-    themselves, so this stays green across data refreshes. If a new data file
-    with a generated_at is added, add it to the list below."""
-    page.goto(f"{base_url}/index.html")
-    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
-    result = page.evaluate(
-        """async () => {
-          // Every data file whose loader calls recordRefreshDate() — i.e.
-          // files that DRIVE window.__refreshedAt. reference-campuses.json is
-          // intentionally excluded: it's an annual curated reference layer
-          // whose loader does NOT call recordRefreshDate, so it must not
-          // influence the expected max (else a future annual refresh would
-          // create a false failure).
-          const files = [
-            'sites.json', 'epa-acres.json', 'dod-fuds.json', 'dod-brac.json',
-            'epa-redev.json', 'epa-superfund-docs.json', 'infra-proximity.json',
-            'opportunity-zone.json', 'climate-zone.json', 'iso-rto.json',
-            'epa-echo.json', 'ai-summary.json', 'eia-retired-plants.json',
-            'ira-energy-community.json', 'fema-nri.json', 'parcel-owner.json',
-            'retired-industrial.json', 'planned-retirements.json',
-            'planned-retirements-proximity.json', 'coord-quality.json',
-            'nuclear-civilian-sites.json', 'nuclear-brownfield-proximity.json',
-            'microreactor-fleet.json', 'janus-nepa.json', 'tribal-areas.json',
-            'coal-conversions.json', 'coal-conversions-proximity.json',
-            'federal-clean-energy.json', 'hanford-e2e.json',
-            'port-proximity.json', 'water-proximity.json',
-          ];
-          // coal-nepa.json is deliberately ABSENT: its loader is drawer-lazy
-          // and does not call recordRefreshDate (reference-campuses rule —
-          // a file whose loader may never run must not drive the date).
-          // srs/portsmouth/paducah/wipp-e2e.json are ABSENT for the same
-          // reason: they lazy-load on DOE-site pill selection and their
-          // loaders deliberately skip recordRefreshDate.
-          // nickel-anchor-proximity.json is ABSENT for the reference-campuses
-          // reason: its loader is tab-lazy (Nickel Refining activation), so a
-          // visitor who never opens that tab never fetches it and it must not
-          // drive the displayed date. It passed only because it happened to
-          // share a UTC date with an eager file.
-          // streamgages.json / nickel-anchors.json are ABSENT for the same
-          // reason as ports/shipyards below: small map-overlay catalogs whose
-          // loaders don't call recordRefreshDate; only their corpus-wide
-          // joins (water-proximity, nickel-anchor-proximity) drive the date.
-          // ports.json / shipyards.json are ABSENT for the same reason —
-          // they're small map-overlay catalogs (like reference-campuses.json)
-          // whose loaders (ensurePortsLoaded/ensureShipyardsLoaded)
-          // deliberately don't call recordRefreshDate; only the corpus-wide
-          // join (port-proximity.json) drives the displayed date.
-          const fmt = (s) => new Date(Date.parse(s)).toISOString().slice(0, 10);
-          let coreDate = null;
-          const dates = [];
-          for (const f of files) {
-            try {
-              const r = await fetch('data/' + f);
-              if (!r.ok) continue;
-              const j = await r.json();
-              if (j && j.generated_at) {
-                dates.push(j.generated_at);
-                if (f === 'sites.json') coreDate = j.generated_at;
-              }
-            } catch (e) { /* unreachable file — skip */ }
-          }
-          dates.sort((a, b) => Date.parse(b) - Date.parse(a));
-          return {
-            displayed: window.__refreshedAt,
-            expectedMax: dates.length ? fmt(dates[0]) : null,
-            coreDate: coreDate ? fmt(coreDate) : null,
-          };
-        }"""
-    )
-    assert result["displayed"] == result["expectedMax"], (
-        f"displayed refresh date {result['displayed']!r} != freshest file "
-        f"date {result['expectedMax']!r}"
-    )
-    # Guard the actual regression: when an enrichment file is fresher than the
-    # core Superfund set, the displayed date must have advanced past sites.json.
-    if result["expectedMax"] != result["coreDate"]:
-        assert result["displayed"] != result["coreDate"], (
-            "refresh date is pinned to sites.json instead of the freshest file"
-        )
+    """Compilation follows the newest loaded artifact, including deferred views."""
+    def dated(value, records=None):
+        return lambda route: route.fulfill(json={"generated_at": value, "sites": records or []})
+
+    # Deliberately distinct fixture dates test ordering independently of the
+    # checked-in snapshots, which commonly share today's compilation date.
+    page.route("**/data/sites.json", dated("2090-01-01T00:00:00Z", [{"id": "FIXTURE", "name": "Date fixture", "program": "superfund", "lat": 40, "lon": -80}]))
+    page.route("**/data/infra-proximity.json", dated("2091-01-01T00:00:00Z"))
+    page.route("**/data/nuclear-civilian-sites.json", dated("2092-01-01T00:00:00Z"))
+    page.goto(f"{base_url}/index.html?program=superfund")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=45000)
+    assert page.locator("#topbar-refresh").inner_text() == "Compiled 2091-01-01"
+    page.click("#tab-ap1000")
+    page.wait_for_function("window.__refreshedAt === '2092-01-01'")
+    assert page.locator("#topbar-refresh").inner_text() == "Compiled 2092-01-01"
 
 
 def test_filter_chip_hidden_by_default_visible_when_active(page, base_url):
@@ -873,6 +813,7 @@ def test_documents_block_renders_for_enriched_site(page, base_url):
     sample dataset doesn't yet include any enriched sites."""
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    page.evaluate("ensureDetailEvidenceLoaded()")
     enriched_id = page.evaluate(
         "(() => {"
         "  for (const s of (window.__sites || [])) {"
@@ -1049,6 +990,8 @@ def test_detail_panel_has_overview_and_summary_tabs(page, base_url):
 def test_summary_pane_shows_empty_state_when_unenriched(page, base_url):
     """A site with no AI summary on file should show the empty-state message
     in the Summary pane — not a blank card."""
+    page.route("**/ai-summary.json", lambda route: route.fulfill(json={"sites": []}))
+    page.route("**/epa-echo.json", lambda route: route.fulfill(json={"sites": []}))
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
     # Pick any site; the bundled dataset has no ai-summary enrichment yet.
@@ -1075,13 +1018,15 @@ def test_summary_pane_renders_paragraphs_when_enriched(page, base_url):
     """When `summary` is present on the in-memory record (which would
     happen once ai-summary.json ships), the body splits on blank lines
     into <p> tags so paragraph styling lands."""
+    page.route("**/ai-summary.json", lambda route: route.fulfill(json={"sites": []}))
+    page.route("**/epa-echo.json", lambda route: route.fulfill(json={"sites": []}))
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
     # Inject a summary onto the first site so we don't depend on the
     # ai-summary connector having actually run yet (it's API-key gated).
     target_id = page.evaluate(
         "(() => {"
-        "  const s = (window.__sites || [])[0];"
+        "  const s = (window.__sites || []).find(s => !s._evidenceInvalidation);"
         "  if (!s) return null;"
         "  s.summary = 'Paragraph one.\\n\\nParagraph two.\\n\\nParagraph three.';"
         "  s.summary_meta = { model: 'claude-haiku-4-5-20251001', generated_at: '2026-05-04T00:00:00Z', hash: 'test' };"
@@ -1106,11 +1051,13 @@ def test_enforcement_block_renders_when_echo_enriched(page, base_url):
     """ECHO enforcement block renders inline in the Overview pane when
     the site carries `enforcement` data. Defaults to hidden so unenriched
     sites don't show empty placeholders."""
+    page.route("**/ai-summary.json", lambda route: route.fulfill(json={"sites": []}))
+    page.route("**/epa-echo.json", lambda route: route.fulfill(json={"sites": []}))
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
     target_id = page.evaluate(
         "(() => {"
-        "  const s = (window.__sites || [])[0];"
+        "  const s = (window.__sites || []).find(s => !s._evidenceInvalidation);"
         "  if (!s) return null;"
         "  s.enforcement = {"
         "    registry_id: '110000999999',"
@@ -1145,6 +1092,8 @@ def test_enforcement_block_renders_when_echo_enriched(page, base_url):
 def test_enforcement_block_hidden_when_no_echo_data(page, base_url):
     """A site without `enforcement` enrichment must not render the block —
     we don't want empty 'Not available' rows cluttering the panel."""
+    page.route("**/ai-summary.json", lambda route: route.fulfill(json={"sites": []}))
+    page.route("**/epa-echo.json", lambda route: route.fulfill(json={"sites": []}))
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
     target_id = page.evaluate(
@@ -1293,7 +1242,7 @@ def test_detail_tab_resets_to_overview_on_page_reload(page, base_url):
     """Session memory shouldn't survive a page reload — every fresh load
     starts on Overview regardless of what the user last clicked."""
     page.goto(f"{base_url}/index.html")
-    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    page.wait_for_function("window.__APP_READY__ === true", timeout=45000)
     page.locator("#tab-table").click()
     rows = page.locator("#sites-table tbody tr")
     rows.nth(0).click()
@@ -1302,7 +1251,7 @@ def test_detail_tab_resets_to_overview_on_page_reload(page, base_url):
     assert page.locator("#dtab-summary").get_attribute("aria-selected") == "true"
     # Reload → should reset.
     page.reload()
-    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    page.wait_for_function("window.__APP_READY__ === true", timeout=45000)
     page.locator("#tab-table").click()
     page.locator("#sites-table tbody tr").nth(0).click()
     page.wait_for_selector("#detail:not([hidden])")
@@ -1653,7 +1602,7 @@ def test_infra_distance_renders_adjacent_below_threshold(page, base_url):
     page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
     target_id = page.evaluate(
         "(() => {"
-        "  const s = (window.__sites || [])[0];"
+        "  const s = (window.__sites || []).find(s => !s._evidenceInvalidation);"
         "  if (!s) return null;"
         "  s.transmission_mi = 0.0;"
         "  s.rail_mi = 0.04;"
@@ -1700,7 +1649,7 @@ def test_gas_pipeline_row_renders_when_value_known(page, base_url):
     page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
     sid = page.evaluate(
         "(() => {"
-        "  const s = (window.__sites || [])[0];"
+        "  const s = (window.__sites || []).find(s => !s._evidenceInvalidation);"
         "  if (!s) return null;"
         "  s.gas_pipeline_mi = 1.4;"
         "  return s.id;"
@@ -1721,6 +1670,9 @@ def test_iso_rto_and_climate_zone_detail_rows_render(page, base_url):
     onto a selected site and render in the detail panel."""
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    # Climate context loads when a detail is requested, not on initial Explore.
+    page.evaluate("window.__selectSite(window.__sites.find(s => s.iso_rto && !s._evidenceInvalidation).id)")
+    page.wait_for_function("window.__sites.some(s => s.iso_rto && s.climate_zone && !s._evidenceInvalidation)")
     site = page.evaluate(
         """(() => {
           const s = (window.__sites || []).find((row) => row.iso_rto && row.climate_zone);
@@ -1757,14 +1709,12 @@ def test_iso_rto_filter_facet_filters_sites(page, base_url):
 
 
 def test_transmission_kv_chip_renders_when_kv_known(page, base_url):
-    """v1.12 Tier 0: when `transmission_kv` is populated, a `.kv-chip`
-    span is appended to the transmission cell. ≥230 kV gets the green
-    `.ready` variant (hyperscale tier); below that stays muted."""
+    """Reported voltage renders without a capacity or readiness claim."""
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
     sid = page.evaluate(
         "(() => {"
-        "  const s = (window.__sites || [])[0];"
+        "  const s = (window.__sites || []).find(s => !s._evidenceInvalidation);"
         "  if (!s) return null;"
         "  s.transmission_mi = 0.4;"
         "  s.transmission_kv = 345;"
@@ -1778,18 +1728,17 @@ def test_transmission_kv_chip_renders_when_kv_known(page, base_url):
     assert chip.count() == 1, "kV chip not rendered"
     assert (chip.text_content() or "").strip() == "345 kV"
     cls = chip.get_attribute("class") or ""
-    assert "ready" in cls, "≥230 kV chip should carry the .ready (green) variant"
+    assert "ready" not in cls, "voltage alone must not imply readiness"
+    assert "capacity is unverified" in chip.get_attribute("title")
 
 
-def test_dc_tier_pill_renders_for_qualifying_site(page, base_url):
-    """v1.12 Tier 0: a site with acreage ≥100 ac, transmission ≤1 mi,
-    and ≥230 kV scores at hyperscale tier and gets the green `.ready`
-    DC tier pill. Below 138 kV the pill drops to "Edge / inference"."""
+def test_voltage_and_acreage_do_not_restore_suitability_tier(page, base_url):
+    """Mapped voltage and acreage cannot establish a site suitability tier."""
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
     sid = page.evaluate(
         "(() => {"
-        "  const s = (window.__sites || [])[0];"
+        "  const s = (window.__sites || []).find(s => !s._evidenceInvalidation);"
         "  if (!s) return null;"
         "  s.acreage = 250;"
         "  s.transmission_mi = 0.5;"
@@ -1800,47 +1749,18 @@ def test_dc_tier_pill_renders_for_qualifying_site(page, base_url):
     assert sid
     page.evaluate(f"window.__selectSite('{sid}')")
     page.wait_for_selector("#detail:not([hidden])")
-    pill = page.locator("#d-program .dc-tier-pill")
-    assert pill.count() == 1, "DC tier pill missing"
-    assert "Hyperscale" in (pill.text_content() or "")
-    cls = pill.get_attribute("class") or ""
-    assert "ready" in cls, "hyperscale-tier pill should carry the .ready variant"
+    assert page.locator("#d-program .dc-tier-pill").count() == 0
+    assert "Unknown" in page.locator('#d-suit-dc [data-category="grid_capacity"]').inner_text()
 
 
-def test_persona_filter_narrows_visible_set(page, base_url):
-    """v1.12 Tier 0: clicking a persona button writes filterState.dcTier,
-    syncs ?dc_tier= to the URL, narrows the table count, and lights up
-    the filter chip. Toggling off clears all of the above."""
+def test_category_confidence_filter_narrows_visible_set(page, base_url):
     page.goto(f"{base_url}/index.html")
-    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
-    # Open filter strip so the persona buttons are visible.
-    page.evaluate(
-        """
-        (() => {
-          const f = document.getElementById('filters');
-          if (f) f.hidden = false;
-        })()
-        """
-    )
-    page.locator("button[data-tier='edge']").click()
-    page.wait_for_function(
-        "() => location.search.indexOf('dc_tier=edge') !== -1",
-        timeout=2000,
-    )
-    # Filter chip lights up, button is active.
-    chip_hidden = page.locator("#filters-chip").evaluate("el => el.hidden")
-    assert chip_hidden is False
-    btn_active = page.locator("button[data-tier='edge']").get_attribute("class") or ""
-    assert "active" in btn_active
-
-    # Toggle off — URL clears, button inactive.
-    page.locator("button[data-tier='edge']").click()
-    page.wait_for_function(
-        "() => location.search.indexOf('dc_tier=') === -1",
-        timeout=2000,
-    )
-    btn_active = page.locator("button[data-tier='edge']").get_attribute("class") or ""
-    assert "active" not in btn_active
+    page.wait_for_function("window.__APP_READY__ === true", timeout=45000)
+    page.locator("#evidence-category-filter").select_option("fiber")
+    page.locator("#evidence-status-filter").select_option("unknown")
+    assert page.locator("#candidates-table tbody tr").count() > 0
+    page.locator("#evidence-confidence-filter").select_option("High")
+    assert page.locator("#candidates-table tbody tr").count() == 0
 
 
 def test_state_dc_incentive_chip_renders(page, base_url):
@@ -1886,7 +1806,7 @@ def test_dc_candidate_surfaces_criteria_in_detail_panel(page, base_url):
     page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
     sid = page.evaluate(
         "(() => {"
-        "  const s = (window.__sites || [])[0];"
+        "  const s = (window.__sites || []).find(s => !s._evidenceInvalidation);"
         "  if (!s) return null;"
         "  s.data_center_reuse_candidate = true;"
         "  return s.id;"
@@ -1945,7 +1865,7 @@ def test_init_map_survives_zero_size_container(page, base_url):
         }, { once: true });
         """
     )
-    page.goto(f"{base_url}/index.html")
+    page.goto(f"{base_url}/index.html#map")
 
     # Wait for the Superfund payload to settle; __sitesLoaded fires after
     # ingestSites() but BEFORE __APP_READY__ (which waits on every program
@@ -2032,8 +1952,8 @@ def test_kpi_deck_always_open_no_summary_chip_on_mobile(page, base_url):
         "  };"
         "})()"
     )
-    assert state["open"] is True, "KPI disclosure should be open by default on mobile too"
-    assert state["summaryDisplay"] == "none", "summary chip should be hidden on mobile"
+    assert state["open"] is False, "Mobile coverage metrics should start compact"
+    assert state["summaryDisplay"] != "none", "Mobile coverage summary must be visible"
     # Numbers populated (not the "—" loading placeholder).
     assert state["totalText"] not in ("—", ""), "KPI total not populated"
     assert state["dcText"] not in ("—", ""), "KPI DC count not populated"
@@ -2072,7 +1992,7 @@ def test_search_filters_stats_scoped_to_corpus_tabs(page, base_url):
     cases = [
         ("tab-map", True, True, True),
         ("tab-table", True, True, True),
-        ("tab-candidates", True, True, False),
+        ("tab-candidates", True, True, True),
         ("tab-micro", True, True, False),
         ("tab-retired", False, False, False),
         ("tab-coal", False, False, False),
@@ -2276,63 +2196,22 @@ def test_hero_version_label_matches_current_release(page, base_url):
     )
 
 
-def test_kpi_hyperscale_cell_acts_as_filter_shortcut(page, base_url):
-    """Clicking the HYPERSCALE-READY KPI applies the Hyperscale persona
-    filter directly — bypassing the gear → scroll → click flow. Toggling
-    again clears it. The KPI cell's `.kpi-active` class + the persona
-    button's `aria-pressed=true` stay in sync."""
+def test_kpi_water_opens_category_context(page, base_url):
     page.goto(f"{base_url}/index.html")
-    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
-    # Pre-condition: nothing active.
-    assert page.locator("[data-kpi='hyperscale']").get_attribute("aria-pressed") == "false"
-    # Click → activates Hyperscale tier filter.
+    page.wait_for_function("window.__APP_READY__ === true", timeout=45000)
     page.locator("[data-kpi='hyperscale']").click()
-    page.wait_for_function(
-        "() => location.search.indexOf('dc_tier=hyperscale') !== -1",
-        timeout=2000,
-    )
-    cls = page.locator("[data-kpi='hyperscale']").get_attribute("class") or ""
-    assert "kpi-active" in cls, f"expected kpi-active class, got {cls!r}"
-    # Persona button must auto-sync.
-    persona = page.locator("button[data-tier='hyperscale']")
-    assert persona.get_attribute("aria-pressed") == "true", "persona button out of sync"
-    # Filter narrows the table.
-    visible = page.evaluate("window.__tableState?.filtered?.length || 0")
-    assert visible > 0 and visible < 5000, f"hyperscale filter not narrowing, got {visible}"
-    # Toggle off.
-    page.locator("[data-kpi='hyperscale']").click()
-    page.wait_for_function(
-        "() => location.search.indexOf('dc_tier=') === -1",
-        timeout=2000,
-    )
-    cls = page.locator("[data-kpi='hyperscale']").get_attribute("class") or ""
-    assert "kpi-active" not in cls
+    assert page.locator("#evidence-category-filter").input_value() == "water"
+    assert page.locator("#evidence-status-filter").input_value() == "context"
+    assert page.locator("#candidates-table tbody tr").count() > 0
 
 
-def test_kpi_dc_cell_filters_to_reuse_candidates(page, base_url):
-    """Clicking the DC REUSE CANDIDATES KPI filters to sites with
-    `data_center_reuse_candidate === true`. URL gets `?dc_candidate=1`."""
+def test_kpi_grid_opens_category_context(page, base_url):
     page.goto(f"{base_url}/index.html")
-    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    page.wait_for_function("window.__APP_READY__ === true", timeout=45000)
     page.locator("[data-kpi='dc']").click()
-    page.wait_for_function(
-        "() => location.search.indexOf('dc_candidate=1') !== -1",
-        timeout=2000,
-    )
-    cls = page.locator("[data-kpi='dc']").get_attribute("class") or ""
-    assert "kpi-active" in cls
-    # Every visible site must carry the candidate flag.
-    sample = page.evaluate(
-        "(() => (window.__tableState?.filtered || []).slice(0, 5)"
-        ".map(s => s.data_center_reuse_candidate === true))()"
-    )
-    assert all(sample), f"expected all candidates, got {sample!r}"
-    # Toggle off.
-    page.locator("[data-kpi='dc']").click()
-    page.wait_for_function(
-        "() => location.search.indexOf('dc_candidate=') === -1",
-        timeout=2000,
-    )
+    assert page.locator("#evidence-category-filter").input_value() == "grid"
+    assert page.locator("#evidence-status-filter").input_value() == "context"
+    assert page.locator("#candidates-table tbody tr").count() > 0
 
 
 def test_kpi_non_actionable_cells_are_inert(page, base_url):
@@ -2341,7 +2220,7 @@ def test_kpi_non_actionable_cells_are_inert(page, base_url):
     clicking them must not mutate filter state."""
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
-    for kpi in ("total", "acreage", "generation"):
+    for kpi in ("total",):
         cls = page.locator(f"[data-kpi='{kpi}']").get_attribute("class") or ""
         assert "kpi-actionable" not in cls, f"{kpi} KPI shouldn't be actionable"
     # Clicking a non-actionable cell should leave filters unchanged.
@@ -2349,26 +2228,13 @@ def test_kpi_non_actionable_cells_are_inert(page, base_url):
     assert page.locator("#filters-chip").evaluate("el => el.hidden") is True
 
 
-def test_kpi_filter_reset_clears_dc_candidate(page, base_url):
-    """Reset must clear `filterState.dcCandidate` and the .kpi-active class
-    on the DC KPI cell — same drift-safe pattern as the v1.7 program list
-    UAT-007 lesson."""
+def test_reset_clears_category_filter(page, base_url):
     page.goto(f"{base_url}/index.html")
-    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    page.wait_for_function("window.__APP_READY__ === true", timeout=45000)
     page.locator("[data-kpi='dc']").click()
-    page.wait_for_function(
-        "() => location.search.indexOf('dc_candidate=1') !== -1",
-        timeout=2000,
-    )
-    # Open filter panel + click reset.
     _open_filters(page)
     page.locator("#filters-reset").click()
-    page.wait_for_function(
-        "() => location.search.indexOf('dc_candidate=') === -1",
-        timeout=2000,
-    )
-    cls = page.locator("[data-kpi='dc']").get_attribute("class") or ""
-    assert "kpi-active" not in cls
+    assert page.locator("#evidence-status-filter").input_value() == ""
 
 
 def test_kpi_actionable_cells_are_keyboard_accessible(page, base_url):
@@ -2386,7 +2252,7 @@ def test_kpi_actionable_cells_are_keyboard_accessible(page, base_url):
         ".dispatchEvent(new KeyboardEvent('keydown', {key:'Enter', bubbles:true}))"
     )
     page.wait_for_function(
-        "() => location.search.indexOf('dc_tier=hyperscale') !== -1",
+        "() => document.getElementById('evidence-category-filter').value === 'water'",
         timeout=2000,
     )
 
@@ -2488,7 +2354,7 @@ def test_nearby_sites_block_renders_for_selected_site(page, base_url):
     )
     assert sid, "no dense-state Superfund site found"
     page.evaluate(f"window.__selectSite('{sid}')")
-    page.wait_for_selector("#detail:not([hidden])", timeout=3000)
+    page.wait_for_function("() => !document.querySelector('#detail').hidden", timeout=10000)
     # Either the block is shown with results, or hidden because no neighbours.
     block = page.locator("#d-nearby-block")
     hidden = block.evaluate("el => el.hidden")
@@ -2525,7 +2391,7 @@ def test_nearby_sites_click_navigates(page, base_url):
         )
     assert sid, "couldn't find a site with neighbours"
     page.evaluate(f"window.__selectSite('{sid}')")
-    page.wait_for_selector("#detail:not([hidden])", timeout=3000)
+    page.wait_for_function("() => !document.querySelector('#detail').hidden", timeout=10000)
     block = page.locator("#d-nearby-block")
     if block.evaluate("el => el.hidden"):
         return  # No neighbours — fine, just don't test the click path.
@@ -2560,37 +2426,17 @@ def test_nearby_sites_hidden_when_no_coords(page, base_url):
 
 
 def test_filter_chip_tooltip_lists_active_filters(page, base_url):
-    """The chip badge's `title` attribute carries a human-readable list of
-    active filters ("Active: <filter1> · <filter2>"). Replaces the
-    mystery "1" badge surface that gave no context for bookmarked URLs."""
     page.goto(f"{base_url}/index.html")
-    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
-    # Apply Hyperscale via KPI shortcut.
+    page.wait_for_function("window.__APP_READY__ === true", timeout=45000)
     page.locator("[data-kpi='hyperscale']").click()
-    page.wait_for_function(
-        "() => location.search.indexOf('dc_tier=hyperscale') !== -1",
-        timeout=2000,
-    )
-    title = page.locator("#filters-chip").get_attribute("title") or ""
-    assert title.startswith("Active:"), f"chip title missing 'Active:' prefix: {title!r}"
-    assert "Hyperscale" in title, f"chip title missing tier label: {title!r}"
-    # Stack a second filter — title should list both.
-    page.locator("[data-kpi='dc']").click()
-    page.wait_for_function(
-        "() => location.search.indexOf('dc_candidate=1') !== -1",
-        timeout=2000,
-    )
-    title2 = page.locator("#filters-chip").get_attribute("title") or ""
-    assert "Hyperscale" in title2 and "DC candidates" in title2, (
-        f"chip title missing one of the active filters: {title2!r}"
-    )
-    # Cleared → no title attribute.
-    page.locator("[data-kpi='hyperscale']").click()
-    page.locator("[data-kpi='dc']").click()
-    page.wait_for_function(
-        "() => document.getElementById('filters-chip').hidden === true",
-        timeout=2000,
-    )
+    page.wait_for_function("location.search.includes('evidence=water')")
+    assert "Water: context" in page.locator("#filters-chip").get_attribute("title")
+    page.locator("#evidence-confidence-filter").select_option("Low")
+    page.wait_for_function("location.search.includes('confidence=Low')")
+    assert "Low" in page.locator("#filters-chip").get_attribute("title")
+    _open_filters(page)
+    page.locator("#filters-reset").click()
+    assert page.locator("#filters-chip").evaluate("e=>e.hidden")
 
 
 def test_table_intersection_observer_does_not_overfire(page, base_url):
@@ -2638,7 +2484,8 @@ def test_intersection_observer_appends_when_user_scrolls(page, base_url):
 def test_retired_popup_carries_citation_and_proximity_disclaimer(page, base_url):
     """Every ◆ popup cites Envirofacts; nearby tracked links are explicitly
     proximity-only and never presented as parcel-availability evidence."""
-    page.goto(f"{base_url}/index.html")
+    page.goto(f"{base_url}/index.html#map")
+    page.wait_for_function("window.__MAP_READY__ === true", timeout=45000)
     page.wait_for_function("window.__APP_READY__ === true", timeout=30_000)
     page.wait_for_function(
         "() => document.querySelectorAll('.retired-industrial-icon').length > 0",

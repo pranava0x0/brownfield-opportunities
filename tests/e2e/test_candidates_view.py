@@ -1,53 +1,17 @@
-"""End-to-end tests for the DC Candidates view's unified filter model.
-
-v1.21 (2026-06-10): the candidates tab previously ignored the global
-filter strip entirely and carried its own unsynced "Min tier" and
-"Readiness" button groups (duplicating the persona filter / OZ checkbox /
-DC-candidate KPI toggle). It now sources from `tableState.filtered` —
-the same globally-filtered set as the map and table — and keeps exactly
-one piece of view-local state: the DC/Generation scoring lens,
-round-tripped through the URL as `?lens=gen`.
-"""
+"""Browser contracts for category evidence; legacy numeric suitability is retired."""
 from __future__ import annotations
+import csv
+import io
+import pytest
+from playwright.sync_api import Page, expect
+pytestmark = pytest.mark.e2e
 
-from playwright.sync_api import Page
+def _ready(page, base_url):
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.SiteEvidence && window.__APP_READY__ === true", timeout=45000)
 
-
-def _ready(page: Page, base_url: str, query: str = "") -> None:
-    page.goto(f"{base_url}/index.html{query}")
-    page.wait_for_function("window.__APP_READY__ === true", timeout=30_000)
-
-
-def _open_candidates(page: Page) -> None:
-    page.locator("#tab-candidates").click()
-    page.wait_for_selector("#candidates-table tbody tr")
-
-
-def _pick_scored_state(page: Page) -> str:
-    """A state that has at least 25 scored (transmission-bearing) sites, so
-    the filtered candidates view is guaranteed non-empty."""
-    state = page.evaluate(
-        "() => {"
-        "  const byState = {};"
-        "  for (const s of window.__sites) {"
-        "    if (s.transmission_mi != null && s.state) {"
-        "      byState[s.state] = (byState[s.state] || 0) + 1;"
-        "    }"
-        "  }"
-        "  return Object.entries(byState).find(([, n]) => n >= 25)?.[0] || null;"
-        "}"
-    )
-    assert state, "expected at least one state with >=25 scored sites"
-    return state
-
-
-def _set_state_filter(page: Page, state: str) -> None:
-    page.evaluate(
-        "(st) => { const sel = document.getElementById('f-state');"
-        " sel.value = st; sel.dispatchEvent(new Event('change')); }",
-        state,
-    )
-
+def _assess(page, record, lens="dc"):
+    return page.evaluate("([s,l]) => SiteEvidence.assessSite(s,l)", [record,lens])
 
 def test_duplicate_filter_groups_removed(page, base_url):
     """The unsynced Min-tier / Readiness button groups are gone — those
@@ -68,232 +32,11 @@ def test_duplicate_filter_groups_removed(page, base_url):
     assert counts["lens"] == 3
     assert counts["note"] is True
 
-
-def test_candidates_respect_global_state_filter(page, base_url):
-    """Filter to one state on the filter strip, then open DC Candidates:
-    every rendered row must belong to that state and the stats line must
-    say the global filters are applied. (Pre-v1.21 the tab silently showed
-    nationwide results.)"""
-    _ready(page, base_url)
-    state = _pick_scored_state(page)
-    _set_state_filter(page, state)
-    _open_candidates(page)
-    page.wait_for_function(
-        "document.getElementById('candidates-stats').textContent"
-        ".includes('global filters applied')"
-    )
-    st_cells = page.evaluate(
-        "() => Array.from(document.querySelectorAll('#candidates-table tbody tr'))"
-        ".slice(0, 50).map(r => r.children[2].textContent.trim())"
-    )
-    assert st_cells, "expected rendered candidate rows"
-    assert all(c == state for c in st_cells), (
-        f"expected all rows in {state}, got {sorted(set(st_cells))}"
-    )
-
-
-def test_candidates_rebuild_live_on_filter_change(page, base_url):
-    """Changing a global filter WHILE the candidates tab is active rebuilds
-    the view (applyFilter -> maybeRefreshCandidates)."""
-    _ready(page, base_url)
-    _open_candidates(page)
-    before = page.evaluate("document.getElementById('candidates-stats').textContent")
-    assert "global filters applied" not in before
-    state = _pick_scored_state(page)
-    _set_state_filter(page, state)
-    page.wait_for_function(
-        "document.getElementById('candidates-stats').textContent"
-        ".includes('global filters applied')"
-    )
-    first_st = page.evaluate(
-        "document.querySelector('#candidates-table tbody tr td:nth-child(3)').textContent.trim()"
-    )
-    assert first_st == state
-
-
-def test_lens_toggle_roundtrips_url(page, base_url):
-    """Switching to the Generation lens writes ?lens=gen (debounced);
-    the default DC lens is NOT encoded."""
-    _ready(page, base_url)
-    assert "lens=" not in page.evaluate("location.search")
-    _open_candidates(page)
-    page.locator("[data-cand-lens='gen']").click()
-    page.wait_for_function("location.search.includes('lens=gen')")
-    page.wait_for_function(
-        "document.getElementById('candidates-stats').textContent"
-        ".includes('generation score')"
-    )
-    # Back to the default lens — the param must drop out of the URL.
-    page.locator("[data-cand-lens='dc']").click()
-    page.wait_for_function("!location.search.includes('lens=')")
-
-
-def test_lens_restored_from_url(page, base_url):
-    """Deep-linking with ?lens=gen lands with the Generation button active
-    and the view sorted by generation score."""
-    _ready(page, base_url, query="?lens=gen")
-    active = page.evaluate(
-        "document.querySelector('[data-cand-lens].active')?.dataset.candLens"
-    )
-    assert active == "gen"
-    _open_candidates(page)
-    stats = page.evaluate("document.getElementById('candidates-stats').textContent")
-    assert "generation score" in stats
-
-
-def test_land_ready_badge_renders_for_swrau_site(page, base_url):
-    """A site whose EPA SWRAU `rau_status` meets the measure shows the
-    solid-green "Land Ready" signal badge in the candidates Signals column.
-    Pick a state with <=200 scored sites (one candidates page) and inject the
-    SWRAU value onto one of its scored sites so it is guaranteed to render."""
-    _ready(page, base_url)
-    state = page.evaluate(
-        "() => {"
-        "  const byState = {};"
-        "  for (const s of window.__sites) {"
-        "    if (s.transmission_mi != null && s.state) (byState[s.state] ||= []).push(s);"
-        "  }"
-        "  for (const [st, arr] of Object.entries(byState)) {"
-        "    if (arr.length >= 1 && arr.length <= 200) {"
-        "      arr[0].rau_status = 'Meets the Measure'; return st;"
-        "    }"
-        "  }"
-        "  return null;"
-        "}"
-    )
-    assert state, "expected a state with 1..200 scored sites"
-    _set_state_filter(page, state)
-    _open_candidates(page)
-    labels = page.evaluate(
-        "() => Array.from(document.querySelectorAll('#candidates-table .sig-land'))"
-        ".map((b) => b.textContent.trim())"
-    )
-    assert "Land Ready" in labels, "expected a Land Ready badge for the SWRAU site"
-
-
-def test_climate_badge_renders_for_very_high_hazard(page, base_url):
-    """A site with a FEMA NRI Very-High wildfire or drought rating (the −10
-    climate penalty) shows the red "Climate" risk badge in the Signals
-    column, parallel to the Flood badge for SFHA sites."""
-    _ready(page, base_url)
-    state = page.evaluate(
-        "() => {"
-        "  const byState = {};"
-        "  for (const s of window.__sites) {"
-        "    if (s.transmission_mi != null && s.state) (byState[s.state] ||= []).push(s);"
-        "  }"
-        "  for (const [st, arr] of Object.entries(byState)) {"
-        "    if (arr.length >= 1 && arr.length <= 200) {"
-        "      arr[0].nri_wildfire_rating = 'Very High'; return st;"
-        "    }"
-        "  }"
-        "  return null;"
-        "}"
-    )
-    assert state, "expected a state with 1..200 scored sites"
-    _set_state_filter(page, state)
-    _open_candidates(page)
-    labels = page.evaluate(
-        "() => Array.from(document.querySelectorAll('#candidates-table .cand-signals .sig-badge'))"
-        ".map((b) => b.textContent.trim())"
-    )
-    assert any(l.startswith("Climate") for l in labels), "expected a Climate badge for the Very-High-hazard site"
-    assert "Climate −10" in labels, "Very-High hazard should badge the −10 magnitude"
-
-
-def test_nuclear_badge_renders_for_nuclear_adjacency(page, base_url):
-    """A site within 5 mi of an operating nuclear plant >=500 MW shows the
-    "Nuclear" grid-inheritance badge (the AWS/Susquehanna pattern)."""
-    _ready(page, base_url)
-    state = page.evaluate(
-        "() => {"
-        "  const byState = {};"
-        "  for (const s of window.__sites) {"
-        "    if (s.transmission_mi != null && s.state) (byState[s.state] ||= []).push(s);"
-        "  }"
-        "  for (const [st, arr] of Object.entries(byState)) {"
-        "    if (arr.length >= 1 && arr.length <= 200) {"
-        "      Object.assign(arr[0], {power_plant_mi: 2.0, power_plant_mw: 800,"
-        "        power_plant_fuel: 'nuclear', retired_plant_mi: null});"
-        "      return st;"
-        "    }"
-        "  }"
-        "  return null;"
-        "}"
-    )
-    assert state, "expected a state with 1..200 scored sites"
-    _set_state_filter(page, state)
-    _open_candidates(page)
-    labels = page.evaluate(
-        "() => Array.from(document.querySelectorAll('#candidates-table .cand-signals .sig-badge'))"
-        ".map((b) => b.textContent.trim())"
-    )
-    assert "Nuclear" in labels, "expected a Nuclear badge for the nuclear-adjacent site"
-
-
-def test_zoning_badge_renders_for_restrictive_state(page, base_url):
-    """A site in a restrictive DC regulatory-climate state (stamped
-    s.dc_regulatory_climate at ingest) shows the red "Zoning" risk badge."""
-    _ready(page, base_url)
-    state = page.evaluate(
-        "() => {"
-        "  const byState = {};"
-        "  for (const s of window.__sites) {"
-        "    if (s.transmission_mi != null && s.state) (byState[s.state] ||= []).push(s);"
-        "  }"
-        "  for (const [st, arr] of Object.entries(byState)) {"
-        "    if (arr.length >= 1 && arr.length <= 200) {"
-        "      arr[0].dc_regulatory_climate = 'restrictive'; return st;"
-        "    }"
-        "  }"
-        "  return null;"
-        "}"
-    )
-    assert state, "expected a state with 1..200 scored sites"
-    _set_state_filter(page, state)
-    _open_candidates(page)
-    labels = page.evaluate(
-        "() => Array.from(document.querySelectorAll('#candidates-table .cand-signals .sig-badge'))"
-        ".map((b) => b.textContent.trim())"
-    )
-    assert "Zoning" in labels, "expected a Zoning badge for the restrictive-state site"
-
-
-def test_water_badge_renders_for_npdes_permit(page, base_url):
-    """A site with an active CWA/NPDES permit (EPA ECHO `has_npdes_permit`)
-    shows the "Water" signal badge in the candidates Signals column — the
-    water-access proxy surfaced after the ECHO NPDES re-enrichment. Inject
-    the enforcement flag onto one scored site so it's guaranteed to render."""
-    _ready(page, base_url)
-    state = page.evaluate(
-        "() => {"
-        "  const byState = {};"
-        "  for (const s of window.__sites) {"
-        "    if (s.transmission_mi != null && s.state) (byState[s.state] ||= []).push(s);"
-        "  }"
-        "  for (const [st, arr] of Object.entries(byState)) {"
-        "    if (arr.length >= 1 && arr.length <= 200) {"
-        "      arr[0].enforcement = Object.assign({}, arr[0].enforcement, {has_npdes_permit: true});"
-        "      return st;"
-        "    }"
-        "  }"
-        "  return null;"
-        "}"
-    )
-    assert state, "expected a state with 1..200 scored sites"
-    _set_state_filter(page, state)
-    _open_candidates(page)
-    labels = page.evaluate(
-        "() => Array.from(document.querySelectorAll('#candidates-table .cand-signals .sig-water'))"
-        ".map((b) => b.textContent.trim())"
-    )
-    assert "Water" in labels, "expected a Water badge for the NPDES-permit site"
-
-
 def test_detail_panel_npdes_row_renders(page, base_url):
     """The detail panel's "Water permit (NPDES)" row (#d-echo-npdes) reflects
     the ECHO `has_npdes_permit` flag with the ready-tinted affirmative text."""
     _ready(page, base_url)
+    page.evaluate("() => ensureDetailEvidenceLoaded()")
     site_id = page.evaluate(
         "() => {"
         "  const s = window.__sites.find(s => s.transmission_mi != null);"
@@ -311,7 +54,6 @@ def test_detail_panel_npdes_row_renders(page, base_url):
     )
     assert "Yes" in row["text"], f"expected affirmative NPDES text, got {row['text']!r}"
     assert "ready" in row["cls"], f"expected ready tint, got {row['cls']!r}"
-
 
 def test_detail_panel_planned_retirement_row_renders(page, base_url):
     """The detail panel's "Retiring plant" row (#d-planned-retire-mi) renders
@@ -340,7 +82,6 @@ def test_detail_panel_planned_retirement_row_renders(page, base_url):
     assert "2,600 MW" in cell
     assert "ret. 2028" in cell
 
-
 def test_planned_retirement_join_covers_all_programs(page, base_url):
     """Regression (PR #19 / Codex P1): the tiny planned-retirements-proximity
     file can resolve before the large ACRES/FUDS program files ingest, so the
@@ -358,7 +99,12 @@ def test_planned_retirement_join_covers_all_programs(page, base_url):
         route.continue_()
     page.route("**/epa-acres.json", _slow)
     page.route("**/dod-fuds.json", _slow)
-    _ready(page, base_url)  # __APP_READY__ fires after all program + enrichment loads settle
+    page.goto(f"{base_url}/index.html", wait_until="domcontentloaded")
+    page.wait_for_function("typeof acresLoadingPromise !== 'undefined' && acresLoadingPromise !== null")
+    # This enrichment is detail-lazy. Start it while program responses are delayed
+    # so the regression still exercises the join-order guard.
+    page.evaluate("() => ensurePlannedRetireProxLoaded()")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=60000)
     stats = page.evaluate(
         """async () => {
           const byId = new Map(window.__sites.map(s => [s.id, s]));
@@ -388,7 +134,6 @@ def test_planned_retirement_join_covers_all_programs(page, base_url):
         f"expected many ACRES/FUDS joins, got {stats['joinedNonSuperfund']}"
     )
 
-
 def test_tribal_area_join_covers_lazy_programs(page, base_url):
     """The all-program AIANNHA enrichment must wait for ACRES/FUDS ingest."""
     def _slow(route):
@@ -399,6 +144,7 @@ def test_tribal_area_join_covers_lazy_programs(page, base_url):
     page.route("**/epa-acres.json", _slow)
     page.route("**/dod-fuds.json", _slow)
     _ready(page, base_url)
+    page.evaluate("() => ensureTribalAreasLoaded()")
     stats = page.evaluate(
         """async () => {
           const byId = new Map(window.__sites.map(s => [s.id, s]));
@@ -419,28 +165,25 @@ def test_tribal_area_join_covers_lazy_programs(page, base_url):
     assert stats["joined"] == stats["present"]
     assert stats["joinedNonSuperfund"] > 1000
 
+def test_global_state_filter_rebuilds_explore(page,base_url):
+    _ready(page,base_url)
+    page.evaluate("()=>{const n=document.getElementById('f-state');n.value='AK';n.dispatchEvent(new Event('change'))}")
+    expect(page.locator('#candidates-table tbody tr').first).to_be_visible()
+    assert page.evaluate("""()=>Array.from(document.querySelectorAll('#candidates-table tbody tr')).every(r=>window.__sites.find(s=>s.id===r.dataset.id).state==='AK')""")
 
-def test_manufacturing_lens_button_sorts_by_mfg(page, base_url):
-    """The Rankings tab's third lens: clicking Manufacturing re-sorts by
-    computeManufacturingScore, updates the stats line, and round-trips
-    ?lens=mfg through the URL."""
-    page.goto(f"{base_url}/index.html")
-    page.wait_for_function("window.__APP_READY__ === true", timeout=30_000)
-    page.locator("#tab-candidates").click()
-    page.wait_for_selector("[data-cand-lens='mfg']")
-    page.locator("[data-cand-lens='mfg']").click()
-    page.wait_for_function(
-        "() => document.getElementById('candidates-stats').textContent.includes('manufacturing score')",
-        timeout=10_000,
-    )
-    stats = page.locator("#candidates-stats").text_content() or ""
-    assert all(label not in stats for label in ("Mega", "Hyperscale", "Colo", "Edge"))
-    tier_cells = page.locator("#candidates-table tbody tr td:nth-child(6)")
-    assert tier_cells.count() > 0
-    assert all((tier_cells.nth(i).text_content() or "").strip() == "—" for i in range(tier_cells.count()))
-    assert "lens=mfg" in page.url
-    # Reload from the URL: the lens must be restored.
-    page.goto(page.url)
-    page.wait_for_function("window.__APP_READY__ === true", timeout=30_000)
-    page.locator("#tab-candidates").click()
-    page.wait_for_selector("[data-cand-lens='mfg'].active", timeout=10_000)
+@pytest.mark.parametrize('lens',['gen','mfg'])
+def test_lens_roundtrip_keeps_alphabetical_evidence_order(page,base_url,lens):
+    _ready(page,base_url);page.click(f'[data-cand-lens="{lens}"]')
+    page.wait_for_function('(lens)=>location.search.includes("lens="+lens)',arg=lens)
+    expect(page.locator('#candidates-stats')).to_contain_text('alphabetical')
+    before=page.locator('#candidates-table .site-evidence-open').all_inner_texts()
+    assert page.evaluate('names=>names.every((n,i)=>!i||names[i-1].localeCompare(n)<=0)',before)
+    page.reload();page.wait_for_function('window.__APP_READY__===true',timeout=45000)
+    assert 'active' in page.locator(f'[data-cand-lens="{lens}"]').get_attribute('class')
+    assert page.locator('#candidates-table .site-evidence-open').all_inner_texts()==before
+
+def test_environmental_context_does_not_establish_ready_land(page,base_url):
+    _ready(page,base_url)
+    a=_assess(page,{'npl_status_code':'D','enforcement':{'has_npdes_permit':True},'in_sfha':True})
+    assert a['hazards']['status']=='constraint'
+    assert a['land']['status']==a['water_rights']['status']=='unknown'

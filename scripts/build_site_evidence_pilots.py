@@ -1,0 +1,61 @@
+"""Build small, explicit Approach C evidence pilots.
+
+These records prove the data contract before any national expansion. They do
+not infer parcel service, water availability, capacity, or entitlement.
+"""
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+OUTPUT = ROOT / "docs" / "data" / "site-evidence-pilots.json"
+
+RECORDS = [
+    {
+        "id": "ACRES-245389",
+        "water_network": {
+            "status": "network_context",
+            "feature_id": "10294630",
+            "reachcode": "01080203000158",
+            "huc12": "010802030402",
+            "huc12_name": "Lower Green River",
+            "connection_method": "NLDI point snap within 200 metres",
+            "snap_distance_mi": 0.048,
+            "source_snapshot_at": "2026-09-12",
+            "source_url": "https://api.water.usgs.gov/nldi/linked-data/comid/10294630?f=json",
+            "basin_source_url": "https://hydro.nationalmap.gov/arcgis/rest/services/wbd/MapServer/6",
+            "unresolved": "Intake location, low-flow reliability, project demand, allocation, and rights.",
+        },
+        "fiber_regional": {
+            "status": "regional_context",
+            "network": "MassBroadband 123",
+            "operator": "Local Linx",
+            "footprint": "Franklin County regional middle-mile network",
+            "lifecycle": "Operating; construction completed in 2014",
+            "evidence_scope": "regional",
+            "source_snapshot_at": "2026-09-12",
+            "source_url": "https://broadband.masstech.org/massbroadband-123",
+            "unresolved": "Route distance, parcel service, carrier, capacity, latency, and independent paths.",
+        },
+    }
+]
+
+
+def build_payload() -> dict:
+    return {
+        "schema_version": 1,
+        "generated_at": "2026-09-12T19:15:00Z",
+        "source": "Approach C regional evidence pilots",
+        "count": len(RECORDS),
+        "sites": RECORDS,
+    }
+
+
+def main() -> int:
+    OUTPUT.write_text(json.dumps(build_payload(), separators=(",", ":")) + "\n")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

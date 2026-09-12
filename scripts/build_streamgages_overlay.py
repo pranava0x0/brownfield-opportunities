@@ -20,8 +20,8 @@ What the number is, and what it is NOT
 `mean_flow_cfs` is a long-run AVERAGE. An industrial withdrawal permit is
 written against a LOW-flow statistic (7Q10 / drought-of-record), which is
 routinely an order of magnitude below the annual mean on a flashy river. So
-this field is a screen, never a clearance: it can rule a site out, and it can
-rank two candidates, but it cannot establish that water is available. Every
+this field is regional hydrologic context. It cannot rule a site out, rank
+site water availability, or establish that water is available. Every
 surface that renders it must say so. Same discipline as the AP1000 tab, which
 carries analyst-researched water adequacy precisely because no national layer
 answered the question (see ap1000-water-validation.md).
@@ -61,7 +61,10 @@ Re-run: `python3 scripts/build_streamgages_overlay.py`
 from __future__ import annotations
 
 import argparse
+import datetime as dt
 import hashlib
+import math
+import re
 import json
 import logging
 import statistics
@@ -104,10 +107,26 @@ STATES = [
     "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN",
     "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH",
     "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA",
-    "WV", "WI", "WY", "PR",  # VI is not served by USGS NWIS streamflow services (returns 404)
+    "WV", "WI", "WY", "PR",  # Other territories are outside this catalog scope.
 ]
 
+# Numeric US state identity comes from each returned row, never request scope.
+STATE_FIPS = dict(zip(
+    "01 02 04 05 06 08 09 10 11 12 13 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 44 45 46 47 48 49 50 51 53 54 55 56 72".split(),
+    STATES))
 _last_request = 0.0
+_FLOW_METADATA: dict[str, dict] = {}
+_FAILED_BATCHES: list[list[str]] = []
+_CACHE_ONLY = False
+
+
+def _retrieved_at(body: str) -> str | None:
+    """USGS response timestamp; cache replay never makes this date newer."""
+    match = re.search(r"^# retrieved:\s*(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\s*([+-]\d{2}:\d{2})", body, re.M)
+    if not match:
+        return None
+    return dt.datetime.fromisoformat(match[1] + match[2]).astimezone(dt.timezone.utc).isoformat().replace("+00:00", "Z")
+
 
 
 def _get(url: str) -> str:
@@ -136,6 +155,9 @@ def _cached(key: str, url: str, refresh: bool) -> str | None:
     path = CACHE_DIR / f"{hashlib.sha1(key.encode()).hexdigest()}.rdb"
     if path.exists() and not refresh:
         return path.read_text()
+    if _CACHE_ONLY:
+        log.warning("cache-only: missing %s", key)
+        return None
     try:
         body = _get(url)
     except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError) as e:
@@ -176,7 +198,7 @@ def _fetch_sites(state: str, refresh: bool) -> list[dict[str, str]]:
     body = _cached(f"sites:{state}", url, refresh)
     if body is None:
         return []
-    return _parse_rdb(body)
+    return [dict(row, _source_retrieved_at=_retrieved_at(body)) for row in _parse_rdb(body)]
 
 
 def _fetch_flows(gage_ids: list[str], refresh: bool) -> dict[str, list[float]]:
@@ -192,7 +214,9 @@ def _fetch_flows(gage_ids: list[str], refresh: bool) -> dict[str, list[float]]:
         url = STAT_URL + "?" + urllib.parse.urlencode(params)
         body = _cached("stat:" + ",".join(batch), url, refresh)
         if body is None:
+            _FAILED_BATCHES.append(batch)
             continue
+        snapshot = _retrieved_at(body)
         for row in _parse_rdb(body):
             site = row.get("site_no")
             raw = row.get("mean_va")
@@ -203,6 +227,10 @@ def _fetch_flows(gage_ids: list[str], refresh: bool) -> dict[str, list[float]]:
                 value = float(raw)
             except ValueError:
                 continue
+            if not math.isfinite(value) or not year.isdigit():
+                log.warning("invalid annual flow for %s: %s (%s)", site, raw, year)
+                continue
+            _FLOW_METADATA[site] = {"source_retrieved_at": snapshot}
             # Key by (site, WATER YEAR), not by row. NWIS publishes the same
             # site-year under multiple time-series ids — gage 06208500 returns
             # 170 rows across ts_ids 81537 and 247095 for just 85 distinct
@@ -211,6 +239,9 @@ def _fetch_flows(gage_ids: list[str], refresh: bool) -> dict[str, list[float]]:
             # claimed 170 years of record (Codex review). Twelve gages were
             # reporting over 130 years this way.
             by_year.setdefault(site, {}).setdefault(year, []).append(value)
+    for site, years in by_year.items():
+        _FLOW_METADATA[site].update(record_start_year=min(map(int, years)),
+                                    record_end_year=max(map(int, years)))
     # One value per year: average the duplicate time-series for that year
     # rather than letting the year vote twice.
     return {site: [statistics.fmean(vals) for _year, vals in sorted(years.items())]
@@ -221,7 +252,8 @@ def _f(raw: str | None) -> float | None:
     if raw is None or not raw.strip():
         return None
     try:
-        return float(raw)
+        value = float(raw)
+        return value if math.isfinite(value) else None
     except ValueError:
         return None
 
@@ -242,8 +274,10 @@ def build(states: list[str], refresh: bool) -> int:
     rows: list[dict] = []
     # UTC, to match the payload's own generated_at — a local stamp put rows a
     # day behind the file on any evening run west of Greenwich.
-    verified_at = time.strftime("%Y-%m-%d", time.gmtime())
+    _FLOW_METADATA.clear()
+    _FAILED_BATCHES.clear()
     failed_states: list[str] = []
+    complete_states: list[str] = []
 
     for state in states:
         sites = _fetch_sites(state, refresh)
@@ -252,14 +286,23 @@ def build(states: list[str], refresh: bool) -> int:
             failed_states.append(state)
             continue
         by_id = {}
+        invalid_inventory = False
         for s in sites:
             sid = (s.get("site_no") or "").strip()
             lat = _f(s.get("dec_lat_va"))
             lon = _f(s.get("dec_long_va"))
-            if not sid or lat is None or lon is None:
+            if not sid or lat is None or lon is None or not (-90 <= lat <= 90 and -180 <= lon <= 180):
+                invalid_inventory = True
+                log.warning("[%s] invalid inventory identity/coordinates for %s", state, sid)
                 continue
             by_id[sid] = s
+        failures_before = len(_FAILED_BATCHES)
         flows = _fetch_flows(sorted(by_id), refresh)
+        state_complete = len(_FAILED_BATCHES) == failures_before and not invalid_inventory
+        if state_complete:
+            complete_states.append(state)
+        else:
+            failed_states.append(state)
 
         kept = 0
         for sid, s in by_id.items():
@@ -269,23 +312,35 @@ def build(states: list[str], refresh: bool) -> int:
             mean_flow = statistics.fmean(annual)
             if mean_flow < MIN_MEAN_FLOW_CFS:
                 continue
+            metadata = _FLOW_METADATA.get(sid, {})
+            snapshot = metadata.get("source_retrieved_at")
+            geographic_state = (STATE_FIPS.get((s.get("state_cd") or "").zfill(2))
+                                if s.get("country_cd", "US") == "US" else None)
             raw = {
                 "gage_id": sid,
                 "name": (s.get("station_nm") or "").strip(),
-                "state": state,
+                "state": geographic_state,
+                "requested_region": state,
+                "state_identity_note": None if geographic_state else "No recognized US state code in source; request region is not geographic identity.",
                 "lat": round(_f(s.get("dec_lat_va")), 5),
                 "lon": round(_f(s.get("dec_long_va")), 5),
                 "mean_flow_cfs": round(mean_flow, 1),
                 "record_years": len(annual),
                 "drainage_sqmi": _f(s.get("drain_area_va")),
-                "source_url": SOURCE_URL,
-                "verified_at": verified_at,
+                "source_url": f"https://waterdata.usgs.gov/monitoring-location/USGS-{sid}/",
+                "verified_at": snapshot[:10] if snapshot else None,
+                "source_inventory_retrieved_at": s.get("_source_retrieved_at"),
+                **metadata,
             }
             if raw["drainage_sqmi"] is not None and raw["drainage_sqmi"] <= 0:
                 raw["drainage_sqmi"] = None
             try:
-                rows.append(Streamgage.model_validate(raw).model_dump())
+                rows.append(Streamgage.model_validate(raw).model_dump(exclude_none=True))
             except Exception as e:  # noqa: BLE001 — report and continue
+                if state in complete_states:
+                    complete_states.remove(state)
+                if state not in failed_states:
+                    failed_states.append(state)
                 log.warning("[%s] gage %s failed validation: %s", state, sid, e)
                 continue
             kept += 1
@@ -299,7 +354,12 @@ def build(states: list[str], refresh: bool) -> int:
     # turns those missing gages into negative tombstones and lower scores,
     # silently (Codex review, this PR). Merge over what is already on disk,
     # keyed by gage_id, with freshly fetched rows winning.
-    merged: dict[str, dict] = {r["gage_id"]: r for r in _existing_rows()}
+    # Replace only a fully fetched requested region. Incomplete regions retain
+    # prior rows, while successful scopes retire no-longer-qualifying gages.
+    merged: dict[str, dict] = {
+        r["gage_id"]: r for r in _existing_rows()
+        if (r.get("requested_region") or r.get("state")) not in complete_states
+    }
     before = len(merged)
     merged.update({r["gage_id"]: r for r in rows})
     if before:
@@ -307,7 +367,7 @@ def build(states: list[str], refresh: bool) -> int:
                  len(rows), before, len(merged))
     rows = list(merged.values())
 
-    rows.sort(key=lambda r: (r["state"] or "", r["gage_id"]))
+    rows.sort(key=lambda r: (r.get("state") or "", r["gage_id"]))
     payload = {
         "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "source": "USGS NWIS (site inventory + annual mean discharge)",
@@ -317,6 +377,15 @@ def build(states: list[str], refresh: bool) -> int:
             "period of record — a long-run average, NOT a permittable low-flow "
             "(7Q10) statistic. Screens candidates; never clears one."
         ),
+        "coverage": {
+            "requested_regions": states, "complete_regions": complete_states,
+            "incomplete_regions": failed_states,
+            "failed_stat_batches": len(_FAILED_BATCHES),
+            "catalog_regions": STATES,
+            "selection": "Active discharge streamgages with mean annual flow >= 5 cfs; not all water sources.",
+            "supply_assessment": "unassessed",
+            "api_migration": "WaterServices retirement scheduled Q1 2027; modern API migration required.",
+        },
         "count": len(rows),
         "sites": rows,
     }
@@ -337,7 +406,10 @@ def main() -> int:
                     help="Comma-separated state codes (default: all).")
     ap.add_argument("--refresh", action="store_true",
                     help="Ignore the on-disk cache and refetch.")
+    ap.add_argument("--cache-only", action="store_true", help="Rebuild retained snapshots without network calls.")
     args = ap.parse_args()
+    global _CACHE_ONLY
+    _CACHE_ONLY = args.cache_only
     states = [s.strip().upper() for s in args.states.split(",")] if args.states else STATES
     return build(states, args.refresh)
 

@@ -1,0 +1,100 @@
+{
+  "checked_at": "2026-09-12T18:15:04.281720+00:00",
+  "scope": "Six targeted live transmission queries (three recovered high-latitude matches) and two live OSM asset-role checks; not a nationwide completeness certification.",
+  "results": [
+    {
+      "id": "ACRES-146567",
+      "name": "Former Tazlina Copper Valley School",
+      "check": "live transmission distance",
+      "lat": 62.1987,
+      "lon": -146.05,
+      "stored_mi": 97.5,
+      "measured_mi": 97.5427800449025,
+      "features": 39,
+      "status": "PASS",
+      "source_url": "https://services1.arcgis.com/Hp6G80Pky0om7QvQ/arcgis/rest/services/Electric_Power_Transmission_Lines/FeatureServer/0/query"
+    },
+    {
+      "id": "ACRES-194921",
+      "name": "Tanana Community Hall",
+      "check": "live transmission distance",
+      "lat": 65.169743,
+      "lon": -152.071174,
+      "stored_mi": 94.5,
+      "measured_mi": 94.53594112558216,
+      "features": 6,
+      "status": "PASS",
+      "source_url": "https://services1.arcgis.com/Hp6G80Pky0om7QvQ/arcgis/rest/services/Electric_Power_Transmission_Lines/FeatureServer/0/query"
+    },
+    {
+      "id": "FUDS-F10AK0325",
+      "name": "FORT LISCUM",
+      "check": "live transmission distance",
+      "lat": 61.081944,
+      "lon": -146.378889,
+      "stored_mi": 88.4,
+      "measured_mi": 88.440763469757,
+      "features": 29,
+      "status": "PASS",
+      "source_url": "https://services1.arcgis.com/Hp6G80Pky0om7QvQ/arcgis/rest/services/Electric_Power_Transmission_Lines/FeatureServer/0/query"
+    },
+    {
+      "id": "WI0001954841",
+      "name": "FOX RIVER NRDA/PCB RELEASES",
+      "check": "live transmission distance",
+      "lat": 45.053776,
+      "lon": -87.500864,
+      "stored_mi": 8.1,
+      "measured_mi": 8.084619261930367,
+      "features": 9,
+      "status": "PASS",
+      "source_url": "https://services1.arcgis.com/Hp6G80Pky0om7QvQ/arcgis/rest/services/Electric_Power_Transmission_Lines/FeatureServer/0/query"
+    },
+    {
+      "id": "FUDS-I04FL0063",
+      "name": "FORT PICKENS",
+      "check": "live transmission distance",
+      "lat": 30.360745,
+      "lon": -86.908955,
+      "stored_mi": 3.2,
+      "measured_mi": 3.206839025789062,
+      "features": 9,
+      "status": "PASS",
+      "source_url": "https://services1.arcgis.com/Hp6G80Pky0om7QvQ/arcgis/rest/services/Electric_Power_Transmission_Lines/FeatureServer/0/query"
+    },
+    {
+      "id": "BRAC-245",
+      "name": "Deseret Chemical Depot",
+      "check": "live transmission distance",
+      "lat": 40.297645,
+      "lon": -112.343337,
+      "stored_mi": 3.2,
+      "measured_mi": 3.169337444468449,
+      "features": 4,
+      "status": "PASS",
+      "source_url": "https://services1.arcgis.com/Hp6G80Pky0om7QvQ/arcgis/rest/services/Electric_Power_Transmission_Lines/FeatureServer/0/query"
+    },
+    {
+      "id": "MOD981126899",
+      "name": "BIG RIVER MINE TAILINGS/ST. JOE MINERALS CORP.",
+      "check": "live OSM asset role",
+      "asset_id": "osm:way/1087790430",
+      "stored_role": "minor_distribution",
+      "observed_role": "minor_distribution",
+      "status": "PASS",
+      "source_snapshot_at": "2026-09-12T18:13:08Z",
+      "source_url": "https://www.openstreetmap.org/way/1087790430"
+    },
+    {
+      "id": "MD0120508940",
+      "name": "BELTSVILLE AGRICULTURAL RESEARCH CENTER (USDA)",
+      "check": "live OSM asset role",
+      "asset_id": "osm:way/612675956",
+      "stored_role": "traction",
+      "observed_role": "traction",
+      "status": "PASS",
+      "source_snapshot_at": "2026-09-12T18:13:08Z",
+      "source_url": "https://www.openstreetmap.org/way/612675956"
+    }
+  ]
+}
