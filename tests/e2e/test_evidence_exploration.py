@@ -131,10 +131,24 @@ def test_data_methods_coverage_uses_loaded_population_and_discloses_source_limit
         assert row.locator("td").first.inner_text().endswith(f" / {population:,}")
     fiber=rows.filter(has_text="Fiber")
     expect(fiber.locator("td").first).to_have_text(f"0 / {population:,}")
-    expect(fiber).to_contain_text("No joined enterprise")
-    expect(rows.filter(has_text="Water gages")).to_contain_text("supply unknown")
+    expect(fiber).to_contain_text("no joined enterprise")
+    expect(rows.filter(has_text="Water network / gages")).to_contain_text("supply unknown")
     assert coverage.locator('a[href^="https://"]').count() >= 1
     assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+
+
+def test_approach_c_pilot_surfaces_scoped_water_and_fiber_evidence(page, base_url):
+    _open(page, base_url, "?q=107%20Brattleboro%20Road")
+    row = page.locator("#candidates-table tbody tr", has_text="107 Brattleboro Road")
+    expect(row).to_have_count(1)
+    expect(row.locator('[data-category="water"]')).to_contain_text("Network-linked reach")
+    expect(row.locator('[data-category="fiber"]')).to_contain_text("regional footprint")
+    row.click()
+    page.wait_for_function("() => !document.querySelector('#detail').hidden", timeout=10000)
+    evidence = page.locator("#d-suitability")
+    expect(evidence).to_contain_text("Lower Green River")
+    expect(evidence).to_contain_text("does not establish service at the parcel")
+    expect(evidence).to_contain_text("Intake location")
 
 
 @pytest.mark.parametrize("suffix", ["", "#map"])

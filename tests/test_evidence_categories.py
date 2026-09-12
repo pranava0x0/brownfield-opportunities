@@ -41,6 +41,31 @@ def test_unrelated_fiber_citation_and_analyst_rating_do_not_establish_service():
     assert not a["fiber"]["sources"]
 
 
+def test_regional_fiber_and_network_water_change_only_supported_findings():
+    a = assess({
+        "fiber_regional_evidence": {
+            "status": "regional_context", "network": "MassBroadband 123",
+            "footprint": "Franklin County", "lifecycle": "Operating",
+            "evidence_scope": "regional", "unresolved": "Parcel service and capacity.",
+            "source_url": "https://example.gov/fiber",
+        },
+        "water_network_evidence": {
+            "status": "network_context", "huc12_name": "Lower Green River",
+            "huc12": "010802030402", "feature_id": "10294630",
+            "connection_method": "NLDI snap", "snap_distance_mi": 0.048,
+            "unresolved": "Low flow and rights.",
+            "source_url": "https://example.gov/water",
+        },
+    })
+    assert a["fiber"]["confidence"] == "Medium"
+    assert "regional footprint" in a["fiber"]["finding"]
+    assert a["water"]["confidence"] == "Medium"
+    assert "Network-linked reach" in a["water"]["finding"]
+    assert a["grid_capacity"]["status"] == "unknown"
+    assert a["water_reliability"]["status"] == "unknown"
+    assert a["water_rights"]["status"] == "unknown"
+
+
 def test_gage_and_annual_mean_never_establish_supply_or_rights():
     a = assess({"water_gage_mi": 0, "water_flow_cfs": 20000,
                 "water_low_flow_cfs": 854, "enforcement": {"has_npdes_permit": True}}, "nickel")

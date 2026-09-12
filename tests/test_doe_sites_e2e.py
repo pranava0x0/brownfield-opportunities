@@ -94,6 +94,15 @@ def test_every_site_has_gas_and_td_infrastructure_rows():
         assert "power_td" in cats, f"{sid} missing power_td row"
 
 
+def test_portsmouth_grid_pilot_names_assets_and_limits_claim():
+    mod = _load_module()
+    row = next(r for r in mod.SITES["portsmouth"]["infrastructure"] if r["category"] == "power_td")
+    assert row["evidence_scope"] == "asset"
+    assert row["asset_ids"] == ["X-530 Complex", "X-515 330 kV tie-line", "Don Marquis Substation"]
+    assert "spare capacity" in row["unresolved"]
+    assert any("energy.gov" in s["url"] for s in row["extra_sources"])
+
+
 def test_every_site_names_something_off_the_table():
     """The honesty rail: each dossier carries at least one parcel precluded
     across all four facility types — a siting tool that only says yes is

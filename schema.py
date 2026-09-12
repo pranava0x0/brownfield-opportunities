@@ -803,6 +803,9 @@ class DoeInfrastructureRow(BaseModel):
     source_label: str
     source_url: str = Field(pattern=r"^https://")
     extra_sources: Optional[list[HanfordSourceLink]] = None
+    evidence_scope: Optional[Literal["asset", "facility", "corridor", "regional"]] = None
+    asset_ids: Optional[list[str]] = None
+    unresolved: Optional[str] = None
     verified_at: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}$")
 
 

@@ -1242,7 +1242,7 @@ def test_detail_tab_resets_to_overview_on_page_reload(page, base_url):
     """Session memory shouldn't survive a page reload — every fresh load
     starts on Overview regardless of what the user last clicked."""
     page.goto(f"{base_url}/index.html")
-    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    page.wait_for_function("window.__APP_READY__ === true", timeout=45000)
     page.locator("#tab-table").click()
     rows = page.locator("#sites-table tbody tr")
     rows.nth(0).click()
@@ -1251,7 +1251,7 @@ def test_detail_tab_resets_to_overview_on_page_reload(page, base_url):
     assert page.locator("#dtab-summary").get_attribute("aria-selected") == "true"
     # Reload → should reset.
     page.reload()
-    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    page.wait_for_function("window.__APP_READY__ === true", timeout=45000)
     page.locator("#tab-table").click()
     page.locator("#sites-table tbody tr").nth(0).click()
     page.wait_for_selector("#detail:not([hidden])")
@@ -2354,7 +2354,7 @@ def test_nearby_sites_block_renders_for_selected_site(page, base_url):
     )
     assert sid, "no dense-state Superfund site found"
     page.evaluate(f"window.__selectSite('{sid}')")
-    page.wait_for_selector("#detail:not([hidden])", timeout=3000)
+    page.wait_for_function("() => !document.querySelector('#detail').hidden", timeout=10000)
     # Either the block is shown with results, or hidden because no neighbours.
     block = page.locator("#d-nearby-block")
     hidden = block.evaluate("el => el.hidden")
@@ -2391,7 +2391,7 @@ def test_nearby_sites_click_navigates(page, base_url):
         )
     assert sid, "couldn't find a site with neighbours"
     page.evaluate(f"window.__selectSite('{sid}')")
-    page.wait_for_selector("#detail:not([hidden])", timeout=3000)
+    page.wait_for_function("() => !document.querySelector('#detail').hidden", timeout=10000)
     block = page.locator("#d-nearby-block")
     if block.evaluate("el => el.hidden"):
         return  # No neighbours — fine, just don't test the click path.

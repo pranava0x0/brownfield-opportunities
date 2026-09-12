@@ -1,6 +1,6 @@
 # Infrastructure and scoring assessment — 2026-09-12
 
-Status: Approach B implemented and verified on `vibe/infrastructure-evidence-categories`. The assessment below preserves the pre-change findings; the implementation ledger records repairs and validation. Approach C is evaluated separately, not implemented.
+Status: Approach B implemented and verified on `vibe/infrastructure-evidence-categories`. Approach C now has one deliberately small water/fiber pilot and one asset-specific grid verification; national expansion remains out of scope. The assessment below preserves the pre-change findings.
 
 ## Assessment
 
@@ -323,6 +323,12 @@ The [16-record nickel source assessment](../../research/nickel-catalog-source-au
 - Four-width visual UAT, forced loader failures/delays, category exports, coordinate invalidation and deep links verified. The final browser suite includes the corrected empty/loading distinction and map-target races.
 - Final `git fetch origin --prune` confirms upstream main still `6f7dbfa657b0cf26220e3942929e71a5e6f7aa98`; open PR inventory remains empty. Work stays on the local implementation branch; no remote publication performed.
 
-Approach B is complete. Approach C remains a separately scoped follow-up, with the sequence and evidence gates above.
+Approach B is complete. Approach C's first gated pilots are implemented:
+
+- `ACRES-245389` carries an official USGS NLDI reach (`10294630`) and WBD HUC12 (`010802030402`, Lower Green River). This changes the water finding from nearest-gage context to network identity, while low flow, intake, demand and rights remain Unknown.
+- The same Franklin County record carries MassBroadband 123 operating regional-network context. It does not claim a route reaches the parcel, enterprise service, capacity or diverse paths.
+- Portsmouth's DOE dossier now identifies X-530, the X-515 330 kV tie-line and Don Marquis Substation from the DOE operating contract. The UI labels asset scope and leaves spare capacity, new-parcel service and rights unresolved.
+
+These are pilots, not national coverage. Expansion requires reproducible source snapshots, explicit footprints and evidence that the new layer changes a real finding without changing unrelated confidence.
 
 Implementation commit: `b90e724` (82 source, data, UI and test files). The companion documentation commit records the assessment, source audits, UAT and remaining C work.

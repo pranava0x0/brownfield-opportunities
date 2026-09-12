@@ -24,6 +24,8 @@ There is no joined nationwide enterprise fiber serviceability inventory. Analyst
 
 Seek a carrier response for the actual parcel covering capacity, construction cost and route diversity. Residential broadband availability can provide context, but does not prove an enterprise circuit or two independent paths.
 
+The first regional pilot identifies MassBroadband 123's operating middle-mile footprint for one Franklin County record. It establishes regional network context only. Route distance, parcel service, carrier, capacity, latency and independent paths remain unresolved.
+
 ## Water
 
 USGS monitoring locations and flow statistics provide stream context. The nearest gage may be in another catchment. Annual mean discharge does not establish drought supply, accessible intake or unallocated water. Storage, existing withdrawals and historical design requirements must be kept separate from spare capacity.
@@ -31,6 +33,8 @@ USGS monitoring locations and flow statistics provide stream context. The neares
 A supply assessment requires source-matched low-flow or firm-yield analysis against project demand, intake feasibility, water quality and an allocation or supply agreement. NPDES permits authorize regulated discharge; they do not establish withdrawal rights. The Arnold reservoir citation describes a historical design requirement, not measured current or spare water supply.
 
 [Water context records](data/water-proximity.json) · [USGS Water Data](https://waterdata.usgs.gov/) · [EPA NPDES basics](https://www.epa.gov/npdes/npdes-permit-basics)
+
+The first network pilot links one site point to USGS NLDI flowline `10294630` and WBD HUC12 `010802030402` (Lower Green River). This establishes network identity, not intake access, reliable flow, project demand or entitlement.
 
 ## Land, logistics and other tabs
 

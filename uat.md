@@ -16,6 +16,8 @@ Static HTML/CSS/JavaScript in `docs/`; Leaflet canvas map; Python Playwright e2e
 6. Open Map. Site markers eventually finish loading; a detail deep link targets the correct record. Map readiness is separate from list/core evidence readiness.
 7. Export results. Exported evidence terminology and unknowns agree with the UI; no legacy numeric suitability columns or hidden numeric ordering.
 8. Visit several tabs, return to Explore and filter again. Track retained DOM growth and long tasks; initial DOM limits alone are insufficient.
+9. Search `107 Brattleboro Road`. Water must show the Lower Green River network reach and fiber must show MassBroadband 123 regional context. The drawer must keep intake, rights, parcel service, capacity and route diversity unresolved.
+10. Open DOE Sites → Portsmouth → Site infrastructure. Power must name X-530, X-515 and Don Marquis as asset-scoped evidence and must not claim spare capacity or transferable rights.
 
 ## Measured baseline
 

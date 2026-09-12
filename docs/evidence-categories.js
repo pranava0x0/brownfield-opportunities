@@ -54,11 +54,23 @@
     } else a.grid = unknown("grid", "No usable mapped match. Coverage gaps and incomplete searches cannot establish off-grid status.");
     a.grid_capacity = unknown("grid_capacity", "No utility service commitment or interconnection study is attached to this site.");
     // A source URL for acreage or an analyst adjective cannot support a fiber claim.
-    a.fiber = url(s.fiber_source_url) && s.fiber && s.fiber !== "unknown"
+    const regionalFiber = s.fiber_regional_evidence;
+    a.fiber = regionalFiber?.status === "regional_context" && url(regionalFiber.source_url)
+      ? result("fiber", `${regionalFiber.network} · regional footprint`, "context", "Medium",
+        `${regionalFiber.footprint}. ${regionalFiber.lifecycle}. Evidence scope: ${regionalFiber.evidence_scope}. ` +
+        `This does not establish service at the parcel. Unresolved: ${regionalFiber.unresolved}`,
+        [regionalFiber.source_url])
+      : url(s.fiber_source_url) && s.fiber && s.fiber !== "unknown"
       ? result("fiber", "Reported fiber context", "context", "Low",
         "Confirm parcel service, carrier, capacity and independent routes. " + (s.fiber_note || ""), [s.fiber_source_url])
       : unknown("fiber", "No site-specific fiber evidence. Regional networks and broadband availability do not establish enterprise service.");
-    a.water = valid(s.water_gage_mi) && valid(s.water_flow_cfs)
+    const networkWater = s.water_network_evidence;
+    a.water = networkWater?.status === "network_context" && url(networkWater.source_url)
+      ? result("water", `Network-linked reach · ${networkWater.huc12_name}`, "context", "Medium",
+        `${networkWater.connection_method}; ${distance(networkWater.snap_distance_mi)} to NHD flowline ${networkWater.feature_id}. ` +
+        `HUC12 ${networkWater.huc12}. Network identity is not supply. Unresolved: ${networkWater.unresolved}`,
+        [networkWater.source_url, networkWater.basin_source_url])
+      : valid(s.water_gage_mi) && valid(s.water_flow_cfs)
       ? result("water", `Gage ${distance(s.water_gage_mi)} · supply unknown`, "context", "Low",
         `${s.water_flow_cfs.toLocaleString()} cfs ${s.water_statistic === "mean_of_annual_means" ? "mean of annual means" : "reported mean flow"} at ${s.water_gage_name || "a monitoring gage"}. ` +
         (s.water_gage_record_start_year ? `Record: ${s.water_gage_record_start_year}–${s.water_gage_record_end_year || "unknown"}, ${s.water_gage_record_years || "unknown"} annual values. ` : "Record period unknown. ") +

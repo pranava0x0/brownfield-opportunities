@@ -645,6 +645,7 @@ let iraEcLoadingPromise = null;
 let femaNriLoadingPromise = null;
 let portProximityLoadingPromise = null;
 let waterProximityLoadingPromise = null;
+let siteEvidencePilotsLoadingPromise = null;
 let nickelAnchorProxLoadingPromise = null;
 let nickelAnchorsLoadingPromise = null;
 let portsLoadingPromise = null;
@@ -1000,6 +1001,7 @@ fetch(PRIMARY_DATA_URL)
     lazyLoads.push(ensureCoordQualityLoaded());
     // Water is part of the category evidence needed for initial exploration.
     lazyLoads.push(ensureWaterProximityLoaded());
+    lazyLoads.push(ensureSiteEvidencePilotsLoaded());
     applyUrlSelection();
     if (lazyLoads.length === 0) {
       lazyLoadsSettled = true;
@@ -2055,6 +2057,31 @@ function ensureWaterProximityLoaded() {
       maybeRefreshNickel();
     });
   return waterProximityLoadingPromise;
+}
+
+const SITE_EVIDENCE_PILOTS_URL = "data/site-evidence-pilots.json";
+function ensureSiteEvidencePilotsLoaded() {
+  if (siteEvidencePilotsLoadingPromise) return siteEvidencePilotsLoadingPromise;
+  siteEvidencePilotsLoadingPromise = fetch(SITE_EVIDENCE_PILOTS_URL, { priority: "low" })
+    .then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .then(async payload => {
+      if (payload.schema_version !== 1) throw new Error("Unsupported pilot evidence schema");
+      recordRefreshDate(payload.generated_at, SITE_EVIDENCE_PILOTS_URL);
+      await Promise.allSettled([acresLoadingPromise, fudsLoadingPromise, bracLoadingPromise].filter(Boolean));
+      for (const rec of payload.sites || []) {
+        const site = sitesById.get(rec.id);
+        if (!site) continue;
+        if (rec.water_network) site.water_network_evidence = rec.water_network;
+        if (rec.fiber_regional) site.fiber_regional_evidence = rec.fiber_regional;
+      }
+      applyFilter();
+      if (selectedId) selectSite(selectedId);
+    })
+    .catch(err => {
+      console.error("Site evidence pilots load failed:", err);
+      siteEvidencePilotsLoadingPromise = null;
+    });
+  return siteEvidencePilotsLoadingPromise;
 }
 
 // ----- Nickel supply-chain proximity ---------------------------------------
@@ -4420,17 +4447,19 @@ function renderSourceCoverage() {
   const descriptors=[
     ["Transmission", "transmission_mi", "transmission", "Mapped line distance; utility capacity unknown"],
     ["Substations", "substation_mi", "substation", "OSM inventory; equipment roles and coverage vary"],
-    ["Fiber", "fiber_source_url", null, "No joined enterprise serviceability inventory"],
-    ["Water gages", "water_gage_mi", null, "Monitoring context; source connection and supply unknown"],
+    ["Fiber", "fiber_regional_evidence", null, "Regional pilot only; no joined enterprise serviceability inventory"],
+    ["Water network / gages", "water_gage_mi", null, "Network identity or monitoring context; intake and supply unknown"],
     ["Reported land", null, null, "Site/parcel area; usable footprint and availability unknown"],
     ["Road", "highway_mi", "highway", "Mapped route; physical access unknown"],
     ["Rail", "rail_mi", "rail", "Mapped route; spur and service unknown"]
   ];
   const rows=descriptors.map(([label,field,layer,limit])=>{
-    const count=pool.filter(s=>field ? s[field]!=null : s.acreage!=null || s.parcel_acreage!=null).length;
+    const count=pool.filter(s=>label === "Water network / gages" ? s.water_network_evidence != null || s.water_gage_mi != null : field ? s[field]!=null : s.acreage!=null || s.parcel_acreage!=null).length;
     const source=layer ? meta[layer] || {} : {};
-    const date=source.source_snapshot_at || (field === "water_gage_mi" ? (waterSourceMetadata.source_retrieved_at_range || []).map(x=>x.slice(0,10)).join(" – ") || "Unknown" : "Unknown / record-specific");
-    return `<tr><th scope="row">${label}</th><td>${count.toLocaleString()} / ${pool.length.toLocaleString()}</td><td>${escapeHtml(date)}${source.source_url ? ` · <a href="${escapeAttr(source.source_url)}" target="_blank" rel="noopener">Source</a>` : ""}</td><td>${limit}</td></tr>`;
+    const pilot=pool.find(s=>label === "Fiber" ? s.fiber_regional_evidence : label === "Water network / gages" ? s.water_network_evidence : false);
+    const date=source.source_snapshot_at || pilot?.fiber_regional_evidence?.source_snapshot_at || pilot?.water_network_evidence?.source_snapshot_at || (field === "water_gage_mi" ? (waterSourceMetadata.source_retrieved_at_range || []).map(x=>x.slice(0,10)).join(" – ") || "Unknown" : "Unknown / record-specific");
+    const sourceUrl=source.source_url || pilot?.fiber_regional_evidence?.source_url || pilot?.water_network_evidence?.source_url;
+    return `<tr><th scope="row">${label}</th><td>${count.toLocaleString()} / ${pool.length.toLocaleString()}</td><td>${escapeHtml(date)}${sourceUrl ? ` · <a href="${escapeAttr(sourceUrl)}" target="_blank" rel="noopener">Source</a>` : ""}</td><td>${limit}</td></tr>`;
   }).join("");
   host.innerHTML=`<h3>Coverage of loaded programs</h3><p>Counts mean a field is present, not verified service. ${lazyLoadsSettled ? "Core loading complete." : "Loading; counts are provisional."}</p><div class="source-coverage-wrap"><table class="source-coverage-table"><caption class="sr-only">Infrastructure observations and source snapshots</caption><thead><tr><th scope="col">Category</th><th scope="col">Records</th><th scope="col">Snapshot</th><th scope="col">Limit</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
@@ -6433,7 +6462,9 @@ function _doeInfraHtml(payload) {
     const entries = byCat[c].map((r) => {
       const extra = (r.extra_sources || []).map((sr) =>
         ` · <a href="${escapeAttr(sr.url)}" target="_blank" rel="noopener">${escapeHtml(sr.label)} ↗</a>`).join("");
-      return `<p>${escapeHtml(r.summary)} <a href="${escapeAttr(r.source_url)}" target="_blank" rel="noopener" class="doe-inline-cite">[${escapeHtml(r.source_label)} ↗]</a>${extra}</p>`;
+      const scope = r.evidence_scope ? `<span class="micro-note">Evidence scope: ${escapeHtml(r.evidence_scope)}${r.asset_ids?.length ? ` · ${escapeHtml(r.asset_ids.join(" · "))}` : ""}.</span> ` : "";
+      const unresolved = r.unresolved ? `<span class="micro-note">Unresolved: ${escapeHtml(r.unresolved)}</span>` : "";
+      return `<p>${scope}${escapeHtml(r.summary)} <a href="${escapeAttr(r.source_url)}" target="_blank" rel="noopener" class="doe-inline-cite">[${escapeHtml(r.source_label)} ↗]</a>${extra} ${unresolved}</p>`;
     }).join("");
     return `<div class="doe-infra-row"><h4>${escapeHtml(DOE_INFRA_LABEL[c] || c)}</h4>${entries}</div>`;
   }).join("");
