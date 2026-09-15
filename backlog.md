@@ -359,6 +359,30 @@ that is the highest-value work available.
   users — the second half is computable from Census population centers. A
   partial proxy beats the current nothing.
 
+## Session checkpoint — 2026-09-15 (scheduled data-maintenance run)
+
+**Coverage unchanged for the fifth run in a row. The work this run was a new
+CI regression.** Flood 42,576/46,759 (**91.1%**), `parcel-owner` 11,463,
+`epa-superfund-docs` 1,888, `epa-echo` 1,906, `ai-summary` 1,908.
+`validate_data.py` 27 pass · 12 warn · 0 fail (41 checks). Unit suite 834 pass.
+
+- **The cron failed for the 17th time (2026-09-14), and one failure was new.**
+  `infra-proximity` crashed on the TIGERweb highway layer. PR #36 added a source
+  inventory that required the FeatureServer-only `objectIdField` key, and
+  MapServer layers don't publish it. **Fixed here** (see issues.md 2026-09-15):
+  fall back to the `esriFieldTypeOID` field, with two regressions and a live
+  check of all four layers. The other failures are known: `iso-rto` token wall,
+  unset `CENSUS_API_KEY`, and `ai-summary` with no API key. The last one is now
+  correctly refused by the empty-write guard.
+- **EIA: the July 2026 workbook now downloads from the primary `/xls/` path**
+  (13.9 MB, parsed OK in CI after PR #36 made the source discovery shared). The
+  2026-08-25 note calling that path dead is out of date for July.
+- **No full infra run was started.** The fix touches only metadata lookup, the
+  data on disk is current, and a ~90-minute rebuild would produce the same
+  distances. Next run: if the 2026-09-21 cron still shows an `infra-proximity`
+  failure, look at the step after inventory (paging with `outFields=*` plus
+  `orderByFields`).
+
 ## Session checkpoint — 2026-09-08 (scheduled data-maintenance run)
 
 **No data gap, for the fourth run running — but the empty-payload hazard fired

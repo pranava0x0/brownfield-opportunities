@@ -313,7 +313,13 @@ class InfraProximity(Connector):
     def _source_inventory(self, url: str, where: str) -> tuple[int, str]:
         """Fresh metadata and expected count; fail before publishing partial pulls."""
         meta = self.http_get_json(url.removesuffix("/query"), {"f": "json"}, use_cache=False)
-        if meta.get("error") or not meta.get("objectIdField"):
+        # FeatureServer layers publish `objectIdField`; MapServer layers
+        # (TIGERweb highway/rail) only mark the OID in `fields`.
+        oid = meta.get("objectIdField") or next(
+            (f.get("name") for f in meta.get("fields") or [] if f.get("type") == "esriFieldTypeOID"),
+            None,
+        )
+        if meta.get("error") or not oid:
             raise ValueError("Infrastructure source lacks object ID metadata")
         count = self.http_get_json(url, {"f": "json", "where": where, "returnCountOnly": "true"}, use_cache=False)
         if not isinstance(count.get("count"), int):
@@ -322,7 +328,7 @@ class InfraProximity(Connector):
             self._inventory_dates = {}
         stamp = (meta.get("editingInfo") or {}).get("dataLastEditDate")
         self._inventory_dates[url] = datetime.fromtimestamp(stamp / 1000, timezone.utc).isoformat() if stamp else None
-        return count["count"], meta["objectIdField"]
+        return count["count"], oid
 
     def _metadata(self, layer: str, **values: Any) -> None:
         if not hasattr(self, "source_metadata"):
