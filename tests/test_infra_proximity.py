@@ -1026,6 +1026,34 @@ def test_fresh_arcgis_count_mismatch_rejects_output(tmp_path, monkeypatch):
         inst._build_index("rail", LAYERS["rail"], False)
 
 
+def _inventory_stub(meta):
+    def fake(url, params, use_cache=True):
+        return {"count": 7} if params.get("returnCountOnly") else meta
+    return fake
+
+
+def test_source_inventory_reads_mapserver_oid_from_fields(tmp_path, monkeypatch):
+    """TIGERweb MapServer layers publish no top-level objectIdField; the OID
+    lives only in `fields` as esriFieldTypeOID. The 2026-09-14 cron crashed
+    the whole highway/rail build on this (FeatureServer layers have both)."""
+    inst = InfraProximity(tmp_path)
+    monkeypatch.setattr(inst, "http_get_json", _inventory_stub({
+        "name": "Primary Roads",
+        "fields": [{"name": "MTFCC", "type": "esriFieldTypeString"},
+                   {"name": "OBJECTID", "type": "esriFieldTypeOID"}],
+    }))
+    assert inst._source_inventory(LAYERS["highway"]["url"], "1=1") == (7, "OBJECTID")
+
+
+def test_source_inventory_still_rejects_layer_without_any_oid(tmp_path, monkeypatch):
+    inst = InfraProximity(tmp_path)
+    monkeypatch.setattr(inst, "http_get_json", _inventory_stub({
+        "fields": [{"name": "MTFCC", "type": "esriFieldTypeString"}],
+    }))
+    with pytest.raises(ValueError, match="object ID metadata"):
+        inst._source_inventory(LAYERS["highway"]["url"], "1=1")
+
+
 def test_partial_run_preserves_previous_layer_with_warning(tmp_path, monkeypatch):
     monkeypatch.setattr(InfraProximity, "_data_dir", staticmethod(lambda: tmp_path))
     monkeypatch.setattr(InfraProximity, "OUTPUT_DIR", tmp_path)
