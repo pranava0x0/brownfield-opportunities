@@ -63,8 +63,8 @@ SITES = [
         "owner_operator": "Holtec International",
         "market": "Regulated / PJM",
         "iso_rto": "MISO",
-        "notes": "Restart of existing reactor (~800 MW), not an AP1000 deployment. Last major restart project closed out Jul 2, 2026 (Holtec); restart expected 2026, ahead of the contractual March 2027 supply date. No firm grid-reconnection date announced.",
-        "nrc_url": "https://www.nrc.gov/reactors/operating/list-power-reactor-units.html",
+        "notes": "Restart of existing reactor (~800 MW), not an AP1000 deployment. Fuel loading into the 204-assembly core began 2026-08-30; one fuel assembly tilted after being set down and the grapple released, pausing fuel loading. NRC says the incident did not trigger safety-reporting requirements, with no radiological release and no injuries. Holtec plans to submit a license amendment for the retrieval process; no firm restart date as of 2026-09-25 (previously 'this year or early 2027').",
+        "nrc_url": "https://www.thenationalnews.com/future/technology/2026/09/21/palisades-nuclear-incident-restart-nrc/",
     },
     {
         "id": "three-mile-island-pa",
@@ -80,8 +80,8 @@ SITES = [
         "owner_operator": "Constellation Energy",
         "market": "PJM",
         "iso_rto": "PJM",
-        "notes": "Crane Clean Energy Center restart, Microsoft PPA. NRC draft EA/FONSI Jun 8 2026 (final expected Sep 2026); 760 MW of Eddystone capacity-interconnection rights transferred Jun 2026; ahead of schedule, targeting power in 2027.",
-        "nrc_url": None,
+        "notes": "Crane Clean Energy Center restart, Microsoft PPA. NRC draft EA/FONSI Jun 8 2026; NRC and DOE issued the final EA and Finding of No Significant Impact 2026-09-22, on schedule; 760 MW of Eddystone capacity-interconnection rights transferred Jun 2026. Operating-license decision still estimated around May 2027, with power potentially later that year.",
+        "nrc_url": "https://www.federalregister.gov/documents/2026/09/25/2026-19603/constellation-energy-generation-llc-christopher-m-crane-clean-energy-center-environmental-assessment",
     },
     {
         "id": "duane-arnold-ia",
@@ -148,8 +148,8 @@ SITES = [
         "owner_operator": "TVA / GE-Hitachi",
         "market": "Regulated",
         "iso_rto": "non-RTO/TVA",
-        "notes": "NRC ESP approved; TVA pursuing BWRX-300 SMR. Jun 2026: NRC staff issued a safety evaluation recommending the construction permit — the FIRST advanced-reactor CP to reach this stage; uncontested hearing Aug 13, 2026. AP1000 feasible but SMR is current plan.",
-        "nrc_url": "https://www.nrc.gov/reactors/new-reactors/esp/clinch-river.html",
+        "notes": "NRC ESP approved; TVA pursuing BWRX-300 SMR. Jun 2026: NRC staff issued a safety evaluation recommending the construction permit — the FIRST advanced-reactor CP to reach this stage. The uncontested mandatory hearing was held 2026-08-13 (comment record closed 2026-08-27); the Commission has not yet issued the final construction permit as of 2026-09-25. AP1000 feasible but SMR is current plan.",
+        "nrc_url": "https://www.nrc.gov/public-involve/public-meetings/pmns/20260617",
     },
     {
         # Added 2026-07-26 (post-study): Duke's first new nuclear siting move
@@ -167,8 +167,8 @@ SITES = [
         "owner_operator": "Duke Energy Carolinas",
         "market": "Regulated",
         "iso_rto": "non-RTO/SERC",
-        "notes": "ESP filed Dec 30 2025 at the Belews Creek coal-plant site (accepted by NRC Feb 8 2026); final SER + EIS targeted May 2027. If confirmed best-value: first SMR online 2036, 600 MW plant by 2037. Coal-to-nuclear pattern on an operating coal site.",
-        "nrc_url": "https://www.federalregister.gov/documents/2026/02/11/2026-02689/duke-energy-carolinas-llc-belews-creek-early-site-permit-application",
+        "notes": "ESP filed Dec 30 2025 at the Belews Creek coal-plant site (accepted by NRC Feb 8 2026); NRC held its mandatory hearing 2026-09-17 in Danbury, NC; final SER + EIS still targeted May 2027. If confirmed best-value: first SMR online 2036, 600 MW plant by 2037. Coal-to-nuclear pattern on an operating coal site.",
+        "nrc_url": "https://www.nrc.gov/about-nrc/news-releases/2026/nrc-advisory-nrc-hold-mandatory-hearing-belews-creek-early-site-permit",
     },
     {
         "id": "inl-cfpp-id",
@@ -1028,15 +1028,15 @@ SITES = [
         "site_acreage": 5769,
         "water_concern": None,
         "cooling": "air_cooled",
-        "notes": "Four-unit AP1000, air-cooled (<50 ac-ft/yr water). Behind-the-meter model for data centers. COLA filed June 17, 2025; NRC-accepted. Construction target 2026. Agreement with Doosan Enerbility. Greenfield site, Carson County TX. Not in INL 2024 study.",
-        "reference_url": "https://www.nucnet.org/news/study-highlights-economic-benefits-of-proposed-ap1000-buildout-in-us-3-5-2026",
+        "notes": "Four-unit AP1000, air-cooled (<50 ac-ft/yr water). Behind-the-meter model for data centers. COLA filed June 17, 2025; NRC-accepted. Preliminary site work began 2025; per Fermi's own 2026-08-10 release, vertical construction is underway, ~$1.5B invested to date, ~6 GW of the planned 17 GW campus permitted. First tenant lease signed 2026-08-10 (TensorWave, $6.5B/222 MW). Agreement with Doosan Enerbility. Greenfield site, Carson County TX. Not in INL 2024 study.",
+        "reference_url": "https://investor.fermiamerica.com/fermi-announces-binding-lease-agreement-with-tensorwave",
     },
     {
         "id": "kewaunee-wi",
         "name": "Kewaunee",
         "state": "WI", "county": "Kewaunee", "city": "Carlton",
         "lat": 44.3434, "lon": -87.5397,
-        "status": "exploring_restart",
+        "status": "pre_application",  # new build at the retired plant site (NOI Jan 2026), not a restart
         "inl_category": "post_study",
         "reactor_type": "AP1000 (former 556 MWe PWR site)",
         "units_planned": 1,
@@ -1048,8 +1048,8 @@ SITES = [
         "water_source": "Lake Michigan",
         "original_mwe": 556,
         "shutdown_year": 2013,
-        "notes": "Former 556 MWe PWR (retired 2013). EnergySolutions submitted NOI for licensing submission Jan 2026. Evaluating ESP, construction permit, or COL. Decommissioning ongoing; site infrastructure partially intact. Not in INL 2024 study.",
-        "reference_url": "https://world-nuclear.org/information-library/country-profiles/countries-t-z/usa-nuclear-power",
+        "notes": "Former 556 MWe PWR (retired 2013). EnergySolutions submitted its NOI to the NRC 2026-01-15 confirming plans to pursue NEW nuclear generation at the site — not a restart of the retired unit. Evaluating ESP, construction permit, or COL; per EnergySolutions, application targeted by June 2028, construction in the early 2030s, in service by 2038. Decommissioning ongoing; site infrastructure partially intact. Not in INL 2024 study.",
+        "reference_url": "https://www.energysolutions.com/energysolutions-submits-notices-of-intent-to-nrc-kewaunee-power-station-new-nuclear-initiative/",
     },
 ]
 
@@ -1173,13 +1173,14 @@ def main():
 
     # Write nuclear-civilian-sites.json
     payload = {
-        "generated_at": "2026-07-26",
+        "generated_at": "2026-09-25",
         "sources": [
             "INL/MIS-24-80216 Rev 0 (Aug 2024): Opportunities for AP1000 Deployment at Existing and Planned Nuclear Sites — docs/data/references/INL-AP1000-Opportunities-Sort128167.pdf",
             "Idaho Advanced Nuclear Strategic Framework (Sep 2025) — docs/data/references/Idaho-Advanced-Nuclear-Strategic-Framework.pdf",
             "NRC Combined Operating License database",
             "Utility 2025 Integrated Resource Plans and press releases",
             "Jul-2026 status refresh: V.C. Summer FID timeline (SC Daily Gazette 2026-07-07), Palisades/Crane restart milestones, TVA Clinch River CP recommendation (ANS Jun 2026), Duke Belews Creek ESP (Federal Register 2026-02-11)",
+            "Sep-2026 status refresh: Palisades fuel-loading incident (The National, 2026-09-21), Crane final EA/FONSI (Federal Register, 2026-09-22), Clinch River mandatory hearing held (NRC PMNS 20260617), Belews Creek mandatory hearing held (NRC, 2026-09-17), Project Matador TensorWave lease + construction update (Fermi America IR, 2026-08-10), Kewaunee NOI clarified as new-build not restart (EnergySolutions, 2026-01-15)",
         ],
         "sites": SITES,
         "site_count": len(SITES),
