@@ -3,15 +3,10 @@
   "configurations": [
     {
       "name": "dashboard",
-      "runtimeExecutable": "npx",
+      "runtimeExecutable": "/Library/Developer/CommandLineTools/usr/bin/python3",
       "runtimeArgs": [
-        "-y",
-        "http-server",
-        "/Users/pranava/Projects/Brownfield Opportunities/docs",
-        "-p",
-        "8765",
-        "-c-1",
-        "--silent"
+        "/Users/pranava/Projects/Brownfield Opportunities/scripts/serve.py",
+        "8765"
       ],
       "port": 8765
     }
