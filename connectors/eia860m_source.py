@@ -13,8 +13,8 @@ from html.parser import HTMLParser
 from urllib.parse import urljoin, urlparse
 
 EIA_INDEX_URL = "https://www.eia.gov/electricity/data/eia860m/"
-EIA_860M_URL = EIA_INDEX_URL + "xls/july_generator2026.xlsx"
-EIA_WORKBOOK_MONTH = "2026-07"
+EIA_860M_URL = EIA_INDEX_URL + "xls/august_generator2026.xlsx"
+EIA_WORKBOOK_MONTH = "2026-08"
 EIA_CACHE_KEY = {"src": "eia_860m_retired", "url": EIA_860M_URL}
 EIA_CACHE_FILENAME = hashlib.sha256(json.dumps(EIA_CACHE_KEY, sort_keys=True).encode()).hexdigest()[:16] + ".bin"
 MONTHS = ("january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december")
