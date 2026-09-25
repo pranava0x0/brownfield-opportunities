@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-12T18:12:30Z",
+  "generated_at": "2026-09-25T15:42:15Z",
   "analysis_verified_at": "2026-07-02",
   "evidence_contract_reviewed_at": "2026-09-12",
   "source_metadata": {
@@ -316,8 +316,8 @@
     "air_force_rflp": "https://sam.gov/workspace/contract/opp/e74af0fe0e03406e80488d7f5c538baa/view",
     "air_force_rflp_public_qa": "https://www.edwards.af.mil/News/Display/Article/4354128/have-questions-about-the-solicitation-for-ai-data-centers-we-got-answers/"
   },
-  "retired_plant_source_month": "2026-07",
-  "retired_plant_source_url": "https://www.eia.gov/electricity/data/eia860m/xls/july_generator2026.xlsx",
+  "retired_plant_source_month": "2026-08",
+  "retired_plant_source_url": "https://www.eia.gov/electricity/data/eia860m/xls/august_generator2026.xlsx",
   "ap1000_mwe": 1117,
   "count": 14,
   "sites": [

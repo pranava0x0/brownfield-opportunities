@@ -321,3 +321,19 @@ def test_fetch_records_skips_site_on_docdata_connection_error(tmp_path, monkeypa
     records = inst.fetch_records(args, use_cache=False)
     assert len(records) == 1
     assert records[0]["id"] == "EPAID-B"
+
+
+def test_normalize_document_drops_a_future_date_but_keeps_the_document(monkeypatch):
+    """EPA's index dated a real Five-Year Review fact sheet 2026-09-30 when it
+    was fetched on 2026-09-25 (MOD980741912), failing the no-future-dates
+    check. Keep the document; don't assert a date that hasn't happened."""
+    import datetime as dt
+    import connectors.epa_superfund_docs as mod
+    monkeypatch.setattr(mod, "_today", lambda: dt.date(2026, 9, 25))
+    col = {"region": "07", "type": "SC", "colid": "1", "label": "Publicly Available Documents"}
+    doc = EpaSuperfundDocs._normalize_document(
+        {"docId": "30822821", "docTitle": "Fact Sheet First Five-Year Review Findings (FYR)", "docDate": "09/30/2026"}, col)
+    assert doc is not None and doc["doc_id"] == "30822821"
+    assert "date" not in doc
+    same_day = EpaSuperfundDocs._normalize_document({"docId": "1", "docTitle": "T", "docDate": "09/25/2026"}, col)
+    assert same_day["date"] == "2026-09-25"

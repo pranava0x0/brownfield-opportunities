@@ -572,7 +572,7 @@ function computeGenerationScore(site) {
 // constrain a factory. v0 uses only signals already on disk; when the Census
 // LEHD/LODES workforce layer lands, a 20-point workforce component takes
 // rail −4 / acreage −4 / transmission −4 / gas −2 / highway −2 / readiness −4
-// (pre-agreed in unified-rankings-and-pwr-siting-plan.md).
+// (pre-agreed in planning/archive/unified-rankings-and-pwr-siting-plan.md).
 // ---------------------------------------------------------------------------
 
 const MANUFACTURING_SCORE_WEIGHTS = Object.freeze({

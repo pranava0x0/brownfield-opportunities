@@ -100,6 +100,7 @@ OVERLAY_FILES = [
     "shipyards.json",
     "streamgages.json",
     "nickel-anchors.json",
+    "site-research.json",
 ]
 
 STATES = set(
@@ -1900,6 +1901,62 @@ def c_coal_catalog_coherence(c: Corpus):
         "coal-catalog-coherence", "derived", verdict(bad), checked, bad,
         "coal catalog rows internally coherent; proximity join reproduces distances + derived flags",
         examples, {"assets": len(assets), "join_rows": join_checked},
+    )
+
+
+def _site_research_module():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("site_research", Path(__file__).resolve().parent / "site_research.py")
+    mod = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(mod)
+    return mod
+
+
+@check("site-research-contract", "struct")
+def c_site_research_contract(c: Corpus):
+    """Per-site research dossiers: schema-valid, keyed to shipped ids, every
+    development cited, no future dates. Written only by scripts/site_research.py,
+    so a failure here means the file was edited by hand."""
+    payload = c.raw.get("site-research.json")
+    if payload is None:
+        yield Finding("site-research-contract", "struct", "PASS", 0, 0,
+                      "site-research.json not generated yet")
+        return
+    mod = _site_research_module()
+    today = datetime.now().date()
+    bad, examples = 0, []
+    entries = payload.get("sites", []) or []
+    for entry in entries:
+        try:
+            mod.check_entry(entry, c.universe.keys(), today)
+        except Exception as exc:  # ResearchError or schema error
+            bad += 1
+            if len(examples) < 50:
+                examples.append(str(exc)[:160])
+    ids = [e.get("id") for e in entries]
+    if len(ids) != len(set(ids)):
+        bad += 1
+        examples.append("duplicate ids")
+    yield Finding(
+        "site-research-contract", "struct", verdict(bad), len(entries), bad,
+        "research dossiers validate, cite every development and key to shipped site ids",
+        examples,
+    )
+
+
+@check("site-research-overdue", "derived")
+def c_site_research_overdue(c: Corpus):
+    """Dossiers past next_review: the daily routine's backlog, not a defect."""
+    payload = c.raw.get("site-research.json") or {}
+    entries = payload.get("sites", []) or []
+    today = datetime.now().date().isoformat()
+    overdue = [e for e in entries if (e.get("next_review") or "") < today]
+    yield Finding(
+        "site-research-overdue", "derived", verdict(len(overdue), warn_only=True),
+        len(entries), len(overdue),
+        "research dossiers are within their next_review date",
+        [f"{e.get('id')}:{e.get('next_review')}" for e in overdue[:50]],
     )
 
 

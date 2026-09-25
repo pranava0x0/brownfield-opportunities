@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-06-08",
-  "source": "Curated from public announcements, news reports, and EPA Brownfields documentation. Refresh annually.",
+  "generated_at": "2026-09-25",
+  "source": "Curated from public announcements, news reports, and EPA Brownfields documentation. Refresh annually. Partial spot-refresh 2026-09-25 (project-marvel-bessemer-al, northpoint-fairless-works-pa only — the other 8 rows are unchanged since 2026-06-08).",
   "count": 10,
   "campuses": [
     {
@@ -94,28 +94,28 @@
       "previous_use": "U.S. Steel Fairless Works (integrated steel mill, 1952–2011; 2,200-ac total site)",
       "year_announced": 2024,
       "year_operational": null,
-      "status": "approved — permitting",
-      "notes": "10 DC buildings (~2M sqft total) on 247-ac phase of 1,850-ac master site; legacy industrial microgrid with >2,000 MW capacity; Bucks County. Keystone NAP colocation (2 MW, operational) already on-site.",
-      "source_url": "https://www.datacenterdynamics.com/en/news/northpoint-development-gains-approval-for-2-million-sq-ft-data-center-park-outside-philadelphia-pennsylvania/"
+      "status": "under construction (AWS)",
+      "notes": "10 DC buildings (~2M sqft total) on 247-ac phase of 1,850-ac master site; legacy industrial microgrid with >2,000 MW capacity; Bucks County. Confirmed tenant is Amazon Web Services (Falls Township Innovation Campus); construction was more than half complete as of June 2026 under Pennsylvania's Fast-Track permitting program, with opening expected late summer/early fall 2026. Keystone NAP colocation (2 MW, operational) already on-site.",
+      "source_url": "https://www.buckscountyherald.com/news/business/state-fast-tracking-amazons-data-center-campus-in-lower-bucks/article_7912581e-1b2d-4a65-8f56-5dfd95e97598.html"
     },
     {
       "id": "project-marvel-bessemer-al",
       "name": "Project Marvel AI Campus",
-      "company": "TPA Group (hyperscale tenant undisclosed)",
+      "company": "TPA Group / QTS Data Centers (tenant publicly confirmed 2026-07-01/02)",
       "operator_type": "developer",
       "city": "Bessemer",
       "state": "AL",
       "lat": 33.380,
       "lon": -86.970,
-      "acreage": 673,
+      "acreage": 1607,
       "capacity_mw": 1200,
       "investment_usd": 14500000000,
       "previous_use": "Former U.S. Steel timberlands / industrial land (Valley Creek Land & Timber, acquired from U.S. Steel 2015)",
       "year_announced": 2025,
       "year_operational": null,
       "status": "rezoning approved — pre-development",
-      "notes": "18 buildings; 4.5M sqft; 673 ac rezoned (additional 900 ac sought); near I-459/I-20/59 interchange; 2M gal/day water from Warrior River; hyperscale tenant under NDA. Jefferson County.",
-      "source_url": "https://www.datacenterdynamics.com/en/news/project-marvel-data-center-could-come-to-bessemer-alabama/"
+      "notes": "18 buildings; 4.5M sqft; campus expanded to ~1,607 ac (673 ac original rezoning plus a further ~900 ac sought/approved by early 2026); near I-459/I-20/59 interchange; 2M gal/day water from Warrior River. QTS Data Centers was publicly confirmed as the tenant/developer 2026-07-01/02, ending the prior NDA. Jefferson County.",
+      "source_url": "https://www.wbrc.com/2026/07/02/qts-confirms-plans-proposed-data-center-campus-bessemer/"
     },
     {
       "id": "meta-forest-city-nc",

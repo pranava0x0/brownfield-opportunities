@@ -18,6 +18,7 @@ const ISO_RTO_URL = "data/iso-rto.json";
 const ECHO_DATA_URL = "data/epa-echo.json";
 const PARCEL_OWNER_URL = "data/parcel-owner.json";
 const AI_SUMMARY_URL = "data/ai-summary.json";
+const SITE_RESEARCH_URL = "data/site-research.json";
 const ACRES_CLEANUP_URL = "data/acres-cleanup.json";
 const RETIRED_PLANTS_URL = "data/eia-retired-plants.json";
 const REFERENCE_CAMPUSES_URL = "data/reference-campuses.json";
@@ -510,10 +511,13 @@ const STATE_DC_INCENTIVES = {
 // Sources are 2026 trackers; re-audit quarterly — this space moves monthly.
 // See CLAUDE.md "STATE_DC_REGULATION audit history."
 const STATE_DC_REGULATION = {
-  NY: { climate: "restrictive", note: "Executive Order 62 (2026-07-14) pauses DEC environmental permits for new 50 MW+ hyperscale data centers for up to a year — the first in-force statewide pause; the legislature's 20 MW+ Responsible Data Center Development Act passed both chambers and awaits signature.", verified_at: "2026-07-26", url: "https://www.governor.ny.gov/executive-order/no-62-establishing-temporary-moratorium-data-centers-new-york-while-state-develops" },
-  VA: { climate: "cautionary", note: "Downgraded from restrictive 2026-07-26: the statewide moratorium (HB1515) failed and carried to 2027. What's live is friction, not a block — HB153/SB94 require a noise/sound-profile assessment before local rezoning/SUP approval of high-energy-use facilities and HB507 sets generator standards (both eff. 2026-07-01).", verified_at: "2026-07-26", url: "https://www.multistate.us/insider/2026/3/30/virginia-lawmakers-pass-15-data-center-bills-as-tax-exemption-fight-looms" },
-  VT: { climate: "cautionary", note: "H.727 (data-center pause) passed tripartisan but died on a failed veto override (2026-05-29); S.205 (10 MW+ pause to July 2030) remains pending in Senate Finance — restriction appetite is clearly live.", verified_at: "2026-07-26", url: "https://legislature.vermont.gov/bill/status/2026/S.205" },
-  FL: { climate: "cautionary", note: "SB 484 (eff. 2026-07-01) bars shifting data-center grid costs to other ratepayers AND affirmatively empowers localities to set stricter standards or deny projects outright; the state is otherwise pro-DC.", verified_at: "2026-07-26", url: "https://www.flsenate.gov/Session/Bill/2026/484" },
+  NY: { climate: "restrictive", note: "Executive Order 62 (2026-07-14) pauses DEC environmental permits for new 50 MW+ hyperscale data centers for up to a year — the first in-force statewide pause; the legislature's 20 MW+ Responsible Data Center Development Act passed both chambers and awaits signature.", verified_at: "2026-09-25", url: "https://www.governor.ny.gov/executive-order/no-62-establishing-temporary-moratorium-data-centers-new-york-while-state-develops" },
+  VA: { climate: "cautionary", note: "Downgraded from restrictive 2026-07-26: the statewide moratorium (HB1515) failed and carried to 2027. What's live is friction, not a block — HB153/SB94 require a noise/sound-profile assessment before local rezoning/SUP approval of high-energy-use facilities and HB507 sets generator standards (both eff. 2026-07-01).", verified_at: "2026-09-25", url: "https://www.multistate.us/insider/2026/3/30/virginia-lawmakers-pass-15-data-center-bills-as-tax-exemption-fight-looms" },
+  FL: { climate: "cautionary", note: "SB 484 (eff. 2026-07-01) bars shifting data-center grid costs to other ratepayers AND affirmatively empowers localities to set stricter standards or deny projects outright; the state is otherwise pro-DC.", verified_at: "2026-09-25", url: "https://www.flsenate.gov/Session/Bill/2026/484" },
+  // VT removed 2026-09-25 (was cautionary): H.727 was vetoed 2026-05-28 and
+  // the override failed 2026-05-29 (VTDigger). S.205 never left Senate
+  // Finance and died when the 2025-26 biennium adjourned on 2026-05-29.
+  // Dead or failed bills are excluded, so VT has no live restrictive signal.
   // OK removed 2026-07-26 (was restrictive): its enacted law (HB2992) is a
   // cost-causation tariff — the deliberately-excluded category (protective of
   // ratepayers, not a siting block) — and the actual moratorium (SB1488)
@@ -1382,6 +1386,115 @@ function ensureSummariesLoaded() {
       summariesLoadingPromise = null;
     });
   return summariesLoadingPromise;
+}
+
+// Per-site research dossiers written by scripts/site_research.py (the daily
+// research routine). Kept in an id-keyed Map and looked up at render time,
+// never joined onto site objects, so it needs no wait on the ACRES/FUDS/BRAC
+// program promises. It loads with the detail panel and does NOT drive the
+// header date (reference-campuses rule): each dossier shows its own date.
+const siteResearchById = new Map();
+window.__siteResearch = siteResearchById;
+let siteResearchPromise = null;
+let siteResearchRetriedFor = null;
+function ensureSiteResearchLoaded() {
+  if (siteResearchPromise) return siteResearchPromise;
+  siteResearchPromise = fetch(SITE_RESEARCH_URL, { priority: "low" })
+    .then((r) => {
+      if (r.status === 404) return { sites: [] };
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then((payload) => {
+      if (payload.generated_at) window.__sourceDates[SITE_RESEARCH_URL] = fmt.date(payload.generated_at);
+      for (const rec of payload.sites || []) siteResearchById.set(rec.id, rec);
+    })
+    .catch((err) => {
+      console.error("Site research load failed:", err);
+      siteResearchPromise = null;
+    });
+  return siteResearchPromise;
+}
+
+const RESEARCH_KIND_LABEL = {
+  news: "News", permit: "Permit", authorization: "Authorization", filing: "Filing",
+  document: "Document", hearing: "Hearing", funding: "Funding", transaction: "Transaction",
+  litigation: "Litigation", enforcement: "Enforcement",
+};
+const RESEARCH_FINDING_LABEL = { confirmed: "Confirmed", differs: "Differs from source", unverifiable: "Could not verify" };
+
+// Dates in dossiers are YYYY-MM-DD or YYYY-MM (a month when the source gives no day).
+function researchDate(v) {
+  return /^\d{4}-\d{2}$/.test(v || "") ? v : fmt.date(v);
+}
+
+// Schema already requires https; re-check here so a hand-edited file can
+// never render a javascript: or http link.
+function researchLink(url, label) {
+  if (typeof url !== "string" || !url.startsWith("https://")) return escapeHtml(label);
+  return `<a href="${escapeAttr(url)}" target="_blank" rel="noopener">${escapeHtml(label)}</a>`;
+}
+
+function renderResearchTeaser(s) {
+  const box = el("d-research-teaser");
+  if (!box) return;
+  const r = siteResearchById.get(s.id);
+  if (!r) { box.hidden = true; box.innerHTML = ""; return; }
+  const n = (r.items || []).length;
+  const what = n ? `${n} development${n === 1 ? "" : "s"} on file` : "no new developments found";
+  box.innerHTML = `<span>Researched ${escapeHtml(researchDate(r.researched_at))} · ${escapeHtml(what)}</span> `
+    + `<button type="button" class="research-teaser-btn">Read the research</button>`;
+  box.querySelector("button").addEventListener("click", () => el("dtab-summary")?.click());
+  box.hidden = false;
+}
+
+function renderResearch(s) {
+  const card = el("d-research");
+  const tab = el("dtab-summary");
+  if (!card) return;
+  const r = siteResearchById.get(s.id);
+  tab?.classList.toggle("has-research", !!r);
+  if (!r) { card.hidden = true; card.innerHTML = ""; return; }
+  const srcLinks = (list) => (list || []).map((src) => researchLink(src.url, src.publisher)).join(" · ");
+  const parts = [];
+  parts.push(`<p class="research-meta">Researched ${escapeHtml(researchDate(r.researched_at))}`
+    + ` · developments since ${escapeHtml(researchDate(r.search_window_start))}`
+    + ` · next review ${escapeHtml(researchDate(r.next_review))}</p>`);
+  parts.push(`<div class="research-summary">${String(r.summary).split(/\n{2,}/).map((p) => `<p>${escapeHtml(p.trim())}</p>`).join("")}`
+    + `<p class="research-sources">Sources: ${srcLinks(r.summary_sources)}</p></div>`);
+  const items = r.items || [];
+  if (items.length) {
+    parts.push(`<h4>What's happening</h4><ul class="research-items">` + items.map((it) => {
+      const first = (it.sources || [])[0] || {};
+      const extra = [it.authority, it.reference, it.status].filter(Boolean).map(escapeHtml).join(" · ");
+      return `<li><p class="ri-head"><span class="ri-date">${escapeHtml(researchDate(it.date))}</span>`
+        + `<span class="ri-kind">${escapeHtml(RESEARCH_KIND_LABEL[it.kind] || it.kind)}</span>`
+        + `${researchLink(first.url, it.title)}</p>`
+        + `<p class="ri-body">${escapeHtml(it.summary)}</p>`
+        + `<p class="ri-src">${srcLinks(it.sources)}${extra ? " · " + extra : ""}</p></li>`;
+    }).join("") + `</ul>`);
+  } else if (r.no_new_developments) {
+    parts.push(`<p class="research-none">No new developments found since ${escapeHtml(researchDate(r.search_window_start))}.</p>`);
+  }
+  if ((r.validation || []).length) {
+    parts.push(`<h4>Checked against sources</h4><ul class="research-checks">` + r.validation.map((v) =>
+      `<li class="rc-${escapeAttr(v.finding)}"><strong>${escapeHtml(v.field)}</strong>`
+      + `${v.shipped_value ? ` (shown: ${escapeHtml(v.shipped_value)})` : ""}: `
+      + `${escapeHtml(RESEARCH_FINDING_LABEL[v.finding] || v.finding)}. ${escapeHtml(v.note)}`
+      + `${v.source_url ? " " + researchLink(v.source_url, "Source") : ""}</li>`).join("") + `</ul>`);
+  }
+  if ((r.open_questions || []).length) {
+    parts.push(`<h4>Open questions</h4><ul class="research-questions">`
+      + r.open_questions.map((q) => `<li>${escapeHtml(q)}</li>`).join("") + `</ul>`);
+  }
+  if ((r.history || []).length) {
+    parts.push(`<details class="research-history"><summary>Earlier summaries (${r.history.length})</summary>`
+      + r.history.map((h) => `<p><span class="ri-date">${escapeHtml(researchDate(h.researched_at))}</span> ${escapeHtml(h.summary)}`
+        + `${(h.summary_sources || []).length ? ` <span class="research-sources">Sources: ${srcLinks(h.summary_sources)}</span>` : ""}</p>`).join("")
+      + `</details>`);
+  }
+  card.innerHTML = parts.join("");
+  card.hidden = false;
 }
 
 // EPA ACRES cleanup status + brownfield grant history. Lazy-loaded; joins onto
@@ -7428,7 +7541,7 @@ function ensureDetailEvidenceLoaded() {
     ensureSuperfundDocsLoaded(), ensureEchoLoaded(), ensureTribalAreasLoaded(),
     ensureIraEnergyCommunityLoaded(), ensureFemaNriLoaded(), ensureClimateZoneLoaded(),
     ensureRetiredPlantsLoaded(), ensurePlannedRetireProxLoaded(),
-    ensureCoalConversionsProxLoaded(), ensurePortProximityLoaded(),
+    ensureCoalConversionsProxLoaded(), ensurePortProximityLoaded(), ensureSiteResearchLoaded(),
   ]).then(() => {
     if (selectedId && sitesById.has(selectedId)) selectSite(selectedId);
   });
@@ -7444,6 +7557,15 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
   }
   selectedId = id;
   ensureDetailEvidenceLoaded();
+  // The aggregate detail promise settles once. If the dossier fetch failed
+  // (its promise resets to null), retry it on its own, once per selected site:
+  // loaders re-render the selected site, and each re-render must not refetch.
+  if (detailEvidencePromise && !siteResearchPromise && siteResearchRetriedFor !== id) {
+    siteResearchRetriedFor = id;
+    ensureSiteResearchLoaded().then(() => {
+      if (selectedId === id && siteResearchById.has(id)) selectSite(id);
+    });
+  }
   if (_lastDetailTab === "summary") ensureSummariesLoaded();
   // Paginated table: the row may be past the rendered window. Page rows in
   // until it lands so the highlight + scroll-into-view work consistently.
@@ -7720,6 +7842,8 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
   renderEnforcement(s);
   renderGrants(s);
   renderSummary(s);
+  renderResearchTeaser(s);
+  renderResearch(s);
   renderNearbySites(s);
   resetDetailTabs();
   // After all section content updates, re-apply the accordion defaults so a
@@ -7889,6 +8013,10 @@ function renderSummary(s) {
   const body = el("d-summary-body");
   const meta = el("d-summary-meta");
   if (!body || !empty || !meta) return;
+  // A cited research dossier supersedes the template summary, which restates
+  // raw record fields and can contradict the dossier's field checks.
+  const block = el("d-summary-block");
+  if (block) block.hidden = siteResearchById.has(s.id);
   if (!s.summary) {
     empty.hidden = false;
     body.hidden = true;

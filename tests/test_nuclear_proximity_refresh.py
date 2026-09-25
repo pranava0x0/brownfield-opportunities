@@ -22,3 +22,23 @@ def test_rebuild_uses_current_coordinates_and_preserves_catalog(tmp_path):
     assert catalog_path.read_bytes() == original
     assert result["source_metadata"]["nuclear_catalog_generated_at"] == "2026-07-26"
     assert result["source_metadata"]["brownfield_generated_at"] == "2026-09-12"
+
+
+def test_full_build_stamps_real_time_and_keeps_snapshot_metadata(tmp_path, monkeypatch):
+    """Regression (PR #38 review): the full build wrote a hardcoded
+    generated_at and dropped source_metadata from the proximity join."""
+    path = Path(__file__).resolve().parents[1] / "scripts/build_nuclear_civilian_sites.py"
+    spec = importlib.util.spec_from_file_location("nuclear_builder_full", path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    (tmp_path / "sites.json").write_text(json.dumps({"generated_at": "2026-09-12", "sites": [{"id": "b", "lat": 40.1, "lon": -70}]}))
+    monkeypatch.setattr(mod, "DATA", tmp_path)
+    monkeypatch.setattr(mod, "OUT_PATH", tmp_path / "nuclear-civilian-sites.json")
+    mod.main()
+    catalog = json.loads((tmp_path / "nuclear-civilian-sites.json").read_text())
+    prox = json.loads((tmp_path / "nuclear-brownfield-proximity.json").read_text())
+    assert prox["generated_at"] not in ("2026-07-26", catalog["generated_at"])
+    assert prox["generated_at"].startswith("20") and "T" in prox["generated_at"]
+    assert prox["source_metadata"]["nuclear_catalog_generated_at"] == catalog["generated_at"]
+    assert prox["source_metadata"]["brownfield_generated_at"] == "2026-09-12"
+    assert prox["radius_mi"] == mod.PROXIMITY_RADIUS_MI

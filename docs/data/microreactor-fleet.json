@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-21",
+  "generated_at": "2026-09-25",
   "source": "Curated. Carried forward from two sibling research projects, each of which cites primary sources per row.",
   "source_projects": [
     {
@@ -603,175 +603,190 @@
     {
       "id": "janus-fort-benning-ga",
       "track": "us-gov",
-      "band": "framework",
+      "band": "contracted",
       "name": "Fort Benning (Fort Moore) (Army Janus)",
       "owner": "U.S. Department of the Army",
       "sector": "Defense \u2014 installation power",
-      "vendor_id": null,
-      "vendor_name": "Not yet assigned \u2014 vendor evaluation and design-to-site matching underway via DIU",
+      "vendor_id": "radiant",
+      "vendor_name": "Radiant Industries",
       "location": "Columbus, GA",
       "state": "GA",
       "lat": 32.341389,
       "lon": -84.993611,
       "power_label": "Not specified per site",
       "mwe": null,
-      "timeline": "Army-regulated reactor operational at a domestic installation by 2028-09-30; sites announced November 2025",
-      "instrument": "Army program + DIU solicitation",
-      "status": "Site identified, vendor not selected",
+      "timeline": "Vendor and site selected 2026-08-26; Army-regulated reactor operational at a domestic installation by 2028-09-30 (presidential directive)",
+      "instrument": "Army Janus Program award (DAF/DIU-partnered); up to $2.2B combined across all 5 awarded vendors, FY2027-FY2031, milestone-based payments",
+      "status": "Selected",
       "microreactor": true,
       "janus": true,
       "sources": [
         {
-          "label": "army.mil \u2014 Janus next steps",
-          "url": "https://www.army.mil/article/289074/army_announces_next_steps_on_janus_program_for_next_generation_nuclear_energy"
+          "label": "DefenseScoop \u2014 Army selects vendors, sites for nuclear microreactors",
+          "url": "https://defensescoop.com/2026/08/26/army-annouces-initiial-bases-to-host-nuclear-microreactors/"
         },
         {
-          "label": "ANS \u2014 Army chooses nine sites",
-          "url": "https://www.ans.org/news/article-7567/us-army-chooses-nine-sites-for-possible-microreactor-by-2030/"
+          "label": "army.mil \u2014 Janus next steps",
+          "url": "https://www.army.mil/article/289074/army_announces_next_steps_on_janus_program_for_next_generation_nuclear_energy"
         }
       ],
       "gaps": [
-        "Per-site load requirement not published"
+        "The award names the company, not a reactor design; the fleet link is by company (BWXT is left unlinked because it has more than one design)",
+        "Per-site MW rating not published",
+        "No NRC docket filed yet for this specific reactor",
+        "Milestone payment schedule not itemized per site"
       ],
       "ap1000_ref": "fort-benning-ga"
     },
     {
       "id": "janus-fort-bragg-nc",
       "track": "us-gov",
-      "band": "framework",
+      "band": "contracted",
       "name": "Fort Bragg (Fort Liberty) (Army Janus)",
       "owner": "U.S. Department of the Army",
       "sector": "Defense \u2014 installation power",
-      "vendor_id": null,
-      "vendor_name": "Not yet assigned \u2014 vendor evaluation and design-to-site matching underway via DIU",
+      "vendor_id": "antares",
+      "vendor_name": "Antares Nuclear",
       "location": "Fayetteville, NC",
       "state": "NC",
       "lat": 35.133333,
       "lon": -78.983333,
       "power_label": "Not specified per site",
       "mwe": null,
-      "timeline": "Army-regulated reactor operational at a domestic installation by 2028-09-30; sites announced November 2025",
-      "instrument": "Army program + DIU solicitation",
-      "status": "Site identified, vendor not selected",
+      "timeline": "Vendor and site selected 2026-08-26; Army-regulated reactor operational at a domestic installation by 2028-09-30 (presidential directive)",
+      "instrument": "Army Janus Program award (DAF/DIU-partnered); up to $2.2B combined across all 5 awarded vendors, FY2027-FY2031, milestone-based payments",
+      "status": "Selected",
       "microreactor": true,
       "janus": true,
       "sources": [
         {
-          "label": "army.mil \u2014 Janus next steps",
-          "url": "https://www.army.mil/article/289074/army_announces_next_steps_on_janus_program_for_next_generation_nuclear_energy"
+          "label": "DefenseScoop \u2014 Army selects vendors, sites for nuclear microreactors",
+          "url": "https://defensescoop.com/2026/08/26/army-annouces-initiial-bases-to-host-nuclear-microreactors/"
         },
         {
-          "label": "ANS \u2014 Army chooses nine sites",
-          "url": "https://www.ans.org/news/article-7567/us-army-chooses-nine-sites-for-possible-microreactor-by-2030/"
+          "label": "army.mil \u2014 Janus next steps",
+          "url": "https://www.army.mil/article/289074/army_announces_next_steps_on_janus_program_for_next_generation_nuclear_energy"
         }
       ],
       "gaps": [
-        "Per-site load requirement not published"
+        "The award names the company, not a reactor design; the fleet link is by company (BWXT is left unlinked because it has more than one design)",
+        "Per-site MW rating not published",
+        "No NRC docket filed yet for this specific reactor",
+        "Milestone payment schedule not itemized per site"
       ],
       "ap1000_ref": "fort-bragg-nc"
     },
     {
       "id": "janus-fort-campbell-ky",
       "track": "us-gov",
-      "band": "framework",
+      "band": "contracted",
       "name": "Fort Campbell (Army Janus)",
       "owner": "U.S. Department of the Army",
       "sector": "Defense \u2014 installation power",
       "vendor_id": null,
-      "vendor_name": "Not yet assigned \u2014 vendor evaluation and design-to-site matching underway via DIU",
+      "vendor_name": "BWXT Advanced Technologies",
       "location": "Fort Campbell, KY/TN",
       "state": "KY",
       "lat": 36.463333,
       "lon": -87.750278,
       "power_label": "Not specified per site",
       "mwe": null,
-      "timeline": "Army-regulated reactor operational at a domestic installation by 2028-09-30; sites announced November 2025",
-      "instrument": "Army program + DIU solicitation",
-      "status": "Site identified, vendor not selected",
+      "timeline": "Vendor and site selected 2026-08-26; Army-regulated reactor operational at a domestic installation by 2028-09-30 (presidential directive)",
+      "instrument": "Army Janus Program award (DAF/DIU-partnered); up to $2.2B combined across all 5 awarded vendors, FY2027-FY2031, milestone-based payments",
+      "status": "Selected",
       "microreactor": true,
       "janus": true,
       "sources": [
         {
-          "label": "army.mil \u2014 Janus next steps",
-          "url": "https://www.army.mil/article/289074/army_announces_next_steps_on_janus_program_for_next_generation_nuclear_energy"
+          "label": "DefenseScoop \u2014 Army selects vendors, sites for nuclear microreactors",
+          "url": "https://defensescoop.com/2026/08/26/army-annouces-initiial-bases-to-host-nuclear-microreactors/"
         },
         {
-          "label": "ANS \u2014 Army chooses nine sites",
-          "url": "https://www.ans.org/news/article-7567/us-army-chooses-nine-sites-for-possible-microreactor-by-2030/"
+          "label": "army.mil \u2014 Janus next steps",
+          "url": "https://www.army.mil/article/289074/army_announces_next_steps_on_janus_program_for_next_generation_nuclear_energy"
         }
       ],
       "gaps": [
-        "Per-site load requirement not published"
+        "The award names the company, not a reactor design; the fleet link is by company (BWXT is left unlinked because it has more than one design)",
+        "Per-site MW rating not published",
+        "No NRC docket filed yet for this specific reactor",
+        "Milestone payment schedule not itemized per site"
       ],
       "ap1000_ref": "fort-campbell-ky"
     },
     {
       "id": "janus-fort-drum-ny",
       "track": "us-gov",
-      "band": "framework",
+      "band": "contracted",
       "name": "Fort Drum (Army Janus)",
       "owner": "U.S. Department of the Army",
       "sector": "Defense \u2014 installation power",
-      "vendor_id": null,
-      "vendor_name": "Not yet assigned \u2014 vendor evaluation and design-to-site matching underway via DIU",
+      "vendor_id": "evinci",
+      "vendor_name": "Westinghouse Government Services",
       "location": "Watertown, NY",
       "state": "NY",
       "lat": 44.038333,
       "lon": -75.675556,
       "power_label": "Not specified per site",
       "mwe": null,
-      "timeline": "Army-regulated reactor operational at a domestic installation by 2028-09-30; sites announced November 2025",
-      "instrument": "Army program + DIU solicitation",
-      "status": "Site identified, vendor not selected",
+      "timeline": "Vendor and site selected 2026-08-26; Army-regulated reactor operational at a domestic installation by 2028-09-30 (presidential directive)",
+      "instrument": "Army Janus Program award (DAF/DIU-partnered); up to $2.2B combined across all 5 awarded vendors, FY2027-FY2031, milestone-based payments",
+      "status": "Selected",
       "microreactor": true,
       "janus": true,
       "sources": [
         {
-          "label": "army.mil \u2014 Janus next steps",
-          "url": "https://www.army.mil/article/289074/army_announces_next_steps_on_janus_program_for_next_generation_nuclear_energy"
+          "label": "DefenseScoop \u2014 Army selects vendors, sites for nuclear microreactors",
+          "url": "https://defensescoop.com/2026/08/26/army-annouces-initiial-bases-to-host-nuclear-microreactors/"
         },
         {
-          "label": "ANS \u2014 Army chooses nine sites",
-          "url": "https://www.ans.org/news/article-7567/us-army-chooses-nine-sites-for-possible-microreactor-by-2030/"
+          "label": "army.mil \u2014 Janus next steps",
+          "url": "https://www.army.mil/article/289074/army_announces_next_steps_on_janus_program_for_next_generation_nuclear_energy"
         }
       ],
       "gaps": [
-        "Per-site load requirement not published"
+        "The award names the company, not a reactor design; the fleet link is by company (BWXT is left unlinked because it has more than one design)",
+        "Per-site MW rating not published",
+        "No NRC docket filed yet for this specific reactor",
+        "Milestone payment schedule not itemized per site"
       ],
       "ap1000_ref": "fort-drum-ny"
     },
     {
       "id": "janus-fort-hood-tx",
       "track": "us-gov",
-      "band": "framework",
+      "band": "contracted",
       "name": "Fort Hood (Fort Cavazos) (Army Janus)",
       "owner": "U.S. Department of the Army",
       "sector": "Defense \u2014 installation power",
       "vendor_id": null,
-      "vendor_name": "Not yet assigned \u2014 vendor evaluation and design-to-site matching underway via DIU",
+      "vendor_name": "General Atomics Electromagnetic Systems",
       "location": "Killeen, TX",
       "state": "TX",
       "lat": 31.001944,
       "lon": -97.711111,
       "power_label": "Not specified per site",
       "mwe": null,
-      "timeline": "Army-regulated reactor operational at a domestic installation by 2028-09-30; sites announced November 2025",
-      "instrument": "Army program + DIU solicitation",
-      "status": "Site identified, vendor not selected",
+      "timeline": "Vendor and site selected 2026-08-26; Army-regulated reactor operational at a domestic installation by 2028-09-30 (presidential directive)",
+      "instrument": "Army Janus Program award (DAF/DIU-partnered); up to $2.2B combined across all 5 awarded vendors, FY2027-FY2031, milestone-based payments",
+      "status": "Selected",
       "microreactor": true,
       "janus": true,
       "sources": [
         {
-          "label": "army.mil \u2014 Janus next steps",
-          "url": "https://www.army.mil/article/289074/army_announces_next_steps_on_janus_program_for_next_generation_nuclear_energy"
+          "label": "DefenseScoop \u2014 Army selects vendors, sites for nuclear microreactors",
+          "url": "https://defensescoop.com/2026/08/26/army-annouces-initiial-bases-to-host-nuclear-microreactors/"
         },
         {
-          "label": "ANS \u2014 Army chooses nine sites",
-          "url": "https://www.ans.org/news/article-7567/us-army-chooses-nine-sites-for-possible-microreactor-by-2030/"
+          "label": "army.mil \u2014 Janus next steps",
+          "url": "https://www.army.mil/article/289074/army_announces_next_steps_on_janus_program_for_next_generation_nuclear_energy"
         }
       ],
       "gaps": [
-        "Per-site load requirement not published"
+        "The award names the company, not a reactor design; the fleet link is by company (BWXT is left unlinked because it has more than one design)",
+        "Per-site MW rating not published",
+        "No NRC docket filed yet for this specific reactor",
+        "Milestone payment schedule not itemized per site"
       ],
       "ap1000_ref": "fort-hood-tx"
     },
@@ -783,7 +798,7 @@
       "owner": "U.S. Department of the Army",
       "sector": "Defense \u2014 installation power",
       "vendor_id": null,
-      "vendor_name": "Not yet assigned \u2014 vendor evaluation and design-to-site matching underway via DIU",
+      "vendor_name": "Not yet assigned \u2014 the 2026-08-26 award covered 5 of the 9 candidate installations; this one is not among them",
       "location": "Fairbanks, AK",
       "state": "AK",
       "lat": 64.605398,
@@ -801,12 +816,13 @@
           "url": "https://www.army.mil/article/289074/army_announces_next_steps_on_janus_program_for_next_generation_nuclear_energy"
         },
         {
-          "label": "ANS \u2014 Army chooses nine sites",
-          "url": "https://www.ans.org/news/article-7567/us-army-chooses-nine-sites-for-possible-microreactor-by-2030/"
+          "label": "DefenseScoop \u2014 Army selects vendors, sites for nuclear microreactors",
+          "url": "https://defensescoop.com/2026/08/26/army-annouces-initiial-bases-to-host-nuclear-microreactors/"
         }
       ],
       "gaps": [
-        "No site-specific MW figure located \u2014 yet this is the highest-value row in the set: the one installation whose displaced alternative is coal/oil at Alaskan prices"
+        "No site-specific MW figure located \u2014 yet this is the highest-value row in the set: the one installation whose displaced alternative is coal/oil at Alaskan prices",
+        "Not among the 5 sites awarded 2026-08-26"
       ],
       "ap1000_ref": "fort-wainwright-ak"
     },
@@ -818,7 +834,7 @@
       "owner": "U.S. Department of the Army",
       "sector": "Defense \u2014 installation power",
       "vendor_id": null,
-      "vendor_name": "Not yet assigned \u2014 vendor evaluation and design-to-site matching underway via DIU",
+      "vendor_name": "Not yet assigned \u2014 the 2026-08-26 award covered 5 of the 9 candidate installations; this one is not among them",
       "location": "Kingsport, TN",
       "state": "TN",
       "lat": 36.51,
@@ -836,12 +852,13 @@
           "url": "https://www.army.mil/article/289074/army_announces_next_steps_on_janus_program_for_next_generation_nuclear_energy"
         },
         {
-          "label": "ANS \u2014 Army chooses nine sites",
-          "url": "https://www.ans.org/news/article-7567/us-army-chooses-nine-sites-for-possible-microreactor-by-2030/"
+          "label": "DefenseScoop \u2014 Army selects vendors, sites for nuclear microreactors",
+          "url": "https://defensescoop.com/2026/08/26/army-annouces-initiial-bases-to-host-nuclear-microreactors/"
         }
       ],
       "gaps": [
-        "Per-site load requirement not published"
+        "Per-site load requirement not published",
+        "Not among the 5 sites awarded 2026-08-26"
       ],
       "ap1000_ref": "holston-aap-tn"
     },
@@ -853,7 +870,7 @@
       "owner": "U.S. Department of the Army",
       "sector": "Defense \u2014 installation power",
       "vendor_id": null,
-      "vendor_name": "Not yet assigned \u2014 vendor evaluation and design-to-site matching underway via DIU",
+      "vendor_name": "Not yet assigned \u2014 the 2026-08-26 award covered 5 of the 9 candidate installations; this one is not among them",
       "location": "Tacoma, WA",
       "state": "WA",
       "lat": 47.114818,
@@ -871,12 +888,13 @@
           "url": "https://www.army.mil/article/289074/army_announces_next_steps_on_janus_program_for_next_generation_nuclear_energy"
         },
         {
-          "label": "ANS \u2014 Army chooses nine sites",
-          "url": "https://www.ans.org/news/article-7567/us-army-chooses-nine-sites-for-possible-microreactor-by-2030/"
+          "label": "DefenseScoop \u2014 Army selects vendors, sites for nuclear microreactors",
+          "url": "https://defensescoop.com/2026/08/26/army-annouces-initiial-bases-to-host-nuclear-microreactors/"
         }
       ],
       "gaps": [
-        "Per-site load requirement not published"
+        "Per-site load requirement not published",
+        "Not among the 5 sites awarded 2026-08-26"
       ],
       "ap1000_ref": "jblm-wa"
     },
@@ -888,7 +906,7 @@
       "owner": "U.S. Department of the Army",
       "sector": "Defense \u2014 installation power",
       "vendor_id": null,
-      "vendor_name": "Not yet assigned \u2014 vendor evaluation and design-to-site matching underway via DIU",
+      "vendor_name": "Not yet assigned \u2014 the 2026-08-26 award covered 5 of the 9 candidate installations; this one is not among them",
       "location": "Huntsville, AL",
       "state": "AL",
       "lat": 34.629981,
@@ -906,12 +924,13 @@
           "url": "https://www.army.mil/article/289074/army_announces_next_steps_on_janus_program_for_next_generation_nuclear_energy"
         },
         {
-          "label": "ANS \u2014 Army chooses nine sites",
-          "url": "https://www.ans.org/news/article-7567/us-army-chooses-nine-sites-for-possible-microreactor-by-2030/"
+          "label": "DefenseScoop \u2014 Army selects vendors, sites for nuclear microreactors",
+          "url": "https://defensescoop.com/2026/08/26/army-annouces-initiial-bases-to-host-nuclear-microreactors/"
         }
       ],
       "gaps": [
-        "Per-site load requirement not published"
+        "Per-site load requirement not published",
+        "Not among the 5 sites awarded 2026-08-26"
       ],
       "ap1000_ref": "redstone-arsenal-al"
     },
@@ -930,7 +949,7 @@
       "lon": -112.949,
       "power_label": "Houses fuelled experiments up to 20 MWt",
       "mwe": null,
-      "timeline": "First fuelled experiment from spring 2026; Radiant fuel received 2026-07-01; campaign targeted to complete Q3 2026",
+      "timeline": "First fuelled experiment from spring 2026; Radiant's Kaleidos unit departed El Segundo, CA for INL 2026-08-13; campaign targeted to complete Q3 2026, not confirmed complete as of 2026-09-25",
       "instrument": "DOE National Reactor Innovation Center test-bed access",
       "status": "Operating",
       "microreactor": true,
@@ -942,9 +961,15 @@
         {
           "label": "WNN \u2014 test bed open for business",
           "url": "https://www.world-nuclear-news.org/articles/first-of-a-kind-microreactor-test-bed-open-for-business"
+        },
+        {
+          "label": "Radiant Nuclear \u2014 Kaleidos Has Left the Building",
+          "url": "https://www.radiantnuclear.com/blog/kaleidos-shipped/"
         }
       ],
-      "gaps": []
+      "gaps": [
+        "Campaign completion date not yet confirmed"
+      ]
     },
     {
       "id": "pele-inl",

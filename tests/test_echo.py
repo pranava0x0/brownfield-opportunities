@@ -316,3 +316,84 @@ def test_echo_npdes_flag_case_insensitive():
     for val in ("n", "NO", "No"):
         enf = EpaEcho.normalize_enforcement({"RegistryID": "1", "Insp5yr": "1", "NPDESFlag": val})
         assert enf["has_npdes_permit"] is False
+
+
+# ---- rate-limit handling (2026-09-25) ----
+#
+# A full refresh on 2026-09-25 hit HTTP 429 after ~550 sites. The backoff
+# only covered ECHO's HTTP-200 "bot-block" body, so every later site was
+# logged "skipping" and the run wrote 557 of 1,906 records.
+
+import argparse
+
+import pytest
+import requests
+
+import connectors.epa_echo as echo_mod
+
+
+def _http_error(code: int, retry_after: str | None = None) -> requests.HTTPError:
+    resp = requests.Response()
+    resp.status_code = code
+    if retry_after is not None:
+        resp.headers["Retry-After"] = retry_after
+    return requests.HTTPError(f"{code}", response=resp)
+
+
+def _connector(tmp_path, outcomes, monkeypatch):
+    """EpaEcho whose inner fetch returns/raises `outcomes` in order."""
+    inst = EpaEcho(cache_dir=tmp_path)
+    calls = iter(outcomes)
+
+    def fake(url, params, use_cache, cache_key):
+        item = next(calls)
+        if isinstance(item, Exception):
+            raise item
+        return item
+    monkeypatch.setattr(inst, "_http_get_json_no_botcache", fake)
+    sleeps: list[float] = []
+    monkeypatch.setattr("time.sleep", lambda s: sleeps.append(s))
+    return inst, sleeps
+
+
+def test_rate_limit_backs_off_then_succeeds(tmp_path, monkeypatch):
+    inst, sleeps = _connector(tmp_path, [_http_error(429), _http_error(429), {"ok": 1}], monkeypatch)
+    assert inst._http_get_with_backoff("u", {}, False, {"k": 1}) == {"ok": 1}
+    assert sleeps == list(echo_mod.RATE_LIMIT_BACKOFFS_S[:2])
+
+
+def test_rate_limit_honors_retry_after_with_a_cap(tmp_path, monkeypatch):
+    inst, sleeps = _connector(tmp_path, [_http_error(429, "45"), _http_error(503, "99999"), {"ok": 1}], monkeypatch)
+    inst._http_get_with_backoff("u", {}, False, {"k": 1})
+    assert sleeps == [45, echo_mod.RATE_LIMIT_MAX_WAIT_S]
+
+
+def test_rate_limit_gives_up_after_its_schedule(tmp_path, monkeypatch):
+    n = len(echo_mod.RATE_LIMIT_BACKOFFS_S)
+    inst, sleeps = _connector(tmp_path, [_http_error(429)] * (n + 1), monkeypatch)
+    with pytest.raises(requests.HTTPError):
+        inst._http_get_with_backoff("u", {}, False, {"k": 1})
+    assert len(sleeps) == n
+
+
+def test_other_http_errors_are_not_retried(tmp_path, monkeypatch):
+    inst, sleeps = _connector(tmp_path, [_http_error(404)], monkeypatch)
+    with pytest.raises(requests.HTTPError):
+        inst._http_get_with_backoff("u", {}, False, {"k": 1})
+    assert sleeps == []
+
+
+def test_a_streak_of_rate_limited_sites_aborts_instead_of_truncating(tmp_path, monkeypatch):
+    """Skipping every site while ECHO throttles produces a file that looks
+    valid and is mostly empty. A streak of transient failures must stop the
+    run; the cache keeps what was fetched for a later resume."""
+    inst = EpaEcho(cache_dir=tmp_path)
+    sites = [{"id": f"XX{i:010d}", "npl_status_code": "F"} for i in range(40)]
+    monkeypatch.setattr(inst, "_load_superfund_sites", lambda: sites)
+
+    def throttled(epa_id, use_cache):
+        raise _http_error(429)
+    monkeypatch.setattr(inst, "_lookup_facility", throttled)
+    args = argparse.Namespace(echo_status="all", echo_limit=0, echo_skip=0, missing_only=False, limit=None)
+    with pytest.raises(RuntimeError, match="rate limit"):
+        inst.fetch_records(args, use_cache=False)

@@ -90,3 +90,28 @@ def test_infra_generated_date_cannot_hide_unknown_snapshot(tmp_path, monkeypatch
     result = mod.check_source({"name":"line", "file":"infra-proximity.json", "kind":"arcgis", "url":"https://example.test/0"}, dt.date.today())
     assert result["ours"] is None
     assert result["verdict"] != "current"
+
+
+def test_infra_metadata_bookkeeping_entries_do_not_crash_the_sweep(tmp_path, monkeypatch):
+    """PR #36 added non-layer bookkeeping keys to infra-proximity's
+    source_metadata (the invalidation-manifest filename, pending-id lists).
+    The sweep iterated every value as a layer dict and crashed on the first
+    string, so no freshness verdict could be produced for ANY source."""
+    import json
+    mod = _load()
+    monkeypatch.setattr(mod, "DATA_DIR", tmp_path)
+    (tmp_path / "infra-proximity.json").write_text(json.dumps({
+        "generated_at": "2026-09-12T00:00:00Z",
+        "source_metadata": {
+            "coordinate_invalidation_manifest": "evidence-invalidations.json",
+            "coordinate_updates_pending": ["COD983769738"],
+            "transmission": {"source_url": "https://example.test/0/query",
+                             "source_snapshot_at": "2026-09-01T00:00:00Z"},
+        },
+    }))
+    monkeypatch.setattr(mod, "arcgis_last_edit", lambda u: dt.date(2026, 8, 1))
+    result = mod.check_source({"name": "line", "file": "infra-proximity.json",
+                               "kind": "arcgis", "url": "https://example.test/0"},
+                              dt.date(2026, 9, 25))
+    assert result["ours"] == "2026-09-01"
+    assert result["verdict"] == "current"

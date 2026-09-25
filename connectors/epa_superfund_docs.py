@@ -36,6 +36,7 @@ multiple runs (`--docs-limit 100 --docs-skip 100` for the next 100).
 from __future__ import annotations
 
 import argparse
+import datetime as dt
 import json
 import logging
 import re
@@ -47,6 +48,10 @@ import requests
 from connectors.base import Connector
 
 log = logging.getLogger("connector.epa_superfund_docs")
+
+
+def _today() -> dt.date:
+    return dt.date.today()
 
 DOCDATA_URL = "https://cumulis.epa.gov/supercpad/SiteProfiles/index.cfm"
 CACHEJSON_URL = "https://semspub.epa.gov/src/cachejson/{region}/{type}/{colid}"
@@ -437,6 +442,12 @@ class EpaSuperfundDocs(Connector):
             "url": url,
             "category": col["label"],
         }
+        # EPA occasionally dates a document ahead of its release (a Five-Year
+        # Review fact sheet was indexed 5 days early on 2026-09-25). Keep the
+        # document; drop a date that has not happened yet.
+        if iso_date and iso_date > _today().isoformat():
+            log.info("[doc %s] future date %s from EPA index dropped", doc_id, iso_date)
+            iso_date = None
         if iso_date:
             out["date"] = iso_date
         if entry.get("ouId"):
