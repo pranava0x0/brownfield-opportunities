@@ -31,6 +31,9 @@ ROOT = Path(__file__).resolve().parent
 CACHE_DIR = ROOT / "data" / "cache"
 OUTPUT_DIR = ROOT / "docs" / "data"
 DEFAULT_OUTPUT = OUTPUT_DIR / "sites.json"
+# A write that keeps less than this share of the prior file's records is refused
+# unless --allow-shrink is passed (see _run_one).
+SHRINK_FLOOR = 0.9
 CHANGES_PATH = ROOT / "data" / "changes.md"
 
 # Slug whose fetch_records output goes into the canonical sites.json when run
@@ -60,6 +63,9 @@ def _build_parser() -> argparse.ArgumentParser:
                    help="Pretty-print JSON (default is minified — saves ~30%% on uncompressed size).")
     p.add_argument("--combined", action="store_true",
                    help="With --all: also write a combined sites.json with every program's records (~2 MB gzipped). Default off — frontend lazy-loads.")
+    p.add_argument("--allow-shrink", action="store_true",
+                   help="Allow a write that keeps under 90%% of the prior file's records "
+                        "(an intended smaller set, e.g. a --limit test run into a scratch path).")
     p.add_argument("--allow-ipv6", action="store_true",
                    help="Don't pin DNS to IPv4. Default is to pin, because "
                         "every EPA host resolves AAAA-first and a blackholed "
@@ -175,7 +181,8 @@ def _run_one(
 
     out_path = _resolve_output_path(slug, output_override or args.output)
 
-    if not records and _prior_record_count(out_path):
+    prior_count = _prior_record_count(out_path)
+    if not records and prior_count:
         # An enrichment run may legitimately write an empty payload to CREATE a
         # first-run file, but never to erase one that already holds records.
         # Zero rows from a connector is an outage (a missing API key, a
@@ -189,6 +196,17 @@ def _run_one(
 
     if not records:
         log.warning("[%s] no records normalized; writing empty payload", slug)
+
+    # The empty-write guard cannot catch a truncated write. A throttled fetch
+    # that skips most sites (ECHO, 2026-09-25: 557 of 1,906) or a `--limit N`
+    # run over the full file both shrink a populated file without erroring.
+    if (records and prior_count and len(records) < prior_count * SHRINK_FLOOR
+            and not getattr(args, "allow_shrink", False)):
+        log.error("[%s] would shrink %s from %d to %d records (below %d%% of the prior "
+                  "file); refusing. Re-run once the source recovers, or pass "
+                  "--allow-shrink if the smaller set is intended.", slug, out_path,
+                  prior_count, len(records), int(SHRINK_FLOOR * 100))
+        return 1, None, inst.source_label
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
 

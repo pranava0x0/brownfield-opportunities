@@ -374,7 +374,7 @@ Rules the routine follows:
 
 - **2026-09-25** — Per-site research: `docs/data/site-research.json` contract (schema + `scripts/site_research.py` + validator checks + detail-panel rendering), a Tar Creek pilot dossier, and the daily 2 pm research routine working down §6.
 
-- **2026-09-25** — Fixes: `check_upstream_freshness.py` no longer crashes on infra's bookkeeping metadata; `refresh.py --output` no longer overwrites `data/changes.md`. Curated-tab fact-check: Janus vendor awards, Palisades restart pause, QTS at Bessemer, Fairless Works construction, Bull Run fusion license, Kemmerer contractor change and NRC hearing dates applied; Vermont dropped from the regulation table.
+- **2026-09-25** — Fixes: `check_upstream_freshness.py` no longer crashes on infra's bookkeeping metadata; `refresh.py --output` no longer overwrites `data/changes.md`. `refresh.py` now refuses truncated writes (under 90% of the prior file) unless `--allow-shrink`; ECHO backs off on HTTP 429/503 after a throttled refresh wrote 557 of 1,906 sites (caught before commit). Curated-tab fact-check: Janus vendor awards, Palisades restart pause, QTS at Bessemer, Fairless Works construction, Bull Run fusion license, Kemmerer contractor change and NRC hearing dates applied; Vermont dropped from the regulation table.
 
 ## Appendix A — Specs index
 
