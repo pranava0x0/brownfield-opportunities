@@ -108,6 +108,15 @@ def test_future_dates_are_rejected(tmp_path):
         sr.add_entries([bad], path=data / "site-research.json", data_dir=data, today=TODAY)
 
 
+def test_future_dated_history_is_rejected(tmp_path):
+    """Regression (PR #38 review): history dates skipped the future-date check."""
+    data = _corpus(tmp_path)
+    bad = _entry(history=[{"researched_at": "2027-01-01", "summary": "A summary dated after today."}])
+    with pytest.raises(sr.ResearchError, match=r"history\[0\].researched_at=2027-01-01 is in the future"):
+        sr.add_entries([bad], path=data / "site-research.json", data_dir=data, today=TODAY)
+    assert not (data / "site-research.json").exists()
+
+
 def test_a_development_without_a_citation_fails_the_schema(tmp_path):
     data = _corpus(tmp_path)
     bad = _entry()

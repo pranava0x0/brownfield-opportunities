@@ -98,6 +98,8 @@ def check_entry(entry: dict[str, Any], corpus_ids: Iterable[str], today: dt.date
             dates.append((f"items[{i}].sources[{j}].accessed", src.accessed))
             if src.published:
                 dates.append((f"items[{i}].sources[{j}].published", src.published))
+    for i, h in enumerate(model.history):
+        dates.append((f"history[{i}].researched_at", h.researched_at))
     for label, value in dates:
         if _parse_day(value) > today:
             raise ResearchError(f"{model.id}: {label}={value} is in the future")
