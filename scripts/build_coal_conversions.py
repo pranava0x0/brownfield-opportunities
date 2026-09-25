@@ -16,7 +16,10 @@ resolving) + `verified_at` (YYYY-MM-DD). Fields no public document supports
 zero. Facts re-verified 2026-08-23 against the industry sweep in
 research/industry-topical-2026-08.md; re-audit quarterly (retirement dates
 move under DOE 202(c) orders and data-center-driven life extensions, in
-BOTH directions).
+BOTH directions). Partial spot-refresh 2026-09-25 (Naughton, Craig,
+Cumberland, Bull Run, Belews Creek notes only — each row's own `verified_at`
+carries the per-row date; `source_url` stays the row's GEM-wiki anchor with
+the newer citation given inline in `note`).
 
 The durable path (spec §3.3) is deriving MW / retirement dates / coordinates
 from the cached EIA-860M workbook instead of hand-curating; until then,
@@ -108,8 +111,9 @@ COAL_PLANTS_CATALOG: list[dict[str, Any]] = [
         "has_rail": True, "has_water_intake": True,
         "site_acreage": 1200.0, "iso_rto": "Non-RTO/WECC",
         "conversion_suitability": "nuclear_preferred",
-        "note": "TerraPower Natrium Kemmerer Unit 1 adjacent — NRC construction permit 2026-03-04 (first commercial non-LWR in 40+ yrs), construction started 2026-04-23; the world's only active coal-to-nuclear conversion.",
+        "note": "TerraPower Natrium Kemmerer Unit 1 adjacent — NRC construction permit 2026-03-04 (first commercial non-LWR in 40+ yrs), construction started 2026-04-23; the world's only active coal-to-nuclear conversion. TerraPower is replacing Bechtel as lead contractor for the next construction phase after the two failed to agree on terms (Bechtel WARN notice filed 2026-09-15); TerraPower says the build schedule is unchanged (Cowboy State Daily, 2026-09-21).",
         "source_url": "https://www.gem.wiki/Naughton_Power_Plant",
+        "verified_at": "2026-09-25",
     },
     {
         "plant_name": "Belews Creek Steam Station",
@@ -121,8 +125,9 @@ COAL_PLANTS_CATALOG: list[dict[str, Any]] = [
         "has_rail": True, "has_water_intake": True,
         "site_acreage": 2100.0, "iso_rto": "Non-RTO/SERC",
         "conversion_suitability": "nuclear_preferred",
-        "note": "Duke SMR early-site-permit application submitted for this site (late 2025); Duke has proposed delaying coal retirement to 2040 — dates policy-contingent.",
+        "note": "Duke SMR early-site-permit application submitted for this site (late 2025); NRC held its mandatory ESP hearing 2026-09-17; Duke has proposed delaying coal retirement to 2040 — dates policy-contingent.",
         "source_url": "https://www.gem.wiki/Belews_Creek_Steam_Station",
+        "verified_at": "2026-09-25",
     },
     {
         "plant_name": "Colstrip Steam Plant",
@@ -147,8 +152,9 @@ COAL_PLANTS_CATALOG: list[dict[str, Any]] = [
         "has_rail": True, "has_water_intake": True,
         "site_acreage": 1800.0, "iso_rto": "Non-RTO/WECC",
         "conversion_suitability": "dual_feasible",
-        "note": "Unit 2 retirement announced for 2028-09-30; Unit 1's end-2025 retirement is ALREADY overridden by an active DOE 202(c) emergency order (Dec 2025, renewed). Tri-State's announced replacement is solar + gas + storage, so nuclear is advocacy, not an owner program.",
+        "note": "Unit 2 retirement announced for 2028-09-30; Unit 1's end-2025 retirement is ALREADY overridden by an active DOE 202(c) emergency order (Dec 2025, renewed). The latest renewal, DOE Order 202-26-31, keeps Unit 1 available to run through 2026-09-26; whether it is extended again is not yet known. Tri-State's announced replacement is solar + gas + storage, so nuclear is advocacy, not an owner program.",
         "source_url": "https://www.gem.wiki/Craig_Station",
+        "verified_at": "2026-09-25",
     },
     {
         "plant_name": "Gibson Generating Station",
@@ -200,8 +206,9 @@ COAL_PLANTS_CATALOG: list[dict[str, Any]] = [
         "has_rail": True, "has_water_intake": True,
         "site_acreage": 2300.0, "iso_rto": "TVA",
         "conversion_suitability": "dual_feasible",
-        "note": "LIFE-EXTENSION: TVA's board voted unanimously 2026-02-11 to continue operating Cumberland (and Kingston) beyond the previously scheduled retirement dates, reversing the 2024 decision; the 1,450-MW gas CC remains under construction adjacent. The Colstrip pattern, not a conversion window.",
+        "note": "LIFE-EXTENSION: TVA's board voted unanimously 2026-02-11 to continue operating Cumberland (and Kingston) beyond the previously scheduled retirement dates, reversing the 2024 decision; the 1,450-MW gas CC synchronized its first combustion turbine to the grid 2026-05-29 and is on track for commercial operation later in 2026. The Colstrip pattern, not a conversion window.",
         "source_url": "https://www.gem.wiki/Cumberland_Fossil_Plant",
+        "verified_at": "2026-09-25",
     },
     {
         "plant_name": "Martin Lake Steam Electric Station",
@@ -225,8 +232,9 @@ COAL_PLANTS_CATALOG: list[dict[str, Any]] = [
         "has_rail": True, "has_water_intake": True,
         "site_acreage": 950.0, "iso_rto": "TVA",
         "conversion_suitability": "dual_feasible",
-        "note": "Stacks imploded Jun 2025; TVA redevelopment underway — Type One Energy fusion LOI, synchronous-condenser RFP, economic-development targeting study. 500 kV POI adjacent to the Oak Ridge corridor.",
+        "note": "Stacks imploded Jun 2025; TVA redevelopment underway. Type One Energy's fusion LOI has become an actual state license: Tennessee issued the company a byproduct material license 2026-08-31 for the Project Infinity stellarator prototype, the first commercial nuclear fusion license issued in the US. Also underway: a synchronous-condenser RFP and an economic-development targeting study. 500 kV POI adjacent to the Oak Ridge corridor.",
         "source_url": "https://www.gem.wiki/Bull_Run_Fossil_Plant",
+        "verified_at": "2026-09-25",
     },
     {
         "plant_name": "John Sevier Fossil Plant",

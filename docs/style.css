@@ -1532,6 +1532,85 @@ main {
 .summary-meta[hidden] { display: none; }
 #d-summary-empty[hidden], #d-summary-body[hidden] { display: none; }
 
+/* Per-site research dossier (scripts/site_research.py). Same card language as
+   the summary card; the green rule marks cited research rather than a
+   template generated from record fields. */
+.research-card {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--readiness-ready);
+  border-radius: 8px;
+  padding: 14px 16px 12px;
+  margin-bottom: 14px;
+  font-size: 14px;
+  color: var(--text-soft);
+  line-height: 1.55;
+}
+.research-card[hidden], .research-teaser[hidden], .summary-card[hidden] { display: none; }
+.research-card h4 {
+  margin: 14px 0 6px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.research-meta { margin: 0 0 8px; font-size: 11px; color: var(--muted); }
+.research-summary p { margin: 0 0 8px; }
+.research-sources, .ri-src { margin: 4px 0 0; font-size: 12px; color: var(--muted); }
+.research-items, .research-checks, .research-questions { list-style: none; margin: 0; padding: 0; }
+.research-items li { padding: 8px 0; border-top: 1px solid var(--border); }
+.research-items li:first-child { border-top: 0; padding-top: 0; }
+.ri-head { margin: 0; display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline; }
+.ri-date { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.ri-kind {
+  font-size: 11px;
+  padding: 1px 6px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+}
+.ri-body { margin: 4px 0 0; }
+.research-checks li, .research-questions li { margin: 4px 0; font-size: 13px; }
+.research-checks li.rc-differs strong { color: var(--status-final); }
+.research-checks li.rc-confirmed strong { color: var(--readiness-ready); }
+.research-none { margin: 0; font-style: italic; }
+.research-history > summary { margin-top: 10px; font-size: 12px; color: var(--muted); cursor: pointer; }
+.research-history p { margin: 6px 0 0; font-size: 13px; }
+.research-teaser {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin: 0 0 12px;
+  padding: 8px 10px;
+  font-size: 13px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--readiness-ready);
+  border-radius: 8px;
+}
+.research-teaser-btn {
+  font: inherit;
+  font-size: 12px;
+  padding: 3px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--accent);
+  cursor: pointer;
+}
+.research-teaser-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.detail-tab.has-research::after {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-left: 6px;
+  border-radius: 50%;
+  background: var(--readiness-ready);
+  vertical-align: middle;
+}
+
 /* Nearby sites block in detail panel — up to 5 results within 25 mi */
 .nearby-disclosure { margin-top: 16px; }
 .nearby-disclosure[hidden] { display: none; }

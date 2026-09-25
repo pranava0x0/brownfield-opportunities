@@ -102,6 +102,26 @@ TRANSIENT_HTTP_CODES = {404, 408, 429, 500, 502, 503, 504}
 BOT_BLOCK_MARKERS = ("robotic or programmed query", "robotic query")
 BOT_BLOCK_BACKOFFS_S = (30, 60, 120, 240, 480)  # 5 retries, ~16 min worst case
 
+# HTTP-level throttling is separate from the HTTP-200 bot-block body above.
+# On 2026-09-25 a full refresh got HTTP 429 after ~550 sites; the backoff
+# only knew the bot-block, so the loop skipped the other ~1,350 sites and
+# wrote a truncated file. Retry 429/503 with exponential backoff starting at
+# 10 s (the repo's network rule), honoring a numeric Retry-After up to a cap.
+RATE_LIMIT_HTTP_CODES = {429, 503}
+RATE_LIMIT_BACKOFFS_S = (10, 20, 40, 80, 160, 320)  # ~10.5 min worst case per call
+RATE_LIMIT_MAX_WAIT_S = 900
+# If this many consecutive sites still fail transiently after their retries,
+# the service is throttling the whole run: stop instead of skipping the rest.
+MAX_CONSECUTIVE_TRANSIENT_SKIPS = 10
+
+
+def _retry_after_seconds(resp: "requests.Response | None") -> int | None:
+    """Numeric Retry-After in seconds, or None (HTTP-date form is ignored)."""
+    if resp is None:
+        return None
+    raw = (resp.headers.get("Retry-After") or "").strip()
+    return int(raw) if raw.isdigit() and int(raw) > 0 else None
+
 
 class _EchoBotBlocked(RuntimeError):
     """Raised when ECHO returns its bot-block error. Caught at the loop
@@ -235,6 +255,7 @@ class EpaEcho(Connector):
 
         records: list[dict[str, Any]] = []
         skipped_no_match = 0
+        consecutive_transient = 0
         for i, site in enumerate(target_sites, 1):
             sid = site.get("id")
             epa_id = site.get("epa_id") or sid
@@ -245,9 +266,17 @@ class EpaEcho(Connector):
             except requests.HTTPError as e:
                 code = e.response.status_code if e.response is not None else None
                 if code in TRANSIENT_HTTP_CODES:
+                    consecutive_transient += 1
                     log.warning("[%s] ECHO HTTP %s — skipping", epa_id, code)
+                    if consecutive_transient >= MAX_CONSECUTIVE_TRANSIENT_SKIPS:
+                        raise RuntimeError(
+                            f"ECHO rate limit or outage persisted for {consecutive_transient} "
+                            f"consecutive sites (last HTTP {code}); stopping instead of writing "
+                            "a truncated file. Fetched responses stay cached; re-run later."
+                        ) from e
                     continue
                 raise
+            consecutive_transient = 0
             if not facility:
                 skipped_no_match += 1
                 log.info("[%s] no ECHO match", epa_id)
@@ -355,6 +384,7 @@ class EpaEcho(Connector):
         """
         import time as _time
         attempt = 0
+        rate_attempt = 0
         while True:
             try:
                 return self._http_get_json_no_botcache(url, params, use_cache, cache_key)
@@ -366,6 +396,16 @@ class EpaEcho(Connector):
                             cache_key, wait, attempt + 1, len(BOT_BLOCK_BACKOFFS_S))
                 _time.sleep(wait)
                 attempt += 1
+            except requests.HTTPError as e:
+                code = e.response.status_code if e.response is not None else None
+                if code not in RATE_LIMIT_HTTP_CODES or rate_attempt >= len(RATE_LIMIT_BACKOFFS_S):
+                    raise
+                wait = _retry_after_seconds(e.response) or RATE_LIMIT_BACKOFFS_S[rate_attempt]
+                wait = min(wait, RATE_LIMIT_MAX_WAIT_S)
+                log.warning("ECHO HTTP %s on %s — backing off %ds (attempt %d/%d)",
+                            code, cache_key, wait, rate_attempt + 1, len(RATE_LIMIT_BACKOFFS_S))
+                _time.sleep(wait)
+                rate_attempt += 1
 
     def _lookup_facility(self, epa_id: str, use_cache: bool) -> dict[str, Any] | None:
         """Query ECHO for the facility matching the Superfund EPA_ID.
