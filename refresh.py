@@ -194,7 +194,11 @@ def _run_one(
 
     # Snapshot prior payload before overwrite — used for diff log.
     # In --all mode the combined writer owns changes.md; per-source runs skip it.
-    is_canonical_solo = slug == CANONICAL_SLUG and output_override is None
+    # `--output` arrives via args.output, not output_override: a redirected
+    # canonical run (e.g. a comparison pull to scratch) must not rewrite the
+    # tracked diff log against the scratch path.
+    is_canonical_solo = (slug == CANONICAL_SLUG and output_override is None
+                         and getattr(args, "output", None) is None)
     prior = load_payload(out_path) if is_canonical_solo else None
 
     assert_unique_ids(slug, records)
