@@ -27,10 +27,10 @@ import math
 import argparse
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Optional
 
 DATA = Path(__file__).resolve().parent.parent / "docs" / "data"
 OUT_PATH = DATA / "nuclear-civilian-sites.json"
-SITES_PATH = DATA / "sites.json"
 
 INL_REPORT_URL = "https://inldigitallibrary.inl.gov/content/uploads/50/2026/04/Sort_128167.pdf"
 NRC_COL_BASE = "https://www.nrc.gov/reactors/new-reactors/large-lwr/col"
@@ -1072,29 +1072,6 @@ def _haversine_mi(lat1, lon1, lat2, lon2):
     return R * 2 * math.asin(math.sqrt(a))
 
 
-def _load_brownfields():
-    """Load Superfund sites from sites.json."""
-    if not SITES_PATH.exists():
-        return []
-    payload = json.loads(SITES_PATH.read_text())
-    sites = payload.get("sites", [])
-    return [
-        {
-            "id": s.get("id"),
-            "name": s.get("name", ""),
-            "city": s.get("city", ""),
-            "state": s.get("state", ""),
-            "lat": s.get("lat"),
-            "lon": s.get("lon"),
-            "program": s.get("program", ""),
-            "npl_status": s.get("npl_status", ""),
-            "acreage": s.get("acreage"),
-        }
-        for s in sites
-        if s.get("lat") and s.get("lon")
-    ]
-
-
 def _find_nearby_brownfields(nuclear_lat, nuclear_lon, brownfields, max_results=10):
     """Return nearest brownfields within PROXIMITY_RADIUS_MI, sorted by distance."""
     lat_delta = PROXIMITY_RADIUS_MI / 69.0  # ~1° lat = 69 mi
@@ -1126,13 +1103,16 @@ def build_proximity_records(nuclear_sites: list, brownfields: list) -> list:
     return records
 
 
-def rebuild_proximity_only(data: Path = DATA) -> dict:
+def rebuild_proximity_only(data: Optional[Path] = None) -> dict:
     """Recompute geography without restamping the curated source catalog."""
+    data = data or DATA
     catalog = json.loads((data / "nuclear-civilian-sites.json").read_text())
     core = json.loads((data / "sites.json").read_text())
     brownfields = [s for s in core["sites"] if s.get("lat") is not None and s.get("lon") is not None]
     path = data / "nuclear-brownfield-proximity.json"
-    payload = json.loads(path.read_text())
+    payload = json.loads(path.read_text()) if path.exists() else {}
+    payload.setdefault("radius_mi", PROXIMITY_RADIUS_MI)
+    payload.setdefault("brownfield_dataset", "docs/data/sites.json (EPA Superfund NPL sites)")
     # Keep the join compact; do not copy every enriched core field.
     fields = ("id", "name", "city", "state", "lat", "lon", "program", "npl_status", "acreage")
     payload["records"] = build_proximity_records(catalog["sites"], [{k: s.get(k) for k in fields} for s in brownfields])
@@ -1147,30 +1127,6 @@ def rebuild_proximity_only(data: Path = DATA) -> dict:
 
 
 def main():
-    print("Loading brownfields from sites.json...", flush=True)
-    brownfields = _load_brownfields()
-    print(f"  Loaded {len(brownfields)} Superfund sites with coordinates", flush=True)
-
-    # Build proximity for sites with lat/lon
-    proximity_records = []
-    for site in SITES:
-        lat, lon = site.get("lat"), site.get("lon")
-        if lat is None or lon is None:
-            continue
-        nearby = _find_nearby_brownfields(lat, lon, brownfields)
-        proximity_records.append({
-            "nuclear_site_id": site["id"],
-            "nuclear_site_name": site["name"],
-            "state": site["state"],
-            "lat": lat,
-            "lon": lon,
-            "inl_category": site["inl_category"],
-            "nearby_brownfields": nearby,
-            "nearby_count": len(nearby),
-        })
-
-    print(f"Computed proximity for {len(proximity_records)} nuclear sites", flush=True)
-
     # Write nuclear-civilian-sites.json
     payload = {
         "generated_at": "2026-09-25",
@@ -1196,17 +1152,13 @@ def main():
     OUT_PATH.write_text(json.dumps(payload, indent=2))
     print(f"Wrote {OUT_PATH} ({len(SITES)} sites)", flush=True)
 
-    # Write nuclear-brownfield-proximity.json
-    proximity_path = DATA / "nuclear-brownfield-proximity.json"
-    proximity_payload = {
-        "generated_at": "2026-07-26",
-        "radius_mi": PROXIMITY_RADIUS_MI,
-        "brownfield_dataset": "docs/data/sites.json (EPA Superfund NPL sites)",
-        "records": proximity_records,
-    }
-    proximity_path.write_text(json.dumps(proximity_payload, indent=2))
+    # Write nuclear-brownfield-proximity.json through the same path as
+    # --proximity-only, so a full build stamps the real build time and keeps
+    # the source-snapshot metadata instead of a hardcoded date.
+    proximity_payload = rebuild_proximity_only()
+    proximity_records = proximity_payload["records"]
     total_matches = sum(r["nearby_count"] for r in proximity_records)
-    print(f"Wrote {proximity_path} ({total_matches} total brownfield matches)", flush=True)
+    print(f"Wrote nuclear-brownfield-proximity.json ({total_matches} total brownfield matches)", flush=True)
 
     # Print summary
     print("\n--- Summary ---")
