@@ -317,7 +317,7 @@ Rules the routine follows:
 
 ### Run log
 - 2026-09-25 · pilot run in session · Tar Creek (OKD980629844) · 3 developments · 2 field differences (acreage, coordinates) · not pushed: no GitHub credentials on this machine
-- 2026-09-25 · daily routine · Paducah (KY8890008982), Savannah River (SC1890008989), Bessemer Campus Expansion (ACRES-240696) · 6 developments · 1 field difference (SRS acreage 234,032 shipped vs DOE ~198,000) · not pushed: no GitHub credentials
+- 2026-09-25 · daily routine · Paducah (KY8890008982), Savannah River (SC1890008989), Bessemer Campus Expansion (ACRES-240696) · 6 developments · 1 field difference (SRS acreage 234,032 shipped vs DOE ~198,000) · pushed after auth was fixed; PR #37
 
 ## 7. Decisions needed from Pranava
 
