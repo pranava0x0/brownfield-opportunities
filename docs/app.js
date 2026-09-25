@@ -1396,6 +1396,7 @@ function ensureSummariesLoaded() {
 const siteResearchById = new Map();
 window.__siteResearch = siteResearchById;
 let siteResearchPromise = null;
+let siteResearchRetriedFor = null;
 function ensureSiteResearchLoaded() {
   if (siteResearchPromise) return siteResearchPromise;
   siteResearchPromise = fetch(SITE_RESEARCH_URL, { priority: "low" })
@@ -1488,7 +1489,8 @@ function renderResearch(s) {
   }
   if ((r.history || []).length) {
     parts.push(`<details class="research-history"><summary>Earlier summaries (${r.history.length})</summary>`
-      + r.history.map((h) => `<p><span class="ri-date">${escapeHtml(researchDate(h.researched_at))}</span> ${escapeHtml(h.summary)}</p>`).join("")
+      + r.history.map((h) => `<p><span class="ri-date">${escapeHtml(researchDate(h.researched_at))}</span> ${escapeHtml(h.summary)}`
+        + `${(h.summary_sources || []).length ? ` <span class="research-sources">Sources: ${srcLinks(h.summary_sources)}</span>` : ""}</p>`).join("")
       + `</details>`);
   }
   card.innerHTML = parts.join("");
@@ -7555,6 +7557,15 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
   }
   selectedId = id;
   ensureDetailEvidenceLoaded();
+  // The aggregate detail promise settles once. If the dossier fetch failed
+  // (its promise resets to null), retry it on its own, once per selected site:
+  // loaders re-render the selected site, and each re-render must not refetch.
+  if (detailEvidencePromise && !siteResearchPromise && siteResearchRetriedFor !== id) {
+    siteResearchRetriedFor = id;
+    ensureSiteResearchLoaded().then(() => {
+      if (selectedId === id && siteResearchById.has(id)) selectSite(id);
+    });
+  }
   if (_lastDetailTab === "summary") ensureSummariesLoaded();
   // Paginated table: the row may be past the rendered window. Page rows in
   // until it lands so the highlight + scroll-into-view work consistently.

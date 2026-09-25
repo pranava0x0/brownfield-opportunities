@@ -1157,6 +1157,9 @@ class ResearchHistoryEntry(BaseModel):
 
     researched_at: str = Field(pattern=ISO_DAY)
     summary: str
+    # Citations that supported this summary, so archived text stays traceable.
+    # Optional only because entries archived before 2026-09-25 lacked them.
+    summary_sources: list[ResearchSource] = Field(default_factory=list)
 
 
 class SiteResearch(BaseModel):
