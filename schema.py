@@ -1093,3 +1093,99 @@ class NickelAnchor(BaseModel):
     note: str = Field(description="Why this row matters to a refinery siting.")
     source_url: str = Field(pattern=r"^https://")
     verified_at: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}$")
+
+
+# ── Per-site research dossiers (daily research routine, 2026-09-25) ─────────
+#
+# `docs/data/site-research.json` holds dated, cited research about individual
+# corpus sites: a plain-English summary, recent developments (news, permits,
+# filings, documents), and checks of shipped fields against sources. It is
+# keyed by SiteRecord `id` and joined in the browser by id only, so it never
+# attaches new fields to SiteRecord. `scripts/site_research.py` is the only
+# writer; it validates against these classes before merging.
+
+ISO_DAY = r"^\d{4}-\d{2}-\d{2}$"
+ISO_DAY_OR_MONTH = r"^\d{4}-\d{2}(-\d{2})?$"
+
+
+class ResearchSource(BaseModel):
+    """One citation actually opened during research. Never a guessed URL."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    title: str = Field(min_length=3, max_length=240)
+    url: str = Field(pattern=r"^https://")
+    publisher: str = Field(min_length=2, max_length=120)
+    published: Optional[str] = Field(default=None, pattern=ISO_DAY_OR_MONTH,
+                                     description="Date the source itself carries, when it has one.")
+    accessed: str = Field(pattern=ISO_DAY)
+
+
+class ResearchItem(BaseModel):
+    """One dated development about a site or its immediate area."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    kind: Literal["news", "permit", "authorization", "filing", "document",
+                  "hearing", "funding", "transaction", "litigation", "enforcement"]
+    date: str = Field(pattern=ISO_DAY_OR_MONTH, description="When the event happened, not when we found it.")
+    title: str = Field(min_length=5, max_length=160, description="Our own headline, not the source's.")
+    summary: str = Field(min_length=10, max_length=500, description="One or two sentences in our words.")
+    authority: Optional[str] = Field(default=None, max_length=120,
+                                     description="Issuing agency, court, utility or county body.")
+    reference: Optional[str] = Field(default=None, max_length=80, description="Permit number, docket or case id.")
+    status: Optional[str] = Field(default=None, max_length=60, description="e.g. issued, pending, draft for comment.")
+    sources: list[ResearchSource] = Field(min_length=1)
+
+
+class ValidationNote(BaseModel):
+    """One shipped field checked against a source during research."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    field: str = Field(min_length=2, max_length=60)
+    shipped_value: Optional[str] = Field(default=None, max_length=120)
+    finding: Literal["confirmed", "differs", "unverifiable"]
+    note: str = Field(min_length=5, max_length=400)
+    source_url: Optional[str] = Field(default=None, pattern=r"^https://")
+
+
+class ResearchHistoryEntry(BaseModel):
+    """A superseded summary, kept so research is append-only."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    researched_at: str = Field(pattern=ISO_DAY)
+    summary: str
+
+
+class SiteResearch(BaseModel):
+    """The current research dossier for one corpus site."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    id: str = Field(min_length=3, description="SiteRecord id (Superfund EPA_ID, ACRES-, FUDS-, BRAC-).")
+    name: str = Field(min_length=2, description="Site name as shipped, for human review of the file.")
+    researched_at: str = Field(pattern=ISO_DAY)
+    search_window_start: str = Field(pattern=ISO_DAY, description="Earliest date covered by the news/permit search.")
+    researcher: str = Field(default="scheduled research routine", max_length=80)
+    summary: str = Field(min_length=40, max_length=1200,
+                         description="Two to four plain sentences built only from cited facts.")
+    summary_sources: list[ResearchSource] = Field(min_length=1)
+    items: list[ResearchItem] = Field(default_factory=list, description="Newest first.")
+    no_new_developments: bool = Field(default=False,
+                                      description="True when the search window was searched and nothing new was found.")
+    validation: list[ValidationNote] = Field(default_factory=list)
+    open_questions: list[str] = Field(default_factory=list)
+    next_review: str = Field(pattern=ISO_DAY)
+    history: list[ResearchHistoryEntry] = Field(default_factory=list)
+
+
+class SiteResearchPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    schema_version: Literal[1] = 1
+    generated_at: str
+    source: str
+    count: int = Field(ge=0)
+    sites: list[SiteResearch]
