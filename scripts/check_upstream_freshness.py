@@ -171,6 +171,10 @@ def check_source(src: "dict[str, Any]", today: dt.date) -> "dict[str, Any]":
         if path.exists():
             metadata = json.loads(path.read_text()).get("source_metadata") or {}
             for item in metadata.values():
+                # source_metadata also carries bookkeeping (the invalidation
+                # manifest name, pending-id lists); only layer dicts have URLs.
+                if not isinstance(item, dict):
+                    continue
                 if item.get("source_url", "").removesuffix("/query") == src["url"].removesuffix("/query"):
                     stamp = item.get("source_snapshot_at")
                     if stamp:
