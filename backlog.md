@@ -65,6 +65,8 @@ Priorities: **high** = next, **med** = soon, **low** = nice-to-have. Last update
 
 - e2e (Playwright) suite could not run on this machine — browsers aren't installed here.
 
+- Live sample check against the source services (2026-09-25, `scripts/validate_against_sources.py --only attrs infra --sample 24 --seed 925`, 96 sites): 96/96 records match their owning FeatureServer on name, state, coordinates and acreage; 368/384 infrastructure distances re-measured independently match, and the other 16 were skipped by design (stored distances of 26–48 mi need too large a query box). No mismatches. Offline `validate_data.py`: 29 pass, 12 warn (the documented upstream-quality set), 0 fail across 43 checks.
+
 - Refreshes run on 2026-09-25: `superfund-npl` re-pulled (record-identical to 2026-09-12, promoted with today's stamp); EIA-860M moved to the August 2026 workbook with its three products and `ap1000-sites.json` rebuilt; full EPA ECHO and Superfund document-list refreshes started (results land later the same day). `dod-fuds` and `epa-redev` were already current against upstream and were not re-pulled.
 
 ## 2. Now (next two weeks)
