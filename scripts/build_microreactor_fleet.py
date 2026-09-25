@@ -43,7 +43,7 @@ DATA = Path(__file__).resolve().parent.parent / "docs" / "data"
 OUT_PATH = DATA / "microreactor-fleet.json"
 AP1000_PATH = DATA / "ap1000-sites.json"
 
-GENERATED_AT = "2026-08-21"
+GENERATED_AT = "2026-09-25"
 
 # The evidence ladder, carried verbatim from Deployment Core's `capacityBands`.
 # Strongest first. The UI renders in this order and must not re-sort.
@@ -556,8 +556,58 @@ COMMITMENTS = [
         "gaps": ["The vendor's 2-acre figure is a design claim, not a Malmstrom site allocation",
                  "No NorthWestern Energy filing located"],
     },
-    # --- Army Janus: nine candidate installations, no vendor assigned --------
-    # Coordinates joined from ap1000-sites.json via `ap1000_site_id`.
+    # --- Army Janus: 5 of 9 candidate installations awarded to a named
+    # vendor 2026-08-26; the other 4 remain unassigned. Coordinates joined
+    # from ap1000-sites.json via `ap1000_site_id`. Source opened directly:
+    # https://defensescoop.com/2026/08/26/army-annouces-initiial-bases-to-host-nuclear-microreactors/
+    # ($2.2B combined, FY2027-FY2031, milestone-based payments; Sept 30 2028
+    # target for at least one reactor producing usable electricity).
+    *[
+        {
+            "id": f"janus-{sid}", "track": "us-gov", "band": "contracted",
+            "name": f"{label} (Army Janus)",
+            "owner": "U.S. Department of the Army",
+            "sector": "Defense — installation power",
+            "vendor_id": vendor_id,
+            "vendor_name": vendor_name,
+            "location": place, "state": st,
+            "ap1000_site_id": sid,
+            "lat": None, "lon": None,
+            "power_label": "Not specified per site", "mwe": None,
+            "timeline": "Vendor and site selected 2026-08-26; Army-regulated reactor "
+                        "operational at a domestic installation by 2028-09-30 "
+                        "(presidential directive)",
+            "instrument": "Army Janus Program award (DAF/DIU-partnered); up to $2.2B "
+                          "combined across all 5 awarded vendors, FY2027-FY2031, "
+                          "milestone-based payments",
+            "status": "Selected",
+            "microreactor": True,
+            "janus": True,
+            "sources": [
+                {"label": "DefenseScoop — Army selects vendors, sites for nuclear microreactors",
+                 "url": "https://defensescoop.com/2026/08/26/army-annouces-initiial-bases-to-host-nuclear-microreactors/"},
+                {"label": "army.mil — Janus next steps",
+                 "url": "https://www.army.mil/article/289074/army_announces_next_steps_on_janus_program_for_next_generation_nuclear_energy"},
+            ],
+            "gaps": ["The award names the company, not a reactor design; the fleet link is by company (BWXT is left unlinked because it has more than one design)",
+                     "Per-site MW rating not published",
+                     "No NRC docket filed yet for this specific reactor",
+                     "Milestone payment schedule not itemized per site"],
+        }
+        for sid, label, place, st, vendor_id, vendor_name in [
+            ("fort-benning-ga", "Fort Benning (Fort Moore)", "Columbus, GA", "GA",
+             "radiant", "Radiant Industries"),
+            ("fort-bragg-nc", "Fort Bragg (Fort Liberty)", "Fayetteville, NC", "NC",
+             "antares", "Antares Nuclear"),
+            ("fort-campbell-ky", "Fort Campbell", "Fort Campbell, KY/TN", "KY",
+             None, "BWXT Advanced Technologies"),
+            ("fort-drum-ny", "Fort Drum", "Watertown, NY", "NY",
+             "evinci", "Westinghouse Government Services"),
+            ("fort-hood-tx", "Fort Hood (Fort Cavazos)", "Killeen, TX", "TX",
+             None, "General Atomics Electromagnetic Systems"),
+        ]
+    ],
+    # --- Army Janus: 4 of 9 installations still awaiting a vendor ------------
     *[
         {
             "id": f"janus-{sid}", "track": "us-gov", "band": "framework",
@@ -565,7 +615,8 @@ COMMITMENTS = [
             "owner": "U.S. Department of the Army",
             "sector": "Defense — installation power",
             "vendor_id": None,
-            "vendor_name": "Not yet assigned — vendor evaluation and design-to-site matching underway via DIU",
+            "vendor_name": "Not yet assigned — the 2026-08-26 award covered 5 of the 9 "
+                           "candidate installations; this one is not among them",
             "location": place, "state": st,
             "ap1000_site_id": sid,
             "lat": None, "lon": None,
@@ -579,32 +630,22 @@ COMMITMENTS = [
             "sources": [
                 {"label": "army.mil — Janus next steps",
                  "url": "https://www.army.mil/article/289074/army_announces_next_steps_on_janus_program_for_next_generation_nuclear_energy"},
-                {"label": "ANS — Army chooses nine sites",
-                 "url": "https://www.ans.org/news/article-7567/us-army-chooses-nine-sites-for-possible-microreactor-by-2030/"},
+                {"label": "DefenseScoop — Army selects vendors, sites for nuclear microreactors",
+                 "url": "https://defensescoop.com/2026/08/26/army-annouces-initiial-bases-to-host-nuclear-microreactors/"},
             ],
             "gaps": gaps,
         }
         for sid, label, place, st, gaps in [
-            ("fort-benning-ga", "Fort Benning (Fort Moore)", "Columbus, GA", "GA",
-             ["Per-site load requirement not published"]),
-            ("fort-bragg-nc", "Fort Bragg (Fort Liberty)", "Fayetteville, NC", "NC",
-             ["Per-site load requirement not published"]),
-            ("fort-campbell-ky", "Fort Campbell", "Fort Campbell, KY/TN", "KY",
-             ["Per-site load requirement not published"]),
-            ("fort-drum-ny", "Fort Drum", "Watertown, NY", "NY",
-             ["Per-site load requirement not published"]),
-            ("fort-hood-tx", "Fort Hood (Fort Cavazos)", "Killeen, TX", "TX",
-             ["Per-site load requirement not published"]),
             ("fort-wainwright-ak", "Fort Wainwright", "Fairbanks, AK", "AK",
              ["No site-specific MW figure located — yet this is the highest-value row "
               "in the set: the one installation whose displaced alternative is coal/oil "
-              "at Alaskan prices"]),
+              "at Alaskan prices", "Not among the 5 sites awarded 2026-08-26"]),
             ("holston-aap-tn", "Holston Army Ammunition Plant", "Kingsport, TN", "TN",
-             ["Per-site load requirement not published"]),
+             ["Per-site load requirement not published", "Not among the 5 sites awarded 2026-08-26"]),
             ("jblm-wa", "Joint Base Lewis-McChord", "Tacoma, WA", "WA",
-             ["Per-site load requirement not published"]),
+             ["Per-site load requirement not published", "Not among the 5 sites awarded 2026-08-26"]),
             ("redstone-arsenal-al", "Redstone Arsenal", "Huntsville, AL", "AL",
-             ["Per-site load requirement not published"]),
+             ["Per-site load requirement not published", "Not among the 5 sites awarded 2026-08-26"]),
         ]
     ],
     # --- DOE test infrastructure + Reactor Pilot Program ---------------------
@@ -618,8 +659,9 @@ COMMITMENTS = [
         "location": "Idaho National Laboratory, ID", "state": "ID",
         "lat": 43.5210, "lon": -112.9490,
         "power_label": "Houses fuelled experiments up to 20 MWt", "mwe": None,
-        "timeline": "First fuelled experiment from spring 2026; Radiant fuel received "
-                    "2026-07-01; campaign targeted to complete Q3 2026",
+        "timeline": "First fuelled experiment from spring 2026; Radiant's Kaleidos unit "
+                    "departed El Segundo, CA for INL 2026-08-13; campaign targeted to "
+                    "complete Q3 2026, not confirmed complete as of 2026-09-25",
         "instrument": "DOE National Reactor Innovation Center test-bed access",
         "status": "Operating",
         "microreactor": True,
@@ -628,8 +670,10 @@ COMMITMENTS = [
              "url": "https://www.energy.gov/ne/articles/energy-department-announces-first-microreactor-experiments-dome-test-bed"},
             {"label": "WNN — test bed open for business",
              "url": "https://www.world-nuclear-news.org/articles/first-of-a-kind-microreactor-test-bed-open-for-business"},
+            {"label": "Radiant Nuclear — Kaleidos Has Left the Building",
+             "url": "https://www.radiantnuclear.com/blog/kaleidos-shipped/"},
         ],
-        "gaps": [],
+        "gaps": ["Campaign completion date not yet confirmed"],
     },
     {
         "id": "pele-inl", "track": "us-gov", "band": "doe-authorized",
