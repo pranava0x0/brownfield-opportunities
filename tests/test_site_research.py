@@ -75,6 +75,55 @@ def test_readding_keeps_prior_summary_in_history_and_unions_developments(tmp_pat
     assert [i["kind"] for i in site["items"]] == ["hearing", "news"]  # newest first, nothing dropped
 
 
+def test_archived_summary_keeps_its_citations(tmp_path):
+    """Regression (PR #38 review): history dropped the old summary_sources."""
+    data = _corpus(tmp_path)
+    out = data / "site-research.json"
+    sr.add_entries([_entry()], path=out, data_dir=data, today=TODAY)
+    sr.add_entries([_entry(summary="A replacement summary about Paducah that differs from the first one entirely.")],
+                   path=out, data_dir=data, today=TODAY)
+    site = json.loads(out.read_text())["sites"][0]
+    assert site["history"][0]["summary_sources"][0]["url"] == "https://www.energy.gov/pppo/paducah"
+
+
+def test_an_older_file_does_not_replace_a_newer_dossier(tmp_path):
+    """Regression (PR #37 review): the last file added became current even when older."""
+    data = _corpus(tmp_path)
+    out = data / "site-research.json"
+    newer = _entry(summary="The newer summary, researched in September after the lease vote was held.",
+                   next_review="2026-10-25")
+    older = _entry(researched_at="2026-08-01", search_window_start="2026-05-01",
+                   summary="An older summary from the August pass, before the lease vote happened.",
+                   summary_sources=[_src(published="2026-07-30")],
+                   items=[{"kind": "news", "date": "2026-07-30", "title": "Earlier DOE Paducah update",
+                           "summary": "DOE described the land transfer schedule in July.",
+                           "sources": [_src("https://www.energy.gov/pppo/paducah-july", "2026-07-30")]}],
+                   next_review="2026-08-31")
+    older["summary_sources"][0]["accessed"] = "2026-08-01"
+    older["items"][0]["sources"][0]["accessed"] = "2026-08-01"
+    sr.add_entries([newer], path=out, data_dir=data, today=TODAY)
+    sr.add_entries([older], path=out, data_dir=data, today=TODAY)
+    site = json.loads(out.read_text())["sites"][0]
+    assert site["researched_at"] == "2026-09-25"
+    assert site["summary"].startswith("The newer summary")
+    assert site["next_review"] == "2026-10-25" and site["search_window_start"] == "2026-06-25"
+    assert [h["researched_at"] for h in site["history"]] == ["2026-08-01"]
+    assert {i["date"] for i in site["items"]} == {"2026-09-10", "2026-07-30"}  # older item still unioned in
+
+
+def test_history_is_never_truncated(tmp_path):
+    """Regression (PR #38 review): history was sliced to 12 entries."""
+    data = _corpus(tmp_path)
+    out = data / "site-research.json"
+    past = [{"researched_at": f"2025-{m:02d}-01", "summary": f"Archived summary number {m}."} for m in range(1, 13)]
+    sr.add_entries([_entry(history=past)], path=out, data_dir=data, today=TODAY)
+    sr.add_entries([_entry(summary="A thirteenth summary that pushes the first twelve into longer history.")],
+                   path=out, data_dir=data, today=TODAY)
+    site = json.loads(out.read_text())["sites"][0]
+    assert len(site["history"]) == 13
+    assert site["history"][-1]["researched_at"] == "2025-01-01"
+
+
 def test_same_development_is_not_duplicated(tmp_path):
     data = _corpus(tmp_path)
     out = data / "site-research.json"

@@ -43,7 +43,6 @@ PROGRAM_FILES = ("superfund-npl.json", "epa-acres.json", "dod-fuds.json", "dod-b
 # Enrichment files whose fields help a researcher check what the site shows.
 CONTEXT_FILES = ("infra-proximity.json", "parcel-owner.json", "epa-echo.json",
                  "epa-superfund-docs.json", "ai-summary.json", "coord-quality.json")
-HISTORY_LIMIT = 12
 SOURCE_LABEL = "Per-site research: cited news, permits, filings and field checks"
 
 
@@ -118,17 +117,47 @@ def _item_key(item: dict[str, Any]) -> tuple[str, str, str]:
     return (item["kind"], item["date"], first_url.rstrip("/"))
 
 
+def _history_entry(dossier: dict[str, Any]) -> dict[str, Any]:
+    entry = {"researched_at": dossier["researched_at"], "summary": dossier["summary"]}
+    if dossier.get("summary_sources"):
+        entry["summary_sources"] = dossier["summary_sources"]
+    return entry
+
+
+def _union_history(*lists: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """All history entries, newest first, deduplicated by (date, summary). Never truncated."""
+    out: dict[tuple[str, str], dict[str, Any]] = {}
+    for lst in lists:
+        for h in lst:
+            key = (h["researched_at"], h["summary"])
+            if key not in out or (h.get("summary_sources") and not out[key].get("summary_sources")):
+                out[key] = h
+    return sorted(out.values(), key=lambda h: h["researched_at"], reverse=True)
+
+
 def merge(existing: dict[str, Any] | None, new: SiteResearch) -> dict[str, Any]:
-    """Return the merged dossier; never drops a prior summary or development."""
-    merged = new.model_dump(exclude_none=True)
+    """Return the merged dossier; never drops a prior summary, citation or development.
+
+    The dossier with the later researched_at stays current, whatever order the
+    files arrive in; the other one's summary moves into history. Ties go to the
+    new entry, so re-running the same day updates the dossier.
+    """
+    incoming = new.model_dump(exclude_none=True)
     if not existing:
-        return merged
-    history = list(existing.get("history") or [])
-    if existing.get("summary") and existing["summary"] != merged["summary"]:
-        history.insert(0, {"researched_at": existing["researched_at"], "summary": existing["summary"]})
-    merged["history"] = (history + [h for h in merged.get("history", []) if h not in history])[:HISTORY_LIMIT]
+        return incoming
+    if incoming["researched_at"] >= existing["researched_at"]:
+        current, older = incoming, existing
+    else:
+        current, older = dict(existing), incoming
+    merged = dict(current)
+    archived = []
+    if older.get("summary") and older["summary"] != current["summary"]:
+        archived.append(_history_entry(older))
+    merged["history"] = _union_history(current.get("history") or [], older.get("history") or [], archived)
+    if not merged["history"]:
+        merged.pop("history")
     seen = {_item_key(i) for i in merged.get("items", [])}
-    for old in existing.get("items") or []:
+    for old in older.get("items") or []:
         if _item_key(old) not in seen:
             merged.setdefault("items", []).append(old)
             seen.add(_item_key(old))
