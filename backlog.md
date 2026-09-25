@@ -152,6 +152,8 @@ Priorities: **high** = next, **med** = soon, **low** = nice-to-have. Last update
 Grouped by theme. Every still-open idea carried forward from the pre-2026-09-25 backlog and the four archived plan docs lives somewhere below, in Appendix A, or in §5.
 
 ### Data sources
+- **[med]** Superfund document selection keeps the 8 newest documents per site, so recent newsletters and fact sheets now push out older decision documents (the 2026-09-25 refresh moved ~1,900 slots from "Key Documents" to general collections). Always keep the latest ROD/ESD and five-year review, then fill the rest newest-first.
+
 - **[med]** State voluntary-cleanup-program (VCP) connectors. Each state runs its own brownfield/VCP universe outside federal data — often *closer* to shovel-ready than NPL sites because voluntary cleanups are developer-initiated. NY BCP's Socrata dataset (`data.ny.gov/resource/ir93-7qzi.json`) is a proven, no-auth path; add CA DTSC EnviroStor, TX TCEQ VCP, and NJ HDSRF when they publish similarly machine-readable endpoints.
 
 - **[med]** RCRA Corrective Action sites. A large contaminated-industrial universe (tens of thousands of facilities) outside both NPL and ACRES; EPA ECHO and EnviroAtlas both expose it.
