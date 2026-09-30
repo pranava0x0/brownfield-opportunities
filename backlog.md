@@ -34,7 +34,7 @@ Priorities: **high** = next, **med** = soon, **low** = nice-to-have. Last update
 
 | Dataset | Our date | Upstream signal | Cadence | Status |
 |---|---|---|---|---|
-| superfund-npl / sites.json | 2026-09-25 | upstream edited 2026-09-26 (checked 2026-09-29) | weekly (cron broken) | **Stale — upstream edited after our pull** |
+| superfund-npl / sites.json | 2026-09-25 | upstream edited 2026-09-26 (checked 2026-09-30) | weekly (cron broken) | **Stale — upstream edited after our pull** |
 | epa-acres | 2026-05-12 | frozen "8_30_2021" snapshot, unmoved since 2021-08-31 | annual, blocked | **Blocked — see §5** |
 | dod-fuds | 2026-09-12 | upstream edited 2026-09-04 | weekly (cron broken) | Current |
 | dod-brac | 2026-05-12 | frozen 2021 snapshot | rare | Current (vs. frozen source) |
@@ -300,8 +300,6 @@ Rules the routine follows:
 
 | # | Status | Site id | Name | St | Why queued | Last researched | Next due |
 |---|---|---|---|---|---|---|---|
-| 3 | queued | ACRES-140164 | Springdale Boat Ramp and Parking Lot | PA | 0.2 mi from the Cheswick data-center site | — | — |
-| 4 | queued | ACRES-157082 | Colstrip City Shop | MT | 0.7 mi from Colstrip; data-center deal at the plant (Sabey/Atlas) | — | — |
 | 5 | queued | WI0001954841 | Fox River NRDA/PCB Releases | WI | Shipped 1,129,744 acres looks like a boundary artifact | — | — |
 | 6 | queued | WA3890090076 | Hanford 100-Area (USDOE) | WA | Hanford reuse projects (Cereza solar sale, Cascade Xe-100) | — | — |
 | 7 | queued | ACRES-118982 | Watercrest/Cheswick Business Park | PA | 0.7 mi from Cheswick Generating Station | — | — |
@@ -312,6 +310,8 @@ Rules the routine follows:
 | 12 | queued | FUDS-C03VA1071 | Ordnance General Supply | VA | 1.4 mi from the QTS Richmond campus | — | — |
 | 13 | queued | TX4890110527 | Pantex Plant (USDOE) | TX | DOE/NNSA site; energy and land-use activity nearby | — | — |
 | 14 | queued | NVD980813646 | Carson River Mercury Site | NV | Shipped 411,014 acres looks like a boundary artifact | — | — |
+| 3 | done 2026-09-30 | ACRES-140164 | Springdale Boat Ramp and Parking Lot | PA | 0.2 mi from the Cheswick data-center site | 2026-09-30 | 2026-12-29 |
+| 4 | done 2026-09-30 | ACRES-157082 | Colstrip City Shop | MT | 0.7 mi from Colstrip; NorthWestern data-center agreements (Sabey/Atlas deals are Butte-area, not Colstrip) | 2026-09-30 | 2026-10-30 |
 | 1 | done 2026-09-29 | ID4890008952 | Idaho National Engineering Laboratory (USDOE) | ID | AI-infrastructure land offer and DOME reactor tests; shipped 1.08M acres needs a check | 2026-09-29 | 2026-12-28 |
 | 2 | done 2026-09-29 | TN1890090003 | Oak Ridge Reservation (USDOE) | TN | Reindustrialization and AI/nuclear projects nearby (Clinch River permit pending) | 2026-09-29 | 2026-10-29 |
 | 15 | done 2026-09-25 | KY8890008982 | Paducah Gaseous Diffusion Plant (USDOE) | KY | DOE picked it for an AI computing campus (Jul 2026); Kentucky PSC approval pending | 2026-09-25 | 2026-10-25 |
@@ -322,7 +322,8 @@ Rules the routine follows:
 ### Run log
 - 2026-09-25 · pilot run in session · Tar Creek (OKD980629844) · 3 developments · 2 field differences (acreage, coordinates) · not pushed: no GitHub credentials on this machine
 - 2026-09-25 · daily routine · Paducah (KY8890008982), Savannah River (SC1890008989), Bessemer Campus Expansion (ACRES-240696) · 6 developments · 1 field difference (SRS acreage 234,032 shipped vs DOE ~198,000) · pushed after auth was fixed; PR #37
-- 2026-09-29 · daily routine · INL (ID4890008952), Oak Ridge Reservation (TN1890090003) · 4 developments (INL and Oak Ridge AI data-center lease solicitations, INL fifth five-year review letter, NRC staff recommendation for the Clinch River permit; permit issuance not confirmed in a primary source) · 2 field differences (INL acreage 1.08M vs ~570,000; Oak Ridge 37,430 vs ~35,000) · push status below
+- 2026-09-29 · daily routine · INL (ID4890008952), Oak Ridge Reservation (TN1890090003) · 4 developments (INL and Oak Ridge AI data-center lease solicitations, INL fifth five-year review letter, NRC staff recommendation for the Clinch River permit; permit issuance not confirmed in a primary source) · 2 field differences (INL acreage 1.08M vs ~570,000; Oak Ridge 37,430 vs ~35,000) · pushed; PR #39
+- 2026-09-30 · daily routine · Springdale Boat Ramp (ACRES-140164), Colstrip City Shop (ACRES-157082) · 4 developments (Cheswick parcel sale 2025-11-19 and Springdale conditional-use approval 2025-12-16; NorthWestern took 592 MW more of Colstrip 2026-01-01 and reported ~150 MW→1,500 MW data-center agreements 2026-07-29) · 0 field differences; ACRES profiles now redirect to EPA sign-in, so cleanup status, acreage and owner are unverifiable for ACRES sites; nearby-plant MW figures unconfirmed · pushed; PR #39
 
 ## 7. Decisions needed from Pranava
 
