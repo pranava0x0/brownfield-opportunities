@@ -310,6 +310,8 @@ Rules the routine follows:
 | 14 | queued | NVD980813646 | Carson River Mercury Site | NV | Shipped 411,014 acres looks like a boundary artifact | — | — |
 | 19 | queued | NDD980716963 | Arsenic Trioxide Site | ND | Shipped 597,025 acres looks like a boundary artifact | — | — |
 | 20 | queued | MON000705443 | Southwest Jefferson County Mining | MO | Shipped 423,155 acres looks like a boundary artifact | — | — |
+| 21 | queued | CO7890010526 | Rocky Flats Plant (USDOE) | CO | DOE federal-facility NPL site; wildlife refuge and nearby land-use activity | — | — |
+| 22 | queued | OH6890008976 | Feed Materials Production Center (USDOE) | OH | DOE federal-facility NPL site (Fernald); reuse activity | — | — |
 | 5 | done 2026-10-01 | WI0001954841 | Fox River NRDA/PCB Releases | WI | Shipped 1,129,744 acres looks like a boundary artifact | 2026-10-01 | 2026-12-30 |
 | 6 | done 2026-10-01 | WA3890090076 | Hanford 100-Area (USDOE) | WA | Hanford reuse projects (Cereza solar sale, Cascade Xe-100) | 2026-10-01 | 2026-12-30 |
 | 3 | done 2026-09-30 | ACRES-140164 | Springdale Boat Ramp and Parking Lot | PA | 0.2 mi from the Cheswick data-center site | 2026-09-30 | 2026-12-29 |
