@@ -34,7 +34,7 @@ Priorities: **high** = next, **med** = soon, **low** = nice-to-have. Last update
 
 | Dataset | Our date | Upstream signal | Cadence | Status |
 |---|---|---|---|---|
-| superfund-npl / sites.json | 2026-09-25 | upstream edited 2026-09-19 | weekly (cron broken) | Current |
+| superfund-npl / sites.json | 2026-09-25 | upstream edited 2026-09-26 (checked 2026-09-30) | weekly (cron broken) | **Stale — upstream edited after our pull** |
 | epa-acres | 2026-05-12 | frozen "8_30_2021" snapshot, unmoved since 2021-08-31 | annual, blocked | **Blocked — see §5** |
 | dod-fuds | 2026-09-12 | upstream edited 2026-09-04 | weekly (cron broken) | Current |
 | dod-brac | 2026-05-12 | frozen 2021 snapshot | rare | Current (vs. frozen source) |
@@ -146,6 +146,8 @@ Priorities: **high** = next, **med** = soon, **low** = nice-to-have. Last update
 21. **[low]** Partition or precompute compact evidence payloads if measured mobile first-insight time stays high (Approach C) — current work already defers unused datasets and markers.
 
 22. **[low]** File the `nepa-mcp` upstream proposals from Spec 13c: the `load_server_module` re-front PR (our `purge_server_src_namespace` is the shim + test case), the coverage-metadata issue, and the NEPATEC-document-server discussion.
+
+23. **[med]** DOE federal-facility NPL acreages run above DOE's own figures. Daily research found INL ships 1,082,653 ac vs EPA's 890 sq mi (~570,000 ac), Savannah River 234,032 vs ~198,000, Oak Ridge 37,430 vs ~35,000. Likely one cause: the EPA boundary polygons include buffers or overlapping operable units. Compare every federal-facility NPL acreage with the agency-stated figure and add a detail-panel note where the gap exceeds ~15%. Size: S. Dossiers in `site-research.json`.
 
 ## 4. Later and ideas
 
@@ -298,20 +300,24 @@ Rules the routine follows:
 
 | # | Status | Site id | Name | St | Why queued | Last researched | Next due |
 |---|---|---|---|---|---|---|---|
-| 1 | queued | ID4890008952 | Idaho National Engineering Laboratory (USDOE) | ID | AI-infrastructure land offer and DOME reactor tests; shipped 1.08M acres needs a check | — | — |
-| 2 | queued | TN1890090003 | Oak Ridge Reservation (USDOE) | TN | Reindustrialization and AI/nuclear projects nearby (Clinch River permit pending) | — | — |
-| 3 | queued | ACRES-140164 | Springdale Boat Ramp and Parking Lot | PA | 0.2 mi from the Cheswick data-center site | — | — |
-| 4 | queued | ACRES-157082 | Colstrip City Shop | MT | 0.7 mi from Colstrip; data-center deal at the plant (Sabey/Atlas) | — | — |
-| 5 | queued | WI0001954841 | Fox River NRDA/PCB Releases | WI | Shipped 1,129,744 acres looks like a boundary artifact | — | — |
-| 6 | queued | WA3890090076 | Hanford 100-Area (USDOE) | WA | Hanford reuse projects (Cereza solar sale, Cascade Xe-100) | — | — |
-| 7 | queued | ACRES-118982 | Watercrest/Cheswick Business Park | PA | 0.7 mi from Cheswick Generating Station | — | — |
-| 8 | queued | ACRES-111146 | G & R Auto Sales | NC | 0.2 mi from Meta's Forest City campus | — | — |
-| 9 | queued | MID980994354 | Tittabawassee River, Saginaw River & Bay | MI | Shipped 726,763 acres looks like a boundary artifact | — | — |
-| 10 | queued | AK6210022426 | Fort Wainwright | AK | Army Janus microreactor finalist (no vendor yet); shipped 919,896 acres | — | — |
+| 9 | done 2026-10-03 | MID980994354 | Tittabawassee River, Saginaw River & Bay | MI | Shipped 726,763 acres looks like a boundary artifact | 2026-10-03 | 2026-11-02 |
+| 10 | done 2026-10-03 | AK6210022426 | Fort Wainwright | AK | Army Janus microreactor finalist (no vendor yet); shipped 919,896 acres | 2026-10-03 | 2026-11-02 |
+| 7 | done 2026-10-02 | ACRES-118982 | Watercrest/Cheswick Business Park | PA | 0.7 mi from Cheswick Generating Station | 2026-10-02 | 2026-11-01 |
+| 8 | done 2026-10-02 | ACRES-111146 | G & R Auto Sales | NC | 0.2 mi from Meta's Forest City campus | 2026-10-02 | 2026-12-31 |
 | 11 | queued | ACRES-137763 | Universal Transmission | PA | 1.4 mi from NorthPoint Keystone Trade Center campus | — | — |
 | 12 | queued | FUDS-C03VA1071 | Ordnance General Supply | VA | 1.4 mi from the QTS Richmond campus | — | — |
 | 13 | queued | TX4890110527 | Pantex Plant (USDOE) | TX | DOE/NNSA site; energy and land-use activity nearby | — | — |
 | 14 | queued | NVD980813646 | Carson River Mercury Site | NV | Shipped 411,014 acres looks like a boundary artifact | — | — |
+| 19 | queued | NDD980716963 | Arsenic Trioxide Site | ND | Shipped 597,025 acres looks like a boundary artifact | — | — |
+| 20 | queued | MON000705443 | Southwest Jefferson County Mining | MO | Shipped 423,155 acres looks like a boundary artifact | — | — |
+| 21 | queued | CO7890010526 | Rocky Flats Plant (USDOE) | CO | DOE federal-facility NPL site; wildlife refuge and nearby land-use activity | — | — |
+| 22 | queued | OH6890008976 | Feed Materials Production Center (USDOE) | OH | DOE federal-facility NPL site (Fernald); reuse activity | — | — |
+| 5 | done 2026-10-01 | WI0001954841 | Fox River NRDA/PCB Releases | WI | Shipped 1,129,744 acres looks like a boundary artifact | 2026-10-01 | 2026-12-30 |
+| 6 | done 2026-10-01 | WA3890090076 | Hanford 100-Area (USDOE) | WA | Hanford reuse projects (Cereza solar sale, Cascade Xe-100) | 2026-10-01 | 2026-12-30 |
+| 3 | done 2026-09-30 | ACRES-140164 | Springdale Boat Ramp and Parking Lot | PA | 0.2 mi from the Cheswick data-center site | 2026-09-30 | 2026-12-29 |
+| 4 | done 2026-09-30 | ACRES-157082 | Colstrip City Shop | MT | 0.7 mi from Colstrip; NorthWestern data-center agreements (Sabey/Atlas deals are Butte-area, not Colstrip) | 2026-09-30 | 2026-10-30 |
+| 1 | done 2026-09-29 | ID4890008952 | Idaho National Engineering Laboratory (USDOE) | ID | AI-infrastructure land offer and DOME reactor tests; shipped 1.08M acres needs a check | 2026-09-29 | 2026-12-28 |
+| 2 | done 2026-09-29 | TN1890090003 | Oak Ridge Reservation (USDOE) | TN | Reindustrialization and AI/nuclear projects nearby (Clinch River permit pending) | 2026-09-29 | 2026-10-29 |
 | 15 | done 2026-09-25 | KY8890008982 | Paducah Gaseous Diffusion Plant (USDOE) | KY | DOE picked it for an AI computing campus (Jul 2026); Kentucky PSC approval pending | 2026-09-25 | 2026-10-25 |
 | 16 | done 2026-09-25 | SC1890008989 | Savannah River Site (USDOE) | SC | AI/energy lease selection (Amentum, Jul 2026); no lease signed yet | 2026-09-25 | 2026-10-25 |
 | 17 | done 2026-09-25 | ACRES-240696 | Bessemer Campus Expansion Site | AL | 1.2 mi from Project Marvel (QTS confirmed Jul 2026); rezonings and utility filings likely | 2026-09-25 | 2026-10-25 |
@@ -320,6 +326,11 @@ Rules the routine follows:
 ### Run log
 - 2026-09-25 · pilot run in session · Tar Creek (OKD980629844) · 3 developments · 2 field differences (acreage, coordinates) · not pushed: no GitHub credentials on this machine
 - 2026-09-25 · daily routine · Paducah (KY8890008982), Savannah River (SC1890008989), Bessemer Campus Expansion (ACRES-240696) · 6 developments · 1 field difference (SRS acreage 234,032 shipped vs DOE ~198,000) · pushed after auth was fixed; PR #37
+- 2026-09-29 · daily routine · INL (ID4890008952), Oak Ridge Reservation (TN1890090003) · 4 developments (INL and Oak Ridge AI data-center lease solicitations, INL fifth five-year review letter, NRC staff recommendation for the Clinch River permit; permit issuance not confirmed in a primary source) · 2 field differences (INL acreage 1.08M vs ~570,000; Oak Ridge 37,430 vs ~35,000) · pushed; PR #39
+- 2026-09-30 · daily routine · Springdale Boat Ramp (ACRES-140164), Colstrip City Shop (ACRES-157082) · 4 developments (Cheswick parcel sale 2025-11-19 and Springdale conditional-use approval 2025-12-16; NorthWestern took 592 MW more of Colstrip 2026-01-01 and reported ~150 MW→1,500 MW data-center agreements 2026-07-29) · 0 field differences; ACRES profiles now redirect to EPA sign-in, so cleanup status, acreage and owner are unverifiable for ACRES sites; nearby-plant MW figures unconfirmed · pushed; PR #39
+- 2026-10-01 · daily routine · Fox River (WI0001954841), Hanford 100-Area (WA3890090076) · 1 development (Cereza solar transfer Hecate→Savion, 2026-02) · 1 field difference (Hanford 100-Area 154.3 ac shipped vs EPA 154 sq mi, likely units); Fox River acreage unverifiable (EPA/DNR give 39 river miles + Green Bay, no acreage) and NPL status unconfirmed; Cascade Xe-100 NRC status unconfirmed (nrc.gov 403) · subagent ran ~22 min, over the 20-minute cap
+- 2026-10-02 · daily routine · Watercrest/Cheswick Business Park (ACRES-118982), G & R Auto Sales (ACRES-111146) · 2 developments (both about the nearby Cheswick Generating Station site: sale 2025-11-19, Springdale approval 2025-12-16; distance to the Blockdale St parcel not established) · 0 field differences; location, status and owner unverifiable (ACRES sign-in wall); Forest City Meta link not searched; some citations from search results only (DCD 403, WESA unopened) · pushed: see report
+- 2026-10-03 · daily routine · Tittabawassee (MID980994354), Fort Wainwright (AK6210022426) · 5 developments (3 EPA Tittabawassee community documents; Army Janus: Wainwright named candidate 2025-11, five vendors assigned to other bases 2026-08) · 1 field difference (Wainwright acreage 919,896 shipped vs ~900,000 EPA); Tittabawassee acreage and NPL status unverifiable, 2 EPA PDFs unreadable · push status in report
 
 ## 7. Decisions needed from Pranava
 
