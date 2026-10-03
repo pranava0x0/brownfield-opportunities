@@ -300,10 +300,10 @@ Rules the routine follows:
 
 | # | Status | Site id | Name | St | Why queued | Last researched | Next due |
 |---|---|---|---|---|---|---|---|
+| 9 | done 2026-10-03 | MID980994354 | Tittabawassee River, Saginaw River & Bay | MI | Shipped 726,763 acres looks like a boundary artifact | 2026-10-03 | 2026-11-02 |
+| 10 | done 2026-10-03 | AK6210022426 | Fort Wainwright | AK | Army Janus microreactor finalist (no vendor yet); shipped 919,896 acres | 2026-10-03 | 2026-11-02 |
 | 7 | done 2026-10-02 | ACRES-118982 | Watercrest/Cheswick Business Park | PA | 0.7 mi from Cheswick Generating Station | 2026-10-02 | 2026-11-01 |
 | 8 | done 2026-10-02 | ACRES-111146 | G & R Auto Sales | NC | 0.2 mi from Meta's Forest City campus | 2026-10-02 | 2026-12-31 |
-| 9 | queued | MID980994354 | Tittabawassee River, Saginaw River & Bay | MI | Shipped 726,763 acres looks like a boundary artifact | — | — |
-| 10 | queued | AK6210022426 | Fort Wainwright | AK | Army Janus microreactor finalist (no vendor yet); shipped 919,896 acres | — | — |
 | 11 | queued | ACRES-137763 | Universal Transmission | PA | 1.4 mi from NorthPoint Keystone Trade Center campus | — | — |
 | 12 | queued | FUDS-C03VA1071 | Ordnance General Supply | VA | 1.4 mi from the QTS Richmond campus | — | — |
 | 13 | queued | TX4890110527 | Pantex Plant (USDOE) | TX | DOE/NNSA site; energy and land-use activity nearby | — | — |
@@ -330,6 +330,7 @@ Rules the routine follows:
 - 2026-09-30 · daily routine · Springdale Boat Ramp (ACRES-140164), Colstrip City Shop (ACRES-157082) · 4 developments (Cheswick parcel sale 2025-11-19 and Springdale conditional-use approval 2025-12-16; NorthWestern took 592 MW more of Colstrip 2026-01-01 and reported ~150 MW→1,500 MW data-center agreements 2026-07-29) · 0 field differences; ACRES profiles now redirect to EPA sign-in, so cleanup status, acreage and owner are unverifiable for ACRES sites; nearby-plant MW figures unconfirmed · pushed; PR #39
 - 2026-10-01 · daily routine · Fox River (WI0001954841), Hanford 100-Area (WA3890090076) · 1 development (Cereza solar transfer Hecate→Savion, 2026-02) · 1 field difference (Hanford 100-Area 154.3 ac shipped vs EPA 154 sq mi, likely units); Fox River acreage unverifiable (EPA/DNR give 39 river miles + Green Bay, no acreage) and NPL status unconfirmed; Cascade Xe-100 NRC status unconfirmed (nrc.gov 403) · subagent ran ~22 min, over the 20-minute cap
 - 2026-10-02 · daily routine · Watercrest/Cheswick Business Park (ACRES-118982), G & R Auto Sales (ACRES-111146) · 2 developments (both about the nearby Cheswick Generating Station site: sale 2025-11-19, Springdale approval 2025-12-16; distance to the Blockdale St parcel not established) · 0 field differences; location, status and owner unverifiable (ACRES sign-in wall); Forest City Meta link not searched; some citations from search results only (DCD 403, WESA unopened) · pushed: see report
+- 2026-10-03 · daily routine · Tittabawassee (MID980994354), Fort Wainwright (AK6210022426) · 5 developments (3 EPA Tittabawassee community documents; Army Janus: Wainwright named candidate 2025-11, five vendors assigned to other bases 2026-08) · 1 field difference (Wainwright acreage 919,896 shipped vs ~900,000 EPA); Tittabawassee acreage and NPL status unverifiable, 2 EPA PDFs unreadable · push status in report
 
 ## 7. Decisions needed from Pranava
 
