@@ -304,8 +304,8 @@ Rules the routine follows:
 | 10 | done 2026-10-03 | AK6210022426 | Fort Wainwright | AK | Army Janus microreactor finalist (no vendor yet); shipped 919,896 acres | 2026-10-03 | 2026-11-02 |
 | 7 | done 2026-10-02 | ACRES-118982 | Watercrest/Cheswick Business Park | PA | 0.7 mi from Cheswick Generating Station | 2026-10-02 | 2026-11-01 |
 | 8 | done 2026-10-02 | ACRES-111146 | G & R Auto Sales | NC | 0.2 mi from Meta's Forest City campus | 2026-10-02 | 2026-12-31 |
-| 11 | queued | ACRES-137763 | Universal Transmission | PA | 1.4 mi from NorthPoint Keystone Trade Center campus | — | — |
-| 12 | queued | FUDS-C03VA1071 | Ordnance General Supply | VA | 1.4 mi from the QTS Richmond campus | — | — |
+| 11 | done 2026-10-04 | ACRES-137763 | Universal Transmission | PA | 1.4 mi from NorthPoint Keystone Trade Center campus | 2026-10-04 | 2027-01-02 |
+| 12 | done 2026-10-04 | FUDS-C03VA1071 | Ordnance General Supply | VA | 1.4 mi from the QTS Richmond campus | 2026-10-04 | 2027-01-02 |
 | 13 | queued | TX4890110527 | Pantex Plant (USDOE) | TX | DOE/NNSA site; energy and land-use activity nearby | — | — |
 | 14 | queued | NVD980813646 | Carson River Mercury Site | NV | Shipped 411,014 acres looks like a boundary artifact | — | — |
 | 19 | queued | NDD980716963 | Arsenic Trioxide Site | ND | Shipped 597,025 acres looks like a boundary artifact | — | — |
@@ -331,6 +331,7 @@ Rules the routine follows:
 - 2026-10-01 · daily routine · Fox River (WI0001954841), Hanford 100-Area (WA3890090076) · 1 development (Cereza solar transfer Hecate→Savion, 2026-02) · 1 field difference (Hanford 100-Area 154.3 ac shipped vs EPA 154 sq mi, likely units); Fox River acreage unverifiable (EPA/DNR give 39 river miles + Green Bay, no acreage) and NPL status unconfirmed; Cascade Xe-100 NRC status unconfirmed (nrc.gov 403) · subagent ran ~22 min, over the 20-minute cap
 - 2026-10-02 · daily routine · Watercrest/Cheswick Business Park (ACRES-118982), G & R Auto Sales (ACRES-111146) · 2 developments (both about the nearby Cheswick Generating Station site: sale 2025-11-19, Springdale approval 2025-12-16; distance to the Blockdale St parcel not established) · 0 field differences; location, status and owner unverifiable (ACRES sign-in wall); Forest City Meta link not searched; some citations from search results only (DCD 403, WESA unopened) · pushed: see report
 - 2026-10-03 · daily routine · Tittabawassee (MID980994354), Fort Wainwright (AK6210022426) · 5 developments (3 EPA Tittabawassee community documents; Army Janus: Wainwright named candidate 2025-11, five vendors assigned to other bases 2026-08) · 1 field difference (Wainwright acreage 919,896 shipped vs ~900,000 EPA); Tittabawassee acreage and NPL status unverifiable, 2 EPA PDFs unreadable · push status in report
+- 2026-10-04 · daily routine · Universal Transmission (ACRES-137763), Ordnance General Supply (FUDS-C03VA1071) · 0 developments · 0 field differences; ACRES profile behind EPA sign-in and USACE FUDS portal did not resolve, so location/status/owner unverifiable; no link found between the FUDS site and the QTS Richmond campus; Army Corps/FERC/state permit searches shallow · push status in report
 
 ## 7. Decisions needed from Pranava
 
