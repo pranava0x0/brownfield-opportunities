@@ -34,9 +34,9 @@ Priorities: **high** = next, **med** = soon, **low** = nice-to-have. Last update
 
 | Dataset | Our date | Upstream signal | Cadence | Status |
 |---|---|---|---|---|
-| superfund-npl / sites.json | 2026-09-25 | upstream edited 2026-09-26 (checked 2026-09-30) | weekly (cron broken) | **Stale — upstream edited after our pull** |
+| superfund-npl / sites.json | 2026-09-25 | upstream edited 2026-10-03 (checked 2026-10-08) | weekly (cron broken) | **Stale — upstream edited after our pull** |
 | epa-acres | 2026-05-12 | frozen "8_30_2021" snapshot, unmoved since 2021-08-31 | annual, blocked | **Blocked — see §5** |
-| dod-fuds | 2026-09-12 | upstream edited 2026-09-04 | weekly (cron broken) | Current |
+| dod-fuds | 2026-09-12 | upstream edited 2026-10-07 (checked 2026-10-08) | weekly (cron broken) | **Stale — upstream edited after our pull** |
 | dod-brac | 2026-05-12 | frozen 2021 snapshot | rare | Current (vs. frozen source) |
 | epa-redev | 2026-09-12 | upstream edited 2026-07-24 | weekly (cron broken) | Current |
 | infra-proximity: transmission/gas/power-plant (HIFLD) | not stamped per-layer | 2023-09 / 2025-07 / 2025-07 | ad hoc | **Unknown — metadata gap, see Now #9** |
@@ -306,12 +306,19 @@ Rules the routine follows:
 | 8 | done 2026-10-02 | ACRES-111146 | G & R Auto Sales | NC | 0.2 mi from Meta's Forest City campus | 2026-10-02 | 2026-12-31 |
 | 11 | done 2026-10-04 | ACRES-137763 | Universal Transmission | PA | 1.4 mi from NorthPoint Keystone Trade Center campus | 2026-10-04 | 2027-01-02 |
 | 12 | done 2026-10-04 | FUDS-C03VA1071 | Ordnance General Supply | VA | 1.4 mi from the QTS Richmond campus | 2026-10-04 | 2027-01-02 |
-| 13 | queued | TX4890110527 | Pantex Plant (USDOE) | TX | DOE/NNSA site; energy and land-use activity nearby | — | — |
-| 14 | queued | NVD980813646 | Carson River Mercury Site | NV | Shipped 411,014 acres looks like a boundary artifact | — | — |
-| 19 | queued | NDD980716963 | Arsenic Trioxide Site | ND | Shipped 597,025 acres looks like a boundary artifact | — | — |
 | 20 | queued | MON000705443 | Southwest Jefferson County Mining | MO | Shipped 423,155 acres looks like a boundary artifact | — | — |
 | 21 | queued | CO7890010526 | Rocky Flats Plant (USDOE) | CO | DOE federal-facility NPL site; wildlife refuge and nearby land-use activity | — | — |
 | 22 | queued | OH6890008976 | Feed Materials Production Center (USDOE) | OH | DOE federal-facility NPL site (Fernald); reuse activity | — | — |
+| 23 | queued | CA1570024504 | Edwards Air Force Base | CA | Air Force AI data-center lease base (AFCEC-26-R-0002); Nuclear Siting tab row; shipped 305,104 acres | — | — |
+| 24 | queued | AL7210020742 | USArmy/NASA Redstone Arsenal | AL | DoD/NASA federal-facility NPL site; Huntsville energy and data-center activity | — | — |
+| 25 | queued | CA7210020676 | Fort Ord | CA | Closed Army post with ongoing Fort Ord Reuse Authority land transfers | — | — |
+| 26 | queued | OR6213820917 | Umatilla Army Depot (Lagoons) | OR | Closed depot near the Umatilla/Hermiston data-center cluster | — | — |
+| 27 | queued | MOD981507585 | Newton County Mine Tailings | MO | Shipped 402,089 acres looks like a boundary artifact | — | — |
+| 28 | queued | COD980717557 | Central City, Clear Creek | CO | Shipped 252,409 acres looks like a boundary artifact | — | — |
+| 29 | queued | ORD071803985 | Harbor Oil Inc. | OR | Deleted NPL oil recycler in Portland shipping 156,219 acres looks like a boundary artifact | — | — |
+| 13 | done 2026-10-08 | TX4890110527 | Pantex Plant (USDOE) | TX | DOE/NNSA site; energy and land-use activity nearby | 2026-10-08 | 2026-11-07 |
+| 14 | done 2026-10-08 | NVD980813646 | Carson River Mercury Site | NV | Shipped 411,014 acres looks like a boundary artifact | 2026-10-08 | 2027-01-06 |
+| 19 | done 2026-10-08 | NDD980716963 | Arsenic Trioxide Site | ND | Shipped 597,025 acres looks like a boundary artifact | 2026-10-08 | 2027-01-06 |
 | 5 | done 2026-10-01 | WI0001954841 | Fox River NRDA/PCB Releases | WI | Shipped 1,129,744 acres looks like a boundary artifact | 2026-10-01 | 2026-12-30 |
 | 6 | done 2026-10-01 | WA3890090076 | Hanford 100-Area (USDOE) | WA | Hanford reuse projects (Cereza solar sale, Cascade Xe-100) | 2026-10-01 | 2026-12-30 |
 | 3 | done 2026-09-30 | ACRES-140164 | Springdale Boat Ramp and Parking Lot | PA | 0.2 mi from the Cheswick data-center site | 2026-09-30 | 2026-12-29 |
@@ -332,6 +339,7 @@ Rules the routine follows:
 - 2026-10-02 · daily routine · Watercrest/Cheswick Business Park (ACRES-118982), G & R Auto Sales (ACRES-111146) · 2 developments (both about the nearby Cheswick Generating Station site: sale 2025-11-19, Springdale approval 2025-12-16; distance to the Blockdale St parcel not established) · 0 field differences; location, status and owner unverifiable (ACRES sign-in wall); Forest City Meta link not searched; some citations from search results only (DCD 403, WESA unopened) · pushed: see report
 - 2026-10-03 · daily routine · Tittabawassee (MID980994354), Fort Wainwright (AK6210022426) · 5 developments (3 EPA Tittabawassee community documents; Army Janus: Wainwright named candidate 2025-11, five vendors assigned to other bases 2026-08) · 1 field difference (Wainwright acreage 919,896 shipped vs ~900,000 EPA); Tittabawassee acreage and NPL status unverifiable, 2 EPA PDFs unreadable · push status in report
 - 2026-10-04 · daily routine · Universal Transmission (ACRES-137763), Ordnance General Supply (FUDS-C03VA1071) · 0 developments · 0 field differences; ACRES profile behind EPA sign-in and USACE FUDS portal did not resolve, so location/status/owner unverifiable; no link found between the FUDS site and the QTS Richmond campus; Army Corps/FERC/state permit searches shallow · push status in report
+- 2026-10-08 · daily routine · Pantex (TX4890110527), Carson River Mercury (NVD980813646), Arsenic Trioxide (NDD980716963) · 1 development (DOE Office of Enforcement notice to the Pantex operator, 2026-07-29; security, not cleanup) · 2 field differences (Pantex 9,031 ac shipped vs EPA ~16,000 incl. leased buffer; Carson River 411,014 ac shipped vs EPA ~330 sq mi ≈ 211,000) · Arsenic Trioxide 597,025 ac CONFIRMED (EPA: ~940 sq mi, 26 townships), so not every county-sized figure is an artifact; Pantex NPL listing date and the two corridor-site locations unverifiable · push status in report
 
 ## 7. Decisions needed from Pranava
 
