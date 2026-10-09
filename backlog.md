@@ -34,9 +34,9 @@ Priorities: **high** = next, **med** = soon, **low** = nice-to-have. Last update
 
 | Dataset | Our date | Upstream signal | Cadence | Status |
 |---|---|---|---|---|
-| superfund-npl / sites.json | 2026-09-25 | upstream edited 2026-09-19 | weekly (cron broken) | Current |
+| superfund-npl / sites.json | 2026-09-25 | upstream edited 2026-10-03 (checked 2026-10-08) | weekly (cron broken) | **Stale — upstream edited after our pull** |
 | epa-acres | 2026-05-12 | frozen "8_30_2021" snapshot, unmoved since 2021-08-31 | annual, blocked | **Blocked — see §5** |
-| dod-fuds | 2026-09-12 | upstream edited 2026-09-04 | weekly (cron broken) | Current |
+| dod-fuds | 2026-09-12 | upstream edited 2026-10-07 (checked 2026-10-08) | weekly (cron broken) | **Stale — upstream edited after our pull** |
 | dod-brac | 2026-05-12 | frozen 2021 snapshot | rare | Current (vs. frozen source) |
 | epa-redev | 2026-09-12 | upstream edited 2026-07-24 | weekly (cron broken) | Current |
 | infra-proximity: transmission/gas/power-plant (HIFLD) | not stamped per-layer | 2023-09 / 2025-07 / 2025-07 | ad hoc | **Unknown — metadata gap, see Now #9** |
@@ -146,6 +146,8 @@ Priorities: **high** = next, **med** = soon, **low** = nice-to-have. Last update
 21. **[low]** Partition or precompute compact evidence payloads if measured mobile first-insight time stays high (Approach C) — current work already defers unused datasets and markers.
 
 22. **[low]** File the `nepa-mcp` upstream proposals from Spec 13c: the `load_server_module` re-front PR (our `purge_server_src_namespace` is the shim + test case), the coverage-metadata issue, and the NEPATEC-document-server discussion.
+
+23. **[med]** DOE federal-facility NPL acreages run above DOE's own figures. Daily research found INL ships 1,082,653 ac vs EPA's 890 sq mi (~570,000 ac), Savannah River 234,032 vs ~198,000, Oak Ridge 37,430 vs ~35,000. Likely one cause: the EPA boundary polygons include buffers or overlapping operable units. Compare every federal-facility NPL acreage with the agency-stated figure and add a detail-panel note where the gap exceeds ~15%. Size: S. Dossiers in `site-research.json`.
 
 ## 4. Later and ideas
 
@@ -287,31 +289,49 @@ Grouped by theme. Every still-open idea carried forward from the pre-2026-09-25 
 
 ## 6. Daily site-refresh queue
 
-The 2 pm research routine (`brownfield-daily-site-research`: at most 20 minutes and one Sonnet subagent per run) works down this list. Each run takes 2 sites and covers each one fully: news, local permits, authorizations, filings and documents for the site area, and checks of the fields the site shows against sources. Results are merged into `docs/data/site-research.json` by `scripts/site_research.py` (schema-checked; every development cited) and appear in the site's detail panel: a "Researched …" line on Overview and the dossier on the Summary tab, which replaces the template summary for that site. Coverage is narrow on purpose: each site the routine touches gets a full pass, and most of the 46,759 sites will not have a dossier for a long time.
+The daily 8 am research routine (`brownfield-daily-site-research`: at most 25 minutes, one research subagent and one citation-check subagent per run) works down this list. Each run takes 2 sites and covers each one fully: news, local permits, authorizations, filings and documents for the site area, and checks of the fields the site shows against sources. Results are merged into `docs/data/site-research.json` by `scripts/site_research.py` (schema-checked; every development cited) and appear in the site's detail panel: a "Researched …" line on Overview and the dossier on the Summary tab, which replaces the template summary for that site. Coverage is narrow on purpose: each site the routine touches gets a full pass, and most of the 46,759 sites will not have a dossier for a long time.
 
 Rules the routine follows:
 - Order: dossiers past `next_review` (`scripts/site_research.py due`) first, then `queued` and `retry` rows top-down.
-- Next review: +30 days when a development in the last 90 days was found, otherwise +90 days.
+- Next review: +30 days when a development dated in the 90 days before the research date was found, otherwise +90 days. `scripts/site_research.py add` sets this; it rejects a development dated before the entry's `search_window_start`, and `validate` enforces both rules.
 - Keep at least 10 `queued` rows. Refill pools, in order: (1) tracked sites named in a permit or article found during research; (2) corpus sites within 1 mile of a curated asset (coal plants, plants retiring by 2028, confirmed data-center deals, DOE sites); (3) DOE and DoD federal-facility NPL sites; (4) Superfund sites whose shipped acreage looks like a boundary artifact; (5) a random sample by state.
 - Field differences go in the dossier. A difference with one cause across many sites also gets an item in section 3.
-- The routine works in its own worktree (`.claude/worktrees/routine-site-research`, branch `routine/site-research`), commits there, and pushes when credentials allow. It never merges to main.
+- The routine works in its own worktree (`.claude/worktrees/routine-site-research`, branch `routine/site-research`) and keeps one rolling PR open. Each run first fixes any new review comments on that PR. When the PR has been open 3 days or more, the run closes it out: every review comment fixed or answered, local checks and CI green, then a merge commit to main, and the next run starts the branch fresh from `origin/main`. Accuracy over coverage: a dossier with an unverified claim is corrected or set back to `retry`, never merged as is.
 
 | # | Status | Site id | Name | St | Why queued | Last researched | Next due |
 |---|---|---|---|---|---|---|---|
-| 1 | queued | ID4890008952 | Idaho National Engineering Laboratory (USDOE) | ID | AI-infrastructure land offer and DOME reactor tests; shipped 1.08M acres needs a check | — | — |
-| 2 | queued | TN1890090003 | Oak Ridge Reservation (USDOE) | TN | Reindustrialization and AI/nuclear projects nearby (Clinch River permit pending) | — | — |
-| 3 | queued | ACRES-140164 | Springdale Boat Ramp and Parking Lot | PA | 0.2 mi from the Cheswick data-center site | — | — |
-| 4 | queued | ACRES-157082 | Colstrip City Shop | MT | 0.7 mi from Colstrip; data-center deal at the plant (Sabey/Atlas) | — | — |
-| 5 | queued | WI0001954841 | Fox River NRDA/PCB Releases | WI | Shipped 1,129,744 acres looks like a boundary artifact | — | — |
-| 6 | queued | WA3890090076 | Hanford 100-Area (USDOE) | WA | Hanford reuse projects (Cereza solar sale, Cascade Xe-100) | — | — |
-| 7 | queued | ACRES-118982 | Watercrest/Cheswick Business Park | PA | 0.7 mi from Cheswick Generating Station | — | — |
-| 8 | queued | ACRES-111146 | G & R Auto Sales | NC | 0.2 mi from Meta's Forest City campus | — | — |
-| 9 | queued | MID980994354 | Tittabawassee River, Saginaw River & Bay | MI | Shipped 726,763 acres looks like a boundary artifact | — | — |
-| 10 | queued | AK6210022426 | Fort Wainwright | AK | Army Janus microreactor finalist (no vendor yet); shipped 919,896 acres | — | — |
-| 11 | queued | ACRES-137763 | Universal Transmission | PA | 1.4 mi from NorthPoint Keystone Trade Center campus | — | — |
-| 12 | queued | FUDS-C03VA1071 | Ordnance General Supply | VA | 1.4 mi from the QTS Richmond campus | — | — |
-| 13 | queued | TX4890110527 | Pantex Plant (USDOE) | TX | DOE/NNSA site; energy and land-use activity nearby | — | — |
-| 14 | queued | NVD980813646 | Carson River Mercury Site | NV | Shipped 411,014 acres looks like a boundary artifact | — | — |
+| 25 | retry | CA7210020676 | Fort Ord | CA | Closed Army post; 2026 FOST 11 amendment (Parker Flats parcels L2.3/L2.4.1 to Seaside) unconfirmed: fortordcleanup.com notice returns 404 | 2026-10-09 | — |
+| 26 | queued | OR6213820917 | Umatilla Army Depot (Lagoons) | OR | Closed depot near the Umatilla/Hermiston data-center cluster | — | — |
+| 27 | queued | MOD981507585 | Newton County Mine Tailings | MO | Shipped 402,089 acres looks like a boundary artifact | — | — |
+| 28 | queued | COD980717557 | Central City, Clear Creek | CO | Shipped 252,409 acres looks like a boundary artifact | — | — |
+| 29 | queued | ORD071803985 | Harbor Oil Inc. | OR | Deleted NPL oil recycler in Portland shipping 156,219 acres looks like a boundary artifact | — | — |
+| 30 | queued | NY7890008975 | Brookhaven National Laboratory (USDOE) | NY | DOE federal-facility NPL site; Long Island energy and land-use activity | — | — |
+| 31 | queued | OH6890008984 | Mound Plant (USDOE) | OH | DOE site transferred to Miamisburg reuse; industrial park activity | — | — |
+| 32 | queued | CA2890090002 | Lawrence Livermore Natl Lab (Site 300) (USDOE) | CA | DOE federal-facility NPL site; 6,810 acres to check against DOE | — | — |
+| 33 | queued | MTD093291656 | Anaconda Co. Smelter | MT | Shipped 133,931 acres looks like a boundary artifact; smelter-site reuse activity | — | — |
+| 34 | queued | CA2170023533 | Camp Pendleton Marine Corps Base | CA | DoD federal-facility NPL site; shipped 121,626 acres to check | — | — |
+| 35 | queued | NC6170022580 | Camp Lejeune Military Res. (USNAVY) | NC | DoD federal-facility NPL site; Camp Lejeune Justice Act litigation; shipped 103,272 acres | — | — |
+| 36 | queued | KS6214020756 | Fort Riley | KS | DoD federal-facility NPL site; shipped 98,564 acres to check | — | — |
+| 20 | done 2026-10-09 | MON000705443 | Southwest Jefferson County Mining | MO | Shipped 423,155 acres looks like a boundary artifact | 2026-10-09 | 2027-01-07 |
+| 21 | done 2026-10-09 | CO7890010526 | Rocky Flats Plant (USDOE) | CO | DOE federal-facility NPL site; wildlife refuge and nearby land-use activity | 2026-10-09 | 2027-01-07 |
+| 22 | done 2026-10-09 | OH6890008976 | Feed Materials Production Center (USDOE) | OH | DOE federal-facility NPL site (Fernald); reuse activity | 2026-10-09 | 2026-11-08 |
+| 23 | done 2026-10-09 | CA1570024504 | Edwards Air Force Base | CA | Air Force AI data-center lease base (AFCEC-26-R-0002); Nuclear Siting tab row; shipped 305,104 acres | 2026-10-09 | 2027-01-07 |
+| 24 | done 2026-10-09 | AL7210020742 | USArmy/NASA Redstone Arsenal | AL | DoD/NASA federal-facility NPL site; Huntsville energy and data-center activity | 2026-10-09 | 2026-11-08 |
+| 13 | done 2026-10-09 | TX4890110527 | Pantex Plant (USDOE) | TX | DOE/NNSA site; energy and land-use activity nearby | 2026-10-09 | 2026-11-08 |
+| 14 | done 2026-10-09 | NVD980813646 | Carson River Mercury Site | NV | Shipped 411,014 acres looks like a boundary artifact | 2026-10-09 | 2027-01-07 |
+| 12 | done 2026-10-09 | FUDS-C03VA1071 | Ordnance General Supply | VA | 1.4 mi from the QTS Richmond campus | 2026-10-09 | 2027-01-07 |
+| 8 | done 2026-10-09 | ACRES-111146 | G & R Auto Sales | NC | 0.2 mi from Meta's Forest City campus | 2026-10-09 | 2027-01-07 |
+| 19 | done 2026-10-08 | NDD980716963 | Arsenic Trioxide Site | ND | Shipped 597,025 acres looks like a boundary artifact | 2026-10-08 | 2027-01-06 |
+| 11 | done 2026-10-04 | ACRES-137763 | Universal Transmission | PA | 1.4 mi from NorthPoint Keystone Trade Center campus | 2026-10-04 | 2027-01-02 |
+| 9 | done 2026-10-03 | MID980994354 | Tittabawassee River, Saginaw River & Bay | MI | Shipped 726,763 acres looks like a boundary artifact | 2026-10-03 | 2026-11-02 |
+| 10 | done 2026-10-03 | AK6210022426 | Fort Wainwright | AK | Army Janus microreactor finalist (no vendor yet); shipped 919,896 acres | 2026-10-03 | 2026-11-02 |
+| 7 | done 2026-10-02 | ACRES-118982 | Watercrest/Cheswick Business Park | PA | 0.7 mi from Cheswick Generating Station | 2026-10-02 | 2026-12-31 |
+| 5 | done 2026-10-01 | WI0001954841 | Fox River NRDA/PCB Releases | WI | Shipped 1,129,744 acres looks like a boundary artifact | 2026-10-01 | 2026-12-30 |
+| 6 | done 2026-10-01 | WA3890090076 | Hanford 100-Area (USDOE) | WA | Hanford reuse projects (Cereza solar sale, Cascade Xe-100) | 2026-10-01 | 2026-12-30 |
+| 3 | done 2026-09-30 | ACRES-140164 | Springdale Boat Ramp and Parking Lot | PA | 0.2 mi from the Cheswick data-center site | 2026-09-30 | 2026-12-29 |
+| 4 | done 2026-09-30 | ACRES-157082 | Colstrip City Shop | MT | 0.7 mi from Colstrip; NorthWestern data-center agreements (Sabey/Atlas deals are Butte-area, not Colstrip) | 2026-09-30 | 2026-10-30 |
+| 1 | done 2026-09-29 | ID4890008952 | Idaho National Engineering Laboratory (USDOE) | ID | AI-infrastructure land offer and DOME reactor tests; shipped 1.08M acres needs a check | 2026-09-29 | 2026-12-28 |
+| 2 | done 2026-09-29 | TN1890090003 | Oak Ridge Reservation (USDOE) | TN | Reindustrialization and AI/nuclear projects nearby (Clinch River permit pending) | 2026-09-29 | 2026-12-28 |
 | 15 | done 2026-09-25 | KY8890008982 | Paducah Gaseous Diffusion Plant (USDOE) | KY | DOE picked it for an AI computing campus (Jul 2026); Kentucky PSC approval pending | 2026-09-25 | 2026-10-25 |
 | 16 | done 2026-09-25 | SC1890008989 | Savannah River Site (USDOE) | SC | AI/energy lease selection (Amentum, Jul 2026); no lease signed yet | 2026-09-25 | 2026-10-25 |
 | 17 | done 2026-09-25 | ACRES-240696 | Bessemer Campus Expansion Site | AL | 1.2 mi from Project Marvel (QTS confirmed Jul 2026); rezonings and utility filings likely | 2026-09-25 | 2026-10-25 |
@@ -320,12 +340,20 @@ Rules the routine follows:
 ### Run log
 - 2026-09-25 · pilot run in session · Tar Creek (OKD980629844) · 3 developments · 2 field differences (acreage, coordinates) · not pushed: no GitHub credentials on this machine
 - 2026-09-25 · daily routine · Paducah (KY8890008982), Savannah River (SC1890008989), Bessemer Campus Expansion (ACRES-240696) · 6 developments · 1 field difference (SRS acreage 234,032 shipped vs DOE ~198,000) · pushed after auth was fixed; PR #37
+- 2026-09-29 · daily routine · INL (ID4890008952), Oak Ridge Reservation (TN1890090003) · 4 developments (INL and Oak Ridge AI data-center lease solicitations, INL fifth five-year review letter, NRC staff recommendation for the Clinch River permit; permit issuance not confirmed in a primary source) · 2 field differences (INL acreage 1.08M vs ~570,000; Oak Ridge 37,430 vs ~35,000) · pushed; PR #39
+- 2026-09-30 · daily routine · Springdale Boat Ramp (ACRES-140164), Colstrip City Shop (ACRES-157082) · 4 developments (Cheswick parcel sale 2025-11-19 and Springdale conditional-use approval 2025-12-16; NorthWestern took 592 MW more of Colstrip 2026-01-01 and reported ~150 MW→1,500 MW data-center agreements 2026-07-29) · 0 field differences; ACRES profiles now redirect to EPA sign-in, so cleanup status, acreage and owner are unverifiable for ACRES sites; nearby-plant MW figures unconfirmed · pushed; PR #39
+- 2026-10-01 · daily routine · Fox River (WI0001954841), Hanford 100-Area (WA3890090076) · 1 development (Cereza solar transfer Hecate→Savion, 2026-02) · 1 field difference (Hanford 100-Area 154.3 ac shipped vs EPA 154 sq mi, likely units); Fox River acreage unverifiable (EPA/DNR give 39 river miles + Green Bay, no acreage) and NPL status unconfirmed; Cascade Xe-100 NRC status unconfirmed (nrc.gov 403) · subagent ran ~22 min, over the 20-minute cap
+- 2026-10-02 · daily routine · Watercrest/Cheswick Business Park (ACRES-118982), G & R Auto Sales (ACRES-111146) · 2 developments (both about the nearby Cheswick Generating Station site: sale 2025-11-19, Springdale approval 2025-12-16; distance to the Blockdale St parcel not established) · 0 field differences; location, status and owner unverifiable (ACRES sign-in wall); Forest City Meta link not searched; some citations from search results only (DCD 403, WESA unopened) · pushed: see report
+- 2026-10-03 · daily routine · Tittabawassee (MID980994354), Fort Wainwright (AK6210022426) · 5 developments (3 EPA Tittabawassee community documents; Army Janus: Wainwright named candidate 2025-11, five vendors assigned to other bases 2026-08) · 1 field difference (Wainwright acreage 919,896 shipped vs ~900,000 EPA); Tittabawassee acreage and NPL status unverifiable, 2 EPA PDFs unreadable · push status in report
+- 2026-10-04 · daily routine · Universal Transmission (ACRES-137763), Ordnance General Supply (FUDS-C03VA1071) · 0 developments · 0 field differences; ACRES profile behind EPA sign-in and USACE FUDS portal did not resolve, so location/status/owner unverifiable; no link found between the FUDS site and the QTS Richmond campus; Army Corps/FERC/state permit searches shallow · push status in report
+- 2026-10-08 · daily routine · Pantex (TX4890110527), Carson River Mercury (NVD980813646), Arsenic Trioxide (NDD980716963) · 1 development (DOE Office of Enforcement notice to the Pantex operator, 2026-07-29; security, not cleanup) · 2 field differences (Pantex 9,031 ac shipped vs EPA ~16,000 incl. leased buffer; Carson River 411,014 ac shipped vs EPA ~330 sq mi ≈ 211,000) · Arsenic Trioxide 597,025 ac CONFIRMED (EPA: ~940 sq mi, 26 townships), so not every county-sized figure is an artifact; Pantex NPL listing date and the two corridor-site locations unverifiable · push status in report
+- 2026-10-09 · closeout session (Haiku vs Sonnet trial) · corrected 4 dossiers after a two-model citation check: Ordnance General Supply (USACE record gives 1,740 acres and eligibility; the "portal did not resolve" note was wrong), G & R Auto Sales (Meta-campus link searched, none found; owner left unverified), Pantex (summary rebuilt from opened pages; NPL listing 1994 confirmed via OSTI; operator PanTeXas Deterrence), Carson River (dropped a stale 2025 snapshot citation and an NDEP-oversight claim that referred to another site). New: Fernald (OH6890008976), Edwards AFB (CA1570024504), Redstone Arsenal (AL7210020742); each checked by the other model before merge. Fort Ord back to retry. Cadence and window dates now set by `site_research.py`, which fixed 5 dossiers.
 
 ## 7. Decisions needed from Pranava
 
 - **Landing page (options presented 2026-09-25).** A: a light "Start" page (search, what-are-you-siting entry points, the investigations as cards, a dated "what changed" feed from the research routine), with Explore/Map/Table grouped as the Atlas. B: map-first, but a state-level choropleth that drills into per-state lists instead of 46,759 points. C: keep Explore and fix its first screen (no alphabetical default, compact cards). D: search-first. Recommendation: A now, B's state drill-down later.
 
-- **How research routine commits reach the site.** Default: the routine pushes `routine/site-research` and keeps one rolling PR open for review. Alternative: auto-merge after checks pass, once a few weeks of dossiers have been reviewed.
+- ~~**How research routine commits reach the site.**~~ Decided 2026-10-09: one rolling PR, closed out by the routine after it has been open 3 days (review comments fixed, CI green, merge commit). PR #39 sat open for 10 days with 8 unaddressed review findings, so nothing reached the site.
 
 - **IA and landing decision.** Is Explore still the right default now that curated tabs have grown to 11? Should the tab bar visually group corpus views (Map/Table/Explore), curated analyses (Retired/Coal/Nuclear/Microreactors/DOE/Maritime/Nickel), and reference (Data & methods) instead of presenting all 11 as peers?
 
@@ -447,3 +475,4 @@ Rules the routine follows:
 - **research/nickel-supply-chain-geography-2026-09.md** — US nickel supply-chain geography, companion to the siting research.
 
 - **research/ux-uat-2026-09-12.md** — infrastructure-assessment UX and performance audit behind the Explore-as-default change.
+- 2026-10-09 · daily routine · Southwest Jefferson County Mining (MON000705443), Rocky Flats (CO7890010526) · 3 developments (all Rocky Flats, DOE Legacy Management: 2026-01 stewardship milestone, 2026-04 website, 2026-06 community meetings); none for Southwest Jefferson · 1 field difference (Rocky Flats 6,538 ac shipped matches neither DOE refuge >4,500 nor production area ~1,300); Southwest Jefferson acreage, NPL status and second five-year review findings unverifiable · push status in report
