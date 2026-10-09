@@ -144,7 +144,7 @@ def test_batch_is_all_or_nothing(tmp_path):
     data = _corpus(tmp_path)
     out = data / "site-research.json"
     with pytest.raises(sr.ResearchError):
-        sr.add_entries([_entry(), _entry(id="ACRES-1", next_review="2026-09-01")],
+        sr.add_entries([_entry(), _entry(id="ACRES-1", researched_at="2026-10-30")],
                        path=out, data_dir=data, today=TODAY)
     assert not out.exists()
 
@@ -192,11 +192,45 @@ def test_empty_developments_must_be_declared(tmp_path):
     assert json.loads(out.read_text())["sites"][0]["no_new_developments"] is True
 
 
-def test_next_review_must_follow_research_date(tmp_path):
+def _write_raw(data: Path, entry: dict) -> Path:
+    out = data / "site-research.json"
+    out.write_text(json.dumps({"schema_version": 1, "generated_at": "2026-09-25T00:00:00Z",
+                               "source": sr.SOURCE_LABEL, "count": 1, "sites": [entry]}))
+    return out
+
+
+def test_add_sets_next_review_from_the_cadence_rule(tmp_path):
+    """Regression (PR #39 review, four findings): researchers kept writing +30
+    days for sites whose newest development was older than 90 days."""
     data = _corpus(tmp_path)
-    with pytest.raises(sr.ResearchError, match="next_review"):
-        sr.add_entries([_entry(next_review="2026-09-25")], path=data / "site-research.json",
-                       data_dir=data, today=TODAY)
+    out = data / "site-research.json"
+    old_item = dict(_entry()["items"][0], date="2026-05")  # > 90 days before 2026-09-25
+    sr.add_entries([_entry(items=[old_item], search_window_start="2025-09-25", next_review="2026-10-25")],
+                   path=out, data_dir=data, today=TODAY)
+    assert json.loads(out.read_text())["sites"][0]["next_review"] == "2026-12-24"
+    sr.add_entries([_entry(next_review="2026-12-24")], path=out, data_dir=data, today=TODAY)  # recent item
+    assert json.loads(out.read_text())["sites"][0]["next_review"] == "2026-10-25"
+
+
+def test_add_lowers_the_window_to_the_oldest_development(tmp_path):
+    """Regression (PR #39 review): "developments since <date>" was false when an
+    item predated search_window_start."""
+    data = _corpus(tmp_path)
+    out = data / "site-research.json"
+    early = dict(_entry()["items"][0], date="2025-07")
+    sr.add_entries([_entry(items=[early, _entry()["items"][0]], search_window_start="2025-10-03")],
+                   path=out, data_dir=data, today=TODAY)
+    assert json.loads(out.read_text())["sites"][0]["search_window_start"] == "2025-07-01"
+
+
+def test_validate_rejects_a_hand_edited_cadence_or_window(tmp_path):
+    data = _corpus(tmp_path)
+    with pytest.raises(sr.ResearchError, match="cadence"):
+        sr.validate_file(_write_raw(data, _entry(next_review="2026-12-24")), data, TODAY)
+    early = dict(_entry()["items"][0], date="2025-07")
+    with pytest.raises(sr.ResearchError, match="predates"):
+        sr.validate_file(_write_raw(data, _entry(items=[early], search_window_start="2025-10-03",
+                                                 next_review="2026-12-24")), data, TODAY)
 
 
 def test_shipped_file_validates():

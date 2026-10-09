@@ -8,7 +8,12 @@ writer of the data file, so every entry passes the same checks:
   * the entry validates against `schema.SiteResearch` (extra fields rejected,
     every development and the summary carry at least one https citation);
   * the id exists in a shipped program inventory (Superfund, ACRES, FUDS, BRAC);
-  * no date is in the future, and `next_review` falls after `researched_at`.
+  * no date is in the future, and `next_review` falls after `researched_at`;
+  * every development falls inside the search window, and `next_review`
+    follows the cadence rule (+30 days when a development is dated within the
+    90 days before `researched_at`, otherwise +90). `add` sets both from the
+    entry's own items, so a researcher cannot get the cadence wrong; `validate`
+    enforces them on the whole file.
 
 Merging is append-only: a replaced summary moves into `history`, and
 developments are unioned (deduplicated by kind, date and source URL).
@@ -59,6 +64,49 @@ def _parse_day(value: str) -> dt.date:
     return dt.date.fromisoformat(value if len(value) == 10 else value + "-01")
 
 
+REVIEW_SOON_DAYS = 30
+REVIEW_LATER_DAYS = 90
+RECENT_WINDOW_DAYS = 90
+
+
+def expected_next_review(researched_at: str, item_dates: Iterable[str]) -> str:
+    """The cadence rule. A month-only date counts as the month's first day (the
+    conservative reading: it never makes a development look more recent)."""
+    researched = _parse_day(researched_at)
+    recent = any((researched - _parse_day(d)).days <= RECENT_WINDOW_DAYS for d in item_dates)
+    days = REVIEW_SOON_DAYS if recent else REVIEW_LATER_DAYS
+    return (researched + dt.timedelta(days=days)).isoformat()
+
+
+def _window_floor(window_start: str, item_dates: Iterable[str]) -> str:
+    """The window start lowered to the oldest development, so "developments
+    since <date>" stays true for everything the dossier shows."""
+    floor = window_start
+    for d in item_dates:
+        day = d if len(d) == 10 else d + "-01"
+        if day < floor:
+            floor = day
+    return floor
+
+
+def normalize_entry(entry: dict[str, Any]) -> dict[str, Any]:
+    """Set the two derived fields from the entry's own items, logging any change."""
+    out = dict(entry)
+    dates = [i.get("date", "") for i in out.get("items") or [] if i.get("date")]
+    if out.get("search_window_start"):
+        floor = _window_floor(out["search_window_start"], dates)
+        if floor != out["search_window_start"]:
+            log.info("%s: search_window_start %s -> %s (oldest development)",
+                     out.get("id"), out["search_window_start"], floor)
+            out["search_window_start"] = floor
+    if out.get("researched_at"):
+        nxt = expected_next_review(out["researched_at"], dates)
+        if nxt != out.get("next_review"):
+            log.info("%s: next_review %s -> %s (cadence rule)", out.get("id"), out.get("next_review"), nxt)
+            out["next_review"] = nxt
+    return out
+
+
 def load_corpus(data_dir: Path = DATA_DIR) -> dict[str, dict[str, Any]]:
     corpus: dict[str, dict[str, Any]] = {}
     for name in PROGRAM_FILES:
@@ -106,6 +154,15 @@ def check_entry(entry: dict[str, Any], corpus_ids: Iterable[str], today: dt.date
         raise ResearchError(f"{model.id}: search_window_start is after researched_at")
     if _parse_day(model.next_review) <= researched:
         raise ResearchError(f"{model.id}: next_review must fall after researched_at")
+    item_dates = [i.date for i in model.items]
+    early = [d for d in item_dates if (d if len(d) == 10 else d + "-01") < model.search_window_start]
+    if early:
+        raise ResearchError(f"{model.id}: development dated {early[0]} predates "
+                            f"search_window_start={model.search_window_start}")
+    expected = expected_next_review(model.researched_at, item_dates)
+    if model.next_review != expected:
+        raise ResearchError(f"{model.id}: next_review={model.next_review} breaks the cadence rule "
+                            f"(expected {expected})")
     if not model.items and not model.no_new_developments:
         raise ResearchError(f"{model.id}: no developments listed; set no_new_developments=true "
                             "when the search window was searched and nothing was found")
@@ -144,7 +201,7 @@ def merge(existing: dict[str, Any] | None, new: SiteResearch) -> dict[str, Any]:
     """
     incoming = new.model_dump(exclude_none=True)
     if not existing:
-        return incoming
+        return normalize_entry(incoming)
     if incoming["researched_at"] >= existing["researched_at"]:
         current, older = incoming, existing
     else:
@@ -162,7 +219,7 @@ def merge(existing: dict[str, Any] | None, new: SiteResearch) -> dict[str, Any]:
             merged.setdefault("items", []).append(old)
             seen.add(_item_key(old))
     merged["items"] = sorted(merged.get("items", []), key=lambda i: i["date"], reverse=True)
-    return merged
+    return normalize_entry(merged)
 
 
 def write_payload(sites: list[dict[str, Any]], path: Path = OUTPUT) -> dict[str, Any]:
@@ -182,7 +239,7 @@ def add_entries(entries: list[dict[str, Any]], *, path: Path = OUTPUT, data_dir:
                 today: dt.date | None = None) -> dict[str, Any]:
     today = today or _today()
     corpus_ids = load_corpus(data_dir).keys()
-    models = [check_entry(e, corpus_ids, today) for e in entries]  # all-or-nothing
+    models = [check_entry(normalize_entry(e), corpus_ids, today) for e in entries]  # all-or-nothing
     by_id = {s["id"]: s for s in load_payload(path).get("sites", [])}
     for model in models:
         by_id[model.id] = merge(by_id.get(model.id), model)
