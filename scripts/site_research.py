@@ -67,6 +67,7 @@ def _parse_day(value: str) -> dt.date:
 REVIEW_SOON_DAYS = 30
 REVIEW_LATER_DAYS = 90
 RECENT_WINDOW_DAYS = 90
+NEXT_REVIEW_PLACEHOLDER = "9999-12-31"  # replaced by normalize_entry before anything is written
 
 
 def _month_end(value: str) -> dt.date:
@@ -247,7 +248,11 @@ def add_entries(entries: list[dict[str, Any]], *, path: Path = OUTPUT, data_dir:
                 today: dt.date | None = None) -> dict[str, Any]:
     today = today or _today()
     corpus_ids = load_corpus(data_dir).keys()
-    # all-or-nothing: schema first, so normalize_entry only sees well-formed dates
+    # all-or-nothing: schema first, so normalize_entry only sees well-formed dates.
+    # next_review is derived, so an entry may omit it; a placeholder satisfies
+    # the schema and normalize_entry replaces it.
+    entries = [{**e, "next_review": NEXT_REVIEW_PLACEHOLDER} if isinstance(e, dict) and "next_review" not in e
+               else e for e in entries]
     models = [check_entry(normalize_entry(_schema_check(e).model_dump(exclude_none=True)), corpus_ids, today)
               for e in entries]
     by_id = {s["id"]: s for s in load_payload(path).get("sites", [])}

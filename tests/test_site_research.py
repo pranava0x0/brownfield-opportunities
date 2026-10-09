@@ -254,6 +254,16 @@ def test_merging_an_older_file_keeps_window_and_cadence_consistent(tmp_path):
     assert sr.validate_file(out, data, TODAY) == 1
 
 
+def test_next_review_may_be_omitted_and_is_derived(tmp_path):
+    """Regression (PR #40 review): the field is derived, so researchers need not supply it."""
+    data = _corpus(tmp_path)
+    out = data / "site-research.json"
+    entry = _entry()
+    del entry["next_review"]
+    sr.add_entries([entry], path=out, data_dir=data, today=TODAY)
+    assert json.loads(out.read_text())["sites"][0]["next_review"] == "2026-10-25"
+
+
 def test_development_after_the_research_date_is_rejected(tmp_path):
     """Regression (PR #40 review): a backfilled dossier with an item dated after
     its own researched_at had a negative age and counted as recent."""
