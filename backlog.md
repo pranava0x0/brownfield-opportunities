@@ -306,8 +306,8 @@ Rules the routine follows:
 | 8 | done 2026-10-02 | ACRES-111146 | G & R Auto Sales | NC | 0.2 mi from Meta's Forest City campus | 2026-10-02 | 2026-12-31 |
 | 11 | done 2026-10-04 | ACRES-137763 | Universal Transmission | PA | 1.4 mi from NorthPoint Keystone Trade Center campus | 2026-10-04 | 2027-01-02 |
 | 12 | done 2026-10-04 | FUDS-C03VA1071 | Ordnance General Supply | VA | 1.4 mi from the QTS Richmond campus | 2026-10-04 | 2027-01-02 |
-| 20 | queued | MON000705443 | Southwest Jefferson County Mining | MO | Shipped 423,155 acres looks like a boundary artifact | — | — |
-| 21 | queued | CO7890010526 | Rocky Flats Plant (USDOE) | CO | DOE federal-facility NPL site; wildlife refuge and nearby land-use activity | — | — |
+| 20 | done 2026-10-09 | MON000705443 | Southwest Jefferson County Mining | MO | Shipped 423,155 acres looks like a boundary artifact | 2026-10-09 | 2027-01-07 |
+| 21 | done 2026-10-09 | CO7890010526 | Rocky Flats Plant (USDOE) | CO | DOE federal-facility NPL site; wildlife refuge and nearby land-use activity | 2026-10-09 | 2027-01-07 |
 | 22 | queued | OH6890008976 | Feed Materials Production Center (USDOE) | OH | DOE federal-facility NPL site (Fernald); reuse activity | — | — |
 | 23 | queued | CA1570024504 | Edwards Air Force Base | CA | Air Force AI data-center lease base (AFCEC-26-R-0002); Nuclear Siting tab row; shipped 305,104 acres | — | — |
 | 24 | queued | AL7210020742 | USArmy/NASA Redstone Arsenal | AL | DoD/NASA federal-facility NPL site; Huntsville energy and data-center activity | — | — |
@@ -316,6 +316,9 @@ Rules the routine follows:
 | 27 | queued | MOD981507585 | Newton County Mine Tailings | MO | Shipped 402,089 acres looks like a boundary artifact | — | — |
 | 28 | queued | COD980717557 | Central City, Clear Creek | CO | Shipped 252,409 acres looks like a boundary artifact | — | — |
 | 29 | queued | ORD071803985 | Harbor Oil Inc. | OR | Deleted NPL oil recycler in Portland shipping 156,219 acres looks like a boundary artifact | — | — |
+| 30 | queued | NY7890008975 | Brookhaven National Laboratory (USDOE) | NY | DOE federal-facility NPL site; Long Island energy and land-use activity | — | — |
+| 31 | queued | OH6890008984 | Mound Plant (USDOE) | OH | DOE site transferred to Miamisburg reuse; industrial park activity | — | — |
+| 32 | queued | CA2890090002 | Lawrence Livermore Natl Lab (Site 300) (USDOE) | CA | DOE federal-facility NPL site; 6,810 acres to check against DOE | — | — |
 | 13 | done 2026-10-08 | TX4890110527 | Pantex Plant (USDOE) | TX | DOE/NNSA site; energy and land-use activity nearby | 2026-10-08 | 2026-11-07 |
 | 14 | done 2026-10-08 | NVD980813646 | Carson River Mercury Site | NV | Shipped 411,014 acres looks like a boundary artifact | 2026-10-08 | 2027-01-06 |
 | 19 | done 2026-10-08 | NDD980716963 | Arsenic Trioxide Site | ND | Shipped 597,025 acres looks like a boundary artifact | 2026-10-08 | 2027-01-06 |
@@ -467,3 +470,4 @@ Rules the routine follows:
 - **research/nickel-supply-chain-geography-2026-09.md** — US nickel supply-chain geography, companion to the siting research.
 
 - **research/ux-uat-2026-09-12.md** — infrastructure-assessment UX and performance audit behind the Explore-as-default change.
+- 2026-10-09 · daily routine · Southwest Jefferson County Mining (MON000705443), Rocky Flats (CO7890010526) · 3 developments (all Rocky Flats, DOE Legacy Management: 2026-01 stewardship milestone, 2026-04 website, 2026-06 community meetings); none for Southwest Jefferson · 1 field difference (Rocky Flats 6,538 ac shipped matches neither DOE refuge >4,500 nor production area ~1,300); Southwest Jefferson acreage, NPL status and second five-year review findings unverifiable · push status in report
