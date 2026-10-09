@@ -254,6 +254,23 @@ def test_merging_an_older_file_keeps_window_and_cadence_consistent(tmp_path):
     assert sr.validate_file(out, data, TODAY) == 1
 
 
+def test_development_after_the_research_date_is_rejected(tmp_path):
+    """Regression (PR #40 review): a backfilled dossier with an item dated after
+    its own researched_at had a negative age and counted as recent."""
+    data = _corpus(tmp_path)
+    late = dict(_entry()["items"][0], date="2026-09-20")
+    with pytest.raises(sr.ResearchError, match="after researched_at"):
+        sr.add_entries([_entry(researched_at="2026-09-15", items=[late])],
+                       path=data / "site-research.json", data_dir=data, today=TODAY)
+
+
+def test_malformed_items_raise_research_error(tmp_path):
+    data = _corpus(tmp_path)
+    for items in ([None], ["text"]):
+        with pytest.raises(sr.ResearchError, match="schema"):
+            sr.add_entries([_entry(items=items)], path=data / "site-research.json", data_dir=data, today=TODAY)
+
+
 def test_malformed_dates_raise_research_error_not_a_traceback(tmp_path):
     data = _corpus(tmp_path)
     with pytest.raises(sr.ResearchError, match="schema"):
