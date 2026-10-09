@@ -106,7 +106,8 @@ def test_an_older_file_does_not_replace_a_newer_dossier(tmp_path):
     site = json.loads(out.read_text())["sites"][0]
     assert site["researched_at"] == "2026-09-25"
     assert site["summary"].startswith("The newer summary")
-    assert site["next_review"] == "2026-10-25" and site["search_window_start"] == "2026-06-25"
+    assert site["next_review"] == "2026-10-25"
+    assert site["search_window_start"] == "2026-05-01"  # earlier window covers the older item
     assert [h["researched_at"] for h in site["history"]] == ["2026-08-01"]
     assert {i["date"] for i in site["items"]} == {"2026-09-10", "2026-07-30"}  # older item still unioned in
 
@@ -144,9 +145,9 @@ def test_batch_is_all_or_nothing(tmp_path):
     data = _corpus(tmp_path)
     out = data / "site-research.json"
     with pytest.raises(sr.ResearchError):
-        sr.add_entries([_entry(), _entry(id="ACRES-1", next_review="2026-09-01")],
+        sr.add_entries([_entry(), _entry(id="ACRES-1", researched_at="2026-10-30")],
                        path=out, data_dir=data, today=TODAY)
-    assert not out.exists()
+    assert not out.exists()  # the valid first entry was not written either
 
 
 def test_future_dates_are_rejected(tmp_path):
@@ -192,11 +193,113 @@ def test_empty_developments_must_be_declared(tmp_path):
     assert json.loads(out.read_text())["sites"][0]["no_new_developments"] is True
 
 
-def test_next_review_must_follow_research_date(tmp_path):
+def _write_raw(data: Path, entry: dict) -> Path:
+    out = data / "site-research.json"
+    out.write_text(json.dumps({"schema_version": 1, "generated_at": "2026-09-25T00:00:00Z",
+                               "source": sr.SOURCE_LABEL, "count": 1, "sites": [entry]}))
+    return out
+
+
+def test_add_sets_next_review_from_the_cadence_rule(tmp_path):
+    """Regression (PR #39 review, four findings): researchers kept writing +30
+    days for sites whose newest development was older than 90 days."""
     data = _corpus(tmp_path)
-    with pytest.raises(sr.ResearchError, match="next_review"):
-        sr.add_entries([_entry(next_review="2026-09-25")], path=data / "site-research.json",
+    out = data / "site-research.json"
+    old_item = dict(_entry()["items"][0], date="2026-05")  # > 90 days before 2026-09-25
+    sr.add_entries([_entry(items=[old_item], search_window_start="2025-09-25", next_review="2026-10-25")],
+                   path=out, data_dir=data, today=TODAY)
+    assert json.loads(out.read_text())["sites"][0]["next_review"] == "2026-12-24"
+    sr.add_entries([_entry(next_review="2026-12-24")], path=out, data_dir=data, today=TODAY)  # recent item
+    assert json.loads(out.read_text())["sites"][0]["next_review"] == "2026-10-25"
+
+
+def test_add_rejects_a_development_older_than_the_window(tmp_path):
+    """Regression (PR #39 review): "developments since <date>" was false when an
+    item predated search_window_start. Widening the window silently would claim
+    a search that never happened, so the entry is rejected instead."""
+    data = _corpus(tmp_path)
+    out = data / "site-research.json"
+    early = dict(_entry()["items"][0], date="2025-07")
+    with pytest.raises(sr.ResearchError, match="predates"):
+        sr.add_entries([_entry(items=[early], search_window_start="2025-10-03")],
+                       path=out, data_dir=data, today=TODAY)
+    assert not out.exists()
+
+
+def test_month_only_development_counts_as_recent_if_the_month_may_be(tmp_path):
+    """A "2026-07" item may be 2026-07-31, inside 90 days of 2026-10-09."""
+    assert sr.expected_next_review("2026-10-09", ["2026-07"]) == "2026-11-08"
+    assert sr.expected_next_review("2026-10-09", ["2026-06"]) == "2027-01-07"
+
+
+def test_merging_an_older_file_keeps_window_and_cadence_consistent(tmp_path):
+    """An older entry's items predate the newer window; the merged dossier must
+    still validate (window = earlier of the two, cadence recomputed)."""
+    data = _corpus(tmp_path)
+    out = data / "site-research.json"
+    sr.add_entries([_entry(researched_at="2026-09-25", search_window_start="2026-06-25")],
+                   path=out, data_dir=data, today=TODAY)
+    older_item = dict(_entry()["items"][0], date="2026-03-02",
+                      sources=[_src("https://example-news.test.gov/older", "2026-03-02")])
+    older = _entry(researched_at="2026-04-01", search_window_start="2025-04-01", items=[older_item])
+    for src in older["summary_sources"]:
+        src["accessed"] = "2026-04-01"
+    for src in older_item["sources"]:
+        src["accessed"] = "2026-04-01"
+    sr.add_entries([older], path=out, data_dir=data, today=TODAY)
+    site = json.loads(out.read_text())["sites"][0]
+    assert site["researched_at"] == "2026-09-25"
+    assert site["search_window_start"] == "2025-04-01"
+    assert site["next_review"] == "2026-10-25"  # the 2026-09-10 item is still recent
+    assert sr.validate_file(out, data, TODAY) == 1
+
+
+def test_next_review_may_be_omitted_and_is_derived(tmp_path):
+    """Regression (PR #40 review): the field is derived, so researchers need not supply it."""
+    data = _corpus(tmp_path)
+    out = data / "site-research.json"
+    entry = _entry()
+    del entry["next_review"]
+    sr.add_entries([entry], path=out, data_dir=data, today=TODAY)
+    assert json.loads(out.read_text())["sites"][0]["next_review"] == "2026-10-25"
+
+
+def test_development_after_the_research_date_is_rejected(tmp_path):
+    """Regression (PR #40 review): a backfilled dossier with an item dated after
+    its own researched_at had a negative age and counted as recent."""
+    data = _corpus(tmp_path)
+    late = dict(_entry()["items"][0], date="2026-09-20")
+    with pytest.raises(sr.ResearchError, match="after researched_at"):
+        sr.add_entries([_entry(researched_at="2026-09-15", items=[late])],
+                       path=data / "site-research.json", data_dir=data, today=TODAY)
+
+
+def test_malformed_items_raise_research_error(tmp_path):
+    data = _corpus(tmp_path)
+    for items in ([None], ["text"]):
+        with pytest.raises(sr.ResearchError, match="schema"):
+            sr.add_entries([_entry(items=items)], path=data / "site-research.json", data_dir=data, today=TODAY)
+
+
+def test_malformed_dates_raise_research_error_not_a_traceback(tmp_path):
+    data = _corpus(tmp_path)
+    with pytest.raises(sr.ResearchError, match="schema"):
+        sr.add_entries([_entry(researched_at="2026-9-25")], path=data / "site-research.json",
                        data_dir=data, today=TODAY)
+    bad_item = dict(_entry()["items"][0], date="garbage")
+    with pytest.raises(sr.ResearchError, match="schema"):
+        sr.add_entries([_entry(items=[bad_item])], path=data / "site-research.json",
+                       data_dir=data, today=TODAY)
+
+
+def test_validate_rejects_a_hand_edited_cadence_or_window(tmp_path):
+    data = _corpus(tmp_path)
+    with pytest.raises(sr.ResearchError, match="cadence"):
+        sr.validate_file(_write_raw(data, _entry(next_review="2026-12-24")), data, TODAY)
+    early = dict(_entry()["items"][0], date="2025-07")
+    with pytest.raises(sr.ResearchError, match="predates"):
+        sr.validate_file(_write_raw(data, _entry(items=[early], search_window_start="2025-10-03",
+                                                 next_review="2026-12-24")), data, TODAY)
 
 
 def test_shipped_file_validates():
