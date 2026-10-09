@@ -87,7 +87,8 @@ def expected_next_review(researched_at: str, item_dates: Iterable[str]) -> str:
     development that may fall inside the 90 days is treated as recent and the
     site is reviewed sooner rather than later."""
     researched = _parse_day(researched_at)
-    recent = any((researched - _month_end(d)).days <= RECENT_WINDOW_DAYS for d in item_dates)
+    recent = any(0 <= (researched - min(_month_end(d), researched)).days <= RECENT_WINDOW_DAYS
+                 for d in item_dates)
     days = REVIEW_SOON_DAYS if recent else REVIEW_LATER_DAYS
     return (researched + dt.timedelta(days=days)).isoformat()
 
@@ -156,6 +157,9 @@ def check_entry(entry: dict[str, Any], corpus_ids: Iterable[str], today: dt.date
     if _parse_day(model.next_review) <= researched:
         raise ResearchError(f"{model.id}: next_review must fall after researched_at")
     item_dates = [i.date for i in model.items]
+    late = [d for d in item_dates if _window_day(d) > model.researched_at]
+    if late:
+        raise ResearchError(f"{model.id}: development dated {late[0]} is after researched_at={model.researched_at}")
     early = [d for d in item_dates if _window_day(d) < model.search_window_start]
     if early:
         raise ResearchError(f"{model.id}: development dated {early[0]} predates "
