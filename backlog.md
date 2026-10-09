@@ -293,7 +293,7 @@ The daily 8 am research routine (`brownfield-daily-site-research`: at most 25 mi
 
 Rules the routine follows:
 - Order: dossiers past `next_review` (`scripts/site_research.py due`) first, then `queued` and `retry` rows top-down.
-- Next review: +30 days when a development dated in the 90 days before the research date was found, otherwise +90 days. `scripts/site_research.py add` sets this and lowers `search_window_start` to the oldest development; `validate` rejects a file that breaks either rule.
+- Next review: +30 days when a development dated in the 90 days before the research date was found, otherwise +90 days. `scripts/site_research.py add` sets this; it rejects a development dated before the entry's `search_window_start`, and `validate` enforces both rules.
 - Keep at least 10 `queued` rows. Refill pools, in order: (1) tracked sites named in a permit or article found during research; (2) corpus sites within 1 mile of a curated asset (coal plants, plants retiring by 2028, confirmed data-center deals, DOE sites); (3) DOE and DoD federal-facility NPL sites; (4) Superfund sites whose shipped acreage looks like a boundary artifact; (5) a random sample by state.
 - Field differences go in the dossier. A difference with one cause across many sites also gets an item in section 3.
 - The routine works in its own worktree (`.claude/worktrees/routine-site-research`, branch `routine/site-research`) and keeps one rolling PR open. Each run first fixes any new review comments on that PR. When the PR has been open 3 days or more, the run closes it out: every review comment fixed or answered, local checks and CI green, then a merge commit to main, and the next run starts the branch fresh from `origin/main`. Accuracy over coverage: a dossier with an unverified claim is corrected or set back to `retry`, never merged as is.
@@ -323,7 +323,7 @@ Rules the routine follows:
 | 8 | done 2026-10-09 | ACRES-111146 | G & R Auto Sales | NC | 0.2 mi from Meta's Forest City campus | 2026-10-09 | 2027-01-07 |
 | 19 | done 2026-10-08 | NDD980716963 | Arsenic Trioxide Site | ND | Shipped 597,025 acres looks like a boundary artifact | 2026-10-08 | 2027-01-06 |
 | 11 | done 2026-10-04 | ACRES-137763 | Universal Transmission | PA | 1.4 mi from NorthPoint Keystone Trade Center campus | 2026-10-04 | 2027-01-02 |
-| 9 | done 2026-10-03 | MID980994354 | Tittabawassee River, Saginaw River & Bay | MI | Shipped 726,763 acres looks like a boundary artifact | 2026-10-03 | 2027-01-01 |
+| 9 | done 2026-10-03 | MID980994354 | Tittabawassee River, Saginaw River & Bay | MI | Shipped 726,763 acres looks like a boundary artifact | 2026-10-03 | 2026-11-02 |
 | 10 | done 2026-10-03 | AK6210022426 | Fort Wainwright | AK | Army Janus microreactor finalist (no vendor yet); shipped 919,896 acres | 2026-10-03 | 2026-11-02 |
 | 7 | done 2026-10-02 | ACRES-118982 | Watercrest/Cheswick Business Park | PA | 0.7 mi from Cheswick Generating Station | 2026-10-02 | 2026-12-31 |
 | 5 | done 2026-10-01 | WI0001954841 | Fox River NRDA/PCB Releases | WI | Shipped 1,129,744 acres looks like a boundary artifact | 2026-10-01 | 2026-12-30 |
