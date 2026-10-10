@@ -300,8 +300,8 @@ Rules the routine follows:
 
 | # | Status | Site id | Name | St | Why queued | Last researched | Next due |
 |---|---|---|---|---|---|---|---|
-| 25 | retry | CA7210020676 | Fort Ord | CA | Closed Army post; 2026 FOST 11 amendment (Parker Flats parcels L2.3/L2.4.1 to Seaside) unconfirmed: fortordcleanup.com notice returns 404 | 2026-10-09 | — |
-| 26 | queued | OR6213820917 | Umatilla Army Depot (Lagoons) | OR | Closed depot near the Umatilla/Hermiston data-center cluster | — | — |
+| 25 | retry | CA7210020676 | Fort Ord | CA | Closed Army post; 2026 FOST 11 amendment (Parker Flats parcels L2.3/L2.4.1 to Seaside) unconfirmed: fortordcleanup.com notices ?p=8908 and ?p=7875 return 404; OTH-254C not yet opened. 2026-10-10 draft (not merged) found two controlled-detonation notices and EPA CERCLIS acreage 27,827 vs shipped 27,744.5 | 2026-10-09 | — |
+| 26 | retry | OR6213820917 | Umatilla Army Depot (Lagoons) | OR | Closed depot near the Umatilla/Hermiston data-center cluster. 2026-10-10 draft (not merged, no citation check): CERCLIS says ~20,000 ac vs shipped 33,130.2; Sabey Umatilla groundbreaking 2026-07-20 not tied to depot land | — | — |
 | 27 | queued | MOD981507585 | Newton County Mine Tailings | MO | Shipped 402,089 acres looks like a boundary artifact | — | — |
 | 28 | queued | COD980717557 | Central City, Clear Creek | CO | Shipped 252,409 acres looks like a boundary artifact | — | — |
 | 29 | queued | ORD071803985 | Harbor Oil Inc. | OR | Deleted NPL oil recycler in Portland shipping 156,219 acres looks like a boundary artifact | — | — |
@@ -348,6 +348,7 @@ Rules the routine follows:
 - 2026-10-04 · daily routine · Universal Transmission (ACRES-137763), Ordnance General Supply (FUDS-C03VA1071) · 0 developments · 0 field differences; ACRES profile behind EPA sign-in and USACE FUDS portal did not resolve, so location/status/owner unverifiable; no link found between the FUDS site and the QTS Richmond campus; Army Corps/FERC/state permit searches shallow · push status in report
 - 2026-10-08 · daily routine · Pantex (TX4890110527), Carson River Mercury (NVD980813646), Arsenic Trioxide (NDD980716963) · 1 development (DOE Office of Enforcement notice to the Pantex operator, 2026-07-29; security, not cleanup) · 2 field differences (Pantex 9,031 ac shipped vs EPA ~16,000 incl. leased buffer; Carson River 411,014 ac shipped vs EPA ~330 sq mi ≈ 211,000) · Arsenic Trioxide 597,025 ac CONFIRMED (EPA: ~940 sq mi, 26 townships), so not every county-sized figure is an artifact; Pantex NPL listing date and the two corridor-site locations unverifiable · push status in report
 - 2026-10-09 · closeout session (Haiku vs Sonnet trial) · corrected 4 dossiers after a two-model citation check: Ordnance General Supply (USACE record gives 1,740 acres and eligibility; the "portal did not resolve" note was wrong), G & R Auto Sales (Meta-campus link searched, none found; owner left unverified), Pantex (summary rebuilt from opened pages; NPL listing 1994 confirmed via OSTI; operator PanTeXas Deterrence), Carson River (dropped a stale 2025 snapshot citation and an NDEP-oversight claim that referred to another site). New: Fernald (OH6890008976), Edwards AFB (CA1570024504), Redstone Arsenal (AL7210020742); each checked by the other model before merge. Fort Ord back to retry. Cadence and window dates now set by `site_research.py`, which fixed 5 dossiers.
+- 2026-10-10 · daily routine · Fort Ord (CA7210020676), Umatilla (OR6213820917) · researcher ran ~20 min, leaving no time for the independent citation check, so neither dossier was merged; both rows set to retry with the draft findings noted · no PR was open; branch brought to main · pushed
 
 ## 7. Decisions needed from Pranava
 
