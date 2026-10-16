@@ -300,8 +300,6 @@ Rules the routine follows:
 
 | # | Status | Site id | Name | St | Why queued | Last researched | Next due |
 |---|---|---|---|---|---|---|---|
-| 30 | queued | NY7890008975 | Brookhaven National Laboratory (USDOE) | NY | DOE federal-facility NPL site; Long Island energy and land-use activity | — | — |
-| 31 | queued | OH6890008984 | Mound Plant (USDOE) | OH | DOE site transferred to Miamisburg reuse; industrial park activity | — | — |
 | 32 | queued | CA2890090002 | Lawrence Livermore Natl Lab (Site 300) (USDOE) | CA | DOE federal-facility NPL site; 6,810 acres to check against DOE | — | — |
 | 33 | queued | MTD093291656 | Anaconda Co. Smelter | MT | Shipped 133,931 acres looks like a boundary artifact; smelter-site reuse activity | — | — |
 | 34 | queued | CA2170023533 | Camp Pendleton Marine Corps Base | CA | DoD federal-facility NPL site; shipped 121,626 acres to check | — | — |
@@ -310,6 +308,11 @@ Rules the routine follows:
 | 37 | queued | AK4170024323 | Adak Naval Air Station | AK | DoD federal-facility NPL site; shipped 81,250 acres to check | — | — |
 | 38 | queued | AK6214522157 | Fort Richardson (USARMY) | AK | DoD federal-facility NPL site; shipped 59,737 acres to check | — | — |
 | 39 | queued | VA1170024722 | Marine Corps Combat Development Command | VA | DoD federal-facility NPL site (Quantico); shipped 58,880 acres to check | — | — |
+| 40 | queued | FL1570024124 | Tyndall Air Force Base | FL | DoD federal-facility NPL site; shipped 27,841 acres to check; post-hurricane rebuild activity | — | — |
+| 41 | queued | AK1570028646 | Eielson Air Force Base | AK | DoD federal-facility NPL site; shipped 24,760 acres; Eielson microreactor commitment | — | — |
+| 42 | queued | UT3213820894 | Tooele Army Depot (North Area) | UT | DoD federal-facility NPL site; shipped 23,334 acres to check | — | — |
+| 30 | done 2026-10-16 | NY7890008975 | Brookhaven National Laboratory (USDOE) | NY | DOE federal-facility NPL site; Long Island energy and land-use activity | 2026-10-16 | 2026-11-15 |
+| 31 | done 2026-10-16 | OH6890008984 | Mound Plant (USDOE) | OH | DOE site transferred to Miamisburg reuse; industrial park activity | 2026-10-16 | 2027-01-14 |
 | 28 | done 2026-10-15 | COD980717557 | Central City, Clear Creek | CO | Shipped 252,409 acres looks like a boundary artifact. 2026-10-13 pass: acreage matches EPA 400 sq mi watershed; EPA profile notes an Oct 2025 updated lead directive (day not given, so it predates the 2025-10-13 window start and the add was rejected); CDPHE and Gilpin pages returned 403. Retry with window start 2025-10-01 or a dated source | 2026-10-15 | 2027-01-13 |
 | 29 | done 2026-10-15 | ORD071803985 | Harbor Oil Inc. | OR | Deleted NPL oil recycler in Portland shipping 156,219 acres looks like a boundary artifact | 2026-10-15 | 2027-01-13 |
 | 27 | done 2026-10-13 | MOD981507585 | Newton County Mine Tailings | MO | Shipped 402,089 acres looks like a boundary artifact | 2026-10-13 | 2026-11-12 |
@@ -357,6 +360,7 @@ Rules the routine follows:
 - 2026-10-14 · daily routine · review fixes only (no new sites; CI wait fills the budget) · Fort Ord: recorded EPA's 2021-05-14 partial deletion (11,934 ac), NPL status now 'differs'; Umatilla: survey dated to fieldwork week of 2025-11-17 · 2 PR #41 review comments fixed
 
 - 2026-10-15 · daily routine · Central City/Clear Creek (COD980717557), Harbor Oil (ORD071803985) · 1 development (EPA updated lead directive, 2025-10, month-only; window start set to 2025-10-01 as the row allowed, the search itself was not date-limited) · 2 field differences (Harbor Oil 156,218.8 ac shipped vs EPA 4.2 ac; Central City county list Gilpin+Clear Creek vs Clear Creek only) · citation check: all claims supported, 0 corrections · Harbor Oil: no developments, no_new_developments · no PR was open (#41 merged); branch brought to main
+- 2026-10-16 · daily routine · Brookhaven (NY7890008975), Mound Plant (OH6890008984) · 2 developments (EPA protectiveness letter on BNL's fifth five-year review, 2026-08-07, body unreadable; EPA Region 5 sixth-review announcement naming Mound, 2026-03) · 2 field differences (BNL 5,266.3 ac shipped vs EPA 5,265; Mound 294.9 shipped vs WVXU 306-acre business park) · citation check: 0 contradicted, 1 acreage note corrected · review fix: removed Harbor Oil's 2026 no-cleanup lead (article was 2012) · PR #42 open, 1 day old
 
 ## 7. Decisions needed from Pranava
 
