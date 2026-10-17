@@ -300,8 +300,6 @@ Rules the routine follows:
 
 | # | Status | Site id | Name | St | Why queued | Last researched | Next due |
 |---|---|---|---|---|---|---|---|
-| 32 | queued | CA2890090002 | Lawrence Livermore Natl Lab (Site 300) (USDOE) | CA | DOE federal-facility NPL site; 6,810 acres to check against DOE | — | — |
-| 33 | queued | MTD093291656 | Anaconda Co. Smelter | MT | Shipped 133,931 acres looks like a boundary artifact; smelter-site reuse activity | — | — |
 | 34 | queued | CA2170023533 | Camp Pendleton Marine Corps Base | CA | DoD federal-facility NPL site; shipped 121,626 acres to check | — | — |
 | 35 | queued | NC6170022580 | Camp Lejeune Military Res. (USNAVY) | NC | DoD federal-facility NPL site; Camp Lejeune Justice Act litigation; shipped 103,272 acres | — | — |
 | 36 | queued | KS6214020756 | Fort Riley | KS | DoD federal-facility NPL site; shipped 98,564 acres to check | — | — |
@@ -311,6 +309,8 @@ Rules the routine follows:
 | 40 | queued | FL1570024124 | Tyndall Air Force Base | FL | DoD federal-facility NPL site; shipped 27,841 acres to check; post-hurricane rebuild activity | — | — |
 | 41 | queued | AK1570028646 | Eielson Air Force Base | AK | DoD federal-facility NPL site; shipped 24,760 acres; Eielson microreactor commitment | — | — |
 | 42 | queued | UT3213820894 | Tooele Army Depot (North Area) | UT | DoD federal-facility NPL site; shipped 23,334 acres to check | — | — |
+| 32 | done 2026-10-17 | CA2890090002 | Lawrence Livermore Natl Lab (Site 300) (USDOE) | CA | DOE federal-facility NPL site; 6,810 acres to check against DOE. EPA says 11 sq mi (about 7,040 ac) vs shipped 6,809.7 | 2026-10-17 | 2026-11-16 |
+| 33 | done 2026-10-17 | MTD093291656 | Anaconda Co. Smelter | MT | Shipped 133,931 acres matches EPA 'more than 200 square miles'; EPA reuse page says contamination covers 300+ sq mi, so the NPL boundary question stays open | 2026-10-17 | 2027-01-15 |
 | 30 | done 2026-10-16 | NY7890008975 | Brookhaven National Laboratory (USDOE) | NY | DOE federal-facility NPL site; Long Island energy and land-use activity | 2026-10-16 | 2026-11-15 |
 | 31 | done 2026-10-16 | OH6890008984 | Mound Plant (USDOE) | OH | DOE site transferred to Miamisburg reuse; industrial park activity | 2026-10-16 | 2027-01-14 |
 | 28 | done 2026-10-15 | COD980717557 | Central City, Clear Creek | CO | Shipped 252,409 acres looks like a boundary artifact. 2026-10-13 pass: acreage matches EPA 400 sq mi watershed; EPA profile notes an Oct 2025 updated lead directive (day not given, so it predates the 2025-10-13 window start and the add was rejected); CDPHE and Gilpin pages returned 403. Retry with window start 2025-10-01 or a dated source | 2026-10-15 | 2027-01-13 |
@@ -490,3 +490,4 @@ Rules the routine follows:
 - **research/ux-uat-2026-09-12.md** — infrastructure-assessment UX and performance audit behind the Explore-as-default change.
 - 2026-10-09 · daily routine · Southwest Jefferson County Mining (MON000705443), Rocky Flats (CO7890010526) · 3 developments (all Rocky Flats, DOE Legacy Management: 2026-01 stewardship milestone, 2026-04 website, 2026-06 community meetings); none for Southwest Jefferson · 1 field difference (Rocky Flats 6,538 ac shipped matches neither DOE refuge >4,500 nor production area ~1,300); Southwest Jefferson acreage, NPL status and second five-year review findings unverifiable · push status in report
 - 2026-10-12 · daily routine · Fort Ord (CA7210020676), Umatilla Army Depot Lagoons (OR6213820917) · 5 developments (Fort Ord: Sep 2026 detonation notice, 2026 detonation log, sixth five-year review begun, Nov 2025 notice; Umatilla: Jan 2026 USACE 416-acre munitions survey) · 2 field differences (Fort Ord 27,744.5 shipped vs EPA 27,827; Umatilla 33,130.2 vs EPA ~20,000) · citation check: 1 correction (Umatilla land-navigation wording) · 0 review comments (PR #41, open 2 days) · Parker Flats FOST deed status and Umatilla 2026 data-center link still unconfirmed
+- 2026-10-17 · daily routine · Lawrence Livermore Site 300 (CA2890090002), Anaconda Smelter (MTD093291656) · 3 developments (Tri-Valley CAREs Jul 2026 briefing on offline Building 830 treatment; LLNL statement on second five-year review; EPA Dec 2025 reuse data) · 2 field differences/open (Site 300 acreage 6,809.7 vs EPA 11 sq mi; Anaconda extent 200 vs 300+ sq mi) · citation check: 2 NPL-status notes downgraded to unverifiable, 1 item retitled · review comments: none new (PR #42 all answered) · PR #42 open, 2 days old
