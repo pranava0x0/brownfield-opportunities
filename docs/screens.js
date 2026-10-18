@@ -207,6 +207,29 @@
     tieBreak: {label: "licensing stage", value: s => { const i = LICENSE_STAGE.indexOf(s.status); return i < 0 ? 99 : i; }},
   });
 
+  // ---- Coal plants (EIA-860M, every plant with >=100 MW of coal retired or retiring) ----
+  const COAL = {
+    eia: {title: "EIA-860M generator inventory", url: "https://www.eia.gov/electricity/data/eia860m/"},
+    ferc: {title: "FERC Order 2023: surplus interconnection and generator replacement", url: "https://www.ferc.gov/explainer-interconnection-final-rule"},
+  };
+  define("coal", {
+    label: "Coal plant reuse", universe: "coal",
+    method: "EIA status, a free interconnection point and a high-voltage line. Reusing a retired plant's connection still needs a utility study.",
+    criteria: [
+      {id: "retired", label: "All coal units retired", rule: "status = retired (EIA-860M Retired sheet)", kind: "R", source: COAL.eia,
+        test: s => s.status ? s.status === "retired" : null,
+        show: s => s.status === "retired" ? `retired ${s.retire_year || ""}` : `retiring ${s.retire_year || ""}`},
+      {id: "poi", label: "No other unit ≥50 MW running", rule: "other_operating_mw < 50", kind: "P",
+        note: "A converted gas unit or new plant at the site usually holds the interconnection.",
+        source: COAL.ferc, test: s => num(s.other_operating_mw) ? s.other_operating_mw < 50 : null,
+        show: s => num(s.other_operating_mw) && s.other_operating_mw > 0 ? `${Math.round(s.other_operating_mw)} MW running` : "none"},
+      {id: "grid", label: "Line ≥230 kV within 2 mi", rule: "line_kv ≥ 230 and line_mi ≤ 2", kind: "P", source: SRC.hifld,
+        test: s => !num(s.line_mi) ? null : s.line_mi > 2 ? false : num(s.line_kv) ? s.line_kv >= 230 : null,
+        show: s => num(s.line_kv) ? `${s.line_kv} kV · ${miles(s.line_mi)}` : miles(s.line_mi)},
+    ],
+    tieBreak: {label: "largest coal capacity", dir: "desc", value: s => s.coal_mw},
+  });
+
   function evaluate(site, key) {
     const screen = SCREENS[key];
     if (!screen) throw new Error(`unknown screen ${key}`);
