@@ -9,6 +9,11 @@ Two deterministic tests, both offline:
                   DEQ), and the site point is then the county center.
   region          acreage > 100,000 ac. WWII FUDS "maneuver areas" were
                   training regions, not parcels.
+  water_or_plume  a Superfund site whose name says the polygon is a river,
+                  lake, harbor, groundwater plume or well field (Hudson River
+                  PCBs, Griggs & Walnut Ground Water Plume). Its area measures
+                  contamination, not developable land. Names that also name a
+                  facility or a federal installation are not flagged.
 
 Flagged acreage is treated as unknown by the siting screens (docs/screens.js)
 and noted in the detail panel. Nothing here edits a source value.
@@ -23,6 +28,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -36,6 +42,21 @@ DATA = ROOT / "docs" / "data"
 PROGRAM_FILES = ["superfund-npl.json", "epa-acres.json", "dod-fuds.json", "dod-brac.json"]
 COUNTY_SHARE = 0.5        # site claims half its county or more
 REGION_ACRES = 100_000    # larger than any single industrial or military parcel we screen for
+# Name tests for Superfund polygons that trace water or a plume (see docstring).
+PLUME_WORDS = re.compile(r"\b(GROUND ?WATER|GW|PLUMES?|AQUIFER|SEDIMENTS?|WELLS?|WELL ?FIELD|WELLFIELD|NRDA|CONTAMINATION|CONTAMINATED)\b")
+WATER_WORDS = re.compile(r"\b(RIVERS?|CREEK|LAKE|BAY|HARBOR|HARBOUR|CANAL|RESERVOIR|ESTUARY|WATERWAY|SOUND)\b")
+FACILITY_WORDS = re.compile(r"\b(PLANT|CORP|CORPORATION|CO|INC|COMPANY|MILLS?|LANDFILL|MGP|PIT|SMELTER|WORKS|FACILITY|"
+                            r"DEPOT|DUMP|DRUM|SALVAGE|STATION|YARD|FOUNDRY|LAB|LABORATORY|TERMINAL|AIRPORT|REFINERY)\b")
+FEDERAL_WORDS = re.compile(r"\b(USDOE|USAF|USN|USARMY|USNAVY|NAVAL|NAS|AFB|AIR FORCE|ARMY|MARINE|ARSENAL|BASE|COMPLEX)\b")
+
+
+def names_water_or_plume(name: str) -> bool:
+    n = (name or "").upper()
+    if FEDERAL_WORDS.search(n):
+        return False
+    if PLUME_WORDS.search(n):
+        return True
+    return bool(WATER_WORDS.search(n)) and not FACILITY_WORDS.search(n)
 
 
 def load_sites() -> list[dict]:
@@ -65,7 +86,9 @@ def acreage_flags(sites: list[dict], counties: CountyIndex) -> dict[str, dict]:
             county_acres = area_cache[key]
         share = acres / county_acres if county_acres else None
         flag = None
-        if share is not None and share >= COUNTY_SHARE:
+        if s.get("program") == "superfund" and names_water_or_plume(s.get("name")):
+            flag = "water_or_plume"
+        elif share is not None and share >= COUNTY_SHARE:
             flag = "county_outline"
         elif acres > REGION_ACRES:
             flag = "region"
@@ -92,7 +115,8 @@ def main() -> int:
         out = {
             "generated_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
             "source": "scripts/check_acreage_artifacts.py",
-            "rule": f"county_outline: acreage >= {COUNTY_SHARE:.0%} of the containing county; region: acreage > {REGION_ACRES:,} ac",
+            "rule": (f"water_or_plume: Superfund name describes water or a groundwater plume; "
+                     f"county_outline: acreage >= {COUNTY_SHARE:.0%} of the containing county; region: acreage > {REGION_ACRES:,} ac"),
             "count": len(flags),
             "sites": [{"id": k, "acreage_flag": v["flag"], "acreage_flag_county": v["county"], "acreage_flag_share": v["share"]}
                       for k, v in sorted(flags.items())],
