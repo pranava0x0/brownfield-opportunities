@@ -300,8 +300,8 @@ Rules the routine follows:
 
 | # | Status | Site id | Name | St | Why queued | Last researched | Next due |
 |---|---|---|---|---|---|---|---|
-| 34 | queued | CA2170023533 | Camp Pendleton Marine Corps Base | CA | DoD federal-facility NPL site; shipped 121,626 acres to check | — | — |
-| 35 | queued | NC6170022580 | Camp Lejeune Military Res. (USNAVY) | NC | DoD federal-facility NPL site; Camp Lejeune Justice Act litigation; shipped 103,272 acres | — | — |
+| 34 | retry | CA2170023533 | Camp Pendleton Marine Corps Base | CA | DoD federal-facility NPL site; 2026-10-18 attempt: EPA profile says 125,000 ac (unverifiable vs shipped); Navy 5th five-year review notice (2025-10-28) PDF and Navy pages returned 403, so no development could be cited. Retry with a browser/other fetch path | — | — |
+| 35 | retry | NC6170022580 | Camp Lejeune Military Res. (USNAVY) | NC | DoD federal-facility NPL site; 2026-10-18 attempt: EPA profile says 156,000-ac base (unverifiable vs shipped); April 2026 RAB minutes, FY2026 SMP and UXO-28 ROD (2026-09-09) were 403/timeout, so no development could be cited. Retry with a browser/other fetch path; Camp Lejeune Justice Act litigation | — | — |
 | 36 | queued | KS6214020756 | Fort Riley | KS | DoD federal-facility NPL site; shipped 98,564 acres to check | — | — |
 | 37 | queued | AK4170024323 | Adak Naval Air Station | AK | DoD federal-facility NPL site; shipped 81,250 acres to check | — | — |
 | 38 | queued | AK6214522157 | Fort Richardson (USARMY) | AK | DoD federal-facility NPL site; shipped 59,737 acres to check | — | — |
@@ -309,10 +309,13 @@ Rules the routine follows:
 | 40 | queued | FL1570024124 | Tyndall Air Force Base | FL | DoD federal-facility NPL site; shipped 27,841 acres to check; post-hurricane rebuild activity | — | — |
 | 41 | queued | AK1570028646 | Eielson Air Force Base | AK | DoD federal-facility NPL site; shipped 24,760 acres; Eielson microreactor commitment | — | — |
 | 42 | queued | UT3213820894 | Tooele Army Depot (North Area) | UT | DoD federal-facility NPL site; shipped 23,334 acres to check | — | — |
-| 32 | done 2026-10-17 | CA2890090002 | Lawrence Livermore Natl Lab (Site 300) (USDOE) | CA | DOE federal-facility NPL site; 6,810 acres to check against DOE. EPA says 11 sq mi (about 7,040 ac) vs shipped 6,809.7 | 2026-10-17 | 2026-11-16 |
+| 43 | queued | MD3210021355 | Aberdeen Proving Ground (Michaelsville Landfill) | MD | DoD federal-facility NPL site; shipped 27,511 acres to check | — | — |
+| 44 | queued | TN0210020582 | Milan Army Ammunition Plant | TN | DoD federal-facility NPL site; shipped 24,823 acres to check | — | — |
+| 45 | queued | MA2570024487 | Otis Air National Guard Base/Camp Edwards | MA | DoD federal-facility NPL site; shipped 20,553 acres to check | — | — |
+| 32 | done 2026-10-18 | CA2890090002 | Lawrence Livermore Natl Lab (Site 300) (USDOE) | CA | DOE federal-facility NPL site; 6,810 acres to check against DOE. EPA says 11 sq mi (about 7,040 ac) vs shipped 6,809.7 | 2026-10-18 | 2026-11-17 |
 | 33 | done 2026-10-17 | MTD093291656 | Anaconda Co. Smelter | MT | Shipped 133,931 acres matches EPA 'more than 200 square miles'; EPA reuse page says contamination covers 300+ sq mi, so the NPL boundary question stays open | 2026-10-17 | 2027-01-15 |
 | 30 | done 2026-10-16 | NY7890008975 | Brookhaven National Laboratory (USDOE) | NY | DOE federal-facility NPL site; Long Island energy and land-use activity | 2026-10-16 | 2026-11-15 |
-| 31 | done 2026-10-16 | OH6890008984 | Mound Plant (USDOE) | OH | DOE site transferred to Miamisburg reuse; industrial park activity | 2026-10-16 | 2027-01-14 |
+| 31 | done 2026-10-18 | OH6890008984 | Mound Plant (USDOE) | OH | DOE site transferred to Miamisburg reuse; industrial park activity | 2026-10-18 | 2027-01-16 |
 | 28 | done 2026-10-15 | COD980717557 | Central City, Clear Creek | CO | Shipped 252,409 acres looks like a boundary artifact. 2026-10-13 pass: acreage matches EPA 400 sq mi watershed; EPA profile notes an Oct 2025 updated lead directive (day not given, so it predates the 2025-10-13 window start and the add was rejected); CDPHE and Gilpin pages returned 403. Retry with window start 2025-10-01 or a dated source | 2026-10-15 | 2027-01-13 |
 | 29 | done 2026-10-15 | ORD071803985 | Harbor Oil Inc. | OR | Deleted NPL oil recycler in Portland shipping 156,219 acres looks like a boundary artifact | 2026-10-15 | 2027-01-13 |
 | 27 | done 2026-10-13 | MOD981507585 | Newton County Mine Tailings | MO | Shipped 402,089 acres looks like a boundary artifact | 2026-10-13 | 2026-11-12 |
@@ -361,6 +364,7 @@ Rules the routine follows:
 
 - 2026-10-15 · daily routine · Central City/Clear Creek (COD980717557), Harbor Oil (ORD071803985) · 1 development (EPA updated lead directive, 2025-10, month-only; window start set to 2025-10-01 as the row allowed, the search itself was not date-limited) · 2 field differences (Harbor Oil 156,218.8 ac shipped vs EPA 4.2 ac; Central City county list Gilpin+Clear Creek vs Clear Creek only) · citation check: all claims supported, 0 corrections · Harbor Oil: no developments, no_new_developments · no PR was open (#41 merged); branch brought to main
 - 2026-10-16 · daily routine · Brookhaven (NY7890008975), Mound Plant (OH6890008984) · 2 developments (EPA protectiveness letter on BNL's fifth five-year review, 2026-08-07, body unreadable; EPA Region 5 sixth-review announcement naming Mound, 2026-03) · 2 field differences (BNL 5,266.3 ac shipped vs EPA 5,265; Mound 294.9 shipped vs WVXU 306-acre business park) · citation check: 0 contradicted, 1 acreage note corrected · review fix: removed Harbor Oil's 2026 no-cleanup lead (article was 2012) · PR #42 open, 1 day old
+- 2026-10-18 · daily routine · Camp Pendleton (CA2170023533), Camp Lejeune (NC6170022580) · 0 dossiers merged: both returned `retry` (primary Navy/USMC documents blocked, so no development could be cited and no_new_developments could not honestly be set) · 0 field differences (both acreage checks unverifiable: EPA gives 125,000 / 156,000-ac base figures) · citation check: no errors, one wording softened ('is a Superfund site' dropped) · 2 PR #42 review comments fixed (Site 300 acreage now confirmed at whole-square-mile rounding; Mound acreage now unverifiable, not like-for-like) · PR #42 close-out due
 
 ## 7. Decisions needed from Pranava
 
