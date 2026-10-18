@@ -93,6 +93,23 @@ JANUS_SITES = {
     "redstone-arsenal-al",
 }
 
+# Aug 26 2026: the Army picked five of the nine candidates and paired each
+# with a vendor (World Nuclear News, Air University). The other four remain
+# on the 2025 candidate list only.
+JANUS_SELECTED = {
+    "fort-bragg-nc": "Antares Nuclear",
+    "fort-campbell-ky": "BWXT Advanced Technologies",
+    "fort-hood-tx": "General Atomics EMS",
+    "fort-benning-ga": "Radiant Industries",
+    "fort-drum-ny": "Westinghouse Government Services",
+}
+JANUS_SELECTION_SOURCE = "https://www.world-nuclear-news.org/articles/us-army-selects-five-microreactor-vendors-to-power-bases"
+# Jun 1 2026: AFCEC told Arnold AFB no offeror would bid on its parcels.
+AF_RFLP_NO_PROPOSAL = {
+    "arnold-afb-tn": ("No proposals received (2026-06-01)",
+                      "https://www.tullahomanews.com/news/breaking-news/2026/06/01/no-ai-data-center-at-arnold/"),
+}
+
 # Construction-workforce availability within ~1 hour. An AP1000 build peaks at
 # several thousand construction workers over ~5-7 years (Vogtle 3&4 peaked near
 # 9,000), so a sizable skilled-labor pool within commuting range materially
@@ -790,6 +807,9 @@ def main() -> None:
         rec["janus_site"] = s["id"] in JANUS_SITES
         if rec["janus_site"]:
             rec["janus_source_url"] = JANUS_SOURCE
+            vendor = JANUS_SELECTED.get(s["id"])
+            rec["janus_status"] = f"Selected Aug 2026 · {vendor}" if vendor else "Candidate, not selected Aug 2026"
+            rec["janus_status_url"] = JANUS_SELECTION_SOURCE
         if s["id"] in AF_LEASE:
             lease = AF_LEASE[s["id"]]
             rec["af_rflp_site"] = True
@@ -797,6 +817,8 @@ def main() -> None:
             rec["af_rflp_detail"] = lease["detail"]
             rec["af_rflp_source_url"] = AF_RFLP_SOURCE
             rec["af_rflp_article_url"] = AF_RFLP_ARTICLE_SOURCE
+            if s["id"] in AF_RFLP_NO_PROPOSAL:
+                rec["af_rflp_status"], rec["af_rflp_status_url"] = AF_RFLP_NO_PROPOSAL[s["id"]]
         w = WORKFORCE.get(s["id"])
         if not w:
             raise SystemExit(f"no WORKFORCE entry for {s['id']}")
