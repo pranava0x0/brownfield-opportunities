@@ -11,6 +11,9 @@ const BRAC_DATA_URL = "data/dod-brac.json";
 const REDEV_DATA_URL = "data/epa-redev.json";
 const SUPERFUND_DOCS_URL = "data/epa-superfund-docs.json";
 const INFRA_DATA_URL = "data/infra-proximity.json";
+// Distances only (scripts/build_infra_core.py); loaded at startup. The full
+// file with asset ids and source metadata loads when a site panel opens.
+const INFRA_CORE_URL = "data/infra-proximity-core.json";
 const OPP_ZONE_URL = "data/opportunity-zone.json";
 const TRIBAL_AREAS_URL = "data/tribal-areas.json";
 const CLIMATE_ZONE_URL = "data/climate-zone.json";
@@ -932,14 +935,14 @@ fetch(PRIMARY_DATA_URL)
     lazyLoads.push(ensureEvidenceInvalidationsLoaded());
     lazyLoads.push(ensureRedevLoaded());
     lazyLoads.push(ensureInfraLoaded());
-    lazyLoads.push(ensureOppZoneLoaded());
-    lazyLoads.push(ensureIsoRtoLoaded());
+    // Opportunity Zone and ISO/RTO joins only feed filters and the site
+    // panel; load them at boot only when the URL already filters on them.
+    if (filterState.oppZone) lazyLoads.push(ensureOppZoneLoaded());
+    if (filterState.isoRto) lazyLoads.push(ensureIsoRtoLoaded());
     lazyLoads.push(ensureParcelOwnerLoaded());
     lazyLoads.push(ensureAcresCleanupLoaded());
     lazyLoads.push(ensureCoordQualityLoaded());
     lazyLoads.push(ensureAcreageFlagsLoaded());
-    // Water is part of the category evidence needed for initial exploration.
-    lazyLoads.push(ensureWaterProximityLoaded());
     lazyLoads.push(ensureSiteEvidencePilotsLoaded());
     applyUrlSelection();
     if (lazyLoads.length === 0) {
@@ -1491,49 +1494,60 @@ function siteIsAvailable(s) {
 // mapped FEMA study area.
 function ensureInfraLoaded() {
   if (infraLoadingPromise) return infraLoadingPromise;
-  infraLoadingPromise = fetch(INFRA_DATA_URL, { priority: "low" })
+  infraLoadingPromise = fetchInfra(INFRA_CORE_URL)
+    .catch((err) => {
+      console.error("Infra-proximity core load failed:", err);
+      infraLoadingPromise = null;
+    });
+  return infraLoadingPromise;
+}
+let infraEvidencePromise = null;
+function ensureInfraEvidenceLoaded() {
+  if (infraEvidencePromise) return infraEvidencePromise;
+  infraEvidencePromise = fetchInfra(INFRA_DATA_URL)
+    .catch((err) => {
+      console.error("Infra-proximity evidence load failed:", err);
+      infraEvidencePromise = null;
+    });
+  return infraEvidencePromise;
+}
+function fetchInfra(url) {
+  return fetch(url, { priority: "low" })
     .then((r) => {
       if (r.status === 404) return { sites: [] };
       if (!r.ok) throw new Error("HTTP " + r.status);
       return r.json();
     })
     .then(async (payload) => {
-      recordRefreshDate(payload.generated_at, INFRA_DATA_URL);
-      // infra-proximity.json is large enough to usually resolve AFTER ACRES/
-      // FUDS/BRAC, which is why this join "accidentally" worked — but that's
-      // file-size luck, not a guarantee (load-order race, see CLAUDE.md).
+      recordRefreshDate(payload.generated_at, url);
       // Wait on the in-flight program loads first so the `!existing` guard
-      // below can't silently drop every non-Superfund join.
+      // below can't silently drop every non-Superfund join (load-order race,
+      // see CLAUDE.md).
       await Promise.allSettled(
         [acresLoadingPromise, fudsLoadingPromise, bracLoadingPromise].filter(Boolean)
       );
+      const full = url === INFRA_DATA_URL;
       for (const rec of payload.sites || []) {
         const existing = sitesById.get(rec.id);
         if (!existing) continue;
-        const patch = {_infraSourceMetadata: payload.source_metadata || {}, infra_evidence: rec.infra_evidence || {}};
+        const patch = {};
+        if (full || !existing._infraSourceMetadata) patch._infraSourceMetadata = payload.source_metadata || {};
+        if (full) patch.infra_evidence = rec.infra_evidence || {};
         const fields = ["transmission_mi","transmission_kv","substation_mi","substation_kv","substation_role","rail_mi","highway_mi","gas_pipeline_mi","power_plant_mi","power_plant_mw","power_plant_fuel","power_plant_name","flood_zone","in_sfha","transmission_asset_id","substation_asset_id","power_plant_asset_id","infra_assessed_lat","infra_assessed_lon"];
         for (const key of fields) {
           // New evidence payloads replace their layer fields, including cleared
           // observations. Otherwise a removed/inferred voltage survives the join.
           if (rec.infra_evidence || rec[key] != null) patch[key] = rec[key] ?? null;
         }
-        patch.power_plant_name = rec.power_plant_name || payload.source_metadata?.power_plant?.assets_by_id?.[rec.power_plant_asset_id]?.name || null;
+        if (full) patch.power_plant_name = rec.power_plant_name || payload.source_metadata?.power_plant?.assets_by_id?.[rec.power_plant_asset_id]?.name || null;
         patch._infraChecked = true;
         Object.assign(existing, patch);
       }
-      // Re-run KPI deck (hyperscale-ready count depends on transmission_kv)
-      // and re-render an open detail panel so the new pill / chip lights up
-      // without requiring the user to reselect the site.
       maybeRefreshMicro();
       if (selectedId && sitesById.has(selectedId)) {
         try { selectSite(selectedId); } catch {}
       }
-    })
-    .catch((err) => {
-      console.error("Infra-proximity enrichment load failed:", err);
-      infraLoadingPromise = null;
     });
-  return infraLoadingPromise;
 }
 
 // Port / shipyard proximity enrichment (connectors/port_proximity.py). Joins
@@ -3714,6 +3728,8 @@ function openFiltersUi() {
   const backdrop = el("filters-backdrop");
   filters.hidden = false;
   toggle.setAttribute("aria-expanded", "true");
+  // The ISO/RTO and Opportunity Zone filters need their joins; fetch on first open.
+  ensureIsoRtoLoaded(); ensureOppZoneLoaded();
   if (FILTER_SHEET_MQ.matches && backdrop) backdrop.hidden = false;
   if (map) setTimeout(() => map.invalidateSize(), 50);
 }
@@ -6997,7 +7013,7 @@ function makeCandidateRow(row, rank) {
 // picked; each loader re-ranks the view when it lands.
 const SCREEN_LOADERS = {
   port: () => [ensurePortProximityLoaded()],
-  nickel: () => [ensurePortProximityLoaded(), ensureNickelAnchorProxLoaded()],
+  nickel: () => [ensurePortProximityLoaded(), ensureNickelAnchorProxLoaded(), ensureWaterProximityLoaded()],
 };
 // Called on screen pick and tab activation only, never from a rebuild: a
 // loader that fails clears its promise and refreshes the view, so calling
@@ -7344,6 +7360,7 @@ function ensureDetailEvidenceLoaded() {
     ensureIraEnergyCommunityLoaded(), ensureFemaNriLoaded(), ensureClimateZoneLoaded(),
     ensureRetiredPlantsLoaded(), ensurePlannedRetireProxLoaded(),
     ensureCoalConversionsProxLoaded(), ensurePortProximityLoaded(), ensureSiteResearchLoaded(),
+    ensureOppZoneLoaded(), ensureIsoRtoLoaded(), ensureWaterProximityLoaded(), ensureInfraEvidenceLoaded(),
   ]).then(() => {
     if (selectedId && sitesById.has(selectedId)) selectSite(selectedId);
   });
