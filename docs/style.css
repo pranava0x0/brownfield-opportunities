@@ -4030,3 +4030,4 @@ details.nickel-caveat li { margin-bottom: 6px; }
 }
 .screen-table .cand-name .site-evidence-open { display: inline; min-height: 0; text-align: left; }
 .screen-table td { padding-top: 7px; padding-bottom: 7px; }
+.method-foot { margin: 6px 0 0; color: var(--muted); font-size: 12px; }

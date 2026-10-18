@@ -1129,9 +1129,15 @@ def rebuild_proximity_only(data: Optional[Path] = None) -> dict:
 
 
 def main():
+    # Nearest Census place of 25,000+ (10 CFR 100.3 population-center proxy).
+    from build_population_centers import nearest_center
+    places = json.loads((Path(__file__).resolve().parent.parent / "docs" / "data" / "population-centers.json").read_text())["places"]
+    for s in SITES:
+        c = nearest_center(s["lat"], s["lon"], places)
+        s["pop_center_mi"], s["pop_center_name"], s["pop_center_pop"] = c["mi"], f"{c['name']}, {c['state']}", c["pop_2024"]
     # Write nuclear-civilian-sites.json
     payload = {
-        "generated_at": "2026-09-25",
+        "generated_at": "2026-10-18",
         "sources": [
             "INL/MIS-24-80216 Rev 0 (Aug 2024): Opportunities for AP1000 Deployment at Existing and Planned Nuclear Sites — docs/data/references/INL-AP1000-Opportunities-Sort128167.pdf",
             "Idaho Advanced Nuclear Strategic Framework (Sep 2025) — docs/data/references/Idaho-Advanced-Nuclear-Strategic-Framework.pdf",
@@ -1139,6 +1145,7 @@ def main():
             "Utility 2025 Integrated Resource Plans and press releases",
             "Jul-2026 status refresh: V.C. Summer FID timeline (SC Daily Gazette 2026-07-07), Palisades/Crane restart milestones, TVA Clinch River CP recommendation (ANS Jun 2026), Duke Belews Creek ESP (Federal Register 2026-02-11)",
             "Sep-2026 status refresh: Palisades fuel-loading incident (The National, 2026-09-21), Crane final EA/FONSI (Federal Register, 2026-09-22), Clinch River mandatory hearing held (NRC PMNS 20260617), Belews Creek mandatory hearing held (NRC, 2026-09-17), Project Matador TensorWave lease + construction update (Fermi America IR, 2026-08-10), Kewaunee NOI clarified as new-build not restart (EnergySolutions, 2026-01-15)",
+            "Oct-2026 refresh: Kemmerer construction permit (World Nuclear News, 2026-03-05), Clinch River construction permit (World Nuclear News, 2026-09-30); population-center distances from Census Vintage 2024 place estimates",
         ],
         "sites": SITES,
         "site_count": len(SITES),

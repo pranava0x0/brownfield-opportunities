@@ -4250,7 +4250,6 @@ function wireTabs() {
   const retiredTab = el("tab-retired");
   const coalTab = el("tab-coal");
   const ap1000Tab = el("tab-ap1000");
-  const microTab = el("tab-micro");
   const hanfordTab = el("tab-hanford");
   const aboutTab = el("tab-about");
   const setView = (which) => {
@@ -4260,14 +4259,13 @@ function wireTabs() {
     const onRetired = which === "retired";
     const onCoal = which === "coal";
     const onAp1000 = which === "ap1000";
-    const onMicro = which === "micro";
     const onHanford = which === "hanford";
     const onAbout = which === "about";
     for (const [tab, active] of [
       [mapTab, onMap], [tableTab, onTable],
       [candidatesTab, onCandidates], [retiredTab, onRetired],
       [coalTab, onCoal],
-      [ap1000Tab, onAp1000], [microTab, onMicro],
+      [ap1000Tab, onAp1000],
       [hanfordTab, onHanford], [aboutTab, onAbout],
     ]) {
       if (!tab) continue;
@@ -4280,7 +4278,6 @@ function wireTabs() {
     const retiredView = el("view-retired");
     const coalView = el("view-coal");
     const ap1000View = el("view-ap1000");
-    const microView = el("view-micro");
     const hanfordView = el("view-hanford");
     const aboutView = el("view-about");
     if (mapView)        { mapView.classList.toggle("active", onMap);               mapView.hidden = !onMap; }
@@ -4289,11 +4286,10 @@ function wireTabs() {
     if (retiredView)    { retiredView.classList.toggle("active", onRetired);       retiredView.hidden = !onRetired; }
     if (coalView)       { coalView.classList.toggle("active", onCoal);             coalView.hidden = !onCoal; }
     if (ap1000View)     { ap1000View.classList.toggle("active", onAp1000);         ap1000View.hidden = !onAp1000; }
-    if (microView)      { microView.classList.toggle("active", onMicro);           microView.hidden = !onMicro; }
     if (hanfordView)    { hanfordView.classList.toggle("active", onHanford);       hanfordView.hidden = !onHanford; }
     if (aboutView)      { aboutView.classList.toggle("active", onAbout);           aboutView.hidden = !onAbout; }
     const globalExportCsv = el("export-csv");
-    if (globalExportCsv) globalExportCsv.hidden = onAp1000 || onMicro || onCoal || onHanford;
+    if (globalExportCsv) globalExportCsv.hidden = onAp1000 || onCoal || onHanford;
     // Search only makes sense against the corpus views that read
     // tableState.filtered (map/table/rankings/microreactors — the
     // microreactor siting screen's microRankedSites() sources from the same
@@ -4302,7 +4298,7 @@ function wireTabs() {
     // for the same reason. The remaining curated tabs (Retired, Coal,
     // Nuclear Siting, Hanford, About) have their own local content and read
     // no global filter state at all.
-    const searchOnThisTab = onMap || onTable || onCandidates || onMicro;
+    const searchOnThisTab = onMap || onTable || onCandidates;
     const searchWrapEl = el("search-wrap");
     if (searchWrapEl) searchWrapEl.hidden = !searchOnThisTab;
     const searchCountEl = el("search-count");
@@ -4341,11 +4337,16 @@ function wireTabs() {
     if (onAp1000) {
       ensureAp1000Loaded(); buildAp1000View();
       ensureNuclearSitesLoaded(); buildNuclearCivilianView();
-    }
-    if (onMicro) {
-      ensureMicroFleetLoaded();
-      ensureJanusNepaLoaded();
-      buildMicroView();
+      // The microreactor catalog is long; build it only when opened.
+      const catalog = el("micro-catalog");
+      if (catalog && !catalog._wired) {
+        catalog._wired = true;
+        catalog.addEventListener("toggle", () => {
+          if (!catalog.open) return;
+          ensureMicroFleetLoaded(); ensureJanusNepaLoaded(); buildMicroView();
+        });
+      }
+      if (catalog?.open) { ensureMicroFleetLoaded(); ensureJanusNepaLoaded(); buildMicroView(); }
     }
     if (onHanford) {
       // Mount BEFORE anything queries the view's interior (the lazy-mount
@@ -4375,17 +4376,17 @@ function wireTabs() {
   if (retiredTab) retiredTab.addEventListener("click", () => setView("retired"));
   if (coalTab) coalTab.addEventListener("click", () => setView("coal"));
   if (ap1000Tab) ap1000Tab.addEventListener("click", () => setView("ap1000"));
-  if (microTab) microTab.addEventListener("click", () => setView("micro"));
   if (hanfordTab) hanfordTab.addEventListener("click", () => setView("hanford"));
   if (aboutTab) aboutTab.addEventListener("click", () => setView("about"));
 
   // Honor hash on initial load (e.g. shared URL with #ap1000).
-  const VALID_TABS = new Set(["map", "table", "candidates", "retired", "coal", "ap1000", "micro", "hanford", "about"]);
+  const VALID_TABS = new Set(["map", "table", "candidates", "retired", "coal", "ap1000", "hanford", "about"]);
   // The Maritime and Nickel tabs became screens on the Screens tab; old
   // links land on the matching screen.
   const SCREEN_ALIASES = {maritime: "port", nickel: "nickel", explore: "dc"};
   const route = (hash) => {
     if (SCREEN_ALIASES[hash]) { candidatesState.lens = SCREEN_ALIASES[hash]; refreshCandLensButtons(); return "candidates"; }
+    if (hash === "micro") { ap1000State.cls = "micro"; const d = el("micro-catalog"); if (d) d.open = true; return "ap1000"; }
     return VALID_TABS.has(hash) ? hash : null;
   };
   const initialHash = location.hash.replace(/^#/, "").toLowerCase();
@@ -5173,24 +5174,34 @@ const _ap1000KvMi = (mi, kv) =>
 // Concise, sortable-feeling table; each row expands to a detail row with the
 // full per-factor breakdown, analyst notes, sources, and unscored geohazard
 // flags. Built once on tab activation (the dataset is a static 14 rows).
+// Reactor class → screen in docs/screens.js, and the class whose water
+// basis the method card cites.
+const NUCLEAR_SCREENS = [
+  {key: "ap1000", label: "Large reactor (AP1000)", cls: "ap1000"},
+  {key: "smr", label: "SMR (300 MW)", cls: "ap300"},
+  {key: "micro", label: "Microreactor", cls: "micro"},
+];
 function buildAp1000View() {
   const host = el("ap1000-cards");
   if (!host) return;
   if (!ap1000Sites.length) { host.innerHTML = '<p class="muted">Nuclear site evidence unavailable or loading.</p>'; return; }
-  const classes = window.REACTOR_CLASSES || {};
-  const selected = classes[ap1000State.cls] || {};
-  const buttons = Object.entries(classes).map(([key, c]) => `<button type="button" data-reactor-class="${escapeHtml(key)}" aria-pressed="${key === ap1000State.cls}">${escapeHtml(c.label || c.name || key)}</button>`).join("");
-  const rows = ap1000ScoredRows().map(({s}, i) => {
-    const assessment = SiteEvidence.assessSite(s, "nuclear");
-    const landMet = window.ap1000MeetsAcreageThreshold?.(s, ap1000State.cls);
+  const screen = SiteScreens.SCREENS[ap1000State.cls] || SiteScreens.SCREENS.ap1000;
+  const buttons = NUCLEAR_SCREENS.map(c => `<button type="button" class="cand-filter${c.key === screen.key ? " active" : ""}" data-reactor-class="${c.key}" aria-pressed="${c.key === screen.key}">${escapeHtml(c.label)}</button>`).join("");
+  const ranked = SiteScreens.rank(ap1000Sites, screen.key);
+  const rows = ranked.map(({site: s, ev}, i) => {
     const flags = [s.seismic_flag ? `Seismic context: ${s.seismic_flag}` : null, s.flood_flag ? `Flood context: ${s.flood_flag}` : null].filter(Boolean).join(" · ");
-    return `<tr class="ap1000-row" data-id="${escapeHtml(s.id || s.name)}"><td><button class="ap1000-expand" aria-expanded="false" aria-controls="nuclear-evidence-${i}">${escapeHtml(s.name)}</button><small>${escapeHtml(s.state || "")} ${s.janus_site ? "· Janus shortlist" : ""}</small>${s.af_rflp_site ? '<span class="ap1000-rflp">AF RFLP</span>' : ""}</td>` +
-      SiteEvidence.PRIMARY.map(k => `<td data-label="${SiteEvidence.LABELS[k]}" data-category="${k}">${evidenceCell(assessment[k])}</td>`).join("") + `</tr>` +
-      `<tr class="ap1000-detail" id="nuclear-evidence-${i}" hidden><td colspan="6"><p>Reported land threshold: ${landMet === true ? "met" : landMet === false ? "below threshold" : "unknown"}. This does not establish a usable nuclear footprint.</p>${evidenceDetails(s,"nuclear")}<p class="ap1000-flags-cell">${escapeHtml(flags)}${s.usgs_pgam != null ? ` · USGS PGA ${Number(s.usgs_pgam).toFixed(2)}g · SDC ${escapeHtml(s.usgs_sdc || "unknown")}. Building-code context; nuclear site-specific analysis required.${_ap1000CellSrc(s.usgs_api_source,"USGS seismic API")}` : ""}</p>${s.af_rflp_site ? `<p class="ap1000-rflp-detail">Air Force lease solicitation: ${Number(s.af_rflp_acres).toLocaleString()} offered acres, distinct from installation area. Solicitation does not establish an award.${_ap1000CellSrc(s.af_rflp_source_url,"Air Force lease solicitation")}</p>` : ""}<p>${escapeHtml(s.developable_basis || "")}${_ap1000CellSrc(s.acreage_source,"Land")}</p><p>${escapeHtml(s.water_note || "")}${_ap1000CellSrc(s.water_source_url,"Water")}</p></td></tr>`;
+    const status = [s.janus_status, s.af_rflp_site ? (s.af_rflp_status || "Air Force data-center lease offer") : null].filter(Boolean).join(" · ");
+    return `<tr class="ap1000-row" data-id="${escapeHtml(s.id || s.name)}"><td class="cand-name"><span class="screen-rank">${i + 1}</span><button class="ap1000-expand site-evidence-open" aria-expanded="false" aria-controls="nuclear-evidence-${i}">${escapeHtml(s.name)}</button><span class="micro-sub">${escapeHtml(s.state || "")}${status ? " · " + escapeHtml(status) : ""}</span></td>`
+      + ev.results.map(r => `<td data-label="${escapeAttr(r.label)}" data-status="${r.status}">${screenCell(r)}</td>`).join("")
+      + `<td class="screen-score" data-label="Checks met"><strong>${ev.met}</strong>/${ev.total}</td></tr>`
+      + `<tr class="ap1000-detail" id="nuclear-evidence-${i}" hidden><td colspan="${ev.total + 2}">${evidenceDetails(s,"nuclear")}<p class="ap1000-flags-cell">${escapeHtml(flags)}${s.usgs_pgam != null ? ` · USGS PGA ${Number(s.usgs_pgam).toFixed(2)} g, SDC ${escapeHtml(s.usgs_sdc || "unknown")} (building code; a reactor needs site-specific motion).${_ap1000CellSrc(s.usgs_api_source,"USGS seismic API")}` : ""}</p>${s.af_rflp_site ? `<p class="ap1000-rflp-detail">Air Force lease offer: ${Number(s.af_rflp_acres).toLocaleString()} acres${s.af_rflp_status ? ` · ${escapeHtml(s.af_rflp_status)}${_ap1000CellSrc(s.af_rflp_status_url,"Status")}` : ""}.${_ap1000CellSrc(s.af_rflp_source_url,"Air Force lease solicitation")}</p>` : ""}${s.janus_status ? `<p>Army Janus: ${escapeHtml(s.janus_status)}.${_ap1000CellSrc(s.janus_status_url,"Army selection")}</p>` : ""}<p>${escapeHtml(s.developable_basis || "")}${_ap1000CellSrc(s.acreage_source,"Land")}</p><p>${escapeHtml(s.water_note || "")}${_ap1000CellSrc(s.water_source_url,"Water")}</p></td></tr>`;
   }).join("");
-  host.innerHTML = `<div class="ap1000-class-switch">${buttons}</div><p class="muted">${escapeHtml(selected.label || selected.name || ap1000State.cls)} · ${selected.min_acres || 500} acres: planning threshold. Sites listed alphabetically; confidence describes evidence.</p><details class="ap1000-class-context"><summary>Reactor assumptions and sources</summary><p>${escapeHtml(selected.water_basis || "Water demand unassessed.")}${_ap1000CellSrc(selected.spec_source,"Reactor specification")}${_ap1000CellSrc(selected.water_source,"Water demand basis")}</p></details><div class="ap1000-table-wrap"><table class="ap1000-table evidence-table"><caption class="sr-only">Nuclear installation evidence, listed alphabetically</caption><thead><tr><th scope="col">Installation</th>${SiteEvidence.PRIMARY.map(k=>`<th scope="col">${SiteEvidence.LABELS[k]}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table></div>`;
-  host.querySelectorAll("[data-reactor-class]").forEach(btn => btn.addEventListener("click", () => { ap1000State.cls=btn.dataset.reactorClass; buildAp1000View(); }));
-  host.querySelectorAll(".ap1000-expand").forEach(btn => btn.addEventListener("click", () => { const detail=el(btn.getAttribute("aria-controls")); detail.hidden=!detail.hidden; btn.setAttribute("aria-expanded", String(!detail.hidden)); }));
+  const cls = (window.REACTOR_CLASSES || {})[NUCLEAR_SCREENS.find(c => c.key === screen.key).cls] || {};
+  host.innerHTML = `<div class="cand-filter-group ap1000-class-switch" role="group" aria-label="Reactor class">${buttons}</div>`
+    + `<div class="method-card">${screenMethodHtml(screen)}${cls.water_basis ? `<p class="method-foot">Water demand: ${escapeHtml(cls.water_basis)}.</p>` : ""}</div>`
+    + `<div class="ap1000-table-wrap"><table class="ap1000-table evidence-table screen-table"><caption class="sr-only">Military installations ranked for ${escapeHtml(screen.label)}</caption><thead><tr><th scope="col">Installation</th>${screen.criteria.map(c => `<th scope="col">${escapeHtml(c.label)}</th>`).join("")}<th scope="col">Met</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  host.querySelectorAll("[data-reactor-class]").forEach(btn => btn.addEventListener("click", () => { ap1000State.cls = btn.dataset.reactorClass; buildAp1000View(); }));
+  host.querySelectorAll(".ap1000-expand").forEach(btn => btn.addEventListener("click", () => { const detail = el(btn.getAttribute("aria-controls")); detail.hidden = !detail.hidden; btn.setAttribute("aria-expanded", String(!detail.hidden)); }));
 }
 
 // ----- Civilian nuclear pipeline (Nuclear Siting tab, below the military
@@ -5251,60 +5262,26 @@ function buildNuclearCivilianView() {
     }
     return;
   }
-  const promising = nuclearSortedPromisingSites();
+  const screen = SiteScreens.SCREENS.civilian;
+  const ranked = SiteScreens.rank(nuclearCivilianSites, "civilian");
   const total = nuclearCivilianSites.length;
-  const remainder = total - promising.length;
-
   // Every interpolated value is escaped; the rest of the string is static.
-  const rows = promising
-    .map((s) => {
-      const cat = NUCLEAR_CATEGORIES[s.inl_category];
-      const capacity = nuclearCapacityText(s);
-      return (
-        `<tr data-nuke-id="${escapeAttr(s.id)}">` +
-        `<td><span class="nuke-civ-name">${escapeHtml(s.name)}</span></td>` +
-        `<td>${escapeHtml(s.state || "—")}</td>` +
-        `<td><span class="nuke-civ-cat ${cat.chip}">${escapeHtml(cat.label)}</span></td>` +
-        `<td>${escapeHtml(nuclearLabel(s.status))}</td>` +
-        `<td>${escapeHtml(nuclearLabel(s.col_status))}</td>` +
-        `<td class="nuke-civ-owner">${escapeHtml(s.owner_operator || "—")}</td>` +
-        `<td class="num">${escapeHtml(capacity || "—")}</td>` +
-        `<td>${escapeHtml(s.iso_rto || "—")}</td>` +
-        `<td>` +
-          (s.lat != null && s.lon != null
-            ? `<button type="button" class="nuke-civ-map" data-nuke-map="${escapeAttr(s.id)}" aria-label="Show ${escapeAttr(s.name)} on the map">map →</button>`
-            : '<span class="muted-cell">—</span>') +
-        `</td>` +
-        `</tr>`
-      );
-    })
-    .join("");
-
+  const rows = ranked.map(({site: s, ev}, i) => {
+    const capacity = nuclearCapacityText(s);
+    return `<tr data-nuke-id="${escapeAttr(s.id)}"><td class="cand-name"><span class="screen-rank">${i + 1}</span><span class="nuke-civ-name">${escapeHtml(s.name)}</span>`
+      + `<span class="micro-sub">${escapeHtml(s.state || "")}${s.owner_operator ? " · " + escapeHtml(s.owner_operator) : ""}${capacity ? " · " + escapeHtml(capacity) : ""}</span></td>`
+      + ev.results.map(r => `<td data-label="${escapeAttr(r.label)}" data-status="${r.status}">${screenCell(r)}</td>`).join("")
+      + `<td class="screen-score" data-label="Checks met"><strong>${ev.met}</strong>/${ev.total}</td><td>`
+      + (s.lat != null && s.lon != null ? `<button type="button" class="nuke-civ-map" data-nuke-map="${escapeAttr(s.id)}" aria-label="Show ${escapeAttr(s.name)} on the map">map →</button>` : "")
+      + `</td></tr>`;
+  }).join("");
   host.replaceChildren();
-  host.insertAdjacentHTML(
-    "beforeend",
-    `<h3>Civilian nuclear pipeline — ${total.toLocaleString()} tracked sites</h3>` +
-    `<p class="nuke-civ-lead">Base list from Idaho National Laboratory's August 2024 study ` +
-      `<a href="data/references/INL-AP1000-Opportunities-Sort128167.pdf" target="_blank" rel="noopener"><em>Opportunities for AP1000 Deployment at Existing and Planned Nuclear Sites</em></a> ` +
-      `(INL/MIS-24-80216), which screened existing and planned civilian nuclear sites and sorted them into readiness tiers — ` +
-      `extended here with announced restarts and post-study entrants (2025–26 NRC filings). ` +
-      `The ${promising.length.toLocaleString()} sites in the promising tiers are listed below and carry a ⚛ marker on the Map; ` +
-      `each marker's popup also lists the tracked Superfund sites within 50 mi.</p>` +
-    `<div class="nuke-civ-table-wrap"><table class="nuke-civ-table">` +
-      `<caption class="sr-only">Civilian nuclear sites in the promising INL readiness tiers, grouped by tier then name.</caption>` +
-      `<thead><tr>` +
-        `<th scope="col">Site</th><th scope="col">ST</th><th scope="col">Tier</th>` +
-        `<th scope="col">Status</th><th scope="col">COL status</th>` +
-        `<th scope="col">Owner / operator</th><th class="num" scope="col">Units × MWe</th>` +
-        `<th scope="col">ISO/RTO</th><th scope="col"><span class="sr-only">Map</span></th>` +
-      `</tr></thead>` +
-      `<tbody>${rows}</tbody>` +
-    `</table></div>` +
-    `<p class="nuke-civ-foot">${remainder.toLocaleString()} further sites tracked in the source data ` +
-      `(yellow / red tiers) — present in ` +
-      `<a href="data/nuclear-civilian-sites.json" target="_blank" rel="noopener">nuclear-civilian-sites.json</a>, ` +
-      `not shown in this table or on the map.</p>`
-  );
+  host.insertAdjacentHTML("beforeend",
+    `<h3>Civilian nuclear sites (${total})</h3>`
+    + `<div class="method-card">${screenMethodHtml(screen)}<p class="method-foot">Site list: existing and planned plants from <a href="data/references/INL-AP1000-Opportunities-Sort128167.pdf" target="_blank" rel="noopener">INL/MIS-24-80216</a> (Aug 2024) plus later restarts and filings.</p></div>`
+    + `<div class="nuke-civ-table-wrap"><table class="nuke-civ-table evidence-table screen-table"><caption class="sr-only">Civilian nuclear sites ranked by NRC licensing status</caption>`
+    + `<thead><tr><th scope="col">Site</th>${screen.criteria.map(c => `<th scope="col">${escapeHtml(c.label)}</th>`).join("")}<th scope="col">Met</th><th scope="col"><span class="sr-only">Map</span></th></tr></thead>`
+    + `<tbody>${rows}</tbody></table></div>`);
 
   if (!host._nukeWired) {
     host._nukeWired = true;
@@ -5387,7 +5364,7 @@ const AP1000_CSV_COLUMNS = [
 const ap1000State = { cls: "ap1000" };
 
 function ap1000ScoredRows() {
-  return ap1000Sites.slice().sort(evidenceNameOrder).map(s => ({s}));
+  return SiteScreens.rank(ap1000Sites, SiteScreens.SCREENS[ap1000State.cls] ? ap1000State.cls : "ap1000").map(r => ({s: r.site, ev: r.ev}));
 }
 
 function buildAp1000Csv() {
@@ -5584,8 +5561,8 @@ function addMicroCommitmentMarkers() {
 }
 
 function maybeRefreshMicro() {
-  const v = el("view-micro");
-  if (v && v.classList.contains("active")) buildMicroView();
+  const d = el("micro-catalog");
+  if (d && d.open && el("view-ap1000")?.classList.contains("active")) buildMicroView();
 }
 
 // Ordered for the breakdown chips; keys match computeMicroreactorBreakdown.
@@ -6736,8 +6713,6 @@ function buildMicroView() {
   // had created the layer (the loader's own call would have no-oped).
   addMicroCommitmentMarkers();
 
-  const ranked = microRankedSites();
-  microState.ranked = ranked;
   const counts = microFleet.counts || {};
   const mwe = microFleet.committed_mwe_by_band || {};
   const bandStrip = (microFleet.evidence_bands || [])
@@ -6750,19 +6725,7 @@ function buildMicroView() {
         `<span class="micro-band-auth">${escapeHtml(b.authority)}</span></div>`
     ).join("");
 
-  const filtered = (typeof filtersActive === "function" && filtersActive()) || filterState.q;
-  const scorable = ranked.length;
-  // Derived, never hardcoded — the same rule PROGRAM_LEGEND and the nuclear
-  // overlay counts follow. These move on every data refresh.
-  let federalCount = 0, fedSuperfundCount = 0;
-  for (const s of sites) {
-    if (s.program === "fuds" || s.program === "brac") federalCount++;
-    else if (s.program === "superfund" && s.federal_facility_code === "Y") fedSuperfundCount++;
-  }
-
   host.innerHTML =
-    `<div class="micro-lead"><h2>Microreactors</h2><p>Compare site evidence, then review designs and documented commitments. Grid absence and former military use establish neither isolation nor licensing eligibility.</p>` +
-    `<button id="micro-export-csv" type="button" class="ap1000-export">Download evidence CSV</button></div>` +
     `<section class="micro-section">` +
       `<h3>The fleet — ${counts.vendors_microreactor_band || 0} designs in the 1–20&nbsp;MWe band` +
         `<span class="micro-note"> · plus 1 labelled adjacency</span></h3>` +
@@ -6805,11 +6768,7 @@ function buildMicroView() {
         `final sizing needs at least a year of hourly site-load data.</p>` +
         `<div class="micro-sectors">${_microSectorHtml()}</div>` +
       `</div>` +
-    `</details>` +
-
-    `<section class="micro-section"><h3>Site evidence · ${scorable.toLocaleString()} matches</h3>` +
-    `<div class="micro-controls"><button type="button" id="micro-offgrid-toggle" class="cand-filter" aria-pressed="${microState.offGridOnly}">Missing grid evidence</button><span class="micro-note">${MICRO_MIN_ACRES}+ reported acres or unknown. Missing grid data does not mean off-grid.</span></div>` +
-    (scorable ? `<div class="micro-table-wrap"><table class="micro-table micro-rank-table evidence-table"><thead><tr><th>Site</th>${SiteEvidence.PRIMARY.map(k=>`<th>${SiteEvidence.LABELS[k]}</th>`).join("")}</tr></thead><tbody>${_microRankRows(ranked)}</tbody></table></div>` : `<p>No sites match these filters.</p>`) + `</section>`;
+    `</details>`;
 
   microState.built = true;
   wireMicroControls();

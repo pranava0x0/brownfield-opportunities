@@ -1,12 +1,13 @@
 {
-  "generated_at": "2026-09-25",
+  "generated_at": "2026-10-18",
   "sources": [
     "INL/MIS-24-80216 Rev 0 (Aug 2024): Opportunities for AP1000 Deployment at Existing and Planned Nuclear Sites \u2014 docs/data/references/INL-AP1000-Opportunities-Sort128167.pdf",
     "Idaho Advanced Nuclear Strategic Framework (Sep 2025) \u2014 docs/data/references/Idaho-Advanced-Nuclear-Strategic-Framework.pdf",
     "NRC Combined Operating License database",
     "Utility 2025 Integrated Resource Plans and press releases",
     "Jul-2026 status refresh: V.C. Summer FID timeline (SC Daily Gazette 2026-07-07), Palisades/Crane restart milestones, TVA Clinch River CP recommendation (ANS Jun 2026), Duke Belews Creek ESP (Federal Register 2026-02-11)",
-    "Sep-2026 status refresh: Palisades fuel-loading incident (The National, 2026-09-21), Crane final EA/FONSI (Federal Register, 2026-09-22), Clinch River mandatory hearing held (NRC PMNS 20260617), Belews Creek mandatory hearing held (NRC, 2026-09-17), Project Matador TensorWave lease + construction update (Fermi America IR, 2026-08-10), Kewaunee NOI clarified as new-build not restart (EnergySolutions, 2026-01-15)"
+    "Sep-2026 status refresh: Palisades fuel-loading incident (The National, 2026-09-21), Crane final EA/FONSI (Federal Register, 2026-09-22), Clinch River mandatory hearing held (NRC PMNS 20260617), Belews Creek mandatory hearing held (NRC, 2026-09-17), Project Matador TensorWave lease + construction update (Fermi America IR, 2026-08-10), Kewaunee NOI clarified as new-build not restart (EnergySolutions, 2026-01-15)",
+    "Oct-2026 refresh: Kemmerer construction permit (World Nuclear News, 2026-03-05), Clinch River construction permit (World Nuclear News, 2026-09-30); population-center distances from Census Vintage 2024 place estimates"
   ],
   "sites": [
     {
@@ -27,7 +28,10 @@
       "market": "Regulated / PJM",
       "iso_rto": "MISO",
       "notes": "Restart of existing reactor (~800 MW), not an AP1000 deployment. Fuel loading into the 204-assembly core began 2026-08-30; one fuel assembly tilted after being set down and the grapple released, pausing fuel loading. NRC says the incident did not trigger safety-reporting requirements, with no radiological release and no injuries. Holtec plans to submit a license amendment for the retrieval process; no firm restart date as of 2026-09-25 (previously 'this year or early 2027').",
-      "nrc_url": "https://www.thenationalnews.com/future/technology/2026/09/21/palisades-nuclear-incident-restart-nrc/"
+      "nrc_url": "https://www.thenationalnews.com/future/technology/2026/09/21/palisades-nuclear-incident-restart-nrc/",
+      "pop_center_mi": 32.3,
+      "pop_center_name": "Holland city, MI",
+      "pop_center_pop": 35023
     },
     {
       "id": "three-mile-island-pa",
@@ -47,7 +51,10 @@
       "market": "PJM",
       "iso_rto": "PJM",
       "notes": "Crane Clean Energy Center restart, Microsoft PPA. NRC draft EA/FONSI Jun 8 2026; NRC and DOE issued the final EA and Finding of No Significant Impact 2026-09-22, on schedule; 760 MW of Eddystone capacity-interconnection rights transferred Jun 2026. Operating-license decision still estimated around May 2027, with power potentially later that year.",
-      "nrc_url": "https://www.federalregister.gov/documents/2026/09/25/2026-19603/constellation-energy-generation-llc-christopher-m-crane-clean-energy-center-environmental-assessment"
+      "nrc_url": "https://www.federalregister.gov/documents/2026/09/25/2026-19603/constellation-energy-generation-llc-christopher-m-crane-clean-energy-center-environmental-assessment",
+      "pop_center_mi": 11.9,
+      "pop_center_name": "Harrisburg city, PA",
+      "pop_center_pop": 50649
     },
     {
       "id": "duane-arnold-ia",
@@ -67,7 +74,10 @@
       "market": "Regulated / PJM",
       "iso_rto": "MISO",
       "notes": "Feasibility study for possible restart underway. Cooling tower repairs needed.",
-      "nrc_url": null
+      "nrc_url": null,
+      "pop_center_mi": 11.1,
+      "pop_center_name": "Marion city, IA",
+      "pop_center_pop": 42542
     },
     {
       "id": "kemmerer-wy",
@@ -88,7 +98,10 @@
       "iso_rto": "non-RTO/WECC",
       "notes": "TerraPower's Natrium advanced reactor. NRC approved the Kemmerer Unit 1 construction permit (reported 2026-03-05).",
       "reference_url": "https://world-nuclear-news.org/articles/nrc-issues-construction-permit-for-first-natrium-plant",
-      "nrc_url": "https://www.nrc.gov/reactors/new-reactors/advanced/natrium.html"
+      "nrc_url": "https://www.nrc.gov/reactors/new-reactors/advanced/natrium.html",
+      "pop_center_mi": 67.3,
+      "pop_center_name": "Logan city, UT",
+      "pop_center_pop": 56770
     },
     {
       "id": "seadrift-tx",
@@ -108,7 +121,10 @@
       "market": "ERCOT",
       "iso_rto": "ERCOT",
       "notes": "DOE ARDP project. Behind-the-meter for Dow chemical manufacturing. NRC pre-application activities.",
-      "nrc_url": "https://www.nrc.gov/reactors/new-reactors/advanced/xe-100.html"
+      "nrc_url": "https://www.nrc.gov/reactors/new-reactors/advanced/xe-100.html",
+      "pop_center_mi": 31.2,
+      "pop_center_name": "Victoria city, TX",
+      "pop_center_pop": 66020
     },
     {
       "id": "clinch-river-tn",
@@ -129,7 +145,10 @@
       "iso_rto": "non-RTO/TVA",
       "notes": "NRC early site permit, then a construction permit for TVA's BWRX-300 (reported 2026-09-30), the first US construction permit for this SMR design.",
       "nrc_url": "https://www.nrc.gov/public-involve/public-meetings/pmns/20260617",
-      "reference_url": "https://world-nuclear-news.org/articles/first-construction-permit-issued-for-bwrx300-smr-in-us"
+      "reference_url": "https://world-nuclear-news.org/articles/first-construction-permit-issued-for-bwrx300-smr-in-us",
+      "pop_center_mi": 12.1,
+      "pop_center_name": "Oak Ridge city, TN",
+      "pop_center_pop": 34039
     },
     {
       "id": "belews-creek-nc",
@@ -149,7 +168,10 @@
       "market": "Regulated",
       "iso_rto": "non-RTO/SERC",
       "notes": "ESP filed Dec 30 2025 at the Belews Creek coal-plant site (accepted by NRC Feb 8 2026); NRC held its mandatory hearing 2026-09-17 in Danbury, NC; final SER + EIS still targeted May 2027. If confirmed best-value: first SMR online 2036, 600 MW plant by 2037. Coal-to-nuclear pattern on an operating coal site.",
-      "nrc_url": "https://www.nrc.gov/about-nrc/news-releases/2026/nrc-advisory-nrc-hold-mandatory-hearing-belews-creek-early-site-permit"
+      "nrc_url": "https://www.nrc.gov/about-nrc/news-releases/2026/nrc-advisory-nrc-hold-mandatory-hearing-belews-creek-early-site-permit",
+      "pop_center_mi": 12.1,
+      "pop_center_name": "Kernersville town, NC",
+      "pop_center_pop": 28760
     },
     {
       "id": "inl-cfpp-id",
@@ -169,7 +191,10 @@
       "market": "Regulated",
       "iso_rto": "non-RTO/WECC",
       "notes": "Carbon Free Power Project (CFPP) \u2014 Idaho Power withdrew in 2023; site characterization work done. NuScale design certified. Idaho Advanced Nuclear Task Force (EO 2025-06) supports new deployment.",
-      "nrc_url": "https://www.nrc.gov/reactors/new-reactors/smr/nuscale.html"
+      "nrc_url": "https://www.nrc.gov/reactors/new-reactors/smr/nuscale.html",
+      "pop_center_mi": 46.2,
+      "pop_center_name": "Idaho Falls city, ID",
+      "pop_center_pop": 69523
     },
     {
       "id": "columbia-wa",
@@ -189,7 +214,10 @@
       "market": "Regulated",
       "iso_rto": "non-RTO/WECC",
       "notes": "Existing BWR operating. X-energy 2nd project co-located. AP1000 is also feasible.",
-      "nrc_url": null
+      "nrc_url": null,
+      "pop_center_mi": 12.8,
+      "pop_center_name": "Richland city, WA",
+      "pop_center_pop": 64372
     },
     {
       "id": "vc-summer-sc",
@@ -214,7 +242,10 @@
       "fid_expected": "2028 (disclosed by 2028-03-31)",
       "notes": "Fastest AP1000 deployment path given prior licensing and ~40% construction. COL issued then terminated. Brookfield MOU Dec 2025 ($2.7B); The Nuclear Company joined the JV May 2026. Milestones: DOE loan application by end-2026, operator selection by Feb 2027, FID disclosed by 2028-03-31 (SC Daily Gazette, Jul 2026).",
       "nrc_url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/virgil-c-summer.html",
-      "reference_url": "https://www.world-nuclear-news.org/articles/brookfield-and-the-nuclear-company-target-vcsummer"
+      "reference_url": "https://www.world-nuclear-news.org/articles/brookfield-and-the-nuclear-company-target-vcsummer",
+      "pop_center_mi": 28.7,
+      "pop_center_name": "Lexington town, SC",
+      "pop_center_pop": 25354
     },
     {
       "id": "turkey-point-fl",
@@ -236,7 +267,10 @@
       "water_source": "Biscayne Bay / cooling canals",
       "land_concern": "may_be_limited",
       "notes": "Two-unit AP1000 COL issued 2019. Land and water availability may require analysis given South Florida setting.",
-      "nrc_url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/turkey-point.html"
+      "nrc_url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/turkey-point.html",
+      "pop_center_mi": 7.3,
+      "pop_center_name": "Homestead city, FL",
+      "pop_center_pop": 85796
     },
     {
       "id": "william-states-lee-sc",
@@ -258,7 +292,10 @@
       "water_source": "Broad River",
       "target_inservice_year": 2037,
       "notes": "New greenfield site. COL issued 2016. Duke's 2025 resource plan identifies this as best suited for new large LWR, targeting 2037 in-service.",
-      "nrc_url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/william-states-lee.html"
+      "nrc_url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/william-states-lee.html",
+      "pop_center_mi": 14.0,
+      "pop_center_name": "Gastonia city, NC",
+      "pop_center_pop": 85535
     },
     {
       "id": "levy-fl",
@@ -279,7 +316,10 @@
       "iso_rto": "non-RTO/SERC",
       "water_source": "Gulf of Mexico / Crystal River",
       "notes": "New greenfield site. COL issued then terminated. COL reinstatement feasible.",
-      "nrc_url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/levy.html"
+      "nrc_url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/levy.html",
+      "pop_center_mi": 34.1,
+      "pop_center_name": "Ocala city, FL",
+      "pop_center_pop": 70251
     },
     {
       "id": "bellefonte-al",
@@ -302,7 +342,10 @@
       "site_acreage": 1600,
       "construction_pct_complete": 88,
       "notes": "TVA abandoned AP1000 plan (2021). Units 1&2 are partially-built B&W PWRs (Unit 1 ~88% complete). 1,600-acre site on Tennessee River. COL application withdrawn. AP1000 COL reinstatement or new application feasible.",
-      "nrc_url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/bellefonte.html"
+      "nrc_url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/bellefonte.html",
+      "pop_center_mi": 41.9,
+      "pop_center_name": "Huntsville city, AL",
+      "pop_center_pop": 230402
     },
     {
       "id": "fermi-mi",
@@ -323,7 +366,10 @@
       "iso_rto": "MISO",
       "water_source": "Lake Erie",
       "notes": "Existing BWR operating at site. Single-unit ESBWR COL issued. Changing to AP1000 would require COL amendment. DTE exploring options.",
-      "nrc_url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/fermi.html"
+      "nrc_url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/fermi.html",
+      "pop_center_mi": 17.0,
+      "pop_center_name": "Southgate city, MI",
+      "pop_center_pop": 29081
     },
     {
       "id": "harris-nc",
@@ -344,7 +390,10 @@
       "iso_rto": "non-RTO/SERC",
       "water_source": "Harris Lake",
       "notes": "Existing PWR operating. Two-unit AP1000 COL application suspended. Duke's 2025 plan includes this site for potential large LWR. COL revision needed.",
-      "nrc_url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/harris.html"
+      "nrc_url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/harris.html",
+      "pop_center_mi": 10.4,
+      "pop_center_name": "Sanford city, NC",
+      "pop_center_pop": 32971
     },
     {
       "id": "south-texas-tx",
@@ -365,7 +414,10 @@
       "iso_rto": "ERCOT",
       "water_source": "Colorado River (reservoir)",
       "notes": "Two existing PWRs operating. Two-unit ABWR COL issued. Changing to AP1000 feasible. ERCOT market.",
-      "nrc_url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/south-texas.html"
+      "nrc_url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/south-texas.html",
+      "pop_center_mi": 40.0,
+      "pop_center_name": "Lake Jackson city, TX",
+      "pop_center_pop": 28158
     },
     {
       "id": "north-anna-va",
@@ -386,7 +438,10 @@
       "iso_rto": "PJM",
       "water_source": "Lake Anna",
       "notes": "Two existing PWRs operating. Single-unit ESBWR COL issued. Dominion exploring advanced nuclear (Amazon SMR partnership 2024). AP1000 change feasible.",
-      "nrc_url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/north-anna.html"
+      "nrc_url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/north-anna.html",
+      "pop_center_mi": 29.0,
+      "pop_center_name": "Fredericksburg city, VA",
+      "pop_center_pop": 29992
     },
     {
       "id": "comanche-peak-tx",
@@ -407,7 +462,10 @@
       "iso_rto": "ERCOT",
       "water_source": "Squaw Creek Reservoir / Paluxy River",
       "notes": "Two existing PWRs operating. Two-unit APWR COL application suspended. ERCOT market, high demand growth. AP1000 change feasible.",
-      "nrc_url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/comanche-peak.html"
+      "nrc_url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/comanche-peak.html",
+      "pop_center_mi": 22.1,
+      "pop_center_name": "Cleburne city, TX",
+      "pop_center_pop": 38131
     },
     {
       "id": "river-bend-la",
@@ -428,7 +486,10 @@
       "iso_rto": "MISO",
       "water_source": "Mississippi River",
       "notes": "Existing BWR operating. Single-unit ESBWR COL application withdrawn. Resubmission as AP1000 feasible.",
-      "nrc_url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/river-bend.html"
+      "nrc_url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/river-bend.html",
+      "pop_center_mi": 22.1,
+      "pop_center_name": "Central city, LA",
+      "pop_center_pop": 30161
     },
     {
       "id": "calvert-cliffs-md",
@@ -449,7 +510,10 @@
       "iso_rto": "PJM",
       "water_source": "Chesapeake Bay",
       "notes": "Two existing PWRs operating. Single-unit EPR COL application withdrawn. AP1000 substitution feasible.",
-      "nrc_url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/calvert-cliffs.html"
+      "nrc_url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/calvert-cliffs.html",
+      "pop_center_mi": 37.4,
+      "pop_center_name": "Annapolis city, MD",
+      "pop_center_pop": 40689
     },
     {
       "id": "callaway-mo",
@@ -470,7 +534,10 @@
       "iso_rto": "MISO",
       "water_source": "Missouri River",
       "notes": "Existing PWR operating. Single-unit EPR COL application withdrawn. AP1000 substitution feasible.",
-      "nrc_url": null
+      "nrc_url": null,
+      "pop_center_mi": 25.7,
+      "pop_center_name": "Jefferson City city, MO",
+      "pop_center_pop": 42564
     },
     {
       "id": "grand-gulf-ms",
@@ -491,7 +558,10 @@
       "iso_rto": "MISO",
       "water_source": "Mississippi River",
       "notes": "Existing BWR operating. Single-unit ESBWR COL application withdrawn. Large site on Mississippi River.",
-      "nrc_url": null
+      "nrc_url": null,
+      "pop_center_mi": 46.8,
+      "pop_center_name": "Clinton city, MS",
+      "pop_center_pop": 26617
     },
     {
       "id": "bell-bend-pa",
@@ -512,7 +582,10 @@
       "iso_rto": "PJM",
       "water_source": "Susquehanna River",
       "notes": "New greenfield site adjacent to Susquehanna nuclear station. Single-unit EPR COL application withdrawn. AP1000 substitution feasible.",
-      "nrc_url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/bell-bend.html"
+      "nrc_url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/bell-bend.html",
+      "pop_center_mi": 18.6,
+      "pop_center_name": "Wilkes-Barre city, PA",
+      "pop_center_pop": 44661
     },
     {
       "id": "nine-mile-point-ny",
@@ -533,7 +606,10 @@
       "iso_rto": "NYISO",
       "water_source": "Lake Ontario",
       "notes": "Two existing BWRs operating. Single-unit EPR COL application withdrawn. Previous retirement risk. AP1000 substitution feasible.",
-      "nrc_url": null
+      "nrc_url": null,
+      "pop_center_mi": 35.8,
+      "pop_center_name": "Syracuse city, NY",
+      "pop_center_pop": 146097
     },
     {
       "id": "victoria-county-tx",
@@ -554,7 +630,10 @@
       "iso_rto": "ERCOT",
       "water_source": "Guadalupe River",
       "notes": "New greenfield site. Two-unit ESBWR COL/ESP application withdrawn. Site viability still possible. ERCOT market, high demand.",
-      "nrc_url": null
+      "nrc_url": null,
+      "pop_center_mi": 8.8,
+      "pop_center_name": "Victoria city, TX",
+      "pop_center_pop": 66020
     },
     {
       "id": "salem-hope-creek-nj",
@@ -575,7 +654,10 @@
       "iso_rto": "PJM",
       "water_source": "Delaware River",
       "notes": "Three existing reactors (Salem 1&2 PWR + Hope Creek BWR). ESP approved. New state approval of waste plan required before new reactor build. Previous retirement risk (mitigated).",
-      "nrc_url": "https://www.nrc.gov/reactors/new-reactors/esp/hope-creek.html"
+      "nrc_url": "https://www.nrc.gov/reactors/new-reactors/esp/hope-creek.html",
+      "pop_center_mi": 9.7,
+      "pop_center_name": "Middletown town, DE",
+      "pop_center_pop": 25686
     },
     {
       "id": "brunswick-nc",
@@ -594,7 +676,10 @@
       "owner_operator": "Duke Energy",
       "market": "Regulated",
       "iso_rto": "non-RTO/SERC",
-      "notes": "No identified AP1000 issues but no previous licensing work."
+      "notes": "No identified AP1000 issues but no previous licensing work.",
+      "pop_center_mi": 17.8,
+      "pop_center_name": "Leland town, NC",
+      "pop_center_pop": 34451
     },
     {
       "id": "browns-ferry-al",
@@ -614,7 +699,10 @@
       "market": "Regulated",
       "iso_rto": "non-RTO/TVA",
       "water_source": "Wheeler Reservoir (Tennessee River)",
-      "notes": "Three BWRs operating. No previous new-build licensing work."
+      "notes": "Three BWRs operating. No previous new-build licensing work.",
+      "pop_center_mi": 10.9,
+      "pop_center_name": "Athens city, AL",
+      "pop_center_pop": 32587
     },
     {
       "id": "watts-bar-tn",
@@ -634,7 +722,10 @@
       "market": "Regulated",
       "iso_rto": "non-RTO/TVA",
       "water_source": "Watts Bar Reservoir (Tennessee River)",
-      "notes": "Two PWRs operating. No previous new-build licensing work."
+      "notes": "Two PWRs operating. No previous new-build licensing work.",
+      "pop_center_mi": 29.7,
+      "pop_center_name": "Cleveland city, TN",
+      "pop_center_pop": 50232
     },
     {
       "id": "wolf-creek-ks",
@@ -653,7 +744,10 @@
       "owner_operator": "Wolf Creek Nuclear Operating",
       "market": "Regulated / SPP",
       "iso_rto": "SPP",
-      "notes": "Single PWR operating. No previous new-build licensing work."
+      "notes": "Single PWR operating. No previous new-build licensing work.",
+      "pop_center_mi": 55.1,
+      "pop_center_name": "Lawrence city, KS",
+      "pop_center_pop": 97271
     },
     {
       "id": "waterford-la",
@@ -673,7 +767,10 @@
       "market": "Regulated / MISO",
       "iso_rto": "MISO",
       "water_source": "Mississippi River",
-      "notes": "Single PWR operating. No previous new-build licensing work."
+      "notes": "Single PWR operating. No previous new-build licensing work.",
+      "pop_center_mi": 13.2,
+      "pop_center_name": "Kenner city, LA",
+      "pop_center_pop": 64650
     },
     {
       "id": "cooper-ne",
@@ -693,7 +790,10 @@
       "market": "Regulated / SPP",
       "iso_rto": "SPP",
       "water_source": "Missouri River",
-      "notes": "Single BWR operating. No previous new-build licensing work."
+      "notes": "Single BWR operating. No previous new-build licensing work.",
+      "pop_center_mi": 56.3,
+      "pop_center_name": "Bellevue city, NE",
+      "pop_center_pop": 64777
     },
     {
       "id": "surry-va",
@@ -713,7 +813,10 @@
       "market": "Regulated / PJM",
       "iso_rto": "PJM",
       "water_source": "James River",
-      "notes": "Two PWRs operating. No previous new-build licensing work. Dominion exploring small-scale SMR."
+      "notes": "Two PWRs operating. No previous new-build licensing work. Dominion exploring small-scale SMR.",
+      "pop_center_mi": 11.5,
+      "pop_center_name": "Newport News city, VA",
+      "pop_center_pop": 183056
     },
     {
       "id": "point-beach-wi",
@@ -733,7 +836,10 @@
       "market": "MISO",
       "iso_rto": "MISO",
       "water_source": "Lake Michigan",
-      "notes": "Two PWRs operating. No previous new-build licensing work."
+      "notes": "Two PWRs operating. No previous new-build licensing work.",
+      "pop_center_mi": 14.4,
+      "pop_center_name": "Manitowoc city, WI",
+      "pop_center_pop": 34616
     },
     {
       "id": "susquehanna-pa",
@@ -753,7 +859,10 @@
       "market": "PJM",
       "iso_rto": "PJM",
       "water_source": "Susquehanna River",
-      "notes": "Two BWRs operating. No previous new-build licensing work. AWS Direct Air Capture co-location announced 2024."
+      "notes": "Two BWRs operating. No previous new-build licensing work. AWS Direct Air Capture co-location announced 2024.",
+      "pop_center_mi": 13.5,
+      "pop_center_name": "Hazleton city, PA",
+      "pop_center_pop": 30354
     },
     {
       "id": "vogtle-ga",
@@ -773,7 +882,10 @@
       "market": "Regulated",
       "iso_rto": "non-RTO/SERC",
       "water_source": "Savannah River",
-      "notes": "Four AP1000s operating (Units 1-4). Additional units possible. Georgia PSC concerns about cost overrun protection."
+      "notes": "Four AP1000s operating (Units 1-4). Additional units possible. Georgia PSC concerns about cost overrun protection.",
+      "pop_center_mi": 23.8,
+      "pop_center_name": "Augusta-Richmond County consolidated government (balance), GA",
+      "pop_center_pop": 201737
     },
     {
       "id": "hatch-ga",
@@ -793,7 +905,10 @@
       "market": "Regulated",
       "iso_rto": "non-RTO/SERC",
       "water_source": "Altamaha River",
-      "notes": "Two BWRs operating. No previous new-build licensing work. Same Georgia PSC cost-protection concern as Vogtle."
+      "notes": "Two BWRs operating. No previous new-build licensing work. Same Georgia PSC cost-protection concern as Vogtle.",
+      "pop_center_mi": 43.2,
+      "pop_center_name": "Hinesville city, GA",
+      "pop_center_pop": 36583
     },
     {
       "id": "palo-verde-az",
@@ -813,7 +928,10 @@
       "market": "Regulated",
       "iso_rto": "non-RTO/WECC",
       "water_concern": "may_be_limited",
-      "notes": "Three PWRs operating. Largest nuclear plant in US. May be water limited (uses treated municipal wastewater \u2014 already fully committed). APS exploring SLR."
+      "notes": "Three PWRs operating. Largest nuclear plant in US. May be water limited (uses treated municipal wastewater \u2014 already fully committed). APS exploring SLR.",
+      "pop_center_mi": 13.0,
+      "pop_center_name": "Buckeye city, AZ",
+      "pop_center_pop": 114334
     },
     {
       "id": "farley-al",
@@ -834,7 +952,10 @@
       "iso_rto": "non-RTO/SERC",
       "water_concern": "may_be_limited",
       "water_source": "Chattahoochee River",
-      "notes": "Two PWRs operating. May be water limited."
+      "notes": "Two PWRs operating. May be water limited.",
+      "pop_center_mi": 17.3,
+      "pop_center_name": "Dothan city, AL",
+      "pop_center_pop": 71650
     },
     {
       "id": "catawba-sc",
@@ -855,7 +976,10 @@
       "iso_rto": "non-RTO/SERC",
       "land_concern": "may_be_limited",
       "water_source": "Lake Wylie (Catawba River)",
-      "notes": "Two PWRs operating. May be land limited."
+      "notes": "Two PWRs operating. May be land limited.",
+      "pop_center_mi": 8.1,
+      "pop_center_name": "Fort Mill town, SC",
+      "pop_center_pop": 36244
     },
     {
       "id": "oconee-sc",
@@ -876,7 +1000,10 @@
       "iso_rto": "non-RTO/SERC",
       "land_concern": "may_be_limited",
       "water_source": "Lake Keowee",
-      "notes": "Three PWRs operating. May be land limited."
+      "notes": "Three PWRs operating. May be land limited.",
+      "pop_center_mi": 18.0,
+      "pop_center_name": "Easley city, SC",
+      "pop_center_pop": 27001
     },
     {
       "id": "peach-bottom-pa",
@@ -897,7 +1024,10 @@
       "iso_rto": "PJM",
       "land_concern": "may_be_limited",
       "water_source": "Susquehanna River",
-      "notes": "Two BWRs operating. May be land limited."
+      "notes": "Two BWRs operating. May be land limited.",
+      "pop_center_mi": 20.0,
+      "pop_center_name": "Lancaster city, PA",
+      "pop_center_pop": 58441
     },
     {
       "id": "st-lucie-fl",
@@ -918,7 +1048,10 @@
       "iso_rto": "non-RTO/SERC",
       "land_concern": "may_be_limited",
       "water_source": "Atlantic Ocean",
-      "notes": "Two PWRs operating. May be land limited. NRC recently approved 80-year operation."
+      "notes": "Two PWRs operating. May be land limited. NRC recently approved 80-year operation.",
+      "pop_center_mi": 7.9,
+      "pop_center_name": "Fort Pierce city, FL",
+      "pop_center_pop": 50805
     },
     {
       "id": "cook-mi",
@@ -939,7 +1072,10 @@
       "iso_rto": "PJM",
       "land_concern": "may_be_limited",
       "water_source": "Lake Michigan",
-      "notes": "Two PWRs operating. May be land limited."
+      "notes": "Two PWRs operating. May be land limited.",
+      "pop_center_mi": 24.2,
+      "pop_center_name": "Michigan City city, IN",
+      "pop_center_pop": 31466
     },
     {
       "id": "ano-ar",
@@ -960,7 +1096,10 @@
       "iso_rto": "MISO",
       "land_concern": "may_be_limited",
       "water_source": "Lake Dardanelle (Arkansas River)",
-      "notes": "Two PWRs operating. May be land limited."
+      "notes": "Two PWRs operating. May be land limited.",
+      "pop_center_mi": 11.7,
+      "pop_center_name": "Russellville city, AR",
+      "pop_center_pop": 29442
     },
     {
       "id": "sequoyah-tn",
@@ -981,7 +1120,10 @@
       "iso_rto": "non-RTO/TVA",
       "land_concern": "may_be_limited",
       "water_source": "Chickamauga Lake (Tennessee River)",
-      "notes": "Two PWRs operating. May be land limited."
+      "notes": "Two PWRs operating. May be land limited.",
+      "pop_center_mi": 12.8,
+      "pop_center_name": "Cleveland city, TN",
+      "pop_center_pop": 50232
     },
     {
       "id": "robinson-sc",
@@ -1002,7 +1144,10 @@
       "iso_rto": "non-RTO/SERC",
       "land_concern": "may_be_limited",
       "water_source": "Lake Robinson",
-      "notes": "Single PWR operating. May be land limited."
+      "notes": "Single PWR operating. May be land limited.",
+      "pop_center_mi": 25.9,
+      "pop_center_name": "Florence city, SC",
+      "pop_center_pop": 40923
     },
     {
       "id": "seabrook-nh",
@@ -1023,7 +1168,10 @@
       "iso_rto": "ISO-NE",
       "land_concern": "may_be_limited",
       "water_source": "Atlantic Ocean",
-      "notes": "Single PWR operating. May be land limited."
+      "notes": "Single PWR operating. May be land limited.",
+      "pop_center_mi": 14.4,
+      "pop_center_name": "Haverhill city, MA",
+      "pop_center_pop": 68291
     },
     {
       "id": "mcguire-nc",
@@ -1044,7 +1192,10 @@
       "iso_rto": "non-RTO/SERC",
       "land_concern": "may_be_limited",
       "water_source": "Lake Norman (Catawba River)",
-      "notes": "Two PWRs operating. May be land limited."
+      "notes": "Two PWRs operating. May be land limited.",
+      "pop_center_mi": 4.9,
+      "pop_center_name": "Cornelius town, NC",
+      "pop_center_pop": 34366
     },
     {
       "id": "fitzpatrick-ny",
@@ -1064,7 +1215,10 @@
       "market": "NYISO",
       "iso_rto": "NYISO",
       "water_source": "Lake Ontario",
-      "notes": "Single BWR operating. Previous retirement risk (addressed)."
+      "notes": "Single BWR operating. Previous retirement risk (addressed).",
+      "pop_center_mi": 35.6,
+      "pop_center_name": "Syracuse city, NY",
+      "pop_center_pop": 146097
     },
     {
       "id": "perry-oh",
@@ -1084,7 +1238,10 @@
       "market": "PJM",
       "iso_rto": "PJM",
       "water_source": "Lake Erie",
-      "notes": "Single BWR operating. Previous retirement risk."
+      "notes": "Single BWR operating. Previous retirement risk.",
+      "pop_center_mi": 12.4,
+      "pop_center_name": "Mentor city, OH",
+      "pop_center_pop": 47113
     },
     {
       "id": "ginna-ny",
@@ -1105,7 +1262,10 @@
       "iso_rto": "NYISO",
       "land_concern": "may_be_limited",
       "water_source": "Lake Ontario",
-      "notes": "Single PWR operating. May be land limited. Previous retirement risk."
+      "notes": "Single PWR operating. May be land limited. Previous retirement risk.",
+      "pop_center_mi": 17.3,
+      "pop_center_name": "Rochester city, NY",
+      "pop_center_pop": 207282
     },
     {
       "id": "beaver-valley-pa",
@@ -1126,7 +1286,10 @@
       "iso_rto": "PJM",
       "land_concern": "may_be_limited",
       "water_source": "Ohio River",
-      "notes": "Two PWRs operating. May be land limited. Previous retirement risk."
+      "notes": "Two PWRs operating. May be land limited. Previous retirement risk.",
+      "pop_center_mi": 27.1,
+      "pop_center_name": "Pittsburgh city, PA",
+      "pop_center_pop": 307668
     },
     {
       "id": "davis-besse-oh",
@@ -1147,7 +1310,10 @@
       "iso_rto": "PJM",
       "land_concern": "may_be_limited",
       "water_source": "Lake Erie",
-      "notes": "Single PWR operating. May be land limited. Previous retirement risk."
+      "notes": "Single PWR operating. May be land limited. Previous retirement risk.",
+      "pop_center_mi": 25.9,
+      "pop_center_name": "Toledo city, OH",
+      "pop_center_pop": 265638
     },
     {
       "id": "millstone-ct",
@@ -1168,7 +1334,10 @@
       "iso_rto": "ISO-NE",
       "land_concern": "may_be_limited",
       "state_policy": "location_restricted",
-      "notes": "Two PWRs operating. CT law limits new build to only the Millstone location. May be land limited. Previous retirement risk (Dominion sold back to CT state)."
+      "notes": "Two PWRs operating. CT law limits new build to only the Millstone location. May be land limited. Previous retirement risk (Dominion sold back to CT state).",
+      "pop_center_mi": 4.1,
+      "pop_center_name": "New London city, CT",
+      "pop_center_pop": 28081
     },
     {
       "id": "clinton-il",
@@ -1188,7 +1357,10 @@
       "market": "PJM",
       "iso_rto": "PJM",
       "state_policy": "smr_only",
-      "notes": "ESP approved. Illinois policy limits new large reactor builds to SMR-only. Could host AP1000 with policy change."
+      "notes": "ESP approved. Illinois policy limits new large reactor builds to SMR-only. Could host AP1000 with policy change.",
+      "pop_center_mi": 21.1,
+      "pop_center_name": "Decatur city, IL",
+      "pop_center_pop": 68763
     },
     {
       "id": "lasalle-il",
@@ -1208,7 +1380,10 @@
       "market": "PJM",
       "iso_rto": "PJM",
       "state_policy": "smr_only",
-      "notes": "Illinois SMR-only policy."
+      "notes": "Illinois SMR-only policy.",
+      "pop_center_mi": 34.9,
+      "pop_center_name": "Yorkville city, IL",
+      "pop_center_pop": 25986
     },
     {
       "id": "braidwood-il",
@@ -1228,7 +1403,10 @@
       "market": "PJM",
       "iso_rto": "PJM",
       "state_policy": "smr_only",
-      "notes": "Illinois SMR-only policy. Announced uprates to existing units."
+      "notes": "Illinois SMR-only policy. Announced uprates to existing units.",
+      "pop_center_mi": 19.7,
+      "pop_center_name": "Joliet city, IL",
+      "pop_center_pop": 151837
     },
     {
       "id": "dresden-il",
@@ -1248,7 +1426,10 @@
       "market": "PJM",
       "iso_rto": "PJM",
       "state_policy": "smr_only",
-      "notes": "Illinois SMR-only policy. Previous retirement risk."
+      "notes": "Illinois SMR-only policy. Previous retirement risk.",
+      "pop_center_mi": 9.4,
+      "pop_center_name": "Joliet city, IL",
+      "pop_center_pop": 151837
     },
     {
       "id": "byron-il",
@@ -1268,7 +1449,10 @@
       "market": "PJM",
       "iso_rto": "PJM",
       "state_policy": "smr_only",
-      "notes": "Illinois SMR-only policy. Announced uprates."
+      "notes": "Illinois SMR-only policy. Announced uprates.",
+      "pop_center_mi": 17.0,
+      "pop_center_name": "Rockford city, IL",
+      "pop_center_pop": 147486
     },
     {
       "id": "quad-cities-il",
@@ -1289,7 +1473,10 @@
       "iso_rto": "PJM",
       "state_policy": "smr_only",
       "land_concern": "may_be_limited",
-      "notes": "Illinois SMR-only policy. May also be land limited. Previous retirement risk."
+      "notes": "Illinois SMR-only policy. May also be land limited. Previous retirement risk.",
+      "pop_center_mi": 13.3,
+      "pop_center_name": "Bettendorf city, IA",
+      "pop_center_pop": 40281
     },
     {
       "id": "monticello-mn",
@@ -1309,7 +1496,10 @@
       "market": "Regulated / MISO",
       "iso_rto": "MISO",
       "state_policy": "moratorium",
-      "notes": "Minnesota moratorium on new nuclear power plants. Could become viable with policy change."
+      "notes": "Minnesota moratorium on new nuclear power plants. Could become viable with policy change.",
+      "pop_center_mi": 13.6,
+      "pop_center_name": "Elk River city, MN",
+      "pop_center_pop": 27606
     },
     {
       "id": "prairie-island-mn",
@@ -1329,7 +1519,10 @@
       "market": "Regulated / MISO",
       "iso_rto": "MISO",
       "state_policy": "moratorium",
-      "notes": "Minnesota moratorium. Could become viable with policy change."
+      "notes": "Minnesota moratorium. Could become viable with policy change.",
+      "pop_center_mi": 19.5,
+      "pop_center_name": "Cottage Grove city, MN",
+      "pop_center_pop": 42760
     },
     {
       "id": "diablo-canyon-ca",
@@ -1349,7 +1542,10 @@
       "market": "Regulated / CAISO",
       "iso_rto": "CAISO",
       "state_policy": "moratorium",
-      "notes": "California moratorium. Existing units extended 2022. New build prohibited under current state law."
+      "notes": "California moratorium. Existing units extended 2022. New build prohibited under current state law.",
+      "pop_center_mi": 11.2,
+      "pop_center_name": "San Luis Obispo city, CA",
+      "pop_center_pop": 49729
     },
     {
       "id": "limerick-pa",
@@ -1369,7 +1565,10 @@
       "market": "PJM",
       "iso_rto": "PJM",
       "land_concern": "limited",
-      "notes": "Two BWRs operating. Site is land limited; population near plant has grown significantly. Not suitable for large new build."
+      "notes": "Two BWRs operating. Site is land limited; population near plant has grown significantly. Not suitable for large new build.",
+      "pop_center_mi": 14.9,
+      "pop_center_name": "Norristown borough, PA",
+      "pop_center_pop": 36075
     },
     {
       "id": "project-matador-tx",
@@ -1392,7 +1591,10 @@
       "water_concern": null,
       "cooling": "air_cooled",
       "notes": "Four-unit AP1000, air-cooled (<50 ac-ft/yr water). Behind-the-meter model for data centers. COLA filed June 17, 2025; NRC-accepted. Preliminary site work began 2025; per Fermi's own 2026-08-10 release, vertical construction is underway, ~$1.5B invested to date, ~6 GW of the planned 17 GW campus permitted. First tenant lease signed 2026-08-10 (TensorWave, $6.5B/222 MW). Agreement with Doosan Enerbility. Greenfield site, Carson County TX. Not in INL 2024 study.",
-      "reference_url": "https://investor.fermiamerica.com/fermi-announces-binding-lease-agreement-with-tensorwave"
+      "reference_url": "https://investor.fermiamerica.com/fermi-announces-binding-lease-agreement-with-tensorwave",
+      "pop_center_mi": 8.4,
+      "pop_center_name": "Amarillo city, TX",
+      "pop_center_pop": 203729
     },
     {
       "id": "kewaunee-wi",
@@ -1415,7 +1617,10 @@
       "original_mwe": 556,
       "shutdown_year": 2013,
       "notes": "Former 556 MWe PWR (retired 2013). EnergySolutions submitted its NOI to the NRC 2026-01-15 confirming plans to pursue NEW nuclear generation at the site \u2014 not a restart of the retired unit. Evaluating ESP, construction permit, or COL; per EnergySolutions, application targeted by June 2028, construction in the early 2030s, in service by 2038. Decommissioning ongoing; site infrastructure partially intact. Not in INL 2024 study.",
-      "reference_url": "https://www.energysolutions.com/energysolutions-submits-notices-of-intent-to-nrc-kewaunee-power-station-new-nuclear-initiative/"
+      "reference_url": "https://www.energysolutions.com/energysolutions-submits-notices-of-intent-to-nrc-kewaunee-power-station-new-nuclear-initiative/",
+      "pop_center_mi": 18.3,
+      "pop_center_name": "Manitowoc city, WI",
+      "pop_center_pop": 34616
     }
   ],
   "site_count": 68,
