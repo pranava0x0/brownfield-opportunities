@@ -210,6 +210,20 @@ class CountyIndex:
     def polygon_count(self) -> int:
         return len(self._records)
 
+    def lookup_polygon(
+        self, lat: float, lon: float, expected_state: str | None = None
+    ) -> tuple[str, str | None, list[list[tuple[float, float]]]] | None:
+        """Like `lookup`, but return (name, state, polygon rings) for the match."""
+        cy = int(math.floor(lat / self.cell_deg))
+        cx = int(math.floor(lon / self.cell_deg))
+        for idx in self._cells.get((cy, cx), []):
+            name, state, polygon, (minx, miny, maxx, maxy) = self._records[idx]
+            if expected_state and state and state != expected_state:
+                continue
+            if minx <= lon <= maxx and miny <= lat <= maxy and _point_in_polygon(lon, lat, polygon):
+                return name, state, polygon
+        return None
+
     def lookup(
         self, lat: float, lon: float, expected_state: str | None = None
     ) -> str | None:

@@ -1,0 +1,115 @@
+#!/usr/bin/env python3
+"""Find reported site acreages that cannot describe a single site.
+
+Two deterministic tests, both offline:
+
+  county_outline  acreage >= 50% of the county that contains the site point.
+                  EPA draws some Superfund boundaries as the whole county or
+                  watershed (Tar Creek: 310,173 ac vs ~25,600 ac per Oklahoma
+                  DEQ), and the site point is then the county center.
+  region          acreage > 100,000 ac. WWII FUDS "maneuver areas" were
+                  training regions, not parcels.
+
+Flagged acreage is treated as unknown by the siting screens (docs/screens.js)
+and noted in the detail panel. Nothing here edits a source value.
+
+Usage:
+  python3 scripts/check_acreage_artifacts.py            # table of flagged sites
+  python3 scripts/check_acreage_artifacts.py --json     # id -> flag mapping
+  python3 scripts/check_acreage_artifacts.py --write    # docs/data/acreage-flags.json
+"""
+from __future__ import annotations
+
+import argparse
+import datetime as dt
+import json
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+
+from connectors.county_lookup import CountyIndex  # noqa: E402
+from connectors.geom import polygon_acreage  # noqa: E402
+
+DATA = ROOT / "docs" / "data"
+PROGRAM_FILES = ["superfund-npl.json", "epa-acres.json", "dod-fuds.json", "dod-brac.json"]
+COUNTY_SHARE = 0.5        # site claims half its county or more
+REGION_ACRES = 100_000    # larger than any single industrial or military parcel we screen for
+
+
+def load_sites() -> list[dict]:
+    sites = []
+    for name in PROGRAM_FILES:
+        path = DATA / name
+        if path.exists():
+            sites += json.loads(path.read_text())["sites"]
+    return sites
+
+
+def acreage_flags(sites: list[dict], counties: CountyIndex) -> dict[str, dict]:
+    """Return {site_id: {flag, acreage, county, county_acres, share}} for flagged sites."""
+    area_cache: dict[int, float | None] = {}
+    flags = {}
+    for s in sites:
+        acres = s.get("acreage")
+        lat, lon = s.get("lat_real", s.get("lat")), s.get("lon_real", s.get("lon"))
+        if not isinstance(acres, (int, float)) or acres <= 0 or lat is None or lon is None:
+            continue
+        hit = counties.lookup_polygon(lat, lon, s.get("state"))
+        county_acres = None
+        if hit:
+            key = id(hit[2])
+            if key not in area_cache:
+                area_cache[key] = polygon_acreage([[list(p) for p in ring] for ring in hit[2]])
+            county_acres = area_cache[key]
+        share = acres / county_acres if county_acres else None
+        flag = None
+        if share is not None and share >= COUNTY_SHARE:
+            flag = "county_outline"
+        elif acres > REGION_ACRES:
+            flag = "region"
+        if flag:
+            flags[s["id"]] = {
+                "flag": flag,
+                "acreage": acres,
+                "county": f"{hit[0]}, {hit[1]}" if hit else None,
+                "county_acres": county_acres,
+                "share": round(share, 2) if share is not None else None,
+            }
+    return flags
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    ap.add_argument("--json", action="store_true", help="print the id -> flag mapping as JSON")
+    ap.add_argument("--write", action="store_true", help="write docs/data/acreage-flags.json for the website")
+    args = ap.parse_args()
+    counties = CountyIndex.from_path(DATA / "us-counties-topo.json")
+    sites = load_sites()
+    flags = acreage_flags(sites, counties)
+    if args.write:
+        out = {
+            "generated_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
+            "source": "scripts/check_acreage_artifacts.py",
+            "rule": f"county_outline: acreage >= {COUNTY_SHARE:.0%} of the containing county; region: acreage > {REGION_ACRES:,} ac",
+            "count": len(flags),
+            "sites": [{"id": k, "acreage_flag": v["flag"], "acreage_flag_county": v["county"], "acreage_flag_share": v["share"]}
+                      for k, v in sorted(flags.items())],
+        }
+        (DATA / "acreage-flags.json").write_text(json.dumps(out, separators=(",", ":")) + "\n")
+        print(f"wrote {len(flags)} flags to docs/data/acreage-flags.json")
+        return 0
+    if args.json:
+        print(json.dumps(flags, indent=1, sort_keys=True))
+        return 0
+    names = {s["id"]: s.get("name", "") for s in sites}
+    print(f"{len(flags)} of {len(sites)} sites flagged")
+    for sid, f in sorted(flags.items(), key=lambda kv: -kv[1]["acreage"]):
+        share = f"{f['share']:.0%}" if f["share"] is not None else "n/a"
+        print(f"{f['flag']:<15} {sid:<20} {f['acreage']:>12,.0f} ac  {share:>6} of {f['county'] or '?'}  {names[sid][:45]}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
