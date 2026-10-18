@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-18T23:14:21.274454+00:00",
+  "generated_at": "2026-10-18T23:24:09.696880+00:00",
   "radius_mi": 50,
   "brownfield_dataset": "docs/data/sites.json (EPA Superfund NPL sites)",
   "records": [
@@ -6210,7 +6210,7 @@
     }
   ],
   "source_metadata": {
-    "nuclear_catalog_generated_at": "2026-09-25",
+    "nuclear_catalog_generated_at": "2026-10-18",
     "brownfield_generated_at": "2026-09-25T15:37:06Z",
     "method": "Straight-line great-circle distance to current Superfund reference coordinates; no facility or parcel identity implied."
   }

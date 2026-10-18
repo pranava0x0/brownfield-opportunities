@@ -69,8 +69,7 @@
       <button id="tab-table" class="tab" role="tab" aria-selected="false" aria-controls="view-table">Table</button>
       <button id="tab-retired" class="tab" role="tab" aria-selected="false" aria-controls="view-retired">Retired Sites</button>
       <button id="tab-coal" class="tab" role="tab" aria-selected="false" aria-controls="view-coal">Coal Reinvestment</button>
-      <button id="tab-ap1000" class="tab" role="tab" aria-selected="false" aria-controls="view-ap1000">Nuclear Siting</button>
-      <button id="tab-micro" class="tab" role="tab" aria-selected="false" aria-controls="view-micro">Microreactors</button>
+      <button id="tab-ap1000" class="tab" role="tab" aria-selected="false" aria-controls="view-ap1000">Nuclear</button>
       <button id="tab-hanford" class="tab" role="tab" aria-selected="false" aria-controls="view-hanford">DOE Sites</button>
       <button id="tab-about" class="tab" role="tab" aria-selected="false" aria-controls="view-about">Data &amp; methods</button>
     </div>
@@ -281,29 +280,20 @@
   <section id="view-ap1000" class="view ap1000-view" role="tabpanel" aria-labelledby="tab-ap1000" hidden>
     <div class="ap1000-wrap">
       <div class="ap1000-lead">
-        <h2>Nuclear reactor siting — 14 military installations</h2>
-        <p>Fourteen curated military installations, with separate infrastructure findings and confidence. Select a reactor class, then open a site for sources. Land availability, grid capacity and usable cooling water remain unverified.</p>
-        <button id="ap1000-export-csv" class="ap1000-export" type="button" aria-label="Download AP1000 table as CSV" title="Download only the AP1000 table as CSV with source URLs">
-          <span aria-hidden="true">↓</span> Download AP1000 table CSV
+        <h2>Nuclear siting</h2>
+        <p>Fourteen military installations ranked for each reactor size, then civilian plant sites ranked by NRC status.</p>
+        <button id="ap1000-export-csv" class="ap1000-export" type="button" aria-label="Download the installation table as CSV" title="Installation table with source URLs">
+          <span aria-hidden="true">↓</span> CSV
         </button>
       </div>
-      <details class="ap1000-help">
-        <summary>Sources and limits of this screen</summary>
-        <div class="ap1000-help-body">
-          <p>These installations are a curated population, separate from the shared site database. Grid distances use selected cleanup-site reference points; they are not distances from a proposed construction parcel. Reported installation area does not establish available land.</p>
-          <p>Water-source descriptions are analyst research. River flow and historical facility demand do not establish spare supply, drought reliability or a project allocation. Fiber ratings without site-specific citations are shown as unknown. Reactor classes do not resolve those evidence gaps.</p>
-          <p>Janus program interest is not a reactor award or a large-reactor approval. Inspect project-specific sources and dates in each site. <a href="#about">Read the data methods</a>.</p>
-        </div>
+      <div id="ap1000-cards" aria-live="polite"><p class="muted">Loading installations…</p></div>
+      <!-- Built on tab activation (first-paint DOM budget). -->
+      <div id="nuclear-civilian" class="nuke-civ" aria-live="polite"><p class="muted">Loading civilian sites…</p></div>
+      <details class="nuke-catalog" id="micro-catalog">
+        <summary>Microreactor designs, commitments and the Army Janus environmental screen</summary>
+        <div id="micro-content" class="micro-wrap" aria-live="polite"><p class="muted">Loading microreactor fleet…</p></div>
       </details>
-      <div id="ap1000-cards" aria-live="polite"><p class="muted">Loading AP1000 siting data…</p></div>
-      <!-- Civilian nuclear pipeline — built lazily by buildNuclearCivilianView()
-           on first Nuclear Siting tab activation (first-paint DOM budget). -->
-      <div id="nuclear-civilian" class="nuke-civ" aria-live="polite"><p class="muted">Loading civilian nuclear pipeline…</p></div>
     </div>
-  </section>
-
-  <section id="view-micro" class="view micro-view" role="tabpanel" aria-labelledby="tab-micro" hidden>
-    <div id="micro-content" class="micro-wrap" aria-live="polite"><p class="muted">Loading microreactor fleet…</p></div>
   </section>
 
   <section id="view-hanford" class="view hanford-view" role="tabpanel" aria-labelledby="tab-hanford" hidden>

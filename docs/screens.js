@@ -127,6 +127,86 @@
     tieBreak: {label: "largest acreage", dir: "desc", value: siteAcres},
   });
 
+  // ---- Nuclear screens: 14 curated military installations ----
+  const NUC = {
+    pop: {title: "10 CFR 100.3: population center of about 25,000 residents", url: "https://www.law.cornell.edu/cfr/text/10/100.3"},
+    census: {title: "Census Vintage 2024 place estimates", url: "https://www.census.gov/data/tables/time-series/demo/popest/2020s-total-cities-and-towns.html"},
+    seismic: {title: "AP1000 certified seismic design: 0.30 g peak ground acceleration (NRC DCD Tier 2 §3.7)", url: "https://www.nrc.gov/docs/ML1117/ML11171A430.pdf"},
+    vogtle: {title: "Vogtle 3&4 EIS: two units withdraw about 1% of average river flow", url: "https://www.energy.gov/sites/default/files/EIS-0476-FEIS_Part1-2012.pdf"},
+    army: {title: "Army Janus program: five installations selected Aug 26 2026", url: "https://www.world-nuclear-news.org/articles/us-army-selects-five-microreactor-vendors-to-power-bases"},
+    armyCriteria: {title: "Army Janus criteria include grid maturity", url: "https://www.army.mil/article/294897/army_selects_fort_drum_for_janus_program_microreactor"},
+    nrc: {title: "NRC new-reactor licensing status", url: "https://www.nrc.gov/reactors/new-reactors.html"},
+  };
+  // Land for an installation: the Air Force offered-parcel area where there is
+  // one (that is what a developer could lease), otherwise analyst-estimated
+  // developable acreage.
+  const installationAcres = s => num(s.af_rflp_acres) ? s.af_rflp_acres : num(s.developable_acreage) ? s.developable_acreage : null;
+  const popCheck = {id: "pop", label: "No city ≥25,000 within 10 mi", rule: "pop_center_mi > 10 (to the city's center point)", kind: "P",
+    note: "Census-incorporated places only; the regulatory test also needs the low-population-zone radius.",
+    source: NUC.pop, test: s => num(s.pop_center_mi) ? s.pop_center_mi > 10 : null,
+    show: s => num(s.pop_center_mi) ? `${s.pop_center_name} ${miles(s.pop_center_mi)}` : "unknown"};
+  const seismicCheck = {id: "seismic", label: "Ground motion ≤0.30 g", rule: "usgs_pgam ≤ 0.30", kind: "P",
+    note: "USGS building-code PGA compared with the AP1000 certified envelope; an NRC site needs site-specific motion.",
+    source: NUC.seismic, test: atMost("usgs_pgam", 0.30), show: s => num(s.usgs_pgam) ? `${s.usgs_pgam.toFixed(2)} g` : "unknown"};
+  const riverCheck = (withdrawalCfs, label) => ({id: "water", label, rule: `supply_flow_cfs ≥ 100 × ${withdrawalCfs} cfs`, kind: "P",
+    note: "River supply only; groundwater and reservoir supplies fail. Annual mean flow, not low flow.",
+    source: NUC.vogtle, test: s => s.supply_source ? (num(s.supply_flow_cfs) ? s.supply_flow_cfs >= 100 * withdrawalCfs : false) : null,
+    show: s => num(s.supply_flow_cfs) ? `${Math.round(s.supply_flow_cfs).toLocaleString("en-US")} cfs · ${s.supply_source}` : (s.supply_source || "unknown")});
+  const landCheck = min => ({id: "land", label: `Land ≥${min} acres`, rule: `af_rflp_acres or developable_acreage ≥ ${min}`, kind: "P",
+    note: "Offered lease parcel where the Air Force named one; otherwise analyst estimate.",
+    source: {title: "Analyst estimate; AF lease parcels from AFCEC-26-R-0002", url: SRC.afLease.url},
+    test: s => { const a = installationAcres(s); return a === null ? null : a >= min; }, show: s => acres(installationAcres(s))});
+
+  define("ap1000", {
+    label: "Large reactor (AP1000)", universe: "installations",
+    method: "Population, earthquake, river, grid and land checks against the AP1000 design. A screen, not an NRC site finding.",
+    criteria: [popCheck, seismicCheck, riverCheck(41.5, "River ≥4,150 cfs (100× one unit)"),
+      {id: "grid", label: "Line ≥230 kV within 5 mi", rule: "transmission_kv ≥ 230 and transmission_mi ≤ 5", kind: "P",
+        source: SRC.hifld, test: lineAtLeast(230, 5), show: lineKv},
+      landCheck(500)],
+    tieBreak: {label: "largest river flow", dir: "desc", value: s => s.supply_flow_cfs},
+  });
+  define("smr", {
+    label: "Small modular reactor (300 MW)", universe: "installations",
+    method: "Same checks scaled to a 300 MW unit (AP300 class): about a third of the water and land.",
+    criteria: [popCheck, seismicCheck, riverCheck(12.3, "River ≥1,230 cfs (100× one unit)"),
+      {id: "grid", label: "Line ≥115 kV within 5 mi", rule: "transmission_kv ≥ 115 and transmission_mi ≤ 5", kind: "P",
+        source: SRC.hifld, test: lineAtLeast(115, 5), show: lineKv},
+      landCheck(100)],
+    tieBreak: {label: "largest river flow", dir: "desc", value: s => s.supply_flow_cfs},
+  });
+  define("micro", {
+    label: "Microreactor (Army Janus)", universe: "installations",
+    applies: s => s.janus_site === true,
+    scope: "the nine Janus candidate installations",
+    method: "The Army's own selection plus its stated grid-maturity criterion.",
+    criteria: [
+      {id: "selected", label: "Selected by the Army", rule: "janus_status starts 'Selected'", kind: "R", source: NUC.army,
+        test: s => typeof s.janus_status === "string" ? s.janus_status.startsWith("Selected") : null, show: s => s.janus_status || "unknown"},
+      {id: "grid", label: "Line within 5 mi", rule: "transmission_mi ≤ 5", kind: "P", source: NUC.armyCriteria,
+        test: atMost("transmission_mi", 5), show: s => miles(s.transmission_mi)},
+      popCheck],
+    tieBreak: {label: "nearest line", value: s => s.transmission_mi},
+  });
+
+  // ---- Civilian nuclear sites (existing plants and announced projects) ----
+  const LICENSE_STAGE = ["construction_permit_issued", "under_construction", "restarting", "col_issued", "partial_construction",
+    "esp_approved", "col_application_filed", "esp_under_review", "pre_application", "site_characterization", "possible_restart",
+    "operating_expansion", "col_suspended", "col_withdrawn", "col_terminated"];
+  define("civilian", {
+    label: "Civilian nuclear sites", universe: "civilian",
+    method: "NRC licensing status first, then whether the site already hosts a reactor and how close the nearest city is.",
+    criteria: [
+      {id: "license", label: "Permit or license in force", rule: "status is construction permit, COL, construction or restart", kind: "R",
+        source: NUC.nrc, test: s => ["construction_permit_issued", "under_construction", "restarting", "col_issued", "partial_construction"].includes(s.status),
+        show: s => String(s.status || "unknown").replace(/_/g, " ")},
+      {id: "existing", label: "Existing reactor site", rule: "status is operating expansion or restart", kind: "R", source: NUC.nrc,
+        test: s => ["operating_expansion", "restarting", "possible_restart"].includes(s.status),
+        show: s => ["operating_expansion", "restarting", "possible_restart"].includes(s.status) ? "operating or recent plant" : "new site"},
+      popCheck],
+    tieBreak: {label: "licensing stage", value: s => { const i = LICENSE_STAGE.indexOf(s.status); return i < 0 ? 99 : i; }},
+  });
+
   function evaluate(site, key) {
     const screen = SCREENS[key];
     if (!screen) throw new Error(`unknown screen ${key}`);
