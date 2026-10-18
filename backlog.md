@@ -149,6 +149,7 @@ Priorities: **high** = next, **med** = soon, **low** = nice-to-have. Last update
 
 23. **[med]** DOE federal-facility NPL acreages run above DOE's own figures. Daily research found INL ships 1,082,653 ac vs EPA's 890 sq mi (~570,000 ac), Savannah River 234,032 vs ~198,000, Oak Ridge 37,430 vs ~35,000. Likely one cause: the EPA boundary polygons include buffers or overlapping operable units. Compare every federal-facility NPL acreage with the agency-stated figure and add a detail-panel note where the gap exceeds ~15%. Size: S. Dossiers in `site-research.json`.
 
+- Fix two shipped-dossier findings from PR #42 (raised after merge): (1) Site 300 (CA2890090002) summary/title overstate the 2025-12 NNSA five-year review; LLNL limits it to OUs 1, 4 and 7 (Southeast Corner), so scope the wording. (2) Anaconda (MTD093291656) open question about the seventh five-year review signature date is already answered: EPA/SEMS dates it 2025-09-25; remove it. Correct via `site_research.py add`.
 ## 4. Later and ideas
 
 Grouped by theme. Every still-open idea carried forward from the pre-2026-09-25 backlog and the four archived plan docs lives somewhere below, in Appendix A, or in §5.
