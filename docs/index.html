@@ -64,7 +64,7 @@
   </div>
   <div class="topbar-row topbar-row-tabs">
     <div class="tabs" role="tablist" aria-label="View">
-      <button id="tab-candidates" class="tab active" role="tab" aria-selected="true" aria-controls="view-candidates">Explore</button>
+      <button id="tab-candidates" class="tab active" role="tab" aria-selected="true" aria-controls="view-candidates">Screens</button>
       <button id="tab-map" class="tab" role="tab" aria-selected="false" aria-controls="view-map">Map</button>
       <button id="tab-table" class="tab" role="tab" aria-selected="false" aria-controls="view-table">Table</button>
       <button id="tab-retired" class="tab" role="tab" aria-selected="false" aria-controls="view-retired">Retired Sites</button>
@@ -72,60 +72,10 @@
       <button id="tab-ap1000" class="tab" role="tab" aria-selected="false" aria-controls="view-ap1000">Nuclear Siting</button>
       <button id="tab-micro" class="tab" role="tab" aria-selected="false" aria-controls="view-micro">Microreactors</button>
       <button id="tab-hanford" class="tab" role="tab" aria-selected="false" aria-controls="view-hanford">DOE Sites</button>
-      <button id="tab-maritime" class="tab" role="tab" aria-selected="false" aria-controls="view-maritime">Maritime Siting</button>
-      <button id="tab-nickel" class="tab" role="tab" aria-selected="false" aria-controls="view-nickel">Nickel Refining</button>
       <button id="tab-about" class="tab" role="tab" aria-selected="false" aria-controls="view-about">Data &amp; methods</button>
     </div>
   </div>
-  <details class="kpi-disclosure" id="kpi-disclosure">
-    <summary class="kpi-summary" aria-label="Show headline metrics">
-      <span class="kpi-summary-pair">
-        <span class="kpi-summary-num" id="kpi-summary-total">—</span>
-        <span class="kpi-summary-label">sites</span>
-      </span>
-      <span class="kpi-summary-dot" aria-hidden="true">·</span>
-      <span class="kpi-summary-pair">
-        <span class="kpi-summary-num" id="kpi-summary-dc">—</span>
-        <span class="kpi-summary-label">land unknown</span>
-      </span>
-      <span class="kpi-summary-chevron" aria-hidden="true"></span>
-    </summary>
-    <p class="sub kpi-tagline" id="meta">Loading…</p>
-    <div class="kpi-deck" id="kpi-deck" aria-label="Headline metrics">
-      <div class="kpi" data-kpi="total">
-        <span class="kpi-label">Sites in selection</span>
-        <span class="kpi-num" id="kpi-total">—</span>
-      </div>
-      <div class="kpi" data-kpi="acreage">
-        <span class="kpi-label">Area reported</span>
-        <span class="kpi-num" id="kpi-acres">—</span>
-      </div>
-      <div class="kpi" data-kpi="dc">
-        <span class="kpi-label">Grid mapped</span>
-        <span class="kpi-num" id="kpi-dc">—</span>
-      </div>
-      <div class="kpi" data-kpi="hyperscale">
-        <span class="kpi-label">Gage context</span>
-        <span class="kpi-num" id="kpi-hyperscale">—</span>
-      </div>
-      <div class="kpi" data-kpi="generation">
-        <span class="kpi-label">Fiber cited</span>
-        <span class="kpi-num" id="kpi-generation">—</span>
-      </div>
-    </div>
-  </details>
-  <!-- Jobs-to-be-done quick start. One click routes to the view + lens that
-       answers "what are you siting?". Stays visible after a pick (users try
-       several jobs); only the × dismisses it, persisted in localStorage and
-       applied before first paint by hideJtbdIfDismissed() in app.js. -->
-  <nav id="jtbd-strip" class="jtbd-strip" aria-label="Quick start">
-    <span class="jtbd-lead">What are you siting?</span>
-    <button type="button" class="jtbd-chip" data-jtbd="dc">🖥 Data center</button>
-    <button type="button" class="jtbd-chip" data-jtbd="gen">⚡ Power generation</button>
-    <button type="button" class="jtbd-chip" data-jtbd="reactor">⚛ Nuclear reactor</button>
-    <button type="button" class="jtbd-chip" data-jtbd="mfg">🏭 Factory</button>
-    <button type="button" id="jtbd-dismiss" class="jtbd-dismiss" aria-label="Hide quick start" title="Hide quick start">×</button>
-  </nav>
+
 </header>
 
 <div id="filters-backdrop" class="filters-backdrop" hidden aria-hidden="true"></div>
@@ -136,6 +86,7 @@
     <h2 class="filters-sheet-title">Filters</h2>
     <button id="filters-sheet-close" class="filters-sheet-close" aria-label="Close filters">×</button>
   </header>
+  <p class="sub filters-meta" id="meta">Loading…</p>
   <fieldset class="filter filter-program">
     <legend>Program</legend>
     <label class="check"><input type="checkbox" id="f-program-superfund" checked> Superfund (NPL)</label>
@@ -217,29 +168,22 @@
 
   <section id="view-candidates" class="view active" role="tabpanel" aria-labelledby="tab-candidates">
     <div class="candidates-header">
-      <div class="candidates-filters" role="group" aria-label="Explore filters">
-        <div class="cand-filter-group">
-          <span class="cand-filter-label">Lens</span>
-          <button class="cand-filter active" data-cand-lens="dc">Data Center</button>
-          <button class="cand-filter" data-cand-lens="gen">Generation</button>
-          <button class="cand-filter" data-cand-lens="mfg">Manufacturing</button>
-        </div>
-        <span class="cand-filter-note">Search or filter sites, then open a name to inspect sources and missing evidence.</span>
+      <div class="cand-filter-group" role="group" aria-label="What are you siting?">
+        <span class="cand-filter-label">Siting a</span>
+        <button class="cand-filter active" data-cand-lens="dc">Data center</button>
+        <button class="cand-filter" data-cand-lens="solar">Solar farm</button>
+        <button class="cand-filter" data-cand-lens="port">Port industry</button>
+        <button class="cand-filter" data-cand-lens="nickel">Nickel refinery</button>
       </div>
-      <p class="candidates-stats" id="candidates-stats" aria-live="polite">Loading…</p>
-      <div class="evidence-filters" role="group" aria-label="Evidence filters">
-        <label>Category <select id="evidence-category-filter"><option value="grid">Grid</option><option value="fiber">Fiber</option><option value="water">Water</option><option value="land">Land</option><option value="logistics">Logistics</option><option value="hazards">Hazards</option></select></label>
-        <label>Finding <select id="evidence-status-filter"><option value="">Any</option><option value="context">Evidence found</option><option value="constraint">Constraint documented</option><option value="unknown">Unknown</option></select></label>
-        <label>Confidence <select id="evidence-confidence-filter"><option value="">Any</option><option value="High">High</option><option value="Medium">Medium</option><option value="Low">Low</option></select></label>
+      <div class="method-card" id="screen-method" aria-live="polite"></div>
+      <div class="screen-bar">
+        <p class="candidates-stats" id="candidates-stats" aria-live="polite">Loading…</p>
+        <label class="screen-allmet"><input type="checkbox" id="screen-all-met"> Only sites that meet every check</label>
       </div>
-      <details class="cand-help">
-        <summary>How to read the evidence</summary>
-        <div class="cand-help-body"><p class="cand-filter-note">Use changes the next checks: data centers need firm power and carrier service; generation needs an export study; manufacturing needs process utilities and freight access. The mapped facts stay the same.</p><p>Compare <strong>grid, fiber, water, land and logistics</strong> separately. Sites appear alphabetically. Confidence describes the support for a finding, not whether a site is suitable. <strong>Unknown</strong> means the question is unassessed. A mapped feature does not establish service, capacity, ownership or permission to use it.</p><p>Open a site for its sources and remaining checks. See <a href="#about">Data &amp; methods</a> for coverage and limitations.</p></div>
-      </details>
     </div>
     <div id="candidates-wrap">
-      <table id="candidates-table" class="evidence-table">
-          <thead><tr><th scope="col">Site</th><th scope="col">Grid</th><th scope="col">Fiber</th><th scope="col">Water</th><th scope="col">Land</th><th scope="col">Logistics</th></tr></thead>
+      <table id="candidates-table" class="evidence-table screen-table">
+        <thead><tr id="candidates-head"><th scope="col">Site</th></tr></thead>
         <tbody><!-- rows injected by buildCandidatesView() --></tbody>
       </table>
     </div>
@@ -381,85 +325,6 @@
     </template>
   </section>
 
-  <section id="view-maritime" class="view maritime-view" role="tabpanel" aria-labelledby="tab-maritime" hidden>
-    <!-- Ranks the whole corpus for sites near a coastal or Great Lakes port,
-         for floating/offshore nuclear or coastal on-site generation / data
-         centers. Interior mounts lazily from this <template> on first tab
-         activation (app.js mountMaritimeView) — keeps skeleton nodes out of
-         the 5,000-node first-paint budget. -->
-    <template id="maritime-template">
-    <div class="maritime-wrap">
-      <div class="maritime-lead">
-        <h2>Maritime Siting</h2>
-        <p>Sites with a mapped port or shipyard nearby. Compare their infrastructure evidence separately. Port distance does not establish waterfront access, channel depth, berth availability or a towing route.</p>
-      </div>
-
-      <div class="cand-filter-group" role="group" aria-label="Maritime use">
-        <button type="button" class="cand-filter active" data-maritime-lens="offshore">Floating / Offshore Nuclear</button>
-        <button type="button" class="cand-filter" data-maritime-lens="coastal">Coastal Generation &amp; Data Centers</button>
-      </div>
-
-      <div id="maritime-stats" class="maritime-stats" aria-live="polite">Loading port/shipyard proximity data&hellip;</div>
-
-      <div class="maritime-table-wrap" id="maritime-wrap">
-        <table id="maritime-table" class="micro-table evidence-table">
-          <thead><tr><th scope="col">Site</th><th scope="col">Grid</th><th scope="col">Fiber</th><th scope="col">Water</th><th scope="col">Land</th><th scope="col">Logistics</th></tr></thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
-    </template>
-  </section>
-
-  <section id="view-nickel" class="view nickel-view" role="tabpanel" aria-labelledby="tab-nickel" hidden>
-    <!-- Ranks the corpus for a nickel hydrometallurgical refinery under two
-         opposite feed models. Interior mounts lazily from this <template> on
-         first tab activation (app.js mountNickelView) — keeps the skeleton
-         out of the 5,000-node first-paint budget. -->
-    <template id="nickel-template">
-    <div class="nickel-wrap">
-      <div class="nickel-lead">
-        <h2>Nickel Refining</h2>
-        <p>Explore sites near ports for imported feed, or rail and supply-chain locations for domestic feed. Each category shows evidence and confidence; no combined suitability score.</p>
-        <details class="nickel-caveat"><summary>What remains unverified</summary><ul>
-          <li>Land thresholds are screening choices, not proof of a usable or available parcel. Include unpublished acreage to see the missing-data population.</li>
-          <li>Annual mean flow at a streamgage is not available water supply. Catchment, low flow, intake and allocation remain unassessed.</li>
-          <li>Mapped ports, rail and supply-chain anchors do not establish a freight route, available feedstock or a contract.</li>
-        </ul></details>
-      </div>
-
-      <div class="cand-filter-group" role="group" aria-label="Feed model">
-        <button type="button" class="cand-filter active" data-nickel-lens="import">Imported feed (port)</button>
-        <button type="button" class="cand-filter" data-nickel-lens="domestic">Domestic feed (rail)</button>
-      </div>
-
-      <div class="cand-filter-group" role="group" aria-label="Land basis">
-        <button type="button" class="cand-filter active" data-nickel-land="confirmed" title="Planning filter for reported area. Project footprint and developable land require verification.">Refinery &ge;300 acres</button>
-        <button type="button" class="cand-filter" data-nickel-land="recycling" title="Illustrative recycling planning filter; not a universal minimum or verified developable area.">Recycling &ge;100 acres</button>
-        <button type="button" class="cand-filter" data-nickel-land="any">Include unpublished acreage</button>
-      </div>
-
-      <div id="nickel-stats" class="nickel-stats" aria-live="polite">Loading water and supply-chain data&hellip;</div>
-
-      <div class="nickel-table-wrap" id="nickel-wrap">
-        <table id="nickel-table" class="micro-table evidence-table">
-          <thead><tr><th scope="col">Site</th><th scope="col">Grid</th><th scope="col">Fiber</th><th scope="col">Water</th><th scope="col">Land</th><th scope="col">Logistics</th></tr></thead>
-          <tbody></tbody>
-        </table>
-      </div>
-
-      <div class="nickel-sources">
-        <h3>Sources</h3>
-        <ul>
-          <li>Siting criteria: <a href="https://www.globenewswire.com/news-release/2026/06/08/3307955/0/en/electra-advances-engineering-study-for-battery-grade-nickel-refinery-in-the-united-states.html" target="_blank" rel="noopener">Electra Battery Materials, June 2026</a> and <a href="https://lawtonedc.com/news/article/westwin-elements-breaks-ground-on-americas-only-critical-mineralspilot-plant" target="_blank" rel="noopener">Westwin Elements, Lawton OK</a>.</li>
-          <li>Brownfield reuse as permitting strategy: <a href="https://me.smenet.org/talon-plans-433-million-processing-facility-in-north-dakota/" target="_blank" rel="noopener">Talon Metals, Beulah ND</a>.</li>
-          <li>Water: <a href="https://waterservices.usgs.gov/" target="_blank" rel="noopener">USGS NWIS</a> active streamgages, mean of annual mean discharge.</li>
-          <li>Supply-chain anchors: <code>docs/data/nickel-anchors.json</code>, which carries a source link and an audit date per row. There is no live GIS layer of US mineral processing plants &mdash; the USGS dataset is a 2003 layer package.</li>
-        </ul>
-      </div>
-    </div>
-    </template>
-  </section>
 
   <section id="view-about" class="view about-view" role="tabpanel" aria-labelledby="tab-about" hidden>
     <!-- The entire About view mounts lazily from this <template> on first
@@ -688,6 +553,7 @@
 <script defer src="provenance.js"></script>
 <script defer src="siting-context.js"></script>
 <script defer src="evidence-categories.js"></script>
+<script defer src="screens.js"></script>
 <script defer src="app.js"></script>
 </body>
 </html>

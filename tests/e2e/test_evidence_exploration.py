@@ -58,11 +58,13 @@ def test_site_details_separate_proximity_from_capacity_and_water_rights(page, ba
     _open(page, base_url)
     page.locator("#candidates-table .site-evidence-open").first.click()
     expect(page.locator("#detail")).to_be_visible()
+    # Unassessed categories collapse into one "Not assessed" line whose
+    # expansion still gives the reason for each.
+    missing = page.locator("#detail .evidence-missing")
+    missing.locator("summary").click()
     for category in ["grid_capacity", "water_rights", "water_reliability", "fiber"]:
-        detail = page.locator(f'#detail .evidence-category[data-category="{category}"]')
-        expect(detail.locator(".evidence-finding")).to_have_text("Unknown")
-        detail.locator("summary").click()
-        expect(detail.locator("p")).to_be_visible()
+        expect(missing.locator(f'li[data-category="{category}"]')).to_be_visible()
+        expect(page.locator(f'#detail .evidence-category[data-category="{category}"]')).to_have_count(0)
     page.keyboard.press("Escape")
     expect(page.locator("#detail")).to_be_hidden()
 
