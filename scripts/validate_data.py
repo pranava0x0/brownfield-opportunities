@@ -433,6 +433,23 @@ def c_id_unique(c: Corpus):
     )
 
 
+@check("infra-core-in-sync", "derived")
+def c_infra_core_in_sync(c: Corpus):
+    """docs/data/infra-proximity-core.json must equal what
+    scripts/build_infra_core.py derives from infra-proximity.json today."""
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from build_infra_core import CORE, FULL, core_payload
+    if not CORE.exists():
+        yield Finding("infra-core-in-sync", "derived", "FAIL", 0, 1, "infra-proximity-core.json missing; run scripts/build_infra_core.py")
+        return
+    want = core_payload(json.loads(FULL.read_text()))
+    have = json.loads(CORE.read_text())
+    bad = sum(1 for a, b in zip(want["sites"], have["sites"]) if a != b) + abs(len(want["sites"]) - len(have["sites"]))
+    bad += want["generated_at"] != have.get("generated_at")
+    yield Finding("infra-core-in-sync", "derived", verdict(bad), len(want["sites"]), bad,
+                  "core file matches infra-proximity.json (rerun scripts/build_infra_core.py if not)")
+
+
 @check("id-namespace", "struct")
 def c_id_namespace(c: Corpus):
     patterns = {
