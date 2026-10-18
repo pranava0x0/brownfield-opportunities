@@ -68,7 +68,7 @@
       <button id="tab-map" class="tab" role="tab" aria-selected="false" aria-controls="view-map">Map</button>
       <button id="tab-table" class="tab" role="tab" aria-selected="false" aria-controls="view-table">Table</button>
       <button id="tab-retired" class="tab" role="tab" aria-selected="false" aria-controls="view-retired">Retired Sites</button>
-      <button id="tab-coal" class="tab" role="tab" aria-selected="false" aria-controls="view-coal">Coal Reinvestment</button>
+      <button id="tab-coal" class="tab" role="tab" aria-selected="false" aria-controls="view-coal">Coal plants</button>
       <button id="tab-ap1000" class="tab" role="tab" aria-selected="false" aria-controls="view-ap1000">Nuclear</button>
       <button id="tab-hanford" class="tab" role="tab" aria-selected="false" aria-controls="view-hanford">DOE Sites</button>
       <button id="tab-about" class="tab" role="tab" aria-selected="false" aria-controls="view-about">Data &amp; methods</button>
@@ -208,34 +208,13 @@
     <template id="coal-template">
     <div class="coal-wrap">
       <div class="coal-lead">
-        <h2>Coal Reinvestment &amp; Stranded Asset Screening</h2>
-        <p>Curated coal plants, including operating, retiring, retired and gas-converted sites. Compare reported infrastructure and proposed reuse pathways. Dollar values are modeled screening estimates; site readiness and interconnection capacity remain unverified.</p>
-        <details><summary>Reuse assumptions and limits</summary><p><a href="https://www.energy.gov/ne/articles/doe-report-finds-hundreds-retiring-coal-plant-sites-could-convert-nuclear" target="_blank" rel="noopener">DOE's coal-to-nuclear study</a> modeled potential savings from infrastructure reuse for advanced nuclear projects. Those estimates do not establish savings for a specific plant or data center. Generator replacement or surplus-interconnection eligibility requires project-specific study and utility or grid-operator approval; retirement does not guarantee reuse or queue exemption.</p></details>
+        <h2>Coal plants</h2>
+        <p>Every US coal plant with at least 100 MW of coal retired or scheduled to retire (EIA-860M), ranked for reuse of the site and its grid connection.</p>
+        <button id="coal-plants-csv" type="button" class="coal-btn" title="Ranked plants with each check and its source">CSV</button>
       </div>
-
-      <div class="coal-kpis" id="coal-kpi-deck">
-        <div class="coal-kpi">
-          <span class="coal-kpi-label">Cataloged Facilities</span>
-          <span class="coal-kpi-val" id="coal-kpi-count">—</span>
-          <span class="coal-kpi-sub">major coal facilities</span>
-        </div>
-        <div class="coal-kpi">
-          <span class="coal-kpi-label">Coal Nameplate</span>
-          <span class="coal-kpi-val" id="coal-kpi-mw">—</span>
-          <span class="coal-kpi-sub">current &amp; former coal nameplate at cataloged sites</span>
-        </div>
-        <div class="coal-kpi">
-          <span class="coal-kpi-label">Modeled Stranded Value</span>
-          <span class="coal-kpi-val" id="coal-kpi-val">—</span>
-          <span class="coal-kpi-sub">switchyard, intake &amp; rail (screening estimate)</span>
-        </div>
-        <div class="coal-kpi">
-          <span class="coal-kpi-label">Interconnection Review</span>
-          <span class="coal-kpi-val" id="coal-kpi-queue">—</span>
-          <span class="coal-kpi-sub">retired / retiring flags; reuse unverified</span>
-        </div>
-      </div>
-
+      <div id="coal-ranked" aria-live="polite"><p class="muted">Loading EIA plants…</p></div>
+      <details class="nuke-catalog" id="coal-deals">
+      <summary>Tracked conversion projects (18) with permitting screens</summary>
       <div class="coal-filters-bar">
         <div class="coal-filter-group">
           <label for="coal-status-filter">Status:</label>
@@ -273,6 +252,7 @@
         </div>
         <div id="coal-drawer-body" class="coal-drawer-body"></div>
       </div>
+      </details>
     </div>
     </template>
   </section>
