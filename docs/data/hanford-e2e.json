@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-25T14:02:23.876998Z",
+  "generated_at": "2026-10-18T23:31:35.886303Z",
   "nepa_mcp_version": "0.1.1",
   "site_id": "hanford",
   "site_label": "Hanford",
@@ -3483,9 +3483,9 @@
         },
         {
           "type": "smr",
-          "fit": "anchored",
+          "fit": "strong",
           "constraint": "licensing",
-          "rationale": "Energy Northwest's Cascade Advanced Energy Facility (Xe-100 modules, design-builder selected Oct 2025) is already under NRC pre-application review on this corridor."
+          "rationale": "Energy Northwest's Cascade Advanced Energy Facility (Xe-100 modules, design-builder selected Oct 2025) is in NRC pre-application review on this corridor. No construction permit application yet, so strong, not anchored."
         },
         {
           "type": "microreactor",

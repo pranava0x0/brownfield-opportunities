@@ -67,7 +67,7 @@
       <button id="tab-candidates" class="tab active" role="tab" aria-selected="true" aria-controls="view-candidates">Screens</button>
       <button id="tab-map" class="tab" role="tab" aria-selected="false" aria-controls="view-map">Map</button>
       <button id="tab-table" class="tab" role="tab" aria-selected="false" aria-controls="view-table">Table</button>
-      <button id="tab-retired" class="tab" role="tab" aria-selected="false" aria-controls="view-retired">Retired Sites</button>
+      <button id="tab-retired" class="tab" role="tab" aria-selected="false" aria-controls="view-retired">Retired industry</button>
       <button id="tab-coal" class="tab" role="tab" aria-selected="false" aria-controls="view-coal">Coal plants</button>
       <button id="tab-ap1000" class="tab" role="tab" aria-selected="false" aria-controls="view-ap1000">Nuclear</button>
       <button id="tab-hanford" class="tab" role="tab" aria-selected="false" aria-controls="view-hanford">DOE Sites</button>
@@ -192,9 +192,8 @@
     <template id="retired-template">
     <div class="retired-wrap">
       <div class="retired-lead">
-        <h2>Retired industrial sites — by prior use</h2>
-        <p>Facilities that stopped EPA greenhouse-gas reporting, grouped by prior use. They may have closed, idled or fallen below the reporting threshold. Infrastructure, ownership, operating status and availability require verification.</p>
-        <details><summary>Study context</summary><p><a href="https://www.energy.gov/ne/articles/doe-report-finds-hundreds-retiring-coal-plant-sites-could-convert-nuclear" target="_blank" rel="noopener">DOE's 2022 coal-to-nuclear study</a> identified potential advanced-reactor candidates among coal sites. Its screening and modeled savings do not establish suitability or savings for this broader industrial catalog.</p></details>
+        <h2>Retired heavy industry</h2>
+        <p>658 smelters, mills, refineries and mines that stopped EPA greenhouse-gas reporting. Large former loads often leave grid connections behind.</p>
       </div>
       <div id="retired-stats" aria-live="polite"><p class="muted">Loading retired-site data…</p></div>
     </div>
@@ -288,7 +287,9 @@
     <div class="hanford-wrap">
       <div class="hanford-lead">
         <h2>DOE cleanup sites</h2>
-        <p>Five federal cleanup sites, broken into land units and screened one at a time with <a href="https://github.com/pnnl/nepa-mcp" target="_blank" rel="noopener">PNNL's nepa-mcp</a>. Each unit gets a rating for four possible reuses — data center, large reactor, SMR, and microreactor — plus the environmental layers that overlap it and the sources behind both. This is screening evidence; agencies make the actual determinations.</p>
+        <p>Five DOE cleanup sites split into land units, each rated for a data center, large reactor, SMR and microreactor.</p>
+        <div class="method-card"><p class="method-lead"><strong>Method.</strong> Ratings are our reading of cited DOE, NRC and lease documents. Each cell names its one binding constraint. Environmental layers come from <a href="https://github.com/pnnl/nepa-mcp" target="_blank" rel="noopener">PNNL's nepa-mcp</a> screening.</p>
+          <ol class="method-list"><li><strong>Anchored</strong>: signed lease, award or operating use</li><li><strong>Strong</strong>: selected or designated, not yet signed</li><li><strong>Conditional</strong>: possible, one named constraint</li><li><strong>Precluded</strong>: legal or mission bar</li></ol></div>
       </div>
       <div id="hanford-content" aria-live="polite"><p class="muted">Loading dossier…</p></div>
     </div>
@@ -303,40 +304,20 @@
          first-paint budget (test_dom_size_under_5k_nodes). -->
     <template id="about-template">
     <div class="about-wrap">
-      <h2>Data, coverage and confidence</h2>
-      <p>Use this atlas to identify questions worth investigating. It combines government site records, mapped infrastructure and separately curated project evidence. It does not establish that a site is available or ready for a project.</p>
+      <h2>Data &amp; methods</h2>
+      <p>Each ranking is a few pass/fail checks. Every threshold below is either an agency's own number or ours, and says which. Missing data never counts as a pass.</p>
+      <section id="about-methods" aria-label="Ranking methods"></section>
+      <h3>Limits</h3>
+      <ul class="about-limits">
+        <li><strong>Grid:</strong> distance to a mapped line or substation (HIFLD, OpenStreetMap) is not available capacity or a connection agreement.</li>
+        <li><strong>Water:</strong> an annual mean at a USGS gage is not drought flow, a permit or a water right. Distance to a gage is not distance to water.</li>
+        <li><strong>Land:</strong> most ACRES brownfields report no acreage (unknown). 297 Superfund and FUDS areas that trace a county, region, river or plume are treated as unknown.</li>
+        <li><strong>Fiber:</strong> no parcel-level enterprise fiber data exists publicly, so fiber is not scored.</li>
+        <li><strong>Curated rows</strong> (coal projects, nuclear sites, DOE parcels) carry a source link and a verified date; the daily research routine re-checks sites over time.</li>
+      </ul>
       <section id="about-source-coverage" aria-label="Infrastructure source coverage" aria-live="polite"><p>Loading source coverage…</p></section>
-      <div class="about-grid">
-        <section class="about-section"><h3>Read findings separately</h3>
-          <p><strong>Evidence found</strong> means a source supports the stated observation. <strong>Constraint documented</strong> means a source identifies a potential limit. <strong>Unknown</strong> means the question remains unassessed; it is neither a favorable nor unfavorable finding.</p>
-          <p><strong>High, Medium and Low confidence</strong> describe support for that finding. High needs current, direct, site-specific evidence. Medium fits recent mapped context with a known source. Low fits old, indirect or proxy observations. Unknown findings have no confidence rating. Current public proximity data generally supports context, not High-confidence service availability.</p>
-          <p>There is no composite total or best-first ranking. The same category evidence is used across the reuse tabs. Exact distances are measurements from reference points, not precision in suitability.</p>
-        </section>
-        <section class="about-section"><h3>Grid</h3>
-          <p>Transmission lines come from the public HIFLD-derived ArcGIS layer. Substations come from OpenStreetMap through Overpass. These sources have different coverage, dates and asset definitions; OSM can include railway traction and distribution equipment. Line or substation proximity does not establish available capacity or a connection agreement.</p>
-          <p>A missing mapped match cannot establish off-grid status. Distances originate at reported site points or cleanup-site proxies, not surveyed development boundaries.</p>
-          <p><a href="data/infra-proximity.json">Infrastructure records</a> · <a href="https://www.openstreetmap.org/" target="_blank" rel="noopener">OpenStreetMap</a></p>
-        </section>
-        <section class="about-section"><h3>Fiber</h3>
-          <p>No nationwide parcel-level enterprise fiber dataset is joined. Regional carrier networks and broadband availability do not establish service at a parcel, usable capacity or independent routes. The curated military-site ratings lacked fiber-specific citations and are treated as unknown.</p>
-          <p>Verification needs a carrier serviceability response identifying the parcel, capacity, construction requirements and route diversity. Adding broadband data alone would not answer those questions.</p>
-        </section>
-        <section class="about-section"><h3>Water</h3>
-          <p>USGS streamgages provide monitoring locations and flow context. Distance to the nearest qualifying gage is not distance to water. An annual mean is not drought yield, permitted withdrawal or remaining supply. A nearby gage may belong to a different catchment.</p>
-          <p>Assess intake access, source-matched low flow, competing uses and the project supply agreement separately. An NPDES discharge permit does not establish withdrawal rights.</p>
-          <p><a href="data/water-proximity.json">Water context records</a> · <a href="https://waterdata.usgs.gov/" target="_blank" rel="noopener">USGS Water Data</a> · <a href="https://www.epa.gov/npdes/npdes-permit-basics" target="_blank" rel="noopener">EPA permit basics</a></p>
-        </section>
-        <section class="about-section"><h3>Population and completeness</h3>
-          <p>Explore, Map, Table, Manufacturing, Microreactor candidates, Maritime and Nickel use the shared Superfund, ACRES, FUDS and BRAC records. Coverage differs by program; many records lack acreage. A complete list of processed IDs does not mean complete infrastructure coverage.</p>
-          <p>Nuclear Siting uses 14 curated installations. Microreactor vendors and commitments, coal assets, and DOE dossiers are separate curated populations. Their inclusion does not validate land control, infrastructure access or project completion. Nickel demand also depends on chemistry and project status; identified LFP-only conversions and discontinued projects are excluded from the relevant proximity matches.</p>
-          <p>Headline counts describe records with particular evidence, within the current selection. They are not counts of buildable sites. Loaded-file dates indicate artifact freshness, not when every underlying feature was verified.</p>
-        </section>
-        <section class="about-section"><h3>Sources and next checks</h3>
-          <p>Open a site to inspect category sources and limitations. Keep capacity, water entitlement, usable land, freight access and project approvals as separate checks. Historical ownership, nearby facilities and program membership do not establish those facts.</p>
-          <p><a href="infrastructure-data-guide.md">Infrastructure data guide</a> · <a href="data/ap1000-sites.json">Curated installation evidence</a> · <a href="https://github.com/pranava0x0/brownfield-opportunities" target="_blank" rel="noopener">Source repository and full audit reports</a></p>
-          <p class="about-note">Dashboard <span id="hero-version">v1.30</span> · Latest loaded artifact: <span id="about-refresh-date">—</span>. Documents, AI summaries and optional map catalogs load when requested. AI summaries are secondary narrative, not independent evidence.</p>
-        </section>
-      </div>
+      <p class="about-note"><a href="data/infra-proximity.json">Infrastructure records</a> · <a href="data/water-proximity.json">Water records</a> · <a href="https://github.com/pranava0x0/brownfield-opportunities" target="_blank" rel="noopener">Source code and audit reports</a> · Reproduce any rank: <code>node scripts/screen.js explain &lt;site-id&gt;</code></p>
+      <p class="about-note">Dashboard <span id="hero-version">v2.0</span> · Latest loaded file: <span id="about-refresh-date">—</span>. Confidence labels in a site's evidence describe the support for that finding, not suitability.</p>
     </div>
     </template>
   </section>
@@ -369,16 +350,12 @@
     <dt>Acreage</dt><dd id="d-acreage">—<span id="d-acreage-note" class="acreage-note muted-cell" hidden></span></dd>
     <dt id="d-parcel-acreage-row" hidden>Parcel area</dt><dd id="d-parcel-acreage" hidden>—</dd>
     <dt id="d-status-label">Status</dt><dd id="d-status">—</dd>
-    <dt id="d-id-label">EPA ID</dt><dd id="d-epaid">—</dd>
-    <dt id="d-fed-label">Federal Facility</dt><dd id="d-fed">—</dd>
-    <dt>EPA Region</dt><dd id="d-region">—</dd>
     <dt>Address</dt><dd id="d-addr">—</dd>
     <dt>Coordinates</dt><dd id="d-coord">—<span id="d-coord-note" class="acreage-note muted-cell" hidden></span></dd>
-    <dt id="d-updated-label">Last Updated</dt><dd id="d-updated">—</dd>
   </dl>
 
   <details class="d-section" data-section="suitability" id="d-suitability-block" open>
-    <summary><h3>Infrastructure evidence</h3></summary>
+    <summary><h3>Siting checks</h3></summary>
     <div class="suitability" id="d-suitability">
       <div class="suit-lens" id="d-suit-dc"></div>
       <div class="suit-lens" id="d-suit-gen"></div>
@@ -388,8 +365,17 @@
       <p class="suit-flood" id="d-suit-flood" hidden></p>
       <p class="suit-flood" id="d-suit-climate" hidden></p>
       <p class="suit-flood" id="d-suit-reg" hidden></p>
-      <p class="suit-note muted">Confidence describes support for each finding. Unknown capacity, supply and permissions remain unresolved.</p>
     </div>
+  </details>
+
+  <details class="d-section" data-section="record">
+    <summary><h3>Record</h3></summary>
+    <dl class="kv">
+      <dt id="d-id-label">EPA ID</dt><dd id="d-epaid">—</dd>
+      <dt id="d-fed-label">Federal Facility</dt><dd id="d-fed">—</dd>
+      <dt>EPA Region</dt><dd id="d-region">—</dd>
+      <dt id="d-updated-label">Last Updated</dt><dd id="d-updated">—</dd>
+    </dl>
   </details>
 
   <div id="d-children-block" hidden>
