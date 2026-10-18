@@ -230,6 +230,28 @@
     tieBreak: {label: "largest coal capacity", dir: "desc", value: s => s.coal_mw},
   });
 
+  // ---- Retired heavy industry (EPA GHGRP facilities that stopped reporting) ----
+  const GHG = {title: "EPA GHGRP: facilities may stop reporting after closure or sustained low emissions (40 CFR 98.2(i))",
+    url: "https://www.ecfr.gov/current/title-40/chapter-I/subchapter-C/part-98/subpart-A/section-98.2"};
+  define("retired", {
+    label: "Retired heavy industry", universe: "retired",
+    method: "Facilities that stopped EPA greenhouse-gas reporting. Stopping is not proof of closure; these checks favor the likeliest closures with land records nearby.",
+    criteria: [
+      {id: "reason", label: "EPA accepted the reason", rule: "reporting_status = valid_reason", kind: "R", source: GHG,
+        test: s => s.reporting_status ? s.reporting_status === "valid_reason" : null,
+        show: s => s.reporting_status === "valid_reason" ? `last report ${s.last_report_year}` : `no reason · ${s.last_report_year}`},
+      {id: "plant", label: "Plant, not a mine", rule: "category = Manufacturing", kind: "P",
+        note: "Some mines that stopped reporting still operate (Hecla Greens Creek).", source: GHG,
+        test: s => s.category ? s.category === "Manufacturing" : null, show: s => s.sector || s.category || ""},
+      {id: "tracked", label: "Cleanup record within 1 mi", rule: "tracked_site_mi ≤ 1", kind: "P",
+        note: "A Superfund, ACRES, FUDS or BRAC record nearby carries owner and cleanup data.",
+        source: {title: "Join to this atlas's site records", url: "https://pranava0x0.github.io/brownfield-opportunities/"},
+        test: s => num(s.tracked_site_mi) ? s.tracked_site_mi <= 1 : false,
+        show: s => num(s.tracked_site_mi) ? `${s.tracked_site_name} · ${miles(s.tracked_site_mi)}` : "none"},
+    ],
+    tieBreak: {label: "most recent last report", dir: "desc", value: s => s.last_report_year},
+  });
+
   function evaluate(site, key) {
     const screen = SCREENS[key];
     if (!screen) throw new Error(`unknown screen ${key}`);

@@ -1442,13 +1442,13 @@ PORTSMOUTH_SITE = {
                 },
                 {
                     "type": "microreactor",
-                    "fit": "anchored",
+                    "fit": "strong",
                     "constraint": "licensing",
                     "rationale": (
-                        "Oklo holds an executed option and right of first "
-                        "refusal (February 2024) for two 15-MWe Aurora "
-                        "powerhouses plus 50+ MW of process heat — a "
-                        "committed, named project."
+                        "Oklo holds an option and right of first refusal "
+                        "(February 2024) for two 15-MWe Aurora powerhouses "
+                        "plus 50+ MW of process heat. An option is not yet a "
+                        "lease or an NRC license, so this is strong, not anchored."
                     ),
                     "sources": [
                         {

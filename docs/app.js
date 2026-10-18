@@ -4450,14 +4450,26 @@ function buildRetiredView() {
     + `<span class="retired-bar-num">${n.toLocaleString()}</span>`
     + `</div>`).join("");
 
-  host.innerHTML =
-    `<div class="retired-kpis"><div class="retired-kpi"><span class="retired-kpi-num">${total.toLocaleString()}</span>`
+  const screen = SiteScreens.SCREENS.retired;
+  const ranked = SiteScreens.rank(sites, "retired");
+  const full = ranked.filter(r => r.ev.met === r.ev.total).length;
+  const SHOW = 200;
+  const rows = ranked.slice(0, SHOW).map(({site: f, ev}, i) => `<tr><td class="cand-name"><span class="screen-rank">${i + 1}</span><strong>${escapeHtml(f.name)}</strong>`
+    + `<span class="micro-sub">${escapeHtml([f.city, f.state].filter(Boolean).join(", "))} · ${escapeHtml(f.parent_company || "")}</span></td>`
+    + ev.results.map(r => `<td data-label="${escapeAttr(r.label)}" data-status="${r.status}">${screenCell(r)}</td>`).join("")
+    + `<td class="screen-score" data-label="Checks met"><strong>${ev.met}</strong>/${ev.total}</td>`
+    + `<td><a href="https://enviro.epa.gov/envirofacts/ghg/facility-detail/${escapeAttr(String(f.id).replace(/^GHGRP-/, ""))}" target="_blank" rel="noopener">EPA ↗</a></td></tr>`).join("");
+  host.innerHTML = `<div class="method-card">${screenMethodHtml(screen)}</div>`
+    + `<p class="candidates-stats">${full} of ${total} facilities meet every check${total > SHOW ? ` · top ${SHOW} shown` : ""}</p>`
+    + `<div class="coal-table-wrap"><table class="evidence-table screen-table retired-table"><caption class="sr-only">Retired industrial facilities ranked</caption>`
+    + `<thead><tr><th scope="col">Facility</th>${screen.criteria.map(c => `<th scope="col">${escapeHtml(c.label)}</th>`).join("")}<th scope="col">Met</th><th scope="col"><span class="sr-only">EPA record</span></th></tr></thead><tbody>${rows}</tbody></table></div>`
+    + `<details class="nuke-catalog"><summary>By prior use and state</summary>`
+    + `<div class="retired-kpis"><div class="retired-kpi"><span class="retired-kpi-num">${total.toLocaleString()}</span>`
     + `<span class="retired-kpi-label">Retired sites</span></div>${catCards}</div>`
     + `<div class="retired-cols">`
     + `<section class="retired-col"><h3>Top prior uses</h3><div class="retired-bars">${sectorRows}</div></section>`
     + `<section class="retired-col"><h3>Top states</h3><div class="retired-bars">${stateRows}</div></section>`
-    + `</div>`
-    + `<p class="retired-foot muted">Source: <a href="https://www.epa.gov/ghgreporting" target="_blank" rel="noopener">EPA Greenhouse Gas Reporting Program</a> facilities that ceased reporting (closed, idled, or below threshold), queried by <code>reporting_status</code> via the <a href="https://www.epa.gov/enviro/envirofacts-data-service-api" target="_blank" rel="noopener">Envirofacts data service</a>; every ◆ marker's popup deep-links to that facility's <a href="https://enviro.epa.gov/envirofacts/ghg/search" target="_blank" rel="noopener">EPA Envirofacts GHG record</a>. This is a screening signal for reusable grid infrastructure — verify ownership, interconnection, and closure before treating any site as available. <strong>Nearby records:</strong> ${retiredIndustrialSites.filter((s) => s.tracked_site_id).length.toLocaleString()} sites have a Superfund, ACRES, FUDS, or BRAC point within 1 mi. Those links are proximity context only, not parcel matches or availability evidence. Use the rust ◆ markers on the Map to locate them.</p>`;
+    + `</div></details>`;
 }
 
 // ----- About: lazy view mount -----
@@ -4499,6 +4511,22 @@ function mountAboutView() {
   if (!tpl || !view || !tpl.content) return;
   aboutMounted = true;
   view.appendChild(tpl.content.cloneNode(true));
+  renderMethods();
+}
+
+// One table per screen, generated from docs/screens.js so the page cannot
+// drift from the code that ranks.
+function renderMethods() {
+  const host = el("about-methods");
+  if (!host) return;
+  const scope = {corpus: "Superfund, ACRES, FUDS and BRAC sites", installations: "14 military installations",
+    civilian: "68 civilian nuclear sites", coal: "EIA-860M coal plants", retired: "EPA GHGRP facilities"};
+  host.innerHTML = Object.values(SiteScreens.SCREENS).map(sc => `<section class="about-method"><h3>${escapeHtml(sc.label)} <span class="muted">· ${escapeHtml(scope[sc.universe] || "")}</span></h3>`
+    + `<p>${escapeHtml(sc.method)} Tie-breaker: ${escapeHtml(sc.tieBreak.label)}.</p>`
+    + `<table class="about-method-table"><thead><tr><th scope="col">Check</th><th scope="col">Rule</th><th scope="col">Threshold from</th></tr></thead><tbody>`
+    + sc.criteria.map(c => `<tr><td>${escapeHtml(c.label)}</td><td><code>${escapeHtml(c.rule)}</code>${c.note ? `<span class="micro-sub">${escapeHtml(c.note)}</span>` : ""}</td>`
+      + `<td><span class="method-kind" data-kind="${c.kind}">${c.kind === "R" ? "agency" : "ours"}</span> <a href="${escapeAttr(c.source.url)}" target="_blank" rel="noopener">${escapeHtml(c.source.title)}</a></td></tr>`).join("")
+    + `</tbody></table></section>`).join("");
 }
 
 // Same lazy-mount mechanism for the Coal Reinvestment and Retired Sites view
@@ -8743,7 +8771,21 @@ function setFloodZoneCell(id, zone, inSfha) {
 // ----- Siting suitability block -----
 // Shared evidence categories in the detail drawer.
 function renderSuitability(s) {
-  const node=el("d-suit-dc"); if(node) node.innerHTML=evidenceDetails(s, el("view-micro")?.classList.contains("active") ? "micro" : el("view-nickel")?.classList.contains("active") ? "nickel" : "dc");
+  // Screens first (the answer), then the per-category evidence (the why).
+  const node = el("d-suit-dc");
+  if (node) {
+    const rows = SCREEN_KEYS.map(key => {
+      const sc = SiteScreens.SCREENS[key];
+      if (sc.applies && !sc.applies(s)) return "";
+      const ev = SiteScreens.evaluate(s, key);
+      return `<tr><th scope="row">${escapeHtml(sc.label)}</th><td class="screen-score"><strong>${ev.met}</strong>/${ev.total}</td><td>`
+        + ev.results.map(r => `<span class="screen-chip" data-status="${r.status}" title="${escapeAttr(r.label + ": " + r.value)}">${SCREEN_MARK[r.status]} ${escapeHtml(r.label)}</span>`).join(" ")
+        + `</td></tr>`;
+    }).join("");
+    node.innerHTML = `<table class="screen-summary"><caption class="sr-only">Siting checks for this site</caption><tbody>${rows}</tbody></table>`
+      + (s.acreage_flag ? `<p class="suit-note">Reported area is treated as unknown: it ${s.acreage_flag === "water_or_plume" ? "traces a river, lake or groundwater plume" : s.acreage_flag === "county_outline" ? `covers ${escapeHtml(s.acreage_flag_county ? "most of " + s.acreage_flag_county : "most of its county")}` : "spans a region larger than any single parcel"}.</p>` : "")
+      + evidenceDetails(s, "dc");
+  }
   for(const id of ["d-suit-gen","d-suit-nickel-import","d-suit-nickel-domestic","d-suit-nickel-land"]) {const n=el(id);if(n){n.replaceChildren();n.hidden=true;}}
 }
 

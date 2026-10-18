@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-25T14:02:25.594904Z",
+  "generated_at": "2026-10-18T23:31:12.982119Z",
   "nepa_mcp_version": "0.1.1",
   "site_id": "portsmouth",
   "site_label": "Portsmouth",
@@ -123,7 +123,7 @@
       "source_url": "https://www.aep.com/news/stories/view/10823/",
       "extra_sources": [
         {
-          "label": "DOE PORTS contract - X-530/X-515 and OVEC agreement",
+          "label": "DOE PORTS contract \u2014 X-530/X-515 and OVEC agreement",
           "url": "https://www.energy.gov/sites/default/files/2024-02/PORTS%20FBP%20Conformed%20Contract%20to%20Mod%20446%2001-30-24.pdf"
         },
         {
@@ -132,7 +132,11 @@
         }
       ],
       "evidence_scope": "asset",
-      "asset_ids": ["X-530 Complex", "X-515 330 kV tie-line", "Don Marquis Substation"],
+      "asset_ids": [
+        "X-530 Complex",
+        "X-515 330 kV tie-line",
+        "Don Marquis Substation"
+      ],
       "unresolved": "The named equipment and DOE/OVEC agreement establish an active site grid asset. They do not establish spare capacity, service for a new parcel, or transferable rights.",
       "verified_at": "2026-08-24"
     },
@@ -2250,9 +2254,9 @@
         },
         {
           "type": "microreactor",
-          "fit": "anchored",
+          "fit": "strong",
           "constraint": "licensing",
-          "rationale": "Oklo holds an executed option and right of first refusal (February 2024) for two 15-MWe Aurora powerhouses plus 50+ MW of process heat \u2014 a committed, named project.",
+          "rationale": "Oklo holds an option and right of first refusal (February 2024) for two 15-MWe Aurora powerhouses plus 50+ MW of process heat. An option is not yet a lease or an NRC license, so this is strong, not anchored.",
           "sources": [
             {
               "label": "POWER Magazine \u2014 Oklo Portsmouth plants",
