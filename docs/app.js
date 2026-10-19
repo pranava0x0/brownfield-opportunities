@@ -564,6 +564,7 @@ const programLoadErrors = new Set();
 // Joins the screens need, re-applied when a program loads after them.
 function applyCoreScreenJoins() {
   if (infraCorePayload) applyInfraPayload(infraCorePayload, INFRA_CORE_URL, {onlyUnchecked: true});
+  if (infraFullPayload) applyInfraPayload(infraFullPayload, INFRA_DATA_URL, {onlyUnchecked: true});
   if (acreageFlagsPayload) applyAcreageFlags(acreageFlagsPayload);
   if (coordQualityPayload) applyCoordQuality(coordQualityPayload);
   if (parcelOwnerPayload) applyParcelOwner(parcelOwnerPayload);
@@ -1560,6 +1561,7 @@ function fetchInfra(url) {
         [acresLoadingPromise, fudsLoadingPromise, bracLoadingPromise].filter(Boolean)
       );
       if (url === INFRA_CORE_URL) infraCorePayload = payload;
+      else if (url === INFRA_DATA_URL) infraFullPayload = payload;
       applyInfraPayload(payload, url);
       maybeRefreshMicro();
       maybeRefreshCandidates();
@@ -1571,11 +1573,12 @@ function fetchInfra(url) {
 // Kept so a program that loads after the join (a retry, or a program enabled
 // after a ?program= URL) still gets its infrastructure fields.
 let infraCorePayload = null;
+let infraFullPayload = null;
 function applyInfraPayload(payload, url, {onlyUnchecked = false} = {}) {
   const full = url === INFRA_DATA_URL;
   for (const rec of payload.sites || []) {
     const existing = sitesById.get(rec.id);
-    if (!existing || (onlyUnchecked && existing._infraChecked)) continue;
+    if (!existing || (onlyUnchecked && (full ? existing._infraFull : existing._infraChecked))) continue;
     const patch = {};
     if (full || !existing._infraSourceMetadata) patch._infraSourceMetadata = payload.source_metadata || {};
     if (full) patch.infra_evidence = rec.infra_evidence || {};
@@ -1587,6 +1590,7 @@ function applyInfraPayload(payload, url, {onlyUnchecked = false} = {}) {
     }
     if (full) patch.power_plant_name = rec.power_plant_name || payload.source_metadata?.power_plant?.assets_by_id?.[rec.power_plant_asset_id]?.name || null;
     patch._infraChecked = true;
+    if (full) patch._infraFull = true;
     Object.assign(existing, patch);
   }
 }
@@ -6970,7 +6974,9 @@ function buildCandidatesView() {
   const screen = SiteScreens.SCREENS[candidatesState.lens];
   const allMet = el("screen-all-met")?.checked;
   const pool = tableState.filtered.map(sanitizeGeographicEvidence).map(withholdUncheckedLand);
-  let rows = SiteScreens.rank(pool, candidatesState.lens);
+  // Until the coordinate manifest settles, some joins may describe a site's old
+  // location; rank nothing rather than rank stale evidence.
+  let rows = invalidationsLoaded || invalidationsFailed ? SiteScreens.rank(pool, candidatesState.lens) : [];
   const inScope = rows.length;
   if (allMet) rows = rows.filter(r => r.ev.met === r.ev.total);
   candidatesState.sorted = rows;
