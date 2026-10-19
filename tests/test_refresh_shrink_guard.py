@@ -76,3 +76,13 @@ def test_first_run_and_growth_are_unaffected(tmp_path, monkeypatch):
     assert rc == 0
     rc, _, _ = _run(tmp_path, monkeypatch, 500)
     assert rc == 0
+
+
+def test_nullout_guard_counts_only_fields_that_were_present():
+    """EPA's 2026-10-17 NPL republish blanked STATE_CODE on 84 sites; a
+    count-only guard could not see it."""
+    import refresh
+    prior = [{"id": "A", "state": "AK", "name": "x"}, {"id": "B", "state": None, "name": "y"}]
+    now = [{"id": "A", "state": None, "name": "x"}, {"id": "B", "state": None, "name": " "}]
+    assert refresh.count_nullouts(prior, now) == {"state": 1, "name": 1}
+    assert refresh.count_nullouts(prior, prior) == {}
