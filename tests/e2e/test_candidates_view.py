@@ -39,7 +39,7 @@ def test_detail_panel_npdes_row_renders(page, base_url):
         "}"
     )
     assert site_id, "expected a scored site to select"
-    page.wait_for_selector("#detail:not([hidden])", timeout=5000)
+    page.wait_for_selector("#detail:not([hidden])", timeout=15000)
     row = page.evaluate(
         "() => { const n = document.getElementById('d-echo-npdes');"
         " return { text: n.textContent.trim(), cls: n.className }; }"
@@ -66,7 +66,9 @@ def test_detail_panel_planned_retirement_row_renders(page, base_url):
         "}"
     )
     assert site_id, "expected a scored site to select"
-    page.wait_for_selector("#detail:not([hidden])", timeout=5000)
+    # The first panel open also fetches the full infra file; 5 s was too
+    # short for that under a parallel e2e run.
+    page.wait_for_selector("#detail:not([hidden])", timeout=15000)
     cell = page.evaluate(
         "() => document.getElementById('d-planned-retire-mi').textContent"
     )
