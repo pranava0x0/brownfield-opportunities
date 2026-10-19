@@ -2,33 +2,11 @@
 
 This is the single planning doc for the project. `issues.md` stays the bug log (defects only — file new bugs there, not here). Full history through 2026-09-25 is archived verbatim at `planning/archive/backlog-2026-04-to-2026-09-25.md`; four superseded plan docs (JTBD UX, mobile UX, the 2026-07-26 siting review, the unified-rankings/PWR-siting plan) moved to `planning/archive/` alongside it — their still-open ideas are folded into this file.
 
-Priorities: **high** = next, **med** = soon, **low** = nice-to-have. Last updated 2026-09-25.
+Priorities: **high** = next, **med** = soon, **low** = nice-to-have. Last updated 2026-10-18.
 
 ## 1. Where things stand (2026-09-25)
 
-**Tabs (11, in order):**
-
-- **Explore** — default landing view since 2026-09-12; list-first, sourced evidence-category findings per site (replaced the 0–100 suitability scores).
-
-- **Map** — vector US basemap, program markers, curated overlays (retired plants, reference campuses, coal, DOE sites, ports, nuclear pipeline, microreactor commitments).
-
-- **Table** — full corpus, sortable/filterable, paginated 250 rows/page.
-
-- **Retired Sites** — 658 GHGRP stopped-reporting heavy-industrial/mining sites as stranded-grid reuse candidates.
-
-- **Coal Reinvestment** — 18-plant curated coal-conversion catalog, corpus proximity join, NEPA permitting screens.
-
-- **Nuclear Siting** — 14 military installations screened for AP1000/APR1400/AP300-class reactors, plus the 68-site civilian nuclear pipeline.
-
-- **Microreactors** — 12-vendor fleet, 32 named commitments, and a siting screen over the full corpus that deliberately inverts the grid-proximity signal.
-
-- **DOE Sites** — five-site federal-land dossier explorer (Hanford, SRS, Portsmouth, Paducah, WIPP).
-
-- **Maritime Siting** — port/shipyard proximity for floating-nuclear and coastal-generation siting.
-
-- **Nickel Refining** — import-route and domestic-feedstock siting screens for a nickel refinery; the corpus's first water-flow layer.
-
-- **Data & methods** — evidence sources, schema, provenance (the former "About" tab).
+**Tabs (8, in order, since 2026-10-18):** Screens (default: data center, solar farm, port industry, nickel refinery; ranked by cited checks), Map, Table, Retired industry, Coal plants (all EIA-860M coal retirements), Nuclear (installations by reactor class, civilian sites by NRC status, microreactor catalog), DOE Sites, Data & methods. Every ranking comes from `docs/screens.js`; `node scripts/screen.js explain <id>` reproduces it.
 
 **Data freshness** (checked live today via `scripts/check_upstream_freshness.py` where the script covers a source; other rows read `generated_at` directly):
 
@@ -73,9 +51,9 @@ Priorities: **high** = next, **med** = soon, **low** = nice-to-have. Last update
 
 **Prerequisite on this machine (found 2026-09-25):** the Xcode license is not accepted (so `/usr/bin/git` and `/usr/bin/python3` fail), there is no GitHub credential or `gh`, and no Node.js or Playwright browsers. Until fixed, nothing can be pushed, the daily research routine can only commit locally, and the Node-backed unit tests and the e2e suite cannot run here. Fix: `sudo xcodebuild -license accept`, install Homebrew then `gh` + `node`, `gh auth login`, and `.venv/bin/python -m playwright install chromium`.
 
-1. **[high]** Choose the landing page and the simplified site card (options presented 2026-09-25; see §7). Current Explore opens on 46,759 alphabetical rows, and its first mobile card starts 54% of the way down the screen. The site detail panel runs 4.4 desktop screens with identifiers first and repeats the infrastructure numbers in two sections. Size: M once a direction is picked.
+1. ~~**[high]** Choose the landing page and the simplified site card~~ **Done 2026-10-18:** Screens is the default (ranked, method card first); the site panel leads with each screen's checks. Was: (options presented 2026-09-25; see §7). Current Explore opens on 46,759 alphabetical rows, and its first mobile card starts 54% of the way down the screen. The site detail panel runs 4.4 desktop screens with identifiers first and repeats the infrastructure numbers in two sections. Size: M once a direction is picked.
 
-2. **[high]** Flag Superfund acreage that is really a county outline. Five NPL sites ship an acreage within 5% of their whole county's area (Tar Creek OK, Madison County Mines MO, Newton County Mine Tailings MO, Southwest Jefferson County Mining MO, Central City/Clear Creek CO), and Harbor Oil (a Portland oil-recycling facility) ships 156,219 acres, 53% of Multnomah County. For these the site point is also the county center, so every infrastructure distance is measured from the wrong place (Tar Creek's point is 10.5 mi from the mining area; Oklahoma DEQ gives 25,600 ac, not 310,173). Add a `validate_data.py` WARN check (acreage ≥ 50% of the containing county), a detail-panel note, and treat those rows' land and distance findings as unassessed. Size: S–M.
+2. ~~**[high]** Flag Superfund acreage that is really a county outline.~~ **Done 2026-10-18:** `scripts/check_acreage_artifacts.py` writes `acreage-flags.json` (297 flags: county outline, region, river/plume names); screens treat flagged acreage as unknown and the site panel says why. Was: Five NPL sites ship an acreage within 5% of their whole county's area (Tar Creek OK, Madison County Mines MO, Newton County Mine Tailings MO, Southwest Jefferson County Mining MO, Central City/Clear Creek CO), and Harbor Oil (a Portland oil-recycling facility) ships 156,219 acres, 53% of Multnomah County. For these the site point is also the county center, so every infrastructure distance is measured from the wrong place (Tar Creek's point is 10.5 mi from the mining area; Oklahoma DEQ gives 25,600 ac, not 310,173). Add a `validate_data.py` WARN check (acreage ≥ 50% of the containing county), a detail-panel note, and treat those rows' land and distance findings as unassessed. Size: S–M.
 
 3. **[high]** Restructure `.github/workflows/refresh.yml` with `continue-on-error` so a partial connector run still commits what it refreshed. The blocking guard (empty-write protection, `853e58c`) is now in place — this is the pipeline fix with the biggest payoff for the least work, and it's been the top carried item since 2026-08-11 (issues.md same date). Add `id` + `continue-on-error: true` to the refresh step, commit step, then a trailing step that fails the job if refresh failed. Still supervised — watch the first restructured run. Size: S.
 
@@ -100,6 +78,16 @@ Priorities: **high** = next, **med** = soon, **low** = nice-to-have. Last update
 13. **[low]** Fix the ~38 static summaries that omit acreage for sub-1-acre sites. Formatter bug in `build_static_summary()` (treats 0.1–0.9 ac as falsy), reproduces byte-for-byte on regen. Open since 2026-08-11. Size: S.
 
 14. **[med]** Quarterly `STATE_DC_INCENTIVES` re-audit, due ~2026-10. `STATE_DC_REGULATION` was re-checked 2026-09-25: Vermont removed (S.205 died when the legislature adjourned 2026-05-29; H.727's veto override failed the same day), NY/VA/FL confirmed. Watch list: NY's Responsible Data Center Development Act still awaits the governor; municipal moratoria (for example New Haven's 12-month pause) sit below this table's state-level threshold. Size: M.
+
+15. **[high]** Swap the daily research routine onto `scripts/routine/daily-site-research.md` once this branch merges (it calls `routine_ctl.py`, `research_queue.py`, `env.sh`; the scripts are not on the routine's worktree until then).
+16. **[high]** Rebuild `evidence-invalidations.json` after the 2026-10-18 polygon-join rebuilds (FEMA NRI, OZ, IRA, tribal, coord-quality were recomputed at current coordinates, but the manifest still withholds them for the 25 moved sites). Needs the pre-refresh snapshots (`--before-dir`).
+17. **[high]** EPA ECHO joins are not site-level: 22 registry ids are shared by 2+ sites and 399 bound facilities have a different name (e.g. Reynolds Metals bound to a FedEx Ground facility with a penalty). Accept only name+ZIP-consistent matches and show the matched facility name (2026-10-18 audit, A-programs).
+18. **[med]** Curated rows the audit could not settle in this pass: SRS AI-lease tract/acre and coalition claims and Paducah's award citation (cited pages are the 2025 solicitation, not the 2026 award); WIPP "as of Aug 2026" unsupported; Palisades NRC fuel-amendment approval (Oct 2026); Craig DOE 202(c) order end date; Deployable Unity criticality month; reference-campuses Conesville MW (2,005 vs 2,174.8) and Widows Creek citation; shipyards list (three are public Navy yards; Bollinger yards missing).
+19. **[med]** `acres-cleanup.json` holds cooperative-agreement grant status, not site cleanup status; rename the field and the UI label. ACRES itself is a frozen Aug-2021 snapshot: label it on the page until a live source is found (Now #4).
+20. **[med]** FUDS drops 1,301 live properties with null coordinates (118 Eligible); keep them as location-unknown rows. `climate-zone.json` comes from a third-party ArcGIS org, not PNNL: re-source or drop. Montana parcel endpoint returns HTML: disable. `census-workforce` should fail loudly without its key.
+21. **[med]** `scripts/check_citations.py` (deterministic pre-pass before the routine's Sonnet checker: unopened URLs, dead links, numbers missing from the page) and a `site_research.py lint` subcommand (summary asserting a field its own note marks unverifiable; open questions already answered in `epa-superfund-docs.json`). Proposals in the 2026-10-18 history mining.
+22. **[med]** Wire `scripts/pr_gate.sh` and `check_upstream_freshness.py --markdown` into CI; add site-research citations to the gate's liveness step.
+23. **[low]** Port distance is to the port polygon's bounding-box center; some principal-port polygons span 70+ mi. Measure to the polygon edge in `build_ports_overlay.py` / `port_proximity.py`.
 
 ## 3. Next (this quarter)
 
@@ -368,11 +356,11 @@ Rules the routine follows:
 
 ## 7. Decisions needed from Pranava
 
-- **Landing page (options presented 2026-09-25).** A: a light "Start" page (search, what-are-you-siting entry points, the investigations as cards, a dated "what changed" feed from the research routine), with Explore/Map/Table grouped as the Atlas. B: map-first, but a state-level choropleth that drills into per-state lists instead of 46,759 points. C: keep Explore and fix its first screen (no alphabetical default, compact cards). D: search-first. Recommendation: A now, B's state drill-down later.
+- ~~**Landing page (options presented 2026-09-25).**~~ Decided 2026-10-18 in favor of a ranked Screens tab (option C, with the method card on top). Original note: A: a light "Start" page (search, what-are-you-siting entry points, the investigations as cards, a dated "what changed" feed from the research routine), with Explore/Map/Table grouped as the Atlas. B: map-first, but a state-level choropleth that drills into per-state lists instead of 46,759 points. C: keep Explore and fix its first screen (no alphabetical default, compact cards). D: search-first. Recommendation: A now, B's state drill-down later.
 
 - ~~**How research routine commits reach the site.**~~ Decided 2026-10-09: one rolling PR, closed out by the routine after it has been open 3 days (review comments fixed, CI green, merge commit). PR #39 sat open for 10 days with 8 unaddressed review findings, so nothing reached the site.
 
-- **IA and landing decision.** Is Explore still the right default now that curated tabs have grown to 11? Should the tab bar visually group corpus views (Map/Table/Explore), curated analyses (Retired/Coal/Nuclear/Microreactors/DOE/Maritime/Nickel), and reference (Data & methods) instead of presenting all 11 as peers?
+- **Fewer tabs?** Now 8. The 2026-10-18 Sonnet synthesis recommended 6 by dropping Table (Screens exports CSV) and folding Retired industry into Screens. Kept both for now; decide whether the full-corpus Table still earns a tab. Earlier note — **IA and landing decision.** Is Explore still the right default now that curated tabs have grown to 11? Should the tab bar visually group corpus views (Map/Table/Explore), curated analyses (Retired/Coal/Nuclear/Microreactors/DOE/Maritime/Nickel), and reference (Data & methods) instead of presenting all 11 as peers?
 
 - **Table vs. Explore overlap.** Both are tabular/list views over the same corpus with separate code paths. Merge, or keep both with clearer differentiation?
 
@@ -384,7 +372,7 @@ Rules the routine follows:
 
 - **Git history rewrite status.** A 2026-08-09 checkpoint recorded a staged-but-unpublished rewrite stripping `Co-Authored-By` trailers from 203 commits (`backup-pre-coauthor-strip` tag still exists). Confirm whether that was ever published, was abandoned, or is now moot — this machine currently has no GitHub credentials either way, so nothing can be pushed until auth is fixed.
 
-- **JTBD quick-start strip.** Keep it, demote it to a first-visit-only prompt, or fold it into the IA rethink above — its three routes now duplicate paths reachable from Explore/Rankings lens buttons and the Nuclear Siting tab directly.
+- ~~**JTBD quick-start strip.**~~ Removed 2026-10-18 (the screen picker on the default tab replaces it). Was: Keep it, demote it to a first-visit-only prompt, or fold it into the IA rethink above — its three routes now duplicate paths reachable from Explore/Rankings lens buttons and the Nuclear Siting tab directly.
 
 - **Coal Reinvestment universe.** Once the full ~550-plant EIA-860M-derived universe lands (Next #8), should it replace the 18-plant curated catalog outright, or should the curated set stay as a "verified/marquee" layer on top of the derived one?
 
