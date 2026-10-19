@@ -6378,7 +6378,6 @@ function _doeGlanceHtml(payload) {
     if (doeBestFit(byType).none) precluded += 1; else viable += 1;
   }
   const landlord = (ov.managers || [])[0];
-  const lup = ov.land_use_plan || {};
   const jump = [
     ["#doe-fit", "What fits where"],
     ["#doe-units", "Land units"],
@@ -6397,13 +6396,22 @@ function _doeGlanceHtml(payload) {
     `<span class="doe-stat doe-stat-off"><strong>${precluded}</strong> precluded</span>` +
     (landlord ? `<span class="doe-stat">Landlord: <a href="${escapeAttr(landlord.url)}" target="_blank" rel="noopener">${escapeHtml((landlord.who || "").split("—")[0].trim())}</a></span>` : "") +
     `</div>` +
+    `<nav class="doe-jumps" aria-label="Dossier sections">${jump}</nav>` +
+    `</section>`
+  );
+}
+
+// Site description, shown after the fit matrix so the answer comes first.
+function _doeSummaryHtml(payload) {
+  const ov = payload.site_overview || {};
+  const lup = ov.land_use_plan || {};
+  if (!ov.summary && !payload.narrative_note) return "";
+  return `<details class="nuke-catalog doe-about"><summary>About this site</summary>` +
     `<p class="hanford-summary">${escapeHtml(ov.summary || "")}` +
     (lup.url ? ` <a href="${escapeAttr(lup.url)}" target="_blank" rel="noopener" class="doe-inline-cite" title="${escapeAttr(lup.label || "Land-use plan")}">[land-use plan ↗]</a>` : "") +
     `</p>` +
     (payload.narrative_note ? `<p class="doe-ai-note">⚠ ${escapeHtml(payload.narrative_note)}</p>` : "") +
-    `<nav class="doe-jumps" aria-label="Dossier sections">${jump}</nav>` +
-    `</section>`
-  );
+    `</details>`;
 }
 
 function _doeInfraHtml(payload) {
@@ -6490,6 +6498,7 @@ function buildHanfordView() {
     pills +
     _doeGlanceHtml(payload) +
     _doeFitMatrixHtml(payload) +
+    _doeSummaryHtml(payload) +
     `<section class="hanford-parcels" id="doe-units"><h3 class="hanford-section-title">The land, unit by unit</h3>` +
     `<p class="hanford-summary micro-note">Click a unit for its full dossier — status, environmental screen, corpus joins, and citations. One unit opens at a time.</p>` +
     `<div class="doe-parcel-grid">${cards}</div>` +

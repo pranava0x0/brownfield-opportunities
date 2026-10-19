@@ -64,7 +64,7 @@
 
   define("dc", {
     label: "Data center", universe: "corpus",
-    method: "No federal siting standard exists for data centers. Four checks on public layers: transmission, land, flood, road.",
+    method: "No federal siting standard exists for data centers, so three of the four thresholds are ours.",
     criteria: [
       {id: "grid", label: "Line ≥115 kV within 5 mi", rule: "transmission_kv ≥ 115 and transmission_mi ≤ 5", kind: "P",
         note: "A >100 MW load (EO 14318 threshold) is normally served at transmission voltage.",
@@ -96,7 +96,7 @@
     label: "Port industry", universe: "corpus",
     applies: s => num(s.port_mi) && s.port_mi <= 25,
     scope: "sites within 25 mi of a principal port",
-    method: "Heavy industry that ships by water: principal port, land, transmission and flood. Channel depth and berths are not assessed.",
+    method: "Heavy industry that ships by water. Channel depth and berths are not assessed.",
     criteria: [
       {id: "port", label: "Principal port within 10 mi", rule: "port_mi ≤ 10 (to the port area's center)", kind: "P",
         source: SRC.ports, test: atMost("port_mi", 10), show: s => `${miles(s.port_mi)}${s.port_name ? " · " + s.port_name : ""}`},
@@ -110,7 +110,7 @@
 
   define("nickel", {
     label: "Nickel refinery", universe: "corpus",
-    method: "Hydrometallurgical refinery checks taken from two built projects. Water is annual mean flow, not low flow.",
+    method: "Thresholds from two built refineries. Water is annual mean flow, not low flow.",
     criteria: [
       {id: "land", label: "Land ≥300 acres", rule: "acreage ≥ 300", kind: "P", source: SRC.nickel, test: landAtLeast(300), show: landShow},
       {id: "rail", label: "Rail within 1 mi", rule: "rail_mi ≤ 1", kind: "P", source: SRC.tiger, test: atMost("rail_mi", 1), show: s => miles(s.rail_mi)},
