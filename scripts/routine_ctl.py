@@ -61,8 +61,13 @@ def age_days(pr: dict) -> float:
 def sync() -> dict:
     git("fetch", "origin", "--prune", cwd=MAIN)
     if not WT.exists():
-        has_branch = git("branch", "--list", BRANCH, cwd=MAIN)
-        args = ["worktree", "add", str(WT), BRANCH] if has_branch else ["worktree", "add", "-b", BRANCH, str(WT), "origin/main"]
+        # Local branch, else the pushed branch (the open PR's commits), else main.
+        if git("branch", "--list", BRANCH, cwd=MAIN):
+            args = ["worktree", "add", str(WT), BRANCH]
+        elif git("branch", "-r", "--list", f"origin/{BRANCH}", cwd=MAIN):
+            args = ["worktree", "add", "--track", "-b", BRANCH, str(WT), f"origin/{BRANCH}"]
+        else:
+            args = ["worktree", "add", "-b", BRANCH, str(WT), "origin/main"]
         git(*args, cwd=MAIN)
     pr = open_pr()
     git("checkout", BRANCH)
