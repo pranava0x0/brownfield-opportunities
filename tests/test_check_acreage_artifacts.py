@@ -33,3 +33,11 @@ def test_published_flags_cover_known_artifacts_and_spare_real_sites():
     assert flags.get("NYD980763841") == "water_or_plume"                      # Hudson River PCBs
     assert flags.get("SC1890008989") == "region"                              # Savannah River Site: real land, spans counties
     assert "CA2570024453" not in flags                                        # George AFB, 5,269 ac
+    assert "FUDS-F10AK0015" not in flags  # 6,632 ac in the Aleutians East Borough (~0.1%), not one island
+
+
+def test_county_area_counts_every_component_of_a_multipolygon():
+    from connectors.county_lookup import CountyIndex
+    counties = CountyIndex.from_path(ROOT / "docs/data/us-counties-topo.json")
+    parts = counties.county_polygons("Aleutians East", "AK")
+    assert len(parts) > 1

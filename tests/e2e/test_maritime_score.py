@@ -161,3 +161,20 @@ def test_missing_infra_core_shows_retry_not_a_ranking(page: Page, base_url: str)
     state["fail"] = False
     page.click("#screen-retry")
     expect(page.locator("#candidates-stats")).to_contain_text("meet every check", timeout=30_000)
+
+
+def test_failed_program_load_shows_retry_and_joins_after_recovery(page: Page, base_url: str) -> None:
+    """A failed ACRES load is reported, not ranked around; once it loads on
+    retry its sites get the infrastructure join (Codex review, PR #43)."""
+    state = {"fail": True}
+    page.route("**/data/epa-acres.json",
+               lambda route: route.fulfill(status=500, body="") if state["fail"] else route.continue_())
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_selector("#screen-retry", timeout=45_000)
+    expect(page.locator("#candidates-stats")).to_contain_text("ACRES brownfield")
+    state["fail"] = False
+    page.click("#screen-retry")
+    expect(page.locator("#candidates-stats")).to_contain_text("meet every check", timeout=60_000)
+    joined = page.evaluate("""() => window.__sites.filter(s => s.program === 'brownfield')
+        .some(s => s._infraChecked && s.transmission_mi != null)""")
+    assert joined

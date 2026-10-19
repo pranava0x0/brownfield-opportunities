@@ -14,7 +14,7 @@
 const fs = require("fs");
 const path = require("path");
 const ROOT = path.resolve(__dirname, "..");
-const DATA = path.join(ROOT, "docs", "data");
+const DATA = process.env.SCREEN_DATA_DIR || path.join(ROOT, "docs", "data");  // override for tests
 const Screens = require(path.join(ROOT, "docs", "screens.js"));
 
 const PROGRAM_FILES = ["sites.json", "epa-acres.json", "dod-fuds.json", "dod-brac.json"];
@@ -27,8 +27,14 @@ const read = f => JSON.parse(fs.readFileSync(path.join(DATA, f), "utf8"));
 function loadCorpus() {
   const byId = new Map();
   for (const f of PROGRAM_FILES) for (const s of read(f).sites) if (!byId.has(s.id)) byId.set(s.id, {...s});
+  // Every input is required: ranking without one would differ from the
+  // browser, which shows a failed-load state instead.
+  const missing = ENRICHMENT_FILES.filter(f => !fs.existsSync(path.join(DATA, f)));
+  if (missing.length) {
+    console.error(`missing screen input(s): ${missing.join(", ")}`);
+    process.exit(2);
+  }
   for (const f of ENRICHMENT_FILES) {
-    if (!fs.existsSync(path.join(DATA, f))) continue;
     for (const rec of read(f).sites) {
       const s = byId.get(rec.id);
       if (!s) continue;
