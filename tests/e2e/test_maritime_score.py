@@ -178,3 +178,26 @@ def test_failed_program_load_shows_retry_and_joins_after_recovery(page: Page, ba
     joined = page.evaluate("""() => window.__sites.filter(s => s.program === 'brownfield')
         .some(s => s._infraChecked && s.transmission_mi != null)""")
     assert joined
+
+
+def test_missing_parcel_file_shows_retry(page: Page, base_url: str) -> None:
+    """Parcel area is a land input; a 404 is a failed load (Codex review, PR #43)."""
+    state = {"fail": True}
+    page.route("**/data/parcel-owner.json",
+               lambda route: route.fulfill(status=404, body="") if state["fail"] else route.continue_())
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_selector("#screen-retry", timeout=45_000)
+    expect(page.locator("#candidates-stats")).to_contain_text("parcel")
+    state["fail"] = False
+    page.click("#screen-retry")
+    expect(page.locator("#candidates-stats")).to_contain_text("meet every check", timeout=30_000)
+    assert page.evaluate("window.__sites.some(s => s.parcel_acreage != null)")
+
+
+def test_failed_coordinate_manifest_is_reported(page: Page, base_url: str) -> None:
+    """Without the manifest the geographic fields are withheld; the screen must
+    say so instead of presenting a ranking of unknowns (Codex review, PR #43)."""
+    page.route("**/data/evidence-invalidations.json", lambda route: route.fulfill(status=500, body=""))
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_selector("#screen-retry", timeout=45_000)
+    expect(page.locator("#candidates-stats")).to_contain_text("coordinate validation")
