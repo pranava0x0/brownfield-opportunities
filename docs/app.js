@@ -566,6 +566,7 @@ function applyCoreScreenJoins() {
   if (infraCorePayload) applyInfraPayload(infraCorePayload, INFRA_CORE_URL, {onlyUnchecked: true});
   if (acreageFlagsPayload) applyAcreageFlags(acreageFlagsPayload);
   if (coordQualityPayload) applyCoordQuality(coordQualityPayload);
+  if (parcelOwnerPayload) applyParcelOwner(parcelOwnerPayload);
 }
 let selectedId = null;
 let sortKey = "acreage";
@@ -960,12 +961,13 @@ fetch(PRIMARY_DATA_URL)
 const INVALIDATIONS_URL = "data/evidence-invalidations.json";
 let evidenceInvalidations = {};
 let invalidationsFailed = false;
+let invalidationsLoaded = false;
 let invalidationsPromise = null;
 function ensureEvidenceInvalidationsLoaded() {
   if (invalidationsPromise) return invalidationsPromise;
   invalidationsPromise = fetch(INVALIDATIONS_URL).then(r => {if(!r.ok) throw new Error(`HTTP ${r.status}`); return r.json();}).then(payload => {
     if(payload.schema_version !== 1 || !payload.by_id) throw new Error("Invalid coordinate evidence manifest");
-    evidenceInvalidations = payload.by_id; invalidationsFailed = false;
+    evidenceInvalidations = payload.by_id; invalidationsFailed = false; invalidationsLoaded = true;
     recordRefreshDate(payload.generated_at, INVALIDATIONS_URL);
     return Promise.allSettled([acresLoadingPromise,fudsLoadingPromise,bracLoadingPromise].filter(Boolean));
   }).then(() => {applyFilter(); if(selectedId) selectSite(selectedId);}).catch(error => {
@@ -1256,11 +1258,15 @@ function ensureEchoLoaded() {
 // program-provided owner (e.g. FUDS's USACE current_owner); only populate the
 // ~38k sites that have none. The detail panel's owner row + source line pick
 // these up automatically (no extra wiring).
+// Required by the screens: parcel area is the only land size for most ACRES sites.
+let parcelOwnerLoaded = false;
+let parcelOwnerFailed = false;
+let parcelOwnerPayload = null;
 function ensureParcelOwnerLoaded() {
   if (parcelOwnerLoadingPromise) return parcelOwnerLoadingPromise;
+  parcelOwnerFailed = false;
   parcelOwnerLoadingPromise = fetch(PARCEL_OWNER_URL, { priority: "low" })
     .then((r) => {
-      if (r.status === 404) return { sites: [] };
       if (!r.ok) throw new Error("HTTP " + r.status);
       return r.json();
     })
@@ -1271,26 +1277,10 @@ function ensureParcelOwnerLoaded() {
       await Promise.allSettled(
         [acresLoadingPromise, fudsLoadingPromise, bracLoadingPromise].filter(Boolean)
       );
-      for (const rec of payload.sites || []) {
-        const existing = sitesById.get(rec.id);
-        if (!existing) continue;
-        // Owner: fill-if-empty (don't clobber a source-provided owner, e.g. FUDS).
-        if (rec.current_owner && !existing.current_owner) {
-          existing.current_owner = rec.current_owner;
-          existing.current_owner_source = rec.current_owner_source || "Public parcel records";
-        }
-        // Parcel acreage / id: the actual developable land size from the
-        // cadastral parcel. The only land-size signal for ACRES sites
-        // (acreage == null). Fill-if-empty so a program-reported parcel value
-        // (none today) would win.
-        if (rec.parcel_acreage != null && existing.parcel_acreage == null) {
-          existing.parcel_acreage = rec.parcel_acreage;
-          existing.parcel_id = rec.parcel_id || null;
-          if (!existing.current_owner_source) {
-            existing.current_owner_source = rec.current_owner_source || "Public parcel records";
-          }
-        }
-      }
+      parcelOwnerPayload = payload;
+      applyParcelOwner(payload);
+      parcelOwnerLoaded = true;
+      maybeRefreshCandidates();
       // Re-render an already-open detail panel so the owner row goes live the
       // moment this lazy load lands (matches the docs / summary / infra loaders).
       if (selectedId && sitesById.has(selectedId)) {
@@ -1300,8 +1290,32 @@ function ensureParcelOwnerLoaded() {
     .catch((err) => {
       console.error("Parcel-owner enrichment load failed:", err);
       parcelOwnerLoadingPromise = null;
+      parcelOwnerFailed = true;
+      maybeRefreshCandidates();
     });
   return parcelOwnerLoadingPromise;
+}
+function applyParcelOwner(payload) {
+  for (const rec of payload.sites || []) {
+    const existing = sitesById.get(rec.id);
+    if (!existing) continue;
+    // Owner: fill-if-empty (don't clobber a source-provided owner, e.g. FUDS).
+    if (rec.current_owner && !existing.current_owner) {
+      existing.current_owner = rec.current_owner;
+      existing.current_owner_source = rec.current_owner_source || "Public parcel records";
+    }
+    // Parcel acreage / id: the actual developable land size from the
+    // cadastral parcel. The only land-size signal for ACRES sites
+    // (acreage == null). Fill-if-empty so a program-reported parcel value
+    // (none today) would win.
+    if (rec.parcel_acreage != null && existing.parcel_acreage == null) {
+      existing.parcel_acreage = rec.parcel_acreage;
+      existing.parcel_id = rec.parcel_id || null;
+      if (!existing.current_owner_source) {
+        existing.current_owner_source = rec.current_owner_source || "Public parcel records";
+      }
+    }
+  }
 }
 
 // AI-generated site summaries (Claude Haiku output). Per-site 3-paragraph
@@ -6929,10 +6943,12 @@ function screenDataState(key) {
   const programs = [["brownfield", "ACRES brownfield"], ["fuds", "FUDS"], ["brac", "BRAC"]]
     .filter(([p]) => filterState.programs.has(p));
   const inputs = [["infrastructure", () => infraCoreLoaded], ["acreage flag", () => acreageFlagsLoaded],
-    ["location quality", () => coordQualityLoaded],
+    ["location quality", () => coordQualityLoaded], ["parcel", () => parcelOwnerLoaded],
+    ["coordinate validation", () => invalidationsLoaded],
     ...programs.map(([p, label]) => [label, () => loadedPrograms.has(p)]), ...extra];
   const coreFailed = {"infrastructure": () => infraCoreFailed, "acreage flag": () => acreageFlagsFailed,
-    "location quality": () => coordQualityFailed,
+    "location quality": () => coordQualityFailed, "parcel": () => parcelOwnerFailed,
+    "coordinate validation": () => invalidationsFailed,
     ...Object.fromEntries(programs.map(([p, label]) => [label, () => programLoadErrors.has(p)]))};
   const failed = inputs.filter(([n]) => coreFailed[n] ? coreFailed[n]() : nickelDataErrors.has(n)).map(([n]) => n);
   const pending = inputs.filter(([n, ready]) => !ready() && !failed.includes(n)).map(([n]) => n);
@@ -6963,9 +6979,13 @@ function buildCandidatesView() {
   if (stats && data.failed.length) {
     stats.innerHTML = `Couldn’t load ${escapeHtml(data.failed.join(", "))} data, so these checks read “?”. <button type="button" class="text-btn" id="screen-retry">Retry</button>`;
     el("screen-retry").addEventListener("click", () => {
+      // A failed coordinate manifest has already removed geographic fields from
+      // the loaded sites (sanitizeGeographicEvidence), so only a reload restores them.
+      if (invalidationsFailed) { location.reload(); return; }
       if (infraCoreFailed) ensureInfraLoaded();
       if (acreageFlagsFailed) ensureAcreageFlagsLoaded();
       if (coordQualityFailed) ensureCoordQualityLoaded();
+      if (parcelOwnerFailed) ensureParcelOwnerLoaded();
       if (programLoadErrors.has("brownfield")) ensureAcresLoaded();
       if (programLoadErrors.has("fuds")) ensureFudsLoaded();
       if (programLoadErrors.has("brac")) ensureBracLoaded();
