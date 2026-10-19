@@ -34,6 +34,12 @@ DEFAULT_OUTPUT = OUTPUT_DIR / "sites.json"
 # A write that keeps less than this share of the prior file's records is refused
 # unless --allow-shrink is passed (see _run_one).
 SHRINK_FLOOR = 0.9
+# A refresh that blanks a field the prior file had on more than this share of
+# records is refused unless --allow-nullouts is passed. EPA's 2026-10-17
+# republish of the NPL layer blanked STATE_CODE on 84 of 1,908 sites; the count
+# check could not see it because the record count was unchanged.
+NULLOUT_FIELDS = ("name", "state", "city", "county", "lat", "lon", "profile_url", "npl_status_code")
+NULLOUT_LIMIT = 0.01
 CHANGES_PATH = ROOT / "data" / "changes.md"
 
 # Slug whose fetch_records output goes into the canonical sites.json when run
@@ -66,6 +72,9 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument("--allow-shrink", action="store_true",
                    help="Allow a write that keeps under 90%% of the prior file's records "
                         "(an intended smaller set, e.g. a --limit test run into a scratch path).")
+    p.add_argument("--allow-nullouts", action="store_true",
+                   help="Allow a write that blanks a core field on more than 1%% of records "
+                        "the prior file had it for (an upstream field really was retired).")
     p.add_argument("--allow-ipv6", action="store_true",
                    help="Don't pin DNS to IPv4. Default is to pin, because "
                         "every EPA host resolves AAAA-first and a blackholed "
@@ -91,6 +100,20 @@ def _resolve_output_path(slug: str, override: Path | None) -> Path:
     if slug == CANONICAL_SLUG:
         return DEFAULT_OUTPUT
     return OUTPUT_DIR / f"{slug}.json"
+
+
+def count_nullouts(prior: list[dict], records: list[dict]) -> dict[str, int]:
+    """Per core field, how many records had a value before and are blank now."""
+    before = {r.get("id"): r for r in prior}
+    counts: dict[str, int] = {}
+    for r in records:
+        old = before.get(r.get("id"))
+        if not old:
+            continue
+        for f in NULLOUT_FIELDS:
+            if old.get(f) not in (None, "") and str(r.get(f) or "").strip() == "":
+                counts[f] = counts.get(f, 0) + 1
+    return counts
 
 
 def assert_unique_ids(slug: str, records: list[dict]) -> None:
@@ -207,6 +230,16 @@ def _run_one(
                   "--allow-shrink if the smaller set is intended.", slug, out_path,
                   prior_count, len(records), int(SHRINK_FLOOR * 100))
         return 1, None, inst.source_label
+
+    if records and prior_count and not getattr(args, "allow_nullouts", False):
+        prior_records = (load_payload(out_path) or {}).get("sites") or []
+        nulled = {f: n for f, n in count_nullouts(prior_records, records).items()
+                  if n > len(records) * NULLOUT_LIMIT}
+        if nulled:
+            log.error("[%s] would blank fields the prior file had: %s (over %d%% of records); "
+                      "refusing. Inspect the upstream layer, or pass --allow-nullouts if the "
+                      "field was really retired.", slug, nulled, int(NULLOUT_LIMIT * 100))
+            return 1, None, inst.source_label
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
