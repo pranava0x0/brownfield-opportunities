@@ -208,7 +208,7 @@ def test_environmental_context_does_not_establish_ready_land(page,base_url):
     # Nearest line is 100 kV; a ≥115 kV line is 0.4 mi away.
     ("dc", "Data center:", "NCD001810365", "grid", "Line ≥115 kV", "transmission_115kv_mi"),
     # Redstone Arsenal: nearest gage Indian Creek 72 cfs; Tennessee River 43,265 cfs at 6.8 mi.
-    ("nickel", "Nickel refinery:", "AL7210020742", "water", "River ≥100 cfs", "water_100cfs_gage_mi"),
+    ("nickel", "Nickel refinery:", "AL7210020742", "water", "Gaged river ≥100 cfs", "water_100cfs_gage_mi"),
 ])
 def test_threshold_checks_use_the_nearest_qualifying_asset(page, base_url, lens, heading, site_id, crit, label, field):
     """The browser keeps the per-threshold distances through its joins, and

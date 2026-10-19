@@ -2025,6 +2025,7 @@ function ensureAcreageFlagsLoaded() {
       return r.json();
     })
     .then(async (payload) => {
+      recordRefreshDate(payload.generated_at, ACREAGE_FLAGS_URL);
       await Promise.allSettled([acresLoadingPromise, fudsLoadingPromise, bracLoadingPromise].filter(Boolean));
       acreageFlagsPayload = payload;
       applyAcreageFlags(payload);
@@ -4910,7 +4911,7 @@ function ensureCoalPlantsLoaded() {
   if (coalPlantsPromise) return coalPlantsPromise;
   coalPlantsPromise = fetch(COAL_PLANTS_URL)
     .then((r) => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
-    .then((payload) => { coalPlants = payload.plants || []; renderCoalPlants(); })
+    .then((payload) => { recordRefreshDate(payload.generated_at, COAL_PLANTS_URL); coalPlants = payload.plants || []; renderCoalPlants(); })
     .catch((err) => {
       console.error("Coal plant list load failed:", err);
       coalPlantsPromise = null;

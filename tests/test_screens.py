@@ -126,3 +126,10 @@ def test_cli_refuses_to_rank_with_a_missing_input(tmp_path):
     out = subprocess.run(["node", "scripts/screen.js", "counts"], cwd=ROOT, capture_output=True, text=True,
                          env={**os.environ, "SCREEN_DATA_DIR": str(tmp_path)})
     assert out.returncode == 2 and "acreage-flags.json" in out.stderr
+
+
+def test_no_qualifying_gage_is_unknown_not_a_fail():
+    """Gage distance is not river distance; a river may be gaged farther away (Codex review, PR #43)."""
+    water = lambda site: next(r for r in evaluate(site, "nickel")["results"] if r["id"] == "water")["status"]
+    assert water({"water_gage_mi": 2.0, "water_flow_cfs": 40, "water_100cfs_gage_mi": 30.0}) == "unknown"
+    assert water({"water_gage_mi": 2.0, "water_flow_cfs": 40, "water_100cfs_gage_mi": 6.8}) == "pass"

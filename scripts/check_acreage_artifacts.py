@@ -75,7 +75,7 @@ def load_sites() -> list[dict]:
 
 def acreage_flags(sites: list[dict], counties: CountyIndex) -> dict[str, dict]:
     """Return {site_id: {flag, acreage, county, county_acres, share}} for flagged sites."""
-    area_cache: dict[tuple[str, str | None], float | None] = {}
+    area_cache: dict[int, float | None] = {}
     flags = {}
     for s in sites:
         acres = s.get("acreage")
@@ -87,10 +87,10 @@ def acreage_flags(sites: list[dict], counties: CountyIndex) -> dict[str, dict]:
         if hit:
             # Whole county, all components: one island of the Aleutians East
             # Borough is not the borough.
-            key = (hit[0], hit[1])
+            key = id(hit[2])
             if key not in area_cache:
                 parts = [polygon_acreage([[list(p) for p in ring] for ring in poly])
-                         for poly in counties.county_polygons(*key)]
+                         for poly in counties.county_polygons(hit[2])]
                 area_cache[key] = sum(a for a in parts if a) or None
             county_acres = area_cache[key]
         share = acres / county_acres if county_acres else None
