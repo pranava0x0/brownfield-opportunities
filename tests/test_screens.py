@@ -33,6 +33,24 @@ def test_line_without_voltage_is_unknown_not_pass():
     assert next(r for r in ev["results"] if r["id"] == "grid")["status"] == "fail"
 
 
+def test_line_check_uses_nearest_qualifying_line_not_nearest_line():
+    grid = lambda site, key="dc": next(r for r in evaluate(site, key)["results"] if r["id"] == "grid")
+    # Nearest line is 69 kV, but a 230 kV line is 2 mi away: the ≥115 kV check passes.
+    site = {"transmission_mi": 0.4, "transmission_kv": 69, "transmission_115kv_mi": 2.0}
+    assert grid(site)["status"] == "pass" and grid(site)["value"] == "115+ kV · 2.0 mi"
+    # No qualifying line within 5 mi, and every nearer line has a voltage: fail.
+    assert grid({"transmission_mi": 0.4, "transmission_kv": 69, "transmission_115kv_mi": 8.0})["status"] == "fail"
+    # A line with no reported voltage inside the radius could qualify: unknown.
+    site = {"transmission_mi": 0.4, "transmission_kv": 69, "transmission_115kv_mi": 8.0, "transmission_unknown_kv_mi": 3.0}
+    assert grid(site)["status"] == "unknown"
+
+
+def test_coal_line_check_reads_line_fields():
+    plant = {"line_mi": 0.3, "line_kv": 115, "line_230kv_mi": 1.5}
+    ev = evaluate(plant, "coal")
+    assert next(r for r in ev["results"] if r["id"] == "grid")["status"] == "pass"
+
+
 def test_flagged_acreage_counts_as_unknown():
     big = {"acreage": 310173}
     assert next(r for r in evaluate(big, "solar")["results"] if r["id"] == "land")["status"] == "pass"

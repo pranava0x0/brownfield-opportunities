@@ -19,7 +19,8 @@ from pathlib import Path
 DATA = Path(__file__).resolve().parent.parent / "docs" / "data"
 FULL = DATA / "infra-proximity.json"
 CORE = DATA / "infra-proximity-core.json"
-CORE_FIELDS = ("transmission_mi", "transmission_kv", "substation_mi", "substation_kv", "substation_role",
+CORE_FIELDS = ("transmission_mi", "transmission_kv", "transmission_69kv_mi", "transmission_115kv_mi",
+               "transmission_230kv_mi", "transmission_unknown_kv_mi", "substation_mi", "substation_kv", "substation_role",
                "highway_mi", "rail_mi", "gas_pipeline_mi", "power_plant_mi", "power_plant_mw",
                "power_plant_fuel", "flood_zone", "in_sfha")
 

@@ -135,6 +135,10 @@ DISTANCE_FIELDS = [
     "gas_pipeline_mi",
     "substation_mi",
     "power_plant_mi",
+    "transmission_69kv_mi",
+    "transmission_115kv_mi",
+    "transmission_230kv_mi",
+    "transmission_unknown_kv_mi",
 ]
 # Distance fields with their own (smaller) search radius, set by their own
 # connector rather than infra-proximity.
@@ -1198,6 +1202,29 @@ def c_infra_identical_coords(c: Corpus):
         "co-located records receive identical nearest-feature distances",
         examples, {"per_field": dict(per_field)},
     )
+
+
+@check("infra-line-threshold-order", "infra")
+def c_infra_line_threshold_order(c: Corpus):
+    """The nearest line of at least 230 kV is never nearer than the nearest
+    line of at least 115 kV, which is never nearer than the nearest line of
+    at least 69 kV, which is never nearer than the nearest line. All four come
+    from one index, so an inversion beyond rounding is a defect."""
+    order = ("transmission_mi", "transmission_69kv_mi", "transmission_115kv_mi", "transmission_230kv_mi")
+    bad, checked, examples = 0, 0, []
+    for rec in c.raw.get("infra-proximity.json", {}).get("sites", []):
+        sid = rec["id"]
+        vals = [rec.get(f) for f in order]
+        if vals[0] is None or vals[1] is None:
+            continue
+        checked += 1
+        present = [v for v in vals if v is not None]
+        if any(b < a - 0.11 for a, b in zip(present, present[1:])):
+            bad += 1
+            if len(examples) < 6:
+                examples.append(f"{sid}:{vals}")
+    yield Finding("infra-line-threshold-order", "infra", verdict(bad), checked, bad,
+                  "nearest line ≤ nearest ≥69 kV ≤ ≥115 kV ≤ ≥230 kV line, within rounding", examples)
 
 
 @check("infra-substation-vs-line", "infra")

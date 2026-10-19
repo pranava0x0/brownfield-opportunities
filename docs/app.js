@@ -1607,7 +1607,7 @@ function ensurePortProximityLoaded() {
   if (portProximityLoadingPromise) return portProximityLoadingPromise;
   portProximityLoadingPromise = fetch(PORT_PROXIMITY_URL, { priority: "low" })
     .then((r) => {
-      if (r.status === 404) return { sites: [] };
+      // Required screen input: a 404 is a failed load, not "no sites".
       if (!r.ok) throw new Error("HTTP " + r.status);
       return r.json();
     })
@@ -2125,7 +2125,7 @@ function ensureWaterProximityLoaded() {
   if (waterProximityLoadingPromise) return waterProximityLoadingPromise;
   waterProximityLoadingPromise = fetch(WATER_PROXIMITY_URL, { priority: "low" })
     .then((r) => {
-      if (r.status === 404) return { sites: [] };
+      // Required screen input: a 404 is a failed load, not "no sites".
       if (!r.ok) throw new Error("HTTP " + r.status);
       return r.json();
     })

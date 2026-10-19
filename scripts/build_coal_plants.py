@@ -9,6 +9,8 @@ Per EIA plant ID:
   other_operating_mw nameplate of non-coal units still operating at the plant
                      (a gas conversion or new unit occupying the interconnection)
   line_kv, line_mi   nearest mapped transmission line (HIFLD, cached index)
+  line_<kv>kv_mi     nearest line of at least 69 / 115 / 230 kV, and
+                     line_unknown_kv_mi (nearest line with no reported voltage)
 
 Curated deal notes from docs/data/coal-conversions.json are attached by plant
 name and state where they match, so the tab can show what is already happening.
@@ -34,7 +36,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from connectors.eia860m_source import EIA_CACHE_FILENAME, EIA_860M_URL, EIA_WORKBOOK_MONTH  # noqa: E402
-from connectors.infra_proximity import LAYERS, InfraProximity  # noqa: E402
+from connectors.infra_proximity import LAYERS, InfraProximity, line_threshold_fields  # noqa: E402
 
 OUT = ROOT / "docs" / "data" / "coal-plants.json"
 CURATED = ROOT / "docs" / "data" / "coal-conversions.json"
@@ -122,6 +124,9 @@ def main() -> int:
             rec["line_mi"] = round(hit[0], 1)
             if isinstance(hit[1], dict) and hit[1].get("kv"):
                 rec["line_kv"] = hit[1]["kv"]
+            # Nearest line meeting each voltage threshold (line_230kv_mi, ...).
+            for field, mi in line_threshold_fields(lines, lat, lon).items():
+                rec[field.replace("transmission_", "line_", 1)] = mi
         deal = curated.get((norm(rec["name"]), rec["state"])) or next(
             (c for c in curated.values() if c["state"] == rec["state"]
              and abs(c["latitude"] - lat) < 0.04 and abs(c["longitude"] - lon) < 0.05), None)  # ~3 mi
