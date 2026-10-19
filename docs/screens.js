@@ -184,8 +184,7 @@
       {id: "selected", label: "Selected by the Army", rule: "janus_status starts 'Selected'", kind: "R", source: NUC.army,
         test: s => typeof s.janus_status === "string" ? s.janus_status.startsWith("Selected") : null, show: s => s.janus_status || "unknown"},
       {id: "grid", label: "Line within 5 mi", rule: "transmission_mi ≤ 5", kind: "P", source: NUC.armyCriteria,
-        test: atMost("transmission_mi", 5), show: s => miles(s.transmission_mi)},
-      popCheck],
+        test: atMost("transmission_mi", 5), show: s => miles(s.transmission_mi)}],
     tieBreak: {label: "nearest line", value: s => s.transmission_mi},
   });
 

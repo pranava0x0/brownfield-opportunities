@@ -20,12 +20,32 @@ def _goto_ready(page, base_url):
     page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
 
 
+def _open_coal_projects(page):
+    """The 18 curated projects sit in a collapsed section under the ranked
+    EIA plant list."""
+    page.click("#tab-coal")
+    page.wait_for_selector("#coal-deals")
+    page.evaluate("document.getElementById('coal-deals').open = true")
+
+
+def test_coal_tab_ranks_every_eia_plant_with_its_method(page, base_url):
+    _goto_ready(page, base_url)
+    page.click("#tab-coal")
+    page.wait_for_selector(".coal-ranked-table tbody tr", timeout=15000)
+    assert page.locator(".coal-ranked-table tbody tr").count() >= 200
+    met = [int(x) for x in page.locator(".coal-ranked-table .screen-score strong").all_inner_texts()]
+    assert met == sorted(met, reverse=True)
+    assert page.locator("#coal-ranked .method-card .method-list li").count() == 3
+    text = page.locator("#view-coal").inner_text().lower()
+    assert "modeled" not in text and "stranded value" not in text, "no unsourced dollar estimates on the Coal tab"
+
+
 def test_coal_tab_builds_table_with_derived_filters(page, base_url):
     """Activating the tab builds the table; every filter <option> value
     (beyond 'all') exists in the loaded dataset, and every dataset value has
     an option — the drift-safe-iteration rule (UAT-007) applied to selects."""
     _goto_ready(page, base_url)
-    page.click("#tab-coal")
+    _open_coal_projects(page)
     page.wait_for_selector("#coal-table-container table.coal-table", timeout=15000)
     state = page.evaluate(
         """(() => {
@@ -54,7 +74,7 @@ def test_coal_status_filter_planned_retirement_matches_rows(page, base_url):
     to 'Retired'. Selecting planned_retirement must yield rows whose badge
     reads 'Retiring soon'."""
     _goto_ready(page, base_url)
-    page.click("#tab-coal")
+    _open_coal_projects(page)
     page.wait_for_selector("#coal-table-container table.coal-table", timeout=15000)
     page.select_option("#coal-status-filter", "planned_retirement")
     page.wait_for_function(
@@ -68,11 +88,11 @@ def test_coal_status_filter_planned_retirement_matches_rows(page, base_url):
     assert badges and all(b == "Retiring soon" for b in badges), badges
 
 
-def test_coal_drawer_opens_with_modeled_label_and_citation(page, base_url):
-    """The drawer labels the dollar figure as modeled and surfaces the
+def test_coal_drawer_opens_with_citation_and_no_dollar_value(page, base_url):
+    """The drawer shows no dollar figure and surfaces the
     per-row source_url + verified_at (the provenance contract, spec 04)."""
     _goto_ready(page, base_url)
-    page.click("#tab-coal")
+    _open_coal_projects(page)
     page.wait_for_selector("#coal-table-container table.coal-table", timeout=15000)
     page.click("#coal-table-container .coal-btn.inspect-btn")
     page.wait_for_selector("#coal-site-drawer:not([hidden])", timeout=5000)
@@ -86,7 +106,7 @@ def test_coal_drawer_opens_with_modeled_label_and_citation(page, base_url):
           };
         })()"""
     )
-    assert "Modeled" in state["text"], "valuation must be labeled as modeled"
+    assert "$" not in state["text"], "the unsourced dollar valuation was removed"
     assert state["citeHref"] and state["citeHref"].startswith("https://"), state["citeHref"]
     # Close button hides it again ([hidden] + belt-and-suspenders CSS).
     page.click("#coal-drawer-close")
@@ -95,7 +115,7 @@ def test_coal_drawer_opens_with_modeled_label_and_citation(page, base_url):
 
 def test_retired_connection_flags_do_not_claim_reusable_capacity(page, base_url):
     _goto_ready(page, base_url)
-    page.click("#tab-coal")
+    _open_coal_projects(page)
     page.wait_for_selector("#coal-table-container table.coal-table")
     plant = page.evaluate("window.__coalAssets.find(p => p.queue_transfer_eligible).plant_name")
     page.evaluate("name => window.__inspectCoalPlant(name)", plant)
@@ -153,7 +173,7 @@ def test_coal_csv_export_serves_the_filtered_catalog(page, base_url):
     the filtered catalog rows (header + N), carry the citation columns, and
     shrink when a filter narrows the table."""
     _goto_ready(page, base_url)
-    page.click("#tab-coal")
+    _open_coal_projects(page)
     page.wait_for_selector("#coal-table-container table.coal-table", timeout=15000)
     state = page.evaluate(
         """(() => {
@@ -174,7 +194,7 @@ def test_coal_csv_export_serves_the_filtered_catalog(page, base_url):
     assert state["btn"], "coal Export CSV button missing"
     assert state["allRows"] == state["assets"], state
     assert state["filteredRows"] == state["planned"] > 0, state
-    for col in ("plant_name", "source_url", "verified_at", "modeled_stranded_value_usd", "poi_occupied"):
+    for col in ("plant_name", "source_url", "verified_at", "poi_occupied"):
         assert col in state["header"], state["header"]
 
 
@@ -193,7 +213,7 @@ def test_coal_load_failure_shows_retry_not_forever_loading(page, base_url):
     page.route("**/data/coal-conversions.json", route_coal)
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("window.__sitesLoaded === true", timeout=20000)
-    page.click("#tab-coal")
+    _open_coal_projects(page)
     page.wait_for_selector("#coal-table-container button.coal-btn", timeout=10000)
     text = page.evaluate("document.getElementById('coal-table-container').textContent")
     assert "failed to load" in text, text
@@ -251,7 +271,7 @@ def test_drawer_nearby_shows_unavailable_not_negative_on_prox_failure(page, base
     page.route("**/data/coal-conversions-proximity.json", route_prox)
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
-    page.click("#tab-coal")
+    _open_coal_projects(page)
     page.wait_for_selector("#coal-table-container table.coal-table", timeout=15000)
     page.click("#coal-table-container .coal-btn.inspect-btn")
     page.wait_for_selector("#coal-site-drawer:not([hidden])", timeout=5000)
@@ -299,7 +319,7 @@ def test_coal_join_reapplies_after_restricted_boot_then_reset(page, base_url):
 
 def test_coal_detail_cell_renders_for_joined_site(page, base_url):
     """A site inside the 10-mi join renders the 'Coal reinvestment' row with a
-    clickable chip labeled as modeled; a site outside stays 'Not available'."""
+    clickable chip naming the plant; a site outside stays 'Not available'."""
     _goto_ready(page, base_url)
     # Detail selection deliberately requests its deferred proximity evidence.
     page.evaluate("window.__selectSite(window.__sites[0].id)")
@@ -316,7 +336,7 @@ def test_coal_detail_cell_renders_for_joined_site(page, base_url):
           return cell ? cell.textContent : null;
         })()"""
     )
-    assert result and "modeled" in result, result
+    assert result and " MW coal" in result and "$" not in result, result
 
 
 def test_coal_drawer_renders_nepa_permitting_screen(page, base_url):
@@ -326,7 +346,7 @@ def test_coal_drawer_renders_nepa_permitting_screen(page, base_url):
     (the hadSettled re-entry guard). 'Unavailable' chips are allowed only
     when the artifact itself says so — Cheswick's screen is fully ok."""
     _goto_ready(page, base_url)
-    page.click("#tab-coal")
+    _open_coal_projects(page)
     page.wait_for_selector("#coal-table-container table.coal-table", timeout=15000)
     page.evaluate("window.__inspectCoalPlant('Cheswick Generating Station')")
     page.wait_for_selector(".coal-nepa-section .coal-nepa-chip", timeout=15000)

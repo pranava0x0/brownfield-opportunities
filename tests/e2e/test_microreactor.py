@@ -14,19 +14,19 @@ def _assess(page, record, lens="dc"):
     return page.evaluate("([s,l]) => SiteEvidence.assessSite(s,l)", [record,lens])
 
 def _open_tab(page: Page, base_url: str) -> None:
+    """The microreactor catalog is a collapsed section of the Nuclear tab."""
     _ready(page, base_url)
-    page.wait_for_function("window.__APP_READY__ === true", timeout=30_000)
-    page.click("#tab-micro")
-    page.wait_for_selector(".micro-rank-table tbody tr", timeout=30_000)
+    page.click("#tab-ap1000")
+    page.click("#micro-catalog > summary")
+    page.wait_for_selector("#micro-content table.micro-table tbody tr", timeout=30_000)
 
-def test_tab_renders_fleet_commitments_and_ranking(page: Page, base_url: str):
+def test_catalog_renders_fleet_and_commitments(page: Page, base_url: str):
     _open_tab(page, base_url)
     page.wait_for_selector(".janus-table tbody tr", timeout=15_000)
     tables = page.locator("#micro-content table.micro-table")
-    assert tables.count() == 4
+    assert tables.count() == 3
     assert tables.nth(0).locator("tbody tr").count() >= 11        # the fleet
     assert tables.nth(1).locator("tbody tr").count() >= 30        # commitments + track headers
-    assert page.locator(".micro-rank-table tbody tr").count() > 0  # the siting screen
     # Every fleet and commitment row must expose at least one source link.
     assert page.locator("#micro-content .micro-src a").count() >= 40
 
@@ -52,11 +52,12 @@ def test_janus_deep_link_and_lazy_map_package(page: Page, base_url: str):
     page.wait_for_function("() => window.__janusMapFeatureCount() > 0", timeout=20_000)
     assert page.evaluate("() => window.__janusMapFeatureCount()") > 1_000
 
-def test_tab_is_a_bookmarkable_hash_route(page: Page, base_url: str):
+def test_old_micro_hash_opens_the_nuclear_catalog(page: Page, base_url: str):
     _ready(page, base_url)
     page.goto(f"{base_url}/index.html#micro")
-    page.wait_for_selector("#view-micro:not([hidden])", timeout=15_000)
-    assert page.locator("#tab-micro").get_attribute("aria-selected") == "true"
+    page.wait_for_selector("#view-ap1000:not([hidden])", timeout=15_000)
+    assert page.locator("#tab-ap1000").get_attribute("aria-selected") == "true"
+    assert page.evaluate("document.getElementById('micro-catalog').open") is True
 
 def test_commitment_markers_and_legend_row(page: Page, base_url: str):
     _open_tab(page, base_url)
@@ -97,24 +98,6 @@ def test_alaska_commitments_are_remapped_into_the_inset(page: Page, base_url: st
     }""")
     assert offscreen == 0, f"{offscreen} commitment markers render outside the map"
 
-def test_global_filters_carry_onto_the_siting_screen(page: Page, base_url: str):
-    """Sources from tableState.filtered, the same set the map and table show —
-    the unification the Rankings tab got in v1.21."""
-    _open_tab(page, base_url)
-    before = page.evaluate("() => window.__microRankedCount()")
-    page.evaluate(
-        "(st) => { const sel = document.getElementById('f-state');"
-        " sel.value = st; sel.dispatchEvent(new Event('change')); }",
-        "AK",
-    )
-    page.wait_for_function(
-        "(n) => window.__microRankedCount() !== n", arg=before, timeout=15_000
-    )
-    after = page.evaluate("() => window.__microRankedCount()")
-    assert after < before
-    states = page.locator(".micro-rank-table tbody tr .micro-sub").all_inner_texts()
-    assert states and all("AK" in s for s in states), states[:5]
-
 def test_fleet_load_failure_offers_a_retry_that_recovers(page: Page, base_url: str):
     """A failed fetch must NOT render "0 designs" — that would be a false
     negative about the industry rather than about the network, the same trap
@@ -139,22 +122,21 @@ def test_fleet_load_failure_offers_a_retry_that_recovers(page: Page, base_url: s
 
     page.route("**/data/microreactor-fleet.json", handler)
     _ready(page, base_url)
-    page.click("#tab-micro")
+    page.click("#tab-ap1000")
+    page.click("#micro-catalog > summary")
     page.wait_for_selector("#micro-retry", timeout=20_000)
     text = page.locator("#micro-content").inner_text()
     assert "could not be loaded" in text
     assert "0 designs" not in text and "0 commitments" not in text
-    assert page.locator(".micro-rank-table").count() == 0
 
     # Let the network recover, then confirm the button is wired to a real
     # refetch and not just a re-render of the same error.
     before = state["attempts"]
     state["fail"] = False
     page.click("#micro-retry")
-    page.wait_for_selector(".micro-rank-table tbody tr", timeout=30_000)
+    page.wait_for_selector(".janus-table", timeout=30_000)
     assert state["attempts"] > before, "the retry never re-fetched"
-    page.wait_for_selector(".janus-table", timeout=15_000)
-    assert page.locator("#micro-content table.micro-table").count() == 4
+    assert page.locator("#micro-content table.micro-table").count() == 3
 
 def test_tombstones_do_not_establish_isolation_or_federal_pathway(page,base_url):
     _ready(page,base_url)
@@ -172,13 +154,3 @@ def test_micro_land_threshold_remains_unknown_when_unpublished(page,base_url):
     assert page.evaluate('microreactorMeetsAcreageThreshold({})') is None
     assert page.evaluate('microreactorMeetsAcreageThreshold({acreage:4.9})') is False
     assert page.evaluate('microreactorMeetsAcreageThreshold({acreage:5})') is True
-
-def test_micro_rows_and_csv_use_evidence_not_rank(page,base_url):
-    _open_tab(page,base_url)
-    assert page.locator('.micro-rank-table .suit-score').count()==0
-    expect(page.locator('#micro-offgrid-toggle')).to_have_text('Missing grid evidence')
-    rows=list(csv.DictReader(io.StringIO(page.evaluate('window.__buildMicroCsv()'))))
-    assert len(rows)>1000
-    assert {'grid_finding','regulatory_finding','demand_finding'} <= set(rows[0])
-    assert all(r['regulatory_finding']=='Unknown' for r in rows)
-    assert 'microreactor_score' not in rows[0] and 'off_grid' not in rows[0]

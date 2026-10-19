@@ -1130,6 +1130,8 @@ def rebuild_proximity_only(data: Optional[Path] = None) -> dict:
 
 def main():
     # Nearest Census place of 25,000+ (10 CFR 100.3 population-center proxy).
+    import sys
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
     from build_population_centers import nearest_center
     places = json.loads((Path(__file__).resolve().parent.parent / "docs" / "data" / "population-centers.json").read_text())["places"]
     for s in SITES:

@@ -40,8 +40,11 @@ def _wait_ready(url: str, timeout_s: float = 10.0) -> None:
 @pytest.fixture(scope="session")
 def base_url() -> str:
     port = _free_port()
+    # scripts/serve.py: threaded with a deep accept queue. The stock
+    # `python -m http.server` (backlog 5) reset connections when a page fired
+    # its ~15 parallel data fetches, which surfaced as random e2e timeouts.
     proc = subprocess.Popen(
-        [sys.executable, "-m", "http.server", str(port), "--bind", "127.0.0.1"],
+        [sys.executable, str(ROOT / "scripts" / "serve.py"), str(port)],
         cwd=str(DOCS),
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,

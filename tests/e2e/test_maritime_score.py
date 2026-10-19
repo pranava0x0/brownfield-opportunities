@@ -21,10 +21,9 @@ def test_port_join_reapplies_after_restricted_boot_then_reset(page: Page, base_u
     carry port_mi for the rest of the session. Same pattern as
     test_coal_join_reapplies_after_restricted_boot_then_reset in
     test_coal_repowering.py."""
-    page.goto(f"{base_url}/index.html?program=superfund")
+    page.goto(f"{base_url}/index.html?program=superfund&lens=port")
     page.wait_for_function("window.__APP_READY__ === true", timeout=30_000)
-    page.click("#tab-maritime")
-    page.wait_for_selector("#maritime-table tbody tr")
+    page.wait_for_function("window.__sites.some(s => s._portChecked)", timeout=30_000)
     acres_id = page.evaluate(
         """(async () => {
           const j = await (await fetch('data/port-proximity.json')).json();
@@ -77,42 +76,23 @@ def test_non_conus_port_markers_are_remapped_into_the_inset(page: Page, base_url
     assert result["withinBounds"]
     assert result["insetNoted"]
 
-def test_coastal_lens_excludes_shipyard_only_sites(page: Page, base_url: str) -> None:
-    """Codex round 2 (this PR): computeCoastalGenerationScore has NO shipyard
-    component and the tab's own copy says 'within reach of a port' for this
-    lens — a shipyard-only match (port_mi null, shipyard_mi set) is not a
-    coastal candidate even though it passes the offshore lens's eligibility
-    test. Every rendered row on the coastal lens must have a real port_mi."""
-    _ready(page, base_url)
-    page.evaluate("document.getElementById('tab-maritime').click()")
-    page.wait_for_selector("#maritime-table tbody tr", timeout=15_000)
-    page.evaluate('document.querySelector(\'[data-maritime-lens="coastal"]\').click()')
-    page.wait_for_function(
-        "document.querySelector('[data-maritime-lens=\"coastal\"]').classList.contains('active')"
-    )
-    page.wait_for_selector("#maritime-table tbody tr", timeout=15_000)
-    result = page.evaluate(
-        """() => {
-          const rows = Array.from(document.querySelectorAll('#maritime-table tbody tr'));
-          const bad = rows.filter((tr) => {
-            const s = window.__sites.find((x) => x.id === tr.dataset.id);
-            return !s || s.port_mi == null;
-          }).length;
-          return { total: rows.length, bad };
-        }"""
-    )
-    assert result["total"] > 0
-    assert result["bad"] == 0
+def test_port_screen_lists_only_sites_near_a_port(page: Page, base_url: str) -> None:
+    """The port screen applies to sites within 25 mi of a principal port; a
+    shipyard-only match or a landlocked site is out of scope."""
+    page.goto(f"{base_url}/index.html?lens=port")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=45_000)
+    page.wait_for_function("window.__sites.some(s => s._portChecked) && document.querySelectorAll('#candidates-table tbody tr').length > 0", timeout=30_000)
+    bad = page.evaluate("""()=>Array.from(document.querySelectorAll('#candidates-table tbody tr')).filter(r=>{const s=window.__sites.find(s=>s.id===r.dataset.id);return !(s.port_mi<=25)}).length""")
+    assert bad == 0
+    expect(page.locator("#candidates-stats")).to_contain_text("principal port")
 
 def test_detail_panel_distinguishes_checked_negative_from_not_loaded(page: Page, base_url: str) -> None:
     """Codex round 2 (this PR): `_portChecked === true` with a null port_mi
     is a real negative result (checked, nothing within 75 mi), not the same
     'not yet loaded' state — the two must render different text."""
     _ready(page, base_url)
-    page.click("#tab-map")
-    page.wait_for_function("window.__APP_READY__ === true", timeout=30_000)
-    page.click("#tab-maritime")
-    page.wait_for_function("window.__sites.some(s => s._portChecked)")
+    page.click('[data-cand-lens="port"]')
+    page.wait_for_function("window.__sites.some(s => s._portChecked)", timeout=30_000)
     result = page.evaluate(
         """() => {
           const landlocked = window.__sites.find(
@@ -133,9 +113,3 @@ def test_shared_evidence_does_not_infer_maritime_service(page,base_url):
     a=_assess(page,{'_portChecked':True,'port_mi':0.1,'shipyard_mi':1},'maritime')
     assert a['water_rights']['status']==a['grid_capacity']['status']=='unknown'
     assert page.evaluate('typeof window.computeFloatingNuclearScore')=='undefined'
-
-def test_maritime_table_excludes_unmatched_locations(page,base_url):
-    _ready(page,base_url);page.click('#tab-maritime');page.wait_for_selector('#maritime-table tbody tr')
-    bad=page.evaluate("""()=>Array.from(document.querySelectorAll('#maritime-table tbody tr')).filter(r=>{const s=window.__sites.find(s=>s.id===r.dataset.id);return s.port_mi==null && s.shipyard_mi==null}).length""")
-    assert bad==0
-    assert page.locator('#maritime-table [data-category="grid"]').count()>0
