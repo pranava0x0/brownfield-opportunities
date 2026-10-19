@@ -53,9 +53,9 @@ value of the nearest one (fixed 2026-10-19 after code review; counts below are a
 
 | Screen | Checks | Sites meeting all (2026-10-19) |
 |---|---|---|
-| Data center | line ≥115 kV ≤5 mi, ≥100 ac, outside SFHA, road ≤10 mi | 1,189 |
-| Solar farm (EPA RE-Powering) | ≥35 ac, ≥69 kV line ≤10 mi, road ≤10 mi, outside SFHA | 1,762 |
-| Port industry | principal port ≤10 mi, ≥100 ac, ≥115 kV ≤5 mi, outside SFHA | 149 |
+| Data center | line ≥115 kV ≤5 mi, ≥100 ac, outside SFHA, road ≤10 mi | 1,194 |
+| Solar farm (EPA RE-Powering) | ≥35 ac, ≥69 kV line ≤10 mi, road ≤10 mi, outside SFHA | 1,771 |
+| Port industry | principal port ≤10 mi, ≥100 ac, ≥115 kV ≤5 mi, outside SFHA | 150 |
 | Nickel refinery | ≥300 ac, rail ≤1 mi, ≥115 kV ≤5 mi, river ≥100 cfs ≤10 mi, port or feedstock | 43 |
 | Large reactor (14 bases) | no 25k city ≤10 mi (10 CFR 100.3), PGA ≤0.30 g (AP1000 DCD), supply river ≥100× withdrawal (Vogtle EIS), ≥230 kV ≤5 mi, ≥500 ac | 2 meet 4 of 5 |
 | SMR | same, scaled to 300 MW | Fort Drum 5/5 |

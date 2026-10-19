@@ -13,6 +13,7 @@ from check_acreage_artifacts import names_water_or_plume  # noqa: E402
 @pytest.mark.parametrize("name", [
     "HUDSON RIVER PCBS", "GRIGGS & WALNUT GROUND WATER PLUME", "OLEAN WELL FIELD",
     "FOX RIVER NRDA/PCB RELEASES", "ONONDAGA LAKE", "MILLTOWN RESERVOIR SEDIMENTS",
+    "TAR CREEK (OTTAWA COUNTY)", "LOWER DARBY CREEK AREA", "COMMENCEMENT BAY, SOUTH TACOMA CHANNEL",
 ])
 def test_water_and_plume_names_flagged(name):
     assert names_water_or_plume(name)
@@ -21,6 +22,7 @@ def test_water_and_plume_names_flagged(name):
 @pytest.mark.parametrize("name", [
     "SAVANNAH RIVER SITE (USDOE)", "PEARL HARBOR NAVAL COMPLEX", "KERR-MCGEE CHEMICAL CORP. (SODA SPRINGS PLANT)",
     "WPSC TWO RIVERS MGP", "JAMES RIVER SHIPBUILDING", "35TH AVENUE",
+    "PACIFIC SOUND RESOURCES", "RIVER CITY METAL FINISHING", "BOG CREEK FARM",
 ])
 def test_facility_and_federal_names_not_flagged(name):
     assert not names_water_or_plume(name)
