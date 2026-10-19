@@ -1482,12 +1482,18 @@ function siteIsAvailable(s) {
 // NFHL by the `infra-proximity` connector. Distances >100 mi are absent
 // (treated as out-of-range / out-of-CONUS); flood_zone is null outside any
 // mapped FEMA study area.
+let infraCoreLoaded = false;
+let infraCoreFailed = false;
 function ensureInfraLoaded() {
   if (infraLoadingPromise) return infraLoadingPromise;
+  infraCoreFailed = false;
   infraLoadingPromise = fetchInfra(INFRA_CORE_URL)
+    .then(() => { infraCoreLoaded = true; maybeRefreshCandidates(); })
     .catch((err) => {
       console.error("Infra-proximity core load failed:", err);
       infraLoadingPromise = null;
+      infraCoreFailed = true;
+      maybeRefreshCandidates();
     });
   return infraLoadingPromise;
 }
@@ -1534,6 +1540,7 @@ function fetchInfra(url) {
         Object.assign(existing, patch);
       }
       maybeRefreshMicro();
+      maybeRefreshCandidates();
       if (selectedId && sitesById.has(selectedId)) {
         try { selectSite(selectedId); } catch {}
       }
@@ -4843,7 +4850,7 @@ function renderCoalPlants() {
   const full = ranked.filter(r => r.ev.met === r.ev.total).length;
   const rows = ranked.map(({site: p, ev}, i) => `<tr><td class="cand-name"><span class="screen-rank">${i + 1}</span><strong>${escapeHtml(p.name)}</strong>`
     + `<span class="micro-sub">${escapeHtml([p.county, p.state].filter(Boolean).join(", "))} · ${Math.round(p.coal_mw).toLocaleString()} MW coal · ${escapeHtml(p.operator || "")}</span>`
-    + (p.deal_note ? `<span class="coal-deal-note">${escapeHtml(p.deal_note)} <a href="${escapeAttr(p.deal_source_url || "")}" target="_blank" rel="noopener">source ↗</a></span>` : "")
+    + (p.deal_note ? `<span class="coal-deal-note">${escapeHtml(p.deal_note)}${p.deal_source_url ? ` <a href="${escapeAttr(p.deal_source_url)}" target="_blank" rel="noopener">source ↗</a>` : ""}</span>` : "")
     + `</td>${ev.results.map(r => `<td data-label="${escapeAttr(r.label)}" data-status="${r.status}">${screenCell(r)}</td>`).join("")}`
     + `<td class="screen-score" data-label="Checks met"><strong>${ev.met}</strong>/${ev.total}</td></tr>`).join("");
   host.innerHTML = `<div class="method-card">${screenMethodHtml(screen)}</div>`
@@ -5202,6 +5209,10 @@ const NUCLEAR_SCREENS = [
   {key: "smr", label: "SMR (300 MW)", cls: "ap300"},
   {key: "micro", label: "Microreactor", cls: "micro"},
 ];
+// REACTOR_CLASSES key (siting-context.js) for the selected nuclear screen.
+function nuclearReactorClass() {
+  return (NUCLEAR_SCREENS.find(c => c.key === ap1000State.cls) || NUCLEAR_SCREENS[0]).cls;
+}
 function buildAp1000View() {
   const host = el("ap1000-cards");
   if (!host) return;
@@ -5329,9 +5340,9 @@ const AP1000_CSV_COLUMNS = [
   { label: "water_rights_regime", value: (r) => r.s.water_rights_regime, source: (r) => r.s.water_rights_source_url },
   { label: "water_rights_context_note", value: (r) => r.s.water_rights_note, source: (r) => r.s.water_rights_source_url },
   { label: "water_low_flow_cfs", value: (r) => r.s.water_low_flow_cfs, source: (r) => _ap1000SourceFor(r.s, "water") },
-  { label: "reactor_class", value: () => ap1000State.cls, source: (r) => _ap1000SourceFor(r.s, "score") },
-  { label: "acreage_threshold_acres", value: () => ((window.REACTOR_CLASSES || {})[ap1000State.cls] || {}).min_acres ?? (window.AP1000_MIN_DEVELOPABLE_ACRES || 500), source: (r) => _ap1000SourceFor(r.s, "acreage") },
-  { label: "acreage_threshold_met", value: (r) => window.ap1000MeetsAcreageThreshold ? window.ap1000MeetsAcreageThreshold(r.s, ap1000State.cls) : "", source: (r) => _ap1000SourceFor(r.s, "acreage") },
+  { label: "reactor_class", value: () => nuclearReactorClass(), source: (r) => _ap1000SourceFor(r.s, "score") },
+  { label: "acreage_threshold_acres", value: () => ((window.REACTOR_CLASSES || {})[nuclearReactorClass()] || {}).min_acres ?? 500, source: (r) => _ap1000SourceFor(r.s, "acreage") },
+  { label: "acreage_threshold_met", value: (r) => window.ap1000MeetsAcreageThreshold ? window.ap1000MeetsAcreageThreshold(r.s, nuclearReactorClass()) : "", source: (r) => _ap1000SourceFor(r.s, "acreage") },
   { label: "developable_acreage", value: (r) => r.s.developable_acreage, source: (r) => _ap1000SourceFor(r.s, "acreage") },
   { label: "developable_acreage_reason", value: (r) => r.s.developable_basis, source: (r) => _ap1000SourceFor(r.s, "acreage") },
   { label: "installation_acreage", value: (r) => r.s.installation_acreage, source: (r) => _ap1000SourceFor(r.s, "acreage") },
@@ -6851,6 +6862,17 @@ const SCREEN_LOADERS = {
 // loader that fails clears its promise and refreshes the view, so calling
 // it from the rebuild would retry forever.
 function loadScreenData() { SCREEN_LOADERS[candidatesState.lens]?.(); }
+
+// Which data a screen still waits on or failed to load. An empty or partial
+// ranking is never presented as a result while its inputs are missing.
+function screenDataState(key) {
+  const extra = {port: [["port", () => portProximityRecords]],
+    nickel: [["port", () => portProximityRecords], ["supply chain", () => nickelAnchorRecords], ["water", () => waterProximityRecords]]}[key] || [];
+  const inputs = [["infrastructure", () => infraCoreLoaded], ...extra];
+  const failed = inputs.filter(([n]) => n === "infrastructure" ? infraCoreFailed : nickelDataErrors.has(n)).map(([n]) => n);
+  const pending = inputs.filter(([n, ready]) => !ready() && !failed.includes(n)).map(([n]) => n);
+  return {pending, failed};
+}
 function buildCandidatesView() {
   const screen = SiteScreens.SCREENS[candidatesState.lens];
   const allMet = el("screen-all-met")?.checked;
@@ -6864,8 +6886,20 @@ function buildCandidatesView() {
   if (method) method.innerHTML = screenMethodHtml(screen);
   const full = rows.filter(r => r.ev.met === r.ev.total).length;
   const stats = el("candidates-stats");
-  if (stats) stats.textContent = `${full.toLocaleString()} of ${inScope.toLocaleString()} sites meet every check`
-    + (screen.scope ? ` (${screen.scope})` : "") + (filtersActive() || filterState.q ? " · filters applied" : "");
+  const data = screenDataState(candidatesState.lens);
+  if (stats && data.failed.length) {
+    stats.innerHTML = `Couldn’t load ${escapeHtml(data.failed.join(", "))} data, so these checks read “?”. <button type="button" class="text-btn" id="screen-retry">Retry</button>`;
+    el("screen-retry").addEventListener("click", () => {
+      if (infraCoreFailed) ensureInfraLoaded();
+      loadScreenData();
+      buildCandidatesView();
+    });
+  } else if (stats && data.pending.length) {
+    stats.textContent = `Loading ${data.pending.join(", ")} data…`;
+  } else if (stats) {
+    stats.textContent = `${full.toLocaleString()} of ${inScope.toLocaleString()} sites meet every check`
+      + (screen.scope ? ` (${screen.scope})` : "") + (filtersActive() || filterState.q ? " · filters applied" : "");
+  }
   const head = el("candidates-head");
   if (head) head.innerHTML = `<th scope="col">Site</th>${screen.criteria.map(c => `<th scope="col">${escapeHtml(c.label)}</th>`).join("")}<th scope="col">Met</th>`;
   const tbody = document.querySelector("#candidates-table tbody"); if (!tbody) return;

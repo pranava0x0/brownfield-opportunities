@@ -15,18 +15,11 @@
   const miles = v => num(v) ? (v < 0.1 ? "<0.1 mi" : `${v.toFixed(1)} mi`) : "unknown";
   const acres = v => num(v) ? `${Math.round(v).toLocaleString("en-US")} ac` : "unknown";
 
-  // Grid access: the nearer of a mapped line or substation. A substation is
-  // connected to the network by definition, so it stands in when the public
-  // line layer misses sub-transmission.
-  function gridMi(s) {
-    const d = [s.transmission_mi, s.substation_mi].filter(num);
-    return d.length ? Math.min(...d) : null;
-  }
   // Reported acreage, unless scripts/check_acreage_artifacts.py flagged it as a
-  // county outline or a multi-county region (then it says nothing about a parcel).
+  // county, region, river or plume; then the state cadastre's parcel area, if any.
   function siteAcres(s) {
-    if (s.acreage_flag) return null;
-    return num(s.acreage) ? s.acreage : num(s.parcel_acreage) ? s.parcel_acreage : null;
+    if (num(s.acreage) && !s.acreage_flag) return s.acreage;
+    return num(s.parcel_acreage) ? s.parcel_acreage : null;
   }
   const notFlood = s => s.in_sfha === true ? false : s.in_sfha === false ? true : null;
 
@@ -41,8 +34,6 @@
     hifld: {title: "HIFLD Electric Power Transmission Lines",
       url: "https://services1.arcgis.com/Hp6G80Pky0om7QvQ/arcgis/rest/services/Electric_Power_Transmission_Lines/FeatureServer/0"},
     tiger: {title: "Census TIGER primary roads and railroads", url: "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Transportation/MapServer"},
-    eo14318: {title: "EO 14318: qualifying data-center projects exceed 100 MW",
-      url: "https://www.whitehouse.gov/presidential-actions/2025/07/accelerating-federal-permitting-of-data-center-infrastructure/"},
     afLease: {title: "Air Force AI data-center lease parcels (AFCEC-26-R-0002): 73 to 560 acres each",
       url: "https://www.edwards.af.mil/News/Display/Article/4354128/have-questions-about-the-solicitation-for-ai-data-centers-we-got-answers/"},
     ports: {title: "BTS/USACE Principal Ports (NTAD)", url: "https://www.bts.gov/ntad"},
@@ -59,7 +50,7 @@
     return num(s.transmission_kv) ? s.transmission_kv >= kv : null;
   };
   const landAtLeast = min => s => { const a = siteAcres(s); return a === null ? null : a >= min; };
-  const landShow = s => s.acreage_flag ? "area not a parcel" : acres(siteAcres(s));
+  const landShow = s => siteAcres(s) === null && s.acreage_flag ? "area not a parcel" : acres(siteAcres(s));
   const floodShow = s => s.in_sfha === true ? "in flood zone" : s.in_sfha === false ? "outside" : "unknown";
 
   define("dc", {
@@ -282,7 +273,7 @@
     return tb.dir === "desc" ? -v : v;
   }
 
-  const api = {VERSION, SCREENS, evaluate, rank, gridMi, siteAcres, miles, acres, define,
+  const api = {VERSION, SCREENS, evaluate, rank, siteAcres, miles, acres, define,
     helpers: {num, atMost, atLeast, notFlood}};
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (root) root.SiteScreens = api;

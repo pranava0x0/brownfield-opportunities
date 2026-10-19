@@ -88,8 +88,9 @@ def site_name(sid: str) -> tuple[str, str]:
 
 
 def cmd_next(rows: list[dict], n: int) -> list[str]:
-    due = [sid for sid, d in dossiers().items() if (d.get("next_review") or "9999") <= today()]
-    picks = sorted(due, key=lambda sid: dossiers()[sid]["next_review"])
+    ds = dossiers()
+    due = [sid for sid, d in ds.items() if (d.get("next_review") or "9999") <= today()]
+    picks = sorted(due, key=lambda sid: ds[sid]["next_review"])
     picks += [r["Site id"] for r in rows if r["Status"] in ("queued", "retry") and r["Site id"] not in picks]
     return picks[:n]
 

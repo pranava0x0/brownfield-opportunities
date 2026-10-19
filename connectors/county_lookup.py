@@ -234,12 +234,8 @@ class CountyIndex:
         where a lat/lon sits within the bounding box of an adjacent state's
         county due to rounding, and saves work on the ACRES happy path.
         """
-        cell_deg = self.cell_deg
-        cy = int(math.floor(lat / cell_deg))
-        cx = int(math.floor(lon / cell_deg))
-        candidate_indices = self._cells.get((cy, cx))
-        if not candidate_indices:
-            return None
+        hit = self.lookup_polygon(lat, lon, expected_state)
+        return hit[0] if hit else None
         for idx in candidate_indices:
             name, state, polygon, bbox = self._records[idx]
             if expected_state and state and state != expected_state:

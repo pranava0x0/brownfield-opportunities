@@ -83,7 +83,9 @@ def sync() -> dict:
 
 
 def unanswered(pr_number: int) -> list[dict]:
-    comments = json.loads(run(GH, "api", "--paginate", f"repos/{REPO}/pulls/{pr_number}/comments"))
+    # --paginate prints one JSON array per page; --jq '.[]' flattens to one object per line.
+    lines = run(GH, "api", "--paginate", f"repos/{REPO}/pulls/{pr_number}/comments", "--jq", ".[]").splitlines()
+    comments = [json.loads(line) for line in lines if line.strip()]
     replied = {c["in_reply_to_id"] for c in comments
                if c.get("in_reply_to_id") and c["body"].startswith(("Fixed in", "Not changed:"))}
     return [{"id": c["id"], "path": c["path"], "line": c.get("line"), "body": c["body"][:700]}
