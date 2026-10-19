@@ -26,9 +26,9 @@ def sel():
     return _load()
 
 
-def test_a_single_score_module_runs_only_its_own_tests(sel):
-    targets, _ = sel.select(["docs/nickel-score.js"])
-    assert "tests/e2e/test_nickel_score.py" in targets
+def test_the_screen_module_runs_only_its_own_tests(sel):
+    targets, _ = sel.select(["docs/screens.js"])
+    assert "tests/test_screens.py" in targets
     assert "tests/" not in targets, "must not escalate to the full suite"
     assert "tests/e2e/test_dc_score.py" not in targets
 
@@ -71,7 +71,7 @@ def test_the_cross_cutting_guards_are_always_included(sel):
     """They are cheap, and they are the ones that catch bugs in files that
     look unrelated to them — the tab-scrolling and DOM-budget regressions both
     arrived that way."""
-    for change in (["docs/nickel-score.js"], ["connectors/water_proximity.py"],
+    for change in (["docs/screens.js"], ["connectors/water_proximity.py"],
                    ["docs/style.css"], ["README.md"]):
         targets, _ = sel.select(change)
         for guard in sel.ALWAYS:

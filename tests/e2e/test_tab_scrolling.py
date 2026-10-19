@@ -18,8 +18,7 @@ from __future__ import annotations
 import pytest
 from playwright.sync_api import Page
 
-TABS = ["map", "table", "candidates", "retired", "coal", "ap1000",
-        "micro", "hanford", "maritime", "nickel", "about"]
+TABS = ["map", "table", "candidates", "retired", "coal", "ap1000", "hanford", "about"]
 
 # Phone, tablet, laptop. The band between the 640px mobile breakpoint and the
 # desktop layout is where the tab-strip overflow regression lived, so it is

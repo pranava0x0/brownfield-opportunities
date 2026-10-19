@@ -365,7 +365,6 @@ const DC_TIERS = [
   { id: "colo",       label: "25+ acres · 138 kV nearby", minAcres: 25, maxTxMi: 1.0, minKv: 138, color: "var(--accent)" },
   { id: "edge",       label: "5+ acres · mapped line nearby", minAcres: 5, maxTxMi: 1.0, minKv: 0, color: "var(--accent)" },
 ];
-const DC_TIER_LABEL = Object.fromEntries(DC_TIERS.map((t) => [t.id, t.label]));
 // Persona presets surface the same ladder as one-tap filters in the strip.
 // `?dc_tier=hyperscale` round-trips through the URL; `Reset` clears it.
 const PERSONA_PRESETS = [...DC_TIERS].slice().reverse(); // edge → mega for UI
@@ -778,15 +777,6 @@ function evidenceDetails(s, lens = "dc") {
   }).join("")}${missing}</div>`;
 }
 function evidenceNameOrder(a,b) { return String(a.name || a.id).localeCompare(String(b.name || b.id)) || String(a.id).localeCompare(String(b.id)); }
-function evidenceRow(s, lens = "dc") {
-  sanitizeGeographicEvidence(s);
-  const tr = document.createElement("tr"); tr.dataset.id = s.id;
-  const a = SiteEvidence.assessSite(s,lens);
-  tr.innerHTML = `<td class="cand-name"><button class="site-evidence-open" type="button">${escapeHtml(s.name || s.id)}</button><span class="micro-sub">${escapeHtml([s.city,s.state].filter(Boolean).join(", "))} · ${escapeHtml(PROGRAM_LABEL[s.program] || s.program || "")}</span></td>`
-    + SiteEvidence.PRIMARY.map(k => `<td data-category="${k}" data-label="${SiteEvidence.LABELS[k]}">${evidenceCell(a[k])}</td>`).join("");
-  tr.addEventListener("click", () => selectSite(s.id,{fromTable:true}));
-  return tr;
-}
 function evidenceCsvColumns(pick = s => s) {
   return Object.keys(SiteEvidence.LABELS).flatMap(key => ["finding","confidence","reason","sources"].map(field => ({
     label: `${key}_${field}`, compute: (row, assessment) => {const e=(assessment || SiteEvidence.assessSite(pick(row)))[key]; return field === "sources" ? e.sources.join(" | ") : e[field] || "Unknown";}
@@ -5166,50 +5156,8 @@ function maybeRefreshAp1000() {
   if (v && v.classList.contains("active")) buildAp1000View();
 }
 
-// Ordered for the breakdown bar + chips; keys match computeAp1000Breakdown.
-const AP1000_FACTORS = [
-  { key: "water",        label: "Water" },
-  { key: "transmission", label: "Transmission" },
-  { key: "substation",   label: "Substation" },
-  { key: "workforce",    label: "Workforce" },
-  { key: "fiber",        label: "Fiber" },
-];
-const AP1000_WATER_CLASS = { abundant: "ok", adequate: "ok", marginal: "warn", poor: "bad", severe: "bad" };
-const AP1000_FIBER_CLASS = { excellent: "ok", good: "ok", moderate: "warn", limited: "bad" };
-const AP1000_WORKFORCE_CLASS = { strong: "ok", good: "ok", moderate: "warn", limited: "bad" };
-const AP1000_FLAG_CLASS = { none: "ok", low: "ok", moderate: "warn", elevated: "warn", high: "bad" };
-
-// Matches the radius used in build_ap1000_sites.py.
-const RETIRED_PLANT_RADIUS_MI_LABEL = "25 mi";
-
-// EIA-860M fuel code → short display label (for retired plant).
-const _EIA_FUEL = {
-  BIT: "coal", SUB: "coal", LIG: "coal", WC: "waste coal",
-  NG:  "natural gas", DFO: "fuel oil", RFO: "fuel oil", OIL: "petroleum",
-  NUC: "nuclear", PC: "pet. coke", RC: "refined coal", SC: "syngas",
-};
-// HIFLD active-plant text fuel → short label.
-function _ap1000ActiveFuelLabel(f) {
-  if (!f) return "—";
-  const fl = f.toLowerCase();
-  if (fl.includes("coal")) return "coal";
-  if (fl.includes("gas"))  return "gas";
-  if (fl.includes("nuclear")) return "nuclear";
-  if (fl.includes("hydro"))   return "hydro";
-  if (fl.includes("solar"))   return "solar";
-  if (fl.includes("wind"))    return "wind";
-  if (fl.includes("pet") || fl.includes("oil")) return "petroleum";
-  if (fl.includes("batter"))  return "battery";
-  return f;
-}
-
-
-
-const _ap1000Src = (url, label) =>
-  url ? ` <a href="${escapeHtml(url)}" target="_blank" rel="noopener">${label} ↗</a>` : "";
 const _AP1000_SCORE_SOURCE = "https://pranava0x0.github.io/brownfield-opportunities/siting-context.js";
 const _AP1000_DATA_SOURCE = "https://github.com/pranava0x0/brownfield-opportunities/blob/main/docs/data/ap1000-sites.json";
-const _AP1000_INFRA_SOURCE = "https://pranava0x0.github.io/brownfield-opportunities/data/infra-proximity.json";
 const _AP1000_TRANSMISSION_SOURCE = "https://hifld-geoplatform.opendata.arcgis.com/datasets/geoplatform::electric-power-transmission-lines/about";
 const _AP1000_SUBSTATION_SOURCE = "https://overpass-turbo.eu/";
 const _AP1000_GEOHAZARD_SOURCE = "https://www.fema.gov/flood-maps/tools-resources/flood-map-products/national-flood-hazard-layer";
@@ -5244,9 +5192,6 @@ function _ap1000SourceFor(s, field) {
   if (field === "rank" || field === "installation") return _AP1000_DATA_SOURCE;
   return "";
 }
-const _ap1000KvMi = (mi, kv) =>
-  `${fmt.miles(mi)} · ${kv != null ? kv + " kV" : "kV N/A"}`;
-
 // Concise, sortable-feeling table; each row expands to a detail row with the
 // full per-factor breakdown, analyst notes, sources, and unscored geohazard
 // flags. Built once on tab activation (the dataset is a static 14 rows).
@@ -5290,18 +5235,6 @@ function buildAp1000View() {
 function maybeRefreshNuclearCivilian() {
   const v = el("view-ap1000");
   if (v && v.classList.contains("active")) buildNuclearCivilianView();
-}
-
-function nuclearSortedPromisingSites() {
-  return nuclearCivilianSites
-    .filter(nuclearIsMapped)
-    .slice()
-    .sort((a, b) => {
-      const oa = NUCLEAR_CATEGORIES[a.inl_category].order;
-      const ob = NUCLEAR_CATEGORIES[b.inl_category].order;
-      if (oa !== ob) return oa - ob;
-      return String(a.name).localeCompare(String(b.name));
-    });
 }
 
 function buildNuclearCivilianView() {
@@ -5444,15 +5377,16 @@ function ap1000ScoredRows() {
 }
 
 function buildAp1000Csv() {
-  const headers = [];
+  const screen = SiteScreens.SCREENS[SiteScreens.SCREENS[ap1000State.cls] ? ap1000State.cls : "ap1000"];
+  const headers = ["rank", "screen", "checks_met", ...screen.criteria.flatMap(c => [`${c.id}_result`, `${c.id}_value`])];
   for (const c of AP1000_CSV_COLUMNS) {
     headers.push(c.label, `${c.label}_source_url`);
   }
   const categoryColumns = evidenceCsvColumns(r => r.s);
   headers.push(...categoryColumns.map(c => c.label));
   const rows = [headers];
-  for (const r of ap1000ScoredRows()) {
-    const row = [];
+  for (const [i, r] of ap1000ScoredRows().entries()) {
+    const row = [i + 1, screen.key, r.ev.met, ...r.ev.results.flatMap(x => [x.status, x.value])];
     const assessment = SiteEvidence.assessSite(r.s);
     for (const c of AP1000_CSV_COLUMNS) {
       const v = c.value(r);
@@ -5511,13 +5445,8 @@ function wireAp1000ExportCsv() {
 // only a four-node skeleton because the first-paint DOM budget is 5,000 nodes
 // with roughly 60 to spare — see CLAUDE.md, "Paginated table".
 
-const MICRO_RANK_LIMIT = 100;
-const MICRO_SCORE_SOURCE = "https://github.com/pranava0x0/brownfield-opportunities/blob/main/docs/microreactor-score.js";
-const MICRO_DATA_SOURCE = "https://github.com/pranava0x0/brownfield-opportunities/blob/main/docs/data/microreactor-fleet.json";
-
 const microState = {
   ranked: [],
-  offGridOnly: false,   // hard-islanded sites only (no transmission within 100 mi)
   janusSelectedId: null,
   built: false,
 };
@@ -5639,38 +5568,6 @@ function addMicroCommitmentMarkers() {
 function maybeRefreshMicro() {
   const d = el("micro-catalog");
   if (d && d.open && el("view-ap1000")?.classList.contains("active")) buildMicroView();
-}
-
-// Ordered for the breakdown chips; keys match computeMicroreactorBreakdown.
-const MICRO_FACTORS = [
-  { key: "licensing_path", label: "Licensing path" },
-  { key: "grid_isolation", label: "Grid isolation" },
-  { key: "anchor_load",    label: "Anchor load" },
-  { key: "deliverability", label: "Deliverability" },
-  { key: "readiness",      label: "Readiness" },
-];
-
-// Tier breaks are anchored to THIS lens's own distribution, not copied from
-// the data-center lens's 75/50/25. The microreactor lens has a lower practical
-// ceiling by construction: grid isolation pulls against deliverability and
-// readiness, so no real site can max both halves of the rubric. Observed over
-// the 46,759-site corpus the scores run min 0 / median 37 / p90 50 / p99 61 /
-// max 73, so these breaks land at roughly the top 0.5%, top 5% and top 25%.
-// Reusing 75/50/25 here would paint the entire corpus one colour and the tier
-// would carry no information at all. Re-measure on a refresh that materially
-// shifts the distribution — computeMicroreactorScore over window.__sites is
-// the whole measurement.
-const MICRO_TIER_BREAKS = Object.freeze({ strong: 64, moderate: 55, marginal: 44 });
-
-
-
-// Rank the globally-filtered set. Sourcing from `tableState.filtered` — not
-// from `sites` — is what makes the search / state / program / acreage filters
-// carry onto this tab, the same unification the Rankings tab got in v1.21.
-function microRankedSites() {
-  return tableState.filtered.filter(s => microreactorMeetsAcreageThreshold(s) !== false
-    && (!microState.offGridOnly || (s.transmission_mi == null && s.substation_mi == null)))
-    .slice().sort(evidenceNameOrder).map(site => ({site}));
 }
 
 function _microFleetRows() {
@@ -6744,22 +6641,6 @@ function _microSectorHtml() {
   }).join("");
 }
 
-function _microRankRows(rows) {
-  return rows.slice(0,MICRO_RANK_LIMIT).map(({site:s}) => {
-    const a=SiteEvidence.assessSite(s,"micro");
-    return `<tr data-id="${escapeAttr(s.id)}"><td><a class="micro-site-link" data-site="${escapeAttr(s.id)}" href="?site=${encodeURIComponent(s.id)}">${escapeHtml(s.name || s.id)}</a><span class="micro-sub">${escapeHtml(s.state || "")}</span></td>`
-      + SiteEvidence.PRIMARY.map(k => `<td data-category="${k}" data-label="${SiteEvidence.LABELS[k]}">${evidenceCell(a[k])}</td>`).join("")+"</tr>";
-  }).join("");
-}
-
-// Acreage display that keeps the parcel fallback and the structural gap
-// visible. `null` here is a source-side absence, never a filtered-out site.
-function _microEffectiveAcreageDisplay(s) {
-  if (s.acreage != null) return fmt.acres(s.acreage);
-  if (s.parcel_acreage != null) return fmt.acres(s.parcel_acreage) + " (parcel)";
-  return "Not reported";
-}
-
 function buildMicroView() {
   const host = el("micro-content");
   if (!host) return;
@@ -6854,8 +6735,6 @@ function buildMicroView() {
 // let a test target the ranking and the fleet without depending on scroll
 // position, table paging, or marker decimation.
 function exposeMicroTestHooks() {
-  window.__buildMicroCsv = buildMicroCsv;
-  window.__microRankedCount = () => microRankedSites().length;
   window.__microFleet = () => microFleet;
   window.__janusNepa = () => janusNepa;
   window.__showJanusMap = showJanusMap;
@@ -6865,15 +6744,6 @@ function exposeMicroTestHooks() {
 
 function wireMicroControls() {
   exposeMicroTestHooks();
-  const toggle = el("micro-offgrid-toggle");
-  if (toggle) {
-    toggle.addEventListener("click", () => {
-      microState.offGridOnly = !microState.offGridOnly;
-      buildMicroView();
-    });
-  }
-  const csv = el("micro-export-csv");
-  if (csv) csv.addEventListener("click", downloadMicroCsv);
   const janusRetry = el("janus-retry");
   if (janusRetry) {
     janusRetry.addEventListener("click", () => {
@@ -6909,59 +6779,12 @@ function wireMicroControls() {
   }
 }
 
-const MICRO_CSV_COLS = [
-  ["id", (r) => r.site.id],
-  ["name", (r) => prettyName(r.site.name) || ""],
-  ["program", (r) => r.site.program],
-  ["state", (r) => r.site.state || ""],
-  ["acreage", (r) => r.site.acreage ?? ""],
-  ["parcel_acreage", (r) => r.site.parcel_acreage ?? ""],
-  ["transmission_mi", (r) => r.site.transmission_mi ?? ""],
-  ["grid_access_mi", (r) => microreactorGridAccessMi(r.site) ?? ""],
-  ["substation_mi", (r) => r.site.substation_mi ?? ""],
-  ["highway_mi", (r) => r.site.highway_mi ?? ""],
-  ["rail_mi", (r) => r.site.rail_mi ?? ""],
-  ["power_plant_mi", (r) => r.site.power_plant_mi ?? ""],
-  ["power_plant_mw", (r) => r.site.power_plant_mw ?? ""],
-  ["power_plant_fuel", (r) => r.site.power_plant_fuel ?? ""],
-  ["in_sfha", (r) => (r.site.in_sfha == null ? "" : r.site.in_sfha)],
-  ["nri_wildfire_rating", (r) => r.site.nri_wildfire_rating ?? ""],
-];
-
-function buildMicroCsv() {
-  const cols=evidenceCsvColumns(r=>r.site);
-  return [csvRow(MICRO_CSV_COLS.map(c=>c[0]).concat(cols.map(c=>c.label))),
-    ...microRankedSites().map(r=>{const a=SiteEvidence.assessSite(r.site); return csvRow(MICRO_CSV_COLS.map(c=>c[1](r)).concat(cols.map(c=>c.compute(r,a))));})].join("\n");
-}
-
-function downloadMicroCsv() {
-  const blob = new Blob([buildMicroCsv()], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `microreactor-siting-${new Date().toISOString().slice(0, 10)}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
-// ----- DC Candidates view -----
+// ----- Screens view state -----
 //
-// A ranked, pre-sorted table of every site with a suitability score, showing
-// the key signals that explain the score side-by-side: voltage class,
-// substation proximity, nearest plant (capacity + fuel), gas pipeline,
-// and readiness/risk badges (OZ, Cleanup, Flood, etc.).
-//
-// Sources from `tableState.filtered` — the SAME globally-filtered set the
-// map and table show — so search / state / program / acreage / persona /
-// OZ filters carry across tabs. (Pre-unification the tab silently ignored
-// them and duplicated tier + readiness as unsynced parallel controls —
-// see the 2026-06-10 tab-UX findings in backlog.md.) The only view-local
-// state is the scoring lens, round-tripped through the URL as `?lens=gen`.
-//
-// The view is rebuilt on tab activation, on every applyFilter(), and after
-// relevant lazy loads settle (evidence becomes available as sources arrive).
+// Ranks `tableState.filtered`, the same globally-filtered set the map and
+// table show, so search and filters carry across tabs. View-local state is
+// the screen (`?lens=`) and the every-check toggle (`?allmet=1`). Rebuilt on
+// tab activation, every applyFilter(), and when a lazy join lands.
 const CANDIDATES_PAGE = 50;
 const SCREEN_KEYS = ["dc", "solar", "port", "nickel"];
 const candidatesState = {
@@ -7095,7 +6918,7 @@ function wireCandidatesFilters() {
   // `?lens=` is parsed here, NOT in loadInitialFiltersFromUrl() — that
   // runs at top level before `const candidatesState` initializes (TDZ).
   const urlLens = new URLSearchParams(location.search).get("lens");
-  if (SCREEN_KEYS.includes(urlLens)) candidatesState.lens = urlLens;
+  if (SCREEN_KEYS.includes(urlLens)) { candidatesState.lens = urlLens; loadScreenData(); }
   document.querySelectorAll("[data-cand-lens]").forEach((btn) => {
     btn.addEventListener("click", () => {
       candidatesState.lens = btn.dataset.candLens;

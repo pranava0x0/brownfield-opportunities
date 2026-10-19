@@ -37,7 +37,10 @@ Run:  python3 scripts/build_ap1000_sites.py
 import datetime as dt
 import io
 import json
-from build_population_centers import nearest_center
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parent))
+from build_population_centers import nearest_center  # noqa: E402
 import math
 import sys
 import urllib.request

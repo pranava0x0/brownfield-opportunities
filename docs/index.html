@@ -21,7 +21,8 @@
 (function () {
   var GA_MEASUREMENT_ID = "G-TH38TZ7RM0"; // GA4 "Brownfield Opportunities" web stream (Mint Test account)
   var dnt = navigator.doNotTrack == "1" || window.doNotTrack == "1" || navigator.msDoNotTrack == "1";
-  if (GA_MEASUREMENT_ID === "G-XXXXXXXXXX" || !/^G-[A-Z0-9]+$/.test(GA_MEASUREMENT_ID) || dnt) return;
+  var local = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname); // dev servers and e2e runs send no hits
+  if (GA_MEASUREMENT_ID === "G-XXXXXXXXXX" || !/^G-[A-Z0-9]+$/.test(GA_MEASUREMENT_ID) || dnt || local) return;
   var s = document.createElement("script");
   s.async = true;
   s.src = "https://www.googletagmanager.com/gtag/js?id=" + GA_MEASUREMENT_ID;

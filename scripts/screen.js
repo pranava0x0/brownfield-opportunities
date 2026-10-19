@@ -45,6 +45,17 @@ function loadCorpus() {
   return [...byId.values()];
 }
 
+// Each screen ranks one population (screens.js `universe`).
+const UNIVERSES = {
+  corpus: loadCorpus,
+  installations: () => read("ap1000-sites.json").sites,
+  civilian: () => read("nuclear-civilian-sites.json").sites,
+  coal: () => read("coal-plants.json").plants,
+  retired: () => read("retired-industrial.json").sites,
+};
+const cache = {};
+const universe = name => (cache[name] = cache[name] || UNIVERSES[name]());
+
 const mark = {pass: "✓", fail: "✗", unknown: "?"};
 function printEval(site, key) {
   const sc = Screens.SCREENS[key];
@@ -66,19 +77,24 @@ function main([cmd, a, b]) {
     }
     return;
   }
-  const corpus = loadCorpus();
   if (cmd === "explain") {
-    const site = corpus.find(s => s.id === a);
-    if (!site) throw new Error(`unknown site id ${a}`);
-    console.log(`${site.id} · ${site.name} · ${site.state} · ${site.program}`);
-    for (const key of b ? [b] : Object.keys(Screens.SCREENS)) printEval(site, key);
+    const keys = b ? [b] : Object.keys(Screens.SCREENS);
+    let found = false;
+    for (const key of keys) {
+      const site = universe(Screens.SCREENS[key].universe).find(s => s.id === a);
+      if (!site) continue;
+      if (!found) console.log(`${site.id} · ${site.name} · ${site.state || ""} · ${site.program || Screens.SCREENS[key].universe}`);
+      found = true;
+      printEval(site, key);
+    }
+    if (!found) throw new Error(`unknown site id ${a}`);
   } else if (cmd === "top") {
     const n = Number(b) || 20;
-    Screens.rank(corpus, a).slice(0, n).forEach((r, i) =>
-      console.log(`${String(i + 1).padStart(3)}. ${r.ev.met}/${r.ev.total} (${r.ev.unknown}?) ${r.site.id.padEnd(18)} ${r.site.state} ${r.site.name}`));
+    Screens.rank(universe(Screens.SCREENS[a].universe), a).slice(0, n).forEach((r, i) =>
+      console.log(`${String(i + 1).padStart(3)}. ${r.ev.met}/${r.ev.total} (${r.ev.unknown}?) ${String(r.site.id).padEnd(18)} ${r.site.state || ""} ${r.site.name}`));
   } else if (cmd === "counts") {
     for (const key of Object.keys(Screens.SCREENS)) {
-      const rows = Screens.rank(corpus, key);
+      const rows = Screens.rank(universe(Screens.SCREENS[key].universe), key);
       const hist = {};
       for (const r of rows) hist[r.ev.met] = (hist[r.ev.met] || 0) + 1;
       console.log(`${key.padEnd(10)} in scope ${String(rows.length).padStart(6)} · met→sites ${JSON.stringify(hist)}`);

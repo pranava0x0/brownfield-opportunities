@@ -96,7 +96,7 @@ def test_facility_fit_best_fit_ranking(page, base_url):
           };
         }"""
     )
-    assert result["energyNorthwest"] == "Large reactor / SMR"
+    assert result["energyNorthwest"] == "Large reactor"   # SMR is strong (NRC pre-application only)
     assert result["area300"] == "Microreactor"
     assert result["area200"] == "None"
     assert result["monument"] == "None"

@@ -46,7 +46,7 @@ REGION_ACRES = 100_000    # larger than any single industrial or military parcel
 PLUME_WORDS = re.compile(r"\b(GROUND ?WATER|GW|PLUMES?|AQUIFER|SEDIMENTS?|WELLS?|WELL ?FIELD|WELLFIELD|NRDA|CONTAMINATION|CONTAMINATED)\b")
 WATER_WORDS = re.compile(r"\b(RIVERS?|CREEK|LAKE|BAY|HARBOR|HARBOUR|CANAL|RESERVOIR|ESTUARY|WATERWAY|SOUND)\b")
 FACILITY_WORDS = re.compile(r"\b(PLANT|CORP|CORPORATION|CO|INC|COMPANY|MILLS?|LANDFILL|MGP|PIT|SMELTER|WORKS|FACILITY|"
-                            r"DEPOT|DUMP|DRUM|SALVAGE|STATION|YARD|FOUNDRY|LAB|LABORATORY|TERMINAL|AIRPORT|REFINERY)\b")
+                            r"DEPOT|DUMP|DRUM|SALVAGE|STATION|YARD|FOUNDRY|LAB|LABORATORY|TERMINAL|AIRPORT|REFINERY|SHIPBUILDING|SHIPYARD)\b")
 FEDERAL_WORDS = re.compile(r"\b(USDOE|USAF|USN|USARMY|USNAVY|NAVAL|NAS|AFB|AIR FORCE|ARMY|MARINE|ARSENAL|BASE|COMPLEX)\b")
 
 
@@ -88,7 +88,9 @@ def acreage_flags(sites: list[dict], counties: CountyIndex) -> dict[str, dict]:
         flag = None
         if s.get("program") == "superfund" and names_water_or_plume(s.get("name")):
             flag = "water_or_plume"
-        elif share is not None and share >= COUNTY_SHARE:
+        # Federal reservations legitimately span counties (Savannah River Site
+        # covers parts of three), so only the region rule applies to them.
+        elif share is not None and share >= COUNTY_SHARE and not FEDERAL_WORDS.search((s.get("name") or "").upper()):
             flag = "county_outline"
         elif acres > REGION_ACRES:
             flag = "region"
