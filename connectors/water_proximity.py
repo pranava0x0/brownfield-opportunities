@@ -51,6 +51,9 @@ log = logging.getLogger("connector.water_proximity")
 # Catalog search radius only. Euclidean proximity never establishes that a
 # gage and site share a basin, intake, or available water supply.
 MAX_DISTANCE_MI = 50.0
+# Flow the nickel screen requires (docs/screens.js). The nearest gage is often
+# a creek; the screen needs the nearest gage that meets the threshold.
+FLOW_THRESHOLD_CFS = 100.0
 UNSUPPORTED_REGIONS = frozenset({"VI", "GU", "MP", "AS", "FM", "PW", "MH"})
 EARTH_RADIUS_MI = 3958.8
 # Longitude degrees shrink with latitude, so a fixed ring budget covers fewer
@@ -119,6 +122,7 @@ class WaterProximity(Connector):
             return []
 
         idx = self._build_index()
+        big = self._build_index(min_flow=FLOW_THRESHOLD_CFS)
         if idx.point_count == 0:
             log.error("gage index empty — run scripts/build_streamgages_overlay.py "
                       "first; aborting rather than writing a water-less file")
@@ -178,6 +182,12 @@ class WaterProximity(Connector):
                     rec["water_gage_id"] = attr["gage_id"]
                     rec["water_evidence_status"] = "matched_context"
                     matched += 1
+            hit = big.nearest_with_attr(lat_f, lon_f, max_rings=_rings_for_latitude(lat_f))
+            if hit is not None:
+                dist_mi = _haversine_mi(lat_f, lon_f, hit[1]["lat"], hit[1]["lon"])
+                if dist_mi <= MAX_DISTANCE_MI:
+                    rec["water_100cfs_gage_mi"] = round(dist_mi, 2)
+                    rec["water_100cfs_flow_cfs"] = hit[1]["mean_flow_cfs"]
             records.append(rec)
 
         if skipped_no_geom:
@@ -215,7 +225,7 @@ class WaterProximity(Connector):
             for site in payload.get("sites") or []:
                 yield site
 
-    def _build_index(self) -> PointIndex:
+    def _build_index(self, min_flow: float = 0.0) -> PointIndex:
         idx = PointIndex()
         path = self._data_dir() / GAGES_FILE
         if not path.exists():
@@ -244,7 +254,7 @@ class WaterProximity(Connector):
         for row in payload.get("sites") or []:
             lat, lon = row.get("lat"), row.get("lon")
             flow = row.get("mean_flow_cfs")
-            if lat is None or lon is None or not flow:
+            if lat is None or lon is None or not flow or flow < min_flow:
                 continue
             idx.add_point(float(lat), float(lon), {
                 "gage_id": row.get("gage_id"),

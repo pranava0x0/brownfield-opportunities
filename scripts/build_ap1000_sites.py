@@ -37,6 +37,10 @@ Run:  python3 scripts/build_ap1000_sites.py
 import datetime as dt
 import io
 import json
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parent))
+from build_population_centers import nearest_center  # noqa: E402
 import math
 import sys
 import urllib.request
@@ -91,6 +95,45 @@ JANUS_SITES = {
     "fort-benning-ga", "fort-bragg-nc", "fort-campbell-ky", "fort-drum-ny",
     "fort-hood-tx", "fort-wainwright-ak", "holston-aap-tn", "jblm-wa",
     "redstone-arsenal-al",
+}
+
+# Aug 26 2026: the Army picked five of the nine candidates and paired each
+# with a vendor (World Nuclear News, Air University). The other four remain
+# on the 2025 candidate list only.
+JANUS_SELECTED = {
+    "fort-bragg-nc": "Antares Nuclear",
+    "fort-campbell-ky": "BWXT Advanced Technologies",
+    "fort-hood-tx": "General Atomics EMS",
+    "fort-benning-ga": "Radiant Industries",
+    "fort-drum-ny": "Westinghouse Government Services",
+}
+JANUS_SELECTION_SOURCE = "https://www.world-nuclear-news.org/articles/us-army-selects-five-microreactor-vendors-to-power-bases"
+# Jun 1 2026: AFCEC told Arnold AFB no offeror would bid on its parcels.
+AF_RFLP_NO_PROPOSAL = {
+    "arnold-afb-tn": ("No proposals received (2026-06-01)",
+                      "https://www.tullahomanews.com/news/breaking-news/2026/06/01/no-ai-data-center-at-arnold/"),
+}
+
+# Supply river mean annual flow (cfs) at the validated USGS gauge, per
+# ap1000-water-validation.md (2026-06-25, NWIS annual means). None marks a
+# groundwater or reservoir supply with no river flow to compare: Fort Hood
+# (Belton Lake firm yield), JBMDL (Kirkwood-Cohansey aquifer), Edwards and
+# Davis-Monthan (adjudicated / overdrafted groundwater).
+SUPPLY_FLOW = {
+    "redstone-arsenal-al":  (41650, "03575500", "Tennessee River"),
+    "fort-wainwright-ak":   (41000, "15515500", "Tanana River"),
+    "fort-campbell-ky":     (23765, "03431500", "Cumberland River (~13 mi)"),
+    "fort-benning-ga":      (6873, "02341460", "Chattahoochee River"),
+    "fort-drum-ny":         (4242, "04260500", "Black River"),
+    "fort-bragg-nc":        (3224, "02102500", "Cape Fear River (~10 mi)"),
+    "holston-aap-tn":       (2910, "03487500", "South Fork Holston River"),
+    "robins-afb-ga":        (2680, "02213700", "Ocmulgee River"),
+    "jblm-wa":              (2000, "12089500", "Nisqually River"),
+    "arnold-afb-tn":        (470, "03579100", "Elk River / Woods Reservoir"),
+    "fort-hood-tx":         (None, None, "Belton Lake (reservoir firm yield)"),
+    "jbmdl-nj":             (None, None, "Kirkwood-Cohansey aquifer"),
+    "edwards-afb-ca":       (None, None, "Antelope Valley groundwater (adjudicated)"),
+    "davis-monthan-afb-az": (None, None, "Tucson AMA groundwater"),
 }
 
 # Construction-workforce availability within ~1 hour. An AP1000 build peaks at
@@ -777,6 +820,8 @@ def main() -> None:
     infra_rows = infra.get("sites", infra) if isinstance(infra, dict) else infra
     infra_by_id = {r["id"]: r for r in infra_rows}
 
+    pop_places = json.loads((DATA / "population-centers.json").read_text())["places"]
+
     # Load EIA-860M retired plants once (optional — gracefully absent).
     retired_plants = _load_retired_plants()
 
@@ -790,6 +835,9 @@ def main() -> None:
         rec["janus_site"] = s["id"] in JANUS_SITES
         if rec["janus_site"]:
             rec["janus_source_url"] = JANUS_SOURCE
+            vendor = JANUS_SELECTED.get(s["id"])
+            rec["janus_status"] = f"Selected Aug 2026 · {vendor}" if vendor else "Candidate, not selected Aug 2026"
+            rec["janus_status_url"] = JANUS_SELECTION_SOURCE
         if s["id"] in AF_LEASE:
             lease = AF_LEASE[s["id"]]
             rec["af_rflp_site"] = True
@@ -797,6 +845,8 @@ def main() -> None:
             rec["af_rflp_detail"] = lease["detail"]
             rec["af_rflp_source_url"] = AF_RFLP_SOURCE
             rec["af_rflp_article_url"] = AF_RFLP_ARTICLE_SOURCE
+            if s["id"] in AF_RFLP_NO_PROPOSAL:
+                rec["af_rflp_status"], rec["af_rflp_status_url"] = AF_RFLP_NO_PROPOSAL[s["id"]]
         w = WORKFORCE.get(s["id"])
         if not w:
             raise SystemExit(f"no WORKFORCE entry for {s['id']}")
@@ -816,7 +866,8 @@ def main() -> None:
         # Real, project-computed infrastructure distances.
         rec["lat"] = _site_latlon(s["infra_source_id"])[0]
         rec["lon"] = _site_latlon(s["infra_source_id"])[1]
-        for k in ("transmission_mi", "transmission_kv", "substation_mi",
+        for k in ("transmission_mi", "transmission_kv", "transmission_69kv_mi", "transmission_115kv_mi",
+                  "transmission_230kv_mi", "transmission_unknown_kv_mi", "substation_mi",
                   "substation_kv", "gas_pipeline_mi", "rail_mi", "highway_mi",
                   "power_plant_mi", "power_plant_mw", "power_plant_fuel",
                   "transmission_asset_id", "substation_asset_id", "power_plant_asset_id",
@@ -824,6 +875,13 @@ def main() -> None:
             rec[k] = src.get(k)
         rec["infra_coordinate_basis"] = "borrowed_reference_record"
         rec["infra_confidence"] = "low"
+        # Supply river and its USGS mean flow, from the validated table in
+        # ap1000-water-validation.md (None = groundwater or reservoir supply).
+        flow, gauge, label = SUPPLY_FLOW[s["id"]]
+        rec["supply_flow_cfs"], rec["supply_gauge"], rec["supply_source"] = flow, gauge, label
+        # Nearest Census place of 25,000+ (10 CFR 100.3 population-center proxy).
+        center = nearest_center(rec["lat"], rec["lon"], pop_places)
+        rec["pop_center_mi"], rec["pop_center_name"], rec["pop_center_pop"] = center["mi"], f"{center['name']}, {center['state']}", center["pop_2024"]
 
         # Nearest large retired plant from EIA-860M (within RETIRED_PLANT_RADIUS_MI).
         if retired_plants:

@@ -30,8 +30,8 @@ ID_JOINS = ('epa-redev', 'epa-superfund-docs', 'epa-echo', 'epa-acres-cleanup')
 # Only fields actually assigned by each frontend join. Payload identity/context
 # fields must never erase authoritative producer values.
 OWNED_FIELDS = {
-    'infra-proximity': 'transmission_mi transmission_kv substation_mi substation_kv gas_pipeline_mi rail_mi highway_mi power_plant_mi power_plant_mw power_plant_fuel flood_zone in_sfha infra_evidence',
-    'water-proximity': 'water_gage_mi water_flow_cfs water_gage_name water_gage_id water_evidence_status water_statistic water_gage_record_years water_gage_record_start_year water_gage_record_end_year water_gage_source_retrieved_at water_gage_source_url',
+    'infra-proximity': 'transmission_mi transmission_kv transmission_69kv_mi transmission_115kv_mi transmission_230kv_mi transmission_unknown_kv_mi substation_mi substation_kv gas_pipeline_mi rail_mi highway_mi power_plant_mi power_plant_mw power_plant_fuel flood_zone in_sfha infra_evidence',
+    'water-proximity': 'water_gage_mi water_flow_cfs water_100cfs_gage_mi water_100cfs_flow_cfs water_gage_name water_gage_id water_evidence_status water_statistic water_gage_record_years water_gage_record_start_year water_gage_record_end_year water_gage_source_retrieved_at water_gage_source_url',
     'eia-retired-plants': 'retired_plant_mi retired_plant_mw retired_plant_fuel retired_plant_year retired_plant_name',
     'planned-retirements-proximity': 'planned_retirement_mi planned_retirement_mw planned_retirement_fuel planned_retirement_year planned_retirement_name',
     'port-proximity': 'port_hurricane_freq port_mi port_name port_type shipyard_capability shipyard_mi shipyard_name',

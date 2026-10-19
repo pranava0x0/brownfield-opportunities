@@ -3998,3 +3998,62 @@ details.nickel-caveat li { margin-bottom: 6px; }
   .source-coverage-table td:nth-child(3)::before { content: "Snapshot"; }
   .source-coverage-table td::before { display: block; font-weight: 600; margin-bottom: 3px; }
 }
+.evidence-missing { padding: 10px 0; font-size: 12px; color: var(--text-soft); }
+.evidence-missing summary { cursor: pointer; }
+.evidence-missing ul { margin: 8px 0 0; padding-left: 18px; line-height: 1.6; }
+
+/* ----- Screens (default tab): method card + ranked checks ----- */
+.method-card { margin: 10px 0 6px; padding: 10px 12px; border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 6px; background: var(--surface); font-size: 13px; line-height: 1.5; }
+.method-lead { margin: 0 0 6px; color: var(--text); }
+.method-list { margin: 0; padding-left: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 2px 18px; }
+.method-list li { color: var(--text-soft); }
+.method-list a { color: var(--accent); text-decoration: none; white-space: nowrap; }
+.method-list a:hover, .method-list a:focus-visible { text-decoration: underline; }
+.method-kind { font-size: 10px; text-transform: uppercase; letter-spacing: .04em; padding: 1px 5px; border-radius: 8px; border: 1px solid var(--border); color: var(--muted); }
+.method-kind[data-kind="R"] { border-color: var(--readiness-ready, #2f7a4d); color: var(--readiness-ready, #2f7a4d); }
+.screen-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 16px; }
+.screen-allmet { font-size: 13px; color: var(--text-soft); display: inline-flex; align-items: center; gap: 6px; }
+.screen-table td[data-status] { font-size: 12px; }
+.screen-mark { display: inline-block; width: 1.2em; font-weight: 700; }
+.screen-mark[data-status="pass"] { color: var(--readiness-ready, #2f7a4d); }
+.screen-mark[data-status="fail"] { color: var(--status-final, #b8332f); }
+.screen-mark[data-status="unknown"] { color: var(--muted); }
+.screen-value { color: var(--text-soft); }
+.screen-rank { display: inline-block; min-width: 2.2em; color: var(--muted); font-variant-numeric: tabular-nums; font-size: 12px; }
+.screen-score { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.screen-table th:first-child { width: 26%; }
+.filters-meta { margin: 0 0 8px; }
+@media (max-width: 640px) {
+  .method-card { font-size: 12px; padding: 8px 10px; }
+  .method-list { grid-template-columns: 1fr; }
+  .screen-table td.cand-name .screen-rank { min-width: 1.8em; }
+}
+.screen-table .cand-name .site-evidence-open { display: inline; min-height: 0; text-align: left; }
+.screen-table td { padding-top: 7px; padding-bottom: 7px; }
+.method-foot { margin: 6px 0 0; color: var(--muted); font-size: 12px; }
+.coal-deal-note { display: block; margin-top: 4px; font-size: 12px; color: var(--text-soft); }
+.coal-deal-note a { color: var(--accent); }
+.nuke-catalog { margin: 18px 0; border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; background: var(--surface); }
+.nuke-catalog > summary { cursor: pointer; font-weight: 600; color: var(--text); }
+.coal-ranked-table th:first-child { width: 42%; }
+.retired-table th:first-child { width: 34%; }
+.about-method { margin: 14px 0 18px; }
+.about-method h3 { margin: 0 0 4px; font-size: 15px; }
+.about-method p { margin: 0 0 6px; font-size: 13px; color: var(--text-soft); }
+.about-method-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.about-method-table th, .about-method-table td { text-align: left; vertical-align: top; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+.about-method-table code { font-size: 11.5px; white-space: normal; }
+.about-method-table a { color: var(--accent); }
+.about-limits { padding-left: 18px; font-size: 13px; line-height: 1.6; color: var(--text-soft); }
+@media (max-width: 640px) {
+  .about-method-table, .about-method-table tbody, .about-method-table tr, .about-method-table td { display: block; width: auto; }
+  .about-method-table thead { display: none; }
+  .about-method-table tr { padding: 6px 0; border-bottom: 1px solid var(--border); }
+  .about-method-table td { border: 0; padding: 2px 0; }
+}
+.screen-summary { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-bottom: 8px; }
+.screen-summary th, .screen-summary td { text-align: left; vertical-align: top; padding: 5px 4px; border-bottom: 1px solid var(--border); }
+.screen-summary th { font-weight: 600; white-space: nowrap; width: 1%; }
+.screen-chip { display: inline-block; margin: 0 6px 3px 0; color: var(--text-soft); white-space: nowrap; }
+.screen-chip[data-status="pass"] { color: var(--readiness-ready); }
+.screen-chip[data-status="fail"] { color: var(--status-final); }

@@ -173,7 +173,9 @@ class CountyIndex:
 
     def __init__(self, cell_deg: float = DEFAULT_CELL_DEG):
         self.cell_deg = cell_deg
-        # Each entry: (name, state_code | None, polygon, bbox)
+        # Each entry: (name, state_code | None, polygon, bbox); _fips[i] is
+        # the county FIPS for entry i.
+        self._fips: list[str] = []
         self._records: list[
             tuple[str, str | None, list[list[tuple[float, float]]],
                   tuple[float, float, float, float]]
@@ -198,6 +200,7 @@ class CountyIndex:
                 bbox = _ring_bbox(polygon[0])
                 rec_idx = len(idx._records)
                 idx._records.append((name, state, polygon, bbox))
+                idx._fips.append(fips)
                 for cell in _cells_for_bbox(bbox, cell_deg):
                     idx._cells[cell].append(rec_idx)
         return idx
@@ -210,6 +213,29 @@ class CountyIndex:
     def polygon_count(self) -> int:
         return len(self._records)
 
+    def county_polygons(self, polygon: list) -> list[list[list[tuple[float, float]]]]:
+        """Every component polygon of the county that `polygon` (from
+        lookup_polygon) belongs to, matched by FIPS. Island counties and Alaska
+        boroughs are MultiPolygons; lookup_polygon returns only one component.
+        Name and state are not unique: Baltimore city and Baltimore County
+        share both."""
+        fips = next(self._fips[i] for i, rec in enumerate(self._records) if rec[2] is polygon)
+        return [rec[2] for i, rec in enumerate(self._records) if self._fips[i] == fips]
+
+    def lookup_polygon(
+        self, lat: float, lon: float, expected_state: str | None = None
+    ) -> tuple[str, str | None, list[list[tuple[float, float]]]] | None:
+        """Like `lookup`, but return (name, state, polygon rings) for the match."""
+        cy = int(math.floor(lat / self.cell_deg))
+        cx = int(math.floor(lon / self.cell_deg))
+        for idx in self._cells.get((cy, cx), []):
+            name, state, polygon, (minx, miny, maxx, maxy) = self._records[idx]
+            if expected_state and state and state != expected_state:
+                continue
+            if minx <= lon <= maxx and miny <= lat <= maxy and _point_in_polygon(lon, lat, polygon):
+                return name, state, polygon
+        return None
+
     def lookup(
         self, lat: float, lon: float, expected_state: str | None = None
     ) -> str | None:
@@ -220,19 +246,5 @@ class CountyIndex:
         where a lat/lon sits within the bounding box of an adjacent state's
         county due to rounding, and saves work on the ACRES happy path.
         """
-        cell_deg = self.cell_deg
-        cy = int(math.floor(lat / cell_deg))
-        cx = int(math.floor(lon / cell_deg))
-        candidate_indices = self._cells.get((cy, cx))
-        if not candidate_indices:
-            return None
-        for idx in candidate_indices:
-            name, state, polygon, bbox = self._records[idx]
-            if expected_state and state and state != expected_state:
-                continue
-            minx, miny, maxx, maxy = bbox
-            if lon < minx or lon > maxx or lat < miny or lat > maxy:
-                continue
-            if _point_in_polygon(lon, lat, polygon):
-                return name
-        return None
+        hit = self.lookup_polygon(lat, lon, expected_state)
+        return hit[0] if hit else None

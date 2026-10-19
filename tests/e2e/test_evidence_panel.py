@@ -28,6 +28,10 @@ def _ready(page: Page, base_url: str) -> None:
         "(window.__sites || []).some(s => s.transmission_mi != null)",
         timeout=60_000,
     )
+    # The site panel's deferred joins (full infrastructure file, Opportunity
+    # Zone, documents...) re-render the panel as each lands. Settle them first
+    # so a test never races its own panel rebuild.
+    page.evaluate("ensureDetailEvidenceLoaded()")
 
 
 def _open_evidence(page: Page, site_id: str):
@@ -169,6 +173,7 @@ def test_negative_claims_declare_they_expect_no_features(page: Page, base_url: s
     """"Not in an Opportunity Zone" is evidenced by an empty result — the row
     must say so, or a link checker reads a correct negative as a dead link."""
     _ready(page, base_url)
+    page.evaluate("ensureDetailEvidenceLoaded()")   # Opportunity Zone joins load with the site panel
     page.wait_for_function(
         "(window.__sites || []).some(s => s.in_opportunity_zone === false)",
         timeout=60_000,

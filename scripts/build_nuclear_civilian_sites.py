@@ -110,11 +110,12 @@ SITES = [
         "reactor_type": "Natrium (sodium fast)",
         "units_planned": 1,
         "mwe_per_unit": 345,
-        "col_status": "nrc_construction_license_accepted",
+        "col_status": "construction_permit_issued",
         "owner_operator": "PacifiCorp / TerraPower",
         "market": "Regulated",
         "iso_rto": "non-RTO/WECC",
-        "notes": "TerraPower's Natrium advanced reactor. NRC construction license application accepted.",
+        "notes": "TerraPower's Natrium advanced reactor. NRC approved the Kemmerer Unit 1 construction permit (reported 2026-03-05).",
+        "reference_url": "https://world-nuclear-news.org/articles/nrc-issues-construction-permit-for-first-natrium-plant",
         "nrc_url": "https://www.nrc.gov/reactors/new-reactors/advanced/natrium.html",
     },
     {
@@ -139,17 +140,18 @@ SITES = [
         "name": "Clinch River",
         "state": "TN", "county": "Roane", "city": "Oak Ridge",
         "lat": 35.9206, "lon": -84.4986,
-        "status": "esp_approved",
+        "status": "construction_permit_issued",
         "inl_category": "blue",
         "reactor_type": "SMR (BWRX-300 / TVA)",
         "units_planned": 2,
         "mwe_per_unit": 300,
-        "col_status": "esp_approved",
+        "col_status": "construction_permit_issued",
         "owner_operator": "TVA / GE-Hitachi",
         "market": "Regulated",
         "iso_rto": "non-RTO/TVA",
-        "notes": "NRC ESP approved; TVA pursuing BWRX-300 SMR. Jun 2026: NRC staff issued a safety evaluation recommending the construction permit — the FIRST advanced-reactor CP to reach this stage. The uncontested mandatory hearing was held 2026-08-13 (comment record closed 2026-08-27); the Commission has not yet issued the final construction permit as of 2026-09-25. AP1000 feasible but SMR is current plan.",
+        "notes": "NRC early site permit, then a construction permit for TVA's BWRX-300 (reported 2026-09-30), the first US construction permit for this SMR design.",
         "nrc_url": "https://www.nrc.gov/public-involve/public-meetings/pmns/20260617",
+        "reference_url": "https://world-nuclear-news.org/articles/first-construction-permit-issued-for-bwrx300-smr-in-us",
     },
     {
         # Added 2026-07-26 (post-study): Duke's first new nuclear siting move
@@ -1127,9 +1129,17 @@ def rebuild_proximity_only(data: Optional[Path] = None) -> dict:
 
 
 def main():
+    # Nearest Census place of 25,000+ (10 CFR 100.3 population-center proxy).
+    import sys
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from build_population_centers import nearest_center
+    places = json.loads((Path(__file__).resolve().parent.parent / "docs" / "data" / "population-centers.json").read_text())["places"]
+    for s in SITES:
+        c = nearest_center(s["lat"], s["lon"], places)
+        s["pop_center_mi"], s["pop_center_name"], s["pop_center_pop"] = c["mi"], f"{c['name']}, {c['state']}", c["pop_2024"]
     # Write nuclear-civilian-sites.json
     payload = {
-        "generated_at": "2026-09-25",
+        "generated_at": "2026-10-18",
         "sources": [
             "INL/MIS-24-80216 Rev 0 (Aug 2024): Opportunities for AP1000 Deployment at Existing and Planned Nuclear Sites — docs/data/references/INL-AP1000-Opportunities-Sort128167.pdf",
             "Idaho Advanced Nuclear Strategic Framework (Sep 2025) — docs/data/references/Idaho-Advanced-Nuclear-Strategic-Framework.pdf",
@@ -1137,6 +1147,7 @@ def main():
             "Utility 2025 Integrated Resource Plans and press releases",
             "Jul-2026 status refresh: V.C. Summer FID timeline (SC Daily Gazette 2026-07-07), Palisades/Crane restart milestones, TVA Clinch River CP recommendation (ANS Jun 2026), Duke Belews Creek ESP (Federal Register 2026-02-11)",
             "Sep-2026 status refresh: Palisades fuel-loading incident (The National, 2026-09-21), Crane final EA/FONSI (Federal Register, 2026-09-22), Clinch River mandatory hearing held (NRC PMNS 20260617), Belews Creek mandatory hearing held (NRC, 2026-09-17), Project Matador TensorWave lease + construction update (Fermi America IR, 2026-08-10), Kewaunee NOI clarified as new-build not restart (EnergySolutions, 2026-01-15)",
+            "Oct-2026 refresh: Kemmerer construction permit (World Nuclear News, 2026-03-05), Clinch River construction permit (World Nuclear News, 2026-09-30); population-center distances from Census Vintage 2024 place estimates",
         ],
         "sites": SITES,
         "site_count": len(SITES),
