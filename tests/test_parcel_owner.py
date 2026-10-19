@@ -339,9 +339,9 @@ def test_parcel_upgrade_acreage_with_zero_limit_is_unlimited(tmp_path):
 
 
 def test_acreage_only_state_emits_area_without_owner(tmp_path):
-    """OH/ME layers have parcel area but no owner field."""
+    """OH/ME layers have parcel area but no owner field (OH area in sq ft)."""
     sites = [{"id": "OH1", "program": "brownfield", "state": "OH", "lat": 39.9, "lon": -83.0}]
-    resp = {(39.9, -83.0): {"features": [{"attributes": {"LandArea": 12.5, "StateParcelID": "X1"}}]}}
+    resp = {(39.9, -83.0): {"features": [{"attributes": {"Shape__Area": 12.5 * 43560, "StateParcelID": "X1"}}]}}
     recs = _conn(tmp_path, sites, response_for=resp).fetch_records(_args(state="OH"), use_cache=True)
     assert recs == [{"id": "OH1", "program": "brownfield", "parcel_acreage": 12.5, "parcel_id": "X1",
                      "current_owner_source": "Ohio OGRIP Statewide Parcels (area only)"}]

@@ -866,7 +866,8 @@ def main() -> None:
         # Real, project-computed infrastructure distances.
         rec["lat"] = _site_latlon(s["infra_source_id"])[0]
         rec["lon"] = _site_latlon(s["infra_source_id"])[1]
-        for k in ("transmission_mi", "transmission_kv", "substation_mi",
+        for k in ("transmission_mi", "transmission_kv", "transmission_69kv_mi", "transmission_115kv_mi",
+                  "transmission_230kv_mi", "transmission_unknown_kv_mi", "substation_mi",
                   "substation_kv", "gas_pipeline_mi", "rail_mi", "highway_mi",
                   "power_plant_mi", "power_plant_mw", "power_plant_fuel",
                   "transmission_asset_id", "substation_asset_id", "power_plant_asset_id",

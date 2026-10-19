@@ -260,12 +260,31 @@ class SegmentIndex:
             attr = self._attrs[idx]
         return (d_mi, attr)
 
+    def nearest_matching(
+        self,
+        lat: float,
+        lon: float,
+        predicate,
+        max_rings: int | None = None,
+    ) -> tuple[float, object] | None:
+        """Like `nearest_with_attr()`, but only segments whose attr satisfies
+        `predicate(attr)` count — e.g. the nearest line of at least 230 kV,
+        which is often not the nearest line."""
+        attrs = self._attrs or []
+        keep = lambda i: predicate(attrs[i] if i < len(attrs) else None)
+        result = self._nearest(lat, lon, max_rings, return_idx=True, keep=keep)
+        if result is None:
+            return None
+        d_mi, idx = result
+        return (d_mi, attrs[idx] if idx < len(attrs) else None)
+
     def _nearest(
         self,
         lat: float,
         lon: float,
         max_rings: int | None,
         return_idx: bool,
+        keep=None,
     ) -> tuple[float, int] | tuple[float] | None:
         if not self._segments:
             return None
@@ -291,6 +310,8 @@ class SegmentIndex:
                     if idx in seen:
                         continue
                     seen.add(idx)
+                    if keep is not None and not keep(idx):
+                        continue
                     a_lat, a_lon, b_lat, b_lon = self._segments[idx]
                     shift = 360 * round((lon - (a_lon + b_lon) / 2) / 360)
                     ax = (a_lon + shift) * m_per_deg_lon

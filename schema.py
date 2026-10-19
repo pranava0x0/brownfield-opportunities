@@ -148,6 +148,15 @@ class SiteRecord(BaseModel):
         description="Nominal kV of the nearest HIFLD transmission line "
                     "(reported VOLTAGE field only). Source classes are retained separately in asset provenance; voltage does not establish available capacity.",
     )
+    transmission_69kv_mi: Optional[float] = Field(
+        default=None, description="Miles to the nearest HIFLD line with reported voltage ≥69 kV.")
+    transmission_115kv_mi: Optional[float] = Field(
+        default=None, description="Miles to the nearest HIFLD line with reported voltage ≥115 kV.")
+    transmission_230kv_mi: Optional[float] = Field(
+        default=None, description="Miles to the nearest HIFLD line with reported voltage ≥230 kV.")
+    transmission_unknown_kv_mi: Optional[float] = Field(
+        default=None, description="Miles to the nearest HIFLD line with no reported voltage "
+                                  "(it could meet a voltage threshold).")
     rail_mi: Optional[float] = Field(
         default=None,
         description="Miles to nearest Census TIGER rail line.",

@@ -115,11 +115,13 @@ def test_shared_evidence_does_not_infer_maritime_service(page,base_url):
     assert page.evaluate('typeof window.computeFloatingNuclearScore')=='undefined'
 
 
-def test_failed_port_load_is_not_reported_as_zero_sites(page: Page, base_url: str) -> None:
-    """A failed port join must say so and offer a retry, never '0 of 0 sites'."""
+@pytest.mark.parametrize("status", [500, 404])
+def test_failed_port_load_is_not_reported_as_zero_sites(page: Page, base_url: str, status: int) -> None:
+    """A failed port join, including a missing file, must say so and offer a
+    retry, never '0 of 0 sites'."""
     state = {"fail": True}
     page.route("**/data/port-proximity.json",
-               lambda route: route.fulfill(status=500, body="") if state["fail"] else route.continue_())
+               lambda route: route.fulfill(status=status, body="") if state["fail"] else route.continue_())
     page.goto(f"{base_url}/index.html?lens=port")
     page.wait_for_function("window.__APP_READY__ === true", timeout=45_000)
     page.wait_for_selector("#screen-retry", timeout=20_000)

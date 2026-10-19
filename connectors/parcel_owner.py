@@ -195,13 +195,16 @@ STATE_PARCEL_SOURCES: dict[str, dict[str, Any]] = {
     },
     # Acreage-only states (no owner field in the public layer; area still fills
     # the land check for brownfields). Verified 2026-10-19 by point and sample
-    # queries: OH LandArea is acres (sample of 8 parcels within 4% of the
-    # polygon area / 43,560 in the layer's US-feet projection); ME Shape__Area
-    # is square meters in UTM 19N (data-source-research.md §34.5).
+    # queries: OH Shape__Area is square feet (Ohio South state plane); ME
+    # Shape__Area is square meters in UTM 19N (data-source-research.md §34.5,
+    # §34.7).
     "OH": {
         "base": "https://services2.arcgis.com/MlJ0G8iWUyC7jAmu/arcgis/rest/services/OhioStatewidePacels_full_view/FeatureServer/0",
         "owner_field": None,
-        "acreage_field": "LandArea",
+        # The county-reported LandArea agrees with this within ~2% but is 0
+        # for whole counties (Clark, for one).
+        "acreage_field": "Shape__Area",
+        "acreage_multiplier": 1 / 43560,
         "parcel_id_field": "StateParcelID",
         "source": "Ohio OGRIP Statewide Parcels (area only)",
     },

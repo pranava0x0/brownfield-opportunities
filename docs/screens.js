@@ -43,11 +43,22 @@
   };
 
   // ---- Corpus screens (Superfund, ACRES, FUDS, BRAC sites) ----
-  const lineKv = s => num(s.transmission_kv) ? `${s.transmission_kv} kV · ${miles(s.transmission_mi)}` : miles(s.transmission_mi);
-  const lineAtLeast = (kv, mi) => s => {
-    if (!num(s.transmission_mi)) return null;
-    if (s.transmission_mi > mi) return false;
-    return num(s.transmission_kv) ? s.transmission_kv >= kv : null;
+  // Line checks use the distance to the nearest line that meets the voltage
+  // (<p>_<kv>kv_mi), not the voltage of the nearest line, which is often a
+  // low-voltage one. A line with no reported voltage inside the radius could
+  // qualify, so it makes the check unknown rather than failed.
+  const lineAtLeast = (kv, mi, p = "transmission") => s => {
+    const nearest = s[`${p}_mi`], qualifying = s[`${p}_${kv}kv_mi`], unknownKv = s[`${p}_unknown_kv_mi`];
+    if (!num(nearest)) return null;
+    if (nearest > mi) return false;
+    if ((num(qualifying) && qualifying <= mi) || (num(s[`${p}_kv`]) && s[`${p}_kv`] >= kv)) return true;
+    const unknownNearby = !num(s[`${p}_kv`]) || (num(unknownKv) && unknownKv <= mi);
+    return unknownNearby ? null : false;
+  };
+  const lineShow = (kv, p = "transmission") => s => {
+    const qualifying = s[`${p}_${kv}kv_mi`];
+    if (num(qualifying)) return `${kv}+ kV · ${miles(qualifying)}`;
+    return num(s[`${p}_kv`]) ? `${s[`${p}_kv`]} kV · ${miles(s[`${p}_mi`])}` : miles(s[`${p}_mi`]);
   };
   const landAtLeast = min => s => { const a = siteAcres(s); return a === null ? null : a >= min; };
   const landShow = s => siteAcres(s) === null && s.acreage_flag ? "area not a parcel" : acres(siteAcres(s));
@@ -57,9 +68,9 @@
     label: "Data center", universe: "corpus",
     method: "No federal siting standard exists for data centers, so three of the four thresholds are ours.",
     criteria: [
-      {id: "grid", label: "Line ≥115 kV within 5 mi", rule: "transmission_kv ≥ 115 and transmission_mi ≤ 5", kind: "P",
+      {id: "grid", label: "Line ≥115 kV within 5 mi", rule: "transmission_115kv_mi ≤ 5", kind: "P",
         note: "A >100 MW load (EO 14318 threshold) is normally served at transmission voltage.",
-        source: SRC.hifld, test: lineAtLeast(115, 5), show: lineKv},
+        source: SRC.hifld, test: lineAtLeast(115, 5), show: lineShow(115)},
       {id: "land", label: "Land ≥100 acres", rule: "acreage ≥ 100", kind: "P",
         note: "Air Force AI data-center parcels ran 73–560 acres.", source: SRC.afLease, test: landAtLeast(100), show: landShow},
       {id: "flood", label: "Outside flood zone", rule: "in_sfha = false", kind: "R", source: SRC.fema, test: notFlood, show: floodShow},
@@ -74,8 +85,8 @@
     method: "EPA's own RE-Powering thresholds for utility-scale solar, plus FEMA flood zones.",
     criteria: [
       {id: "land", label: "Land ≥35 acres", rule: "acreage ≥ 35", kind: "R", source: SRC.epaRepower, test: landAtLeast(35), show: landShow},
-      {id: "grid", label: "Line ≥69 kV within 10 mi", rule: "transmission_kv ≥ 69 and transmission_mi ≤ 10", kind: "R",
-        source: SRC.epaRepower, test: lineAtLeast(69, 10), show: lineKv},
+      {id: "grid", label: "Line ≥69 kV within 10 mi", rule: "transmission_69kv_mi ≤ 10", kind: "R",
+        source: SRC.epaRepower, test: lineAtLeast(69, 10), show: lineShow(69)},
       {id: "road", label: "Road within 10 mi", rule: "highway_mi ≤ 10", kind: "R", source: SRC.epaRepower,
         test: atMost("highway_mi", 10), show: s => miles(s.highway_mi)},
       {id: "flood", label: "Outside flood zone", rule: "in_sfha = false", kind: "R", source: SRC.fema, test: notFlood, show: floodShow},
@@ -92,8 +103,8 @@
       {id: "port", label: "Principal port within 10 mi", rule: "port_mi ≤ 10 (to the port area's center)", kind: "P",
         source: SRC.ports, test: atMost("port_mi", 10), show: s => `${miles(s.port_mi)}${s.port_name ? " · " + s.port_name : ""}`},
       {id: "land", label: "Land ≥100 acres", rule: "acreage ≥ 100", kind: "P", source: SRC.afLease, test: landAtLeast(100), show: landShow},
-      {id: "grid", label: "Line ≥115 kV within 5 mi", rule: "transmission_kv ≥ 115 and transmission_mi ≤ 5", kind: "P",
-        source: SRC.hifld, test: lineAtLeast(115, 5), show: lineKv},
+      {id: "grid", label: "Line ≥115 kV within 5 mi", rule: "transmission_115kv_mi ≤ 5", kind: "P",
+        source: SRC.hifld, test: lineAtLeast(115, 5), show: lineShow(115)},
       {id: "flood", label: "Outside flood zone", rule: "in_sfha = false", kind: "R", source: SRC.fema, test: notFlood, show: floodShow},
     ],
     tieBreak: {label: "nearest port", value: s => s.port_mi},
@@ -105,8 +116,8 @@
     criteria: [
       {id: "land", label: "Land ≥300 acres", rule: "acreage ≥ 300", kind: "P", source: SRC.nickel, test: landAtLeast(300), show: landShow},
       {id: "rail", label: "Rail within 1 mi", rule: "rail_mi ≤ 1", kind: "P", source: SRC.tiger, test: atMost("rail_mi", 1), show: s => miles(s.rail_mi)},
-      {id: "grid", label: "Line ≥115 kV within 5 mi", rule: "transmission_kv ≥ 115 and transmission_mi ≤ 5", kind: "P",
-        source: SRC.hifld, test: lineAtLeast(115, 5), show: lineKv},
+      {id: "grid", label: "Line ≥115 kV within 5 mi", rule: "transmission_115kv_mi ≤ 5", kind: "P",
+        source: SRC.hifld, test: lineAtLeast(115, 5), show: lineShow(115)},
       {id: "water", label: "River ≥100 cfs within 10 mi", rule: "water_gage_mi ≤ 10 and water_flow_cfs ≥ 100", kind: "P", source: SRC.usgs,
         test: s => !num(s.water_gage_mi) || !num(s.water_flow_cfs) ? null : s.water_gage_mi <= 10 && s.water_flow_cfs >= 100,
         show: s => num(s.water_flow_cfs) ? `${Math.round(s.water_flow_cfs).toLocaleString("en-US")} cfs · ${miles(s.water_gage_mi)}` : "unknown"},
@@ -152,8 +163,8 @@
     label: "Large reactor (AP1000)", universe: "installations",
     method: "Population, earthquake, river, grid and land checks against the AP1000 design. A screen, not an NRC site finding.",
     criteria: [popCheck, seismicCheck, riverCheck(41.5, "River ≥4,150 cfs (100× one unit)"),
-      {id: "grid", label: "Line ≥230 kV within 5 mi", rule: "transmission_kv ≥ 230 and transmission_mi ≤ 5", kind: "P",
-        source: SRC.hifld, test: lineAtLeast(230, 5), show: lineKv},
+      {id: "grid", label: "Line ≥230 kV within 5 mi", rule: "transmission_230kv_mi ≤ 5", kind: "P",
+        source: SRC.hifld, test: lineAtLeast(230, 5), show: lineShow(230)},
       landCheck(500)],
     tieBreak: {label: "largest river flow", dir: "desc", value: s => s.supply_flow_cfs},
   });
@@ -161,8 +172,8 @@
     label: "Small modular reactor (300 MW)", universe: "installations",
     method: "Same checks scaled to a 300 MW unit (AP300 class): about a third of the water and land.",
     criteria: [popCheck, seismicCheck, riverCheck(12.3, "River ≥1,230 cfs (100× one unit)"),
-      {id: "grid", label: "Line ≥115 kV within 5 mi", rule: "transmission_kv ≥ 115 and transmission_mi ≤ 5", kind: "P",
-        source: SRC.hifld, test: lineAtLeast(115, 5), show: lineKv},
+      {id: "grid", label: "Line ≥115 kV within 5 mi", rule: "transmission_115kv_mi ≤ 5", kind: "P",
+        source: SRC.hifld, test: lineAtLeast(115, 5), show: lineShow(115)},
       landCheck(100)],
     tieBreak: {label: "largest river flow", dir: "desc", value: s => s.supply_flow_cfs},
   });
@@ -213,9 +224,8 @@
         note: "A converted gas unit or new plant at the site usually holds the interconnection.",
         source: COAL.ferc, test: s => num(s.other_operating_mw) ? s.other_operating_mw < 50 : null,
         show: s => num(s.other_operating_mw) && s.other_operating_mw > 0 ? `${Math.round(s.other_operating_mw)} MW running` : "none"},
-      {id: "grid", label: "Line ≥230 kV within 2 mi", rule: "line_kv ≥ 230 and line_mi ≤ 2", kind: "P", source: SRC.hifld,
-        test: s => !num(s.line_mi) ? null : s.line_mi > 2 ? false : num(s.line_kv) ? s.line_kv >= 230 : null,
-        show: s => num(s.line_kv) ? `${s.line_kv} kV · ${miles(s.line_mi)}` : miles(s.line_mi)},
+      {id: "grid", label: "Line ≥230 kV within 2 mi", rule: "line_230kv_mi ≤ 2", kind: "P", source: SRC.hifld,
+        test: lineAtLeast(230, 2, "line"), show: lineShow(230, "line")},
     ],
     tieBreak: {label: "largest coal capacity", dir: "desc", value: s => s.coal_mw},
   });
