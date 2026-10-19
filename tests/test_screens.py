@@ -108,3 +108,10 @@ def test_parcel_area_still_counts_when_program_acreage_is_flagged():
     ev = evaluate({"acreage": 310173, "acreage_flag": "county_outline", "parcel_acreage": 40}, "solar")
     land = next(r for r in ev["results"] if r["id"] == "land")
     assert land["status"] == "pass" and land["value"] == "40 ac"
+
+
+def test_parcel_area_does_not_count_for_a_shared_geocode():
+    # The parcel under a point shared by many sites is not any one site's parcel.
+    ev = evaluate({"parcel_acreage": 40, "coord_flags": ["shared_point"]}, "solar")
+    land = next(r for r in ev["results"] if r["id"] == "land")
+    assert land["status"] == "unknown" and land["value"] == "location approximate"

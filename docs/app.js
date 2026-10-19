@@ -1917,11 +1917,15 @@ function ensureRetiredPlantsLoaded() {
 // program loads the `!existing` guard would silently drop every ACRES / FUDS
 // / BRAC flag — which is most of them, since ACRES is where the bad
 // coordinates concentrate.
+// Required by the screens: parcel area only counts when the site's point is
+// not a shared or imprecise geocode, which these flags say.
+let coordQualityLoaded = false;
+let coordQualityFailed = false;
 function ensureCoordQualityLoaded() {
   if (coordQualityLoadingPromise) return coordQualityLoadingPromise;
+  coordQualityFailed = false;
   coordQualityLoadingPromise = fetch(COORD_QUALITY_URL, { priority: "low" })
     .then((r) => {
-      if (r.status === 404) return { sites: [] };
       if (!r.ok) throw new Error("HTTP " + r.status);
       return r.json();
     })
@@ -1938,6 +1942,8 @@ function ensureCoordQualityLoaded() {
         if (rec.coord_state_gap_mi != null)   existing.coord_state_gap_mi = rec.coord_state_gap_mi;
         if (rec.coord_shared_count != null)   existing.coord_shared_count = rec.coord_shared_count;
       }
+      coordQualityLoaded = true;
+      maybeRefreshCandidates();
       if (selectedId && sitesById.has(selectedId)) {
         try { selectSite(selectedId); } catch {}
       }
@@ -1945,6 +1951,8 @@ function ensureCoordQualityLoaded() {
     .catch((err) => {
       console.error("Coordinate-quality load failed:", err);
       coordQualityLoadingPromise = null;
+      coordQualityFailed = true;
+      maybeRefreshCandidates();
     });
   return coordQualityLoadingPromise;
 }
@@ -6877,8 +6885,10 @@ function loadScreenData() { SCREEN_LOADERS[candidatesState.lens]?.(); }
 function screenDataState(key) {
   const extra = {port: [["port", () => portProximityRecords]],
     nickel: [["port", () => portProximityRecords], ["supply chain", () => nickelAnchorRecords], ["water", () => waterProximityRecords]]}[key] || [];
-  const inputs = [["infrastructure", () => infraCoreLoaded], ["acreage flag", () => acreageFlagsLoaded], ...extra];
-  const coreFailed = {"infrastructure": () => infraCoreFailed, "acreage flag": () => acreageFlagsFailed};
+  const inputs = [["infrastructure", () => infraCoreLoaded], ["acreage flag", () => acreageFlagsLoaded],
+    ["location quality", () => coordQualityLoaded], ...extra];
+  const coreFailed = {"infrastructure": () => infraCoreFailed, "acreage flag": () => acreageFlagsFailed,
+    "location quality": () => coordQualityFailed};
   const failed = inputs.filter(([n]) => coreFailed[n] ? coreFailed[n]() : nickelDataErrors.has(n)).map(([n]) => n);
   const pending = inputs.filter(([n, ready]) => !ready() && !failed.includes(n)).map(([n]) => n);
   return {pending, failed};
@@ -6886,10 +6896,15 @@ function screenDataState(key) {
 function buildCandidatesView() {
   const screen = SiteScreens.SCREENS[candidatesState.lens];
   const allMet = el("screen-all-met")?.checked;
-  // Without the acreage flags, program acreage may be a county or a plume:
-  // rank on parcel area only until they load (copies; the sites keep theirs).
-  const pool = tableState.filtered.map(sanitizeGeographicEvidence)
-    .map(s => acreageFlagsLoaded || s.acreage == null ? s : {...s, acreage: null});
+  // Until the acreage flags load, program acreage may be a county or a plume;
+  // until location flags load, parcel area may belong to a shared geocode.
+  // Withhold each from the ranking until its check can run (copies only).
+  const withhold = s => {
+    const dropAcreage = !acreageFlagsLoaded && s.acreage != null;
+    const dropParcel = !coordQualityLoaded && s.parcel_acreage != null;
+    return dropAcreage || dropParcel ? {...s, ...(dropAcreage && {acreage: null}), ...(dropParcel && {parcel_acreage: null})} : s;
+  };
+  const pool = tableState.filtered.map(sanitizeGeographicEvidence).map(withhold);
   let rows = SiteScreens.rank(pool, candidatesState.lens);
   const inScope = rows.length;
   if (allMet) rows = rows.filter(r => r.ev.met === r.ev.total);
@@ -6905,6 +6920,7 @@ function buildCandidatesView() {
     el("screen-retry").addEventListener("click", () => {
       if (infraCoreFailed) ensureInfraLoaded();
       if (acreageFlagsFailed) ensureAcreageFlagsLoaded();
+      if (coordQualityFailed) ensureCoordQualityLoaded();
       loadScreenData();
       buildCandidatesView();
     });
