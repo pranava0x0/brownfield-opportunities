@@ -965,6 +965,8 @@ function ensureEvidenceInvalidationsLoaded() {
   });
   return invalidationsPromise;
 }
+// Per-voltage line distances (infra_proximity.line_threshold_fields).
+const LINE_KV_FIELDS = ["transmission_69kv_mi", "transmission_115kv_mi", "transmission_230kv_mi", "transmission_unknown_kv_mi"];
 function sanitizeGeographicEvidence(site) {
   const invalidation = evidenceInvalidations[site.id];
   if (invalidation?.invalidate) {
@@ -973,7 +975,7 @@ function sanitizeGeographicEvidence(site) {
     site._evidenceInvalidation = invalidation;
   }
   if (invalidationsFailed) {
-    for (const field of ["transmission_mi","transmission_kv","substation_mi","substation_kv","rail_mi","highway_mi","water_gage_mi","water_flow_cfs","port_mi","shipyard_mi","parcel_acreage","in_sfha"]) delete site[field];
+    for (const field of ["transmission_mi","transmission_kv",...LINE_KV_FIELDS,"substation_mi","substation_kv","rail_mi","highway_mi","water_gage_mi","water_flow_cfs","water_100cfs_gage_mi","water_100cfs_flow_cfs","port_mi","shipyard_mi","parcel_acreage","in_sfha"]) delete site[field];
     site._evidenceValidationUnavailable = true;
   }
   return site;
@@ -1510,7 +1512,7 @@ function ensureInfraEvidenceLoaded() {
 function fetchInfra(url) {
   return fetch(url, { priority: "low" })
     .then((r) => {
-      if (r.status === 404) return { sites: [] };
+      // Required screen input: a 404 is a failed load, not an empty payload.
       if (!r.ok) throw new Error("HTTP " + r.status);
       return r.json();
     })
@@ -1529,7 +1531,7 @@ function fetchInfra(url) {
         const patch = {};
         if (full || !existing._infraSourceMetadata) patch._infraSourceMetadata = payload.source_metadata || {};
         if (full) patch.infra_evidence = rec.infra_evidence || {};
-        const fields = ["transmission_mi","transmission_kv","substation_mi","substation_kv","substation_role","rail_mi","highway_mi","gas_pipeline_mi","power_plant_mi","power_plant_mw","power_plant_fuel","power_plant_name","flood_zone","in_sfha","transmission_asset_id","substation_asset_id","power_plant_asset_id","infra_assessed_lat","infra_assessed_lon"];
+        const fields = ["transmission_mi","transmission_kv",...LINE_KV_FIELDS,"substation_mi","substation_kv","substation_role","rail_mi","highway_mi","gas_pipeline_mi","power_plant_mi","power_plant_mw","power_plant_fuel","power_plant_name","flood_zone","in_sfha","transmission_asset_id","substation_asset_id","power_plant_asset_id","infra_assessed_lat","infra_assessed_lon"];
         for (const key of fields) {
           // New evidence payloads replace their layer fields, including cleared
           // observations. Otherwise a removed/inferred voltage survives the join.

@@ -48,15 +48,15 @@ Every ranking is a few pass/fail checks in `docs/screens.js`, each with a cited
 threshold tagged agency (EPA RE-Powering, FEMA, NRC, Army, EIA) or ours. Rank = checks
 met, then fewest unknowns, then one named tie-breaker. Missing data never passes.
 `node scripts/screen.js explain <site-id>` prints the same result from the shell.
-Line checks use the distance to the nearest line that meets the voltage, not the voltage
-of the nearest line (fixed 2026-10-19 after code review; counts below are after the fix).
+Line and river checks use the distance to the nearest line or gage that meets the threshold, not the
+value of the nearest one (fixed 2026-10-19 after code review; counts below are after the fix).
 
 | Screen | Checks | Sites meeting all (2026-10-19) |
 |---|---|---|
 | Data center | line ≥115 kV ≤5 mi, ≥100 ac, outside SFHA, road ≤10 mi | 1,193 |
 | Solar farm (EPA RE-Powering) | ≥35 ac, ≥69 kV line ≤10 mi, road ≤10 mi, outside SFHA | 1,746 |
 | Port industry | principal port ≤10 mi, ≥100 ac, ≥115 kV ≤5 mi, outside SFHA | 155 |
-| Nickel refinery | ≥300 ac, rail ≤1 mi, ≥115 kV ≤5 mi, river ≥100 cfs ≤10 mi, port or feedstock | 33 |
+| Nickel refinery | ≥300 ac, rail ≤1 mi, ≥115 kV ≤5 mi, river ≥100 cfs ≤10 mi, port or feedstock | 48 |
 | Large reactor (14 bases) | no 25k city ≤10 mi (10 CFR 100.3), PGA ≤0.30 g (AP1000 DCD), supply river ≥100× withdrawal (Vogtle EIS), ≥230 kV ≤5 mi, ≥500 ac | 2 meet 4 of 5 |
 | SMR | same, scaled to 300 MW | Fort Drum 5/5 |
 | Microreactor | Army Janus selection (Aug 2026), line ≤5 mi | 5 |

@@ -203,3 +203,26 @@ def test_environmental_context_does_not_establish_ready_land(page,base_url):
     a=_assess(page,{'npl_status_code':'D','enforcement':{'has_npdes_permit':True},'in_sfha':True})
     assert a['hazards']['status']=='constraint'
     assert a['land']['status']==a['water_rights']['status']=='unknown'
+
+@pytest.mark.parametrize("lens,heading,site_id,crit,label,field", [
+    # Nearest line is 100 kV; a ≥115 kV line is 0.4 mi away.
+    ("dc", "Data center:", "NCD001810365", "grid", "Line ≥115 kV", "transmission_115kv_mi"),
+    # Redstone Arsenal: nearest gage Indian Creek 72 cfs; Tennessee River 43,265 cfs at 6.8 mi.
+    ("nickel", "Nickel refinery:", "AL7210020742", "water", "River ≥100 cfs", "water_100cfs_gage_mi"),
+])
+def test_threshold_checks_use_the_nearest_qualifying_asset(page, base_url, lens, heading, site_id, crit, label, field):
+    """The browser keeps the per-threshold distances through its joins, and
+    agrees with `node scripts/screen.js explain` (Codex review, PR #43)."""
+    import subprocess
+    from pathlib import Path
+    page.goto(f"{base_url}/index.html?lens={lens}")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=45000)
+    find = f"window.__sites.find(s => s.id === '{site_id}')"
+    page.wait_for_function(f"({find} || {{}}).{field} != null", timeout=30000)
+    status = page.evaluate(f"() => SiteScreens.evaluate({find}, '{lens}').results.find(r => r.id === '{crit}').status")
+    assert status == "pass"
+    root = Path(__file__).resolve().parents[2]
+    out = subprocess.run(["node", "scripts/screen.js", "explain", site_id], cwd=root,
+                         capture_output=True, text=True, check=True).stdout
+    block = out.split(heading, 1)[1].split("\n  ", 6)  # this screen's check lines
+    assert any(line.strip().startswith("✓") and label in line for line in block)

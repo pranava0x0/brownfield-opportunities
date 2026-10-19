@@ -321,3 +321,16 @@ def test_missing_only_keeps_shared_gage_provenance_when_all_ids_exist(connector,
     result = connector.fetch_records(argparse.Namespace(limit=None, missing_only=True), True)
     assert result
     assert '04040500' in connector.source_metadata['gages_by_id']
+
+
+def test_nearest_qualifying_gage_is_found_past_a_nearer_creek(connector):
+    """The nickel screen needs >=100 cfs; the nearest gage is often a creek."""
+    data = connector._data_dir()
+    (data / "streamgages.json").write_text(json.dumps({"sites": [
+        {"gage_id": "creek", "name": "CREEK", "lat": 46.505, "lon": -88.705, "mean_flow_cfs": 12.0},
+        {"gage_id": "river", "name": "RIVER", "lat": 46.55, "lon": -88.75, "mean_flow_cfs": 4200.0},
+    ]}))
+    a1 = next(r for r in connector.fetch_records(argparse.Namespace(limit=None), True) if r["id"] == "A1")
+    assert a1["water_gage_id"] == "creek" and a1["water_flow_cfs"] == 12.0
+    assert a1["water_100cfs_flow_cfs"] == 4200.0
+    assert a1["water_gage_mi"] < a1["water_100cfs_gage_mi"] < 10
