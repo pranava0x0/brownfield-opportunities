@@ -118,9 +118,16 @@
       {id: "rail", label: "Rail within 1 mi", rule: "rail_mi ≤ 1", kind: "P", source: SRC.tiger, test: atMost("rail_mi", 1), show: s => miles(s.rail_mi)},
       {id: "grid", label: "Line ≥115 kV within 5 mi", rule: "transmission_115kv_mi ≤ 5", kind: "P",
         source: SRC.hifld, test: lineAtLeast(115, 5), show: lineShow(115)},
-      {id: "water", label: "River ≥100 cfs within 10 mi", rule: "water_gage_mi ≤ 10 and water_flow_cfs ≥ 100", kind: "P", source: SRC.usgs,
-        test: s => !num(s.water_gage_mi) || !num(s.water_flow_cfs) ? null : s.water_gage_mi <= 10 && s.water_flow_cfs >= 100,
-        show: s => num(s.water_flow_cfs) ? `${Math.round(s.water_flow_cfs).toLocaleString("en-US")} cfs · ${miles(s.water_gage_mi)}` : "unknown"},
+      {id: "water", label: "River ≥100 cfs within 10 mi", rule: "water_100cfs_gage_mi ≤ 10", kind: "P", source: SRC.usgs,
+        // The nearest gage ≥100 cfs, not the nearest gage (often a creek).
+        test: s => (num(s.water_100cfs_gage_mi) && s.water_100cfs_gage_mi <= 10)
+          || (num(s.water_gage_mi) && s.water_gage_mi <= 10 && s.water_flow_cfs >= 100) ? true
+          : num(s.water_gage_mi) ? false : null,
+        show: s => {
+          const qualifying = num(s.water_100cfs_gage_mi) && s.water_100cfs_gage_mi <= 10;
+          const [cfs, mi] = qualifying ? [s.water_100cfs_flow_cfs, s.water_100cfs_gage_mi] : [s.water_flow_cfs, s.water_gage_mi];
+          return num(cfs) ? `${Math.round(cfs).toLocaleString("en-US")} cfs · ${miles(mi)}` : "unknown";
+        }},
       {id: "feed", label: "Port ≤10 mi or feedstock ≤100 mi", rule: "port_mi ≤ 10 or nickel_feedstock_mi ≤ 100", kind: "P", source: SRC.nickel,
         test: s => (num(s.port_mi) && s.port_mi <= 10) || (num(s.nickel_feedstock_mi) && s.nickel_feedstock_mi <= 100) ? true
           : num(s.port_mi) || num(s.nickel_feedstock_mi) ? false : null,

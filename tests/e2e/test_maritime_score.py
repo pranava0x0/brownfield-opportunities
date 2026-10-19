@@ -147,3 +147,17 @@ def test_acreage_flags_failure_withholds_land_passes(page: Page, base_url: str) 
     page.click("#screen-retry")
     expect(page.locator("#candidates-stats")).to_contain_text("meet every check", timeout=30_000)
     expect(land).not_to_have_attribute("data-status", "pass")  # now flagged as a plume
+
+
+def test_missing_infra_core_shows_retry_not_a_ranking(page: Page, base_url: str) -> None:
+    """A 404 on the infrastructure core file is a failed input (Codex review, PR #43)."""
+    state = {"fail": True}
+    page.route("**/data/infra-proximity-core.json",
+               lambda route: route.fulfill(status=404, body="") if state["fail"] else route.continue_())
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=45_000)
+    page.wait_for_selector("#screen-retry", timeout=20_000)
+    expect(page.locator("#candidates-stats")).to_contain_text("infrastructure")
+    state["fail"] = False
+    page.click("#screen-retry")
+    expect(page.locator("#candidates-stats")).to_contain_text("meet every check", timeout=30_000)

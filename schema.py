@@ -537,6 +537,12 @@ class SiteRecord(BaseModel):
                     "AVERAGE, not a permittable low-flow (7Q10) statistic — it "
                     "screens a candidate and never clears one.",
     )
+    water_100cfs_gage_mi: Optional[float] = Field(
+        default=None, ge=0,
+        description="Miles to the nearest gage whose mean annual discharge is at least "
+                    "100 cfs (the nickel screen's threshold). Often not the nearest gage.",
+    )
+    water_100cfs_flow_cfs: Optional[float] = Field(default=None, gt=0)
     water_gage_name: Optional[str] = Field(default=None)
     water_gage_id: Optional[str] = Field(
         default=None, description="USGS site number, for the NWIS deep link."
