@@ -41,5 +41,16 @@ def test_published_flags_cover_known_artifacts_and_spare_real_sites():
 def test_county_area_counts_every_component_of_a_multipolygon():
     from connectors.county_lookup import CountyIndex
     counties = CountyIndex.from_path(ROOT / "docs/data/us-counties-topo.json")
-    parts = counties.county_polygons("Aleutians East", "AK")
-    assert len(parts) > 1
+    hit = counties.lookup_polygon(55.2, -162.7, "AK")  # Cold Bay, Aleutians East
+    assert hit and hit[0] == "Aleutians East"
+    assert len(counties.county_polygons(hit[2])) > 1
+
+
+def test_same_named_city_and_county_are_not_merged():
+    """Baltimore city and Baltimore County share a name and a state."""
+    from connectors.county_lookup import CountyIndex
+    counties = CountyIndex.from_path(ROOT / "docs/data/us-counties-topo.json")
+    city = counties.lookup_polygon(39.29, -76.61, "MD")    # downtown Baltimore
+    county = counties.lookup_polygon(39.40, -76.60, "MD")  # Towson
+    assert city[0] == county[0] == "Baltimore"
+    assert not any(p is county[2] for p in counties.county_polygons(city[2]))

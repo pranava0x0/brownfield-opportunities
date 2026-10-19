@@ -173,7 +173,9 @@ class CountyIndex:
 
     def __init__(self, cell_deg: float = DEFAULT_CELL_DEG):
         self.cell_deg = cell_deg
-        # Each entry: (name, state_code | None, polygon, bbox)
+        # Each entry: (name, state_code | None, polygon, bbox); _fips[i] is
+        # the county FIPS for entry i.
+        self._fips: list[str] = []
         self._records: list[
             tuple[str, str | None, list[list[tuple[float, float]]],
                   tuple[float, float, float, float]]
@@ -198,6 +200,7 @@ class CountyIndex:
                 bbox = _ring_bbox(polygon[0])
                 rec_idx = len(idx._records)
                 idx._records.append((name, state, polygon, bbox))
+                idx._fips.append(fips)
                 for cell in _cells_for_bbox(bbox, cell_deg):
                     idx._cells[cell].append(rec_idx)
         return idx
@@ -210,11 +213,14 @@ class CountyIndex:
     def polygon_count(self) -> int:
         return len(self._records)
 
-    def county_polygons(self, name: str, state: str | None) -> list[list[list[tuple[float, float]]]]:
-        """Every component polygon of one county. Island counties and Alaska
-        boroughs are MultiPolygons; lookup_polygon returns only the component
-        containing the point."""
-        return [poly for n, st, poly, _ in self._records if n == name and st == state]
+    def county_polygons(self, polygon: list) -> list[list[list[tuple[float, float]]]]:
+        """Every component polygon of the county that `polygon` (from
+        lookup_polygon) belongs to, matched by FIPS. Island counties and Alaska
+        boroughs are MultiPolygons; lookup_polygon returns only one component.
+        Name and state are not unique: Baltimore city and Baltimore County
+        share both."""
+        fips = next(self._fips[i] for i, rec in enumerate(self._records) if rec[2] is polygon)
+        return [rec[2] for i, rec in enumerate(self._records) if self._fips[i] == fips]
 
     def lookup_polygon(
         self, lat: float, lon: float, expected_state: str | None = None

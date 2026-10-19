@@ -640,13 +640,17 @@ def test_refresh_date_reflects_freshest_data_file(page, base_url):
     # checked-in snapshots, which commonly share today's compilation date.
     page.route("**/data/sites.json", dated("2090-01-01T00:00:00Z", [{"id": "FIXTURE", "name": "Date fixture", "program": "superfund", "lat": 40, "lon": -80}]))
     page.route("**/data/infra-proximity-core.json", dated("2091-01-01T00:00:00Z"))
+    page.route("**/data/acreage-flags.json", dated("2091-06-01T00:00:00Z"))
     page.route("**/data/nuclear-civilian-sites.json", dated("2092-01-01T00:00:00Z"))
+    page.route("**/data/coal-plants.json", lambda route: route.fulfill(json={"generated_at": "2093-01-01T00:00:00Z", "plants": []}))
     page.goto(f"{base_url}/index.html?program=superfund")
     page.wait_for_function("window.__APP_READY__ === true", timeout=45000)
-    assert page.locator("#topbar-refresh").inner_text() == "Compiled 2091-01-01"
+    assert page.locator("#topbar-refresh").inner_text() == "Compiled 2091-06-01"
     page.click("#tab-ap1000")
     page.wait_for_function("window.__refreshedAt === '2092-01-01'")
     assert page.locator("#topbar-refresh").inner_text() == "Compiled 2092-01-01"
+    page.click("#tab-coal")
+    page.wait_for_function("window.__refreshedAt === '2093-01-01'")
 
 
 def test_filter_chip_hidden_by_default_visible_when_active(page, base_url):
