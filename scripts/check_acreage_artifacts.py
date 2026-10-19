@@ -44,7 +44,12 @@ COUNTY_SHARE = 0.5        # site claims half its county or more
 REGION_ACRES = 100_000    # larger than any single industrial or military parcel we screen for
 # Name tests for Superfund polygons that trace water or a plume (see docstring).
 PLUME_WORDS = re.compile(r"\b(GROUND ?WATER|GW|PLUMES?|AQUIFER|SEDIMENTS?|WELLS?|WELL ?FIELD|WELLFIELD|NRDA|CONTAMINATION|CONTAMINATED)\b")
-WATER_WORDS = re.compile(r"\b(RIVERS?|CREEK|LAKE|BAY|HARBOR|HARBOUR|CANAL|RESERVOIR|ESTUARY|WATERWAY|SOUND)\b")
+# A water word counts only as the name's head noun: last in the name, before
+# punctuation, or before a word that keeps it a place ("HUDSON RIVER PCBS",
+# "LOWER DARBY CREEK AREA"). "PACIFIC SOUND RESOURCES" and "RIVER CITY METAL
+# FINISHING" are companies, not water bodies.
+WATER_WORDS = re.compile(r"\b(RIVERS?|CREEK|LAKE|BAY|HARBOR|HARBOUR|CANAL|RESERVOIR|ESTUARY|WATERWAY|SOUND)\b"
+                         r"(?=\s*($|[,/&()\-]|(SITE|AREA|SEDIMENTS?|PCBS?|BASIN|SYSTEM|AND)\b))")
 FACILITY_WORDS = re.compile(r"\b(PLANT|CORP|CORPORATION|CO|INC|COMPANY|MILLS?|LANDFILL|MGP|PIT|SMELTER|WORKS|FACILITY|"
                             r"DEPOT|DUMP|DRUM|SALVAGE|STATION|YARD|FOUNDRY|LAB|LABORATORY|TERMINAL|AIRPORT|REFINERY|SHIPBUILDING|SHIPYARD)\b")
 FEDERAL_WORDS = re.compile(r"\b(USDOE|USAF|USN|USARMY|USNAVY|NAVAL|NAS|AFB|AIR FORCE|ARMY|MARINE|ARSENAL|BASE|COMPLEX)\b")
