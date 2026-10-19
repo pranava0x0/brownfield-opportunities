@@ -86,3 +86,15 @@ def test_nullout_guard_counts_only_fields_that_were_present():
     now = [{"id": "A", "state": None, "name": "x"}, {"id": "B", "state": None, "name": " "}]
     assert refresh.count_nullouts(prior, now) == {"state": 1, "name": 1}
     assert refresh.count_nullouts(prior, prior) == {}
+
+
+def test_nullout_limit_is_relative_to_the_fields_prior_coverage():
+    """Blanking all 5 values of a field present on 5 of 1,000 records is a
+    100% loss of that field, not 0.5% of the file (Codex review, PR #43)."""
+    import refresh
+    prior = [{"id": str(i), "city": "Lima" if i < 5 else None} for i in range(1000)]
+    now = [{"id": str(i)} for i in range(1000)]
+    assert refresh.excessive_nullouts(prior, now) == {"city": 5}
+    prior = [{"id": str(i), "state": "OH"} for i in range(1000)]
+    now = [{"id": str(i), "state": None if i < 5 else "OH"} for i in range(1000)]
+    assert refresh.excessive_nullouts(prior, now) == {}  # 0.5% of a fully populated field

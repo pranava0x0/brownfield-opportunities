@@ -2026,6 +2026,9 @@ function ensureAcreageFlagsLoaded() {
       applyAcreageFlags(payload);
       acreageFlagsLoaded = true;
       maybeRefreshCandidates();
+      if (selectedId && sitesById.has(selectedId)) {
+        try { selectSite(selectedId); } catch {}
+      }
     })
     .catch((err) => {
       console.error("Acreage-flag load failed:", err);
@@ -6954,18 +6957,19 @@ function screenDataState(key) {
   const pending = inputs.filter(([n, ready]) => !ready() && !failed.includes(n)).map(([n]) => n);
   return {pending, failed};
 }
+// Until the acreage flags load, program acreage may be a county or a plume;
+// until location flags load, parcel area may belong to a shared geocode.
+// Screens (the ranking and the site drawer) see neither until its check can
+// run. Returns a copy only when something is withheld.
+function withholdUncheckedLand(s) {
+  const dropAcreage = !acreageFlagsLoaded && s.acreage != null;
+  const dropParcel = !coordQualityLoaded && s.parcel_acreage != null;
+  return dropAcreage || dropParcel ? {...s, ...(dropAcreage && {acreage: null}), ...(dropParcel && {parcel_acreage: null})} : s;
+}
 function buildCandidatesView() {
   const screen = SiteScreens.SCREENS[candidatesState.lens];
   const allMet = el("screen-all-met")?.checked;
-  // Until the acreage flags load, program acreage may be a county or a plume;
-  // until location flags load, parcel area may belong to a shared geocode.
-  // Withhold each from the ranking until its check can run (copies only).
-  const withhold = s => {
-    const dropAcreage = !acreageFlagsLoaded && s.acreage != null;
-    const dropParcel = !coordQualityLoaded && s.parcel_acreage != null;
-    return dropAcreage || dropParcel ? {...s, ...(dropAcreage && {acreage: null}), ...(dropParcel && {parcel_acreage: null})} : s;
-  };
-  const pool = tableState.filtered.map(sanitizeGeographicEvidence).map(withhold);
+  const pool = tableState.filtered.map(sanitizeGeographicEvidence).map(withholdUncheckedLand);
   let rows = SiteScreens.rank(pool, candidatesState.lens);
   const inScope = rows.length;
   if (allMet) rows = rows.filter(r => r.ev.met === r.ev.total);
@@ -8119,7 +8123,8 @@ function csvCell(s, col, assessment) {
 function buildSiteCsv() {
   // On the Screens tab the export is the ranked list with each check's result;
   // elsewhere it is every site matching the global filters.
-  if (el("view-candidates")?.classList.contains("active") && candidatesState.sorted.length) {
+  // An empty screen exports an empty screen CSV, not the whole corpus.
+  if (el("view-candidates")?.classList.contains("active")) {
     const screen = SiteScreens.SCREENS[candidatesState.lens];
     const head = ["rank", "checks_met", "checks_unknown", ...screen.criteria.flatMap(c => [`${c.id}_result`, `${c.id}_value`]), ...CSV_COLUMNS.map(c => c.label)];
     const rows = candidatesState.sorted.map((r, i) => [i + 1, r.ev.met, r.ev.unknown,
@@ -8758,7 +8763,7 @@ function renderSuitability(s) {
     const rows = SCREEN_KEYS.map(key => {
       const sc = SiteScreens.SCREENS[key];
       if (sc.applies && !sc.applies(s)) return "";
-      const ev = SiteScreens.evaluate(s, key);
+      const ev = SiteScreens.evaluate(withholdUncheckedLand(s), key);
       return `<tr><th scope="row">${escapeHtml(sc.label)}</th><td class="screen-score"><strong>${ev.met}</strong>/${ev.total}</td><td>`
         + ev.results.map(r => `<span class="screen-chip" data-status="${r.status}" title="${escapeAttr(r.label + ": " + r.value)}">${SCREEN_MARK[r.status]} ${escapeHtml(r.label)}</span>`).join(" ")
         + `</td></tr>`;

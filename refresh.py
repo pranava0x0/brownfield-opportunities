@@ -116,6 +116,14 @@ def count_nullouts(prior: list[dict], records: list[dict]) -> dict[str, int]:
     return counts
 
 
+def excessive_nullouts(prior: list[dict], records: list[dict]) -> dict[str, int]:
+    """Fields that lost more than NULLOUT_LIMIT of the values the prior file
+    had. The base is each field's prior coverage, not the record count, so a
+    field present on 5 of 1,000 records cannot vanish unnoticed."""
+    had = {f: sum(1 for r in prior if r.get(f) not in (None, "")) for f in NULLOUT_FIELDS}
+    return {f: n for f, n in count_nullouts(prior, records).items() if n > had[f] * NULLOUT_LIMIT}
+
+
 def assert_unique_ids(slug: str, records: list[dict]) -> None:
     """Fail loud if a connector emits the same `id` twice.
 
@@ -232,10 +240,9 @@ def _run_one(
         return 1, None, inst.source_label
 
     if records and prior_count and not getattr(args, "allow_nullouts", False):
-        nulled = {f: n for f, n in count_nullouts(prior_sites, records).items()
-                  if n > len(records) * NULLOUT_LIMIT}
+        nulled = excessive_nullouts(prior_sites, records)
         if nulled:
-            log.error("[%s] would blank fields the prior file had: %s (over %d%% of records); "
+            log.error("[%s] would blank fields the prior file had: %s (over %d%% of each field's prior values); "
                       "refusing. Inspect the upstream layer, or pass --allow-nullouts if the "
                       "field was really retired.", slug, nulled, int(NULLOUT_LIMIT * 100))
             return 1, None, inst.source_label
