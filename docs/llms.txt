@@ -50,7 +50,7 @@ The dashboard is a static, dependency-light site (Leaflet + vanilla JS — no ba
 - [ai-summary.json](https://pranava0x0.github.io/brownfield-opportunities/data/ai-summary.json): one-paragraph plain-English site summaries synthesized from the structured fields.
 - [coal-plants.json](https://pranava0x0.github.io/brownfield-opportunities/data/coal-plants.json): every US coal plant with >=100 MW of coal retired or scheduled to retire, from EIA-860M (244 plants), with nearest HIFLD line, other operating MW at the plant, and curated project notes where they match.
 - [population-centers.json](https://pranava0x0.github.io/brownfield-opportunities/data/population-centers.json): 1,606 Census places of 25,000+ (Vintage 2024) with coordinates, for the 10 CFR 100.3 population-center check.
-- [acreage-flags.json](https://pranava0x0.github.io/brownfield-opportunities/data/acreage-flags.json): 297 reported acreages that describe a county, a region, a river or a groundwater plume rather than a parcel; screens treat them as unknown.
+- [acreage-flags.json](https://pranava0x0.github.io/brownfield-opportunities/data/acreage-flags.json): reported acreages that describe a county, a region, a river or a groundwater plume rather than a parcel; screens treat them as unknown.
 - [infra-proximity-core.json](https://pranava0x0.github.io/brownfield-opportunities/data/infra-proximity-core.json): distance and voltage fields of infra-proximity.json only (loaded at startup).
 
 ## Methods & schema
