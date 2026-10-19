@@ -558,6 +558,15 @@ const sitesById = new Map();
 // is already in this set; populated by ingestSites() so the existence check
 // doesn't require an O(n) sites.some() scan over up to 47k records.
 const loadedPrograms = new Set();
+// Program files that failed to load; the screens report them instead of
+// ranking a partial corpus.
+const programLoadErrors = new Set();
+// Joins the screens need, re-applied when a program loads after them.
+function applyCoreScreenJoins() {
+  if (infraCorePayload) applyInfraPayload(infraCorePayload, INFRA_CORE_URL, {onlyUnchecked: true});
+  if (acreageFlagsPayload) applyAcreageFlags(acreageFlagsPayload);
+  if (coordQualityPayload) applyCoordQuality(coordQualityPayload);
+}
 let selectedId = null;
 let sortKey = "acreage";
 let sortDir = "desc";
@@ -1050,6 +1059,8 @@ function ensureAcresLoaded() {
       return hydrateMarkersChunked(payload.sites || []).then(() => {
         // Re-apply enrichment joins that may have landed while this program
         // was skipped by a `?program=` URL (see applyCoalProxJoin).
+        programLoadErrors.delete("brownfield");
+        applyCoreScreenJoins();
         applyCoalProxJoin();
         applyPortProximityJoin({ refresh: true });
         applyWaterProximityJoin({ refresh: true });
@@ -1064,6 +1075,8 @@ function ensureAcresLoaded() {
       if (node) node.textContent += ` · brownfields failed (${err.message})`;
       console.error(err);
       acresLoadingPromise = null; // allow retry
+      programLoadErrors.add("brownfield");
+      maybeRefreshCandidates();
     });
   return acresLoadingPromise;
 }
@@ -1084,6 +1097,8 @@ function ensureFudsLoaded() {
       rebuildTable();
       rerenderLegend();
       return hydrateMarkersChunked(payload.sites || []).then(() => {
+        programLoadErrors.delete("fuds");
+        applyCoreScreenJoins();
         applyCoalProxJoin(); // late-program re-apply (see its comment)
         applyPortProximityJoin({ refresh: true });
         applyWaterProximityJoin({ refresh: true });
@@ -1094,6 +1109,8 @@ function ensureFudsLoaded() {
     .catch((err) => {
       console.error("FUDS load failed:", err);
       fudsLoadingPromise = null;
+      programLoadErrors.add("fuds");
+      maybeRefreshCandidates();
     });
   return fudsLoadingPromise;
 }
@@ -1114,6 +1131,8 @@ function ensureBracLoaded() {
       rebuildTable();
       rerenderLegend();
       addMarkersForRecords(payload.sites || []);
+      programLoadErrors.delete("brac");
+      applyCoreScreenJoins();
       applyCoalProxJoin(); // late-program re-apply (see its comment)
       applyPortProximityJoin({ refresh: true });
       applyWaterProximityJoin({ refresh: true });
@@ -1123,6 +1142,8 @@ function ensureBracLoaded() {
     .catch((err) => {
       console.error("BRAC load failed:", err);
       bracLoadingPromise = null;
+      programLoadErrors.add("brac");
+      maybeRefreshCandidates();
     });
   return bracLoadingPromise;
 }
@@ -1524,29 +1545,36 @@ function fetchInfra(url) {
       await Promise.allSettled(
         [acresLoadingPromise, fudsLoadingPromise, bracLoadingPromise].filter(Boolean)
       );
-      const full = url === INFRA_DATA_URL;
-      for (const rec of payload.sites || []) {
-        const existing = sitesById.get(rec.id);
-        if (!existing) continue;
-        const patch = {};
-        if (full || !existing._infraSourceMetadata) patch._infraSourceMetadata = payload.source_metadata || {};
-        if (full) patch.infra_evidence = rec.infra_evidence || {};
-        const fields = ["transmission_mi","transmission_kv",...LINE_KV_FIELDS,"substation_mi","substation_kv","substation_role","rail_mi","highway_mi","gas_pipeline_mi","power_plant_mi","power_plant_mw","power_plant_fuel","power_plant_name","flood_zone","in_sfha","transmission_asset_id","substation_asset_id","power_plant_asset_id","infra_assessed_lat","infra_assessed_lon"];
-        for (const key of fields) {
-          // New evidence payloads replace their layer fields, including cleared
-          // observations. Otherwise a removed/inferred voltage survives the join.
-          if (rec.infra_evidence || rec[key] != null) patch[key] = rec[key] ?? null;
-        }
-        if (full) patch.power_plant_name = rec.power_plant_name || payload.source_metadata?.power_plant?.assets_by_id?.[rec.power_plant_asset_id]?.name || null;
-        patch._infraChecked = true;
-        Object.assign(existing, patch);
-      }
+      if (url === INFRA_CORE_URL) infraCorePayload = payload;
+      applyInfraPayload(payload, url);
       maybeRefreshMicro();
       maybeRefreshCandidates();
       if (selectedId && sitesById.has(selectedId)) {
         try { selectSite(selectedId); } catch {}
       }
     });
+}
+// Kept so a program that loads after the join (a retry, or a program enabled
+// after a ?program= URL) still gets its infrastructure fields.
+let infraCorePayload = null;
+function applyInfraPayload(payload, url, {onlyUnchecked = false} = {}) {
+  const full = url === INFRA_DATA_URL;
+  for (const rec of payload.sites || []) {
+    const existing = sitesById.get(rec.id);
+    if (!existing || (onlyUnchecked && existing._infraChecked)) continue;
+    const patch = {};
+    if (full || !existing._infraSourceMetadata) patch._infraSourceMetadata = payload.source_metadata || {};
+    if (full) patch.infra_evidence = rec.infra_evidence || {};
+    const fields = ["transmission_mi","transmission_kv",...LINE_KV_FIELDS,"substation_mi","substation_kv","substation_role","rail_mi","highway_mi","gas_pipeline_mi","power_plant_mi","power_plant_mw","power_plant_fuel","power_plant_name","flood_zone","in_sfha","transmission_asset_id","substation_asset_id","power_plant_asset_id","infra_assessed_lat","infra_assessed_lon"];
+    for (const key of fields) {
+      // New evidence payloads replace their layer fields, including cleared
+      // observations. Otherwise a removed/inferred voltage survives the join.
+      if (rec.infra_evidence || rec[key] != null) patch[key] = rec[key] ?? null;
+    }
+    if (full) patch.power_plant_name = rec.power_plant_name || payload.source_metadata?.power_plant?.assets_by_id?.[rec.power_plant_asset_id]?.name || null;
+    patch._infraChecked = true;
+    Object.assign(existing, patch);
+  }
 }
 
 // Port / shipyard proximity enrichment (connectors/port_proximity.py). Joins
@@ -1917,6 +1945,17 @@ function ensureRetiredPlantsLoaded() {
 // program loads the `!existing` guard would silently drop every ACRES / FUDS
 // / BRAC flag — which is most of them, since ACRES is where the bad
 // coordinates concentrate.
+let coordQualityPayload = null;
+function applyCoordQuality(payload) {
+  for (const rec of payload.sites || []) {
+    const existing = sitesById.get(rec.id);
+    if (!existing) continue;
+    if (rec.coord_flags)                  existing.coord_flags = rec.coord_flags;
+    if (rec.coord_actual_state)           existing.coord_actual_state = rec.coord_actual_state;
+    if (rec.coord_state_gap_mi != null)   existing.coord_state_gap_mi = rec.coord_state_gap_mi;
+    if (rec.coord_shared_count != null)   existing.coord_shared_count = rec.coord_shared_count;
+  }
+}
 // Required by the screens: parcel area only counts when the site's point is
 // not a shared or imprecise geocode, which these flags say.
 let coordQualityLoaded = false;
@@ -1934,14 +1973,8 @@ function ensureCoordQualityLoaded() {
       await Promise.allSettled(
         [acresLoadingPromise, fudsLoadingPromise, bracLoadingPromise].filter(Boolean)
       );
-      for (const rec of payload.sites || []) {
-        const existing = sitesById.get(rec.id);
-        if (!existing) continue;
-        if (rec.coord_flags)                  existing.coord_flags = rec.coord_flags;
-        if (rec.coord_actual_state)           existing.coord_actual_state = rec.coord_actual_state;
-        if (rec.coord_state_gap_mi != null)   existing.coord_state_gap_mi = rec.coord_state_gap_mi;
-        if (rec.coord_shared_count != null)   existing.coord_shared_count = rec.coord_shared_count;
-      }
+      coordQualityPayload = payload;
+      applyCoordQuality(payload);
       coordQualityLoaded = true;
       maybeRefreshCandidates();
       if (selectedId && sitesById.has(selectedId)) {
@@ -1975,12 +2008,8 @@ function ensureAcreageFlagsLoaded() {
     })
     .then(async (payload) => {
       await Promise.allSettled([acresLoadingPromise, fudsLoadingPromise, bracLoadingPromise].filter(Boolean));
-      for (const rec of payload.sites || []) {
-        const existing = sitesById.get(rec.id);
-        if (!existing) continue;
-        existing.acreage_flag = rec.acreage_flag;
-        existing.acreage_flag_county = rec.acreage_flag_county;
-      }
+      acreageFlagsPayload = payload;
+      applyAcreageFlags(payload);
       acreageFlagsLoaded = true;
       maybeRefreshCandidates();
     })
@@ -1991,6 +2020,16 @@ function ensureAcreageFlagsLoaded() {
       maybeRefreshCandidates();
     });
   return acreageFlagsLoadingPromise;
+}
+
+let acreageFlagsPayload = null;
+function applyAcreageFlags(payload) {
+  for (const rec of payload.sites || []) {
+    const existing = sitesById.get(rec.id);
+    if (!existing) continue;
+    existing.acreage_flag = rec.acreage_flag;
+    existing.acreage_flag_county = rec.acreage_flag_county;
+  }
 }
 
 function ensurePlannedRetireProxLoaded() {
@@ -6885,10 +6924,16 @@ function loadScreenData() { SCREEN_LOADERS[candidatesState.lens]?.(); }
 function screenDataState(key) {
   const extra = {port: [["port", () => portProximityRecords]],
     nickel: [["port", () => portProximityRecords], ["supply chain", () => nickelAnchorRecords], ["water", () => waterProximityRecords]]}[key] || [];
+  // Each enabled program (Superfund ships with the page) must be loaded too,
+  // or the ranking covers a partial corpus.
+  const programs = [["brownfield", "ACRES brownfield"], ["fuds", "FUDS"], ["brac", "BRAC"]]
+    .filter(([p]) => filterState.programs.has(p));
   const inputs = [["infrastructure", () => infraCoreLoaded], ["acreage flag", () => acreageFlagsLoaded],
-    ["location quality", () => coordQualityLoaded], ...extra];
+    ["location quality", () => coordQualityLoaded],
+    ...programs.map(([p, label]) => [label, () => loadedPrograms.has(p)]), ...extra];
   const coreFailed = {"infrastructure": () => infraCoreFailed, "acreage flag": () => acreageFlagsFailed,
-    "location quality": () => coordQualityFailed};
+    "location quality": () => coordQualityFailed,
+    ...Object.fromEntries(programs.map(([p, label]) => [label, () => programLoadErrors.has(p)]))};
   const failed = inputs.filter(([n]) => coreFailed[n] ? coreFailed[n]() : nickelDataErrors.has(n)).map(([n]) => n);
   const pending = inputs.filter(([n, ready]) => !ready() && !failed.includes(n)).map(([n]) => n);
   return {pending, failed};
@@ -6921,6 +6966,9 @@ function buildCandidatesView() {
       if (infraCoreFailed) ensureInfraLoaded();
       if (acreageFlagsFailed) ensureAcreageFlagsLoaded();
       if (coordQualityFailed) ensureCoordQualityLoaded();
+      if (programLoadErrors.has("brownfield")) ensureAcresLoaded();
+      if (programLoadErrors.has("fuds")) ensureFudsLoaded();
+      if (programLoadErrors.has("brac")) ensureBracLoaded();
       loadScreenData();
       buildCandidatesView();
     });

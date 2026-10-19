@@ -1,6 +1,7 @@
 """Siting screens (docs/screens.js): missing data never passes, ranks are
 reproducible, and every threshold names its source."""
 import json
+import os
 import subprocess
 from pathlib import Path
 
@@ -115,3 +116,13 @@ def test_parcel_area_does_not_count_for_a_shared_geocode():
     ev = evaluate({"parcel_acreage": 40, "coord_flags": ["shared_point"]}, "solar")
     land = next(r for r in ev["results"] if r["id"] == "land")
     assert land["status"] == "unknown" and land["value"] == "location approximate"
+
+
+def test_cli_refuses_to_rank_with_a_missing_input(tmp_path):
+    data = ROOT / "docs" / "data"
+    for f in data.iterdir():
+        if f.name != "acreage-flags.json":
+            (tmp_path / f.name).symlink_to(f)
+    out = subprocess.run(["node", "scripts/screen.js", "counts"], cwd=ROOT, capture_output=True, text=True,
+                         env={**os.environ, "SCREEN_DATA_DIR": str(tmp_path)})
+    assert out.returncode == 2 and "acreage-flags.json" in out.stderr

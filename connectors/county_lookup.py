@@ -210,6 +210,12 @@ class CountyIndex:
     def polygon_count(self) -> int:
         return len(self._records)
 
+    def county_polygons(self, name: str, state: str | None) -> list[list[list[tuple[float, float]]]]:
+        """Every component polygon of one county. Island counties and Alaska
+        boroughs are MultiPolygons; lookup_polygon returns only the component
+        containing the point."""
+        return [poly for n, st, poly, _ in self._records if n == name and st == state]
+
     def lookup_polygon(
         self, lat: float, lon: float, expected_state: str | None = None
     ) -> tuple[str, str | None, list[list[tuple[float, float]]]] | None:
@@ -236,13 +242,3 @@ class CountyIndex:
         """
         hit = self.lookup_polygon(lat, lon, expected_state)
         return hit[0] if hit else None
-        for idx in candidate_indices:
-            name, state, polygon, bbox = self._records[idx]
-            if expected_state and state and state != expected_state:
-                continue
-            minx, miny, maxx, maxy = bbox
-            if lon < minx or lon > maxx or lat < miny or lat > maxy:
-                continue
-            if _point_in_polygon(lon, lat, polygon):
-                return name
-        return None
