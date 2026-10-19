@@ -79,7 +79,7 @@ Priorities: **high** = next, **med** = soon, **low** = nice-to-have. Last update
 
 14. **[med]** Quarterly `STATE_DC_INCENTIVES` re-audit, due ~2026-10. `STATE_DC_REGULATION` was re-checked 2026-09-25: Vermont removed (S.205 died when the legislature adjourned 2026-05-29; H.727's veto override failed the same day), NY/VA/FL confirmed. Watch list: NY's Responsible Data Center Development Act still awaits the governor; municipal moratoria (for example New Haven's 12-month pause) sit below this table's state-level threshold. Size: M.
 
-15. **[high]** Swap the daily research routine onto `scripts/routine/daily-site-research.md` once this branch merges (it calls `routine_ctl.py`, `research_queue.py`, `env.sh`; the scripts are not on the routine's worktree until then).
+15. **Done 2026-10-19.** The `brownfield-daily-site-research` task is now a short wrapper that runs `scripts/routine/daily-site-research.md` from origin/main.
 16. **[high]** Rebuild `evidence-invalidations.json` after the 2026-10-18 polygon-join rebuilds (FEMA NRI, OZ, IRA, tribal, coord-quality were recomputed at current coordinates, but the manifest still withholds them for the 25 moved sites). Needs the pre-refresh snapshots (`--before-dir`).
 17. **[high]** EPA ECHO joins are not site-level: 22 registry ids are shared by 2+ sites and 399 bound facilities have a different name (e.g. Reynolds Metals bound to a FedEx Ground facility with a penalty). Accept only name+ZIP-consistent matches and show the matched facility name (2026-10-18 audit, A-programs).
 18. **[med]** Curated rows the audit could not settle in this pass: SRS AI-lease tract/acre and coalition claims and Paducah's award citation (cited pages are the 2025 solicitation, not the 2026 award); WIPP "as of Aug 2026" unsupported; Palisades NRC fuel-amendment approval (Oct 2026); Craig DOE 202(c) order end date; Deployable Unity criticality month; reference-campuses Conesville MW (2,005 vs 2,174.8) and Widows Creek citation; shipyards list (three are public Navy yards; Bollinger yards missing).
@@ -383,6 +383,8 @@ Rules the routine follows:
 - **Coal Reinvestment universe.** Once the full ~550-plant EIA-860M-derived universe lands (Next #8), should it replace the 18-plant curated catalog outright, or should the curated set stay as a "verified/marquee" layer on top of the derived one?
 
 ## 8. Recently done (since 2026-08-20)
+
+- **2026-10-19** — Daily research task switched to the repo prompt `scripts/routine/daily-site-research.md` (read from origin/main each run). PR #43 merged: cited pass/fail screens, per-voltage line and qualifying-gage distances, Ohio/Maine parcel area, required-input load states. `82814d9`.
 
 - **2026-08-21** — NEPA MCP Tier A installed (isolated `nepa-mcp==0.1.1` via `uv`); Janus screening (6 source screens, 12 map layers, 9 installations); tribal-area containment (TIGERweb AIANNHA, 2,122 sparse-positive hits). `fc4bd2b`, `6b6634c`, `c835907`, `1b6437e`, `d1f2e94`, `e1e7fb3`.
 
