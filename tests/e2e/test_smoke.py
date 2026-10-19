@@ -174,7 +174,8 @@ def test_retired_sites_stats_tab(page, base_url):
         timeout=15_000,
     )
     page.locator("#tab-retired").click()
-    page.wait_for_selector(".retired-bar-row")
+    page.wait_for_selector(".retired-table tbody tr")
+    page.wait_for_selector(".retired-bar-row", state="attached")
     kpis = page.evaluate(
         "() => Array.from(document.querySelectorAll('.retired-kpi-label')).map(e => e.textContent)"
     )
@@ -595,10 +596,8 @@ def test_hero_strip_renders(page, base_url):
     # the hero/footer/tagline too).
     refresh = page.locator("#topbar-refresh").text_content()
     assert refresh.startswith("Compiled") and "—" not in refresh
-    # KPI deck — five cells, each with a non-dash number
-    for kpi_id in ("kpi-total", "kpi-acres", "kpi-dc", "kpi-hyperscale", "kpi-generation"):
-        text = page.locator(f"#{kpi_id}").text_content()
-        assert text != "—" and text != "", f"{kpi_id} still showing placeholder: {text!r}"
+    # The screen picker and its method card replace the old KPI deck.
+    assert page.locator("#screen-method .method-list li").count() >= 4
 
 
 def test_footer_with_sources(page, base_url):
@@ -640,14 +639,18 @@ def test_refresh_date_reflects_freshest_data_file(page, base_url):
     # Deliberately distinct fixture dates test ordering independently of the
     # checked-in snapshots, which commonly share today's compilation date.
     page.route("**/data/sites.json", dated("2090-01-01T00:00:00Z", [{"id": "FIXTURE", "name": "Date fixture", "program": "superfund", "lat": 40, "lon": -80}]))
-    page.route("**/data/infra-proximity.json", dated("2091-01-01T00:00:00Z"))
+    page.route("**/data/infra-proximity-core.json", dated("2091-01-01T00:00:00Z"))
+    page.route("**/data/acreage-flags.json", dated("2091-06-01T00:00:00Z"))
     page.route("**/data/nuclear-civilian-sites.json", dated("2092-01-01T00:00:00Z"))
+    page.route("**/data/coal-plants.json", lambda route: route.fulfill(json={"generated_at": "2093-01-01T00:00:00Z", "plants": []}))
     page.goto(f"{base_url}/index.html?program=superfund")
     page.wait_for_function("window.__APP_READY__ === true", timeout=45000)
-    assert page.locator("#topbar-refresh").inner_text() == "Compiled 2091-01-01"
+    assert page.locator("#topbar-refresh").inner_text() == "Compiled 2091-06-01"
     page.click("#tab-ap1000")
     page.wait_for_function("window.__refreshedAt === '2092-01-01'")
     assert page.locator("#topbar-refresh").inner_text() == "Compiled 2092-01-01"
+    page.click("#tab-coal")
+    page.wait_for_function("window.__refreshedAt === '2093-01-01'")
 
 
 def test_filter_chip_hidden_by_default_visible_when_active(page, base_url):
@@ -1600,6 +1603,9 @@ def test_infra_distance_renders_adjacent_below_threshold(page, base_url):
     """
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    # The full infrastructure file loads with the site panel; load it first
+    # so it does not overwrite the synthetic values below.
+    page.evaluate("ensureDetailEvidenceLoaded()")
     target_id = page.evaluate(
         "(() => {"
         "  const s = (window.__sites || []).find(s => !s._evidenceInvalidation);"
@@ -1647,6 +1653,7 @@ def test_gas_pipeline_row_renders_when_value_known(page, base_url):
     renders the value (formatted via `fmt.miles`)."""
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    page.evaluate("ensureDetailEvidenceLoaded()")
     sid = page.evaluate(
         "(() => {"
         "  const s = (window.__sites || []).find(s => !s._evidenceInvalidation);"
@@ -1670,6 +1677,9 @@ def test_iso_rto_and_climate_zone_detail_rows_render(page, base_url):
     onto a selected site and render in the detail panel."""
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    # The full infrastructure file loads with the site panel; load it first
+    # so it does not overwrite the synthetic values below.
+    page.evaluate("ensureDetailEvidenceLoaded()")
     # Climate context loads when a detail is requested, not on initial Explore.
     page.evaluate("window.__selectSite(window.__sites.find(s => s.iso_rto && !s._evidenceInvalidation).id)")
     page.wait_for_function("window.__sites.some(s => s.iso_rto && s.climate_zone && !s._evidenceInvalidation)")
@@ -1712,6 +1722,9 @@ def test_transmission_kv_chip_renders_when_kv_known(page, base_url):
     """Reported voltage renders without a capacity or readiness claim."""
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    # The full infrastructure file loads with the site panel; load it first
+    # so it does not overwrite the synthetic values below.
+    page.evaluate("ensureDetailEvidenceLoaded()")
     sid = page.evaluate(
         "(() => {"
         "  const s = (window.__sites || []).find(s => !s._evidenceInvalidation);"
@@ -1736,6 +1749,9 @@ def test_voltage_and_acreage_do_not_restore_suitability_tier(page, base_url):
     """Mapped voltage and acreage cannot establish a site suitability tier."""
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
+    # The full infrastructure file loads with the site panel; load it first
+    # so it does not overwrite the synthetic values below.
+    page.evaluate("ensureDetailEvidenceLoaded()")
     sid = page.evaluate(
         "(() => {"
         "  const s = (window.__sites || []).find(s => !s._evidenceInvalidation);"
@@ -1750,17 +1766,9 @@ def test_voltage_and_acreage_do_not_restore_suitability_tier(page, base_url):
     page.evaluate(f"window.__selectSite('{sid}')")
     page.wait_for_selector("#detail:not([hidden])")
     assert page.locator("#d-program .dc-tier-pill").count() == 0
-    assert "Unknown" in page.locator('#d-suit-dc [data-category="grid_capacity"]').inner_text()
+    assert page.locator('#d-suit-dc .evidence-missing li[data-category="grid_capacity"]').count() == 1
 
 
-def test_category_confidence_filter_narrows_visible_set(page, base_url):
-    page.goto(f"{base_url}/index.html")
-    page.wait_for_function("window.__APP_READY__ === true", timeout=45000)
-    page.locator("#evidence-category-filter").select_option("fiber")
-    page.locator("#evidence-status-filter").select_option("unknown")
-    assert page.locator("#candidates-table tbody tr").count() > 0
-    page.locator("#evidence-confidence-filter").select_option("High")
-    assert page.locator("#candidates-table tbody tr").count() == 0
 
 
 def test_state_dc_incentive_chip_renders(page, base_url):
@@ -1788,14 +1796,6 @@ def test_state_dc_incentive_chip_renders(page, base_url):
     assert "tax-tier-1" in cls, f"expected tier-1 chip, got class={cls}"
 
 
-def test_hyperscale_kpi_cell_populates(page, base_url):
-    """v1.12 Tier 0: the new #kpi-hyperscale cell counts sites scoring
-    at hyperscale-or-better tier. Once the infra-proximity enrichment
-    lands, the count must be > 0 for the live dataset."""
-    page.goto(f"{base_url}/index.html")
-    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
-    text = (page.locator("#kpi-hyperscale").text_content() or "").strip()
-    assert text not in ("", "—"), f"hyperscale KPI not populated, got {text!r}"
 
 
 def test_dc_candidate_surfaces_criteria_in_detail_panel(page, base_url):
@@ -1931,50 +1931,8 @@ def test_marker_layer_created_before_fit_bounds(page, base_url):
 # *default* behavior at first paint so future refactors don't silently revert
 # to the desktop-only chrome that swamped the map on phones.
 
-def test_kpi_deck_always_open_no_summary_chip_on_mobile(page, base_url):
-    """2026-08-24: the KPI deck used to collapse behind a tap-to-expand
-    summary chip on mobile — the extra tap was the problem, not a feature.
-    The deck is now always open (same as desktop) and renders directly as
-    the horizontally-scrollable strip; the summary chip is hidden on every
-    breakpoint. Guards against regressing back to the collapsed pattern."""
-    page.set_viewport_size({"width": 375, "height": 812})
-    page.goto(f"{base_url}/index.html")
-    page.wait_for_function("window.__sitesLoaded === true", timeout=20000)
-    state = page.evaluate(
-        "(() => {"
-        "  const d = document.getElementById('kpi-disclosure');"
-        "  const sum = document.querySelector('.kpi-summary');"
-        "  return {"
-        "    open: d.open,"
-        "    summaryDisplay: getComputedStyle(sum).display,"
-        "    totalText: document.getElementById('kpi-total').textContent,"
-        "    dcText: document.getElementById('kpi-dc').textContent,"
-        "  };"
-        "})()"
-    )
-    assert state["open"] is False, "Mobile coverage metrics should start compact"
-    assert state["summaryDisplay"] != "none", "Mobile coverage summary must be visible"
-    # Numbers populated (not the "—" loading placeholder).
-    assert state["totalText"] not in ("—", ""), "KPI total not populated"
-    assert state["dcText"] not in ("—", ""), "KPI DC count not populated"
 
 
-def test_kpi_disclosure_open_by_default_on_desktop(page, base_url):
-    """On desktop the disclosure is always open and the summary strip is
-    hidden — the carousel reads as a static 5-cell panel (no behavior change
-    from v1.11)."""
-    page.set_viewport_size({"width": 1280, "height": 800})
-    page.goto(f"{base_url}/index.html")
-    page.wait_for_function("window.__sitesLoaded === true", timeout=20000)
-    state = page.evaluate(
-        "(() => {"
-        "  const d = document.getElementById('kpi-disclosure');"
-        "  const sum = document.querySelector('.kpi-summary');"
-        "  return { open: d.open, summaryDisplay: getComputedStyle(sum).display };"
-        "})()"
-    )
-    assert state["open"] is True, "KPI disclosure should default open on desktop"
-    assert state["summaryDisplay"] == "none", "summary strip should be hidden on desktop"
 
 
 def test_search_filters_stats_scoped_to_corpus_tabs(page, base_url):
@@ -1993,7 +1951,6 @@ def test_search_filters_stats_scoped_to_corpus_tabs(page, base_url):
         ("tab-map", True, True, True),
         ("tab-table", True, True, True),
         ("tab-candidates", True, True, True),
-        ("tab-micro", True, True, False),
         ("tab-retired", False, False, False),
         ("tab-coal", False, False, False),
         ("tab-ap1000", False, False, False),
@@ -2006,13 +1963,11 @@ def test_search_filters_stats_scoped_to_corpus_tabs(page, base_url):
             """() => ({"""
             """  search: !document.getElementById('search-wrap').hidden,"""
             """  filters: !document.getElementById('filters-toggle').hidden,"""
-            """  stats: !document.getElementById('kpi-disclosure').hidden,"""
             """  theme: !document.getElementById('theme-toggle').hidden,"""
             """})"""
         )
         assert state["search"] == search_visible, f"{tab_id}: search visibility"
         assert state["filters"] == filters_visible, f"{tab_id}: filters visibility"
-        assert state["stats"] == stats_visible, f"{tab_id}: stats visibility"
         assert state["theme"] is True, f"{tab_id}: theme toggle must always be visible"
 
 
@@ -2196,65 +2151,21 @@ def test_hero_version_label_matches_current_release(page, base_url):
     )
 
 
-def test_kpi_water_opens_category_context(page, base_url):
+
+
+
+
+
+
+def test_reset_clears_the_all_checks_filter(page, base_url):
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("window.__APP_READY__ === true", timeout=45000)
-    page.locator("[data-kpi='hyperscale']").click()
-    assert page.locator("#evidence-category-filter").input_value() == "water"
-    assert page.locator("#evidence-status-filter").input_value() == "context"
-    assert page.locator("#candidates-table tbody tr").count() > 0
-
-
-def test_kpi_grid_opens_category_context(page, base_url):
-    page.goto(f"{base_url}/index.html")
-    page.wait_for_function("window.__APP_READY__ === true", timeout=45000)
-    page.locator("[data-kpi='dc']").click()
-    assert page.locator("#evidence-category-filter").input_value() == "grid"
-    assert page.locator("#evidence-status-filter").input_value() == "context"
-    assert page.locator("#candidates-table tbody tr").count() > 0
-
-
-def test_kpi_non_actionable_cells_are_inert(page, base_url):
-    """The Total / Acreage / Generation KPI cells are overview metrics, not
-    filterable predicates. They should NOT carry .kpi-actionable and
-    clicking them must not mutate filter state."""
-    page.goto(f"{base_url}/index.html")
-    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
-    for kpi in ("total",):
-        cls = page.locator(f"[data-kpi='{kpi}']").get_attribute("class") or ""
-        assert "kpi-actionable" not in cls, f"{kpi} KPI shouldn't be actionable"
-    # Clicking a non-actionable cell should leave filters unchanged.
-    page.locator("[data-kpi='total']").click()
-    assert page.locator("#filters-chip").evaluate("el => el.hidden") is True
-
-
-def test_reset_clears_category_filter(page, base_url):
-    page.goto(f"{base_url}/index.html")
-    page.wait_for_function("window.__APP_READY__ === true", timeout=45000)
-    page.locator("[data-kpi='dc']").click()
+    page.check("#screen-all-met")
     _open_filters(page)
     page.locator("#filters-reset").click()
-    assert page.locator("#evidence-status-filter").input_value() == ""
+    assert not page.locator("#screen-all-met").is_checked()
 
 
-def test_kpi_actionable_cells_are_keyboard_accessible(page, base_url):
-    """Actionable KPI cells must respond to Enter / Space (role=button,
-    tabindex=0). Verified by direct keydown dispatch — the cell's
-    keyboard handler should toggle the filter."""
-    page.goto(f"{base_url}/index.html")
-    page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
-    cell = page.locator("[data-kpi='hyperscale']")
-    assert cell.get_attribute("role") == "button"
-    assert cell.get_attribute("tabindex") == "0"
-    # Dispatch Enter directly.
-    page.evaluate(
-        "document.querySelector('[data-kpi=\"hyperscale\"]')"
-        ".dispatchEvent(new KeyboardEvent('keydown', {key:'Enter', bubbles:true}))"
-    )
-    page.wait_for_function(
-        "() => document.getElementById('evidence-category-filter').value === 'water'",
-        timeout=2000,
-    )
 
 
 def test_search_typeahead_renders_matches(page, base_url):
@@ -2428,12 +2339,9 @@ def test_nearby_sites_hidden_when_no_coords(page, base_url):
 def test_filter_chip_tooltip_lists_active_filters(page, base_url):
     page.goto(f"{base_url}/index.html")
     page.wait_for_function("window.__APP_READY__ === true", timeout=45000)
-    page.locator("[data-kpi='hyperscale']").click()
-    page.wait_for_function("location.search.includes('evidence=water')")
-    assert "Water: context" in page.locator("#filters-chip").get_attribute("title")
-    page.locator("#evidence-confidence-filter").select_option("Low")
-    page.wait_for_function("location.search.includes('confidence=Low')")
-    assert "Low" in page.locator("#filters-chip").get_attribute("title")
+    page.check("#screen-all-met")
+    page.wait_for_function("location.search.includes('allmet=1')")
+    assert "Every check met" in page.locator("#filters-chip").get_attribute("title")
     _open_filters(page)
     page.locator("#filters-reset").click()
     assert page.locator("#filters-chip").evaluate("e=>e.hidden")

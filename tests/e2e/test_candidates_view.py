@@ -13,24 +13,16 @@ def _ready(page, base_url):
 def _assess(page, record, lens="dc"):
     return page.evaluate("([s,l]) => SiteEvidence.assessSite(s,l)", [record,lens])
 
-def test_duplicate_filter_groups_removed(page, base_url):
-    """The unsynced Min-tier / Readiness button groups are gone — those
-    predicates live in the global filter strip (persona buttons, OZ
-    checkbox, DC-candidate KPI toggle). Only the lens toggle remains,
-    plus a note pointing at the global filters."""
+def test_screen_picker_and_method_card_lead_the_default_tab(page, base_url):
+    """Screens is the default tab: a picker with one button per screen and a
+    method card naming every check and its source, above the ranked list."""
     _ready(page, base_url)
-    counts = page.evaluate(
-        "() => ({"
-        "  tier: document.querySelectorAll('[data-cand-tier]').length,"
-        "  ready: document.querySelectorAll('[data-cand-ready]').length,"
-        "  lens: document.querySelectorAll('[data-cand-lens]').length,"
-        "  note: !!document.querySelector('.cand-filter-note')"
-        "})"
-    )
-    assert counts["tier"] == 0
-    assert counts["ready"] == 0
-    assert counts["lens"] == 3
-    assert counts["note"] is True
+    assert page.locator("[data-cand-lens]").count() == 4
+    card = page.locator("#screen-method")
+    expect(card).to_contain_text("Method.")
+    assert card.locator(".method-list li").count() == 4
+    assert card.locator(".method-list a[href^='https://']").count() == 4
+    expect(page.locator("#candidates-stats")).to_contain_text("meet every check")
 
 def test_detail_panel_npdes_row_renders(page, base_url):
     """The detail panel's "Water permit (NPDES)" row (#d-echo-npdes) reflects
@@ -47,7 +39,7 @@ def test_detail_panel_npdes_row_renders(page, base_url):
         "}"
     )
     assert site_id, "expected a scored site to select"
-    page.wait_for_selector("#detail:not([hidden])", timeout=5000)
+    page.wait_for_selector("#detail:not([hidden])", timeout=15000)
     row = page.evaluate(
         "() => { const n = document.getElementById('d-echo-npdes');"
         " return { text: n.textContent.trim(), cls: n.className }; }"
@@ -74,7 +66,9 @@ def test_detail_panel_planned_retirement_row_renders(page, base_url):
         "}"
     )
     assert site_id, "expected a scored site to select"
-    page.wait_for_selector("#detail:not([hidden])", timeout=5000)
+    # The first panel open also fetches the full infra file; 5 s was too
+    # short for that under a parallel e2e run.
+    page.wait_for_selector("#detail:not([hidden])", timeout=15000)
     cell = page.evaluate(
         "() => document.getElementById('d-planned-retire-mi').textContent"
     )
@@ -149,10 +143,13 @@ def test_tribal_area_join_covers_lazy_programs(page, base_url):
         """async () => {
           const byId = new Map(window.__sites.map(s => [s.id, s]));
           const payload = await (await fetch('data/tribal-areas.json')).json();
+          // Sites whose coordinates moved keep their joins withheld until the
+          // invalidation manifest is rebuilt; they are not join failures.
+          const inv = (await (await fetch('data/evidence-invalidations.json')).json()).by_id;
           let present = 0, joined = 0, joinedNonSuperfund = 0;
           for (const rec of payload.sites) {
             const site = byId.get(rec.id);
-            if (!site) continue;
+            if (!site || inv[rec.id]?.invalidate) continue;
             present++;
             if (site.in_aiannha_area === rec.in_aiannha_area) {
               joined++;
@@ -171,19 +168,61 @@ def test_global_state_filter_rebuilds_explore(page,base_url):
     expect(page.locator('#candidates-table tbody tr').first).to_be_visible()
     assert page.evaluate("""()=>Array.from(document.querySelectorAll('#candidates-table tbody tr')).every(r=>window.__sites.find(s=>s.id===r.dataset.id).state==='AK')""")
 
-@pytest.mark.parametrize('lens',['gen','mfg'])
-def test_lens_roundtrip_keeps_alphabetical_evidence_order(page,base_url,lens):
+@pytest.mark.parametrize('lens',['solar','nickel'])
+def test_screen_roundtrip_ranks_by_checks_met(page,base_url,lens):
     _ready(page,base_url);page.click(f'[data-cand-lens="{lens}"]')
     page.wait_for_function('(lens)=>location.search.includes("lens="+lens)',arg=lens)
-    expect(page.locator('#candidates-stats')).to_contain_text('alphabetical')
-    before=page.locator('#candidates-table .site-evidence-open').all_inner_texts()
-    assert page.evaluate('names=>names.every((n,i)=>!i||names[i-1].localeCompare(n)<=0)',before)
+    page.wait_for_function("document.querySelectorAll('#candidates-table tbody tr').length > 10", timeout=30000)
+    met=page.locator('#candidates-table .screen-score strong').all_inner_texts()
+    assert [int(m) for m in met]==sorted((int(m) for m in met), reverse=True)
     page.reload();page.wait_for_function('window.__APP_READY__===true',timeout=45000)
     assert 'active' in page.locator(f'[data-cand-lens="{lens}"]').get_attribute('class')
-    assert page.locator('#candidates-table .site-evidence-open').all_inner_texts()==before
+
+def test_browser_rank_matches_the_shell_cli(page,base_url):
+    """The page and `node scripts/screen.js top` build the record the same way
+    (fill-if-empty joins), so their rankings must agree."""
+    import subprocess
+    from pathlib import Path
+    _ready(page,base_url)
+    page.wait_for_function("document.querySelectorAll('#candidates-table tbody tr').length >= 20", timeout=30000)
+    page_ids=page.evaluate("()=>Array.from(document.querySelectorAll('#candidates-table tbody tr')).slice(0,20).map(r=>r.dataset.id)")
+    root=Path(__file__).resolve().parents[2]
+    out=subprocess.run(["node","scripts/screen.js","top","dc","20"],cwd=root,capture_output=True,text=True,check=True).stdout
+    cli_ids=[line.split()[3] for line in out.strip().splitlines()]
+    assert page_ids==cli_ids
+
+def test_all_met_toggle_keeps_only_full_passes(page,base_url):
+    _ready(page,base_url)
+    page.check('#screen-all-met')
+    page.wait_for_function("location.search.includes('allmet=1')")
+    scores=page.evaluate("()=>Array.from(document.querySelectorAll('#candidates-table .screen-score')).map(c=>c.textContent.trim())")
+    assert scores and all(s.split('/')[0]==s.split('/')[1] for s in scores)
 
 def test_environmental_context_does_not_establish_ready_land(page,base_url):
     _ready(page,base_url)
     a=_assess(page,{'npl_status_code':'D','enforcement':{'has_npdes_permit':True},'in_sfha':True})
     assert a['hazards']['status']=='constraint'
     assert a['land']['status']==a['water_rights']['status']=='unknown'
+
+@pytest.mark.parametrize("lens,heading,site_id,crit,label,field", [
+    # Nearest line is 100 kV; a ≥115 kV line is 0.4 mi away.
+    ("dc", "Data center:", "NCD001810365", "grid", "Line ≥115 kV", "transmission_115kv_mi"),
+    # Redstone Arsenal: nearest gage Indian Creek 72 cfs; Tennessee River 43,265 cfs at 6.8 mi.
+    ("nickel", "Nickel refinery:", "AL7210020742", "water", "Gaged river ≥100 cfs", "water_100cfs_gage_mi"),
+])
+def test_threshold_checks_use_the_nearest_qualifying_asset(page, base_url, lens, heading, site_id, crit, label, field):
+    """The browser keeps the per-threshold distances through its joins, and
+    agrees with `node scripts/screen.js explain` (Codex review, PR #43)."""
+    import subprocess
+    from pathlib import Path
+    page.goto(f"{base_url}/index.html?lens={lens}")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=45000)
+    find = f"window.__sites.find(s => s.id === '{site_id}')"
+    page.wait_for_function(f"({find} || {{}}).{field} != null", timeout=30000)
+    status = page.evaluate(f"() => SiteScreens.evaluate({find}, '{lens}').results.find(r => r.id === '{crit}').status")
+    assert status == "pass"
+    root = Path(__file__).resolve().parents[2]
+    out = subprocess.run(["node", "scripts/screen.js", "explain", site_id], cwd=root,
+                         capture_output=True, text=True, check=True).stdout
+    block = out.split(heading, 1)[1].split("\n  ", 6)  # this screen's check lines
+    assert any(line.strip().startswith("✓") and label in line for line in block)

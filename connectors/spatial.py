@@ -260,12 +260,31 @@ class SegmentIndex:
             attr = self._attrs[idx]
         return (d_mi, attr)
 
+    def nearest_matching(
+        self,
+        lat: float,
+        lon: float,
+        predicate,
+        max_rings: int | None = None,
+    ) -> tuple[float, object] | None:
+        """Like `nearest_with_attr()`, but only segments whose attr satisfies
+        `predicate(attr)` count — e.g. the nearest line of at least 230 kV,
+        which is often not the nearest line."""
+        attrs = self._attrs or []
+        keep = lambda i: predicate(attrs[i] if i < len(attrs) else None)
+        result = self._nearest(lat, lon, max_rings, return_idx=True, keep=keep)
+        if result is None:
+            return None
+        d_mi, idx = result
+        return (d_mi, attrs[idx] if idx < len(attrs) else None)
+
     def _nearest(
         self,
         lat: float,
         lon: float,
         max_rings: int | None,
         return_idx: bool,
+        keep=None,
     ) -> tuple[float, int] | tuple[float] | None:
         if not self._segments:
             return None
@@ -291,6 +310,8 @@ class SegmentIndex:
                     if idx in seen:
                         continue
                     seen.add(idx)
+                    if keep is not None and not keep(idx):
+                        continue
                     a_lat, a_lon, b_lat, b_lon = self._segments[idx]
                     shift = 360 * round((lon - (a_lon + b_lon) / 2) / 360)
                     ax = (a_lon + shift) * m_per_deg_lon
@@ -463,6 +484,14 @@ def _point_in_ring(lon: float, lat: float, ring: list[list[float]]) -> bool:
     return inside
 
 
+def _in_rings(lon: float, lat: float, rings: list) -> bool:
+    """Even-odd rule over every ring. Works for a single exterior with holes
+    (GeoJSON) and for ESRI multipart features, whose parts and holes arrive as
+    one flat list in any order: a point inside one part's exterior and not in
+    its holes crosses an odd number of rings."""
+    return sum(1 for ring in rings if _point_in_ring(lon, lat, ring)) % 2 == 1
+
+
 class PolygonIndex:
     """Spatial grid over POLYGONS for point-in-polygon containment lookups.
 
@@ -470,9 +499,10 @@ class PolygonIndex:
     rather than "what's the nearest feature" — e.g. Opportunity Zone census
     tracts (~8,765 nationwide), state polygons, congressional districts.
 
-    Each polygon is stored as a list of rings (`[[[lon, lat], ...], ...]` —
-    first ring is exterior, remaining rings are holes per the GeoJSON
-    convention). The bucket-by-bbox grid identifies candidate polygons in
+    Each polygon is stored as a list of rings (`[[[lon, lat], ...], ...]`):
+    either one exterior followed by its holes (GeoJSON) or an ESRI multipart
+    feature's flat ring list. Containment uses the even-odd rule over all
+    rings, which handles both. The bucket-by-bbox grid identifies candidate polygons in
     O(1) cells; we then ray-cast against each candidate. For OZ-scale
     (~8,765 polygons spread across the US, average tract is small), most
     queries resolve in <5 ray-casts.
@@ -513,13 +543,13 @@ class PolygonIndex:
         """
         if not rings or not rings[0] or len(rings[0]) < 3:
             return False
-        # Compute bbox from the exterior ring (ring 0). Skip null-island
-        # rings entirely.
-        ext = rings[0]
-        lats = [p[1] for p in ext if isinstance(p, (list, tuple)) and len(p) >= 2]
-        lons = [p[0] for p in ext if isinstance(p, (list, tuple)) and len(p) >= 2]
-        if len(lats) < 3 or len(lons) < 3:
+        # Bbox over every ring: ESRI multipart features arrive as one flat
+        # ring list, and the part containing a site need not be ring 0.
+        pts = [p for ring in rings for p in ring if isinstance(p, (list, tuple)) and len(p) >= 2]
+        if len(pts) < 3:
             return False
+        lats = [p[1] for p in pts]
+        lons = [p[0] for p in pts]
         lat_lo, lat_hi = min(lats), max(lats)
         lon_lo, lon_hi = min(lons), max(lons)
         if not (-90 <= lat_lo <= 90) or not (-90 <= lat_hi <= 90):
@@ -554,18 +584,7 @@ class PolygonIndex:
             # contain the point.
             if not (lat_lo <= lat <= lat_hi and lon_lo <= lon <= lon_hi):
                 continue
-            rings = self._rings[idx]
-            # Exterior contains the point?
-            if not _point_in_ring(lon, lat, rings[0]):
-                continue
-            # Check holes (rings 1..). If point is in any hole, polygon
-            # doesn't actually contain it.
-            in_hole = False
-            for hole in rings[1:]:
-                if _point_in_ring(lon, lat, hole):
-                    in_hole = True
-                    break
-            if not in_hole:
+            if _in_rings(lon, lat, self._rings[idx]):
                 return self._attrs[idx]
         return None
 
@@ -583,14 +602,6 @@ class PolygonIndex:
             lat_lo, lon_lo, lat_hi, lon_hi = self._bboxes[idx]
             if not (lat_lo <= lat <= lat_hi and lon_lo <= lon <= lon_hi):
                 continue
-            rings = self._rings[idx]
-            if not _point_in_ring(lon, lat, rings[0]):
-                continue
-            in_hole = False
-            for hole in rings[1:]:
-                if _point_in_ring(lon, lat, hole):
-                    in_hole = True
-                    break
-            if not in_hole:
+            if _in_rings(lon, lat, self._rings[idx]):
                 matches.append(self._attrs[idx])
         return matches

@@ -6,7 +6,7 @@ const REACTOR_CLASSES = Object.freeze({
     min_acres: 500, volt_profile: "large", dry_cooling_viable: false,
     spec_source: "https://westinghousenuclear.com/new-plants/ap1000-pwr/overview/",
     water_source: "https://www.energy.gov/sites/default/files/EIS-0476-FEIS_Part1-2012.pdf",
-    water_basis: "Vogtle 3&4 FEIS as-built record: 26.8 MGD withdrawal / 20.1 MGD (31.1 cfs) consumptive per unit, natural-draft towers",
+    water_basis: "Vogtle 3&4 licensing EIS (proposed units): 26.8 MGD withdrawal / 20.1 MGD (31.1 cfs) consumptive per unit, natural-draft towers",
   }),
   apr1400: Object.freeze({
     label: "APR1400", group: "Large PWR", mwe: 1400,
@@ -14,7 +14,7 @@ const REACTOR_CLASSES = Object.freeze({
     min_acres: 500, volt_profile: "large", dry_cooling_viable: false,
     spec_source: "https://www.nrc.gov/reactors/new-reactors/large-lwr/design-cert/apr1400.html",
     water_source: "https://www.energy.gov/sites/default/files/EIS-0476-FEIS_Part1-2012.pdf",
-    water_basis: "Linear per-MWe scaling of the Vogtle 3&4 record (31.1 cfs × 1400/1117) — no US APR1400 EIS exists; comparable thermal efficiency",
+    water_basis: "Estimate: Vogtle 3&4 figure scaled by output (31.1 cfs × 1400/1117); no US APR1400 EIS exists",
   }),
   ap300: Object.freeze({
     label: "AP300-class SMR", group: "SMR", mwe: 330,
@@ -30,7 +30,7 @@ const REACTOR_CLASSES = Object.freeze({
     min_acres: 20, volt_profile: "micro", dry_cooling_viable: null,
     spec_source: "https://www.army.mil/article/289074/army_announces_next_steps_on_janus_program_for_next_generation_nuclear_energy",
     water_source: "https://www.army.mil/article/289074/army_announces_next_steps_on_janus_program_for_next_generation_nuclear_energy",
-    water_basis: "Unassessed: the Army is soliciting commercial concepts and has not paired reactor designs with installations; cooling technology and water demand remain vendor-specific",
+    water_basis: "Unassessed: the Army paired five vendors with five bases in Aug 2026, but cooling technology and water demand are vendor-specific and unpublished",
   }),
 });
 const MICRO_MIN_ACRES = 5;

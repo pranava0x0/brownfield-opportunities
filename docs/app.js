@@ -11,6 +11,9 @@ const BRAC_DATA_URL = "data/dod-brac.json";
 const REDEV_DATA_URL = "data/epa-redev.json";
 const SUPERFUND_DOCS_URL = "data/epa-superfund-docs.json";
 const INFRA_DATA_URL = "data/infra-proximity.json";
+// Distances only (scripts/build_infra_core.py); loaded at startup. The full
+// file with asset ids and source metadata loads when a site panel opens.
+const INFRA_CORE_URL = "data/infra-proximity-core.json";
 const OPP_ZONE_URL = "data/opportunity-zone.json";
 const TRIBAL_AREAS_URL = "data/tribal-areas.json";
 const CLIMATE_ZONE_URL = "data/climate-zone.json";
@@ -26,6 +29,7 @@ const RETIRED_INDUSTRIAL_URL = "data/retired-industrial.json";
 const PLANNED_RETIREMENTS_URL = "data/planned-retirements.json";
 const PLANNED_RETIRE_PROX_URL = "data/planned-retirements-proximity.json";
 const COORD_QUALITY_URL = "data/coord-quality.json";
+const ACREAGE_FLAGS_URL = "data/acreage-flags.json";
 const IRA_EC_URL = "data/ira-energy-community.json";
 const AP1000_SITES_URL = "data/ap1000-sites.json";
 const NUCLEAR_SITES_URL = "data/nuclear-civilian-sites.json";
@@ -35,6 +39,7 @@ const JANUS_NEPA_URL = "data/janus-nepa.json";
 const FEMA_NRI_URL = "data/fema-nri.json";
 const COAL_CONVERSIONS_URL = "data/coal-conversions.json";
 const COAL_PROX_URL = "data/coal-conversions-proximity.json";
+const COAL_PLANTS_URL = "data/coal-plants.json";
 const FEDERAL_CLEAN_ENERGY_URL = "data/federal-clean-energy.json";
 const HANFORD_E2E_URL = "data/hanford-e2e.json";
 const COAL_NEPA_URL = "data/coal-nepa.json";
@@ -360,7 +365,6 @@ const DC_TIERS = [
   { id: "colo",       label: "25+ acres · 138 kV nearby", minAcres: 25, maxTxMi: 1.0, minKv: 138, color: "var(--accent)" },
   { id: "edge",       label: "5+ acres · mapped line nearby", minAcres: 5, maxTxMi: 1.0, minKv: 0, color: "var(--accent)" },
 ];
-const DC_TIER_LABEL = Object.fromEntries(DC_TIERS.map((t) => [t.id, t.label]));
 // Persona presets surface the same ladder as one-tap filters in the strip.
 // `?dc_tier=hyperscale` round-trips through the URL; `Reset` clears it.
 const PERSONA_PRESETS = [...DC_TIERS].slice().reverse(); // edge → mega for UI
@@ -554,6 +558,17 @@ const sitesById = new Map();
 // is already in this set; populated by ingestSites() so the existence check
 // doesn't require an O(n) sites.some() scan over up to 47k records.
 const loadedPrograms = new Set();
+// Program files that failed to load; the screens report them instead of
+// ranking a partial corpus.
+const programLoadErrors = new Set();
+// Joins the screens need, re-applied when a program loads after them.
+function applyCoreScreenJoins() {
+  if (infraCorePayload) applyInfraPayload(infraCorePayload, INFRA_CORE_URL, {onlyUnchecked: true});
+  if (infraFullPayload) applyInfraPayload(infraFullPayload, INFRA_DATA_URL, {onlyUnchecked: true});
+  if (acreageFlagsPayload) applyAcreageFlags(acreageFlagsPayload);
+  if (coordQualityPayload) applyCoordQuality(coordQualityPayload);
+  if (parcelOwnerPayload) applyParcelOwner(parcelOwnerPayload);
+}
 let selectedId = null;
 let sortKey = "acreage";
 let sortDir = "desc";
@@ -761,38 +776,24 @@ function evidenceDetails(s, lens = "dc") {
   if (lens === "micro") keys.push("demand", "regulatory");
   if (lens === "nickel") keys.push("feedstock");
   const note = s._evidenceInvalidation ? `<p class="evidence-invalidation">Location changed in the source. ${s._evidenceInvalidation.clear_fields.length} stale fields withheld pending recomputation. <a href="${INVALIDATIONS_URL}" target="_blank" rel="noopener">Change record</a></p>` : s._evidenceValidationUnavailable ? "<p>Coordinate validation unavailable; geographic evidence withheld.</p>" : "";
-  return `${note}<div class="evidence-details">${keys.map(k => {
+  // Findings first; categories with no evidence collapse into one line.
+  const known = keys.filter(k => a[k].status !== "unknown");
+  const unknown = keys.filter(k => a[k].status === "unknown");
+  const missing = unknown.length ? `<details class="evidence-missing"><summary><strong>Not assessed:</strong> ${unknown.map(k => escapeHtml(a[k].label.toLowerCase())).join(", ")}</summary><ul>`
+    + unknown.map(k => `<li data-category="${k}"><strong>${escapeHtml(a[k].label)}.</strong> ${escapeHtml(a[k].reason)}</li>`).join("") + `</ul></details>` : "";
+  return `${note}<div class="evidence-details">${known.map(k => {
     const e = a[k];
     return `<details class="evidence-category" data-category="${k}"><summary><strong>${escapeHtml(e.label)}</strong> ${evidenceCell(e)}</summary>`
       + `<p>${escapeHtml(e.reason)}</p>${e.sources.map((u,i) => `<a href="${escapeAttr(u)}" target="_blank" rel="noopener">Source${e.sources.length > 1 ? " " + (i+1) : ""} ↗</a>`).join(" · ")}</details>`;
-  }).join("")}</div>`;
+  }).join("")}${missing}</div>`;
 }
 function evidenceNameOrder(a,b) { return String(a.name || a.id).localeCompare(String(b.name || b.id)) || String(a.id).localeCompare(String(b.id)); }
-function evidenceRow(s, lens = "dc") {
-  sanitizeGeographicEvidence(s);
-  const tr = document.createElement("tr"); tr.dataset.id = s.id;
-  const a = SiteEvidence.assessSite(s,lens);
-  tr.innerHTML = `<td class="cand-name"><button class="site-evidence-open" type="button">${escapeHtml(s.name || s.id)}</button><span class="micro-sub">${escapeHtml([s.city,s.state].filter(Boolean).join(", "))} · ${escapeHtml(PROGRAM_LABEL[s.program] || s.program || "")}</span></td>`
-    + SiteEvidence.PRIMARY.map(k => `<td data-category="${k}" data-label="${SiteEvidence.LABELS[k]}">${evidenceCell(a[k])}</td>`).join("");
-  tr.addEventListener("click", () => selectSite(s.id,{fromTable:true}));
-  return tr;
-}
 function evidenceCsvColumns(pick = s => s) {
   return Object.keys(SiteEvidence.LABELS).flatMap(key => ["finding","confidence","reason","sources"].map(field => ({
     label: `${key}_${field}`, compute: (row, assessment) => {const e=(assessment || SiteEvidence.assessSite(pick(row)))[key]; return field === "sources" ? e.sources.join(" | ") : e[field] || "Unknown";}
   })));
 }
 
-function updateKpiDeck() {
-  const pool = tableState?.filtered || sites;
-  const set = (id,n) => {if (el(id)) el(id).textContent = fmt.compact(n);};
-  set("kpi-total", pool.length); set("kpi-summary-total",pool.length);
-  set("kpi-acres",pool.filter(s => s.acreage != null || s.parcel_acreage != null).length);
-  set("kpi-dc",pool.filter(s => s.transmission_mi != null || s.substation_mi != null).length);
-  set("kpi-hyperscale",pool.filter(s => s.water_gage_mi != null).length);
-  set("kpi-generation",pool.filter(s => !!s.fiber_source_url).length);
-  set("kpi-summary-dc",pool.filter(s => s.acreage == null && s.parcel_acreage == null).length);
-}
 
 // Active-filter chip count on the gear icon. Also updates aria-label on the
 // filter button so screen readers know the active count.
@@ -839,9 +840,7 @@ function updateFilterChip() {
     count++;
     active.push("Cleanup / transfer reported");
   }
-  const evidenceStatus=el("evidence-status-filter")?.value;
-  const evidenceConfidence=el("evidence-confidence-filter")?.value;
-  if(evidenceStatus || evidenceConfidence) {count++; active.push(`${SiteEvidence.LABELS[el("evidence-category-filter")?.value] || "Evidence"}: ${[evidenceStatus,evidenceConfidence].filter(Boolean).join(" / ")}`);}
+  if (el("screen-all-met")?.checked) { count++; active.push("Every check met"); }
   const chip = el("filters-chip");
   const btn = el("filters-toggle");
   if (chip) {
@@ -871,66 +870,8 @@ function colorForRecord(s) {
   return cssColor(cssVar);
 }
 
-// ----- JTBD quick-start strip -----
-//
-// "What are you siting?" → one click routes to the view + lens that answers
-// it. Routing deliberately CLICKS the real tab / lens buttons rather than
-// duplicating their logic, so lens state, the active-button classes, the
-// rebuild, and the ?lens= URL sync all stay on one code path.
-const JTBD_ROUTES = {
-  dc:      { lens: "dc",  tab: "tab-candidates" },
-  gen:     { lens: "gen", tab: "tab-candidates" },
-  mfg:     { lens: "mfg", tab: "tab-candidates" },
-  reactor: { lens: null,  tab: "tab-ap1000" },
-};
-const JTBD_DISMISS_KEY = "jtbdDismissed";
-
-function jtbdIsDismissed() {
-  try {
-    return localStorage.getItem(JTBD_DISMISS_KEY) === "1";
-  } catch {
-    return false; // private mode / storage disabled — show the strip
-  }
-}
-
-// Runs at top level (alongside loadInitialTheme) rather than inside the boot
-// .then() so a dismissed strip never flashes before the data fetch resolves.
-function hideJtbdIfDismissed() {
-  if (!jtbdIsDismissed()) return;
-  const strip = el("jtbd-strip");
-  if (strip) strip.hidden = true;
-}
-
-function wireJtbdStrip() {
-  const strip = el("jtbd-strip");
-  if (!strip) return;
-  for (const btn of strip.querySelectorAll("[data-jtbd]")) {
-    btn.addEventListener("click", () => {
-      const route = JTBD_ROUTES[btn.dataset.jtbd];
-      if (!route) return;
-      // Lens first, then tab: setting the lens while the view is inactive
-      // skips a throwaway build, and the tab activation then renders once
-      // with the right lens.
-      if (route.lens) {
-        const lensBtn = document.querySelector(`[data-cand-lens="${route.lens}"]`);
-        if (lensBtn) lensBtn.click();
-      }
-      const tabBtn = el(route.tab);
-      if (tabBtn) tabBtn.click();
-    });
-  }
-  const dismiss = el("jtbd-dismiss");
-  if (dismiss) {
-    dismiss.addEventListener("click", () => {
-      try { localStorage.setItem(JTBD_DISMISS_KEY, "1"); } catch { /* storage disabled */ }
-      strip.hidden = true;
-    });
-  }
-}
-
 // ----- Boot -----
 loadInitialTheme();
-hideJtbdIfDismissed();
 loadInitialFiltersFromUrl();
 fetch(PRIMARY_DATA_URL)
   .then((r) => {
@@ -943,20 +884,17 @@ fetch(PRIMARY_DATA_URL)
     updateMetaText({
       loadingLabel: filterState.programs.has("brownfield") ? "brownfields" : null,
     });
-    updateKpiDeck();
     try { initMap(); } catch (e) { console.error("initMap error (non-fatal):", e); }
     populateStatusFilter();
     populateStateFilter();
     populateIsoRtoFilter();
     rebuildTable();
     wireTabs();
-    wireJtbdStrip();
     wireCandidatesFilters();
     wireDetailPanel();
     wireSearch();
     wireFilters();
     wirePersonaButtons();
-    wireKpiClicks();
     wireEvidenceDisclosure();
     wireNearbyClicks();
     wireExportCsv();
@@ -998,13 +936,14 @@ fetch(PRIMARY_DATA_URL)
     lazyLoads.push(ensureEvidenceInvalidationsLoaded());
     lazyLoads.push(ensureRedevLoaded());
     lazyLoads.push(ensureInfraLoaded());
-    lazyLoads.push(ensureOppZoneLoaded());
-    lazyLoads.push(ensureIsoRtoLoaded());
+    // Opportunity Zone and ISO/RTO joins only feed filters and the site
+    // panel; load them at boot only when the URL already filters on them.
+    if (filterState.oppZone) lazyLoads.push(ensureOppZoneLoaded());
+    if (filterState.isoRto) lazyLoads.push(ensureIsoRtoLoaded());
     lazyLoads.push(ensureParcelOwnerLoaded());
     lazyLoads.push(ensureAcresCleanupLoaded());
     lazyLoads.push(ensureCoordQualityLoaded());
-    // Water is part of the category evidence needed for initial exploration.
-    lazyLoads.push(ensureWaterProximityLoaded());
+    lazyLoads.push(ensureAcreageFlagsLoaded());
     lazyLoads.push(ensureSiteEvidencePilotsLoaded());
     applyUrlSelection();
     if (lazyLoads.length === 0) {
@@ -1023,12 +962,13 @@ fetch(PRIMARY_DATA_URL)
 const INVALIDATIONS_URL = "data/evidence-invalidations.json";
 let evidenceInvalidations = {};
 let invalidationsFailed = false;
+let invalidationsLoaded = false;
 let invalidationsPromise = null;
 function ensureEvidenceInvalidationsLoaded() {
   if (invalidationsPromise) return invalidationsPromise;
   invalidationsPromise = fetch(INVALIDATIONS_URL).then(r => {if(!r.ok) throw new Error(`HTTP ${r.status}`); return r.json();}).then(payload => {
     if(payload.schema_version !== 1 || !payload.by_id) throw new Error("Invalid coordinate evidence manifest");
-    evidenceInvalidations = payload.by_id; invalidationsFailed = false;
+    evidenceInvalidations = payload.by_id; invalidationsFailed = false; invalidationsLoaded = true;
     recordRefreshDate(payload.generated_at, INVALIDATIONS_URL);
     return Promise.allSettled([acresLoadingPromise,fudsLoadingPromise,bracLoadingPromise].filter(Boolean));
   }).then(() => {applyFilter(); if(selectedId) selectSite(selectedId);}).catch(error => {
@@ -1037,6 +977,8 @@ function ensureEvidenceInvalidationsLoaded() {
   });
   return invalidationsPromise;
 }
+// Per-voltage line distances (infra_proximity.line_threshold_fields).
+const LINE_KV_FIELDS = ["transmission_69kv_mi", "transmission_115kv_mi", "transmission_230kv_mi", "transmission_unknown_kv_mi"];
 function sanitizeGeographicEvidence(site) {
   const invalidation = evidenceInvalidations[site.id];
   if (invalidation?.invalidate) {
@@ -1045,7 +987,7 @@ function sanitizeGeographicEvidence(site) {
     site._evidenceInvalidation = invalidation;
   }
   if (invalidationsFailed) {
-    for (const field of ["transmission_mi","transmission_kv","substation_mi","substation_kv","rail_mi","highway_mi","water_gage_mi","water_flow_cfs","port_mi","shipyard_mi","parcel_acreage","in_sfha"]) delete site[field];
+    for (const field of ["transmission_mi","transmission_kv",...LINE_KV_FIELDS,"substation_mi","substation_kv","rail_mi","highway_mi","water_gage_mi","water_flow_cfs","water_100cfs_gage_mi","water_100cfs_flow_cfs","port_mi","shipyard_mi","parcel_acreage","in_sfha"]) delete site[field];
     site._evidenceValidationUnavailable = true;
   }
   return site;
@@ -1114,13 +1056,14 @@ function ensureAcresLoaded() {
       populateStateFilter();
       rebuildTable();
       rerenderLegend();
-      updateKpiDeck();
       // Chunk marker hydration so the main thread stays responsive while
       // the 36k ACRES markers light up. We resolve `acresLoadingPromise`
       // (and dispatch `brownfield:ready`) only after the last batch lands.
       return hydrateMarkersChunked(payload.sites || []).then(() => {
         // Re-apply enrichment joins that may have landed while this program
         // was skipped by a `?program=` URL (see applyCoalProxJoin).
+        programLoadErrors.delete("brownfield");
+        applyCoreScreenJoins();
         applyCoalProxJoin();
         applyPortProximityJoin({ refresh: true });
         applyWaterProximityJoin({ refresh: true });
@@ -1135,6 +1078,8 @@ function ensureAcresLoaded() {
       if (node) node.textContent += ` · brownfields failed (${err.message})`;
       console.error(err);
       acresLoadingPromise = null; // allow retry
+      programLoadErrors.add("brownfield");
+      maybeRefreshCandidates();
     });
   return acresLoadingPromise;
 }
@@ -1154,8 +1099,9 @@ function ensureFudsLoaded() {
       populateStateFilter();
       rebuildTable();
       rerenderLegend();
-      updateKpiDeck();
       return hydrateMarkersChunked(payload.sites || []).then(() => {
+        programLoadErrors.delete("fuds");
+        applyCoreScreenJoins();
         applyCoalProxJoin(); // late-program re-apply (see its comment)
         applyPortProximityJoin({ refresh: true });
         applyWaterProximityJoin({ refresh: true });
@@ -1166,6 +1112,8 @@ function ensureFudsLoaded() {
     .catch((err) => {
       console.error("FUDS load failed:", err);
       fudsLoadingPromise = null;
+      programLoadErrors.add("fuds");
+      maybeRefreshCandidates();
     });
   return fudsLoadingPromise;
 }
@@ -1185,8 +1133,9 @@ function ensureBracLoaded() {
       populateStateFilter();
       rebuildTable();
       rerenderLegend();
-      updateKpiDeck();
       addMarkersForRecords(payload.sites || []);
+      programLoadErrors.delete("brac");
+      applyCoreScreenJoins();
       applyCoalProxJoin(); // late-program re-apply (see its comment)
       applyPortProximityJoin({ refresh: true });
       applyWaterProximityJoin({ refresh: true });
@@ -1196,6 +1145,8 @@ function ensureBracLoaded() {
     .catch((err) => {
       console.error("BRAC load failed:", err);
       bracLoadingPromise = null;
+      programLoadErrors.add("brac");
+      maybeRefreshCandidates();
     });
   return bracLoadingPromise;
 }
@@ -1225,7 +1176,6 @@ function ensureRedevLoaded() {
         Object.assign(existing, patch);
       }
       // DC candidate count + acreage totals can change after enrichment.
-      updateKpiDeck();
     })
     .catch((err) => {
       console.error("Redev enrichment load failed:", err);
@@ -1309,11 +1259,15 @@ function ensureEchoLoaded() {
 // program-provided owner (e.g. FUDS's USACE current_owner); only populate the
 // ~38k sites that have none. The detail panel's owner row + source line pick
 // these up automatically (no extra wiring).
+// Required by the screens: parcel area is the only land size for most ACRES sites.
+let parcelOwnerLoaded = false;
+let parcelOwnerFailed = false;
+let parcelOwnerPayload = null;
 function ensureParcelOwnerLoaded() {
   if (parcelOwnerLoadingPromise) return parcelOwnerLoadingPromise;
+  parcelOwnerFailed = false;
   parcelOwnerLoadingPromise = fetch(PARCEL_OWNER_URL, { priority: "low" })
     .then((r) => {
-      if (r.status === 404) return { sites: [] };
       if (!r.ok) throw new Error("HTTP " + r.status);
       return r.json();
     })
@@ -1324,26 +1278,10 @@ function ensureParcelOwnerLoaded() {
       await Promise.allSettled(
         [acresLoadingPromise, fudsLoadingPromise, bracLoadingPromise].filter(Boolean)
       );
-      for (const rec of payload.sites || []) {
-        const existing = sitesById.get(rec.id);
-        if (!existing) continue;
-        // Owner: fill-if-empty (don't clobber a source-provided owner, e.g. FUDS).
-        if (rec.current_owner && !existing.current_owner) {
-          existing.current_owner = rec.current_owner;
-          existing.current_owner_source = rec.current_owner_source || "Public parcel records";
-        }
-        // Parcel acreage / id: the actual developable land size from the
-        // cadastral parcel. The only land-size signal for ACRES sites
-        // (acreage == null). Fill-if-empty so a program-reported parcel value
-        // (none today) would win.
-        if (rec.parcel_acreage != null && existing.parcel_acreage == null) {
-          existing.parcel_acreage = rec.parcel_acreage;
-          existing.parcel_id = rec.parcel_id || null;
-          if (!existing.current_owner_source) {
-            existing.current_owner_source = rec.current_owner_source || "Public parcel records";
-          }
-        }
-      }
+      parcelOwnerPayload = payload;
+      applyParcelOwner(payload);
+      parcelOwnerLoaded = true;
+      maybeRefreshCandidates();
       // Re-render an already-open detail panel so the owner row goes live the
       // moment this lazy load lands (matches the docs / summary / infra loaders).
       if (selectedId && sitesById.has(selectedId)) {
@@ -1353,8 +1291,32 @@ function ensureParcelOwnerLoaded() {
     .catch((err) => {
       console.error("Parcel-owner enrichment load failed:", err);
       parcelOwnerLoadingPromise = null;
+      parcelOwnerFailed = true;
+      maybeRefreshCandidates();
     });
   return parcelOwnerLoadingPromise;
+}
+function applyParcelOwner(payload) {
+  for (const rec of payload.sites || []) {
+    const existing = sitesById.get(rec.id);
+    if (!existing) continue;
+    // Owner: fill-if-empty (don't clobber a source-provided owner, e.g. FUDS).
+    if (rec.current_owner && !existing.current_owner) {
+      existing.current_owner = rec.current_owner;
+      existing.current_owner_source = rec.current_owner_source || "Public parcel records";
+    }
+    // Parcel acreage / id: the actual developable land size from the
+    // cadastral parcel. The only land-size signal for ACRES sites
+    // (acreage == null). Fill-if-empty so a program-reported parcel value
+    // (none today) would win.
+    if (rec.parcel_acreage != null && existing.parcel_acreage == null) {
+      existing.parcel_acreage = rec.parcel_acreage;
+      existing.parcel_id = rec.parcel_id || null;
+      if (!existing.current_owner_source) {
+        existing.current_owner_source = rec.current_owner_source || "Public parcel records";
+      }
+    }
+  }
 }
 
 // AI-generated site summaries (Claude Haiku output). Per-site 3-paragraph
@@ -1558,52 +1520,79 @@ function siteIsAvailable(s) {
 // NFHL by the `infra-proximity` connector. Distances >100 mi are absent
 // (treated as out-of-range / out-of-CONUS); flood_zone is null outside any
 // mapped FEMA study area.
+let infraCoreLoaded = false;
+let infraCoreFailed = false;
 function ensureInfraLoaded() {
   if (infraLoadingPromise) return infraLoadingPromise;
-  infraLoadingPromise = fetch(INFRA_DATA_URL, { priority: "low" })
+  infraCoreFailed = false;
+  infraLoadingPromise = fetchInfra(INFRA_CORE_URL)
+    .then(() => { infraCoreLoaded = true; maybeRefreshCandidates(); })
+    .catch((err) => {
+      console.error("Infra-proximity core load failed:", err);
+      infraLoadingPromise = null;
+      infraCoreFailed = true;
+      maybeRefreshCandidates();
+    });
+  return infraLoadingPromise;
+}
+let infraEvidencePromise = null;
+function ensureInfraEvidenceLoaded() {
+  if (infraEvidencePromise) return infraEvidencePromise;
+  infraEvidencePromise = fetchInfra(INFRA_DATA_URL)
+    .catch((err) => {
+      console.error("Infra-proximity evidence load failed:", err);
+      infraEvidencePromise = null;
+    });
+  return infraEvidencePromise;
+}
+function fetchInfra(url) {
+  return fetch(url, { priority: "low" })
     .then((r) => {
-      if (r.status === 404) return { sites: [] };
+      // Required screen input: a 404 is a failed load, not an empty payload.
       if (!r.ok) throw new Error("HTTP " + r.status);
       return r.json();
     })
     .then(async (payload) => {
-      recordRefreshDate(payload.generated_at, INFRA_DATA_URL);
-      // infra-proximity.json is large enough to usually resolve AFTER ACRES/
-      // FUDS/BRAC, which is why this join "accidentally" worked — but that's
-      // file-size luck, not a guarantee (load-order race, see CLAUDE.md).
+      recordRefreshDate(payload.generated_at, url);
       // Wait on the in-flight program loads first so the `!existing` guard
-      // below can't silently drop every non-Superfund join.
+      // below can't silently drop every non-Superfund join (load-order race,
+      // see CLAUDE.md).
       await Promise.allSettled(
         [acresLoadingPromise, fudsLoadingPromise, bracLoadingPromise].filter(Boolean)
       );
-      for (const rec of payload.sites || []) {
-        const existing = sitesById.get(rec.id);
-        if (!existing) continue;
-        const patch = {_infraSourceMetadata: payload.source_metadata || {}, infra_evidence: rec.infra_evidence || {}};
-        const fields = ["transmission_mi","transmission_kv","substation_mi","substation_kv","substation_role","rail_mi","highway_mi","gas_pipeline_mi","power_plant_mi","power_plant_mw","power_plant_fuel","power_plant_name","flood_zone","in_sfha","transmission_asset_id","substation_asset_id","power_plant_asset_id","infra_assessed_lat","infra_assessed_lon"];
-        for (const key of fields) {
-          // New evidence payloads replace their layer fields, including cleared
-          // observations. Otherwise a removed/inferred voltage survives the join.
-          if (rec.infra_evidence || rec[key] != null) patch[key] = rec[key] ?? null;
-        }
-        patch.power_plant_name = rec.power_plant_name || payload.source_metadata?.power_plant?.assets_by_id?.[rec.power_plant_asset_id]?.name || null;
-        patch._infraChecked = true;
-        Object.assign(existing, patch);
-      }
-      // Re-run KPI deck (hyperscale-ready count depends on transmission_kv)
-      // and re-render an open detail panel so the new pill / chip lights up
-      // without requiring the user to reselect the site.
-      updateKpiDeck();
+      if (url === INFRA_CORE_URL) infraCorePayload = payload;
+      else if (url === INFRA_DATA_URL) infraFullPayload = payload;
+      applyInfraPayload(payload, url);
       maybeRefreshMicro();
+      maybeRefreshCandidates();
       if (selectedId && sitesById.has(selectedId)) {
         try { selectSite(selectedId); } catch {}
       }
-    })
-    .catch((err) => {
-      console.error("Infra-proximity enrichment load failed:", err);
-      infraLoadingPromise = null;
     });
-  return infraLoadingPromise;
+}
+// Kept so a program that loads after the join (a retry, or a program enabled
+// after a ?program= URL) still gets its infrastructure fields.
+let infraCorePayload = null;
+let infraFullPayload = null;
+function applyInfraPayload(payload, url, {onlyUnchecked = false} = {}) {
+  const full = url === INFRA_DATA_URL;
+  for (const rec of payload.sites || []) {
+    const existing = sitesById.get(rec.id);
+    if (!existing || (onlyUnchecked && (full ? existing._infraFull : existing._infraChecked))) continue;
+    const patch = {};
+    if (full || !existing._infraSourceMetadata) patch._infraSourceMetadata = payload.source_metadata || {};
+    if (full) patch.infra_evidence = rec.infra_evidence || {};
+    const fields = ["transmission_mi","transmission_kv",...LINE_KV_FIELDS,"substation_mi","substation_kv","substation_role","rail_mi","highway_mi","gas_pipeline_mi","power_plant_mi","power_plant_mw","power_plant_fuel","power_plant_name","flood_zone","in_sfha","transmission_asset_id","substation_asset_id","power_plant_asset_id","infra_assessed_lat","infra_assessed_lon"];
+    for (const key of fields) {
+      // New evidence payloads replace their layer fields, including cleared
+      // observations. Otherwise a removed/inferred voltage survives the join.
+      if (rec.infra_evidence || rec[key] != null) patch[key] = rec[key] ?? null;
+    }
+    if (full) patch.power_plant_name = rec.power_plant_name || payload.source_metadata?.power_plant?.assets_by_id?.[rec.power_plant_asset_id]?.name || null;
+    patch._infraChecked = true;
+    if (full) patch._infraFull = true;
+    Object.assign(existing, patch);
+  }
 }
 
 // Port / shipyard proximity enrichment (connectors/port_proximity.py). Joins
@@ -1666,7 +1655,7 @@ function ensurePortProximityLoaded() {
   if (portProximityLoadingPromise) return portProximityLoadingPromise;
   portProximityLoadingPromise = fetch(PORT_PROXIMITY_URL, { priority: "low" })
     .then((r) => {
-      if (r.status === 404) return { sites: [] };
+      // Required screen input: a 404 is a failed load, not "no sites".
       if (!r.ok) throw new Error("HTTP " + r.status);
       return r.json();
     })
@@ -1719,7 +1708,6 @@ function ensureOppZoneLoaded() {
         if (rec.oz_tract_geoid != null) existing.oz_tract_geoid = rec.oz_tract_geoid;
         if (rec.oz_rural != null) existing.oz_rural = rec.oz_rural;
       }
-      updateKpiDeck();
       // Re-run filter so sites that flipped IN/OUT of OZ visibility update.
       if (typeof applyFilter === "function") applyFilter();
       if (selectedId && sitesById.has(selectedId)) {
@@ -1975,11 +1963,26 @@ function ensureRetiredPlantsLoaded() {
 // program loads the `!existing` guard would silently drop every ACRES / FUDS
 // / BRAC flag — which is most of them, since ACRES is where the bad
 // coordinates concentrate.
+let coordQualityPayload = null;
+function applyCoordQuality(payload) {
+  for (const rec of payload.sites || []) {
+    const existing = sitesById.get(rec.id);
+    if (!existing) continue;
+    if (rec.coord_flags)                  existing.coord_flags = rec.coord_flags;
+    if (rec.coord_actual_state)           existing.coord_actual_state = rec.coord_actual_state;
+    if (rec.coord_state_gap_mi != null)   existing.coord_state_gap_mi = rec.coord_state_gap_mi;
+    if (rec.coord_shared_count != null)   existing.coord_shared_count = rec.coord_shared_count;
+  }
+}
+// Required by the screens: parcel area only counts when the site's point is
+// not a shared or imprecise geocode, which these flags say.
+let coordQualityLoaded = false;
+let coordQualityFailed = false;
 function ensureCoordQualityLoaded() {
   if (coordQualityLoadingPromise) return coordQualityLoadingPromise;
+  coordQualityFailed = false;
   coordQualityLoadingPromise = fetch(COORD_QUALITY_URL, { priority: "low" })
     .then((r) => {
-      if (r.status === 404) return { sites: [] };
       if (!r.ok) throw new Error("HTTP " + r.status);
       return r.json();
     })
@@ -1988,14 +1991,10 @@ function ensureCoordQualityLoaded() {
       await Promise.allSettled(
         [acresLoadingPromise, fudsLoadingPromise, bracLoadingPromise].filter(Boolean)
       );
-      for (const rec of payload.sites || []) {
-        const existing = sitesById.get(rec.id);
-        if (!existing) continue;
-        if (rec.coord_flags)                  existing.coord_flags = rec.coord_flags;
-        if (rec.coord_actual_state)           existing.coord_actual_state = rec.coord_actual_state;
-        if (rec.coord_state_gap_mi != null)   existing.coord_state_gap_mi = rec.coord_state_gap_mi;
-        if (rec.coord_shared_count != null)   existing.coord_shared_count = rec.coord_shared_count;
-      }
+      coordQualityPayload = payload;
+      applyCoordQuality(payload);
+      coordQualityLoaded = true;
+      maybeRefreshCandidates();
       if (selectedId && sitesById.has(selectedId)) {
         try { selectSite(selectedId); } catch {}
       }
@@ -2003,8 +2002,56 @@ function ensureCoordQualityLoaded() {
     .catch((err) => {
       console.error("Coordinate-quality load failed:", err);
       coordQualityLoadingPromise = null;
+      coordQualityFailed = true;
+      maybeRefreshCandidates();
     });
   return coordQualityLoadingPromise;
+}
+
+// Acreage that describes a county, a region, a river or a groundwater plume
+// rather than a parcel (scripts/check_acreage_artifacts.py). The screens
+// treat flagged acreage as unknown; the detail panel says why.
+// The file is a required screen input: until it loads, program acreage is
+// withheld from the screens so a county outline never passes a land check.
+let acreageFlagsLoadingPromise = null;
+let acreageFlagsLoaded = false;
+let acreageFlagsFailed = false;
+function ensureAcreageFlagsLoaded() {
+  if (acreageFlagsLoadingPromise) return acreageFlagsLoadingPromise;
+  acreageFlagsFailed = false;
+  acreageFlagsLoadingPromise = fetch(ACREAGE_FLAGS_URL, { priority: "low" })
+    .then((r) => {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then(async (payload) => {
+      recordRefreshDate(payload.generated_at, ACREAGE_FLAGS_URL);
+      await Promise.allSettled([acresLoadingPromise, fudsLoadingPromise, bracLoadingPromise].filter(Boolean));
+      acreageFlagsPayload = payload;
+      applyAcreageFlags(payload);
+      acreageFlagsLoaded = true;
+      maybeRefreshCandidates();
+      if (selectedId && sitesById.has(selectedId)) {
+        try { selectSite(selectedId); } catch {}
+      }
+    })
+    .catch((err) => {
+      console.error("Acreage-flag load failed:", err);
+      acreageFlagsLoadingPromise = null;
+      acreageFlagsFailed = true;
+      maybeRefreshCandidates();
+    });
+  return acreageFlagsLoadingPromise;
+}
+
+let acreageFlagsPayload = null;
+function applyAcreageFlags(payload) {
+  for (const rec of payload.sites || []) {
+    const existing = sitesById.get(rec.id);
+    if (!existing) continue;
+    existing.acreage_flag = rec.acreage_flag;
+    existing.acreage_flag_county = rec.acreage_flag_county;
+  }
 }
 
 function ensurePlannedRetireProxLoaded() {
@@ -2149,7 +2196,7 @@ function ensureWaterProximityLoaded() {
   if (waterProximityLoadingPromise) return waterProximityLoadingPromise;
   waterProximityLoadingPromise = fetch(WATER_PROXIMITY_URL, { priority: "low" })
     .then((r) => {
-      if (r.status === 404) return { sites: [] };
+      // Required screen input: a 404 is a failed load, not "no sites".
       if (!r.ok) throw new Error("HTTP " + r.status);
       return r.json();
     })
@@ -2570,7 +2617,6 @@ function ensureCoalConversionsLoaded() {
         const marker = L.marker([s.latitude, s.longitude], { icon, zIndexOffset: 410 });
         coalMarkersByName.set(s.plant_name, marker);
         const place = [s.county, s.state].filter(Boolean).join(" County, ");
-        const strandedM = (s.est_stranded_asset_value_usd / 1_000_000).toFixed(1);
         const statusLabel = COAL_STATUS_LABELS[s.status] || s.status;
         marker.bindPopup(
           `<div class="ref-campus-popup">` +
@@ -2578,7 +2624,6 @@ function ensureCoalConversionsLoaded() {
           `<div class="ref-campus-company">${escapeHtml(Math.round(s.nameplate_coal_mw).toLocaleString())} MW Coal (${escapeHtml(statusLabel)}) · ${escapeHtml(s.switchyard_kv)} kV Switchyard</div>` +
           (place ? `<div class="ref-campus-prev">${escapeHtml(place)} · ${escapeHtml(s.iso_rto)}</div>` : "") +
           `<div class="ref-campus-meta">` +
-            `<span>Modeled value: ~$${strandedM}M</span>` +
             (s.has_water_intake ? `<span>Water intake</span>` : "") +
             (s.has_rail ? `<span>Rail loop</span>` : "") +
             (s.queue_transfer_eligible ? `<span style="color:var(--readiness-ready)">Interconnection review needed</span>` : "") +
@@ -2685,7 +2730,6 @@ function applyCoalProxJoin({ refresh = false } = {}) {
     if (rec.coal_conversion_switchyard_kv != null) existing.coal_conversion_switchyard_kv = rec.coal_conversion_switchyard_kv;
     if (rec.coal_conversion_rail != null) existing.coal_conversion_rail = rec.coal_conversion_rail;
     if (rec.coal_conversion_water != null) existing.coal_conversion_water = rec.coal_conversion_water;
-    if (rec.coal_conversion_stranded_val_usd != null) existing.coal_conversion_stranded_val_usd = rec.coal_conversion_stranded_val_usd;
     if (rec.coal_conversion_queue_fasttrack != null) existing.coal_conversion_queue_fasttrack = rec.coal_conversion_queue_fasttrack;
     applied++;
   }
@@ -3475,7 +3519,6 @@ function applyFilter() {
   refreshTableForFilter();
   updateCountText();
   updateFilterChip();
-  updateKpiDeck();
   // The candidates view sources from tableState.filtered — rebuild it when
   // it's the active tab so global filter changes apply live there too.
   maybeRefreshCandidates();
@@ -3760,6 +3803,8 @@ function openFiltersUi() {
   const backdrop = el("filters-backdrop");
   filters.hidden = false;
   toggle.setAttribute("aria-expanded", "true");
+  // The ISO/RTO and Opportunity Zone filters need their joins; fetch on first open.
+  ensureIsoRtoLoaded(); ensureOppZoneLoaded();
   if (FILTER_SHEET_MQ.matches && backdrop) backdrop.hidden = false;
   if (map) setTimeout(() => map.invalidateSize(), 50);
 }
@@ -3915,14 +3960,13 @@ function wireFilters() {
     filterState.minAcreage = 0;
     filterState.q = "";
     filterState.dcTier = "";
-    for (const id of ["evidence-status-filter","evidence-confidence-filter"]) if(el(id)) el(id).value="";
+    if (el("screen-all-met")) el("screen-all-met").checked = false;
     filterState.dcCandidate = false;
     filterState.oppZone = false;
     filterState.isoRto = "";
     filterState.availableOnly = false;
     el("search").value = "";
     refreshPersonaButtons();
-    refreshKpiActiveStates();
     // Reset must also un-check the OZ filter checkbox and available-only checkbox.
     const ozBox = el("f-opp-zone");
     if (ozBox) ozBox.checked = false;
@@ -3969,7 +4013,6 @@ function wirePersonaButtons() {
       filterState.dcTier = tier;
     }
     refreshPersonaButtons();
-    refreshKpiActiveStates();
     applyFilter();
     refitMapToFilters();
   });
@@ -3986,23 +4029,6 @@ function refreshPersonaButtons() {
   }
 }
 
-// KPI deck click-to-filter shortcuts. Two cells are wired:
-//   data-kpi="hyperscale" → toggle the Hyperscale persona filter
-//   data-kpi="dc"         → toggle the EPA RE-Powering DC candidate filter
-// The other three cells (total / acreage / states) are non-actionable —
-// they show overview metrics, not filterable predicates. Each actionable
-// cell gets `role="button"` + `tabindex=0` + keyboard activation so the
-// shortcut is a11y-equivalent to the filter panel.
-function wireKpiClicks() {
-  const map = {dc:"grid",hyperscale:"water",generation:"fiber",acreage:"land",acres:"land"};
-  for (const cell of document.querySelectorAll("#kpi-deck [data-kpi]")) {
-    const key=map[cell.dataset.kpi]; if(!key) continue;
-    cell.setAttribute("role","button"); cell.tabIndex=0;
-    const handler=()=>{window.__setView("candidates"); el("evidence-category-filter").value=key; el("evidence-status-filter").value="context"; el("evidence-confidence-filter").value=""; buildCandidatesView();};
-    cell.addEventListener("click",handler); cell.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();handler();}});
-  }
-}
-function refreshKpiActiveStates() {}
 
 function populateStateFilter() {
   const sel = el("f-state");
@@ -4313,10 +4339,7 @@ function wireTabs() {
   const retiredTab = el("tab-retired");
   const coalTab = el("tab-coal");
   const ap1000Tab = el("tab-ap1000");
-  const microTab = el("tab-micro");
   const hanfordTab = el("tab-hanford");
-  const maritimeTab = el("tab-maritime");
-  const nickelTab = el("tab-nickel");
   const aboutTab = el("tab-about");
   const setView = (which) => {
     const onMap = which === "map";
@@ -4325,17 +4348,14 @@ function wireTabs() {
     const onRetired = which === "retired";
     const onCoal = which === "coal";
     const onAp1000 = which === "ap1000";
-    const onMicro = which === "micro";
     const onHanford = which === "hanford";
-    const onMaritime = which === "maritime";
-    const onNickel = which === "nickel";
     const onAbout = which === "about";
     for (const [tab, active] of [
       [mapTab, onMap], [tableTab, onTable],
       [candidatesTab, onCandidates], [retiredTab, onRetired],
       [coalTab, onCoal],
-      [ap1000Tab, onAp1000], [microTab, onMicro],
-      [hanfordTab, onHanford], [maritimeTab, onMaritime], [nickelTab, onNickel], [aboutTab, onAbout],
+      [ap1000Tab, onAp1000],
+      [hanfordTab, onHanford], [aboutTab, onAbout],
     ]) {
       if (!tab) continue;
       tab.classList.toggle("active", active);
@@ -4347,10 +4367,7 @@ function wireTabs() {
     const retiredView = el("view-retired");
     const coalView = el("view-coal");
     const ap1000View = el("view-ap1000");
-    const microView = el("view-micro");
     const hanfordView = el("view-hanford");
-    const maritimeView = el("view-maritime");
-    const nickelView = el("view-nickel");
     const aboutView = el("view-about");
     if (mapView)        { mapView.classList.toggle("active", onMap);               mapView.hidden = !onMap; }
     if (tableView)      { tableView.classList.toggle("active", onTable);           tableView.hidden = !onTable; }
@@ -4358,13 +4375,10 @@ function wireTabs() {
     if (retiredView)    { retiredView.classList.toggle("active", onRetired);       retiredView.hidden = !onRetired; }
     if (coalView)       { coalView.classList.toggle("active", onCoal);             coalView.hidden = !onCoal; }
     if (ap1000View)     { ap1000View.classList.toggle("active", onAp1000);         ap1000View.hidden = !onAp1000; }
-    if (microView)      { microView.classList.toggle("active", onMicro);           microView.hidden = !onMicro; }
     if (hanfordView)    { hanfordView.classList.toggle("active", onHanford);       hanfordView.hidden = !onHanford; }
-    if (maritimeView)   { maritimeView.classList.toggle("active", onMaritime);     maritimeView.hidden = !onMaritime; }
-    if (nickelView)     { nickelView.classList.toggle("active", onNickel);         nickelView.hidden = !onNickel; }
     if (aboutView)      { aboutView.classList.toggle("active", onAbout);           aboutView.hidden = !onAbout; }
     const globalExportCsv = el("export-csv");
-    if (globalExportCsv) globalExportCsv.hidden = onAp1000 || onMicro || onCoal || onHanford || onMaritime || onNickel;
+    if (globalExportCsv) globalExportCsv.hidden = onAp1000 || onCoal || onHanford;
     // Search only makes sense against the corpus views that read
     // tableState.filtered (map/table/rankings/microreactors — the
     // microreactor siting screen's microRankedSites() sources from the same
@@ -4373,7 +4387,7 @@ function wireTabs() {
     // for the same reason. The remaining curated tabs (Retired, Coal,
     // Nuclear Siting, Hanford, About) have their own local content and read
     // no global filter state at all.
-    const searchOnThisTab = onMap || onTable || onCandidates || onMicro || onMaritime || onNickel;
+    const searchOnThisTab = onMap || onTable || onCandidates;
     const searchWrapEl = el("search-wrap");
     if (searchWrapEl) searchWrapEl.hidden = !searchOnThisTab;
     const searchCountEl = el("search-count");
@@ -4405,18 +4419,23 @@ function wireTabs() {
       }
     }
     if (onTable) refreshTableForFilter();
-    if (onCandidates) buildCandidatesView();
+    if (onCandidates) { loadScreenData(); buildCandidatesView(); }
     if (onRetired) { mountRetiredView(); ensureRetiredIndustrialLoaded(); buildRetiredView(); }
-    if (onCoal) { mountCoalView(); ensureCoalConversionsLoaded().then(() => buildCoalView()); }
+    if (onCoal) { mountCoalView(); ensureCoalPlantsLoaded().then(renderCoalPlants); ensureCoalConversionsLoaded().then(() => buildCoalView()); }
     if (onAbout) mountAboutView();
     if (onAp1000) {
       ensureAp1000Loaded(); buildAp1000View();
       ensureNuclearSitesLoaded(); buildNuclearCivilianView();
-    }
-    if (onMicro) {
-      ensureMicroFleetLoaded();
-      ensureJanusNepaLoaded();
-      buildMicroView();
+      // The microreactor catalog is long; build it only when opened.
+      const catalog = el("micro-catalog");
+      if (catalog && !catalog._wired) {
+        catalog._wired = true;
+        catalog.addEventListener("toggle", () => {
+          if (!catalog.open) return;
+          ensureMicroFleetLoaded(); ensureJanusNepaLoaded(); buildMicroView();
+        });
+      }
+      if (catalog?.open) { ensureMicroFleetLoaded(); ensureJanusNepaLoaded(); buildMicroView(); }
     }
     if (onHanford) {
       // Mount BEFORE anything queries the view's interior (the lazy-mount
@@ -4428,25 +4447,6 @@ function wireTabs() {
       ensureSuperfundDocsLoaded();
       ensureTribalAreasLoaded();
       buildHanfordView();
-    }
-    if (onMaritime) {
-      mountMaritimeView();
-      ensurePortProximityLoaded();
-      ensurePortsLoaded();
-      ensureShipyardsLoaded();
-      buildMaritimeView();
-    }
-    if (onNickel) {
-      mountNickelView();
-      ensureWaterProximityLoaded();
-      ensureNickelAnchorProxLoaded();
-      ensureNickelAnchorsLoaded();
-      // The import lens ranks on `port_mi`. If the eager port fetch failed at
-      // boot, its catch cleared the promise, so this retries it rather than
-      // leaving the default ranking empty until a reload or a visit to the
-      // Maritime tab (Codex round 2).
-      ensurePortProximityLoaded();
-      buildNickelView();
     }
     if (onAbout) {
       renderSourceCoverage();
@@ -4465,23 +4465,29 @@ function wireTabs() {
   if (retiredTab) retiredTab.addEventListener("click", () => setView("retired"));
   if (coalTab) coalTab.addEventListener("click", () => setView("coal"));
   if (ap1000Tab) ap1000Tab.addEventListener("click", () => setView("ap1000"));
-  if (microTab) microTab.addEventListener("click", () => setView("micro"));
   if (hanfordTab) hanfordTab.addEventListener("click", () => setView("hanford"));
-  if (maritimeTab) maritimeTab.addEventListener("click", () => setView("maritime"));
-  if (nickelTab) nickelTab.addEventListener("click", () => setView("nickel"));
   if (aboutTab) aboutTab.addEventListener("click", () => setView("about"));
 
   // Honor hash on initial load (e.g. shared URL with #ap1000).
-  const VALID_TABS = new Set(["map", "table", "candidates", "retired", "coal", "ap1000", "micro", "hanford", "maritime", "nickel", "about"]);
+  const VALID_TABS = new Set(["map", "table", "candidates", "retired", "coal", "ap1000", "hanford", "about"]);
+  // The Maritime and Nickel tabs became screens on the Screens tab; old
+  // links land on the matching screen.
+  const SCREEN_ALIASES = {maritime: "port", nickel: "nickel", explore: "dc"};
+  const route = (hash) => {
+    if (SCREEN_ALIASES[hash]) { candidatesState.lens = SCREEN_ALIASES[hash]; refreshCandLensButtons(); return "candidates"; }
+    if (hash === "micro") { ap1000State.cls = "micro"; const d = el("micro-catalog"); if (d) d.open = true; return "ap1000"; }
+    return VALID_TABS.has(hash) ? hash : null;
+  };
   const initialHash = location.hash.replace(/^#/, "").toLowerCase();
-  if (VALID_TABS.has(initialHash)) setView(initialHash);
+  const initialView = route(initialHash);
+  if (initialView) setView(initialView);
   else setView(new URLSearchParams(location.search).has("site") ? "map" : "candidates");
 
   // Handle manual hash edits in the address bar (browser back/forward not
   // relevant since we use replaceState, but covers direct hash navigation).
   window.addEventListener("hashchange", () => {
-    const tab = location.hash.replace(/^#/, "").toLowerCase();
-    if (VALID_TABS.has(tab)) setView(tab);
+    const tab = route(location.hash.replace(/^#/, "").toLowerCase());
+    if (tab) setView(tab);
   });
 }
 
@@ -4535,14 +4541,26 @@ function buildRetiredView() {
     + `<span class="retired-bar-num">${n.toLocaleString()}</span>`
     + `</div>`).join("");
 
-  host.innerHTML =
-    `<div class="retired-kpis"><div class="retired-kpi"><span class="retired-kpi-num">${total.toLocaleString()}</span>`
+  const screen = SiteScreens.SCREENS.retired;
+  const ranked = SiteScreens.rank(sites, "retired");
+  const full = ranked.filter(r => r.ev.met === r.ev.total).length;
+  const SHOW = 200;
+  const rows = ranked.slice(0, SHOW).map(({site: f, ev}, i) => `<tr><td class="cand-name"><span class="screen-rank">${i + 1}</span><strong>${escapeHtml(f.name)}</strong>`
+    + `<span class="micro-sub">${escapeHtml([f.city, f.state].filter(Boolean).join(", "))} · ${escapeHtml(f.parent_company || "")}</span></td>`
+    + ev.results.map(r => `<td data-label="${escapeAttr(r.label)}" data-status="${r.status}">${screenCell(r)}</td>`).join("")
+    + `<td class="screen-score" data-label="Checks met"><strong>${ev.met}</strong>/${ev.total}</td>`
+    + `<td><a href="https://enviro.epa.gov/envirofacts/ghg/facility-detail/${escapeAttr(String(f.id).replace(/^GHGRP-/, ""))}" target="_blank" rel="noopener">EPA ↗</a></td></tr>`).join("");
+  host.innerHTML = `<div class="method-card">${screenMethodHtml(screen)}</div>`
+    + `<p class="candidates-stats">${full} of ${total} facilities meet every check${total > SHOW ? ` · top ${SHOW} shown` : ""}</p>`
+    + `<div class="coal-table-wrap"><table class="evidence-table screen-table retired-table"><caption class="sr-only">Retired industrial facilities ranked</caption>`
+    + `<thead><tr><th scope="col">Facility</th>${screen.criteria.map(c => `<th scope="col">${escapeHtml(c.label)}</th>`).join("")}<th scope="col">Met</th><th scope="col"><span class="sr-only">EPA record</span></th></tr></thead><tbody>${rows}</tbody></table></div>`
+    + `<details class="nuke-catalog"><summary>By prior use and state</summary>`
+    + `<div class="retired-kpis"><div class="retired-kpi"><span class="retired-kpi-num">${total.toLocaleString()}</span>`
     + `<span class="retired-kpi-label">Retired sites</span></div>${catCards}</div>`
     + `<div class="retired-cols">`
     + `<section class="retired-col"><h3>Top prior uses</h3><div class="retired-bars">${sectorRows}</div></section>`
     + `<section class="retired-col"><h3>Top states</h3><div class="retired-bars">${stateRows}</div></section>`
-    + `</div>`
-    + `<p class="retired-foot muted">Source: <a href="https://www.epa.gov/ghgreporting" target="_blank" rel="noopener">EPA Greenhouse Gas Reporting Program</a> facilities that ceased reporting (closed, idled, or below threshold), queried by <code>reporting_status</code> via the <a href="https://www.epa.gov/enviro/envirofacts-data-service-api" target="_blank" rel="noopener">Envirofacts data service</a>; every ◆ marker's popup deep-links to that facility's <a href="https://enviro.epa.gov/envirofacts/ghg/search" target="_blank" rel="noopener">EPA Envirofacts GHG record</a>. This is a screening signal for reusable grid infrastructure — verify ownership, interconnection, and closure before treating any site as available. <strong>Nearby records:</strong> ${retiredIndustrialSites.filter((s) => s.tracked_site_id).length.toLocaleString()} sites have a Superfund, ACRES, FUDS, or BRAC point within 1 mi. Those links are proximity context only, not parcel matches or availability evidence. Use the rust ◆ markers on the Map to locate them.</p>`;
+    + `</div></details>`;
 }
 
 // ----- About: lazy view mount -----
@@ -4584,6 +4602,22 @@ function mountAboutView() {
   if (!tpl || !view || !tpl.content) return;
   aboutMounted = true;
   view.appendChild(tpl.content.cloneNode(true));
+  renderMethods();
+}
+
+// One table per screen, generated from docs/screens.js so the page cannot
+// drift from the code that ranks.
+function renderMethods() {
+  const host = el("about-methods");
+  if (!host) return;
+  const scope = {corpus: "Superfund, ACRES, FUDS and BRAC sites", installations: "14 military installations",
+    civilian: "68 civilian nuclear sites", coal: "EIA-860M coal plants", retired: "EPA GHGRP facilities"};
+  host.innerHTML = Object.values(SiteScreens.SCREENS).map(sc => `<section class="about-method"><h3>${escapeHtml(sc.label)} <span class="muted">· ${escapeHtml(scope[sc.universe] || "")}</span></h3>`
+    + `<p>${escapeHtml(sc.method)} Tie-breaker: ${escapeHtml(sc.tieBreak.label)}.</p>`
+    + `<table class="about-method-table"><thead><tr><th scope="col">Check</th><th scope="col">Rule</th><th scope="col">Threshold from</th></tr></thead><tbody>`
+    + sc.criteria.map(c => `<tr><td>${escapeHtml(c.label)}</td><td><code>${escapeHtml(c.rule)}</code>${c.note ? `<span class="micro-sub">${escapeHtml(c.note)}</span>` : ""}</td>`
+      + `<td><span class="method-kind" data-kind="${c.kind}">${c.kind === "R" ? "agency" : "ours"}</span> <a href="${escapeAttr(c.source.url)}" target="_blank" rel="noopener">${escapeHtml(c.source.title)}</a></td></tr>`).join("")
+    + `</tbody></table></section>`).join("");
 }
 
 // Same lazy-mount mechanism for the Coal Reinvestment and Retired Sites view
@@ -4611,32 +4645,6 @@ function mountRetiredView() {
   view.appendChild(tpl.content.cloneNode(true));
 }
 
-let nickelViewMounted = false;
-function mountNickelView() {
-  if (nickelViewMounted) return;
-  const tpl = el("nickel-template");
-  const view = el("view-nickel");
-  if (!tpl || !view || !tpl.content) return;
-  nickelViewMounted = true;
-  view.appendChild(tpl.content.cloneNode(true));
-  // Lens buttons live inside the template — wire after the clone, never at
-  // boot (mountCoalView / mountMaritimeView record the same lesson).
-  wireNickelFilters();
-}
-
-let maritimeViewMounted = false;
-function mountMaritimeView() {
-  if (maritimeViewMounted) return;
-  const tpl = el("maritime-template");
-  const view = el("view-maritime");
-  if (!tpl || !view || !tpl.content) return;
-  maritimeViewMounted = true;
-  view.appendChild(tpl.content.cloneNode(true));
-  // The lens toggle buttons live inside the template, so they don't exist
-  // in the live DOM until this clone runs — wire them here, not at boot
-  // (same lazy-mount lesson as coalFiltersBound / mountCoalView).
-  wireMaritimeFilters();
-}
 
 // ----- Coal Reinvestment View (Spec 04) -----
 let coalFiltersBound = false;
@@ -4717,19 +4725,6 @@ function buildCoalView() {
     dual_feasible: "Dual Feasible",
   })[v]);
 
-  // Update headline KPI counters
-  const totalMw = coalConversionAssets.reduce((sum, a) => sum + (a.nameplate_coal_mw || 0), 0);
-  const totalVal = coalConversionAssets.reduce((sum, a) => sum + (a.est_stranded_asset_value_usd || 0), 0);
-  const totalQueue = coalConversionAssets.filter((a) => a.queue_transfer_eligible).length;
-
-  const countEl = el("coal-kpi-count");
-  const mwEl = el("coal-kpi-mw");
-  const valEl = el("coal-kpi-val");
-  const queueEl = el("coal-kpi-queue");
-  if (countEl) countEl.textContent = coalConversionAssets.length;
-  if (mwEl) mwEl.textContent = `${(totalMw / 1000).toFixed(1)} GW`;
-  if (valEl) valEl.textContent = `$${(totalVal / 1_000_000_000).toFixed(2)}B`;
-  if (queueEl) queueEl.textContent = `${Math.round((totalQueue / coalConversionAssets.length) * 100)}%`;
 
   if (!coalFiltersBound) {
     coalFiltersBound = true;
@@ -4802,7 +4797,6 @@ function buildCoalCsv() {
     ["poi_occupied", (a) => a.poi_occupied ?? false],
     ["iso_rto", (a) => a.iso_rto],
     ["queue_transfer_eligible", (a) => a.queue_transfer_eligible],
-    ["modeled_stranded_value_usd", (a) => a.est_stranded_asset_value_usd],
     ["conversion_suitability", (a) => a.conversion_suitability],
     ["site_acreage", (a) => a.site_acreage ?? ""],
     ["note", (a) => a.note ?? ""],
@@ -4857,7 +4851,6 @@ function renderCoalTable() {
           <th class="num">Coal Capacity</th>
           <th class="num">Switchyard</th>
           <th>Water &amp; Rail Assets</th>
-          <th class="num">Stranded Value</th>
           <th>Reported reuse focus &amp; ISO</th>
           <th>Actions</th>
         </tr>
@@ -4866,7 +4859,6 @@ function renderCoalTable() {
   `;
 
   for (const plant of sorted) {
-    const valM = (plant.est_stranded_asset_value_usd / 1_000_000).toFixed(1);
     const suitLabel = plant.conversion_suitability === "nuclear_preferred"
       ? '<span class="coal-tag nuclear">Nuclear focus</span>'
       : plant.conversion_suitability === "datacenter_preferred"
@@ -4891,7 +4883,6 @@ function renderCoalTable() {
             ${plant.queue_transfer_eligible ? '<span class="coal-badge queue" title="Retired or retiring connection: utility and operator review required; rights and capacity unverified">Interconnection review needed</span>' : ''}
           </div>
         </td>
-        <td class="num font-num"><strong>~$${valM}M</strong></td>
         <td>
           ${suitLabel}
           <span class="coal-iso">${escapeHtml(plant.iso_rto || "")}</span>
@@ -4910,10 +4901,66 @@ function renderCoalTable() {
   container.innerHTML = html;
 }
 
+// ----- Coal plants ranked from EIA-860M (top of the Coal tab) -----
+// Every plant with >=100 MW of coal retired or retiring
+// (scripts/build_coal_plants.py), ranked by the "coal" screen in screens.js.
+// Curated project notes are attached where a plant matches.
+let coalPlants = null;
+let coalPlantsPromise = null;
+function ensureCoalPlantsLoaded() {
+  if (coalPlantsPromise) return coalPlantsPromise;
+  coalPlantsPromise = fetch(COAL_PLANTS_URL)
+    .then((r) => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .then((payload) => { recordRefreshDate(payload.generated_at, COAL_PLANTS_URL); coalPlants = payload.plants || []; renderCoalPlants(); })
+    .catch((err) => {
+      console.error("Coal plant list load failed:", err);
+      coalPlantsPromise = null;
+      const host = el("coal-ranked");
+      if (host) host.innerHTML = '<p class="muted">Couldn’t load the EIA coal plant list.</p>';
+    });
+  return coalPlantsPromise;
+}
+function renderCoalPlants() {
+  const host = el("coal-ranked");
+  if (!host || !coalPlants) return;
+  const screen = SiteScreens.SCREENS.coal;
+  const ranked = SiteScreens.rank(coalPlants, "coal");
+  const full = ranked.filter(r => r.ev.met === r.ev.total).length;
+  const rows = ranked.map(({site: p, ev}, i) => `<tr><td class="cand-name"><span class="screen-rank">${i + 1}</span><strong>${escapeHtml(p.name)}</strong>`
+    + `<span class="micro-sub">${escapeHtml([p.county, p.state].filter(Boolean).join(", "))} · ${Math.round(p.coal_mw).toLocaleString()} MW coal · ${escapeHtml(p.operator || "")}</span>`
+    + (p.deal_note ? `<span class="coal-deal-note">${escapeHtml(p.deal_note)}${p.deal_source_url ? ` <a href="${escapeAttr(p.deal_source_url)}" target="_blank" rel="noopener">source ↗</a>` : ""}</span>` : "")
+    + `</td>${ev.results.map(r => `<td data-label="${escapeAttr(r.label)}" data-status="${r.status}">${screenCell(r)}</td>`).join("")}`
+    + `<td class="screen-score" data-label="Checks met"><strong>${ev.met}</strong>/${ev.total}</td></tr>`).join("");
+  host.innerHTML = `<div class="method-card">${screenMethodHtml(screen)}</div>`
+    + `<p class="candidates-stats">${full} of ${ranked.length} plants meet every check</p>`
+    + `<div class="coal-table-wrap"><table class="evidence-table screen-table coal-ranked-table"><caption class="sr-only">Coal plants ranked for reuse</caption>`
+    + `<thead><tr><th scope="col">Plant</th>${screen.criteria.map(c => `<th scope="col">${escapeHtml(c.label)}</th>`).join("")}<th scope="col">Met</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  const csvBtn = el("coal-plants-csv");
+  if (csvBtn && !csvBtn._wired) {
+    csvBtn._wired = true;
+    csvBtn.addEventListener("click", () => {
+      const head = ["rank", "eia_plant_id", "name", "state", "coal_mw", "status", "retire_year", "checks_met",
+        ...screen.criteria.flatMap(c => [`${c.id}_result`, `${c.id}_value`]), "source_url"];
+      const body = SiteScreens.rank(coalPlants, "coal").map((r, i) => [i + 1, r.site.eia_plant_id, r.site.name, r.site.state, r.site.coal_mw,
+        r.site.status, r.site.retire_year, r.ev.met, ...r.ev.results.flatMap(x => [x.status, x.value]), "https://www.eia.gov/electricity/data/eia860m/"]);
+      downloadCsvText([head, ...body].map(csvRow).join("\n"), "coal-plants");
+    });
+  }
+}
+function downloadCsvText(csv, stem) {
+  const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+  const a = document.createElement("a");
+  a.href = url; a.download = `${stem}-${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 window.__openCoalTabForPlant = function(plantName) {
   if (typeof window.__setView === "function") {
     window.__setView("coal");
   }
+  const deals = el("coal-deals");
+  if (deals) deals.open = true;
   // Chain on the loader, not a fixed timer — if the catalog fetch failed at
   // boot (loader nulls its promise for retry), setView('coal') retries it and
   // this resolves once the data is actually there (code review 2026-08-23 #13).
@@ -5060,8 +5107,6 @@ window.__inspectCoalPlant = function(plantName) {
   nearby.sort((a, b) => (a.coal_conversion_plant_mi ?? 999) - (b.coal_conversion_plant_mi ?? 999));
 
   title.textContent = `${plant.plant_name} — Conversion Profile`;
-  const valM = (plant.est_stranded_asset_value_usd / 1_000_000).toFixed(1);
-
   let nearbyHtml = '';
   if (nearby.length > 0) {
     nearbyHtml = `
@@ -5115,10 +5160,7 @@ window.__inspectCoalPlant = function(plantName) {
           <dt>Site Acreage</dt><dd>${plant.site_acreage ? `${plant.site_acreage.toLocaleString()} Acres` : 'N/A'}</dd>
         </dl>
       </div>
-      <div class="coal-profile-card valuation-card">
-        <h4>💰 Modeled Stranded-Asset Value</h4>
-        <div class="coal-val-big">~$${valM} Million</div>
-        <p class="coal-val-desc">Screening estimate, not an appraisal: $180k/MW grid interconnect + $25M water + $12M rail + $8M civil, distance-decayed — anchored to the DOE/INL coal-to-nuclear 15–35% savings range. Gross of ash/CCR-closure and demolition liabilities.</p>
+      <div class="coal-profile-card">
         <button type="button" class="coal-jump-map-btn">View on Map ↗</button>
       </div>
     </div>
@@ -5199,50 +5241,8 @@ function maybeRefreshAp1000() {
   if (v && v.classList.contains("active")) buildAp1000View();
 }
 
-// Ordered for the breakdown bar + chips; keys match computeAp1000Breakdown.
-const AP1000_FACTORS = [
-  { key: "water",        label: "Water" },
-  { key: "transmission", label: "Transmission" },
-  { key: "substation",   label: "Substation" },
-  { key: "workforce",    label: "Workforce" },
-  { key: "fiber",        label: "Fiber" },
-];
-const AP1000_WATER_CLASS = { abundant: "ok", adequate: "ok", marginal: "warn", poor: "bad", severe: "bad" };
-const AP1000_FIBER_CLASS = { excellent: "ok", good: "ok", moderate: "warn", limited: "bad" };
-const AP1000_WORKFORCE_CLASS = { strong: "ok", good: "ok", moderate: "warn", limited: "bad" };
-const AP1000_FLAG_CLASS = { none: "ok", low: "ok", moderate: "warn", elevated: "warn", high: "bad" };
-
-// Matches the radius used in build_ap1000_sites.py.
-const RETIRED_PLANT_RADIUS_MI_LABEL = "25 mi";
-
-// EIA-860M fuel code → short display label (for retired plant).
-const _EIA_FUEL = {
-  BIT: "coal", SUB: "coal", LIG: "coal", WC: "waste coal",
-  NG:  "natural gas", DFO: "fuel oil", RFO: "fuel oil", OIL: "petroleum",
-  NUC: "nuclear", PC: "pet. coke", RC: "refined coal", SC: "syngas",
-};
-// HIFLD active-plant text fuel → short label.
-function _ap1000ActiveFuelLabel(f) {
-  if (!f) return "—";
-  const fl = f.toLowerCase();
-  if (fl.includes("coal")) return "coal";
-  if (fl.includes("gas"))  return "gas";
-  if (fl.includes("nuclear")) return "nuclear";
-  if (fl.includes("hydro"))   return "hydro";
-  if (fl.includes("solar"))   return "solar";
-  if (fl.includes("wind"))    return "wind";
-  if (fl.includes("pet") || fl.includes("oil")) return "petroleum";
-  if (fl.includes("batter"))  return "battery";
-  return f;
-}
-
-
-
-const _ap1000Src = (url, label) =>
-  url ? ` <a href="${escapeHtml(url)}" target="_blank" rel="noopener">${label} ↗</a>` : "";
 const _AP1000_SCORE_SOURCE = "https://pranava0x0.github.io/brownfield-opportunities/siting-context.js";
 const _AP1000_DATA_SOURCE = "https://github.com/pranava0x0/brownfield-opportunities/blob/main/docs/data/ap1000-sites.json";
-const _AP1000_INFRA_SOURCE = "https://pranava0x0.github.io/brownfield-opportunities/data/infra-proximity.json";
 const _AP1000_TRANSMISSION_SOURCE = "https://hifld-geoplatform.opendata.arcgis.com/datasets/geoplatform::electric-power-transmission-lines/about";
 const _AP1000_SUBSTATION_SOURCE = "https://overpass-turbo.eu/";
 const _AP1000_GEOHAZARD_SOURCE = "https://www.fema.gov/flood-maps/tools-resources/flood-map-products/national-flood-hazard-layer";
@@ -5277,30 +5277,41 @@ function _ap1000SourceFor(s, field) {
   if (field === "rank" || field === "installation") return _AP1000_DATA_SOURCE;
   return "";
 }
-const _ap1000KvMi = (mi, kv) =>
-  `${fmt.miles(mi)} · ${kv != null ? kv + " kV" : "kV N/A"}`;
-
 // Concise, sortable-feeling table; each row expands to a detail row with the
 // full per-factor breakdown, analyst notes, sources, and unscored geohazard
 // flags. Built once on tab activation (the dataset is a static 14 rows).
+// Reactor class → screen in docs/screens.js, and the class whose water
+// basis the method card cites.
+const NUCLEAR_SCREENS = [
+  {key: "ap1000", label: "Large reactor (AP1000)", cls: "ap1000"},
+  {key: "smr", label: "SMR (300 MW)", cls: "ap300"},
+  {key: "micro", label: "Microreactor", cls: "micro"},
+];
+// REACTOR_CLASSES key (siting-context.js) for the selected nuclear screen.
+function nuclearReactorClass() {
+  return (NUCLEAR_SCREENS.find(c => c.key === ap1000State.cls) || NUCLEAR_SCREENS[0]).cls;
+}
 function buildAp1000View() {
   const host = el("ap1000-cards");
   if (!host) return;
   if (!ap1000Sites.length) { host.innerHTML = '<p class="muted">Nuclear site evidence unavailable or loading.</p>'; return; }
-  const classes = window.REACTOR_CLASSES || {};
-  const selected = classes[ap1000State.cls] || {};
-  const buttons = Object.entries(classes).map(([key, c]) => `<button type="button" data-reactor-class="${escapeHtml(key)}" aria-pressed="${key === ap1000State.cls}">${escapeHtml(c.label || c.name || key)}</button>`).join("");
-  const rows = ap1000ScoredRows().map(({s}, i) => {
-    const assessment = SiteEvidence.assessSite(s, "nuclear");
-    const landMet = window.ap1000MeetsAcreageThreshold?.(s, ap1000State.cls);
+  const screen = SiteScreens.SCREENS[ap1000State.cls] || SiteScreens.SCREENS.ap1000;
+  const buttons = NUCLEAR_SCREENS.map(c => `<button type="button" class="cand-filter${c.key === screen.key ? " active" : ""}" data-reactor-class="${c.key}" aria-pressed="${c.key === screen.key}">${escapeHtml(c.label)}</button>`).join("");
+  const ranked = SiteScreens.rank(ap1000Sites, screen.key);
+  const rows = ranked.map(({site: s, ev}, i) => {
     const flags = [s.seismic_flag ? `Seismic context: ${s.seismic_flag}` : null, s.flood_flag ? `Flood context: ${s.flood_flag}` : null].filter(Boolean).join(" · ");
-    return `<tr class="ap1000-row" data-id="${escapeHtml(s.id || s.name)}"><td><button class="ap1000-expand" aria-expanded="false" aria-controls="nuclear-evidence-${i}">${escapeHtml(s.name)}</button><small>${escapeHtml(s.state || "")} ${s.janus_site ? "· Janus shortlist" : ""}</small>${s.af_rflp_site ? '<span class="ap1000-rflp">AF RFLP</span>' : ""}</td>` +
-      SiteEvidence.PRIMARY.map(k => `<td data-label="${SiteEvidence.LABELS[k]}" data-category="${k}">${evidenceCell(assessment[k])}</td>`).join("") + `</tr>` +
-      `<tr class="ap1000-detail" id="nuclear-evidence-${i}" hidden><td colspan="6"><p>Reported land threshold: ${landMet === true ? "met" : landMet === false ? "below threshold" : "unknown"}. This does not establish a usable nuclear footprint.</p>${evidenceDetails(s,"nuclear")}<p class="ap1000-flags-cell">${escapeHtml(flags)}${s.usgs_pgam != null ? ` · USGS PGA ${Number(s.usgs_pgam).toFixed(2)}g · SDC ${escapeHtml(s.usgs_sdc || "unknown")}. Building-code context; nuclear site-specific analysis required.${_ap1000CellSrc(s.usgs_api_source,"USGS seismic API")}` : ""}</p>${s.af_rflp_site ? `<p class="ap1000-rflp-detail">Air Force lease solicitation: ${Number(s.af_rflp_acres).toLocaleString()} offered acres, distinct from installation area. Solicitation does not establish an award.${_ap1000CellSrc(s.af_rflp_source_url,"Air Force lease solicitation")}</p>` : ""}<p>${escapeHtml(s.developable_basis || "")}${_ap1000CellSrc(s.acreage_source,"Land")}</p><p>${escapeHtml(s.water_note || "")}${_ap1000CellSrc(s.water_source_url,"Water")}</p></td></tr>`;
+    const status = [s.janus_status, s.af_rflp_site ? (s.af_rflp_status || "Air Force data-center lease offer") : null].filter(Boolean).join(" · ");
+    return `<tr class="ap1000-row" data-id="${escapeHtml(s.id || s.name)}"><td class="cand-name"><span class="screen-rank">${i + 1}</span><button class="ap1000-expand site-evidence-open" aria-expanded="false" aria-controls="nuclear-evidence-${i}">${escapeHtml(s.name)}</button><span class="micro-sub">${escapeHtml(s.state || "")}${status ? " · " + escapeHtml(status) : ""}</span></td>`
+      + ev.results.map(r => `<td data-label="${escapeAttr(r.label)}" data-status="${r.status}">${screenCell(r)}</td>`).join("")
+      + `<td class="screen-score" data-label="Checks met"><strong>${ev.met}</strong>/${ev.total}</td></tr>`
+      + `<tr class="ap1000-detail" id="nuclear-evidence-${i}" hidden><td colspan="${ev.total + 2}">${evidenceDetails(s,"nuclear")}<p class="ap1000-flags-cell">${escapeHtml(flags)}${s.usgs_pgam != null ? ` · USGS PGA ${Number(s.usgs_pgam).toFixed(2)} g, SDC ${escapeHtml(s.usgs_sdc || "unknown")} (building code; a reactor needs site-specific motion).${_ap1000CellSrc(s.usgs_api_source,"USGS seismic API")}` : ""}</p>${s.af_rflp_site ? `<p class="ap1000-rflp-detail">Air Force lease offer: ${Number(s.af_rflp_acres).toLocaleString()} acres${s.af_rflp_status ? ` · ${escapeHtml(s.af_rflp_status)}${_ap1000CellSrc(s.af_rflp_status_url,"Status")}` : ""}.${_ap1000CellSrc(s.af_rflp_source_url,"Air Force lease solicitation")}</p>` : ""}${s.janus_status ? `<p>Army Janus: ${escapeHtml(s.janus_status)}.${_ap1000CellSrc(s.janus_status_url,"Army selection")}</p>` : ""}<p>${escapeHtml(s.developable_basis || "")}${_ap1000CellSrc(s.acreage_source,"Land")}</p><p>${escapeHtml(s.water_note || "")}${_ap1000CellSrc(s.water_source_url,"Water")}</p></td></tr>`;
   }).join("");
-  host.innerHTML = `<div class="ap1000-class-switch">${buttons}</div><p class="muted">${escapeHtml(selected.label || selected.name || ap1000State.cls)} · ${selected.min_acres || 500} acres: planning threshold. Sites listed alphabetically; confidence describes evidence.</p><details class="ap1000-class-context"><summary>Reactor assumptions and sources</summary><p>${escapeHtml(selected.water_basis || "Water demand unassessed.")}${_ap1000CellSrc(selected.spec_source,"Reactor specification")}${_ap1000CellSrc(selected.water_source,"Water demand basis")}</p></details><div class="ap1000-table-wrap"><table class="ap1000-table evidence-table"><caption class="sr-only">Nuclear installation evidence, listed alphabetically</caption><thead><tr><th scope="col">Installation</th>${SiteEvidence.PRIMARY.map(k=>`<th scope="col">${SiteEvidence.LABELS[k]}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table></div>`;
-  host.querySelectorAll("[data-reactor-class]").forEach(btn => btn.addEventListener("click", () => { ap1000State.cls=btn.dataset.reactorClass; buildAp1000View(); }));
-  host.querySelectorAll(".ap1000-expand").forEach(btn => btn.addEventListener("click", () => { const detail=el(btn.getAttribute("aria-controls")); detail.hidden=!detail.hidden; btn.setAttribute("aria-expanded", String(!detail.hidden)); }));
+  const cls = (window.REACTOR_CLASSES || {})[NUCLEAR_SCREENS.find(c => c.key === screen.key).cls] || {};
+  host.innerHTML = `<div class="cand-filter-group ap1000-class-switch" role="group" aria-label="Reactor class">${buttons}</div>`
+    + `<div class="method-card">${screenMethodHtml(screen)}${cls.water_basis ? `<p class="method-foot">Water demand: ${escapeHtml(cls.water_basis)}.</p>` : ""}</div>`
+    + `<div class="ap1000-table-wrap"><table class="ap1000-table evidence-table screen-table"><caption class="sr-only">Military installations ranked for ${escapeHtml(screen.label)}</caption><thead><tr><th scope="col">Installation</th>${screen.criteria.map(c => `<th scope="col">${escapeHtml(c.label)}</th>`).join("")}<th scope="col">Met</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  host.querySelectorAll("[data-reactor-class]").forEach(btn => btn.addEventListener("click", () => { ap1000State.cls = btn.dataset.reactorClass; buildAp1000View(); }));
+  host.querySelectorAll(".ap1000-expand").forEach(btn => btn.addEventListener("click", () => { const detail = el(btn.getAttribute("aria-controls")); detail.hidden = !detail.hidden; btn.setAttribute("aria-expanded", String(!detail.hidden)); }));
 }
 
 // ----- Civilian nuclear pipeline (Nuclear Siting tab, below the military
@@ -5313,18 +5324,6 @@ function buildAp1000View() {
 function maybeRefreshNuclearCivilian() {
   const v = el("view-ap1000");
   if (v && v.classList.contains("active")) buildNuclearCivilianView();
-}
-
-function nuclearSortedPromisingSites() {
-  return nuclearCivilianSites
-    .filter(nuclearIsMapped)
-    .slice()
-    .sort((a, b) => {
-      const oa = NUCLEAR_CATEGORIES[a.inl_category].order;
-      const ob = NUCLEAR_CATEGORIES[b.inl_category].order;
-      if (oa !== ob) return oa - ob;
-      return String(a.name).localeCompare(String(b.name));
-    });
 }
 
 function buildNuclearCivilianView() {
@@ -5361,60 +5360,26 @@ function buildNuclearCivilianView() {
     }
     return;
   }
-  const promising = nuclearSortedPromisingSites();
+  const screen = SiteScreens.SCREENS.civilian;
+  const ranked = SiteScreens.rank(nuclearCivilianSites, "civilian");
   const total = nuclearCivilianSites.length;
-  const remainder = total - promising.length;
-
   // Every interpolated value is escaped; the rest of the string is static.
-  const rows = promising
-    .map((s) => {
-      const cat = NUCLEAR_CATEGORIES[s.inl_category];
-      const capacity = nuclearCapacityText(s);
-      return (
-        `<tr data-nuke-id="${escapeAttr(s.id)}">` +
-        `<td><span class="nuke-civ-name">${escapeHtml(s.name)}</span></td>` +
-        `<td>${escapeHtml(s.state || "—")}</td>` +
-        `<td><span class="nuke-civ-cat ${cat.chip}">${escapeHtml(cat.label)}</span></td>` +
-        `<td>${escapeHtml(nuclearLabel(s.status))}</td>` +
-        `<td>${escapeHtml(nuclearLabel(s.col_status))}</td>` +
-        `<td class="nuke-civ-owner">${escapeHtml(s.owner_operator || "—")}</td>` +
-        `<td class="num">${escapeHtml(capacity || "—")}</td>` +
-        `<td>${escapeHtml(s.iso_rto || "—")}</td>` +
-        `<td>` +
-          (s.lat != null && s.lon != null
-            ? `<button type="button" class="nuke-civ-map" data-nuke-map="${escapeAttr(s.id)}" aria-label="Show ${escapeAttr(s.name)} on the map">map →</button>`
-            : '<span class="muted-cell">—</span>') +
-        `</td>` +
-        `</tr>`
-      );
-    })
-    .join("");
-
+  const rows = ranked.map(({site: s, ev}, i) => {
+    const capacity = nuclearCapacityText(s);
+    return `<tr data-nuke-id="${escapeAttr(s.id)}"><td class="cand-name"><span class="screen-rank">${i + 1}</span><span class="nuke-civ-name">${escapeHtml(s.name)}</span>`
+      + `<span class="micro-sub">${escapeHtml(s.state || "")}${s.owner_operator ? " · " + escapeHtml(s.owner_operator) : ""}${capacity ? " · " + escapeHtml(capacity) : ""}</span></td>`
+      + ev.results.map(r => `<td data-label="${escapeAttr(r.label)}" data-status="${r.status}">${screenCell(r)}</td>`).join("")
+      + `<td class="screen-score" data-label="Checks met"><strong>${ev.met}</strong>/${ev.total}</td><td>`
+      + (s.lat != null && s.lon != null ? `<button type="button" class="nuke-civ-map" data-nuke-map="${escapeAttr(s.id)}" aria-label="Show ${escapeAttr(s.name)} on the map">map →</button>` : "")
+      + `</td></tr>`;
+  }).join("");
   host.replaceChildren();
-  host.insertAdjacentHTML(
-    "beforeend",
-    `<h3>Civilian nuclear pipeline — ${total.toLocaleString()} tracked sites</h3>` +
-    `<p class="nuke-civ-lead">Base list from Idaho National Laboratory's August 2024 study ` +
-      `<a href="data/references/INL-AP1000-Opportunities-Sort128167.pdf" target="_blank" rel="noopener"><em>Opportunities for AP1000 Deployment at Existing and Planned Nuclear Sites</em></a> ` +
-      `(INL/MIS-24-80216), which screened existing and planned civilian nuclear sites and sorted them into readiness tiers — ` +
-      `extended here with announced restarts and post-study entrants (2025–26 NRC filings). ` +
-      `The ${promising.length.toLocaleString()} sites in the promising tiers are listed below and carry a ⚛ marker on the Map; ` +
-      `each marker's popup also lists the tracked Superfund sites within 50 mi.</p>` +
-    `<div class="nuke-civ-table-wrap"><table class="nuke-civ-table">` +
-      `<caption class="sr-only">Civilian nuclear sites in the promising INL readiness tiers, grouped by tier then name.</caption>` +
-      `<thead><tr>` +
-        `<th scope="col">Site</th><th scope="col">ST</th><th scope="col">Tier</th>` +
-        `<th scope="col">Status</th><th scope="col">COL status</th>` +
-        `<th scope="col">Owner / operator</th><th class="num" scope="col">Units × MWe</th>` +
-        `<th scope="col">ISO/RTO</th><th scope="col"><span class="sr-only">Map</span></th>` +
-      `</tr></thead>` +
-      `<tbody>${rows}</tbody>` +
-    `</table></div>` +
-    `<p class="nuke-civ-foot">${remainder.toLocaleString()} further sites tracked in the source data ` +
-      `(yellow / red tiers) — present in ` +
-      `<a href="data/nuclear-civilian-sites.json" target="_blank" rel="noopener">nuclear-civilian-sites.json</a>, ` +
-      `not shown in this table or on the map.</p>`
-  );
+  host.insertAdjacentHTML("beforeend",
+    `<h3>Civilian nuclear sites (${total})</h3>`
+    + `<div class="method-card">${screenMethodHtml(screen)}<p class="method-foot">Site list: existing and planned plants from <a href="data/references/INL-AP1000-Opportunities-Sort128167.pdf" target="_blank" rel="noopener">INL/MIS-24-80216</a> (Aug 2024) plus later restarts and filings.</p></div>`
+    + `<div class="nuke-civ-table-wrap"><table class="nuke-civ-table evidence-table screen-table"><caption class="sr-only">Civilian nuclear sites ranked by NRC licensing status</caption>`
+    + `<thead><tr><th scope="col">Site</th>${screen.criteria.map(c => `<th scope="col">${escapeHtml(c.label)}</th>`).join("")}<th scope="col">Met</th><th scope="col"><span class="sr-only">Map</span></th></tr></thead>`
+    + `<tbody>${rows}</tbody></table></div>`);
 
   if (!host._nukeWired) {
     host._nukeWired = true;
@@ -5453,9 +5418,9 @@ const AP1000_CSV_COLUMNS = [
   { label: "water_rights_regime", value: (r) => r.s.water_rights_regime, source: (r) => r.s.water_rights_source_url },
   { label: "water_rights_context_note", value: (r) => r.s.water_rights_note, source: (r) => r.s.water_rights_source_url },
   { label: "water_low_flow_cfs", value: (r) => r.s.water_low_flow_cfs, source: (r) => _ap1000SourceFor(r.s, "water") },
-  { label: "reactor_class", value: () => ap1000State.cls, source: (r) => _ap1000SourceFor(r.s, "score") },
-  { label: "acreage_threshold_acres", value: () => ((window.REACTOR_CLASSES || {})[ap1000State.cls] || {}).min_acres ?? (window.AP1000_MIN_DEVELOPABLE_ACRES || 500), source: (r) => _ap1000SourceFor(r.s, "acreage") },
-  { label: "acreage_threshold_met", value: (r) => window.ap1000MeetsAcreageThreshold ? window.ap1000MeetsAcreageThreshold(r.s, ap1000State.cls) : "", source: (r) => _ap1000SourceFor(r.s, "acreage") },
+  { label: "reactor_class", value: () => nuclearReactorClass(), source: (r) => _ap1000SourceFor(r.s, "score") },
+  { label: "acreage_threshold_acres", value: () => ((window.REACTOR_CLASSES || {})[nuclearReactorClass()] || {}).min_acres ?? 500, source: (r) => _ap1000SourceFor(r.s, "acreage") },
+  { label: "acreage_threshold_met", value: (r) => window.ap1000MeetsAcreageThreshold ? window.ap1000MeetsAcreageThreshold(r.s, nuclearReactorClass()) : "", source: (r) => _ap1000SourceFor(r.s, "acreage") },
   { label: "developable_acreage", value: (r) => r.s.developable_acreage, source: (r) => _ap1000SourceFor(r.s, "acreage") },
   { label: "developable_acreage_reason", value: (r) => r.s.developable_basis, source: (r) => _ap1000SourceFor(r.s, "acreage") },
   { label: "installation_acreage", value: (r) => r.s.installation_acreage, source: (r) => _ap1000SourceFor(r.s, "acreage") },
@@ -5497,19 +5462,20 @@ const AP1000_CSV_COLUMNS = [
 const ap1000State = { cls: "ap1000" };
 
 function ap1000ScoredRows() {
-  return ap1000Sites.slice().sort(evidenceNameOrder).map(s => ({s}));
+  return SiteScreens.rank(ap1000Sites, SiteScreens.SCREENS[ap1000State.cls] ? ap1000State.cls : "ap1000").map(r => ({s: r.site, ev: r.ev}));
 }
 
 function buildAp1000Csv() {
-  const headers = [];
+  const screen = SiteScreens.SCREENS[SiteScreens.SCREENS[ap1000State.cls] ? ap1000State.cls : "ap1000"];
+  const headers = ["rank", "screen", "checks_met", ...screen.criteria.flatMap(c => [`${c.id}_result`, `${c.id}_value`])];
   for (const c of AP1000_CSV_COLUMNS) {
     headers.push(c.label, `${c.label}_source_url`);
   }
   const categoryColumns = evidenceCsvColumns(r => r.s);
   headers.push(...categoryColumns.map(c => c.label));
   const rows = [headers];
-  for (const r of ap1000ScoredRows()) {
-    const row = [];
+  for (const [i, r] of ap1000ScoredRows().entries()) {
+    const row = [i + 1, screen.key, r.ev.met, ...r.ev.results.flatMap(x => [x.status, x.value])];
     const assessment = SiteEvidence.assessSite(r.s);
     for (const c of AP1000_CSV_COLUMNS) {
       const v = c.value(r);
@@ -5568,13 +5534,8 @@ function wireAp1000ExportCsv() {
 // only a four-node skeleton because the first-paint DOM budget is 5,000 nodes
 // with roughly 60 to spare — see CLAUDE.md, "Paginated table".
 
-const MICRO_RANK_LIMIT = 100;
-const MICRO_SCORE_SOURCE = "https://github.com/pranava0x0/brownfield-opportunities/blob/main/docs/microreactor-score.js";
-const MICRO_DATA_SOURCE = "https://github.com/pranava0x0/brownfield-opportunities/blob/main/docs/data/microreactor-fleet.json";
-
 const microState = {
   ranked: [],
-  offGridOnly: false,   // hard-islanded sites only (no transmission within 100 mi)
   janusSelectedId: null,
   built: false,
 };
@@ -5694,40 +5655,8 @@ function addMicroCommitmentMarkers() {
 }
 
 function maybeRefreshMicro() {
-  const v = el("view-micro");
-  if (v && v.classList.contains("active")) buildMicroView();
-}
-
-// Ordered for the breakdown chips; keys match computeMicroreactorBreakdown.
-const MICRO_FACTORS = [
-  { key: "licensing_path", label: "Licensing path" },
-  { key: "grid_isolation", label: "Grid isolation" },
-  { key: "anchor_load",    label: "Anchor load" },
-  { key: "deliverability", label: "Deliverability" },
-  { key: "readiness",      label: "Readiness" },
-];
-
-// Tier breaks are anchored to THIS lens's own distribution, not copied from
-// the data-center lens's 75/50/25. The microreactor lens has a lower practical
-// ceiling by construction: grid isolation pulls against deliverability and
-// readiness, so no real site can max both halves of the rubric. Observed over
-// the 46,759-site corpus the scores run min 0 / median 37 / p90 50 / p99 61 /
-// max 73, so these breaks land at roughly the top 0.5%, top 5% and top 25%.
-// Reusing 75/50/25 here would paint the entire corpus one colour and the tier
-// would carry no information at all. Re-measure on a refresh that materially
-// shifts the distribution — computeMicroreactorScore over window.__sites is
-// the whole measurement.
-const MICRO_TIER_BREAKS = Object.freeze({ strong: 64, moderate: 55, marginal: 44 });
-
-
-
-// Rank the globally-filtered set. Sourcing from `tableState.filtered` — not
-// from `sites` — is what makes the search / state / program / acreage filters
-// carry onto this tab, the same unification the Rankings tab got in v1.21.
-function microRankedSites() {
-  return tableState.filtered.filter(s => microreactorMeetsAcreageThreshold(s) !== false
-    && (!microState.offGridOnly || (s.transmission_mi == null && s.substation_mi == null)))
-    .slice().sort(evidenceNameOrder).map(site => ({site}));
+  const d = el("micro-catalog");
+  if (d && d.open && el("view-ap1000")?.classList.contains("active")) buildMicroView();
 }
 
 function _microFleetRows() {
@@ -6538,7 +6467,6 @@ function _doeGlanceHtml(payload) {
     if (doeBestFit(byType).none) precluded += 1; else viable += 1;
   }
   const landlord = (ov.managers || [])[0];
-  const lup = ov.land_use_plan || {};
   const jump = [
     ["#doe-fit", "What fits where"],
     ["#doe-units", "Land units"],
@@ -6557,13 +6485,22 @@ function _doeGlanceHtml(payload) {
     `<span class="doe-stat doe-stat-off"><strong>${precluded}</strong> precluded</span>` +
     (landlord ? `<span class="doe-stat">Landlord: <a href="${escapeAttr(landlord.url)}" target="_blank" rel="noopener">${escapeHtml((landlord.who || "").split("—")[0].trim())}</a></span>` : "") +
     `</div>` +
+    `<nav class="doe-jumps" aria-label="Dossier sections">${jump}</nav>` +
+    `</section>`
+  );
+}
+
+// Site description, shown after the fit matrix so the answer comes first.
+function _doeSummaryHtml(payload) {
+  const ov = payload.site_overview || {};
+  const lup = ov.land_use_plan || {};
+  if (!ov.summary && !payload.narrative_note) return "";
+  return `<details class="nuke-catalog doe-about"><summary>About this site</summary>` +
     `<p class="hanford-summary">${escapeHtml(ov.summary || "")}` +
     (lup.url ? ` <a href="${escapeAttr(lup.url)}" target="_blank" rel="noopener" class="doe-inline-cite" title="${escapeAttr(lup.label || "Land-use plan")}">[land-use plan ↗]</a>` : "") +
     `</p>` +
     (payload.narrative_note ? `<p class="doe-ai-note">⚠ ${escapeHtml(payload.narrative_note)}</p>` : "") +
-    `<nav class="doe-jumps" aria-label="Dossier sections">${jump}</nav>` +
-    `</section>`
-  );
+    `</details>`;
 }
 
 function _doeInfraHtml(payload) {
@@ -6650,6 +6587,7 @@ function buildHanfordView() {
     pills +
     _doeGlanceHtml(payload) +
     _doeFitMatrixHtml(payload) +
+    _doeSummaryHtml(payload) +
     `<section class="hanford-parcels" id="doe-units"><h3 class="hanford-section-title">The land, unit by unit</h3>` +
     `<p class="hanford-summary micro-note">Click a unit for its full dossier — status, environmental screen, corpus joins, and citations. One unit opens at a time.</p>` +
     `<div class="doe-parcel-grid">${cards}</div>` +
@@ -6801,22 +6739,6 @@ function _microSectorHtml() {
   }).join("");
 }
 
-function _microRankRows(rows) {
-  return rows.slice(0,MICRO_RANK_LIMIT).map(({site:s}) => {
-    const a=SiteEvidence.assessSite(s,"micro");
-    return `<tr data-id="${escapeAttr(s.id)}"><td><a class="micro-site-link" data-site="${escapeAttr(s.id)}" href="?site=${encodeURIComponent(s.id)}">${escapeHtml(s.name || s.id)}</a><span class="micro-sub">${escapeHtml(s.state || "")}</span></td>`
-      + SiteEvidence.PRIMARY.map(k => `<td data-category="${k}" data-label="${SiteEvidence.LABELS[k]}">${evidenceCell(a[k])}</td>`).join("")+"</tr>";
-  }).join("");
-}
-
-// Acreage display that keeps the parcel fallback and the structural gap
-// visible. `null` here is a source-side absence, never a filtered-out site.
-function _microEffectiveAcreageDisplay(s) {
-  if (s.acreage != null) return fmt.acres(s.acreage);
-  if (s.parcel_acreage != null) return fmt.acres(s.parcel_acreage) + " (parcel)";
-  return "Not reported";
-}
-
 function buildMicroView() {
   const host = el("micro-content");
   if (!host) return;
@@ -6846,8 +6768,6 @@ function buildMicroView() {
   // had created the layer (the loader's own call would have no-oped).
   addMicroCommitmentMarkers();
 
-  const ranked = microRankedSites();
-  microState.ranked = ranked;
   const counts = microFleet.counts || {};
   const mwe = microFleet.committed_mwe_by_band || {};
   const bandStrip = (microFleet.evidence_bands || [])
@@ -6860,19 +6780,7 @@ function buildMicroView() {
         `<span class="micro-band-auth">${escapeHtml(b.authority)}</span></div>`
     ).join("");
 
-  const filtered = (typeof filtersActive === "function" && filtersActive()) || filterState.q;
-  const scorable = ranked.length;
-  // Derived, never hardcoded — the same rule PROGRAM_LEGEND and the nuclear
-  // overlay counts follow. These move on every data refresh.
-  let federalCount = 0, fedSuperfundCount = 0;
-  for (const s of sites) {
-    if (s.program === "fuds" || s.program === "brac") federalCount++;
-    else if (s.program === "superfund" && s.federal_facility_code === "Y") fedSuperfundCount++;
-  }
-
   host.innerHTML =
-    `<div class="micro-lead"><h2>Microreactors</h2><p>Compare site evidence, then review designs and documented commitments. Grid absence and former military use establish neither isolation nor licensing eligibility.</p>` +
-    `<button id="micro-export-csv" type="button" class="ap1000-export">Download evidence CSV</button></div>` +
     `<section class="micro-section">` +
       `<h3>The fleet — ${counts.vendors_microreactor_band || 0} designs in the 1–20&nbsp;MWe band` +
         `<span class="micro-note"> · plus 1 labelled adjacency</span></h3>` +
@@ -6915,11 +6823,7 @@ function buildMicroView() {
         `final sizing needs at least a year of hourly site-load data.</p>` +
         `<div class="micro-sectors">${_microSectorHtml()}</div>` +
       `</div>` +
-    `</details>` +
-
-    `<section class="micro-section"><h3>Site evidence · ${scorable.toLocaleString()} matches</h3>` +
-    `<div class="micro-controls"><button type="button" id="micro-offgrid-toggle" class="cand-filter" aria-pressed="${microState.offGridOnly}">Missing grid evidence</button><span class="micro-note">${MICRO_MIN_ACRES}+ reported acres or unknown. Missing grid data does not mean off-grid.</span></div>` +
-    (scorable ? `<div class="micro-table-wrap"><table class="micro-table micro-rank-table evidence-table"><thead><tr><th>Site</th>${SiteEvidence.PRIMARY.map(k=>`<th>${SiteEvidence.LABELS[k]}</th>`).join("")}</tr></thead><tbody>${_microRankRows(ranked)}</tbody></table></div>` : `<p>No sites match these filters.</p>`) + `</section>`;
+    `</details>`;
 
   microState.built = true;
   wireMicroControls();
@@ -6929,8 +6833,6 @@ function buildMicroView() {
 // let a test target the ranking and the fleet without depending on scroll
 // position, table paging, or marker decimation.
 function exposeMicroTestHooks() {
-  window.__buildMicroCsv = buildMicroCsv;
-  window.__microRankedCount = () => microRankedSites().length;
   window.__microFleet = () => microFleet;
   window.__janusNepa = () => janusNepa;
   window.__showJanusMap = showJanusMap;
@@ -6940,15 +6842,6 @@ function exposeMicroTestHooks() {
 
 function wireMicroControls() {
   exposeMicroTestHooks();
-  const toggle = el("micro-offgrid-toggle");
-  if (toggle) {
-    toggle.addEventListener("click", () => {
-      microState.offGridOnly = !microState.offGridOnly;
-      buildMicroView();
-    });
-  }
-  const csv = el("micro-export-csv");
-  if (csv) csv.addEventListener("click", downloadMicroCsv);
   const janusRetry = el("janus-retry");
   if (janusRetry) {
     janusRetry.addEventListener("click", () => {
@@ -6984,68 +6877,20 @@ function wireMicroControls() {
   }
 }
 
-const MICRO_CSV_COLS = [
-  ["id", (r) => r.site.id],
-  ["name", (r) => prettyName(r.site.name) || ""],
-  ["program", (r) => r.site.program],
-  ["state", (r) => r.site.state || ""],
-  ["acreage", (r) => r.site.acreage ?? ""],
-  ["parcel_acreage", (r) => r.site.parcel_acreage ?? ""],
-  ["transmission_mi", (r) => r.site.transmission_mi ?? ""],
-  ["grid_access_mi", (r) => microreactorGridAccessMi(r.site) ?? ""],
-  ["substation_mi", (r) => r.site.substation_mi ?? ""],
-  ["highway_mi", (r) => r.site.highway_mi ?? ""],
-  ["rail_mi", (r) => r.site.rail_mi ?? ""],
-  ["power_plant_mi", (r) => r.site.power_plant_mi ?? ""],
-  ["power_plant_mw", (r) => r.site.power_plant_mw ?? ""],
-  ["power_plant_fuel", (r) => r.site.power_plant_fuel ?? ""],
-  ["in_sfha", (r) => (r.site.in_sfha == null ? "" : r.site.in_sfha)],
-  ["nri_wildfire_rating", (r) => r.site.nri_wildfire_rating ?? ""],
-];
-
-function buildMicroCsv() {
-  const cols=evidenceCsvColumns(r=>r.site);
-  return [csvRow(MICRO_CSV_COLS.map(c=>c[0]).concat(cols.map(c=>c.label))),
-    ...microRankedSites().map(r=>{const a=SiteEvidence.assessSite(r.site); return csvRow(MICRO_CSV_COLS.map(c=>c[1](r)).concat(cols.map(c=>c.compute(r,a))));})].join("\n");
-}
-
-function downloadMicroCsv() {
-  const blob = new Blob([buildMicroCsv()], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `microreactor-siting-${new Date().toISOString().slice(0, 10)}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
-// ----- DC Candidates view -----
+// ----- Screens view state -----
 //
-// A ranked, pre-sorted table of every site with a suitability score, showing
-// the key signals that explain the score side-by-side: voltage class,
-// substation proximity, nearest plant (capacity + fuel), gas pipeline,
-// and readiness/risk badges (OZ, Cleanup, Flood, etc.).
-//
-// Sources from `tableState.filtered` — the SAME globally-filtered set the
-// map and table show — so search / state / program / acreage / persona /
-// OZ filters carry across tabs. (Pre-unification the tab silently ignored
-// them and duplicated tier + readiness as unsynced parallel controls —
-// see the 2026-06-10 tab-UX findings in backlog.md.) The only view-local
-// state is the scoring lens, round-tripped through the URL as `?lens=gen`.
-//
-// The view is rebuilt on tab activation, on every applyFilter(), and after
-// relevant lazy loads settle (evidence becomes available as sources arrive).
+// Ranks `tableState.filtered`, the same globally-filtered set the map and
+// table show, so search and filters carry across tabs. View-local state is
+// the screen (`?lens=`) and the every-check toggle (`?allmet=1`). Rebuilt on
+// tab activation, every applyFilter(), and when a lazy join lands.
 const CANDIDATES_PAGE = 50;
+const SCREEN_KEYS = ["dc", "solar", "port", "nickel"];
 const candidatesState = {
-  sorted:   [],
+  sorted:   [],   // [{site, ev}] in rank order
   rendered: 0,
-  lens:     "dc",   // "dc" | "gen" | "mfg" — URL state ?lens=
+  lens:     "dc", // screen key — URL state ?lens=
 };
 let _candidatesObserver = null;
-
-
 
 // EPA Sitewide Ready for Anticipated Use (SWRAU) — true only for the two
 // affirmative values. "Does Not Meet the Measure", its "(Retracted)" variant,
@@ -7054,27 +6899,120 @@ function _meetsRau(rauStatus) {
   return typeof rauStatus === "string" && /^Meets the Measure/i.test(rauStatus);
 }
 
-function makeCandidateRow(s) { return evidenceRow(s,candidatesState.lens); }
+// ----- Screens view (default tab) -----
+// One screen per use: 3-5 pass/fail checks from docs/screens.js, each with a
+// cited threshold. Rank = checks met, then fewest unknown, then the screen's
+// stated tie-breaker. The same module ranks sites from the shell:
+//   node scripts/screen.js top dc 20
+const SCREEN_MARK = {pass: "✓", fail: "✗", unknown: "?"};
+const SCREEN_KIND = {R: "Agency threshold", P: "Our threshold"};
 
-function siteMatchesEvidenceFilters(s) {
+function screenMethodHtml(screen) {
+  const items = screen.criteria.map(c =>
+    `<li><strong>${escapeHtml(c.label)}</strong> <span class="method-kind" data-kind="${c.kind}" title="${escapeAttr(SCREEN_KIND[c.kind])}">${c.kind === "R" ? "agency" : "ours"}</span> `
+    + `<a href="${escapeAttr(c.source.url)}" target="_blank" rel="noopener" title="${escapeAttr(c.note || c.source.title)}">${escapeHtml(c.source.title.split(":")[0].split("(")[0].trim())} ↗</a></li>`).join("");
+  return `<p class="method-lead"><strong>Method.</strong> ${escapeHtml(screen.method)} Ranked by checks met, then fewest unknowns, then ${escapeHtml(screen.tieBreak.label)}. ? means no data and never counts as met.</p><ol class="method-list">${items}</ol>`;
+}
+
+function screenCell(r) {
+  return `<span class="screen-mark" data-status="${r.status}" aria-label="${r.status}">${SCREEN_MARK[r.status]}</span><span class="screen-value">${escapeHtml(r.value)}</span>`;
+}
+
+function makeCandidateRow(row, rank) {
+  const {site: s, ev} = row;
   sanitizeGeographicEvidence(s);
-  const key = el("evidence-category-filter")?.value || "grid";
-  const status = el("evidence-status-filter")?.value || "";
-  const confidence = el("evidence-confidence-filter")?.value || "";
-  if (!status && !confidence) return true;
-  const e = SiteEvidence.assessSite(s,candidatesState.lens)[key];
-  return (!status || e.status === status) && (!confidence || e.confidence === confidence);
+  const tr = document.createElement("tr"); tr.dataset.id = s.id;
+  tr.innerHTML = `<td class="cand-name"><span class="screen-rank">${rank}</span><button class="site-evidence-open" type="button">${escapeHtml(s.name || s.id)}</button>`
+    + `<span class="micro-sub">${escapeHtml([s.city, s.state].filter(Boolean).join(", "))} · ${escapeHtml(PROGRAM_LABEL[s.program] || s.program || "")}</span></td>`
+    + ev.results.map(r => `<td data-label="${escapeAttr(r.label)}" data-status="${r.status}">${screenCell(r)}</td>`).join("")
+    + `<td class="screen-score" data-label="Checks met"><strong>${ev.met}</strong>/${ev.total}</td>`;
+  tr.addEventListener("click", () => selectSite(s.id, {fromTable: true}));
+  return tr;
+}
+
+// Data a screen reads beyond the boot loads. Requested when the screen is
+// picked; each loader re-ranks the view when it lands.
+const SCREEN_LOADERS = {
+  port: () => [ensurePortProximityLoaded()],
+  nickel: () => [ensurePortProximityLoaded(), ensureNickelAnchorProxLoaded(), ensureWaterProximityLoaded()],
+};
+// Called on screen pick and tab activation only, never from a rebuild: a
+// loader that fails clears its promise and refreshes the view, so calling
+// it from the rebuild would retry forever.
+function loadScreenData() { SCREEN_LOADERS[candidatesState.lens]?.(); }
+
+// Which data a screen still waits on or failed to load. An empty or partial
+// ranking is never presented as a result while its inputs are missing.
+function screenDataState(key) {
+  const extra = {port: [["port", () => portProximityRecords]],
+    nickel: [["port", () => portProximityRecords], ["supply chain", () => nickelAnchorRecords], ["water", () => waterProximityRecords]]}[key] || [];
+  // Each enabled program (Superfund ships with the page) must be loaded too,
+  // or the ranking covers a partial corpus.
+  const programs = [["brownfield", "ACRES brownfield"], ["fuds", "FUDS"], ["brac", "BRAC"]]
+    .filter(([p]) => filterState.programs.has(p));
+  const inputs = [["infrastructure", () => infraCoreLoaded], ["acreage flag", () => acreageFlagsLoaded],
+    ["location quality", () => coordQualityLoaded], ["parcel", () => parcelOwnerLoaded],
+    ["coordinate validation", () => invalidationsLoaded],
+    ...programs.map(([p, label]) => [label, () => loadedPrograms.has(p)]), ...extra];
+  const coreFailed = {"infrastructure": () => infraCoreFailed, "acreage flag": () => acreageFlagsFailed,
+    "location quality": () => coordQualityFailed, "parcel": () => parcelOwnerFailed,
+    "coordinate validation": () => invalidationsFailed,
+    ...Object.fromEntries(programs.map(([p, label]) => [label, () => programLoadErrors.has(p)]))};
+  const failed = inputs.filter(([n]) => coreFailed[n] ? coreFailed[n]() : nickelDataErrors.has(n)).map(([n]) => n);
+  const pending = inputs.filter(([n, ready]) => !ready() && !failed.includes(n)).map(([n]) => n);
+  return {pending, failed};
+}
+// Until the acreage flags load, program acreage may be a county or a plume;
+// until location flags load, parcel area may belong to a shared geocode.
+// Screens (the ranking and the site drawer) see neither until its check can
+// run. Returns a copy only when something is withheld.
+function withholdUncheckedLand(s) {
+  const dropAcreage = !acreageFlagsLoaded && s.acreage != null;
+  const dropParcel = !coordQualityLoaded && s.parcel_acreage != null;
+  return dropAcreage || dropParcel ? {...s, ...(dropAcreage && {acreage: null}), ...(dropParcel && {parcel_acreage: null})} : s;
 }
 function buildCandidatesView() {
-  candidatesState.sorted = tableState.filtered.filter(siteMatchesEvidenceFilters).slice().sort(evidenceNameOrder);
+  const screen = SiteScreens.SCREENS[candidatesState.lens];
+  const allMet = el("screen-all-met")?.checked;
+  const pool = tableState.filtered.map(sanitizeGeographicEvidence).map(withholdUncheckedLand);
+  // Without the coordinate manifest (loading or failed), some joins may
+  // describe a site's old location; rank nothing rather than rank stale evidence.
+  let rows = invalidationsLoaded ? SiteScreens.rank(pool, candidatesState.lens) : [];
+  const inScope = rows.length;
+  if (allMet) rows = rows.filter(r => r.ev.met === r.ev.total);
+  candidatesState.sorted = rows;
   updateFilterChip(); syncUrl();
+  const method = el("screen-method");
+  if (method) method.innerHTML = screenMethodHtml(screen);
+  const full = rows.filter(r => r.ev.met === r.ev.total).length;
   const stats = el("candidates-stats");
-  if (stats) stats.textContent = `${candidatesState.sorted.length.toLocaleString()} sites · alphabetical · confidence describes evidence, not suitability`;
+  const data = screenDataState(candidatesState.lens);
+  if (stats && data.failed.length) {
+    stats.innerHTML = `Couldn’t load ${escapeHtml(data.failed.join(", "))} data, so these checks read “?”. <button type="button" class="text-btn" id="screen-retry">Retry</button>`;
+    el("screen-retry").addEventListener("click", () => {
+      // A failed coordinate manifest has already removed geographic fields from
+      // the loaded sites (sanitizeGeographicEvidence), so only a reload restores them.
+      if (invalidationsFailed) { location.reload(); return; }
+      if (infraCoreFailed) ensureInfraLoaded();
+      if (acreageFlagsFailed) ensureAcreageFlagsLoaded();
+      if (coordQualityFailed) ensureCoordQualityLoaded();
+      if (parcelOwnerFailed) ensureParcelOwnerLoaded();
+      if (programLoadErrors.has("brownfield")) ensureAcresLoaded();
+      if (programLoadErrors.has("fuds")) ensureFudsLoaded();
+      if (programLoadErrors.has("brac")) ensureBracLoaded();
+      loadScreenData();
+      buildCandidatesView();
+    });
+  } else if (stats && data.pending.length) {
+    stats.textContent = `Loading ${data.pending.join(", ")} data…`;
+  } else if (stats) {
+    stats.textContent = `${full.toLocaleString()} of ${inScope.toLocaleString()} sites meet every check`
+      + (screen.scope ? ` (${screen.scope})` : "") + (filtersActive() || filterState.q ? " · filters applied" : "");
+  }
+  const head = el("candidates-head");
+  if (head) head.innerHTML = `<th scope="col">Site</th>${screen.criteria.map(c => `<th scope="col">${escapeHtml(c.label)}</th>`).join("")}<th scope="col">Met</th>`;
   const tbody = document.querySelector("#candidates-table tbody"); if (!tbody) return;
-  tbody.replaceChildren(); candidatesState.rendered=0; _appendCandidatesPage(tbody); _setupCandidatesScroll();
-  ["evidence-category-filter","evidence-status-filter","evidence-confidence-filter"].forEach(id => {
-    const node=el(id); if(node && !node._evidenceWired) {node._evidenceWired=true; node.addEventListener("change",buildCandidatesView);}
-  });
+  tbody.replaceChildren(); candidatesState.rendered = 0; _appendCandidatesPage(tbody); _setupCandidatesScroll();
 }
 
 function _appendCandidatesPage(tbody) {
@@ -7131,19 +7069,18 @@ function refreshCandLensButtons() {
 function wireCandidatesFilters() {
   // `?lens=` is parsed here, NOT in loadInitialFiltersFromUrl() — that
   // runs at top level before `const candidatesState` initializes (TDZ).
-  // wireCandidatesFilters runs from the boot .then(), safely after.
   const urlLens = new URLSearchParams(location.search).get("lens");
-  if (urlLens === "gen" || urlLens === "mfg") {
-    candidatesState.lens = urlLens;
-  }
+  if (SCREEN_KEYS.includes(urlLens)) { candidatesState.lens = urlLens; loadScreenData(); }
   document.querySelectorAll("[data-cand-lens]").forEach((btn) => {
     btn.addEventListener("click", () => {
       candidatesState.lens = btn.dataset.candLens;
       refreshCandLensButtons();
       syncUrl();
+      loadScreenData();
       if (el("view-candidates").classList.contains("active")) buildCandidatesView();
     });
   });
+  el("screen-all-met")?.addEventListener("change", buildCandidatesView);
   refreshCandLensButtons();
 }
 
@@ -7152,154 +7089,10 @@ function maybeRefreshCandidates() {
   if (view && view.classList.contains("active")) buildCandidatesView();
 }
 
-// ----- Maritime Siting view -----
-// Ranks the whole corpus (sourced from tableState.filtered, same global-
-// filter contract as Rankings/Microreactors) for two lenses defined in
-// maritime-score.js: floating/offshore nuclear, and coastal on-site
-// generation/data centers. Simpler than Rankings' infinite-scroll table —
-// capped at the top MARITIME_PAGE sites, no pagination, since both lenses
-// gate on port_mi != null and only a fraction of the corpus is coastal.
-const MARITIME_PAGE = 150;
-const maritimeState = {
-  lens: "offshore", // "offshore" | "coastal" — URL state ?mlens=
-};
-
-
-
-function makeMaritimeRow(s) { return evidenceRow(s,"maritime"); }
-
-function buildMaritimeView() {
-  const eligible = maritimeState.lens === "coastal" ? s => s.port_mi != null : s => s.port_mi != null || s.shipyard_mi != null;
-  const sorted = tableState.filtered.filter(eligible).slice().sort(evidenceNameOrder);
-  const stats=el("maritime-stats"); if(stats) stats.textContent=`${sorted.length.toLocaleString()} sites with mapped port or shipyard context · alphabetical · showing ${Math.min(sorted.length,MARITIME_PAGE)}`;
-  const tbody=document.querySelector("#maritime-table tbody"); if(!tbody)return;
-  tbody.replaceChildren(...sorted.slice(0,MARITIME_PAGE).map(s => makeMaritimeRow(s)));
-}
-
-function refreshMaritimeLensButtons() {
-  document.querySelectorAll("[data-maritime-lens]").forEach((b) =>
-    b.classList.toggle("active", b.dataset.maritimeLens === maritimeState.lens));
-}
-
-function wireMaritimeFilters() {
-  // `?mlens=` is parsed here, not at top level — same TDZ lesson as
-  // wireCandidatesFilters()'s `?lens=` parsing.
-  const urlLens = new URLSearchParams(location.search).get("mlens");
-  if (urlLens === "coastal") maritimeState.lens = urlLens;
-  document.querySelectorAll("[data-maritime-lens]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      maritimeState.lens = btn.dataset.maritimeLens;
-      refreshMaritimeLensButtons();
-      syncUrl();
-      if (el("view-maritime")?.classList.contains("active")) buildMaritimeView();
-    });
-  });
-  refreshMaritimeLensButtons();
-}
-
-// ----- Nickel Refining view -----
-// Ranks the corpus (sourced from tableState.filtered, the same global-filter
-// contract as Rankings / Microreactors / Maritime) under the two feed models
-// defined in nickel-score.js.
-const NICKEL_PAGE = 150;
-const nickelState = {
-  lens: "import",        // "import" | "domestic" — URL state ?nlens=
-  // Land basis. Defaults to CONFIRMED, and that default is the difference
-  // between a useful screen and a misleading one: 95% of otherwise-eligible
-  // sites have no published acreage, they are mostly small urban parcels, and
-  // because every scored component is a distance that is near zero downtown
-  // they dominated the ranking outright — 0 of the top 150 had confirmed land
-  // before this. Showing them by default answers "which brownfield sits in
-  // the densest infrastructure", which is not the question this tab asks.
-  // "confirmed" (refinery, 300 ac) | "recycling" (100 ac) | "any"
-  // URL state ?land=recycling / ?land=any
-  landBasis: "confirmed",
-};
-
-
-
-function _nickelWaterCell(s) {
-  // Three distinct states, and collapsing any two of them would mislead:
-  // the join has not run; it ran and found nothing in range; it found a gage.
-  if (!s._waterChecked) return '<span class="muted-cell">—</span>';
-  if (s.water_flow_cfs == null) return '<span class="muted-cell">Supply unassessed</span>';
-  return `${Math.round(s.water_flow_cfs).toLocaleString()} cfs` +
-    `<div class="micro-sub">${escapeHtml(s.water_gage_name || "")} · ${fmt.miles(s.water_gage_mi)}</div>`;
-}
-
-// Land is a threshold, and the null case is the one that matters: EPA
-// publishes no acreage at all for its ~36k brownfield properties, so "unknown"
-// is the honest answer for most rows and must not read as "too small".
-function _nickelLandCell(s, minAcres = NICKEL_MIN_ACRES) {
-  const status = nickelAcreageStatus(s, minAcres);
-  if (status === null) return '<span class="muted-cell">Unknown</span>';
-  const ac = s.acreage ?? s.parcel_acreage;
-  return status
-    ? `<span class="nickel-land ok">${fmt.acres(ac)}</span>`
-    : `<span class="nickel-land under">${fmt.acres(ac)}</span>`;
-}
-
-function makeNickelRow(s) { return evidenceRow(s,"nickel"); }
-
-function buildNickelView() {
-  const minAcres=nickelState.landBasis === "recycling" ? NICKEL_MIN_ACRES_RECYCLING : NICKEL_MIN_ACRES;
-  const sorted=tableState.filtered.filter(s => {
-    const land=nickelAcreageStatus(s,minAcres);
-    return (land === true || (land === null && nickelState.landBasis === "any"))
-      && (nickelState.lens === "domestic" ? s.rail_mi != null : s.port_mi != null);
-  }).slice().sort(evidenceNameOrder);
-  const stats=el("nickel-stats");
-  const errors=[...nickelDataErrors].filter(key => !(key === "port" && nickelState.lens === "domestic"));
-  const pending=!lazyLoadsSettled || (!nickelAnchorRecords && !errors.includes("supply chain")) || (nickelState.lens === "import" && !portProximityRecords && !errors.includes("port"));
-  if(stats) stats.textContent=errors.length ? `Some evidence unavailable: ${errors.join(", ")}. Reopen this tab to retry; missing data is unassessed.` : sorted.length ? `${sorted.length.toLocaleString()} sites · reported land ${minAcres}+ acres${nickelState.landBasis === "any" ? " or unknown" : ""} · alphabetical · showing ${Math.min(sorted.length,NICKEL_PAGE)}`
-    : pending ? "Loading site evidence…" : "No sites match these filters. Try including unknown acreage.";
-  const tbody=document.querySelector("#nickel-table tbody");if(!tbody)return;
-  tbody.replaceChildren(...sorted.slice(0,NICKEL_PAGE).map(s => makeNickelRow(s)));
-}
-
-function refreshNickelLensButtons() {
-  document.querySelectorAll("[data-nickel-lens]").forEach((b) =>
-    b.classList.toggle("active", b.dataset.nickelLens === nickelState.lens));
-  document.querySelectorAll("[data-nickel-land]").forEach((b) =>
-    b.classList.toggle("active", b.dataset.nickelLand === nickelState.landBasis));
-}
-
-function wireNickelFilters() {
-  // `?nlens=` parsed here, not at top level — the same TDZ lesson as
-  // wireCandidatesFilters()'s `?lens=`.
-  const params = new URLSearchParams(location.search);
-  const urlLens = params.get("nlens");
-  if (urlLens === "domestic") nickelState.lens = urlLens;
-  const urlLand = params.get("land");
-  if (urlLand === "any" || urlLand === "recycling") nickelState.landBasis = urlLand;
-  document.querySelectorAll("[data-nickel-land]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      nickelState.landBasis = btn.dataset.nickelLand;
-      refreshNickelLensButtons();
-      syncUrl();
-      if (el("view-nickel")?.classList.contains("active")) buildNickelView();
-    });
-  });
-  document.querySelectorAll("[data-nickel-lens]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      nickelState.lens = btn.dataset.nickelLens;
-      refreshNickelLensButtons();
-      syncUrl();
-      if (el("view-nickel")?.classList.contains("active")) buildNickelView();
-    });
-  });
-  refreshNickelLensButtons();
-}
-
-function maybeRefreshNickel() {
-  const view = el("view-nickel");
-  if (view && view.classList.contains("active") && nickelViewMounted) buildNickelView();
-}
-
-function maybeRefreshMaritime() {
-  const view = el("view-maritime");
-  if (view && view.classList.contains("active") && maritimeViewMounted) buildMaritimeView();
-}
+// Port, water and nickel joins land after first paint; the Screens view
+// re-ranks when they do (the port and nickel screens read them).
+function maybeRefreshNickel() { maybeRefreshCandidates(); }
+function maybeRefreshMaritime() { maybeRefreshCandidates(); }
 
 // ----- Detail panel -----
 function wireDetailPanel() {
@@ -7542,6 +7335,7 @@ function ensureDetailEvidenceLoaded() {
     ensureIraEnergyCommunityLoaded(), ensureFemaNriLoaded(), ensureClimateZoneLoaded(),
     ensureRetiredPlantsLoaded(), ensurePlannedRetireProxLoaded(),
     ensureCoalConversionsProxLoaded(), ensurePortProximityLoaded(), ensureSiteResearchLoaded(),
+    ensureOppZoneLoaded(), ensureIsoRtoLoaded(), ensureWaterProximityLoaded(), ensureInfraEvidenceLoaded(),
   ]).then(() => {
     if (selectedId && sitesById.has(selectedId)) selectSite(selectedId);
   });
@@ -8334,10 +8128,19 @@ function csvCell(s, col, assessment) {
 }
 
 function buildSiteCsv() {
+  // On the Screens tab the export is the ranked list with each check's result;
+  // elsewhere it is every site matching the global filters.
+  // An empty screen exports an empty screen CSV, not the whole corpus.
+  if (el("view-candidates")?.classList.contains("active")) {
+    const screen = SiteScreens.SCREENS[candidatesState.lens];
+    const head = ["rank", "checks_met", "checks_unknown", ...screen.criteria.flatMap(c => [`${c.id}_result`, `${c.id}_value`]), ...CSV_COLUMNS.map(c => c.label)];
+    const rows = candidatesState.sorted.map((r, i) => [i + 1, r.ev.met, r.ev.unknown,
+      ...r.ev.results.flatMap(x => [x.status, x.value]), ...CSV_COLUMNS.map(c => csvCell(r.site, c, SiteEvidence.assessSite(r.site)))]);
+    return [head, ...rows].map(csvRow).join("\n");
+  }
   const rows = [CSV_COLUMNS.map(c=>c.label)];
-  const useEvidenceFilters = el("view-candidates")?.classList.contains("active");
   for(const site of sites) {
-    if(!siteMatchesFilters(site) || (useEvidenceFilters && !siteMatchesEvidenceFilters(site))) continue;
+    if(!siteMatchesFilters(site)) continue;
     const assessment = SiteEvidence.assessSite(site);
     rows.push(CSV_COLUMNS.map(c=>csvCell(site,c,assessment)));
   }
@@ -8413,10 +8216,7 @@ function refreshMarkerColors() {
 // ----- URL state sharing -----
 function loadInitialFiltersFromUrl() {
   const p = new URLSearchParams(location.search);
-  for(const [param,id] of [["evidence","evidence-category-filter"],["finding","evidence-status-filter"],["confidence","evidence-confidence-filter"]]) {
-    const node=el(id); const value=p.get(param);
-    if(node && value != null && [...node.options].some(o=>o.value===value)) node.value=value;
-  }
+  if (p.get("allmet") === "1" && el("screen-all-met")) el("screen-all-met").checked = true;
   if (p.has("q")) filterState.q = p.get("q") || "";
   if (p.has("state")) filterState.state = p.get("state") || "";
   if (p.has("status")) {
@@ -8499,17 +8299,9 @@ function syncUrl() {
     if (filterState.oppZone) p.set("oz", "1");
     if (filterState.isoRto) p.set("iso_rto", filterState.isoRto);
     if (filterState.availableOnly) p.set("available", "1");
-    const finding=el("evidence-status-filter")?.value, confidence=el("evidence-confidence-filter")?.value;
-    if(finding || confidence) {
-      p.set("evidence",el("evidence-category-filter").value);
-      if(finding) p.set("finding",finding);
-      if(confidence) p.set("confidence",confidence);
-    }
-    // Candidates-view lens — only encoded off-default ("dc").
+    if (el("screen-all-met")?.checked) p.set("allmet", "1");
+    // Screen — only encoded off-default ("dc").
     if (candidatesState.lens !== "dc") p.set("lens", candidatesState.lens);
-    if (maritimeState.lens !== "offshore") p.set("mlens", maritimeState.lens);
-    if (nickelState.lens !== "import") p.set("nlens", nickelState.lens);
-    if (nickelState.landBasis !== "confirmed") p.set("land", nickelState.landBasis);
     // DOE-sites tab: active site — only encoded off-default ("hanford").
     if (doeActiveSite !== "hanford") p.set("doe", doeActiveSite);
     if (selectedId) p.set("site", selectedId);
@@ -8758,17 +8550,13 @@ function setCoalRepowerCell(id, s) {
   if (s.coal_conversion_plant_name) parts.push(s.coal_conversion_plant_name);
   if (s.coal_conversion_mw != null) parts.push(`${Math.round(s.coal_conversion_mw).toLocaleString()} MW coal`);
   if (s.coal_conversion_switchyard_kv != null) parts.push(`${s.coal_conversion_switchyard_kv} kV`);
-  if (s.coal_conversion_stranded_val_usd != null) {
-    const valM = (s.coal_conversion_stranded_val_usd / 1_000_000).toFixed(1);
-    parts.push(`~$${valM}M modeled`);
-  }
   if (s.coal_conversion_queue_fasttrack) parts.push("Nearby plant; connection unverified");
   if (parts.length) {
     const span = document.createElement("button");
     span.type = "button";
     span.className = "pp-chip sig-plant coal-clickable-chip";
     span.textContent = parts.join(" · ") + " →";
-    span.title = "Click to explore this coal plant in the Coal Reinvestment tab (DOE/EIA data, stranded asset breakdown, nearby brownfield parcels)";
+    span.title = "Click to explore this coal plant in the Coal Reinvestment tab (DOE/EIA data, nearby brownfield parcels)";
     span.addEventListener("click", (e) => {
       e.stopPropagation();
       if (s.coal_conversion_plant_name && window.__openCoalTabForPlant) {
@@ -8976,7 +8764,24 @@ function setFloodZoneCell(id, zone, inSfha) {
 // ----- Siting suitability block -----
 // Shared evidence categories in the detail drawer.
 function renderSuitability(s) {
-  const node=el("d-suit-dc"); if(node) node.innerHTML=evidenceDetails(s, el("view-micro")?.classList.contains("active") ? "micro" : el("view-nickel")?.classList.contains("active") ? "nickel" : "dc");
+  // Screens first (the answer), then the per-category evidence (the why).
+  const node = el("d-suit-dc");
+  if (node) {
+    const rows = !invalidationsLoaded ? "" : SCREEN_KEYS.map(key => {
+      const sc = SiteScreens.SCREENS[key];
+      if (sc.applies && !sc.applies(s)) return "";
+      const ev = SiteScreens.evaluate(withholdUncheckedLand(s), key);
+      return `<tr><th scope="row">${escapeHtml(sc.label)}</th><td class="screen-score"><strong>${ev.met}</strong>/${ev.total}</td><td>`
+        + ev.results.map(r => `<span class="screen-chip" data-status="${r.status}" title="${escapeAttr(r.label + ": " + r.value)}">${SCREEN_MARK[r.status]} ${escapeHtml(r.label)}</span>`).join(" ")
+        + `</td></tr>`;
+    }).join("");
+    // Without the coordinate manifest no check is evaluated (stale joins).
+    node.innerHTML = (invalidationsLoaded
+        ? `<table class="screen-summary"><caption class="sr-only">Siting checks for this site</caption><tbody>${rows}</tbody></table>`
+        : `<p class="muted">Checks appear once coordinate validation has loaded${invalidationsFailed ? " (it failed; reload to retry)" : ""}.</p>`)
+      + (s.acreage_flag ? `<p class="suit-note">Reported area is treated as unknown: it ${s.acreage_flag === "water_or_plume" ? "traces a river, lake or groundwater plume" : s.acreage_flag === "county_outline" ? `covers ${escapeHtml(s.acreage_flag_county ? "most of " + s.acreage_flag_county : "most of its county")}` : "spans a region larger than any single parcel"}.</p>` : "")
+      + evidenceDetails(s, "dc");
+  }
   for(const id of ["d-suit-gen","d-suit-nickel-import","d-suit-nickel-domestic","d-suit-nickel-land"]) {const n=el(id);if(n){n.replaceChildren();n.hidden=true;}}
 }
 

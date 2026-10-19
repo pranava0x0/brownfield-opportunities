@@ -167,6 +167,27 @@ PROGRAM_FILES: list[str] = [
 ]
 
 # Field on each enriched record per layer. Must match SiteRecord schema.
+# Voltage thresholds the siting screens use (docs/screens.js). The nearest
+# line is often a low-voltage one, so a screen asking for "≥230 kV within
+# 5 mi" needs the distance to the nearest line that meets the threshold.
+LINE_KV_THRESHOLDS = (69, 115, 230)
+
+
+def line_threshold_fields(idx: Any, lat: float, lon: float) -> dict[str, float]:
+    """transmission_<kv>kv_mi for each threshold, plus transmission_unknown_kv_mi (nearest line
+    with no reported voltage). Fields beyond MAX_DISTANCE_MI are omitted."""
+    def kv(attr: Any) -> Any:
+        return attr.get("kv") if isinstance(attr, dict) else attr
+    out: dict[str, float] = {}
+    tests = [(f"transmission_{t}kv_mi", lambda a, t=t: kv(a) is not None and kv(a) >= t) for t in LINE_KV_THRESHOLDS]
+    tests.append(("transmission_unknown_kv_mi", lambda a: kv(a) is None))
+    for field, test in tests:
+        hit = idx.nearest_matching(lat, lon, test)
+        if hit is not None and hit[0] <= MAX_DISTANCE_MI:
+            out[field] = round(hit[0], 1)
+    return out
+
+
 DISTANCE_FIELD: dict[str, str] = {
     "transmission": "transmission_mi",
     "highway": "highway_mi",
@@ -568,6 +589,7 @@ class InfraProximity(Connector):
                     evidence[layer]["status"] = "matched_context"
                     if kv is not None:
                         rec["transmission_kv"] = round(float(kv), 1)
+                    rec.update(line_threshold_fields(idx, lat_f, lon_f))
                 else:
                     d = idx.nearest_distance_mi(lat_f, lon_f)
                     if d is None or d > MAX_DISTANCE_MI:

@@ -1251,7 +1251,7 @@
       "id": "equinix-radiant",
       "track": "us-commercial",
       "band": "contracted",
-      "name": "Equinix \u2014 20-reactor purchase agreement",
+      "name": "Equinix \u2014 20-reactor preorder",
       "owner": "Equinix, Inc. (NASDAQ: EQIX)",
       "sector": "Compute \u2014 colocation data centres",
       "vendor_id": "radiant",
@@ -1263,8 +1263,8 @@
       "power_label": "20 \u00d7 1 MWe = 20 MWe committed",
       "mwe": 20.0,
       "timeline": "Not published",
-      "instrument": "Purchase agreement / pre-order with deposits",
-      "status": "Signed",
+      "instrument": "Preorder agreement for the purchase of 20 Kaleidos units",
+      "status": "Preorder",
       "microreactor": true,
       "sources": [
         {

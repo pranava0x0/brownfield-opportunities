@@ -126,6 +126,9 @@ COVERED_BY_PARENT = {
     "water_gage_id": "water_gage_mi",
     "water_statistic": "water_gage_mi", "water_gage_source_url": "water_gage_mi",
     "water_gage_source_retrieved_at": "water_gage_mi",
+    "water_100cfs_gage_mi": "water_gage_mi", "water_100cfs_flow_cfs": "water_gage_mi",
+    "transmission_69kv_mi": "transmission_mi", "transmission_115kv_mi": "transmission_mi",
+    "transmission_230kv_mi": "transmission_mi", "transmission_unknown_kv_mi": "transmission_mi",
     # Shared match statuses are explained by the infrastructure parent rows.
     "infra_evidence": "transmission_mi",
     "transmission_asset_id": "transmission_mi", "substation_asset_id": "substation_mi",

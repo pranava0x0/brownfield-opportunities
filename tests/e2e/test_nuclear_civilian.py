@@ -94,33 +94,20 @@ def test_nuclear_legend_row_appears(page, base_url):
     assert str(data["promising"]) in legend
 
 
-def test_nuclear_siting_tab_lists_promising_sites(page, base_url):
-    """The Nuclear Siting tab gains a civilian-pipeline table below the
-    military screen: one row per promising site, tier-ordered, with a muted
-    footnote counting the rows that stayed in the data file."""
+def test_nuclear_tab_ranks_every_civilian_site_by_nrc_status(page, base_url):
+    """The civilian table lists every tracked site, ranked by its checks
+    (permit in force, existing reactor site, population center), with the
+    method card above it."""
     _ready(page, base_url)
     data = _dataset(page)
     page.locator("#tab-ap1000").click()
     page.wait_for_selector(".nuke-civ-table tbody tr")
-    rows = page.locator(".nuke-civ-table tbody tr").count()
-    assert rows == data["promising"], f"expected {data['promising']} rows, got {rows}"
-
+    assert page.locator(".nuke-civ-table tbody tr").count() == data["total"]
     heading = page.locator("#nuclear-civilian h3").text_content() or ""
-    assert "Civilian nuclear pipeline" in heading
-    assert f"{data['total']:,} tracked sites" in heading
-
-    foot = page.locator(".nuke-civ-foot").text_content() or ""
-    assert f"{data['remainder']:,} further sites" in foot
-
-    # Tier ordering: dark_green ("AP1000 ready") first.
-    tiers = page.evaluate(
-        "() => Array.from(document.querySelectorAll('.nuke-civ-table tbody tr "
-        ".nuke-civ-cat')).map((c) => c.textContent.trim())"
-    )
-    assert tiers[0] == "AP1000 ready", tiers[:5]
-    order = ["AP1000 ready", "AP1000 feasible", "Restart / SMR", "New entrant (post-2024 study)"]
-    ranks = [order.index(t) for t in tiers]
-    assert ranks == sorted(ranks), "rows must be grouped by readiness tier"
+    assert f"({data['total']})" in heading
+    met = [int(x) for x in page.locator(".nuke-civ-table .screen-score strong").all_inner_texts()]
+    assert met == sorted(met, reverse=True)
+    assert page.locator("#nuclear-civilian .method-card a[href^='https://']").count() >= 3
 
 
 def test_nuclear_popup_shows_category_and_nearby_brownfields(page, base_url):

@@ -212,12 +212,18 @@ def check_source(src: "dict[str, Any]", today: dt.date) -> "dict[str, Any]":
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--json", action="store_true", help="machine-readable output")
+    parser.add_argument("--markdown", action="store_true", help="markdown table (for backlog.md or a CI summary)")
     args = parser.parse_args()
     prefer_ipv4()
     today = dt.date.today()
     rows = [check_source(src, today) for src in SOURCES]
     if args.json:
         print(json.dumps(rows, indent=1))
+    elif args.markdown:
+        print(f"Checked {today.isoformat()} by `scripts/check_upstream_freshness.py --markdown`.\n")
+        print("| Source | Ours | Upstream | Verdict | Note |\n|---|---|---|---|---|")
+        for r in rows:
+            print(f"| {r['name']} | {r['ours'] or '—'} | {r['upstream'] or '—'} | {r['verdict']} | {(r['note'] or '').replace('|', '/')} |")
     else:
         w = max(len(r["name"]) for r in rows) + 2
         print(f"{'SOURCE':<{w}} {'OURS':<12} {'UPSTREAM':<12} VERDICT  NOTE")
