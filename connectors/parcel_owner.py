@@ -61,7 +61,8 @@ log = logging.getLogger("connector.parcel_owner")
 # Per-state public statewide parcel sources. Each: an ArcGIS REST layer that
 # supports point-intersect queries and exposes an owner-name field.
 #   base        — FeatureServer/MapServer layer URL (…/<n>)
-#   owner_field — attribute holding the owner name
+#   owner_field — attribute holding the owner name (None for an acreage-only
+#       state: the statewide layer has parcel area but no owner name)
 #   acreage_field / parcel_id_field — for validation / provenance (optional)
 #   acreage_multiplier — OPTIONAL fixed to-acres factor when the layer reports
 #       area in a single non-acre unit with NO per-record units column (FL's
@@ -192,6 +193,26 @@ STATE_PARCEL_SOURCES: dict[str, dict[str, Any]] = {
         "parcel_id_field": "state_pin",
         "source": "MnGeo/MPCA Parcels (opt-in counties)",
     },
+    # Acreage-only states (no owner field in the public layer; area still fills
+    # the land check for brownfields). Verified 2026-10-19 by point and sample
+    # queries: OH LandArea is acres (sample of 8 parcels within 4% of the
+    # polygon area / 43,560 in the layer's US-feet projection); ME Shape__Area
+    # is square meters in UTM 19N (data-source-research.md §34.5).
+    "OH": {
+        "base": "https://services2.arcgis.com/MlJ0G8iWUyC7jAmu/arcgis/rest/services/OhioStatewidePacels_full_view/FeatureServer/0",
+        "owner_field": None,
+        "acreage_field": "LandArea",
+        "parcel_id_field": "StateParcelID",
+        "source": "Ohio OGRIP Statewide Parcels (area only)",
+    },
+    "ME": {
+        "base": "https://services1.arcgis.com/RbMX0mRVOFNTdLzd/arcgis/rest/services/Maine_Parcels_Organized_Towns/FeatureServer/10",
+        "owner_field": None,
+        "acreage_field": "Shape__Area",
+        "acreage_multiplier": 1.0 / 4046.8564224,
+        "parcel_id_field": "MAP_BK_LOT",
+        "source": "MEGIS Maine Parcels, organized towns (area only)",
+    },
     # NY "Tax Parcels Public" layer 0 is municipal boundaries and the public
     # parcels carry no owner — dropped.
     # TX StratMap (TxGIO): RE-PROBED 2026-07-26. Old host feature.tnris.org is
@@ -265,7 +286,7 @@ class ParcelOwner(Connector):
             "inSR": "4326",
             "spatialRel": "esriSpatialRelIntersects",
             "outFields": ",".join(
-                f for f in (src["owner_field"], src.get("acreage_field"),
+                f for f in (src.get("owner_field"), src.get("acreage_field"),
                             src.get("acreage_units_field"), src.get("parcel_id_field")) if f
             ),
             "returnGeometry": "false",
@@ -277,7 +298,7 @@ class ParcelOwner(Connector):
         if not feats:
             return None
         attrs = feats[0].get("attributes") or {}
-        owner = attrs.get(src["owner_field"])
+        owner = attrs.get(src["owner_field"]) if src.get("owner_field") else None
         owner = str(owner).strip() if owner and str(owner).strip() else None
         # Parcel acreage answers "how many acres are actually available for
         # development" and is the only land-size signal for ACRES sites.
