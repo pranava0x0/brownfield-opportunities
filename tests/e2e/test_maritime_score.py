@@ -228,3 +228,29 @@ def test_open_drawer_drops_a_land_pass_when_acreage_flags_land(page: Page, base_
     # The drawer re-renders with the flag: the land value now says why.
     expect(chip).to_have_attribute("title", re.compile("area not a parcel"), timeout=30_000)
     expect(chip).not_to_have_attribute("data-status", "pass")
+
+
+def test_ranking_waits_for_the_coordinate_manifest(page: Page, base_url: str) -> None:
+    """No rows are ranked while stale joins could still be on the sites (Codex review, PR #43)."""
+    held = []
+    page.route("**/data/evidence-invalidations.json", lambda route: held.append(route))
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__sites && window.__sites.length > 1000", timeout=45_000)
+    expect(page.locator("#candidates-stats")).to_contain_text("coordinate validation")
+    assert page.locator("#candidates-table tbody tr").count() == 0
+    assert page.evaluate("window.__buildCsv()").strip().count("\n") == 0
+    held[0].continue_()
+    expect(page.locator("#candidates-stats")).to_contain_text("meet every check", timeout=45_000)
+    assert page.locator("#candidates-table tbody tr").count() > 0
+
+
+def test_late_program_gets_the_full_infrastructure_payload(page: Page, base_url: str) -> None:
+    """A program enabled after the site panel loaded infra-proximity.json still
+    gets asset ids and evidence (Codex review, PR #43)."""
+    page.goto(f"{base_url}/index.html?program=superfund")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=45_000)
+    page.evaluate("ensureInfraEvidenceLoaded()")
+    page.wait_for_function("window.__sites.some(s => s.infra_evidence && s.program === 'superfund')", timeout=45_000)
+    page.evaluate("ensureFudsLoaded()")
+    page.wait_for_function("""() => window.__sites.some(s => s.program === 'fuds'
+        && s.transmission_asset_id && s.infra_evidence)""", timeout=60_000)
