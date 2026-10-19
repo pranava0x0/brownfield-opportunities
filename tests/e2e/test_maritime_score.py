@@ -202,6 +202,11 @@ def test_failed_coordinate_manifest_is_reported(page: Page, base_url: str) -> No
     page.goto(f"{base_url}/index.html")
     page.wait_for_selector("#screen-retry", timeout=45_000)
     expect(page.locator("#candidates-stats")).to_contain_text("coordinate validation")
+    # No geographic join (e.g. nickel feedstock distance) is evaluated unvalidated.
+    assert page.locator("#candidates-table tbody tr").count() == 0
+    page.evaluate("window.__selectSite(window.__sites[0].id)")
+    expect(page.locator("#d-suit-dc")).to_contain_text("coordinate validation")
+    assert page.locator("#d-suit-dc .screen-chip").count() == 0
 
 
 def test_empty_screen_exports_an_empty_screen_csv(page: Page, base_url: str) -> None:

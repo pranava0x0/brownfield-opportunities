@@ -6974,9 +6974,9 @@ function buildCandidatesView() {
   const screen = SiteScreens.SCREENS[candidatesState.lens];
   const allMet = el("screen-all-met")?.checked;
   const pool = tableState.filtered.map(sanitizeGeographicEvidence).map(withholdUncheckedLand);
-  // Until the coordinate manifest settles, some joins may describe a site's old
-  // location; rank nothing rather than rank stale evidence.
-  let rows = invalidationsLoaded || invalidationsFailed ? SiteScreens.rank(pool, candidatesState.lens) : [];
+  // Without the coordinate manifest (loading or failed), some joins may
+  // describe a site's old location; rank nothing rather than rank stale evidence.
+  let rows = invalidationsLoaded ? SiteScreens.rank(pool, candidatesState.lens) : [];
   const inScope = rows.length;
   if (allMet) rows = rows.filter(r => r.ev.met === r.ev.total);
   candidatesState.sorted = rows;
@@ -8766,7 +8766,7 @@ function renderSuitability(s) {
   // Screens first (the answer), then the per-category evidence (the why).
   const node = el("d-suit-dc");
   if (node) {
-    const rows = SCREEN_KEYS.map(key => {
+    const rows = !invalidationsLoaded ? "" : SCREEN_KEYS.map(key => {
       const sc = SiteScreens.SCREENS[key];
       if (sc.applies && !sc.applies(s)) return "";
       const ev = SiteScreens.evaluate(withholdUncheckedLand(s), key);
@@ -8774,7 +8774,10 @@ function renderSuitability(s) {
         + ev.results.map(r => `<span class="screen-chip" data-status="${r.status}" title="${escapeAttr(r.label + ": " + r.value)}">${SCREEN_MARK[r.status]} ${escapeHtml(r.label)}</span>`).join(" ")
         + `</td></tr>`;
     }).join("");
-    node.innerHTML = `<table class="screen-summary"><caption class="sr-only">Siting checks for this site</caption><tbody>${rows}</tbody></table>`
+    // Without the coordinate manifest no check is evaluated (stale joins).
+    node.innerHTML = (invalidationsLoaded
+        ? `<table class="screen-summary"><caption class="sr-only">Siting checks for this site</caption><tbody>${rows}</tbody></table>`
+        : `<p class="muted">Checks appear once coordinate validation has loaded${invalidationsFailed ? " (it failed; reload to retry)" : ""}.</p>`)
       + (s.acreage_flag ? `<p class="suit-note">Reported area is treated as unknown: it ${s.acreage_flag === "water_or_plume" ? "traces a river, lake or groundwater plume" : s.acreage_flag === "county_outline" ? `covers ${escapeHtml(s.acreage_flag_county ? "most of " + s.acreage_flag_county : "most of its county")}` : "spans a region larger than any single parcel"}.</p>` : "")
       + evidenceDetails(s, "dc");
   }

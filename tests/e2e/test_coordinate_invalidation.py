@@ -34,8 +34,11 @@ def test_missing_validation_manifest_withholds_geographic_claims(page, base_url)
     page.route('**/evidence-invalidations.json', lambda route: route.fulfill(status=503, body='Unavailable'))
     page.goto(f'{base_url}/index.html?program=superfund')
     page.wait_for_function('window.__APP_READY__ === true', timeout=45000)
-    # With no manifest every geographic field is withheld, so grid checks are unknown.
-    page.wait_for_selector('#candidates-table tbody tr')
-    assert page.locator('#candidates-table td[data-status]').first.get_attribute('data-status') == 'unknown'
-    page.locator('#candidates-table .site-evidence-open').first.click()
-    assert 'Coordinate validation unavailable' in page.locator('#d-suit-dc').inner_text()
+    # With no manifest nothing is ranked: an unvalidated coordinate could pass a
+    # geographic check (e.g. nickel feedstock distance).
+    page.wait_for_selector('#screen-retry')
+    assert page.locator('#candidates-table tbody tr').count() == 0
+    page.evaluate('window.__selectSite(window.__sites[0].id)')
+    text = page.locator('#d-suit-dc').inner_text()
+    assert 'coordinate validation' in text and 'failed' in text
+    assert 'Coordinate validation unavailable' in text  # the evidence categories still render
