@@ -127,3 +127,21 @@ def test_failed_port_load_is_not_reported_as_zero_sites(page: Page, base_url: st
     state["fail"] = False
     page.click("#screen-retry")
     expect(page.locator("#candidates-stats")).to_contain_text("meet every check", timeout=30_000)
+
+
+def test_acreage_flags_failure_withholds_land_passes(page: Page, base_url: str) -> None:
+    """Without acreage-flags.json a county/plume acreage must not pass the land
+    check, and the screen says the input failed (Codex review, PR #43)."""
+    state = {"fail": True}
+    page.route("**/data/acreage-flags.json",
+               lambda route: route.fulfill(status=500, body="") if state["fail"] else route.continue_())
+    page.goto(f"{base_url}/index.html?q=Fox%20River%20NRDA")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=45_000)
+    page.wait_for_selector("#screen-retry", timeout=20_000)
+    expect(page.locator("#candidates-stats")).to_contain_text("acreage flag")
+    land = page.locator("#candidates-table tbody tr", has_text="Fox River").first.locator("td[data-status]").nth(1)
+    expect(land).not_to_have_attribute("data-status", "pass")
+    state["fail"] = False
+    page.click("#screen-retry")
+    expect(page.locator("#candidates-stats")).to_contain_text("meet every check", timeout=30_000)
+    expect(land).not_to_have_attribute("data-status", "pass")  # now flagged as a plume

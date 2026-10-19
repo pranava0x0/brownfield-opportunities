@@ -1950,12 +1950,16 @@ function ensureCoordQualityLoaded() {
 // Acreage that describes a county, a region, a river or a groundwater plume
 // rather than a parcel (scripts/check_acreage_artifacts.py). The screens
 // treat flagged acreage as unknown; the detail panel says why.
+// The file is a required screen input: until it loads, program acreage is
+// withheld from the screens so a county outline never passes a land check.
 let acreageFlagsLoadingPromise = null;
+let acreageFlagsLoaded = false;
+let acreageFlagsFailed = false;
 function ensureAcreageFlagsLoaded() {
   if (acreageFlagsLoadingPromise) return acreageFlagsLoadingPromise;
+  acreageFlagsFailed = false;
   acreageFlagsLoadingPromise = fetch(ACREAGE_FLAGS_URL, { priority: "low" })
     .then((r) => {
-      if (r.status === 404) return { sites: [] };
       if (!r.ok) throw new Error("HTTP " + r.status);
       return r.json();
     })
@@ -1967,11 +1971,14 @@ function ensureAcreageFlagsLoaded() {
         existing.acreage_flag = rec.acreage_flag;
         existing.acreage_flag_county = rec.acreage_flag_county;
       }
+      acreageFlagsLoaded = true;
       maybeRefreshCandidates();
     })
     .catch((err) => {
       console.error("Acreage-flag load failed:", err);
       acreageFlagsLoadingPromise = null;
+      acreageFlagsFailed = true;
+      maybeRefreshCandidates();
     });
   return acreageFlagsLoadingPromise;
 }
@@ -6868,15 +6875,19 @@ function loadScreenData() { SCREEN_LOADERS[candidatesState.lens]?.(); }
 function screenDataState(key) {
   const extra = {port: [["port", () => portProximityRecords]],
     nickel: [["port", () => portProximityRecords], ["supply chain", () => nickelAnchorRecords], ["water", () => waterProximityRecords]]}[key] || [];
-  const inputs = [["infrastructure", () => infraCoreLoaded], ...extra];
-  const failed = inputs.filter(([n]) => n === "infrastructure" ? infraCoreFailed : nickelDataErrors.has(n)).map(([n]) => n);
+  const inputs = [["infrastructure", () => infraCoreLoaded], ["acreage flag", () => acreageFlagsLoaded], ...extra];
+  const coreFailed = {"infrastructure": () => infraCoreFailed, "acreage flag": () => acreageFlagsFailed};
+  const failed = inputs.filter(([n]) => coreFailed[n] ? coreFailed[n]() : nickelDataErrors.has(n)).map(([n]) => n);
   const pending = inputs.filter(([n, ready]) => !ready() && !failed.includes(n)).map(([n]) => n);
   return {pending, failed};
 }
 function buildCandidatesView() {
   const screen = SiteScreens.SCREENS[candidatesState.lens];
   const allMet = el("screen-all-met")?.checked;
-  const pool = tableState.filtered.map(sanitizeGeographicEvidence);
+  // Without the acreage flags, program acreage may be a county or a plume:
+  // rank on parcel area only until they load (copies; the sites keep theirs).
+  const pool = tableState.filtered.map(sanitizeGeographicEvidence)
+    .map(s => acreageFlagsLoaded || s.acreage == null ? s : {...s, acreage: null});
   let rows = SiteScreens.rank(pool, candidatesState.lens);
   const inScope = rows.length;
   if (allMet) rows = rows.filter(r => r.ev.met === r.ev.total);
@@ -6891,6 +6902,7 @@ function buildCandidatesView() {
     stats.innerHTML = `Couldn’t load ${escapeHtml(data.failed.join(", "))} data, so these checks read “?”. <button type="button" class="text-btn" id="screen-retry">Retry</button>`;
     el("screen-retry").addEventListener("click", () => {
       if (infraCoreFailed) ensureInfraLoaded();
+      if (acreageFlagsFailed) ensureAcreageFlagsLoaded();
       loadScreenData();
       buildCandidatesView();
     });
