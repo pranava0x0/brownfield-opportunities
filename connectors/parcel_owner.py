@@ -49,6 +49,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import re
 from pathlib import Path
 from typing import Any
 
@@ -71,6 +72,13 @@ log = logging.getLogger("connector.parcel_owner")
 #   source      — provenance label written to current_owner_source
 # ADD A STATE: verify its endpoint + field names with a point query, then drop
 # one entry here. That is the only change needed to extend coverage.
+# Parcel ids that mark a polygon as something other than a tax parcel: road,
+# rail or water rights-of-way ("27123-County RoW", "39113-ROW", "Road"),
+# "unknown", all zeros, or a county FIPS prefix with no local number
+# ("39029-"). Seen 2026-10-19 in MN, OH and ME; 148 records had matched them.
+NON_PARCEL_ID = re.compile(
+    r"(^|[-_ /])(ROW|R/W|ROAD|RAILROAD|WATER|UNKNOWN)$|^[-0 ]*$|^\d{5}-+$", re.I)
+
 STATE_PARCEL_SOURCES: dict[str, dict[str, Any]] = {
     # Verified 2026-06-19. "secure" path needs no token for Query.
     "NC": {
@@ -281,6 +289,11 @@ class ParcelOwner(Connector):
         return self.cache_path(self._cache_key(src, lat, lon)).exists()
 
     # ---- per-site parcel query -------------------------------------------
+    @staticmethod
+    def is_non_parcel(parcel_id: str | None) -> bool:
+        """True for polygons that are not tax parcels (see NON_PARCEL_ID)."""
+        return parcel_id is not None and bool(NON_PARCEL_ID.search(parcel_id.strip()))
+
     def _query_owner(self, src: dict[str, Any], lat: float, lon: float,
                      use_cache: bool) -> dict[str, Any] | None:
         params = {
@@ -334,6 +347,10 @@ class ParcelOwner(Connector):
         pf = src.get("parcel_id_field")
         if pf and attrs.get(pf) not in (None, ""):
             pid = str(attrs[pf]).strip() or None
+        # A right-of-way or placeholder polygon says nothing about the site
+        # (one Columbiana County OH polygon, id "39029-", is 14,383 acres).
+        if self.is_non_parcel(pid):
+            return None
         # A feature with neither an owner name nor parcel acreage is no signal.
         if owner is None and acreage is None:
             return None

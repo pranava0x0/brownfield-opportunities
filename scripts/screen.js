@@ -21,7 +21,7 @@ const PROGRAM_FILES = ["sites.json", "epa-acres.json", "dod-fuds.json", "dod-bra
 const ENRICHMENT_FILES = ["infra-proximity.json", "water-proximity.json", "port-proximity.json",
   "nickel-anchor-proximity.json", "parcel-owner.json", "eia-retired-plants.json",
   "planned-retirements-proximity.json", "fema-nri.json",
-  "acreage-flags.json"];
+  "acreage-flags.json", "coord-quality.json"];
 const read = f => JSON.parse(fs.readFileSync(path.join(DATA, f), "utf8"));
 
 function loadCorpus() {

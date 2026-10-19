@@ -17,9 +17,14 @@
 
   // Reported acreage, unless scripts/check_acreage_artifacts.py flagged it as a
   // county, region, river or plume; then the state cadastre's parcel area, if any.
+  // Parcel area is the area of the polygon under the site's point. When that
+  // point is shared with other sites or is imprecise (coord-quality flags),
+  // the parcel is not the site's, so the area does not count.
+  const APPROX_POINT = ["shared_point", "low_precision", "placeholder", "outside_us", "state_mismatch"];
+  const approxPoint = s => (s.coord_flags || []).some(f => APPROX_POINT.includes(f));
   function siteAcres(s) {
     if (num(s.acreage) && !s.acreage_flag) return s.acreage;
-    return num(s.parcel_acreage) ? s.parcel_acreage : null;
+    return num(s.parcel_acreage) && !approxPoint(s) ? s.parcel_acreage : null;
   }
   const notFlood = s => s.in_sfha === true ? false : s.in_sfha === false ? true : null;
 
@@ -61,7 +66,8 @@
     return num(s[`${p}_kv`]) ? `${s[`${p}_kv`]} kV · ${miles(s[`${p}_mi`])}` : miles(s[`${p}_mi`]);
   };
   const landAtLeast = min => s => { const a = siteAcres(s); return a === null ? null : a >= min; };
-  const landShow = s => siteAcres(s) === null && s.acreage_flag ? "area not a parcel" : acres(siteAcres(s));
+  const landShow = s => siteAcres(s) !== null ? acres(siteAcres(s))
+    : s.acreage_flag ? "area not a parcel" : num(s.parcel_acreage) ? "location approximate" : acres(null);
   const floodShow = s => s.in_sfha === true ? "in flood zone" : s.in_sfha === false ? "outside" : "unknown";
 
   define("dc", {

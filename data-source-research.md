@@ -679,4 +679,8 @@ SitusAddressAll, MailAddressAll, ..., LandArea, LandArea_PY, Shape__Area`.
   registry uses it with `acreage_multiplier = 1/43560`.
 
 Maine (§34.5) and Ohio are the registry's two acreage-only states
-(`owner_field: None`).
+(`owner_field: None`). Backfill 2026-10-19: Ohio 620 of 1,535 sites with an
+area, Maine 503 of 898, after dropping right-of-way and blank-id polygons
+(Columbiana County's `39029-` polygon is 14,383 acres; Montgomery County `39113-ROW`;
+Maine `Road`). Both layers return those polygons for points that fall in a
+road or on an unparceled remainder.
