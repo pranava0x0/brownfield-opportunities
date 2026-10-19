@@ -84,3 +84,9 @@ def test_army_selection_drives_the_microreactor_screen():
     selected = {sid for sid, status in ranked if status == "pass"}
     assert selected == {"fort-bragg-nc", "fort-campbell-ky", "fort-hood-tx", "fort-benning-ga", "fort-drum-ny"}
     assert [sid for sid, _ in ranked[:5]] and set(sid for sid, _ in ranked[:5]) == selected
+
+
+def test_parcel_area_still_counts_when_program_acreage_is_flagged():
+    ev = evaluate({"acreage": 310173, "acreage_flag": "county_outline", "parcel_acreage": 40}, "solar")
+    land = next(r for r in ev["results"] if r["id"] == "land")
+    assert land["status"] == "pass" and land["value"] == "40 ac"

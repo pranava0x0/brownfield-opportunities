@@ -158,21 +158,20 @@ def _serialize_payload(payload: Payload, pretty: bool) -> str:
     return payload.model_dump_json(exclude_none=True)
 
 
-def _prior_record_count(out_path: Path) -> int:
-    """How many records the file at `out_path` already holds (0 if none/unreadable).
+def _prior_sites(out_path: Path) -> list[dict]:
+    """The records the file at `out_path` already holds ([] if none/unreadable).
 
     Deliberately fails open: a missing or corrupt prior payload must not wedge
-    a connector that is otherwise ready to write. The count is only ever used
-    to decide whether an empty write would destroy data.
+    a connector that is otherwise ready to write. Used to decide whether a
+    write would blank, shrink or null out existing data.
     """
     if not out_path.exists():
-        return 0
+        return []
     try:
-        return len(json.loads(out_path.read_text()).get("sites", []))
+        return json.loads(out_path.read_text()).get("sites", []) or []
     except (OSError, ValueError, AttributeError) as exc:
-        log.warning("could not read prior payload %s (%s); allowing the write",
-                    out_path, exc)
-        return 0
+        log.warning("could not read prior payload %s (%s); allowing the write", out_path, exc)
+        return []
 
 
 def _run_one(
@@ -204,7 +203,8 @@ def _run_one(
 
     out_path = _resolve_output_path(slug, output_override or args.output)
 
-    prior_count = _prior_record_count(out_path)
+    prior_sites = _prior_sites(out_path)
+    prior_count = len(prior_sites)
     if not records and prior_count:
         # An enrichment run may legitimately write an empty payload to CREATE a
         # first-run file, but never to erase one that already holds records.
@@ -232,8 +232,7 @@ def _run_one(
         return 1, None, inst.source_label
 
     if records and prior_count and not getattr(args, "allow_nullouts", False):
-        prior_records = (load_payload(out_path) or {}).get("sites") or []
-        nulled = {f: n for f, n in count_nullouts(prior_records, records).items()
+        nulled = {f: n for f, n in count_nullouts(prior_sites, records).items()
                   if n > len(records) * NULLOUT_LIMIT}
         if nulled:
             log.error("[%s] would blank fields the prior file had: %s (over %d%% of records); "
