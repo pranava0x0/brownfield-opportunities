@@ -2,6 +2,7 @@
 from __future__ import annotations
 import csv
 import io
+import re
 import pytest
 from playwright.sync_api import Page, expect
 pytestmark = pytest.mark.e2e
@@ -201,3 +202,29 @@ def test_failed_coordinate_manifest_is_reported(page: Page, base_url: str) -> No
     page.goto(f"{base_url}/index.html")
     page.wait_for_selector("#screen-retry", timeout=45_000)
     expect(page.locator("#candidates-stats")).to_contain_text("coordinate validation")
+
+
+def test_empty_screen_exports_an_empty_screen_csv(page: Page, base_url: str) -> None:
+    """Zero visible rows export the screen header only, not the corpus (Codex review, PR #43)."""
+    page.goto(f"{base_url}/index.html?q=zzzz-no-site-matches")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=45_000)
+    expect(page.locator("#candidates-table tbody tr")).to_have_count(0)
+    lines = page.evaluate("window.__buildCsv()").strip().splitlines()
+    assert len(lines) == 1 and lines[0].startswith("rank,checks_met")
+
+
+def test_open_drawer_drops_a_land_pass_when_acreage_flags_land(page: Page, base_url: str) -> None:
+    """A drawer opened before acreage-flags.json loads re-renders when it does,
+    so a county-outline acreage never stays a land pass (Codex review, PR #43)."""
+    held = []
+    page.route("**/data/acreage-flags.json", lambda route: held.append(route))
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__sites && window.__sites.some(s => s.id === 'WI0001954841')", timeout=45_000)
+    page.evaluate("window.__selectSite('WI0001954841')")  # Fox River: 1.13M ac, a river, flagged
+    chip = page.locator("#d-suit-dc .screen-chip", has_text="Land").first
+    expect(chip).not_to_have_attribute("data-status", "pass")  # withheld while the flags load
+    assert held, "acreage-flags.json was never requested"
+    held[0].continue_()
+    # The drawer re-renders with the flag: the land value now says why.
+    expect(chip).to_have_attribute("title", re.compile("area not a parcel"), timeout=30_000)
+    expect(chip).not_to_have_attribute("data-status", "pass")
