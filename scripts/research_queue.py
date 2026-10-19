@@ -117,7 +117,9 @@ def cmd_add(rows: list[dict], sid: str, reason: str) -> None:
         raise SystemExit(f"{sid} is already in the queue")
     name, state = site_name(sid)
     num = max(int(r["#"]) for r in rows if r["#"].isdigit()) + 1
-    rows.append(dict(zip(COLUMNS, [str(num), "queued", sid, name.title(), state, reason, "—", "—"])))
+    # Title-case for the table, but keep agency codes in parentheses: "(USARMY)".
+    pretty = re.sub(r"\((\w+)\)", lambda m: f"({m.group(1).upper()})", name.title())
+    rows.append(dict(zip(COLUMNS, [str(num), "queued", sid, pretty, state, reason, "—", "—"])))
 
 
 def cmd_check(rows: list[dict]) -> list[str]:
