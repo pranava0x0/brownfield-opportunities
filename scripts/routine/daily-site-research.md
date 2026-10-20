@@ -29,7 +29,7 @@ If `sync` stops with "commits not in main and no open PR", stop and report. If i
 ## 2. Pick today's sites
 ```
 cd "$WT"
-"$PY" scripts/research_queue.py next 2                 # overdue dossiers first, then queued/retry rows
+"$PY" scripts/research_queue.py next 6                 # overdue dossiers first, then queued/retry rows
 "$PY" scripts/site_research.py context <ID> > "$TMP/<ID>.context.json"
 "$PY" scripts/check_acreage_artifacts.py | grep <ID>   # known boundary-artifact acreage needs no research slot
 ```
