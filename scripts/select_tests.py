@@ -71,13 +71,9 @@ FULL_SUITE_TRIGGERS = [
 
 # glob -> tests that can observe a change to it.
 RULES: list[tuple[str, list[str]]] = [
-    # Score modules: their own logic tests, plus the collision guard — a bare
-    # top-level name in one of these silently overwrites another's global.
-    ("docs/nickel-score.js", ["tests/e2e/test_nickel_score.py", "tests/e2e/test_nickel_tab.py"]),
-    ("docs/dc-score.js", ["tests/e2e/test_dc_score.py", "tests/e2e/test_candidates_view.py"]),
-    ("docs/maritime-score.js", ["tests/e2e/test_maritime_score.py"]),
-    ("docs/microreactor-score.js", ["tests/e2e/test_microreactor.py"]),
-    ("docs/ap1000-score.js", ["tests/e2e/test_ap1000_score.py"]),
+    # Screen definitions: their unit tests plus the views that render them.
+    ("docs/screens.js", ["tests/test_screens.py", "tests/e2e/test_candidates_view.py"]),
+    ("docs/evidence-categories.js", ["tests/test_evidence_categories.py", "tests/e2e/test_evidence_exploration.py"]),
     ("docs/provenance.js", ["tests/test_provenance_registry.py", "tests/e2e/test_evidence_panel.py"]),
     # app.js and the page shell drive every view.
     ("docs/app.js", ["tests/e2e/"]),

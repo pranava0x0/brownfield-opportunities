@@ -247,3 +247,9 @@ def test_record_shape_complete(conn):
     assert set(rec.keys()) == expected
     assert rec["program"] == "superfund"
     assert rec["id"] == rec["epa_id"]
+
+
+def test_scheme_less_profile_url_gets_https(conn):
+    """EPA's 2026-10-17 republish dropped the scheme from URL_ALIAS_TXT."""
+    rec = conn.normalize(_feature({"URL_ALIAS_TXT": "www.epa.gov/superfund/hudson"}))
+    assert rec["profile_url"] == "https://www.epa.gov/superfund/hudson"

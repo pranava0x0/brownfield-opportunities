@@ -148,6 +148,15 @@ class SiteRecord(BaseModel):
         description="Nominal kV of the nearest HIFLD transmission line "
                     "(reported VOLTAGE field only). Source classes are retained separately in asset provenance; voltage does not establish available capacity.",
     )
+    transmission_69kv_mi: Optional[float] = Field(
+        default=None, description="Miles to the nearest HIFLD line with reported voltage ≥69 kV.")
+    transmission_115kv_mi: Optional[float] = Field(
+        default=None, description="Miles to the nearest HIFLD line with reported voltage ≥115 kV.")
+    transmission_230kv_mi: Optional[float] = Field(
+        default=None, description="Miles to the nearest HIFLD line with reported voltage ≥230 kV.")
+    transmission_unknown_kv_mi: Optional[float] = Field(
+        default=None, description="Miles to the nearest HIFLD line with no reported voltage "
+                                  "(it could meet a voltage threshold).")
     rail_mi: Optional[float] = Field(
         default=None,
         description="Miles to nearest Census TIGER rail line.",
@@ -528,6 +537,12 @@ class SiteRecord(BaseModel):
                     "AVERAGE, not a permittable low-flow (7Q10) statistic — it "
                     "screens a candidate and never clears one.",
     )
+    water_100cfs_gage_mi: Optional[float] = Field(
+        default=None, ge=0,
+        description="Miles to the nearest gage whose mean annual discharge is at least "
+                    "100 cfs (the nickel screen's threshold). Often not the nearest gage.",
+    )
+    water_100cfs_flow_cfs: Optional[float] = Field(default=None, gt=0)
     water_gage_name: Optional[str] = Field(default=None)
     water_gage_id: Optional[str] = Field(
         default=None, description="USGS site number, for the NWIS deep link."

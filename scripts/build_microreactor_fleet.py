@@ -871,7 +871,7 @@ COMMITMENTS = [
     # --- U.S. commercial ------------------------------------------------------
     {
         "id": "equinix-radiant", "track": "us-commercial", "band": "contracted",
-        "name": "Equinix — 20-reactor purchase agreement",
+        "name": "Equinix — 20-reactor preorder",
         "owner": "Equinix, Inc. (NASDAQ: EQIX)",
         "sector": "Compute — colocation data centres",
         "vendor_id": "radiant", "vendor_name": "Radiant Nuclear (Kaleidos)",
@@ -879,8 +879,8 @@ COMMITMENTS = [
         "lat": None, "lon": None,
         "power_label": "20 × 1 MWe = 20 MWe committed", "mwe": 20.0,
         "timeline": "Not published",
-        "instrument": "Purchase agreement / pre-order with deposits",
-        "status": "Signed",
+        "instrument": "Preorder agreement for the purchase of 20 Kaleidos units",
+        "status": "Preorder",
         "microreactor": True,
         "sources": [
             {"label": "Equinix investor release 2025-08-14",

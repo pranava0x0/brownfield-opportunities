@@ -24,6 +24,8 @@ Each repair mirrors a specific connector change:
   zero-plant-mw      HIFLD Total_MW of 0 is a missing value, not a measurement
   low-voltage-subs   OSM sub-1 kV gear is not an interconnection candidate
   text-sentinels     connectors now collapse "NO CITY" / "n/a" / etc to null
+  non-parcel-ids     parcel_owner rejects right-of-way / placeholder polygons
+                     (2026-10-19); those records become no-match tombstones
 
 Idempotent: running it twice changes nothing the second time.
 
@@ -39,6 +41,7 @@ from pathlib import Path
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from connectors.parcel_owner import ParcelOwner  # noqa: E402
 from connectors.text import collapse_sentinel  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -155,6 +158,20 @@ def repair_text_sentinels(changes: list[str], dry: bool) -> None:
                 dump(name, payload)
 
 
+def repair_non_parcel_ids(changes: list[str], dry: bool) -> None:
+    """A right-of-way or placeholder polygon is a no-match, not a parcel."""
+    payload, _ = load("parcel-owner.json")
+    n = 0
+    for i, rec in enumerate(payload.get("sites") or []):
+        if ParcelOwner.is_non_parcel(rec.get("parcel_id")):
+            payload["sites"][i] = {"id": rec["id"], "program": rec.get("program")}
+            n += 1
+    if n:
+        changes.append(f"parcel-owner.json: {n} right-of-way / placeholder parcel match(es) -> no match")
+        if not dry:
+            dump("parcel-owner.json", payload)
+
+
 def mirror_sites_json(changes: list[str], dry: bool) -> None:
     """sites.json must stay a byte-exact mirror of superfund-npl.json."""
     src = (DATA / "superfund-npl.json").read_text()
@@ -178,6 +195,7 @@ def main() -> int:
     repair_zero_acreage(changes, args.dry_run)
     repair_infra_sentinels(changes, args.dry_run)
     repair_text_sentinels(changes, args.dry_run)
+    repair_non_parcel_ids(changes, args.dry_run)
     # Must run last: it copies the repaired superfund file.
     mirror_sites_json(changes, args.dry_run)
 

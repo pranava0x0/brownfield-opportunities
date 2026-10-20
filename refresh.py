@@ -34,6 +34,12 @@ DEFAULT_OUTPUT = OUTPUT_DIR / "sites.json"
 # A write that keeps less than this share of the prior file's records is refused
 # unless --allow-shrink is passed (see _run_one).
 SHRINK_FLOOR = 0.9
+# A refresh that blanks a field the prior file had on more than this share of
+# records is refused unless --allow-nullouts is passed. EPA's 2026-10-17
+# republish of the NPL layer blanked STATE_CODE on 84 of 1,908 sites; the count
+# check could not see it because the record count was unchanged.
+NULLOUT_FIELDS = ("name", "state", "city", "county", "lat", "lon", "profile_url", "npl_status_code")
+NULLOUT_LIMIT = 0.01
 CHANGES_PATH = ROOT / "data" / "changes.md"
 
 # Slug whose fetch_records output goes into the canonical sites.json when run
@@ -66,6 +72,9 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument("--allow-shrink", action="store_true",
                    help="Allow a write that keeps under 90%% of the prior file's records "
                         "(an intended smaller set, e.g. a --limit test run into a scratch path).")
+    p.add_argument("--allow-nullouts", action="store_true",
+                   help="Allow a write that blanks a core field on more than 1%% of records "
+                        "the prior file had it for (an upstream field really was retired).")
     p.add_argument("--allow-ipv6", action="store_true",
                    help="Don't pin DNS to IPv4. Default is to pin, because "
                         "every EPA host resolves AAAA-first and a blackholed "
@@ -91,6 +100,28 @@ def _resolve_output_path(slug: str, override: Path | None) -> Path:
     if slug == CANONICAL_SLUG:
         return DEFAULT_OUTPUT
     return OUTPUT_DIR / f"{slug}.json"
+
+
+def count_nullouts(prior: list[dict], records: list[dict]) -> dict[str, int]:
+    """Per core field, how many records had a value before and are blank now."""
+    before = {r.get("id"): r for r in prior}
+    counts: dict[str, int] = {}
+    for r in records:
+        old = before.get(r.get("id"))
+        if not old:
+            continue
+        for f in NULLOUT_FIELDS:
+            if old.get(f) not in (None, "") and str(r.get(f) or "").strip() == "":
+                counts[f] = counts.get(f, 0) + 1
+    return counts
+
+
+def excessive_nullouts(prior: list[dict], records: list[dict]) -> dict[str, int]:
+    """Fields that lost more than NULLOUT_LIMIT of the values the prior file
+    had. The base is each field's prior coverage, not the record count, so a
+    field present on 5 of 1,000 records cannot vanish unnoticed."""
+    had = {f: sum(1 for r in prior if r.get(f) not in (None, "")) for f in NULLOUT_FIELDS}
+    return {f: n for f, n in count_nullouts(prior, records).items() if n > had[f] * NULLOUT_LIMIT}
 
 
 def assert_unique_ids(slug: str, records: list[dict]) -> None:
@@ -135,21 +166,20 @@ def _serialize_payload(payload: Payload, pretty: bool) -> str:
     return payload.model_dump_json(exclude_none=True)
 
 
-def _prior_record_count(out_path: Path) -> int:
-    """How many records the file at `out_path` already holds (0 if none/unreadable).
+def _prior_sites(out_path: Path) -> list[dict]:
+    """The records the file at `out_path` already holds ([] if none/unreadable).
 
     Deliberately fails open: a missing or corrupt prior payload must not wedge
-    a connector that is otherwise ready to write. The count is only ever used
-    to decide whether an empty write would destroy data.
+    a connector that is otherwise ready to write. Used to decide whether a
+    write would blank, shrink or null out existing data.
     """
     if not out_path.exists():
-        return 0
+        return []
     try:
-        return len(json.loads(out_path.read_text()).get("sites", []))
+        return json.loads(out_path.read_text()).get("sites", []) or []
     except (OSError, ValueError, AttributeError) as exc:
-        log.warning("could not read prior payload %s (%s); allowing the write",
-                    out_path, exc)
-        return 0
+        log.warning("could not read prior payload %s (%s); allowing the write", out_path, exc)
+        return []
 
 
 def _run_one(
@@ -181,7 +211,8 @@ def _run_one(
 
     out_path = _resolve_output_path(slug, output_override or args.output)
 
-    prior_count = _prior_record_count(out_path)
+    prior_sites = _prior_sites(out_path)
+    prior_count = len(prior_sites)
     if not records and prior_count:
         # An enrichment run may legitimately write an empty payload to CREATE a
         # first-run file, but never to erase one that already holds records.
@@ -207,6 +238,14 @@ def _run_one(
                   "--allow-shrink if the smaller set is intended.", slug, out_path,
                   prior_count, len(records), int(SHRINK_FLOOR * 100))
         return 1, None, inst.source_label
+
+    if records and prior_count and not getattr(args, "allow_nullouts", False):
+        nulled = excessive_nullouts(prior_sites, records)
+        if nulled:
+            log.error("[%s] would blank fields the prior file had: %s (over %d%% of each field's prior values); "
+                      "refusing. Inspect the upstream layer, or pass --allow-nullouts if the "
+                      "field was really retired.", slug, nulled, int(NULLOUT_LIMIT * 100))
+            return 1, None, inst.source_label
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
