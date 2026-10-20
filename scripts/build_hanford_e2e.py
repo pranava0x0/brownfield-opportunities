@@ -949,13 +949,13 @@ PARCELS = [
             },
             {
                 "type": "smr",
-                "fit": "anchored",
+                "fit": "strong",
                 "constraint": "licensing",
                 "rationale": (
                     "Energy Northwest's Cascade Advanced Energy Facility "
                     "(Xe-100 modules, design-builder selected Oct 2025) is "
-                    "already under NRC pre-application review on this "
-                    "corridor."
+                    "in NRC pre-application review on this corridor. No "
+                    "construction permit application yet, so strong, not anchored."
                 ),
             },
             {

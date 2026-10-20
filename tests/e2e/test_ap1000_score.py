@@ -20,29 +20,30 @@ def test_no_nuclear_total_and_unknown_fiber_retained(page, base_url):
     a = _assess(page, {"fiber": "excellent", "acreage_source": "https://example.org/land", "water_rights_class": "obtainable"}, "nuclear")
     assert a["fiber"]["status"] == a["water_rights"]["status"] == "unknown"
 
-def test_ap1000_rows_are_alphabetical_and_class_change_preserves_evidence(page, base_url):
+def test_ap1000_rows_rank_by_checks_and_class_switches_the_screen(page, base_url):
     _ready(page, base_url);page.click("#tab-ap1000")
     page.wait_for_selector(".ap1000-row")
     assert page.locator(".ap1000-row").count() == 14
-    names=page.locator(".ap1000-expand").all_inner_texts()
-    assert names == sorted(names)
-    before=page.locator('.ap1000-row [data-category="fiber"]').all_inner_texts()
+    met=[int(x) for x in page.locator('.ap1000-row .screen-score strong').all_inner_texts()]
+    assert met == sorted(met, reverse=True)
     page.click('[data-reactor-class="micro"]')
     assert page.locator('[data-reactor-class="micro"]').get_attribute('aria-pressed') == 'true'
-    assert page.locator('.ap1000-row [data-category="fiber"]').all_inner_texts() == before
+    assert page.locator(".ap1000-row").count() == 9   # the Army's Janus candidates
+    first5={t.strip() for t in page.locator('.ap1000-expand').all_inner_texts()[:5]}
+    assert {"Fort Drum","Fort Campbell"} <= first5     # Army-selected sites lead
 
 def test_ap1000_csv_preserves_source_values_and_separate_categories(page, base_url):
     _ready(page, base_url);page.click("#tab-ap1000");page.wait_for_selector(".ap1000-row")
     rows=list(csv.DictReader(io.StringIO(page.evaluate("window.__buildAp1000Csv()"))))
     assert len(rows)==14
-    keys=set(rows[0]); assert "score" not in keys and "rank" not in keys
+    keys=set(rows[0]); assert "score" not in keys and {"rank","checks_met","water_result"} <= keys
     assert {"grid_finding","fiber_finding","water_finding","water_sources","developable_acreage","developable_acreage_source_url"} <= keys
     assert all(x['fiber_finding']=='Unknown' for x in rows)
 
 def test_ap1000_keyboard_expansion_and_table_semantics(page, base_url):
     _ready(page, base_url);page.click("#tab-ap1000");page.wait_for_selector(".ap1000-row")
     assert page.locator('.ap1000-table caption').count()==1
-    assert page.locator('.ap1000-table thead th').count()==6
+    assert page.locator('.ap1000-table thead th').count()==7   # site + 5 checks + met
     assert page.locator('.ap1000-table thead th:not([scope="col"])').count()==0
     first=page.locator('.ap1000-expand').first;first.focus();page.keyboard.press('Enter')
     assert first.get_attribute('aria-expanded')=='true'
@@ -65,10 +66,10 @@ def test_nuclear_details_keep_offered_parcel_and_geohazard_sources(page, base_ur
     detail=row.locator('xpath=following-sibling::tr[1]')
     assert '274' in detail.inner_text()
     assert detail.locator('a[href*="sam.gov"]').count() >= 1
-    expect(detail.locator('.ap1000-flags-cell')).to_contain_text('0.18g')
+    expect(detail.locator('.ap1000-flags-cell')).to_contain_text('0.18 g')
     expect(detail.locator('.ap1000-flags-cell')).to_contain_text('SDC C')
     assert detail.locator('a[href*="earthquake.usgs.gov"]').count() >= 1
-    assert page.locator('.ap1000-class-context a').count() >= 1
+    assert page.locator('#ap1000-cards .method-card a').count() >= 5
 
 def test_ap1000_air_force_rflp_provenance_is_emitted(page: Page, base_url: str) -> None:
     _ready(page, base_url)

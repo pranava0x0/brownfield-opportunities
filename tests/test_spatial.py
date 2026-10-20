@@ -553,3 +553,19 @@ def test_crossing_polyline_does_not_create_world_spanning_segment():
     assert idx.segment_count == 2
     assert idx.nearest_distance_mi(60, 180) == pytest.approx(0,abs=1e-6)
     assert idx.nearest_distance_mi(60, 0) is None
+
+
+def test_polygon_index_finds_point_in_a_later_part_of_a_multipart_feature():
+    """ESRI multipart features list every part's rings in one flat list. A site
+    in the second part used to be missed because only ring 0 was tested
+    (New Castle County, DE: the mainland is ring 3 of 5)."""
+    from connectors.spatial import PolygonIndex
+    island = [[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]
+    mainland = [[5, 5], [5, 9], [9, 9], [9, 5], [5, 5]]
+    lake = [[6, 6], [6, 7], [7, 7], [7, 6], [6, 6]]
+    idx = PolygonIndex()
+    idx.add_polygon([island, mainland, lake], attr="county")
+    assert idx.containing(8, 8) == "county"      # mainland
+    assert idx.containing(0.5, 0.5) == "county"  # island
+    assert idx.containing(6.5, 6.5) is None      # inside the lake (hole)
+    assert idx.containing(3, 3) is None          # between parts

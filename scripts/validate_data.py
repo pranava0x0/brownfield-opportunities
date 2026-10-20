@@ -135,6 +135,10 @@ DISTANCE_FIELDS = [
     "gas_pipeline_mi",
     "substation_mi",
     "power_plant_mi",
+    "transmission_69kv_mi",
+    "transmission_115kv_mi",
+    "transmission_230kv_mi",
+    "transmission_unknown_kv_mi",
 ]
 # Distance fields with their own (smaller) search radius, set by their own
 # connector rather than infra-proximity.
@@ -431,6 +435,23 @@ def c_id_unique(c: Corpus):
         "id-unique", "struct", verdict(bad), checked, bad,
         "no duplicate ids within any single file", examples,
     )
+
+
+@check("infra-core-in-sync", "derived")
+def c_infra_core_in_sync(c: Corpus):
+    """docs/data/infra-proximity-core.json must equal what
+    scripts/build_infra_core.py derives from infra-proximity.json today."""
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from build_infra_core import CORE, FULL, core_payload
+    if not CORE.exists():
+        yield Finding("infra-core-in-sync", "derived", "FAIL", 0, 1, "infra-proximity-core.json missing; run scripts/build_infra_core.py")
+        return
+    want = core_payload(json.loads(FULL.read_text()))
+    have = json.loads(CORE.read_text())
+    bad = sum(1 for a, b in zip(want["sites"], have["sites"]) if a != b) + abs(len(want["sites"]) - len(have["sites"]))
+    bad += want["generated_at"] != have.get("generated_at")
+    yield Finding("infra-core-in-sync", "derived", verdict(bad), len(want["sites"]), bad,
+                  "core file matches infra-proximity.json (rerun scripts/build_infra_core.py if not)")
 
 
 @check("id-namespace", "struct")
@@ -1181,6 +1202,29 @@ def c_infra_identical_coords(c: Corpus):
         "co-located records receive identical nearest-feature distances",
         examples, {"per_field": dict(per_field)},
     )
+
+
+@check("infra-line-threshold-order", "infra")
+def c_infra_line_threshold_order(c: Corpus):
+    """The nearest line of at least 230 kV is never nearer than the nearest
+    line of at least 115 kV, which is never nearer than the nearest line of
+    at least 69 kV, which is never nearer than the nearest line. All four come
+    from one index, so an inversion beyond rounding is a defect."""
+    order = ("transmission_mi", "transmission_69kv_mi", "transmission_115kv_mi", "transmission_230kv_mi")
+    bad, checked, examples = 0, 0, []
+    for rec in c.raw.get("infra-proximity.json", {}).get("sites", []):
+        sid = rec["id"]
+        vals = [rec.get(f) for f in order]
+        if vals[0] is None or vals[1] is None:
+            continue
+        checked += 1
+        present = [v for v in vals if v is not None]
+        if any(b < a - 0.11 for a, b in zip(present, present[1:])):
+            bad += 1
+            if len(examples) < 6:
+                examples.append(f"{sid}:{vals}")
+    yield Finding("infra-line-threshold-order", "infra", verdict(bad), checked, bad,
+                  "nearest line ≤ nearest ≥69 kV ≤ ≥115 kV ≤ ≥230 kV line, within rounding", examples)
 
 
 @check("infra-substation-vs-line", "infra")

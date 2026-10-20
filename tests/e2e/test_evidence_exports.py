@@ -8,23 +8,16 @@ from playwright.sync_api import expect
 pytestmark = pytest.mark.e2e
 
 
-def test_evidence_filter_url_and_csv_use_same_population(page, base_url):
-    page.goto(f"{base_url}/index.html?program=superfund&evidence=fiber&finding=unknown&confidence=High")
+def test_all_met_filter_survives_links_and_matches_the_export(page, base_url):
+    page.goto(f"{base_url}/index.html?program=superfund&lens=solar&allmet=1")
     page.wait_for_function("window.__APP_READY__ === true", timeout=45000)
-    expect(page.locator("#evidence-category-filter")).to_have_value("fiber")
-    expect(page.locator("#evidence-status-filter")).to_have_value("unknown")
-    expect(page.locator("#evidence-confidence-filter")).to_have_value("High")
-    assert list(csv.DictReader(io.StringIO(page.evaluate("window.__buildCsv()")))) == []
-    page.locator("#evidence-confidence-filter").select_option("")
-    page.wait_for_function("!new URLSearchParams(location.search).has('confidence')")
-    page.reload()
-    page.wait_for_function("window.__APP_READY__ === true", timeout=45000)
-    expect(page.locator("#evidence-category-filter")).to_have_value("fiber")
-    expect(page.locator("#evidence-status-filter")).to_have_value("unknown")
+    expect(page.locator("#screen-all-met")).to_be_checked()
+    page.wait_for_function("document.querySelectorAll('#candidates-table tbody tr').length > 0", timeout=30000)
     rows = list(csv.DictReader(io.StringIO(page.evaluate("window.__buildCsv()"))))
-    assert len(rows) > 1000
-    assert all(row["fiber_finding"] == "Unknown" for row in rows)
-    # FEMA's attributed source index remains raw data; our composite totals do not.
+    assert rows and all(r["checks_met"] == "4" for r in rows)
+    stated = int(page.locator("#candidates-stats").inner_text().split(" of ")[0].replace(",", ""))
+    assert len(rows) == stated
+    # FEMA's attributed source index remains raw data; no composite totals.
     assert {key for key in rows[0] if "score" in key.lower()} <= {"nri_risk_score"}
 
 

@@ -619,9 +619,7 @@ registry contract — but `Shape__Area` is in **esriMeters** (the layer is
 wkid 26919, UTM 19N, a projected CRS), so it is a real area convertible to
 acres. Maine is therefore the mirror image of Iowa's owner-only case: an
 **acreage-only** state. Point-in-polygon confirmed working against a Bucksport
-test coordinate. Adding it requires an acreage-only path in the parcel
-registry, which does not exist yet — logged in backlog.md rather than built
-here.
+test coordinate. Added 2026-10-19 as an acreage-only state (§34.7).
 
 Michigan remains rejected (§19): no statewide parcel layer at all.
 
@@ -663,3 +661,26 @@ in the same state.
 `requests` raise `JSONDecodeError`, which was not in the connector's caught set
 and killed a 2,200-site run outright. Now handled like the other per-site
 failures — skip, stay retryable, continue.
+
+### 34.7 Ohio statewide parcels — **acreage only, use the polygon area** (probed 2026-10-19)
+
+`services2.arcgis.com/MlJ0G8iWUyC7jAmu/arcgis/rest/services/OhioStatewidePacels_full_view/FeatureServer/0`
+(OGRIP), no token, spatial reference wkid 102723 / 3735 (Ohio South, US feet).
+Fields include `County, LocalParcelID, StateParcelID, StateLUC,
+SitusAddressAll, MailAddressAll, ..., LandArea, LandArea_PY, Shape__Area`.
+
+- **No owner name.** `MailAddressAll` is a mailing address, not an owner.
+- **`LandArea` is acres but unreliable**: `where=LandArea=0` returns whole
+  counties (Clark). Of the first ~30 matched sites in a backfill, two-thirds
+  had `LandArea` 0 or null.
+- **`Shape__Area` is square feet** in the layer's projection: five Adams County
+  parcels gave `Shape__Area/43560` within 1-4% of `LandArea` (22.35 vs 22.84,
+  153.19 vs 154.39, 4.25 vs 4.21). It is filled for every polygon, so the
+  registry uses it with `acreage_multiplier = 1/43560`.
+
+Maine (§34.5) and Ohio are the registry's two acreage-only states
+(`owner_field: None`). Backfill 2026-10-19: Ohio 620 of 1,535 sites with an
+area, Maine 503 of 898, after dropping right-of-way and blank-id polygons
+(Columbiana County's `39029-` polygon is 14,383 acres; Montgomery County `39113-ROW`;
+Maine `Road`). Both layers return those polygons for points that fall in a
+road or on an unparceled remainder.

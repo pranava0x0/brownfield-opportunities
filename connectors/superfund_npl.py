@@ -340,6 +340,9 @@ class SuperfundNPL(Connector):
             or a.get("FEATURE_INFO_URL")
             or (EPA_PROFILE_URL_TEMPLATE.format(epa_id=epa_id) if epa_id else None)
         )
+        # EPA's 2026-10-17 republish dropped the scheme ("www.epa.gov/superfund/...").
+        if profile_url and profile_url.startswith("www."):
+            profile_url = "https://" + profile_url
 
         fed_code = a.get("FEDERAL_FACILITY_DETER_CODE")
         fed_label = (federal_facility_labels or {}).get(fed_code or "", fed_code)

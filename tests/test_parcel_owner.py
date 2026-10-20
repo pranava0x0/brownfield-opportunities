@@ -29,6 +29,8 @@ def test_registry_states_are_well_formed():
     owner_only_ok = {"IA"}
     for st, src in STATE_PARCEL_SOURCES.items():
         assert required <= set(src), f"{st} missing keys: {required - set(src)}"
+        if src["owner_field"] is None:   # acreage-only state: area is the whole point
+            assert "acreage_field" in src, f"{st}: acreage-only state without acreage_field"
         if st not in owner_only_ok:
             assert "acreage_field" in src, f"{st} must carry acreage_field"
         if "acreage_multiplier" in src:
@@ -334,3 +336,24 @@ def test_parcel_upgrade_acreage_with_zero_limit_is_unlimited(tmp_path):
     assert len(out) == 1
     assert out[0].get("parcel_acreage") == 200.0
     assert out[0].get("parcel_id") == "123"
+
+
+def test_acreage_only_state_emits_area_without_owner(tmp_path):
+    """OH/ME layers have parcel area but no owner field (OH area in sq ft)."""
+    sites = [{"id": "OH1", "program": "brownfield", "state": "OH", "lat": 39.9, "lon": -83.0}]
+    resp = {(39.9, -83.0): {"features": [{"attributes": {"Shape__Area": 12.5 * 43560, "StateParcelID": "X1"}}]}}
+    recs = _conn(tmp_path, sites, response_for=resp).fetch_records(_args(state="OH"), use_cache=True)
+    assert recs == [{"id": "OH1", "program": "brownfield", "parcel_acreage": 12.5, "parcel_id": "X1",
+                     "current_owner_source": "Ohio OGRIP Statewide Parcels (area only)"}]
+
+
+def test_right_of_way_and_placeholder_polygons_are_not_parcels(tmp_path):
+    """MN/OH/ME layers include road and water rights-of-way and blank-id
+    polygons; one Ohio polygon with id '39029-' is 14,383 acres."""
+    sites = [{"id": "OH1", "program": "brownfield", "state": "OH", "lat": 40.9, "lon": -80.8}]
+    for pid in ("39029-", "39113-ROW", "27123-County RoW", "Road", "000-000-000"):
+        resp = {(40.9, -80.8): {"features": [{"attributes": {"Shape__Area": 6e8, "StateParcelID": pid}}]}}
+        recs = _conn(tmp_path / pid.replace("/", "_"), sites, response_for=resp).fetch_records(_args(state="OH"), use_cache=True)
+        assert recs == [{"id": "OH1", "program": "brownfield", "current_owner": None, "current_owner_source": None}], pid
+    from connectors.parcel_owner import ParcelOwner
+    assert not ParcelOwner.is_non_parcel("39133-03-027-00-00-002-")  # Portage ids end in a dash
