@@ -37,6 +37,7 @@ import re
 import subprocess
 import sys
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
@@ -61,6 +62,12 @@ STATUS_NO_CHANGES, STATUS_CHANGES, STATUS_UNREAD = "no-changes", "changes", "unr
 EXIT = {STATUS_NO_CHANGES: 0, STATUS_CHANGES: 10, STATUS_UNREAD: 2}
 
 Fetch = Callable[[str], str]
+# A throttled or briefly-down endpoint gets three more tries (10 s, 20 s, 40 s, or the
+# server's Retry-After up to 60 s) before the source is reported unread.
+RETRY_STATUSES = {429, 500, 502, 503, 504}
+BACKOFF_S = (10, 20, 40)
+MAX_RETRY_AFTER_S = 60
+SLEEP = time.sleep
 
 
 # ---- fetching -------------------------------------------------------------
@@ -76,8 +83,28 @@ def http_fetch(url: str) -> str:
         time.sleep(wait)
     _last_hit[host] = time.monotonic()
     req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-    with urllib.request.urlopen(req, timeout=TIMEOUT_S) as resp:
-        return resp.read().decode("utf-8", "replace")
+    for attempt in range(len(BACKOFF_S) + 1):
+        try:
+            with urllib.request.urlopen(req, timeout=TIMEOUT_S) as resp:
+                return resp.read().decode("utf-8", "replace")
+        except urllib.error.HTTPError as e:
+            if e.code not in RETRY_STATUSES or attempt == len(BACKOFF_S):
+                raise
+            SLEEP(retry_after(e.headers.get("Retry-After"), BACKOFF_S[attempt]))
+    raise AssertionError("unreachable")
+
+
+def retry_after(header: str | None, default: float) -> float:
+    """Seconds to wait: the server's Retry-After (seconds or an HTTP date), capped, else default."""
+    if header:
+        try:
+            return min(float(header), MAX_RETRY_AFTER_S)
+        except ValueError:
+            when = email.utils.parsedate_to_datetime(header)
+            if when is not None:
+                delta = (when - dt.datetime.now(when.tzinfo)).total_seconds()
+                return min(max(delta, 0.0), MAX_RETRY_AFTER_S)
+    return default
 
 
 # ---- names and parsing ----------------------------------------------------
@@ -176,8 +203,8 @@ def ack(state: dict, site_ids: list[str]) -> list[str]:
     for sid in site_ids:
         s = state["sites"].get(sid)
         if s:
-            for url, date in s.get("pending", {}).items():
-                s.setdefault("seen", {})[url] = date
+            for url, lead in s.get("pending", {}).items():
+                s.setdefault("seen", {})[url] = lead.get("date") if isinstance(lead, dict) else lead
             s["pending"] = {}
             done.append(sid)
     return done
@@ -218,7 +245,7 @@ def check_site(site: dict, dossier: dict | None, state: dict, fetch: Fetch, toda
     baseline_only = lambda l: first_look and dossier is not None and l["source"] == "bing-news"
     new = [l for l in fetched
            if l["url"] not in st["seen"] and not baseline_only(l)
-           and (l["date"] is None or l["date"] > since)]
+           and (l["date"] is None or l["date"] >= since)]
     # Everything fetched came from a source that loaded, so its non-new results are safe
     # to remember even when the other source failed. Skipping that on a failed first look
     # would lose the Bing baseline, and the next run would report old reposts as new.
@@ -227,7 +254,14 @@ def check_site(site: dict, dossier: dict | None, state: dict, fetch: Fetch, toda
             st["seen"][l["url"]] = l["date"]
     st["unread_streak"] = 0 if not unread else st.get("unread_streak", 0) + 1
     for l in new:
-        st["pending"][l["url"]] = l["date"]    # stays reported until `ack`
+        st["pending"][l["url"]] = l            # the whole lead, reported until `ack`
+    # A lead found on an earlier run stays reported even after it drops out of a
+    # volatile feed (Bing RSS), until `ack` clears it.
+    fresh = {l["url"] for l in new}
+    for url, lead in st["pending"].items():
+        if url not in fresh:
+            new.append(lead if isinstance(lead, dict) else
+                       {"url": url, "date": lead, "title": "(lead from an earlier run)", "source": "pending"})
     st["last_checked"] = today.isoformat()
     return {"id": sid, "name": site.get("name", ""), "phrase": phrase, "since": since,
             "new": sorted(new, key=lambda l: l["date"] or "", reverse=True),
@@ -257,7 +291,11 @@ def pick_candidates(root: Path, state: dict, today: dt.date, max_dossier_checks:
     rq = load_module(root, "research_queue")
     _, _, rows = rq.read_table((root / "backlog.md").read_text())
     dossiers = rq.dossiers()
-    overdue = [sid for sid, d in dossiers.items() if (d.get("next_review") or "9999") <= today.isoformat()]
+    # Overdue dossiers, plus any site whose last check left a source unread: its retry
+    # cannot wait for a next_review that the research may have pushed 30-90 days out.
+    overdue = [sid for sid, d in dossiers.items()
+               if (d.get("next_review") or "9999") <= today.isoformat()
+               or state["sites"].get(sid, {}).get("unread_streak", 0) > 0]
     overdue.sort(key=lambda sid: (state["sites"].get(sid, {}).get("last_checked", ""), dossiers[sid]["next_review"]))
     # Sites with leads left over from an earlier run come back first, whatever their rank.
     overdue.sort(key=lambda sid: not state["sites"].get(sid, {}).get("pending"))
@@ -304,8 +342,9 @@ def run(root: Path, fetch: Fetch, state: dict, today: dt.date, *, max_sites: int
             continue
         d = dossiers[sid]
         days_over = (today - dt.date.fromisoformat(d["next_review"])).days
+        due = f"review overdue {days_over}d" if days_over >= 0 else "re-checked after an unread source"
         if r["new"]:
-            work.append({**r, "why": f"{len(r['new'])} new lead(s) since {r['since']}; review overdue {days_over}d"})
+            work.append({**r, "why": f"{len(r['new'])} new lead(s) since {r['since']}; {due}"})
         elif days_over >= STALE_ESCALATE_DAYS and not r["unread"]:
             work.append({**r, "why": f"no new leads, but review overdue {days_over}d (>= {STALE_ESCALATE_DAYS}): full review"})
         elif not r["unread"]:

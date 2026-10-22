@@ -192,3 +192,75 @@ def test_a_failed_first_look_still_records_the_bing_baseline(tmp_path):
     assert res["status"] == rc.STATUS_UNREAD                       # FR failed, Bing was only a baseline
     res2, _ = go(root, fetcher(bing=bing), state=state)
     assert res2["status"] == rc.STATUS_NO_CHANGES                  # the baseline repost is not a new lead
+
+
+def test_a_site_left_unread_is_retried_after_its_review_date_moves_out(tmp_path):
+    root = make_root(tmp_path, dossier_next="2026-12-31")              # researched since; not due
+    (root / "backlog.md").write_text(BACKLOG.replace("queued | NEW000000001", "done 2026-10-20 | NEW000000001"))
+    state = {"sites": {"OLD000000001": {"seen": {}, "pending": {}, "unread_streak": 1}}}
+    res, _ = go(root, fetcher(), state=state)
+    assert res["sites_checked"] >= 1 and "OLD000000001" in [r for r in state["sites"]]
+    assert state["sites"]["OLD000000001"]["unread_streak"] == 0      # retried and read this time
+
+
+def test_a_pending_lead_stays_reported_after_it_leaves_the_feed(tmp_path):
+    root = make_root(tmp_path)
+    (root / "backlog.md").write_text(BACKLOG.replace("queued | NEW000000001", "done 2026-10-20 | NEW000000001"))
+    f = fetcher(fr=fr_body(("https://www.federalregister.gov/d/5", "Old Depot notice", "2026-10-02")))
+    res, state = go(root, f)
+    assert res["status"] == rc.STATUS_CHANGES
+    res2, _ = go(root, fetcher(), state=state)                        # gone from the source
+    assert res2["status"] == rc.STATUS_CHANGES
+    assert [l["url"] for l in res2["work"][0]["new"]] == ["https://www.federalregister.gov/d/5"]
+    rc.ack(state, ["OLD000000001"])
+    res3, _ = go(root, fetcher(), state=state)
+    assert res3["status"] == rc.STATUS_NO_CHANGES
+
+
+def test_a_development_on_the_window_start_date_counts():
+    site = {"id": "OLD000000001", "name": "OLD DEPOT"}
+    state = {"sites": {"OLD000000001": {"seen": {}, "pending": {}, "unread_streak": 0}}}
+    f = fetcher(fr=fr_body(("https://www.federalregister.gov/d/7", "Old Depot notice", "2026-07-01")))
+    r = rc.check_site(site, {"researched_at": "2026-07-01"}, state, f, TODAY)
+    assert [l["url"] for l in r["new"]] == ["https://www.federalregister.gov/d/7"]
+
+
+def test_throttled_fetch_backs_off_then_succeeds(monkeypatch):
+    import io
+    import urllib.error
+    calls, waits = [], []
+
+    class Resp(io.BytesIO):
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+
+    def fake_urlopen(req, timeout):
+        calls.append(req.full_url)
+        if len(calls) < 3:
+            raise urllib.error.HTTPError(req.full_url, 429, "Too Many Requests", {"Retry-After": "7"} if len(calls) == 1 else {}, None)
+        return Resp(b"ok")
+
+    monkeypatch.setattr(rc.urllib.request, "urlopen", fake_urlopen)
+    monkeypatch.setattr(rc, "SLEEP", waits.append)
+    monkeypatch.setattr(rc.time, "sleep", lambda s: None)
+    assert rc.http_fetch("https://example.test/x") == "ok"
+    assert waits == [7.0, 20] and len(calls) == 3                     # Retry-After first, then the schedule
+
+
+def test_a_hard_error_is_not_retried(monkeypatch):
+    import urllib.error
+    calls = []
+
+    def fake_urlopen(req, timeout):
+        calls.append(1)
+        raise urllib.error.HTTPError(req.full_url, 404, "Not Found", {}, None)
+
+    monkeypatch.setattr(rc.urllib.request, "urlopen", fake_urlopen)
+    monkeypatch.setattr(rc, "SLEEP", lambda s: (_ for _ in ()).throw(AssertionError("slept")))
+    monkeypatch.setattr(rc.time, "sleep", lambda s: None)
+    try:
+        rc.http_fetch("https://example.test/y")
+        raise AssertionError("expected HTTPError")
+    except urllib.error.HTTPError:
+        pass
+    assert len(calls) == 1
