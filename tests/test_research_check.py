@@ -264,3 +264,22 @@ def test_a_hard_error_is_not_retried(monkeypatch):
     except urllib.error.HTTPError:
         pass
     assert len(calls) == 1
+
+
+def test_search_name_keeps_the_meaningful_slash_part():
+    assert rc.search_name("USARMY/NASA REDSTONE ARSENAL") == "Redstone Arsenal"
+    assert rc.search_name("Sangamo Electric Dump/Crab Orchard NWR (USDOI)") == "Sangamo Electric Dump"
+
+
+def test_bing_baseline_waits_for_its_first_successful_read(tmp_path):
+    root = make_root(tmp_path)
+    (root / "backlog.md").write_text(BACKLOG.replace("queued | NEW000000001", "done 2026-10-20 | NEW000000001"))
+    res, state = go(root, fetcher(fail=("bing-news",)))                 # first check: Bing down
+    assert res["status"] == rc.STATUS_UNREAD
+    repost = bing_body(("https://news.example/r", "Old Depot reposted", "Tue, 20 Oct 2026 10:00:00 GMT"))
+    res2, _ = go(root, fetcher(bing=repost), state=state)                # Bing back: baseline only
+    assert res2["status"] == rc.STATUS_NO_CHANGES
+    both = bing_body(("https://news.example/r", "Old Depot reposted", "Tue, 20 Oct 2026 10:00:00 GMT"),
+                     ("https://news.example/n", "Old Depot sale closes", "Tue, 20 Oct 2026 11:00:00 GMT"))
+    res3, _ = go(root, fetcher(bing=both), state=state)                  # a real arrival is reported
+    assert [l["url"] for l in res3["work"][0]["new"]] == ["https://news.example/n"]

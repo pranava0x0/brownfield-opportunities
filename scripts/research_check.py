@@ -112,10 +112,21 @@ def retry_after(header: str | None, default: float) -> float:
 GENERIC = {"the", "and", "of", "site", "area", "inc", "co", "corp", "company", "llc"}
 
 
+# Owner codes that prefix federal site names; alone they match every story about the agency.
+AGENCY = {"USARMY", "USN", "USAF", "USMC", "NASA", "DOE", "DOD", "USACE", "GSA", "USDA", "US", "U.S.", "EPA", "NAVY", "ARMY"}
+
+
 def search_name(raw: str) -> str:
-    """Corpus name -> the phrase to search: drop '(USARMY)' codes, keep the first '/' part."""
+    """Corpus name -> the phrase to search. Drop '(USARMY)' codes; of the '/' parts, keep the
+    one with the most words that are not owner codes ("USARMY/NASA REDSTONE ARSENAL" ->
+    "Redstone Arsenal"), with those codes removed."""
     name = re.sub(r"\([^)]*\)", " ", raw or "")
-    name = name.split("/")[0]
+    best: list[str] = []
+    for part in name.split("/"):
+        words = [w for w in part.split() if w.upper() not in AGENCY]
+        if len(words) > len(best):
+            best = words
+    name = " ".join(best) or name.split("/")[0]
     name = re.sub(r"\bRES\.?$", "Reservation", name.strip(), flags=re.I)
     return re.sub(r"\s+", " ", name).strip().title()
 
@@ -224,7 +235,6 @@ def check_site(site: dict, dossier: dict | None, state: dict, fetch: Fetch, toda
     A source that fails to load is recorded as unread and contributes nothing to `seen`.
     """
     sid = site["id"]
-    first_look = sid not in state["sites"]
     st = state["sites"].setdefault(sid, {"seen": {}, "pending": {}, "unread_streak": 0})
     phrase = search_name(site.get("name", ""))
     since = window_start(dossier, today)
@@ -242,7 +252,10 @@ def check_site(site: dict, dossier: dict | None, state: dict, fetch: Fetch, toda
             unread.append(f"{source}: {type(exc).__name__}: {str(exc)[:120]}")
     # Bing's pubDate is unreliable (MSN reposts of 2020 stories carry today's date), so for a
     # dossier site the first look only records what Bing already shows; later runs report arrivals.
-    baseline_only = lambda l: first_look and dossier is not None and l["source"] == "bing-news"
+    # The baseline lasts until Bing has been read successfully once, not just the first check:
+    # a first check where Bing failed must not let its old reposts through on the retry.
+    baseline_only = lambda l: (dossier is not None and l["source"] == "bing-news"
+                               and not st.get("bing_baselined"))
     new = [l for l in fetched
            if l["url"] not in st["seen"] and not baseline_only(l)
            and (l["date"] is None or l["date"] >= since)]
@@ -253,6 +266,8 @@ def check_site(site: dict, dossier: dict | None, state: dict, fetch: Fetch, toda
         if l not in new:
             st["seen"][l["url"]] = l["date"]
     st["unread_streak"] = 0 if not unread else st.get("unread_streak", 0) + 1
+    if "bing-news" in read:
+        st["bing_baselined"] = True
     for l in new:
         st["pending"][l["url"]] = l            # the whole lead, reported until `ack`
     # A lead found on an earlier run stays reported even after it drops out of a
