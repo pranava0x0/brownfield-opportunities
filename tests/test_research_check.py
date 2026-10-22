@@ -182,3 +182,13 @@ def test_federal_register_zero_matches_is_empty_not_unread():
     import pytest
     with pytest.raises(ValueError):
         rc.parse_federal_register('{"error":"rate limited"}')
+
+
+def test_a_failed_first_look_still_records_the_bing_baseline(tmp_path):
+    root = make_root(tmp_path)
+    (root / "backlog.md").write_text(BACKLOG.replace("queued | NEW000000001", "done 2026-10-20 | NEW000000001"))
+    bing = bing_body(("https://news.example/a", "Old Depot reposted", "Mon, 19 Oct 2026 10:00:00 GMT"))
+    res, state = go(root, fetcher(bing=bing, fail=("federalregister",)))
+    assert res["status"] == rc.STATUS_UNREAD                       # FR failed, Bing was only a baseline
+    res2, _ = go(root, fetcher(bing=bing), state=state)
+    assert res2["status"] == rc.STATUS_NO_CHANGES                  # the baseline repost is not a new lead

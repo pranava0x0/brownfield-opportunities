@@ -46,7 +46,7 @@ from typing import Callable
 SCRIPT_DIR = Path(__file__).resolve().parent
 MAIN = SCRIPT_DIR.parent
 STATE_PATH = MAIN / ".cache" / "research_check" / "state.json"
-USER_AGENT = "brownfield-opportunities research_check (pranava.raparla@gmail.com)"
+USER_AGENT = "brownfield-opportunities research_check (+https://github.com/pranava0x0/brownfield-opportunities)"
 HOST_DELAY_S = 1.5
 TIMEOUT_S = 20
 FR_URL = "https://www.federalregister.gov/api/v1/documents.json"
@@ -219,13 +219,13 @@ def check_site(site: dict, dossier: dict | None, state: dict, fetch: Fetch, toda
     new = [l for l in fetched
            if l["url"] not in st["seen"] and not baseline_only(l)
            and (l["date"] is None or l["date"] > since)]
-    if not unread:
-        for l in fetched:                      # nothing hidden behind a failure: safe to remember
-            if l not in new:
-                st["seen"][l["url"]] = l["date"]
-        st["unread_streak"] = 0
-    else:
-        st["unread_streak"] = st.get("unread_streak", 0) + 1
+    # Everything fetched came from a source that loaded, so its non-new results are safe
+    # to remember even when the other source failed. Skipping that on a failed first look
+    # would lose the Bing baseline, and the next run would report old reposts as new.
+    for l in fetched:
+        if l not in new:
+            st["seen"][l["url"]] = l["date"]
+    st["unread_streak"] = 0 if not unread else st.get("unread_streak", 0) + 1
     for l in new:
         st["pending"][l["url"]] = l["date"]    # stays reported until `ack`
     st["last_checked"] = today.isoformat()
