@@ -76,6 +76,13 @@ def resolve_merge_conflict(base: str) -> str:
         return f"MERGE CONFLICT in {sorted(unmerged)}: aborted; the PR stays conflicting, report it"
     ours, theirs_base = _dossiers("HEAD"), _dossiers(base)
     changed = [d for i, d in ours.items() if d != theirs_base.get(i)]
+    main_now = _dossiers("MERGE_HEAD")
+    both = sorted(d["id"] for d in changed if main_now.get(d["id"]) != theirs_base.get(d["id"]))
+    if both:
+        # site_research.merge() lets the incoming copy win on equal dates, which would
+        # silently revert a same-day correction on main (PR #44 review).
+        git("merge", "--abort", check=False, cwd=WT)
+        return f"MERGE CONFLICT: main and the branch both changed {both}: aborted; resolve those dossiers deliberately"
     git("checkout", "--theirs", DOSSIERS, cwd=WT)
     tmp = WT / ".routine-merge"
     tmp.mkdir(exist_ok=True)

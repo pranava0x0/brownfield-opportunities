@@ -78,3 +78,36 @@ def test_dossier_conflict_is_resolved_by_union(tmp_path, monkeypatch):
     assert "re-added 1 dossiers" in msg
     assert added and added[0][2] == "add" and added[0][3].endswith("B.json")
     assert git("status", "--porcelain", cwd=repo) == ""
+
+
+def test_same_site_changed_on_both_sides_is_not_silently_overwritten(tmp_path, monkeypatch):
+    """PR #44 review: the branch copy must not revert a same-day correction on main."""
+    import json
+    import subprocess
+    git = lambda *a, cwd: subprocess.run(["git", "-C", str(cwd), *a], check=True, capture_output=True, text=True).stdout.strip()
+    repo = tmp_path / "r"
+    repo.mkdir()
+    git("init", "-q", "-b", "main", cwd=repo)
+    git("config", "user.email", "t@t", cwd=repo)
+    git("config", "user.name", "t", cwd=repo)
+    (repo / "docs" / "data").mkdir(parents=True)
+    f = repo / "docs" / "data" / "site-research.json"
+    write = lambda note: f.write_text(json.dumps({"sites": [{"id": "A", "note": note}]}))
+    write("base")
+    git("add", ".", cwd=repo)
+    git("commit", "-q", "-m", "base", cwd=repo)
+    git("checkout", "-q", "-b", "branch", cwd=repo)
+    write("branch")
+    git("commit", "-qam", "branch", cwd=repo)
+    git("checkout", "-q", "main", cwd=repo)
+    write("main correction")
+    git("commit", "-qam", "main", cwd=repo)
+    git("checkout", "-q", "branch", cwd=repo)
+    monkeypatch.setattr(routine_ctl, "WT", repo)
+    monkeypatch.setattr(routine_ctl, "GIT", "git")
+    base = git("merge-base", "HEAD", "main", cwd=repo)
+    assert subprocess.run(["git", "-C", str(repo), "merge", "--no-edit", "main"], capture_output=True).returncode
+    msg = routine_ctl.resolve_merge_conflict(base)
+    assert "MERGE CONFLICT" in msg and "['A']" in msg
+    assert json.loads(f.read_text())["sites"][0]["note"] == "branch"
+    assert git("status", "--porcelain", cwd=repo) == ""

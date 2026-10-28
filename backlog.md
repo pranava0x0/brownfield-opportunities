@@ -302,6 +302,8 @@ Rules the routine follows:
 | 57 | queued | WA1890090078 | Hanford 200-Area (USDOE) | WA | Hanford 200-Area (DOE): shipped 79.8 acres looks far too small for the Central Plateau; Hanford tab covers it | — | — |
 | 58 | queued | WA2890090077 | Hanford 300-Area (USDOE) | WA | Hanford 300-Area (DOE): shipped 53.6 acres to check; Hanford tab dossier unit | — | — |
 | 59 | queued | WA4890090075 | Hanford 1100-Area (USDOE) | WA | Hanford 1100-Area (DOE): shipped 0.1 acres looks like a point artifact; Hanford tab dossier unit | — | — |
+| 17 | done 2026-10-28 | ACRES-240696 | Bessemer Campus Expansion Site | AL | 1.2 mi from Project Marvel (QTS confirmed Jul 2026); rezonings and utility filings likely | 2026-10-28 | 2026-11-27 |
+| 15 | done 2026-10-28 | KY8890008982 | Paducah Gaseous Diffusion Plant (USDOE) | KY | DOE picked it for an AI computing campus (Jul 2026); Kentucky PSC approval pending | 2026-10-28 | 2027-01-26 |
 | 44 | done 2026-10-21 | TN0210020582 | Milan Army Ammunition Plant | TN | DoD federal-facility NPL site; shipped 24,823 acres to check | 2026-10-21 | 2027-01-19 |
 | 47 | done 2026-10-20 | IL8143609487 | Sangamo Electric Dump/Crab Orchard National Wildlife Refuge (USDOI) | IL | Federal-facility NPL site on a national wildlife refuge; shipped 23,154 acres to check | 2026-10-20 | 2027-01-18 |
 | 49 | done 2026-10-20 | FL5170022474 | Usn Air Station Cecil Field | FL | Former Navy air station (BRAC) now Cecil Commerce Center; redevelopment activity | 2026-10-20 | 2027-01-18 |
@@ -343,9 +345,7 @@ Rules the routine follows:
 | 4 | done 2026-09-30 | ACRES-157082 | Colstrip City Shop | MT | 0.7 mi from Colstrip; NorthWestern data-center agreements (Sabey/Atlas deals are Butte-area, not Colstrip) | 2026-09-30 | 2026-10-30 |
 | 1 | done 2026-09-29 | ID4890008952 | Idaho National Engineering Laboratory (USDOE) | ID | AI-infrastructure land offer and DOME reactor tests; shipped 1.08M acres needs a check | 2026-09-29 | 2026-12-28 |
 | 2 | done 2026-09-29 | TN1890090003 | Oak Ridge Reservation (USDOE) | TN | Reindustrialization and AI/nuclear projects nearby (Clinch River permit pending) | 2026-09-29 | 2026-12-28 |
-| 15 | done 2026-09-25 | KY8890008982 | Paducah Gaseous Diffusion Plant (USDOE) | KY | DOE picked it for an AI computing campus (Jul 2026); Kentucky PSC approval pending | 2026-09-25 | 2026-10-25 |
 | 16 | done 2026-09-25 | SC1890008989 | Savannah River Site (USDOE) | SC | AI/energy lease selection (Amentum, Jul 2026); no lease signed yet | 2026-09-25 | 2026-10-25 |
-| 17 | done 2026-09-25 | ACRES-240696 | Bessemer Campus Expansion Site | AL | 1.2 mi from Project Marvel (QTS confirmed Jul 2026); rezonings and utility filings likely | 2026-09-25 | 2026-10-25 |
 | 18 | done 2026-09-25 | OKD980629844 | Tar Creek (Ottawa County) | OK | Pilot. Shipped acreage (310,173 ac) is county-sized; DEQ says 25,600 ac | 2026-09-25 | 2026-12-24 |
 
 ### Run log
@@ -371,6 +371,7 @@ Rules the routine follows:
 - 2026-10-19 · Fort Richardson, Quantico, Eielson, Tooele North Area, Milan AAP, Otis/Camp Edwards (parallel batch) · 8 developments (Eielson microreactor site comment, MIDA Tooele designation, Milan 292-acre transfer, 4 Otis groundwater certificates) · 6 acreage/county differences · 17 checker corrections (two items removed as not tied to the NPL site) · PR #44 conflict with main resolved by dossier union
 - 2026-10-20 · FL5170022474 Cecil Field, IL8143609487 Sangamo/Crab Orchard · 1 development (EPA 2026 five-year review notice, Sangamo) · 1 acreage difference (Sangamo 2.5-ac site vs shipped 23,154) · 1 checker correction (invalid 1987 listing claim) · 2 review comments fixed (Adak funding item and Fort Riley item removed) plus 2 prose fixes · PR #44 open
 - 2026-10-21 · no new sites (both queue heads CA2170023533, NC6170022580 are retry rows blocked by 403s on Navy sources; not re-attempted) · 0 developments · 0 field differences · 1 correction (Milan acreage now unverifiable) · 2 PR #44 comments fixed (Milan finding; routine doc restored to main's two-subagent topology) · PR #44 open
+- 2026-10-28 · Bessemer Campus Expansion (ACRES-240696), Paducah (KY8890008982) · 1 development (Project Marvel permits 2026-10-22) · 1 field difference (Bessemer suit dismissed with prejudice 2026-06-22, no Aug 7 hearing) · 5 citation corrections · 1 comment fixed (merge overlap guard) · PR #44
 
 ## 7. Decisions needed from Pranava
 
