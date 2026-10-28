@@ -91,6 +91,8 @@ Priorities: **high** = next, **med** = soon, **low** = nice-to-have. Last update
 
 ## 3. Next (this quarter)
 
+0. **[med]** `routine_ctl.resolve_merge_conflict` replay cannot delete items: when the branch removes a wrong development from a dossier and main edits a different site, the `site_research.merge()` union restores it (PR #44 review 2026-10-28). Needs an explicit removal path.
+
 1. **[med]** Research routine phase 2: dossiers for curated entities (coal plants, DOE parcels, civilian nuclear sites, microreactor commitments), not only corpus sites, so a tab row can show its latest cited developments. Today those rows are corrected by hand through their builder scripts (the 2026-09-25 fact-check changed eight of them).
 
 2. **[med]** Retire or rewrite the static template summaries (`ai-summary`, 1,908 Superfund sites). They restate raw fields ("transmission lines 1.4 miles away"), repeat boundary-artifact acreages, and still say "Flagged as a data-center reuse candidate", which the 2026-09-12 evidence contract dropped everywhere else. A cited dossier already hides the template for its site; the rest need either evidence-contract wording or removal.
