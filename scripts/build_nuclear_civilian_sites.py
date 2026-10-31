@@ -116,7 +116,7 @@ SITES = [
         "iso_rto": "non-RTO/WECC",
         "notes": "TerraPower's Natrium advanced reactor. NRC approved the Kemmerer Unit 1 construction permit (reported 2026-03-05).",
         "reference_url": "https://world-nuclear-news.org/articles/nrc-issues-construction-permit-for-first-natrium-plant",
-        "nrc_url": "https://www.nrc.gov/reactors/new-reactors/advanced/natrium.html",
+        "nrc_url": "https://www.nrc.gov/facilities-safety/new-reactors/advanced-reactors/who-were-working-with/past-licensing-activities/kemmerer-power-station-unit-1",
     },
     {
         "id": "seadrift-tx",
@@ -133,7 +133,7 @@ SITES = [
         "market": "ERCOT",
         "iso_rto": "ERCOT",
         "notes": "DOE ARDP project. Behind-the-meter for Dow chemical manufacturing. NRC pre-application activities.",
-        "nrc_url": "https://www.nrc.gov/reactors/new-reactors/advanced/xe-100.html",
+        "nrc_url": "https://www.nrc.gov/reactors/new-reactors/advanced/who-were-working-with/applicant-projects/long-mott",
     },
     {
         "id": "clinch-river-tn",
@@ -230,7 +230,7 @@ SITES = [
         "construction_pct_complete": 40,
         "fid_expected": "2028 (disclosed by 2028-03-31)",
         "notes": "Fastest AP1000 deployment path given prior licensing and ~40% construction. COL issued then terminated. Brookfield MOU Dec 2025 ($2.7B); The Nuclear Company joined the JV May 2026. Milestones: DOE loan application by end-2026, operator selection by Feb 2027, FID disclosed by 2028-03-31 (SC Daily Gazette, Jul 2026).",
-        "nrc_url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/virgil-c-summer.html",
+        "nrc_url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/summer.html",
         "reference_url": "https://www.world-nuclear-news.org/articles/brookfield-and-the-nuclear-company-target-vcsummer",
     },
     {
@@ -269,7 +269,7 @@ SITES = [
         "water_source": "Broad River",
         "target_inservice_year": 2037,
         "notes": "New greenfield site. COL issued 2016. Duke's 2025 resource plan identifies this as best suited for new large LWR, targeting 2037 in-service.",
-        "nrc_url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/william-states-lee.html",
+        "nrc_url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/lee",
     },
     {
         "id": "levy-fl",
@@ -366,7 +366,7 @@ SITES = [
         "iso_rto": "ERCOT",
         "water_source": "Colorado River (reservoir)",
         "notes": "Two existing PWRs operating. Two-unit ABWR COL issued. Changing to AP1000 feasible. ERCOT market.",
-        "nrc_url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/south-texas.html",
+        "nrc_url": "https://www.nrc.gov/facilities-safety/new-reactors/large-light-water-reactors/combined-license-applications-for-new-reactors/south-texas-project-units-3-4",
     },
     {
         "id": "north-anna-va",
@@ -546,7 +546,7 @@ SITES = [
         "iso_rto": "PJM",
         "water_source": "Delaware River",
         "notes": "Three existing reactors (Salem 1&2 PWR + Hope Creek BWR). ESP approved. New state approval of waste plan required before new reactor build. Previous retirement risk (mitigated).",
-        "nrc_url": "https://www.nrc.gov/reactors/new-reactors/esp/hope-creek.html",
+        "nrc_url": "https://www.nrc.gov/docs/ML1608/ML16089A299.pdf",
     },
 
     # -----------------------------------------------------------------------
