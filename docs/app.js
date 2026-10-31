@@ -22,6 +22,7 @@ const ECHO_DATA_URL = "data/epa-echo.json";
 const PARCEL_OWNER_URL = "data/parcel-owner.json";
 const AI_SUMMARY_URL = "data/ai-summary.json";
 const SITE_RESEARCH_URL = "data/site-research.json";
+const LOCAL_RECORDS_URL = "data/local-records.json";
 const ACRES_CLEANUP_URL = "data/acres-cleanup.json";
 const RETIRED_PLANTS_URL = "data/eia-retired-plants.json";
 const REFERENCE_CAMPUSES_URL = "data/reference-campuses.json";
@@ -785,7 +786,17 @@ function evidenceDetails(s, lens = "dc") {
     const e = a[k];
     return `<details class="evidence-category" data-category="${k}"><summary><strong>${escapeHtml(e.label)}</strong> ${evidenceCell(e)}</summary>`
       + `<p>${escapeHtml(e.reason)}</p>${e.sources.map((u,i) => `<a href="${escapeAttr(u)}" target="_blank" rel="noopener">Source${e.sources.length > 1 ? " " + (i+1) : ""} ↗</a>`).join(" · ")}</details>`;
-  }).join("")}${missing}</div>`;
+  }).join("")}${missing}</div>${verifyMapLink(s)}`;
+}
+// Opens the standalone map that redraws the power lines, rail, roads and plants
+// around a site and re-measures each distance from the live source layers.
+function verifyMapAnchor(s, label) {
+  if (!s || s.id == null || s.lat == null || s.lon == null) return "";
+  return `<a href="verify.html?site=${encodeURIComponent(s.id)}" target="_blank" rel="noopener">${escapeHtml(label)}</a>`;
+}
+function verifyMapLink(s) {
+  const a = verifyMapAnchor(s, "Check the distances on a map ↗");
+  return a ? `<p class="verify-map-link">${a}</p>` : "";
 }
 function evidenceNameOrder(a,b) { return String(a.name || a.id).localeCompare(String(b.name || b.id)) || String(a.id).localeCompare(String(b.id)); }
 function evidenceCsvColumns(pick = s => s) {
@@ -1376,6 +1387,79 @@ function ensureSiteResearchLoaded() {
       siteResearchPromise = null;
     });
   return siteResearchPromise;
+}
+
+
+// ----- County, city and state land records (scripts/local_records.py) -----
+// Researched by one model, read again by a second, and each quote re-found on its
+// page by code before it ships. Id-keyed like the dossiers: looked up at render
+// time, never joined onto site objects, and it does not drive the header date.
+const localRecordsById = new Map();
+window.__localRecords = localRecordsById;
+let localRecordsPromise = null;
+function ensureLocalRecordsLoaded() {
+  if (localRecordsPromise) return localRecordsPromise;
+  localRecordsPromise = fetch(LOCAL_RECORDS_URL, { priority: "low" })
+    .then((r) => {
+      if (r.status === 404) return { sites: [] };
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then((payload) => { for (const rec of payload.sites || []) localRecordsById.set(rec.id, rec); })
+    .catch((err) => { console.error("Local records load failed:", err); localRecordsPromise = null; });
+  return localRecordsPromise;
+}
+// How much checking stands behind a shipped fact. The status alone is not enough: an Opus-resolved dispute
+// and a fact the second model could not judge must not read like a doubly-confirmed one.
+function LOCAL_FACT_BASIS(f) {
+  if (f.adjudicated_by === "opus") return "the script and a second model disagreed; a third reviewer read the page and accepted it";
+  if (f.status === "accepted_code_only") return "quote found on the page by script; a second model could not judge it";
+  if (f.status === "accepted_model_only") return "read by a second model; the page could not be read by script";
+  return "quote found on the page by script and confirmed by a second model";
+}
+const LOCAL_ACCESS_LABEL = { free_search: "free search", free_map: "free map", paid: "paid", in_person: "in person only", unknown: "access not confirmed" };
+const LOCAL_PORTAL_LABEL = { assessor: "Assessor", gis: "GIS parcel map", recorder: "Recorder (deeds, liens)", treasurer: "Treasurer (taxes)",
+  permits: "Permits", code: "Code enforcement", zoning: "Zoning", planning: "Planning", state_sales: "State sales records" };
+const LOCAL_FACT_LABEL = { transfer: "Transfer", deed: "Deed", lien: "Lien", tax_delinquency: "Tax delinquency", foreclosure: "Foreclosure",
+  permit: "Permit", code_enforcement: "Code enforcement", zoning: "Zoning", brownfield_grant: "Brownfield grant",
+  redevelopment_plan: "Redevelopment plan", litigation: "Litigation", other: "Record" };
+const LOCAL_PARCEL_TEXT = {
+  confirmed: "The state parcel layer returns the same owner as this record (and the same parcel id where this record has one).",
+  owner_not_comparable: "The state parcel layer or this record names no owner, so the owners could not be compared.",
+  differs: "The state parcel layer returns a different owner or parcel id than this record.",
+  atlas_is_category: "This record shows the Army Corps ownership category; the state parcel layer names the owner below.",
+  no_layer: "This state publishes no statewide parcel layer, so ownership needs the county assessor.",
+  no_match: "The state parcel layer has no parcel at this point.", error: "The parcel layer could not be reached at check time.",
+};
+
+function renderLocalRecords(s) {
+  const block = el("d-local-block"), body = el("d-local-body");
+  if (!block || !body) return;
+  const r = localRecordsById.get(s.id);
+  if (!r) { block.hidden = true; body.replaceChildren(); return; }
+  const parts = [];
+  if (r.parcel) {
+    const p = r.parcel;
+    const owner = p.live_owner ? ` Live owner: ${escapeHtml(p.live_owner)}${p.live_parcel_id ? ` (parcel ${escapeHtml(p.live_parcel_id)})` : ""}.` : "";
+    parts.push(`<p class="local-parcel"><strong>Parcel layer check ${escapeHtml(researchDate(p.checked_at))}.</strong> ${escapeHtml(LOCAL_PARCEL_TEXT[p.status] || "")}${owner}${p.source ? ` Source: ${escapeHtml(p.source)}.` : ""}</p>`);
+  }
+  if ((r.portals || []).length) {
+    parts.push(`<h4>Where to look (listed by a researcher; each page loaded)</h4><ul class="local-portals">` + r.portals.map(p =>
+      `<li>${researchLink(p.url, p.name)} <span class="muted-cell">${escapeHtml(LOCAL_PORTAL_LABEL[p.kind] || p.kind)} · ${escapeHtml(LOCAL_ACCESS_LABEL[p.access] || p.access)}</span>${p.note ? `<br><span class="muted-cell">${escapeHtml(p.note)}</span>` : ""}</li>`).join("") + `</ul>`);
+  }
+  if ((r.facts || []).length) {
+    parts.push(`<h4>Records found</h4><ul class="local-facts">` + r.facts.map(f =>
+      `<li><p class="ri-head">${f.date ? `<span class="ri-date">${escapeHtml(researchDate(f.date))}</span>` : ""}<span class="ri-kind">${escapeHtml(LOCAL_FACT_LABEL[f.kind] || f.kind)}</span>${escapeHtml(f.summary)}</p>`
+      + `<p class="muted-cell">${[f.authority, f.reference].filter(Boolean).map(escapeHtml).join(" · ")}${f.authority || f.reference ? " · " : ""}${researchLink(f.source_url, "source")}`
+      + ` · ${escapeHtml(LOCAL_FACT_BASIS(f))}</p></li>`).join("") + `</ul>`);
+  }
+  if ((r.gaps || []).length) {
+    parts.push(`<details class="local-gaps"><summary>Researcher's notes on what was not found (${r.gaps.length}; not independently checked)</summary><ul>${r.gaps.map(g => `<li>${escapeHtml(g)}</li>`).join("")}</ul></details>`);
+  }
+  parts.push(`<p class="muted-cell">Researched ${escapeHtml(researchDate(r.researched_at))} by ${escapeHtml((r.researchers || []).join(", "))}. County and state records are mostly not searchable on the open web; absence here is not absence of a record.</p>`);
+  body.innerHTML = parts.join("");
+  el("d-local-count").textContent = `(${(r.portals || []).length} portals, ${(r.facts || []).length} records)`;
+  block.hidden = false;
 }
 
 const RESEARCH_KIND_LABEL = {
@@ -4549,7 +4633,7 @@ function buildRetiredView() {
     + `<span class="micro-sub">${escapeHtml([f.city, f.state].filter(Boolean).join(", "))} · ${escapeHtml(f.parent_company || "")}</span></td>`
     + ev.results.map(r => `<td data-label="${escapeAttr(r.label)}" data-status="${r.status}">${screenCell(r)}</td>`).join("")
     + `<td class="screen-score" data-label="Checks met"><strong>${ev.met}</strong>/${ev.total}</td>`
-    + `<td><a href="https://enviro.epa.gov/envirofacts/ghg/facility-detail/${escapeAttr(String(f.id).replace(/^GHGRP-/, ""))}" target="_blank" rel="noopener">EPA ↗</a></td></tr>`).join("");
+    + `<td><a href="https://enviro.epa.gov/envirofacts/ghg/facility-detail/${escapeAttr(String(f.id).replace(/^GHGRP-/, ""))}" target="_blank" rel="noopener">EPA ↗</a> ${verifyMapAnchor(f, "Map ↗")}</td></tr>`).join("");
   host.innerHTML = `<div class="method-card">${screenMethodHtml(screen)}</div>`
     + `<p class="candidates-stats">${full} of ${total} facilities meet every check${total > SHOW ? ` · top ${SHOW} shown` : ""}</p>`
     + `<div class="coal-table-wrap"><table class="evidence-table screen-table retired-table"><caption class="sr-only">Retired industrial facilities ranked</caption>`
@@ -4930,11 +5014,12 @@ function renderCoalPlants() {
     + `<span class="micro-sub">${escapeHtml([p.county, p.state].filter(Boolean).join(", "))} · ${Math.round(p.coal_mw).toLocaleString()} MW coal · ${escapeHtml(p.operator || "")}</span>`
     + (p.deal_note ? `<span class="coal-deal-note">${escapeHtml(p.deal_note)}${p.deal_source_url ? ` <a href="${escapeAttr(p.deal_source_url)}" target="_blank" rel="noopener">source ↗</a>` : ""}</span>` : "")
     + `</td>${ev.results.map(r => `<td data-label="${escapeAttr(r.label)}" data-status="${r.status}">${screenCell(r)}</td>`).join("")}`
-    + `<td class="screen-score" data-label="Checks met"><strong>${ev.met}</strong>/${ev.total}</td></tr>`).join("");
+    + `<td class="screen-score" data-label="Checks met"><strong>${ev.met}</strong>/${ev.total}</td>`
+    + `<td>${verifyMapAnchor(p, "Map ↗")}</td></tr>`).join("");
   host.innerHTML = `<div class="method-card">${screenMethodHtml(screen)}</div>`
     + `<p class="candidates-stats">${full} of ${ranked.length} plants meet every check</p>`
     + `<div class="coal-table-wrap"><table class="evidence-table screen-table coal-ranked-table"><caption class="sr-only">Coal plants ranked for reuse</caption>`
-    + `<thead><tr><th scope="col">Plant</th>${screen.criteria.map(c => `<th scope="col">${escapeHtml(c.label)}</th>`).join("")}<th scope="col">Met</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    + `<thead><tr><th scope="col">Plant</th>${screen.criteria.map(c => `<th scope="col">${escapeHtml(c.label)}</th>`).join("")}<th scope="col">Met</th><th scope="col"><span class="sr-only">Distances on a map</span></th></tr></thead><tbody>${rows}</tbody></table></div>`;
   const csvBtn = el("coal-plants-csv");
   if (csvBtn && !csvBtn._wired) {
     csvBtn._wired = true;
@@ -7334,7 +7419,7 @@ function ensureDetailEvidenceLoaded() {
     ensureSuperfundDocsLoaded(), ensureEchoLoaded(), ensureTribalAreasLoaded(),
     ensureIraEnergyCommunityLoaded(), ensureFemaNriLoaded(), ensureClimateZoneLoaded(),
     ensureRetiredPlantsLoaded(), ensurePlannedRetireProxLoaded(),
-    ensureCoalConversionsProxLoaded(), ensurePortProximityLoaded(), ensureSiteResearchLoaded(),
+    ensureCoalConversionsProxLoaded(), ensurePortProximityLoaded(), ensureSiteResearchLoaded(), ensureLocalRecordsLoaded(),
     ensureOppZoneLoaded(), ensureIsoRtoLoaded(), ensureWaterProximityLoaded(), ensureInfraEvidenceLoaded(),
   ]).then(() => {
     if (selectedId && sitesById.has(selectedId)) selectSite(selectedId);
@@ -7637,6 +7722,7 @@ function selectSite(id, { fromMap = false, fromTable = false } = {}) {
   renderGrants(s);
   renderSummary(s);
   renderResearchTeaser(s);
+  renderLocalRecords(s);
   renderResearch(s);
   renderNearbySites(s);
   resetDetailTabs();
