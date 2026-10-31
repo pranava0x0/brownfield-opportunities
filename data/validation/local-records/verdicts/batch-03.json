@@ -1,0 +1,49 @@
+{"batch": "batch-03", "sites": [
+  {"id": "CA2570024453", "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+    {"index": 0, "verdict": "supported", "note": "'The AF has transferred 4,196 acres to Southern California Logistics Airport Authority (SCLAA).'"},
+    {"index": 1, "verdict": "supported", "note": "Victorville is the LRA for 'property leases from the Air Force', held 'until they can be transferred by deed to new owners'."},
+    {"index": 2, "verdict": "supported", "note": "Proposed 'international airport and railway hub'; 'this is on hold due to economic conditions'."},
+    {"index": 3, "verdict": "supported", "note": "'There are no plans for residential development on former base property'; tied to City of Victorville's 2030 Specific Plan."}
+   ],
+   "portal_verdicts": [
+    {"url": "https://arc.sbcounty.gov/property-information/", "reachable": true, "note": "San Bernardino County Assessor-Recorder 'Property Information' page; Assessor's Parcel Access interactive map search, links to it."},
+    {"url": "https://arc.sbcounty.gov/official-records/", "reachable": true, "note": "Recorder's Index 1925 to present, index only, no images; copies $4 first page, $1.50 each additional."},
+    {"url": "https://www.sbcountyatc.gov/tax-collector", "reachable": false, "note": "Page returned empty content; could not confirm it is the Tax Collector page."}
+   ]},
+  {"id": "FL6170024412", "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+    {"index": 0, "verdict": "supported", "note": "Profile titled JACKSONVILLE NAVAL AIR STATION: NPL Status 'Final'; 'This is a Federal Facility NPL site.'"}
+   ],
+   "portal_verdicts": [
+    {"url": "https://paopropertysearch.coj.net/Basic/Search.aspx", "reachable": true, "note": "Duval County Property Appraiser Basic Search by RE number, owner, or address."},
+    {"url": "https://or.duvalclerk.com/", "reachable": true, "note": "Duval Official Records Search (Acclaim); login form shown, 1988 coverage and free viewing not stated on page."},
+    {"url": "https://taxcollector.jacksonville.gov/taxes/property-taxes/tax-sale,-certificates,-and-tax-deeds", "reachable": true, "note": "Duval Tax Collector investor guide: sale May 27, 2026 via lienhub.com/duval; tax deed sales managed by Clerk."}
+   ]},
+  {"id": "FLSFN0407002", "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+    {"index": 0, "verdict": "supported", "note": "'The Jacksonville Ash Site includes three separate areas'; lists Forest Street Incinerator, 5th & Cleveland Incinerator, Lonnie C. Miller, Sr. Park."},
+    {"index": 1, "verdict": "supported", "note": "'Future redevelopment is being planned for the Lonnie Miller Park area'; sports complex with soccer fields, baseball diamonds, basketball courts."},
+    {"index": 2, "verdict": "supported", "note": "Release dated 8/5/2005: meeting 'August 10, 2005 at the Emmett Reed Center on 1093 West 6th Street'; page says 'proposed plans'/'remedy'."},
+    {"index": 3, "verdict": "supported", "note": "Release 12/11/2009: 'On Tuesday, December 15, 2009, a meeting will be held at the Emmett Reed Center on 1093 West 6th Street'."},
+    {"index": 4, "verdict": "supported", "note": "Subtitle: 'Remediation set to begin at Ash Sites in January 2010'; release covers Jacksonville Ash and Brown's Dump."}
+   ],
+   "portal_verdicts": [
+    {"url": "https://paopropertysearch.coj.net/Basic/Search.aspx", "reachable": true, "note": "Duval County Property Appraiser Basic Search by RE number, owner, or address."},
+    {"url": "https://or.duvalclerk.com/", "reachable": true, "note": "Duval Official Records Search (Acclaim); login form shown, 1988 coverage and free viewing not stated on page."},
+    {"url": "https://taxcollector.jacksonville.gov/taxes/property-taxes/tax-sale,-certificates,-and-tax-deeds", "reachable": true, "note": "Duval Tax Collector investor guide on certificate sale via lienhub.com/duval; tax deeds managed by Clerk."}
+   ]},
+  {"id": "FUDS-A04MS0124", "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+    {"index": 0, "verdict": "supported", "note": "FortWiki: 'In 1947, the city took over the base under a special use permit.'"},
+    {"index": 1, "verdict": "supported", "note": "GAO-01-1012SP row: 'GULFPORT ARMY AIR FIELD A04MS0124 HARRISON 5 Yes Yes 2 530 1,594' (eligible projects, cost to date, cost to complete in $000s)."},
+    {"index": 2, "verdict": "supported", "note": "FortWiki: 'Gulfport International Airport shares the site with Mississippi National Guard components.'"}
+   ],
+   "portal_verdicts": [
+    {"url": "https://www.harrisoncountymschanceryclerk.gov/recording.asp", "reachable": true, "note": "Harrison County MS Chancery Clerk recording page: Gulfport (228) 865-4036, deeds/lis pendens/federal tax liens, $0.50/page copies, links Land Records Online."},
+    {"url": "https://landrecords.co.harrison.ms.us", "reachable": false, "note": "HTTP 403 to fetch; could not open."},
+    {"url": "https://harrison2.co.harrison.ms.us/realproperty/", "reachable": false, "note": "HTTP 403 to fetch; could not open."},
+    {"url": "https://gulfport.maps.arcgis.com/apps/instant/basic/index.html?appid=06cbdd8099a14d25b8b0a18fc22d3c44", "reachable": false, "note": "JavaScript shell; fetch returned only the word 'Basic'. City page does link it as Online Atlas."},
+    {"url": "https://www.gulfport-ms.gov/departments/urban_development/planning___zoning/index.php", "reachable": true, "note": "City of Gulfport Planning & Zoning: zoning determination letter form, link to Official Zoning Map page and Online Atlas."}
+   ]}
+]}

@@ -1,0 +1,63 @@
+{"batch": "batch-12", "researcher": "Claude Haiku 5.5", "sites": [
+  {"id": "TND071516959", "name": "TENNESSEE PRODUCTS", "researcher": "Claude Haiku 5.5",
+   "portals": [
+     {"kind": "assessor", "name": "Hamilton County Assessor of Property (search by street, parcel or owner)", "url": "https://assessor.hamiltontn.gov/", "access": "free_search", "note": "Homepage opened; it offers street, parcel and owner search fields. Parcel detail cards were seen only in search results and were not opened. The atlas record has no postal address, so a parcel match has not been attempted."}
+   ],
+   "facts": [
+     {"kind": "other", "date": "2019-10", "summary": "EPA deleted the Tennessee Products Superfund Site in Chattanooga from the National Priorities List as part of a fiscal year 2019 batch; EPA release dated October 29, 2019.", "authority": "U.S. EPA news release (reprinted by InsuranceNewsNet)", "reference": "EPA deletion announcement, Tennessee Products Superfund Site", "source_url": "https://insurancenewsnet.com/oarticle/epa-announces-deletion-of-the-tennessee-products-superfund-site-in-chattanooga-tennessee-from-superfund-national-priorities-list", "quote": "including the Tennessee Products Superfund Site in Chattanooga, Tenn."}
+   ],
+   "gaps": [
+     "No reuse, redevelopment, ownership or parcel fact was retrieved. The EPA Region 4 reuse list excerpts I saw did not include Tennessee Products.",
+     "Hamilton County Register of Deeds was not identified; a search returned only assessor pages.",
+     "The atlas record has no postal address ('Postal Address is unavailable for the Site'), so no assessor parcel was matched.",
+     "The 2016 TDEC five-year review and the 1995 listing via ATSDR health advisory appeared only in search snippets and are not recorded.",
+     "No Chattanooga city permit, code enforcement or zoning portal was searched."
+   ]},
+  {"id": "TND098071061", "name": "SMOKEY MOUNTAIN SMELTERS", "researcher": "Claude Haiku 5.5",
+   "portals": [
+     {"kind": "assessor", "name": "Knox County Property Assessor (Property Lookup)", "url": "https://property.knoxcounty.org/", "access": "unknown", "note": "Official Knox County assessor site opened. Its Property Lookup links to an external county search site through a disclaimer page; search options and fees were not stated on the page."},
+     {"kind": "recorder", "name": "Knox County Register of Deeds (news page; navigation lists Legacy Deed Search and Online Records Subscription)", "url": "https://rod.knoxcounty.org/?p=8017", "access": "unknown", "note": "Opened a July 2024 news post. Its navigation lists a Legacy Deed Search and an Online Records Subscription; the page does not say whether either is free."}
+   ],
+   "facts": [
+     {"kind": "other", "date": "2023-02", "summary": "WVLT reported on February 13, 2023 that cleanup of the Smokey Mountain Smelters site in South Knox was set to start on its final phase that month. The article gives the address as 1508 Maryville Pike.", "authority": "WVLT (local TV news)", "reference": "Smokey Mountain Smelters Superfund site begins clean up (WVLT, 2023-02-13)", "source_url": "https://www.wvlt.tv/2023/02/13/smokey-mountain-smelters-superfund-site-beings-clean-up", "quote": "Smokey Mountain Smelters is located at 1508 Maryville Pike."},
+     {"kind": "other", "date": "2023-02", "summary": "Cleanup of the Smokey Mountain Smelters site was set to start its final phase in February 2023 (the article gives no start day).", "authority": "WVLT (local TV news)", "reference": "Smokey Mountain Smelters Superfund site begins clean up (WVLT, 2023-02-13)", "source_url": "https://www.wvlt.tv/2023/02/13/smokey-mountain-smelters-superfund-site-beings-clean-up", "quote": "set to start working this month on the final phase of the cleanup."},
+     {"kind": "other", "summary": "Rotary Furnace, Inc., also known as Smokey Mountain Smelters, operated at the site until it was abandoned in 1994.", "authority": "WVLT (local TV news)", "reference": "Smokey Mountain Smelters Superfund site begins clean up (WVLT, 2023-02-13)", "source_url": "https://www.wvlt.tv/2023/02/13/smokey-mountain-smelters-superfund-site-beings-clean-up", "quote": "Rotary Furnace Inc., also known as Smokey Mountain Smelters, operated out of it until the site was abandoned in 1994."}
+   ],
+   "gaps": [
+     "Acreage is not verified. A search snippet gives 13 acres; the WVLT article gives none, and the EPA page it was drawn from was not opened.",
+     "A search snippet of an EPA update says two of the three parcels were sold by Knox County at auction in May 2023. That document was not opened, so the auction is not recorded.",
+     "The EPA Smokey Mountain Smelters page redirected to CUMULIS (id 0406753). The extract did not show the site name, so its cleanup-complete statement is not recorded.",
+     "The WBIR article returned HTTP 403 to the fetch tool.",
+     "No Knox County parcel lookup, deed search or trustee tax-sale record was run. The Register of Deeds search was not tested and its access model is unclear."
+   ]},
+  {"id": "TND987768587", "name": "CLINCH RIVER CORPORATION", "researcher": "Claude Haiku 5.5",
+   "portals": [
+     {"kind": "assessor", "name": "Roane County Assessor of Property (office page)", "url": "https://roanecountytn.gov/assessor-of-property/", "access": "unknown", "note": "Names the assessor and links to the state TPAD property search (assessment.cot.tn.gov/TPAD), which returned HTTP 403 to the fetch tool. Not searched for this site."}
+   ],
+   "facts": [
+     {"kind": "other", "date": "2016-01", "summary": "EPA announced a non-time critical cleanup of the Clinch River Corporation Superfund Site in Harriman, Tennessee; the release is dated January 12, 2016 and lists 728 Emory Drive as the site location.", "authority": "U.S. EPA Region 4 news release", "reference": "EPA details cleanup of Clinch River Corporation site", "source_url": "https://www.epa.gov/archive/epa/newsreleases/epa-present-details-cleanup-clinch-river-corporation-site.html", "quote": "a non-time critical cleanup of the Clinch River Corporation Superfund Site (Site) in Harriman, TN."}
+   ],
+   "gaps": [
+     "Acreage conflicts: a search snippet gives about 30.5 acres. The EPA release does not state acreage, so no acreage fact is recorded.",
+     "The NPL listing year conflicts across search snippets (2012 in one report, 2013 in another), so it is not recorded.",
+     "The EPA release does not state the former use. No redevelopment plan, developer or reuse project was found.",
+     "No Roane County parcel, deed, tax or permit record was retrieved; the state TPAD search returned HTTP 403.",
+     "A student-posted document gives the address as 'Emory Street' and describes neighboring parcels. It is low reliability and not recorded."
+   ]},
+  {"id": "TXD008123168", "name": "ALCOA (POINT COMFORT)/LAVACA BAY", "researcher": "Claude Haiku 5.5",
+   "portals": [
+     {"kind": "assessor", "name": "Calhoun County Appraisal District", "url": "https://www.calhouncad.org", "access": "unknown", "note": "Opened the district homepage. It links to a Property Search at esearch.calhouncad.org and an Interactive Map at gis.bisclient.com; neither linked page was opened. The homepage does not state search options or fees."}
+   ],
+   "facts": [
+     {"kind": "other", "summary": "EPA's Texas reuse entry describes the Alcoa (Point Comfort)/Lavaca Bay site as 5,410 acres in Calhoun County (undated page).", "authority": "U.S. EPA Superfund Redevelopment reuse listing (Texas)", "reference": "Superfund Sites in Reuse in Texas", "source_url": "https://www.epa.gov/superfund-redevelopment/superfund-sites-reuse-texas", "quote": "The 5,410-acre Alcoa (Point Comfort)/Lavaca Bay Superfund site is in Calhoun County, Texas."},
+     {"kind": "other", "date": "1994", "summary": "EPA added the site to the National Priorities List in 1994.", "authority": "U.S. EPA Superfund Redevelopment reuse listing (Texas)", "reference": "Superfund Sites in Reuse in Texas", "source_url": "https://www.epa.gov/superfund-redevelopment/superfund-sites-reuse-texas", "quote": "EPA added the site to the National Priorities List in 1994."},
+     {"kind": "other", "date": "2001", "summary": "EPA selected the remedy for the site in 2001.", "authority": "U.S. EPA Superfund Redevelopment reuse listing (Texas)", "reference": "Superfund Sites in Reuse in Texas", "source_url": "https://www.epa.gov/superfund-redevelopment/superfund-sites-reuse-texas", "quote": "EPA selected the remedy for the site in 2001."}
+   ],
+   "gaps": [
+     "Conflicting status across sources: a search snippet of an older EPA snapshot says EPA deleted the site from the NPL in October 2007 and relisted it in 2011 with cleanup ongoing. The current EPA entry I opened gives no deletion date. The conflict is unresolved and the deletion and relisting claims are not recorded.",
+     "Acreage conflicts: some sources say about 3,500 acres; EPA's entry says 5,410. Only the EPA figure is recorded.",
+     "Calhoun County Appraisal District property search (esearch.calhouncad.org) was not opened, so no parcel, owner or tax record was checked.",
+     "No Calhoun County Clerk or deed-record portal was identified or opened.",
+     "A Texas Tribune item about the Army Corps reversing a dredging decision in the Matagorda Bay ship channel has no visible date and is not recorded. The 2019 five-year review addendum was seen only in a search snippet and is not recorded."
+   ]}
+]}

@@ -1,0 +1,89 @@
+{
+ "batch": "batch-07",
+ "sites": [
+  {
+   "id": "MI0001119106",
+   "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+    {
+     "index": 0,
+     "verdict": "supported",
+     "note": "Page: 'The 17-acre Aircraft Components Superfund site is located next to the Paw Paw River in Benton Harbor.'"
+    },
+    {
+     "index": 1,
+     "verdict": "supported",
+     "note": "Page: announces 'the removal of the radiation operable unit, or OU1'; OU2 'will remain on the NPL until' standards met."
+    },
+    {
+     "index": 2,
+     "verdict": "supported",
+     "note": "Page: community-wide redevelopment project 'that includes a craft brewery warehouse and hole 14 of the Harbor Shores Golf Course.'"
+    }
+   ],
+   "portal_verdicts": []
+  },
+  {
+   "id": "MID005107222",
+   "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+    {
+     "index": 0,
+     "verdict": "supported",
+     "note": "Page: 'located four miles south of St. Joseph in Berrien County, Michigan'; address 3737 RED ARROW HIGHWAY."
+    },
+    {
+     "index": 1,
+     "verdict": "supported",
+     "note": "Page: 'A county ordinance prohibits the installation of wells around the contaminated groundwater plume.'"
+    },
+    {
+     "index": 2,
+     "verdict": "supported",
+     "note": "Page: latest five-year review concluded remedy protects human health and environment; no known exposures."
+    }
+   ],
+   "portal_verdicts": []
+  },
+  {
+   "id": "MID017422304",
+   "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [],
+   "portal_verdicts": [
+    {
+     "url": "https://pta.waynecounty.com",
+     "reachable": true,
+     "note": "Wayne County Treasurer Property Tax Listing System; 'search by Property Address or by Parcel ID', free; no owner-name search."
+    },
+    {
+     "url": "https://waynecountylandrecords.forms.govos.com/ng/fa/l4b7xs",
+     "reachable": false,
+     "note": "Page is a 'Neumo Forms' vendor e-signature/forms page, not a Register of Deeds search."
+    }
+   ]
+  },
+  {
+   "id": "MID062222997",
+   "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+    {
+     "index": 0,
+     "verdict": "supported",
+     "note": "Page: 'The 120-acre Butterworth #2 Landfill site is located in Grand Rapids, Michigan.'"
+    },
+    {
+     "index": 1,
+     "verdict": "supported",
+     "note": "Page: 'The fifth five-year review was completed on September 2024.'"
+    }
+   ],
+   "portal_verdicts": [
+    {
+     "url": "https://app.kentcountymi.gov/PropertySearch/appStart",
+     "reachable": true,
+     "note": "Kent County Property Search: 'enter either a parcel number OR an address'; Account Login link; values current as of March."
+    }
+   ]
+  }
+ ]
+}

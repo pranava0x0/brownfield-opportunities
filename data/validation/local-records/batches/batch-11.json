@@ -1,0 +1,85 @@
+{
+ "batch": "batch-11",
+ "sites": [
+  {
+   "id": "SCD980558050",
+   "name": "TOWNSEND SAW CHAIN CO.",
+   "program": "superfund",
+   "address": "STATE ROUTE 53 & I-20",
+   "city": "PONTIAC",
+   "county": "RICHLAND",
+   "state": "SC",
+   "zip": "29045",
+   "lat": 34.106002,
+   "lon": -80.834541,
+   "acreage": 90.2,
+   "tabs": [
+    "civilian"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "SCD980558316",
+   "name": "CAROLAWN, INC.",
+   "program": "superfund",
+   "address": "S. OF SC HWY 9 ON CO. RD 841",
+   "city": "FORT LAWN",
+   "county": "CHESTER",
+   "state": "SC",
+   "zip": "29714",
+   "lat": 34.688576,
+   "lon": -80.943201,
+   "acreage": 75.7,
+   "tabs": [
+    "civilian"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "SCN000407376",
+   "name": "HENRY'S KNOB",
+   "program": "superfund",
+   "address": "STATE HIGHWAY 55 AND HENRY KNOB ROAD",
+   "city": "CLOVER",
+   "county": "YORK",
+   "state": "SC",
+   "zip": "29710",
+   "lat": 35.136557,
+   "lon": -81.281349,
+   "acreage": 228.8,
+   "tabs": [
+    "civilian"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "TN1890090003",
+   "name": "OAK RIDGE RESERVATION (USDOE)",
+   "program": "superfund",
+   "address": "BETHEL VALLEY ROAD",
+   "city": "OAK RIDGE",
+   "county": null,
+   "state": "TN",
+   "zip": "37830",
+   "lat": 35.95046,
+   "lon": -84.301174,
+   "acreage": 37429.8,
+   "tabs": [
+    "civilian"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  }
+ ]
+}

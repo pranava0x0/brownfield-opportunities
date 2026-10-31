@@ -1,0 +1,141 @@
+{
+ "batch": "batch-09",
+ "sites": [
+  {
+   "id": "NCD003446721",
+   "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+    {
+     "index": 0,
+     "verdict": "unsupported",
+     "note": "EPA page confirms 2021 Forsite purchase/sale-lease-back but calls it a '450-acre site'; the 420-acre developer-page claim is not on the cited page."
+    },
+    {
+     "index": 1,
+     "verdict": "supported",
+     "note": "EPA page: Forsite demolished much of the plant in 2022 while Ticona manufacturing continued."
+    },
+    {
+     "index": 2,
+     "verdict": "supported",
+     "note": "DEQ notice: CNA Holdings, LLC, 2525 Blacksburg Rd., Grover, applied to renew NPDES permit NC0004952 (Shelby Plant); comments by June 22, 2026."
+    }
+   ],
+   "portal_verdicts": [
+    {
+     "url": "https://www.webgis.net/nc/cleveland/",
+     "reachable": true,
+     "note": "Cleveland County NC WebGIS with Parcel Search tab and Parcel History Search."
+    },
+    {
+     "url": "https://www.webgis.net/linkedfiles/nc/cleveland/",
+     "reachable": true,
+     "note": "GIS Data Download page: Parcels.zip, data date 8/24/2026, 121 MB."
+    },
+    {
+     "url": "https://us5.courthousecomputersystems.com/clevelandnc/",
+     "reachable": true,
+     "note": "Cleveland County Register of Deeds landing page with disclaimer; records back to 1945; links to search app."
+    },
+    {
+     "url": "https://clevelandcountytaxes.com/",
+     "reachable": false,
+     "note": "Fetch returned only a 'Loading...' shell and accessibility link; no tax office or search confirmed."
+    }
+   ]
+  },
+  {
+   "id": "NCD986175644",
+   "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+    {
+     "index": 0,
+     "verdict": "supported",
+     "note": "EPA page: 'EPA added the site to the National Priorities List (NPL) in 1999.'"
+    },
+    {
+     "index": 1,
+     "verdict": "supported",
+     "note": "EPA page: 'The 20-acre Davis Park Road TCE Superfund site is in Gastonia, North Carolina.'"
+    },
+    {
+     "index": 2,
+     "verdict": "supported",
+     "note": "EPA page: auto repair shop remains in continued use on the site."
+    },
+    {
+     "index": 3,
+     "verdict": "supported",
+     "note": "EPA page: 'The Cedar Oak Park subdivision remains in continued use on-site.'"
+    },
+    {
+     "index": 4,
+     "verdict": "supported",
+     "note": "Profile: 'currently finalizing the fifth Five-Year Review'; 'expected that the document will be completed by September 2025.'"
+    }
+   ],
+   "portal_verdicts": [
+    {
+     "url": "https://gastonnc.devnetwedge.com/",
+     "reachable": true,
+     "note": "Gaston County Property Tax Inquiry; box 'Property Number, Owner Name, or Address' plus Advanced Search."
+    },
+    {
+     "url": "https://gis.gastoncountync.gov/Map/Index",
+     "reachable": true,
+     "note": "Gaston County GIS viewer; search Address/Owner/Parcel/Street; property panel lists owners and deed book/page (placeholders unfilled)."
+    },
+    {
+     "url": "https://gastonnc.courthousecomputersystems.com/",
+     "reachable": false,
+     "note": "HTTP 403 Forbidden to fetch."
+    }
+   ]
+  },
+  {
+   "id": "NJD980528996",
+   "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+    {
+     "index": 0,
+     "verdict": "supported",
+     "note": "Page: 'Production activities at the Diamond Alkali facility ceased in August 1969.'"
+    },
+    {
+     "index": 1,
+     "verdict": "supported",
+     "note": "Page: site 'includes the former manufacturing facility at 80-120 Lister Avenue in Newark, NJ'; 'Production of DDT ... began at 80 Lister Avenue in the 1940s.'"
+    },
+    {
+     "index": 2,
+     "verdict": "supported",
+     "note": "PDF metadata: EPA fact sheet 'Community Update, January 2025' on ROD for OU1, 80-120 Lister Avenue, Diamond Alkali; dated Jan 22, 2025. Body not readable."
+    }
+   ],
+   "portal_verdicts": [
+    {
+     "url": "https://njgin.nj.gov/",
+     "reachable": true,
+     "note": "NJGIN homepage lists Property Explorer App: 'Search all parcels in NJ by address, county, municipality, block and lot'; login not stated."
+    }
+   ]
+  },
+  {
+   "id": "NYD980651087",
+   "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [],
+   "portal_verdicts": [
+    {
+     "url": "https://niagaracounty.prosgar.com/",
+     "reachable": true,
+     "note": "Niagara County Property Record Online System (PROS); 'search property information for any parcel in Niagara County'; Quick and Advanced search; Niagara Falls in dropdown."
+    },
+    {
+     "url": "https://www.niagaracounty.gov/departments/m-r/real_property/index.php",
+     "reachable": true,
+     "note": "County Real Property page: Pros-GAR for parcel information and tax amounts; Treasurer 439-7007; office at 59 Park Avenue, Lockport."
+    }
+   ]
+  }
+ ]
+}

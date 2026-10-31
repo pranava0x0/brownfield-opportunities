@@ -1,0 +1,35 @@
+{"batch": "batch-06", "sites": [
+  {"id": "FUDS-J09CA7074", "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+    {"index": 0, "verdict": "supported", "note": "Page: Navy acquired Oxnard Seacoast Battery as part of a 325 acre lease approved 3 December 1942; lists \"Advanced Base Depot - Rifle Range\" among other names. Alias match only, as stated."},
+    {"index": 1, "verdict": "supported", "note": "Page: \"By March 1948, the Navy canceled the leases for the 325 acres, including the 19 acre battery site area.\""}
+   ],
+   "portal_verdicts": []},
+  {"id": "FUDS-K06TX0015", "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+    {"index": 0, "verdict": "supported", "note": "TSHA: \"located on a 59,000-acre tract purchased from local landowners beginning in December 1941.\""},
+    {"index": 1, "verdict": "supported", "note": "TSHA: \"In 1946 the camp was declared surplus, disbanded, and leveled.\" Nothing on later land use."}
+   ],
+   "portal_verdicts": []},
+  {"id": "GAD980838619", "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+    {"index": 0, "verdict": "supported", "note": "EPA profile: landfill \"operated from 1974 to 1980\"; site about 10 acres."},
+    {"index": 1, "verdict": "supported", "note": "EPA profile: placed on NPL in 1989 because of contaminated debris, groundwater and soil from landfill operations."},
+    {"index": 2, "verdict": "supported", "note": "EPA profile: \"EPA, Georgia EPD and the site's PRP continue to protect people and the environment\" via groundwater monitoring, inspections, Five-Year Reviews."}
+   ],
+   "portal_verdicts": [
+    {"url": "https://www.walkercountyga.gov/", "reachable": true, "note": "Walker County GA homepage; Departments menu links Assessors Office with qPublic Property Records Search and Tax Commissioner."},
+    {"url": "https://walkercountytax.com", "reachable": true, "note": "Opened: \"Walker County Tax Commissioner - Official Site\"; property tax payments, tag renewals, tax sale info."}
+   ]},
+  {"id": "ILN000510192", "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+    {"index": 0, "verdict": "supported", "note": "EPA: \"In late January 2025, Peoples Gas completed in situ stabilization (ISS) treatment\" at Parcels A and B; over 224,700 tons soil removed. The 'ongoing' clause was not visible in the truncated text I got."},
+    {"index": 1, "verdict": "supported", "note": "Block Club Aug 16, 2021: 4358 W. 35th Place; will \"remove 4-8 feet of contaminated soil\"; about a year; soil taken elsewhere."},
+    {"index": 2, "verdict": "supported", "note": "EPA profile: site \"located at 3500 South Pulaski Road.\""}
+   ],
+   "portal_verdicts": [
+    {"url": "https://www.cookcountyassessoril.gov/", "reachable": true, "note": "Cook County Assessor's Office; advanced search by address, PIN or neighborhood."},
+    {"url": "https://www.cookcountytreasurer.com/", "reachable": true, "note": "Cook County Treasurer's Office homepage; payment status and tax bill lookup links; PIN/address inputs not shown."},
+    {"url": "https://www.cookcountyclerkil.gov/", "reachable": true, "note": "Cook County Clerk site; Recordings Division \"records, stores and maintains land records.\""}
+   ]}
+]}

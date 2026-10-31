@@ -1,0 +1,42 @@
+{"batch": "batch-13", "sites": [
+  {"id": "TXD055144539", "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+     {"index": 0, "verdict": "supported", "note": "Page: \"EPA issued the Third Five-Year Review Report on August 5, 2026\"; site currently protective in the short term."},
+     {"index": 1, "verdict": "supported", "note": "Page: \"The 40-acre Site is located in a primarily undeveloped area in the city of Freeport in Brazoria County, Texas.\""}
+   ],
+   "portal_verdicts": [
+     {"url": "https://esearch.brazoriacad.org/", "reachable": true, "note": "Brazoria CAD property search; search by owner, address, ID; no login or fee shown."},
+     {"url": "https://gis.bisclient.com/brazoriacad/", "reachable": false, "note": "Fetch returned only the text 'BIS Consultants'; JavaScript shell, map not confirmed."},
+     {"url": "https://www.brazoriacountyclerktx.gov/search-records", "reachable": false, "note": "HTTP 403 Forbidden."}
+   ]},
+  {"id": "VA1170024722", "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+     {"index": 0, "verdict": "supported", "note": "Page: \"added to the Superfund program's National Priorities List (NPL) in May 1993\"; approx. 56,000 acres in Prince William, Stafford, Fauquier Counties."},
+     {"index": 1, "verdict": "supported", "note": "Page: Navy \"has the lead role\"; 2023 review: response actions \"in accordance with the remedies selected by EPA\"."},
+     {"index": 2, "verdict": "supported", "note": "OU 4: \"land use controls, groundwater use restrictions, and groundwater monitoring\"; OU 19: \"Land use control measures are currently being developed\"."}
+   ],
+   "portal_verdicts": [
+     {"url": "https://gisweb.pwcva.gov/webapps/CountyMapper", "reachable": true, "note": "PWC County Mapper, Prince William County web GIS with parcel and address search."}
+   ]},
+  {"id": "VAD007972482", "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+     {"index": 0, "verdict": "supported", "note": "Page: OU1 and OU2 \"protective ... in the long-term\"; OU4 \"protective ... in the short-term\"; 2025 review."},
+     {"index": 1, "verdict": "supported", "note": "Page: \"Wood preservation operations occurred at the site from 1937 to 1988\"; 44-acre site, Spotsylvania County."}
+   ],
+   "portal_verdicts": [
+     {"url": "https://apps.spotsylvaniacountyva.gov/assessment/assessment/index.cfm", "reachable": true, "note": "Real Estate Assessment Search; address (street required) or Parcel ID; no login/fee mentioned; values current as of 01/01/2026."},
+     {"url": "https://gis.spotsylvania.va.us/spotsylvania/", "reachable": false, "note": "Fetch returned empty content; JavaScript shell, cannot confirm it is the county GIS."},
+     {"url": "https://www.spotsylvania.va.us/1210/Records-Recordation-Services", "reachable": true, "note": "Clerk page: \"Land records are available online by a paid subscription only\"; pre-1996 searched in grantee/grantor index (in-person not stated)."}
+   ]},
+  {"id": "VAD071040752", "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+     {"index": 0, "verdict": "supported", "note": "Page: \"The Rentokil, Inc. site is located in Richmond, Henrico County, Virginia.\""},
+     {"index": 1, "verdict": "supported", "note": "Page: \"The 10-acre former wood treating plant operated from 1957 to 1990.\""},
+     {"index": 2, "verdict": "supported", "note": "Page: \"June 2023 - EPA determines that cleanup continues to protect human health and the environment\"; fifth five-year review."}
+   ],
+   "portal_verdicts": [
+     {"url": "https://realestate.henrico.gov/", "reachable": true, "note": "Henrico Property Search; GPIN/PID, address, use code; no login or fee shown; assessment records public under Virginia law."},
+     {"url": "https://portal.henrico.gov/PublicGISViewer/index.html", "reachable": false, "note": "Fetch returned only the title 'Henrico County Virginia'; JavaScript shell."},
+     {"url": "https://www.henricovalandrecords.org/", "reachable": false, "note": "Page showed only 'An unhandled error has occurred. Reload.'"}
+   ]}
+]}

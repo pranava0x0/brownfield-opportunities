@@ -1,0 +1,85 @@
+{
+ "batch": "batch-09",
+ "sites": [
+  {
+   "id": "NCD003446721",
+   "name": "CELANESE CORP. (SHELBY FIBER OPERATIONS)",
+   "program": "superfund",
+   "address": "HWY 198",
+   "city": "SHELBY",
+   "county": "CLEVELAND",
+   "state": "NC",
+   "zip": "28150",
+   "lat": 35.20886,
+   "lon": -81.522211,
+   "acreage": 423.2,
+   "tabs": [
+    "civilian"
+   ],
+   "atlas_owner": "GROVER INVESTMENTS I LLC",
+   "atlas_owner_source": "NC OneMap (NC1Map statewide parcels)",
+   "atlas_parcel_id": null,
+   "state_parcel_layer": true
+  },
+  {
+   "id": "NCD986175644",
+   "name": "DAVIS PARK ROAD TCE",
+   "program": "superfund",
+   "address": "2307 DAVIS PARK ROAD",
+   "city": "GASTONIA",
+   "county": "GASTON",
+   "state": "NC",
+   "zip": "28052",
+   "lat": 35.232279,
+   "lon": -81.218952,
+   "acreage": 0.8,
+   "tabs": [
+    "civilian"
+   ],
+   "atlas_owner": "A TO Z RENTALS LLC",
+   "atlas_owner_source": "NC OneMap (NC1Map statewide parcels)",
+   "atlas_parcel_id": "3534-76-4837",
+   "state_parcel_layer": true
+  },
+  {
+   "id": "NJD980528996",
+   "name": "DIAMOND ALKALI CO.",
+   "program": "superfund",
+   "address": "80 LISTER AVE",
+   "city": "NEWARK",
+   "county": "ESSEX",
+   "state": "NJ",
+   "zip": "07105",
+   "lat": 40.759595,
+   "lon": -74.14964,
+   "acreage": 5158.2,
+   "tabs": [
+    "nickel"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": "NJOGIS (Parcels & MOD-IV Composite of NJ)",
+   "atlas_parcel_id": "0907_235_31",
+   "state_parcel_layer": true
+  },
+  {
+   "id": "NYD980651087",
+   "name": "HOOKER (S AREA)",
+   "program": "superfund",
+   "address": "BUFFALO AVE",
+   "city": "NIAGARA FALLS",
+   "county": "NIAGARA",
+   "state": "NY",
+   "zip": "14303",
+   "lat": 43.075283,
+   "lon": -79.004498,
+   "acreage": 169.5,
+   "tabs": [
+    "dc"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  }
+ ]
+}

@@ -1,0 +1,85 @@
+{
+ "batch": "batch-07",
+ "sites": [
+  {
+   "id": "MI0001119106",
+   "name": "AIRCRAFT COMPONENTS (D & L SALES)",
+   "program": "superfund",
+   "address": "671 NORTH SHORE DRIVE",
+   "city": "BENTON HARBOR",
+   "county": "BERRIEN",
+   "state": "MI",
+   "zip": "49022",
+   "lat": 42.126406,
+   "lon": -86.453802,
+   "acreage": 26.0,
+   "tabs": [
+    "civilian"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "MID005107222",
+   "name": "BENDIX CORP./ALLIED AUTOMOTIVE",
+   "program": "superfund",
+   "address": "3737 RED ARROW HIGHWAY",
+   "city": "ST. JOSEPH",
+   "county": "BERRIEN",
+   "state": "MI",
+   "zip": "49085",
+   "lat": 42.052071,
+   "lon": -86.512822,
+   "acreage": 154.5,
+   "tabs": [
+    "civilian"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "MID017422304",
+   "name": "MCLOUTH STEEL CORP",
+   "program": "superfund",
+   "address": "1491 WEST JEFFERSON AVENUE",
+   "city": "TRENTON",
+   "county": "WAYNE",
+   "state": "MI",
+   "zip": "48183",
+   "lat": 42.162943,
+   "lon": -83.17022,
+   "acreage": 195.7,
+   "tabs": [
+    "civilian"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "MID062222997",
+   "name": "BUTTERWORTH #2 LANDFILL",
+   "program": "superfund",
+   "address": "1450 BUTTERWORTH ST SW",
+   "city": "GRAND RAPIDS",
+   "county": "KENT",
+   "state": "MI",
+   "zip": "49504",
+   "lat": 42.952602,
+   "lon": -85.699605,
+   "acreage": 189.9,
+   "tabs": [
+    "dc"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  }
+ ]
+}

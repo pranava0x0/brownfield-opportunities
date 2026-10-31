@@ -7,6 +7,7 @@ The dashboard is a static, dependency-light site (Leaflet + vanilla JS — no ba
 ## Site
 
 - [Interactive dashboard](https://pranava0x0.github.io/brownfield-opportunities/): Screens (ranked shortlists with the method on top), Map, Table, Retired industry, Coal plants, Nuclear, DOE Sites, Data & methods; per-site panel opens with each screen's checks.
+- [Verify map](https://pranava0x0.github.io/brownfield-opportunities/verify.html?site=arnold-afb-tn): `verify.html?site=<id>` redraws the transmission lines, substations, plants, gas pipelines, rail and primary roads around any site, fetched live from HIFLD, Census TIGERweb and OpenStreetMap, re-measures each distance and compares it with the atlas's stored value. It draws no fiber layer because no public source publishes fiber routes as geometry; it links the FCC National Broadband Map instead.
 - [Source repository](https://github.com/pranava0x0/brownfield-opportunities): connectors, schema, tests, and refresh tooling.
 
 ## Data files (open JSON, served from data/)

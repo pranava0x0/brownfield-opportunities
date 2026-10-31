@@ -1,0 +1,85 @@
+{
+ "batch": "batch-08",
+ "sites": [
+  {
+   "id": "MID980410617",
+   "name": "BURROWS SANITATION",
+   "program": "superfund",
+   "address": "ME1/4 SEC10 R16W T3S",
+   "city": "HARTFORD",
+   "county": "VAN BUREN",
+   "state": "MI",
+   "zip": "49057",
+   "lat": 42.223571,
+   "lon": -86.149904,
+   "acreage": 12.8,
+   "tabs": [
+    "civilian"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "MID985574227",
+   "name": "LOWER ECORSE CREEK DUMP",
+   "program": "superfund",
+   "address": "Postal Address is unavailable for the Site",
+   "city": "WYANDOTTE",
+   "county": "WAYNE",
+   "state": "MI",
+   "zip": "48192",
+   "lat": 42.219249,
+   "lon": -83.165732,
+   "acreage": 25.6,
+   "tabs": [
+    "civilian"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "MIN000510362",
+   "name": "DSC MCLOUTH STEEL GIBRALTAR PLANT",
+   "program": "superfund",
+   "address": "28000 WEST JEFFERSON STREET",
+   "city": "GIBRALTAR",
+   "county": "WAYNE",
+   "state": "MI",
+   "zip": "48173-9736",
+   "lat": 42.103416,
+   "lon": -83.21135,
+   "acreage": 651.4,
+   "tabs": [
+    "civilian"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "MT0012694970",
+   "name": "FLAT CREEK IMM",
+   "program": "superfund",
+   "address": "FLAT CREEK ROAD AND HALL GULCH ROAD",
+   "city": "SUPERIOR",
+   "county": "MINERAL",
+   "state": "MT",
+   "zip": "59872",
+   "lat": 47.229796,
+   "lon": -114.841428,
+   "acreage": 10886.4,
+   "tabs": [
+    "dc"
+   ],
+   "atlas_owner": "USA",
+   "atlas_owner_source": "Montana Cadastral (MT Dept. of Revenue)",
+   "atlas_parcel_id": null,
+   "state_parcel_layer": true
+  }
+ ]
+}

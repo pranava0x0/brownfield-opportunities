@@ -1,0 +1,85 @@
+{
+ "batch": "batch-06",
+ "sites": [
+  {
+   "id": "FUDS-J09CA7074",
+   "name": "ADVANCED BASE DEPOT-RIFLE RANGE",
+   "program": "fuds",
+   "address": null,
+   "city": "OXNARD",
+   "county": "VENTURA",
+   "state": "CA",
+   "zip": null,
+   "lat": 34.185478,
+   "lon": -119.239527,
+   "acreage": 342.3,
+   "tabs": [
+    "port"
+   ],
+   "atlas_owner": "Private / State",
+   "atlas_owner_source": "USACE FUDS",
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "FUDS-K06TX0015",
+   "name": "CAMP HOWZE",
+   "program": "fuds",
+   "address": null,
+   "city": "GAINESVILLE",
+   "county": "COOKE",
+   "state": "TX",
+   "zip": null,
+   "lat": 33.78342,
+   "lon": -97.267542,
+   "acreage": 58702.8,
+   "tabs": [
+    "solar"
+   ],
+   "atlas_owner": "Local government \u2014 The City Of Gainesville Owns Moss Lake / Private \u2014 Multiple Private Owners, Private Numerous Private Owners",
+   "atlas_owner_source": "USACE FUDS",
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "GAD980838619",
+   "name": "MATHIS BROTHERS LANDFILL (SOUTH MARBLE TOP ROAD)",
+   "program": "superfund",
+   "address": "S MARBLE TOP RD",
+   "city": "KENSINGTON",
+   "county": "WALKER",
+   "state": "GA",
+   "zip": "30728",
+   "lat": 34.796805,
+   "lon": -85.377298,
+   "acreage": 17.6,
+   "tabs": [
+    "civilian"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "ILN000510192",
+   "name": "PEOPLES GAS CRAWFORD STATION FORMER MGP",
+   "program": "superfund",
+   "address": "3500 S. PULASKI RD (FORMERLY CRAWFORD AV",
+   "city": "CHICAGO",
+   "county": "COOK",
+   "state": "IL",
+   "zip": "60623",
+   "lat": 41.827052,
+   "lon": -87.731361,
+   "acreage": 258.7,
+   "tabs": [
+    "port"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  }
+ ]
+}

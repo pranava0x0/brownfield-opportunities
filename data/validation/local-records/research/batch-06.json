@@ -1,0 +1,193 @@
+{
+  "batch": "batch-06",
+  "researcher": "Claude Haiku 5.5",
+  "sites": [
+    {
+      "id": "FUDS-J09CA7074",
+      "name": "ADVANCED BASE DEPOT-RIFLE RANGE",
+      "researcher": "Claude Haiku 5.5",
+      "portals": [],
+      "facts": [
+        {
+          "kind": "other",
+          "date": "1942-12",
+          "summary": "A military history page says the Navy originally acquired the Oxnard Seacoast Battery site as part of a 325-acre lease approved on 3 December 1942. The page lists 'Advanced Base Depot - Rifle Range' as one of several other names for the training area. It does not say the rifle range was a separate facility, so the link to this FUDS record is an alias match only.",
+          "authority": "Ventura Group, Harbor Defenses of Los Angeles history page (militarymuseum.org)",
+          "reference": "Oxnard Tactical Battery 3 (Camp Rousseau; Military Training Area, Oxnard Shores)",
+          "source_url": "https://www.militarymuseum.org/OxnardCABty.html",
+          "quote": "The Navy originally acquired the site known as the Oxnard Seacoast Battery as part of a 325 acre lease"
+        },
+        {
+          "kind": "other",
+          "date": "1948-03",
+          "summary": "By March 1948 the Navy canceled the leases for the 325 acres, including the 19-acre battery site. The same page treats the rifle range as an alias for the whole training area, so the record's 342.3-acre figure is not checked against this lease.",
+          "authority": "Ventura Group, Harbor Defenses of Los Angeles history page (militarymuseum.org)",
+          "reference": "Oxnard Tactical Battery 3 (Camp Rousseau; Military Training Area, Oxnard Shores)",
+          "source_url": "https://www.militarymuseum.org/OxnardCABty.html",
+          "quote": "By March 1948, the Navy canceled the leases for the 325 acres, including the 19 acre battery site area."
+        }
+      ],
+      "gaps": [
+        "No Ventura County Assessor portal could be verified. Both URLs tried returned a 'Request Rejected' page, and no other assessor URL was confirmed, so no portal is listed.",
+        "The USACE California FUDS inventory PDF and the USACE site could not be opened, so the inventory row for this record was not checked directly.",
+        "The history page does not separate the rifle range from the seacoast battery, so this record may describe a different parcel. The 1942 and 1948 facts are alias matches only.",
+        "Oxnard permit, code-enforcement and planning records were not searched, so permit and zoning history is unknown.",
+        "The record has no address and no atlas parcel id, so no parcel-level owner, deed or tax check was possible."
+      ]
+    },
+    {
+      "id": "FUDS-K06TX0015",
+      "name": "CAMP HOWZE",
+      "researcher": "Claude Haiku 5.5",
+      "portals": [],
+      "facts": [
+        {
+          "kind": "other",
+          "date": "1941-12",
+          "summary": "The Texas State Historical Association handbook says Camp Howze was located on a 59,000-acre tract purchased from local landowners beginning in December 1941. The record's acreage is 58,702.8.",
+          "authority": "Texas State Historical Association, Handbook of Texas (camp history entry)",
+          "reference": "Camp Howze: A Historical Overview of the WWII Infantry Training Camp",
+          "source_url": "https://www.tshaonline.org/handbook/entries/camp-howze",
+          "quote": "It was located on a 59,000-acre tract purchased from local landowners beginning in December 1941"
+        },
+        {
+          "kind": "other",
+          "date": "1946",
+          "summary": "The same handbook entry says the camp was declared surplus, disbanded and leveled in 1946. It says nothing about what happened to the land after that.",
+          "authority": "Texas State Historical Association, Handbook of Texas (camp history entry)",
+          "reference": "Camp Howze: A Historical Overview of the WWII Infantry Training Camp",
+          "source_url": "https://www.tshaonline.org/handbook/entries/camp-howze",
+          "quote": "In 1946 the camp was declared surplus, disbanded, and leveled."
+        }
+      ],
+      "gaps": [
+        "No Cooke County Appraisal District portal could be verified. The two domains tried did not resolve, so no assessor or tax URL is listed.",
+        "The USACE Fort Worth District Camp Howze page returned HTTP 403, so its 31,132-acre Maneuver Area figure and its munitions statement could not be checked.",
+        "The atlas owner list (City of Gainesville / Moss Lake and private owners) was not verified. The Moss Lake link is unconfirmed, and no parcel was searched.",
+        "No Cooke County deed, lien or tax record was checked, and the atlas parcel id is null.",
+        "The handbook says nothing about what happened to the land after 1946, so no post-closure ownership fact is recorded."
+      ]
+    },
+    {
+      "id": "GAD980838619",
+      "name": "MATHIS BROTHERS LANDFILL (SOUTH MARBLE TOP ROAD)",
+      "researcher": "Claude Haiku 5.5",
+      "portals": [
+        {
+          "kind": "assessor",
+          "name": "Walker County, Georgia government site (Assessors Office; links to qPublic Property Records Search)",
+          "url": "https://www.walkercountyga.gov/",
+          "access": "unknown",
+          "note": "Opened. The homepage links to a qPublic Property Records Search under the Assessors Office. That search's own URL was not confirmed, and it was not opened. The page does not state a fee for the search."
+        },
+        {
+          "kind": "treasurer",
+          "name": "Walker County Tax Commissioner (linked from the county site)",
+          "url": "https://walkercountytax.com",
+          "access": "unknown",
+          "note": "Named as the Tax Commissioner link on walkercountyga.gov. Not opened. Tax status is unknown."
+        }
+      ],
+      "facts": [
+        {
+          "kind": "other",
+          "date": "1974",
+          "summary": "EPA's site profile says a landfill operated on this site from 1974 to 1980, and the site is about 10 acres.",
+          "authority": "U.S. EPA Superfund site profile (CERCLIS/SEMS)",
+          "reference": "MATHIS BROTHERS LANDFILL (SOUTH MARBLE TOP ROAD), EPA ID GAD980838619",
+          "source_url": "https://cumulis.epa.gov/supercpad/cursites/csitinfo.cfm?id=0401732",
+          "quote": "It includes an area where a landfill operated from 1974 to 1980."
+        },
+        {
+          "kind": "other",
+          "date": "1989",
+          "summary": "EPA's site profile says the site was placed on the National Priorities List in 1989 because of contaminated debris, groundwater and soil from the landfill.",
+          "authority": "U.S. EPA Superfund site profile (CERCLIS/SEMS)",
+          "reference": "MATHIS BROTHERS LANDFILL (SOUTH MARBLE TOP ROAD), EPA ID GAD980838619",
+          "source_url": "https://cumulis.epa.gov/supercpad/cursites/csitinfo.cfm?id=0401732",
+          "quote": "EPA placed the site on the Superfund program's National Priorities List (NPL) in 1989"
+        },
+        {
+          "kind": "other",
+          "summary": "EPA's site profile says EPA, Georgia EPD and the site's responsible party continue to protect people and the environment through groundwater monitoring, site inspections and Five-Year Reviews. The page gives no date for this status and no reuse or land-use statement.",
+          "authority": "U.S. EPA Superfund site profile (CERCLIS/SEMS)",
+          "reference": "MATHIS BROTHERS LANDFILL (SOUTH MARBLE TOP ROAD), EPA ID GAD980838619",
+          "source_url": "https://cumulis.epa.gov/supercpad/cursites/csitinfo.cfm?id=0401732",
+          "quote": "EPA, Georgia EPD and the site's PRP continue to protect people and the environment"
+        }
+      ],
+      "gaps": [
+        "The 2000 Federal Register notice on the Velsicol cost-recovery settlement (about $4 million, covering this site and two others) redirected off-domain and was not opened. No settlement fact is recorded.",
+        "The Walker County qPublic property search was not opened, so no parcel, owner, deed, lien or tax record for this site was checked.",
+        "The Walker County Tax Commissioner site was not opened, so tax status is unknown.",
+        "The atlas owner and parcel id are null. Matching to a parcel was not possible.",
+        "The EPA profile in the fetch had no current cleanup-status date and no reuse statement. A search summary that describes a property owner with agricultural, industrial or commercial reuse interest is undated and was not verified, so it is not recorded.",
+        "Sources differ on the town. EPA and the Federal Register place the site in Kensington, while some listings say Lafayette. The record's city is Kensington, so it was used."
+      ]
+    },
+    {
+      "id": "ILN000510192",
+      "name": "PEOPLES GAS CRAWFORD STATION FORMER MGP",
+      "researcher": "Claude Haiku 5.5",
+      "portals": [
+        {
+          "kind": "assessor",
+          "name": "Cook County Assessor's Office advanced property search",
+          "url": "https://www.cookcountyassessoril.gov/",
+          "access": "free_search",
+          "note": "Opened. The page offers an advanced search by address, PIN or neighborhood. The page does not mention a fee or login for this search. No search was run for the treated parcels."
+        },
+        {
+          "kind": "treasurer",
+          "name": "Cook County Treasurer",
+          "url": "https://www.cookcountytreasurer.com/",
+          "access": "unknown",
+          "note": "Opened. The homepage does not show a PIN or address tax search. It describes paying property taxes with no fee and has an electronic billing login. No tax record was checked."
+        },
+        {
+          "kind": "recorder",
+          "name": "Cook County Clerk, Recordings Division",
+          "url": "https://www.cookcountyclerkil.gov/",
+          "access": "unknown",
+          "note": "Opened. The homepage describes the Recordings Division as maintaining land records but does not name an online search. No deed or lien search was run."
+        }
+      ],
+      "facts": [
+        {
+          "kind": "other",
+          "date": "2025-01",
+          "summary": "EPA's site profile says Peoples Gas completed in situ stabilization treatment on Parcels A and B in late January 2025, after more than 224,700 tons of soil were removed. The profile says cleanup and investigations are ongoing.",
+          "authority": "U.S. EPA Superfund site profile (CERCLIS/SEMS)",
+          "reference": "PEOPLES GAS CRAWFORD STATION FORMER MGP, EPA ID ILN000510192",
+          "source_url": "https://cumulis.epa.gov/supercpad/cursites/csitinfo.cfm?id=0510192",
+          "quote": "In late January 2025, Peoples Gas completed in situ stabilization (ISS) treatment activities at Parcels \"A\" and \"B\""
+        },
+        {
+          "kind": "other",
+          "date": "2021-08",
+          "summary": "A 2021 Block Club Chicago article says the Peoples Gas Crawford Station at 4358 W. 35th Place will have 4 to 8 feet of contaminated soil removed and taken off-site, with a cleanup expected to last about a year. The address differs from the EPA profile's 3500 South Pulaski Road.",
+          "authority": "Block Club Chicago (local news)",
+          "reference": "Peoples Gas Will Start Remediating Former Manufactured Gas Plant In Little Village Next Month, Aug 16, 2021",
+          "source_url": "https://blockclubchicago.org/2021/08/16/peoples-gas-will-start-remediating-former-manufactured-gas-plant-in-little-village-next-month/",
+          "quote": "it will remove 4-8 feet of contaminated soil."
+        },
+        {
+          "kind": "other",
+          "summary": "EPA's site profile places the Crawford Station former manufactured gas plant site at 3500 South Pulaski Road in Chicago. The page gives no date for this statement.",
+          "authority": "U.S. EPA Superfund site profile (CERCLIS/SEMS)",
+          "reference": "PEOPLES GAS CRAWFORD STATION FORMER MGP, EPA ID ILN000510192",
+          "source_url": "https://cumulis.epa.gov/supercpad/cursites/csitinfo.cfm?id=0510192",
+          "quote": "The Crawford Station former manufactured gas plant (MGP) site is located at 3500 South Pulaski Road in Chicago, Illinois."
+        }
+      ],
+      "gaps": [
+        "The 2012 EPA administrative order on consent for this site was seen only in a search summary and was not on the fetched profile page, so it is not recorded as a fact.",
+        "The address is inconsistent across sources: 3500 South Pulaski Road (EPA profile), 4358 W. 35th Place (2021 news) and 4543 W. 35th Street / 3600 S. Kostner Avenue for the treated parcels (search summary only). Parcel-level matching is therefore unresolved.",
+        "No Cook County Assessor search was run for the treated parcels, so owner, deed, lien and tax history are unknown.",
+        "Chicago building, demolition and environmental permit records were not searched.",
+        "The EPA profile gave no 2026 status. The most recent dated milestone is January 2025, and the status should be checked with EPA Region 5.",
+        "The atlas parcel id is null, so no parcel-level owner check was possible."
+      ]
+    }
+  ]
+}

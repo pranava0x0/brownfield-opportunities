@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Verify grid and infrastructure distances</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<style>
+  :root { --bg:#fff; --fg:#1b1f23; --muted:#5b6670; --line:#d5dae0; --panel:#f6f8fa; --accent:#1c5e9e; --ok:#2f7a4d; --bad:#b8332f; --warn:#9a6b00; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#14181c; --fg:#e6e9ec; --muted:#9aa5b0; --line:#2b333b; --panel:#1c2228; --accent:#7eb6e8; --ok:#6cc18a; --bad:#ef7a76; --warn:#e6b84a; } }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.45 system-ui, sans-serif; }
+  [hidden] { display:none !important; }
+  header { padding:10px 16px; border-bottom:1px solid var(--line); display:flex; gap:12px; align-items:baseline; flex-wrap:wrap; }
+  header h1 { font-size:17px; margin:0; }
+  header a { color:var(--accent); }
+  main { display:grid; grid-template-columns: minmax(300px, 420px) 1fr; height: calc(100vh - 49px); height: calc(100dvh - 49px); }
+  #panel { overflow:auto; padding:12px 16px 32px; border-right:1px solid var(--line); background:var(--panel); }
+  #map { min-height:300px; }
+  h2 { font-size:15px; margin:14px 0 6px; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th, td { text-align:left; padding:4px 6px 4px 0; border-bottom:1px solid var(--line); vertical-align:top; }
+  .num { font-variant-numeric: tabular-nums; white-space:nowrap; }
+  .ok { color:var(--ok); } .bad { color:var(--bad); } .warn { color:var(--warn); } .muted { color:var(--muted); }
+  .sw { display:inline-block; width:12px; height:12px; border-radius:2px; margin-right:6px; vertical-align:-1px; }
+  label.layer { display:flex; align-items:center; gap:6px; padding:3px 0; }
+  select, button { font:inherit; padding:4px 8px; min-height:32px; }
+  button, select, input { touch-action: manipulation; }
+  :focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  .note { font-size:13px; color:var(--muted); }
+  @media (max-width: 760px) {
+    main { grid-template-columns: 1fr; grid-template-rows: 55vh auto; height:auto; }
+    #map { order:-1; height:55vh; height:55dvh; }
+    #panel { border-right:0; border-top:1px solid var(--line); overflow:visible; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Verify distances on a map</h1>
+  <span id="who" class="muted">Loading…</span>
+  <a href="./">Back to the atlas</a>
+</header>
+<main>
+  <section id="panel" aria-label="Distance check">
+    <div id="status" role="status" aria-live="polite" class="note">Looking up the site…</div>
+    <h2>Claimed versus measured</h2>
+    <table id="results"><thead><tr><th>Layer</th><th>Atlas says</th><th>Measured here</th><th></th></tr></thead><tbody></tbody></table>
+    <p class="note">Measured here = shortest distance from the site's point to the line or point drawn on this map, fetched live
+      from the same public service the atlas used. A difference over 0.35 mi is flagged. Tap a line for its attributes.</p>
+    <h2>Layers</h2>
+    <div id="layers"></div>
+    <p><label>Search radius <select id="radius"><option value="auto">Auto</option><option>5</option><option>10</option><option>25</option><option>45</option></select> miles</label></p>
+    <h2>Fiber</h2>
+    <p class="note" id="fiber-note"></p>
+    <ul id="fiber-links"></ul>
+  </section>
+  <div id="map" role="application" aria-label="Map of nearby infrastructure"></div>
+</main>
+<script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script defer src="verify.js"></script>
+</body>
+</html>
