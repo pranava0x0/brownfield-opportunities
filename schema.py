@@ -1207,3 +1207,85 @@ class SiteResearchPayload(BaseModel):
     source: str
     count: int = Field(ge=0)
     sites: list[SiteResearch]
+
+
+# ---------------------------------------------------------------------------
+# Local records: county, city and state land records for tab sites
+# ---------------------------------------------------------------------------
+
+LOCAL_FACT_KINDS = ("transfer", "deed", "lien", "tax_delinquency", "foreclosure", "permit", "code_enforcement",
+                    "zoning", "brownfield_grant", "redevelopment_plan", "litigation", "other")
+LOCAL_PORTAL_KINDS = ("assessor", "gis", "recorder", "treasurer", "permits", "code", "zoning", "planning", "state_sales")
+LOCAL_ACCESS = ("free_search", "free_map", "paid", "in_person", "unknown")
+
+
+class LocalPortal(BaseModel):
+    """A county, city or state office whose records bear on the site, and how to reach them."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    kind: Literal[LOCAL_PORTAL_KINDS]
+    name: str = Field(min_length=3, max_length=160)
+    url: str = Field(pattern=r"^https://")
+    access: Literal[LOCAL_ACCESS]
+    note: Optional[str] = Field(default=None, max_length=240)
+
+
+class LocalFact(BaseModel):
+    """One dated statement from a local record. The quote is what the page says, word for word."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    kind: Literal[LOCAL_FACT_KINDS]
+    date: Optional[str] = Field(default=None, pattern=ISO_DAY_OR_MONTH)
+    summary: str = Field(min_length=10, max_length=400, description="One or two sentences in our words.")
+    authority: Optional[str] = Field(default=None, max_length=120)
+    reference: Optional[str] = Field(default=None, max_length=80, description="Deed book/page, permit or case number.")
+    source_url: str = Field(pattern=r"^https://")
+    quote: str = Field(min_length=8, max_length=500, description="Verbatim text from the source that states the fact.")
+    # Set by scripts/local_records.py adjudicate, never by a researcher.
+    status: Optional[Literal["accepted", "accepted_code_only", "accepted_model_only", "rejected", "disputed"]] = None
+    code_check: Optional[Literal["quote_found", "quote_missing", "unfetchable", "non_text", "dead"]] = None
+    verifier: Optional[Literal["supported", "unsupported", "contradicted", "unverifiable"]] = None
+    adjudicated_by: Optional[Literal["code", "opus"]] = None
+
+
+class ParcelCheck(BaseModel):
+    """Live re-query of the state parcel layer, set by script (no model involved)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    status: Literal["confirmed", "differs", "atlas_is_category", "owner_not_comparable", "no_layer", "no_match", "error"]
+    atlas_owner: Optional[str] = None
+    atlas_parcel_id: Optional[str] = None
+    live_owner: Optional[str] = None
+    live_parcel_id: Optional[str] = None
+    source: Optional[str] = Field(default=None, max_length=200)
+    checked_at: str = Field(pattern=ISO_DAY)
+
+
+class LocalRecordSet(BaseModel):
+    """Everything found in local and state land records for one corpus site."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    id: str = Field(min_length=3)
+    name: str = Field(min_length=2)
+    county: Optional[str] = None
+    state: Optional[str] = None
+    researched_at: str = Field(pattern=ISO_DAY)
+    researchers: list[str] = Field(min_length=1, description="Every model that produced or checked part of this entry.")
+    parcel: Optional[ParcelCheck] = None
+    portals: list[LocalPortal] = Field(default_factory=list)
+    facts: list[LocalFact] = Field(default_factory=list)
+    gaps: list[str] = Field(default_factory=list, description="What was searched for and not found, or is not online.")
+
+
+class LocalRecordsPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    schema_version: Literal[1] = 1
+    generated_at: str
+    source: str
+    count: int = Field(ge=0)
+    sites: list[LocalRecordSet]
