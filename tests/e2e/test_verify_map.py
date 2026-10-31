@@ -142,3 +142,17 @@ def test_a_feature_beyond_the_fully_searched_radius_is_not_called_a_mismatch(pag
     r = page.evaluate("() => VerifyGeo.compare(6.5, 7.07, 6)")
     assert r["cls"] == "warn" and "widen the radius" in r["text"]
     assert page.evaluate("() => VerifyGeo.compare(6.5, 6.6, 12)")["cls"] == "ok"
+
+
+def test_a_transmission_failure_after_a_good_run_clears_the_voltage_rows(page: Page, base_url: str):
+    _stub_sources(page, 0.8)
+    page.goto(f"{base_url}/verify.html?site={SITE}")
+    page.wait_for_function("window.__verifyDone === true", timeout=30_000)
+    assert rows_text(page, "Lines ≥ 115 kV").startswith("matches")
+    page.unroute(re.compile(r"(arcgis|tigerweb|overpass)"))
+    page.route(re.compile(r"(arcgis|tigerweb|overpass)"), lambda r: r.fulfill(status=500, body="boom"))
+    page.evaluate("window.__verifyDone = false")
+    page.select_option("#radius", "10")
+    page.wait_for_function("window.__verifyDone === true", timeout=30_000)
+    for layer in ("Transmission lines", "Lines ≥ 69 kV", "Lines ≥ 115 kV", "Lines ≥ 230 kV"):
+        assert rows_text(page, layer).startswith("source error"), layer

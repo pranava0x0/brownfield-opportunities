@@ -8,6 +8,6 @@ Output `data/validation/local-records/opus/<batch>.json`:
 
 ```json
 {"batch": "disputes", "sites": [{"id": "<site id>", "adjudicator": "Claude Opus 5.5",
-  "decisions": [{"index": 0, "decision": "accept|reject", "reason": "under 200 characters"}]}]}
+  "decisions": [{"index": 0, "fingerprint": "<the dispute's fingerprint, copied exactly>", "decision": "accept|reject", "reason": "under 200 characters"}]}]}
 ```
-`index` is the fact's position in that site's `facts` list (given in each dispute). Reject when in doubt.
+Copy each dispute's `fingerprint` into its decision; a decision without it is discarded. `index` is the fact's position in that site's `facts` list (given in each dispute). Reject when in doubt.

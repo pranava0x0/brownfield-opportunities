@@ -207,6 +207,10 @@
     async function run() {
       const mine = ++runId;                       // a newer run supersedes this one; stale results are dropped
       const sel = $("radius").value;
+      for (const [kv] of KV_CLAIMS) {             // dependent rows must never show the previous run's verdict as current
+        const kr = rows.get("kv" + kv);
+        if (kr) { kr.measured.textContent = "…"; kr.status.textContent = "loading"; kr.status.className = ""; }
+      }
       for (const L_ of LAYERS) { groups[L_.key].clearLayers(); }
       let n = 0;
       await Promise.all(LAYERS.map(async L_ => {
@@ -226,6 +230,12 @@
         } catch (e) {
           if (mine !== runId) return;
           r.measured.textContent = "unavailable"; r.status.textContent = `source error: ${e.message}`; r.status.className = "warn";
+          if (L_.key === "transmission") {        // the voltage-qualified rows come from the same fetch
+            for (const [kv] of KV_CLAIMS) {
+              const kr = rows.get("kv" + kv);
+              if (kr) { kr.measured.textContent = "unavailable"; kr.status.textContent = `source error: ${e.message}`; kr.status.className = "warn"; }
+            }
+          }
         }
       }));
       if (mine !== runId) return;

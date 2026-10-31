@@ -396,7 +396,7 @@ def cmd_adjudicate(args: argparse.Namespace) -> int:
             fact["verifier"] = (by_index.get(i) or {}).get("verdict")
             fact["status"], fact["adjudicated_by"] = decide(fact["code_check"], fact["verifier"])
             if fact["status"] == "disputed":
-                disputes.append({"id": sid, "name": r.get("name"), "index": i, "fact": fact,
+                disputes.append({"id": sid, "name": r.get("name"), "index": i, "fingerprint": fact_fingerprint(fact), "fact": fact,
                                  "verifier_note": (by_index.get(i) or {}).get("note")})
             facts.append(fact)
         portals = []
@@ -434,7 +434,8 @@ def cmd_apply_opus(args: argparse.Namespace) -> int:
         for d in dec.get("decisions", []):
             fact = adj[sid]["facts"][d["index"]]
             # The decision belongs to the fact that was put to Opus, not to whatever sits at that index now.
-            if asked.get((sid, d["index"])) != fact_fingerprint(fact):
+            # The decision must name the fingerprint of the fact Opus read, and that must still be the fact at this index.
+            if not d.get("fingerprint") or d["fingerprint"] != asked.get((sid, d["index"])) or d["fingerprint"] != fact_fingerprint(fact):
                 continue
             if fact["status"] == "disputed":
                 fact["status"] = "accepted" if d["decision"] == "accept" else "rejected"

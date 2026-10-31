@@ -2,6 +2,7 @@
 table, and the shipped-file schema. No network, no model."""
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -99,3 +100,20 @@ def test_a_verdict_binds_only_to_the_exact_fact_it_was_written_for():
 def test_non_parcel_ids_are_found_with_search_not_match():
     from connectors.parcel_owner import NON_PARCEL_ID
     assert NON_PARCEL_ID.search("39113-ROW") and NON_PARCEL_ID.search("27123-County RoW")
+
+
+def test_an_opus_decision_for_an_earlier_fact_at_the_same_index_is_not_applied(tmp_path, monkeypatch):
+    a = {"kind": "deed", "summary": "Deed recorded.", "source_url": "https://a.example/x", "quote": "deed recorded 2021", "status": "disputed"}
+    b = {**a, "summary": "Deed recorded for $1."}
+    monkeypatch.setattr(lr, "WORK", tmp_path)
+    (tmp_path / "opus").mkdir()
+    (tmp_path / "adjudicated.json").write_text(json.dumps({"S1": {"researchers": [], "facts": [dict(b)]}}))
+    (tmp_path / "disputes.json").write_text(json.dumps([{"id": "S1", "index": 0, "fact": b}]))
+    old = {"sites": [{"id": "S1", "decisions": [{"index": 0, "fingerprint": lr.fact_fingerprint(a), "decision": "accept"}]}]}
+    (tmp_path / "opus" / "d.json").write_text(json.dumps(old))
+    lr.cmd_apply_opus(None)
+    assert json.loads((tmp_path / "adjudicated.json").read_text())["S1"]["facts"][0]["status"] == "disputed"
+    good = {"sites": [{"id": "S1", "decisions": [{"index": 0, "fingerprint": lr.fact_fingerprint(b), "decision": "accept"}]}]}
+    (tmp_path / "opus" / "d.json").write_text(json.dumps(good))
+    lr.cmd_apply_opus(None)
+    assert json.loads((tmp_path / "adjudicated.json").read_text())["S1"]["facts"][0]["status"] == "accepted"
