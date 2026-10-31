@@ -65,6 +65,8 @@ _last = {"t": 0.0}
 def html_to_text(raw: str) -> str:
     raw = re.sub(r"(?is)<(script|style|noscript)\b.*?</\1>", " ", raw)
     raw = re.sub(r"(?s)<!--.*?-->", " ", raw)
+    # Inline markup must not split a word, unit or possessive ("km<sup>2</sup>", "Smith<a>'s</a>"); block markup separates.
+    raw = re.sub(r"</?(?:sup|sub|a|span|b|i|em|strong|u|small|font|abbr|cite|mark|code)\b[^>]*>", "", raw, flags=re.I)
     return html.unescape(re.sub(r"<[^>]+>", " ", raw))
 
 
@@ -107,6 +109,13 @@ def decide(code_check: str, verifier: Optional[str]) -> tuple[str, str]:
 
 # ------------------------------------------------------------------ fetching
 
+def _decode(resp) -> str:
+    """requests decodes text/html with no charset as ISO-8859-1, which turns every UTF-8 apostrophe into mojibake."""
+    if "charset" not in resp.headers.get("content-type", "").lower():
+        return resp.content.decode("utf-8", errors="replace")
+    return resp.text
+
+
 def fetch_page(url: str) -> tuple[str, Optional[str]]:
     """(status, text). status: ok | non_text | unfetchable. Cached on disk by URL."""
     import requests
@@ -124,10 +133,12 @@ def fetch_page(url: str) -> tuple[str, Optional[str]]:
         ctype = resp.headers.get("content-type", "").lower()
         if resp.status_code in (404, 410):
             out = {"status": "dead", "text": None, "http": resp.status_code}
+        elif resp.status_code == 429 or resp.status_code >= 500:
+            return "unfetchable", None                 # throttling and server errors are not properties of the page: never cached
         elif resp.status_code >= 400:
             out = {"status": "unfetchable", "text": None, "http": resp.status_code}
         elif "html" in ctype or "text" in ctype or "xml" in ctype or "json" in ctype:
-            out = {"status": "ok", "text": html_to_text(resp.text), "http": resp.status_code}
+            out = {"status": "ok", "text": html_to_text(_decode(resp)), "http": resp.status_code}
         else:
             out = {"status": "non_text", "text": None, "http": resp.status_code}
     except requests.RequestException as exc:
@@ -294,6 +305,14 @@ def _load_dir(sub: str) -> dict[str, dict]:
     return out
 
 
+def _research_date(site_id: str) -> str:
+    """Date of the research file that holds this site (a re-publish must not re-date old research)."""
+    for f in sorted((WORK / "research").glob("*.json")):
+        if site_id in {x.get("id") for x in json.loads(f.read_text()).get("sites", [])}:
+            return dt.datetime.fromtimestamp(f.stat().st_mtime).date().isoformat()
+    return dt.date.today().isoformat()
+
+
 def _bind_verdicts(facts: list[dict], verdicts: list[dict]) -> dict[int, dict]:
     """Map fact index -> verdict, refusing a verdict that may belong to a different fact.
 
@@ -348,9 +367,11 @@ def cmd_adjudicate(args: argparse.Namespace) -> int:
             pv = portal_ok.get(p["url"]) or portal_ok.get(p["url"].replace("https://", "http://", 1))
             status, _ = fetch_page(p["url"])
             # A portal stays when a verifier reached it or code could; a dead link is dropped.
-            if (pv and pv.get("reachable")) or status in ("ok", "non_text"):
+            if status != "dead" and ((pv and pv.get("reachable")) or status in ("ok", "non_text")):
                 portals.append(p)
-        adjudicated[sid] = {"id": sid, "name": packets.get(sid, {}).get("name") or r.get("name"), "gaps": r.get("gaps"),
+        for fact in facts:
+            fact["summary"] = fact.get("summary", "").replace("The batch record", "The atlas record")   # our own label leaked from the research brief
+        adjudicated[sid] = {"researched_at": _research_date(sid), "id": sid, "name": packets.get(sid, {}).get("name") or r.get("name"), "gaps": r.get("gaps"),
                             "county": packets.get(sid, {}).get("county"), "state": packets.get(sid, {}).get("state"),
                             "researchers": sorted(set(filter(None, [r.get("researcher"), v.get("verifier")]))),
                             "portals": portals, "facts": facts,
@@ -365,10 +386,15 @@ def cmd_adjudicate(args: argparse.Namespace) -> int:
 
 def cmd_apply_opus(args: argparse.Namespace) -> int:
     adj = json.loads((WORK / "adjudicated.json").read_text())
+    disputes = json.loads((WORK / "disputes.json").read_text()) if (WORK / "disputes.json").exists() else []
+    asked = {(d["id"], d["index"]): d["fact"]["quote"] for d in disputes}
     n = 0
     for sid, dec in _load_dir("opus").items():
         for d in dec.get("decisions", []):
             fact = adj[sid]["facts"][d["index"]]
+            # The decision belongs to the fact that was put to Opus, not to whatever sits at that index now.
+            if asked.get((sid, d["index"])) != fact["quote"]:
+                continue
             if fact["status"] == "disputed":
                 fact["status"] = "accepted" if d["decision"] == "accept" else "rejected"
                 fact["adjudicated_by"] = "opus"
@@ -391,7 +417,7 @@ def cmd_publish(args: argparse.Namespace) -> int:
         held += len(a["facts"]) - len(keep)
         parcel = a.get("parcel")
         sites.append(LocalRecordSet.model_validate({
-            "id": a["id"], "name": a["name"], "county": a.get("county"), "state": a.get("state"), "researched_at": today,
+            "id": a["id"], "name": a["name"], "county": a.get("county"), "state": a.get("state"), "researched_at": a.get("researched_at") or today,
             "researchers": a["researchers"] or ["unrecorded"], "portals": a["portals"], "facts": keep,
             "gaps": a.get("gaps") or [], "parcel": parcel if parcel and parcel.get("status") else None}))
     payload = LocalRecordsPayload(generated_at=_now(), source=SOURCE_LABEL, count=len(sites),

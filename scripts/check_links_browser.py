@@ -29,7 +29,7 @@ ROOT = Path(__file__).resolve().parents[1]
 AUDIT = ROOT / "data" / "validation" / "audit-network.json"
 OUT = ROOT / "data" / "validation" / "browser-links.json"
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"
-NOT_FOUND = re.compile(r"page not found|404|not found|no longer available|has been moved|doesn.t exist", re.I)
+NOT_FOUND = re.compile(r"page not found|\\b404\\b|not found|no longer available|has been moved|doesn.t exist", re.I)
 
 
 def _went_to_homepage(requested: str, final: str) -> bool:

@@ -16,7 +16,10 @@ PY="${PY:-.venv/bin/python}"
 case "${1:-}" in
   deterministic)
     $PY scripts/tab_sites.py --top "${TOP:-10}"
-    $PY scripts/audit_tabs.py --out data/validation/audit-report.json
+    # A MISMATCH is a finding to read, not a reason to skip the later steps.
+    $PY scripts/audit_tabs.py --only coverage seismic flow poprings state --out data/validation/audit-offline.json || echo "audit (offline checks): findings above"
+    $PY scripts/audit_tabs.py --only lines citations --out data/validation/audit-network.json || echo "audit (network checks): findings above"
+    $PY scripts/check_links_browser.py || echo "browser link check: dead links above"
     $PY scripts/local_records.py queue --per-screen "${PER_SCREEN:-5}" --batch-size 4
     $PY scripts/local_records.py parcels
     echo; echo "Next: run Haiku researchers on data/validation/local-records/batches/*.json (not yet in research/)," \

@@ -96,7 +96,7 @@ def _classify(url: str) -> tuple[str, str]:
         resp = requests.get(url, headers=headers, timeout=30, allow_redirects=True, stream=True)
         resp.close()
     except requests.RequestException as exc:
-        return "INCONCLUSIVE", f"{type(exc).__name__}"
+        return "ERROR", f"{type(exc).__name__}"           # no answer at all: counts toward the run's error gate
     if resp.status_code < 400:
         return "OK", f"HTTP {resp.status_code}"
     if resp.status_code in (401, 403, 405, 429, 503):

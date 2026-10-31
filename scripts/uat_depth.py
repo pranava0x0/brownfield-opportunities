@@ -46,7 +46,7 @@ TASKS: dict[str, dict[str, Any]] = {
     "screens-top-dc": {"what": "See the best data-center sites and the checks each meets",
                        "clicks": [], "leaf": "#candidates-table tbody tr .screen-score"},
     "screens-switch-use": {"what": "Switch to the nickel-refinery ranking",
-                           "clicks": ['[data-cand-lens="nickel"]'], "leaf": "#candidates-table tbody tr .screen-score"},
+                           "clicks": ['[data-cand-lens="nickel"]'], "leaf": '[data-cand-lens="nickel"].active'},
     "screens-cited-rule": {"what": "Read the cited source behind a ranking rule",
                            "clicks": [], "leaf": "#screen-method .method-list a[href^='https://']"},
     "screens-site-evidence": {"what": "Open a ranked site's evidence and its verify-on-map link",
@@ -166,6 +166,9 @@ def main() -> int:
     args = ap.parse_args()
     names = args.viewport or list(VIEWPORTS)
     tasks = {k: v for k, v in TASKS.items() if not args.task or any(k.startswith(t) for t in args.task)}
+    if not tasks:
+        print(f"no task matches {args.task}; known: {', '.join(TASKS)}", file=sys.stderr)
+        return 2
     proc, base = start_server()
     report: dict[str, Any] = {"generated_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "max_clicks": MAX_CLICKS, "viewports": {}}
     try:

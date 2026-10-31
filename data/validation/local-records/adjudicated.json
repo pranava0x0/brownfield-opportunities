@@ -1,5 +1,6 @@
 {
  "ACRES-121721": {
+  "researched_at": "2026-10-31",
   "id": "ACRES-121721",
   "name": "Former Salvage Yard",
   "gaps": [
@@ -29,6 +30,7 @@
   }
  },
  "ACRES-136961": {
+  "researched_at": "2026-10-31",
   "id": "ACRES-136961",
   "name": "Former Commonwealth Steet site",
   "gaps": [
@@ -63,6 +65,7 @@
   }
  },
  "ACRES-230821": {
+  "researched_at": "2026-10-31",
   "id": "ACRES-230821",
   "name": "Midland Hotel Site",
   "gaps": [
@@ -111,6 +114,7 @@
   }
  },
  "ACRES-232701": {
+  "researched_at": "2026-10-31",
   "id": "ACRES-232701",
   "name": "Spence Field",
   "gaps": [
@@ -159,6 +163,7 @@
   }
  },
  "ACRES-48321": {
+  "researched_at": "2026-10-31",
   "id": "ACRES-48321",
   "name": "City of Corona Site",
   "gaps": [
@@ -213,6 +218,7 @@
   }
  },
  "ACRES-53022": {
+  "researched_at": "2026-10-31",
   "id": "ACRES-53022",
   "name": "Riverview Apartments",
   "gaps": [
@@ -252,6 +258,7 @@
   }
  },
  "AL7210020742": {
+  "researched_at": "2026-10-31",
   "id": "AL7210020742",
   "name": "USARMY/NASA REDSTONE ARSENAL",
   "gaps": [
@@ -303,6 +310,7 @@
   }
  },
  "ALN000410750": {
+  "researched_at": "2026-10-31",
   "id": "ALN000410750",
   "name": "35TH AVENUE",
   "gaps": [
@@ -368,6 +376,7 @@
   }
  },
  "CA2570024453": {
+  "researched_at": "2026-10-31",
   "id": "CA2570024453",
   "name": "GEORGE AIR FORCE BASE",
   "gaps": [
@@ -458,6 +467,7 @@
   }
  },
  "FL6170024412": {
+  "researched_at": "2026-10-31",
   "id": "FL6170024412",
   "name": "JACKSONVILLE NAVAL AIR STATION",
   "gaps": [
@@ -522,6 +532,7 @@
   }
  },
  "FLSFN0407002": {
+  "researched_at": "2026-10-31",
   "id": "FLSFN0407002",
   "name": "JACKSONVILLE ASH SITE",
   "gaps": [
@@ -634,6 +645,7 @@
   }
  },
  "FUDS-A04MS0124": {
+  "researched_at": "2026-10-31",
   "id": "FUDS-A04MS0124",
   "name": "GULFPORT ARMY AIR FIELD",
   "gaps": [
@@ -711,6 +723,7 @@
   }
  },
  "FUDS-B07MO0173": {
+  "researched_at": "2026-10-31",
   "id": "FUDS-B07MO0173",
   "name": "TYSON VALLEY POWDER FARM",
   "gaps": [
@@ -763,10 +776,10 @@
     "reference": "West Tyson County Park (Wikipedia)",
     "source_url": "https://en.wikipedia.org/wiki/West_Tyson_County_Park",
     "quote": "After the war 210 acres (0.85 km2) were acquired by St. Louis County in 1955.",
-    "code_check": "quote_missing",
+    "code_check": "quote_found",
     "verifier": "supported",
     "status": "accepted",
-    "adjudicated_by": "opus"
+    "adjudicated_by": "code"
    },
    {
     "kind": "transfer",
@@ -775,10 +788,10 @@
     "reference": "West Tyson County Park (Wikipedia)",
     "source_url": "https://en.wikipedia.org/wiki/West_Tyson_County_Park",
     "quote": "In 1979 an additional 410 acres (1.7 km2) were acquired.",
-    "code_check": "quote_missing",
+    "code_check": "quote_found",
     "verifier": "supported",
     "status": "accepted",
-    "adjudicated_by": "opus"
+    "adjudicated_by": "code"
    },
    {
     "kind": "transfer",
@@ -827,6 +840,7 @@
   }
  },
  "FUDS-B08CO0014": {
+  "researched_at": "2026-10-31",
   "id": "FUDS-B08CO0014",
   "name": "CAMP HALE",
   "gaps": [
@@ -920,6 +934,7 @@
   }
  },
  "FUDS-B08CO0021": {
+  "researched_at": "2026-10-31",
   "id": "FUDS-B08CO0021",
   "name": "BUCKLEY FIELD",
   "gaps": [
@@ -977,6 +992,7 @@
   }
  },
  "FUDS-C03PA0042": {
+  "researched_at": "2026-10-31",
   "id": "FUDS-C03PA0042",
   "name": "FRANKFORD ARSENAL",
   "gaps": [
@@ -1058,6 +1074,7 @@
   }
  },
  "FUDS-G05OH0156": {
+  "researched_at": "2026-10-31",
   "id": "FUDS-G05OH0156",
   "name": "RIDGEWOOD ARMY WEAPONS PLANT",
   "gaps": [
@@ -1095,6 +1112,7 @@
   }
  },
  "FUDS-I04FL0038": {
+  "researched_at": "2026-10-31",
   "id": "FUDS-I04FL0038",
   "name": "RICHMOND NAS",
   "gaps": [
@@ -1138,6 +1156,7 @@
   }
  },
  "FUDS-I04FL0884": {
+  "researched_at": "2026-10-31",
   "id": "FUDS-I04FL0884",
   "name": "NAS JACKSONVILLE DISPOSED OUTPARCELS",
   "gaps": [
@@ -1166,6 +1185,7 @@
   }
  },
  "FUDS-I04SC0025": {
+  "researched_at": "2026-10-31",
   "id": "FUDS-I04SC0025",
   "name": "CONWAY BMB&GUNRY RNG",
   "gaps": [
@@ -1215,6 +1235,7 @@
   }
  },
  "FUDS-J09CA7074": {
+  "researched_at": "2026-10-31",
   "id": "FUDS-J09CA7074",
   "name": "ADVANCED BASE DEPOT-RIFLE RANGE",
   "gaps": [
@@ -1267,6 +1288,7 @@
   }
  },
  "FUDS-K06TX0015": {
+  "researched_at": "2026-10-31",
   "id": "FUDS-K06TX0015",
   "name": "CAMP HOWZE",
   "gaps": [
@@ -1319,6 +1341,7 @@
   }
  },
  "GAD980838619": {
+  "researched_at": "2026-10-31",
   "id": "GAD980838619",
   "name": "MATHIS BROTHERS LANDFILL (SOUTH MARBLE TOP ROAD)",
   "gaps": [
@@ -1399,6 +1422,7 @@
   }
  },
  "ILN000510192": {
+  "researched_at": "2026-10-31",
   "id": "ILN000510192",
   "name": "PEOPLES GAS CRAWFORD STATION FORMER MGP",
   "gaps": [
@@ -1486,6 +1510,7 @@
   }
  },
  "MI0001119106": {
+  "researched_at": "2026-10-31",
   "id": "MI0001119106",
   "name": "AIRCRAFT COMPONENTS (D & L SALES)",
   "gaps": [
@@ -1505,7 +1530,7 @@
   "facts": [
    {
     "kind": "other",
-    "summary": "EPA's partial-deletion release describes the site as 17 acres next to the Paw Paw River in Benton Harbor. The batch record says 26 acres.",
+    "summary": "EPA's partial-deletion release describes the site as 17 acres next to the Paw Paw River in Benton Harbor. The atlas record says 26 acres.",
     "authority": "U.S. EPA Region 5",
     "reference": "EPA news release on removal of the radiation OU1 from the NPL",
     "source_url": "https://www.epa.gov/newsreleases/epa-removes-part-aircraft-components-inc-site-benton-harbor-michigan-superfund-list",
@@ -1548,6 +1573,7 @@
   }
  },
  "MID005107222": {
+  "researched_at": "2026-10-31",
   "id": "MID005107222",
   "name": "BENDIX CORP./ALLIED AUTOMOTIVE",
   "gaps": [
@@ -1609,6 +1635,7 @@
   }
  },
  "MID017422304": {
+  "researched_at": "2026-10-31",
   "id": "MID017422304",
   "name": "MCLOUTH STEEL CORP",
   "gaps": [
@@ -1648,6 +1675,7 @@
   }
  },
  "MID062222997": {
+  "researched_at": "2026-10-31",
   "id": "MID062222997",
   "name": "BUTTERWORTH #2 LANDFILL",
   "gaps": [
@@ -1667,7 +1695,7 @@
   "facts": [
    {
     "kind": "other",
-    "summary": "EPA's site profile describes the Butterworth #2 Landfill as a 120-acre site in Grand Rapids. The batch record says 189.9 acres.",
+    "summary": "EPA's site profile describes the Butterworth #2 Landfill as a 120-acre site in Grand Rapids. The atlas record says 189.9 acres.",
     "authority": "U.S. EPA (CUMULIS site profile)",
     "reference": "EPA CUMULIS site profile, Butterworth #2 Landfill",
     "source_url": "https://cumulis.epa.gov/supercpad/cursites/csitinfo.cfm?id=0502576",
@@ -1699,6 +1727,7 @@
   }
  },
  "MID980410617": {
+  "researched_at": "2026-10-31",
   "id": "MID980410617",
   "name": "BURROWS SANITATION",
   "gaps": [
@@ -1760,6 +1789,7 @@
   }
  },
  "MID985574227": {
+  "researched_at": "2026-10-31",
   "id": "MID985574227",
   "name": "LOWER ECORSE CREEK DUMP",
   "gaps": [
@@ -1841,6 +1871,7 @@
   }
  },
  "MIN000510362": {
+  "researched_at": "2026-10-31",
   "id": "MIN000510362",
   "name": "DSC MCLOUTH STEEL GIBRALTAR PLANT",
   "gaps": [
@@ -1914,6 +1945,7 @@
   }
  },
  "MT0012694970": {
+  "researched_at": "2026-10-31",
   "id": "MT0012694970",
   "name": "FLAT CREEK IMM",
   "gaps": [
@@ -1972,6 +2004,7 @@
   }
  },
  "NCD003446721": {
+  "researched_at": "2026-10-31",
   "id": "NCD003446721",
   "name": "CELANESE CORP. (SHELBY FIBER OPERATIONS)",
   "gaps": [
@@ -2069,6 +2102,7 @@
   }
  },
  "NCD986175644": {
+  "researched_at": "2026-10-31",
   "id": "NCD986175644",
   "name": "DAVIS PARK ROAD TCE",
   "gaps": [
@@ -2117,7 +2151,7 @@
    },
    {
     "kind": "other",
-    "summary": "EPA describes the Davis Park Road TCE Superfund site as 20 acres. The batch records 0.8 acres for this record.",
+    "summary": "EPA describes the Davis Park Road TCE Superfund site as 20 acres. The atlas records 0.8 acres for this record.",
     "authority": "U.S. EPA Superfund redevelopment page",
     "reference": "Superfund Sites in Reuse in North Carolina",
     "source_url": "https://www.epa.gov/superfund-redevelopment/superfund-sites-reuse-north-carolina",
@@ -2175,6 +2209,7 @@
   }
  },
  "NJD980528996": {
+  "researched_at": "2026-10-31",
   "id": "NJD980528996",
   "name": "DIAMOND ALKALI CO.",
   "gaps": [
@@ -2250,6 +2285,7 @@
   }
  },
  "NYD980651087": {
+  "researched_at": "2026-10-31",
   "id": "NYD980651087",
   "name": "HOOKER (S AREA)",
   "gaps": [
@@ -2283,6 +2319,7 @@
   }
  },
  "PAD980538763": {
+  "researched_at": "2026-10-31",
   "id": "PAD980538763",
   "name": "MIDDLETOWN AIR FIELD",
   "gaps": [
@@ -2356,7 +2393,7 @@
    },
    {
     "kind": "other",
-    "summary": "EPA's reuse page describes the Superfund site as 500 acres. The EPA profile gives 200 acres. The batch records 1,242.3 acres.",
+    "summary": "EPA's reuse page describes the Superfund site as 500 acres. The EPA profile gives 200 acres. The atlas records 1,242.3 acres.",
     "authority": "U.S. EPA Superfund redevelopment page (Pennsylvania)",
     "reference": "Superfund Sites in Reuse in Pennsylvania",
     "source_url": "https://www.epa.gov/superfund-redevelopment/superfund-sites-reuse-pennsylvania",
@@ -2387,6 +2424,7 @@
   }
  },
  "PAD980539712": {
+  "researched_at": "2026-10-31",
   "id": "PAD980539712",
   "name": "ELIZABETHTOWN LANDFILL",
   "gaps": [
@@ -2421,7 +2459,7 @@
   "facts": [
    {
     "kind": "other",
-    "summary": "EPA's reuse page describes the Elizabethtown Landfill Superfund site as 16 acres. The batch records 30.5 acres.",
+    "summary": "EPA's reuse page describes the Elizabethtown Landfill Superfund site as 16 acres. The atlas records 30.5 acres.",
     "authority": "U.S. EPA Superfund redevelopment page (Pennsylvania)",
     "reference": "Superfund Sites in Reuse in Pennsylvania",
     "source_url": "https://www.epa.gov/superfund-redevelopment/superfund-sites-reuse-pennsylvania",
@@ -2489,6 +2527,7 @@
   }
  },
  "PAD980690549": {
+  "researched_at": "2026-10-31",
   "id": "PAD980690549",
   "name": "EAST MOUNT ZION",
   "gaps": [
@@ -2524,7 +2563,7 @@
   "facts": [
    {
     "kind": "other",
-    "summary": "EPA's site profile describes East Mount Zion as a privately owned, inactive, 10-acre landfill in Springettsbury Township. The batch records 14.8 acres.",
+    "summary": "EPA's site profile describes East Mount Zion as a privately owned, inactive, 10-acre landfill in Springettsbury Township. The atlas records 14.8 acres.",
     "authority": "U.S. EPA Superfund site profile (cumulis)",
     "reference": "EAST MOUNT ZION site profile",
     "source_url": "https://cumulis.epa.gov/supercpad/cursites/csitinfo.cfm?id=0301426",
@@ -2555,6 +2594,7 @@
   }
  },
  "SCD037398120": {
+  "researched_at": "2026-10-31",
   "id": "SCD037398120",
   "name": "PALMETTO RECYCLING, INC.",
   "gaps": [
@@ -2614,6 +2654,7 @@
   }
  },
  "SCD980558050": {
+  "researched_at": "2026-10-31",
   "id": "SCD980558050",
   "name": "TOWNSEND SAW CHAIN CO.",
   "gaps": [
@@ -2680,6 +2721,7 @@
   }
  },
  "SCD980558316": {
+  "researched_at": "2026-10-31",
   "id": "SCD980558316",
   "name": "CAROLAWN, INC.",
   "gaps": [
@@ -2719,6 +2761,7 @@
   }
  },
  "SCN000407376": {
+  "researched_at": "2026-10-31",
   "id": "SCN000407376",
   "name": "HENRY'S KNOB",
   "gaps": [
@@ -2745,10 +2788,10 @@
     "reference": "EPA public meeting announcement for Henry's Knob former mine site",
     "source_url": "https://www.epa.gov/archive/epa/newsreleases/epa-host-public-meeting-regarding-henrys-knob-former-mine-site.html",
     "quote": "The 185-acre Henry’s Knob Site is located at the corner of Henry Knob Road and State Highway 55",
-    "code_check": "quote_missing",
+    "code_check": "quote_found",
     "verifier": "supported",
     "status": "accepted",
-    "adjudicated_by": "opus"
+    "adjudicated_by": "code"
    },
    {
     "kind": "other",
@@ -2757,10 +2800,10 @@
     "reference": "EPA public meeting announcement for Henry's Knob former mine site",
     "source_url": "https://www.epa.gov/archive/epa/newsreleases/epa-host-public-meeting-regarding-henrys-knob-former-mine-site.html",
     "quote": "The Henry’s Knob Site was an open pit kyanite mine that operated from 1947 to 1970.",
-    "code_check": "quote_missing",
+    "code_check": "quote_found",
     "verifier": "supported",
     "status": "accepted",
-    "adjudicated_by": "opus"
+    "adjudicated_by": "code"
    },
    {
     "kind": "litigation",
@@ -2784,6 +2827,7 @@
   }
  },
  "TN1890090003": {
+  "researched_at": "2026-10-31",
   "id": "TN1890090003",
   "name": "OAK RIDGE RESERVATION (USDOE)",
   "gaps": [
@@ -2862,6 +2906,7 @@
   }
  },
  "TND071516959": {
+  "researched_at": "2026-10-31",
   "id": "TND071516959",
   "name": "TENNESSEE PRODUCTS",
   "gaps": [
@@ -2909,6 +2954,7 @@
   }
  },
  "TND098071061": {
+  "researched_at": "2026-10-31",
   "id": "TND098071061",
   "name": "SMOKEY MOUNTAIN SMELTERS",
   "gaps": [
@@ -2988,6 +3034,7 @@
   }
  },
  "TND987768587": {
+  "researched_at": "2026-10-31",
   "id": "TND987768587",
   "name": "CLINCH RIVER CORPORATION",
   "gaps": [
@@ -3035,6 +3082,7 @@
   }
  },
  "TXD008123168": {
+  "researched_at": "2026-10-31",
   "id": "TXD008123168",
   "name": "ALCOA (POINT COMFORT)/LAVACA BAY",
   "gaps": [
@@ -3107,6 +3155,7 @@
   }
  },
  "TXD055144539": {
+  "researched_at": "2026-10-31",
   "id": "TXD055144539",
   "name": "GULFCO MARINE MAINTENANCE",
   "gaps": [
@@ -3167,6 +3216,7 @@
   }
  },
  "VA1170024722": {
+  "researched_at": "2026-10-31",
   "id": "VA1170024722",
   "name": "MARINE CORPS COMBAT DEVELOPMENT COMMAND",
   "gaps": [
@@ -3238,6 +3288,7 @@
   }
  },
  "VAD007972482": {
+  "researched_at": "2026-10-31",
   "id": "VAD007972482",
   "name": "L.A. CLARKE & SON",
   "gaps": [
@@ -3304,6 +3355,7 @@
   }
  },
  "VAD071040752": {
+  "researched_at": "2026-10-31",
   "id": "VAD071040752",
   "name": "RENTOKIL, INC. (VIRGINIA WOOD PRESERVING DIVISION)",
   "gaps": [
@@ -3382,6 +3434,7 @@
   }
  },
  "VAD980539878": {
+  "researched_at": "2026-10-31",
   "id": "VAD980539878",
   "name": "H & H INC., BURN PIT",
   "gaps": [

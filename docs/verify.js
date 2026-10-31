@@ -217,9 +217,10 @@
           const cmp = stored(L_.claim) && resolved ? compare(claims[L_.claim], near ? near.mi : null, radius) : {cls: "muted", text: "no atlas figure to compare"};
           r.measured.textContent = near ? `${fmt(near.mi)} (${features.length} in ${radius.toFixed(0)} mi)` : `none in ${radius.toFixed(0)} mi`;
           r.status.textContent = cmp.text + (truncated ? " · view truncated, nearest feature may be missing" : ""); r.status.className = truncated ? "warn" : cmp.cls;
-          if (L_.key === "transmission") kvRows(features, lat, lon, radius, claims, rows);
+          if (L_.key === "transmission") kvRows(features, lat, lon, radius, claims, rows, truncated);
           n++;
         } catch (e) {
+          if (mine !== runId) return;
           r.measured.textContent = "unavailable"; r.status.textContent = `source error: ${e.message}`; r.status.className = "warn";
         }
       }));
@@ -258,7 +259,7 @@
     return best;
   }
 
-  function kvRows(features, lat, lon, radius, claims, rows) {
+  function kvRows(features, lat, lon, radius, claims, rows, truncated) {
     for (const [kv, field] of KV_CLAIMS) {
       const r = rows.get("kv" + kv);
       if (!r) continue;
@@ -266,7 +267,7 @@
       const near = nearestOnPaths(lat, lon, paths);
       const cmp = compare(claims[field], near ? near.mi : null, radius);
       r.measured.textContent = near ? fmt(near.mi) : `none in ${radius.toFixed(0)} mi`;
-      r.status.textContent = cmp.text; r.status.className = cmp.cls;
+      r.status.textContent = cmp.text + (truncated ? " · view truncated, nearest feature may be missing" : ""); r.status.className = truncated ? "warn" : cmp.cls;
     }
   }
 

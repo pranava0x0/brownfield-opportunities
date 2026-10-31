@@ -2008,6 +2008,9 @@ def c_local_records_contract(c: Corpus):
     except Exception as exc:  # noqa: BLE001 - the pydantic message is the finding
         bad += 1
         examples.append(str(exc)[:200])
+    if payload.get("count") != len(payload.get("sites", []) or []):
+        bad += 1
+        examples.append("count does not match the number of sites")
     for site in payload.get("sites", []) or []:
         if site.get("id") not in c.universe:
             bad += 1
@@ -2017,7 +2020,9 @@ def c_local_records_contract(c: Corpus):
                 bad += 1
                 examples.append(f"{site.get('id')}: fact shipped without adjudication ({f.get('status')})")
             elif f.get("adjudicated_by") == "opus":
-                if f.get("status") != "accepted" or f.get("code_check") not in ("quote_missing", "quote_found"):
+                # Only a fact that was genuinely disputed (script and verifier disagreed) can have gone to Opus.
+                if f.get("status") != "accepted" or not f.get("verifier") or not f.get("code_check") \
+                        or decide(f["code_check"], f["verifier"])[0] != "disputed":
                     bad += 1
                     examples.append(f"{site.get('id')}: Opus decision is inconsistent with the recorded checks")
             elif not f.get("verifier") or not f.get("code_check") or decide(f["code_check"], f["verifier"])[0] != f.get("status"):

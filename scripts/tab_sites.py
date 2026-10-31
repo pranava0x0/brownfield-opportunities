@@ -8,7 +8,7 @@ verify map) works from this one manifest, so a run is reproducible and
 A site is "in a tab" when it is
   * in the first N rows of a corpus screen (dc, solar, port, nickel), or
   * the cleanup record joined to a retired-industry row (tracked_site_*), or
-  * a brownfield listed beside a civilian nuclear site or coal plant.
+  * a brownfield listed beside a civilian nuclear site.
 
 Output: data/validation/tab-sites.json
   {"generated_at", "top", "corpus_sites": [...], "overlay_sites": [...]}
@@ -88,7 +88,7 @@ def build(top: int) -> dict:
             if key == "retired" and s.get("tracked_site_id"):
                 add(s["tracked_site_id"], "retired", row["rank"], via=s["id"])
 
-    # Brownfields listed beside the top civilian nuclear sites and coal plants.
+    # Brownfields listed beside the top civilian nuclear sites.
     nuc_top = {o["id"] for o in overlay if o["screen"] == "civilian"}
     prox = json.loads((DATA / "nuclear-brownfield-proximity.json").read_text())["records"]
     for rec in prox:
