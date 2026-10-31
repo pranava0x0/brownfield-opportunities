@@ -1,0 +1,56 @@
+{"batch": "batch-07", "researcher": "Claude Haiku 5.5", "sites": [
+  {"id": "MI0001119106", "name": "AIRCRAFT COMPONENTS (D & L SALES)", "researcher": "Claude Haiku 5.5",
+   "portals": [],
+   "facts": [
+     {"kind": "other", "summary": "EPA's partial-deletion release describes the site as 17 acres next to the Paw Paw River in Benton Harbor. The batch record says 26 acres.", "authority": "U.S. EPA Region 5", "reference": "EPA news release on removal of the radiation OU1 from the NPL", "source_url": "https://www.epa.gov/newsreleases/epa-removes-part-aircraft-components-inc-site-benton-harbor-michigan-superfund-list", "quote": "The 17-acre Aircraft Components Superfund site is located next to the Paw Paw River in Benton Harbor."},
+     {"kind": "other", "summary": "EPA announced removal of the radiation operable unit (OU1) from the NPL. The chemical operable unit (OU2) stays listed until its work is finished. The release does not give the announcement date.", "authority": "U.S. EPA", "reference": "EPA news release on partial NPL deletion", "source_url": "https://www.epa.gov/newsreleases/epa-removes-part-aircraft-components-inc-site-benton-harbor-michigan-superfund-list", "quote": "Today, U.S. Environmental Protection Agency announced the removal of the radiation operable unit, or OU1,"},
+     {"kind": "redevelopment_plan", "summary": "EPA says part of the site lies within a community-wide redevelopment project, including hole 14 of the Harbor Shores Golf Course.", "authority": "U.S. EPA", "reference": "EPA news release on partial NPL deletion", "source_url": "https://www.epa.gov/newsreleases/epa-removes-part-aircraft-components-inc-site-benton-harbor-michigan-superfund-list", "quote": "The site is part of a community-wide redevelopment project that includes a craft brewery warehouse"}
+   ],
+   "gaps": [
+     "Berrien County parcel viewer (Beacon) returned HTTP 403 to WebFetch; no county assessor, GIS, recorder or treasurer record was opened for this site.",
+     "Address conflict: batch lists 671 North Shore Drive, EPA profile lists 671 North Shore Drive, an older EPA scorecard entry (search snippet, not opened) lists 715 North Shore Drive.",
+     "Acreage conflict: EPA release says 17 acres; batch record says 26.0 acres. Not resolved.",
+     "Date of the partial NPL deletion is not on the fetched EPA page; no date recorded.",
+     "Ownership of the OU2 area and of the golf-course parcel not checked."
+   ]},
+  {"id": "MID005107222", "name": "BENDIX CORP./ALLIED AUTOMOTIVE", "researcher": "Claude Haiku 5.5",
+   "portals": [],
+   "facts": [
+     {"kind": "other", "summary": "EPA's site profile places the Bendix Corp./Allied Automotive site four miles south of St. Joseph in Berrien County, at 3737 Red Arrow Highway.", "authority": "U.S. EPA (CUMULIS site profile)", "reference": "EPA CUMULIS site profile, Bendix Corp./Allied Automotive", "source_url": "https://cumulis.epa.gov/supercpad/cursites/csitinfo.cfm?id=0502238", "quote": "The Bendix Corp./Allied Automotive site is located four miles south of St. Joseph in Berrien County, Michigan."},
+     {"kind": "zoning", "summary": "A county ordinance prohibits installing wells around the contaminated groundwater plume.", "authority": "Berrien County (as cited in EPA profile)", "reference": "EPA CUMULIS site profile, Bendix Corp./Allied Automotive", "source_url": "https://cumulis.epa.gov/supercpad/cursites/csitinfo.cfm?id=0502238", "quote": "prohibits the installation of wells around the contaminated groundwater plume"},
+     {"kind": "other", "summary": "The most recent five-year review, which the EPA profile calls the Fifth Five-Year Review, concluded that the remedy is protective. The review date is not on the fetched page.", "authority": "U.S. EPA", "reference": "Fifth Five-Year Review, as summarized on EPA CUMULIS site profile", "source_url": "https://cumulis.epa.gov/supercpad/cursites/csitinfo.cfm?id=0502238", "quote": "the remedy protects human health and the environment because there are no known exposures to site contamination."}
+   ],
+   "gaps": [
+     "No Berrien County parcel or tax record opened (Beacon viewer returned HTTP 403).",
+     "The fetched EPA page does not name a current owner and says EPA oversees work by a 'Potentially Responsible Party' without naming it. A search snippet naming Bosch as operator was not opened and is not recorded.",
+     "PFAS sampling and the July 2026 state identification appear only in search snippets; the WSJM article returned HTTP 403, so they are not recorded as facts.",
+     "Acreage not confirmed; batch record shows 154.5 acres and no EPA acreage was read."
+   ]},
+  {"id": "MID017422304", "name": "MCLOUTH STEEL CORP", "researcher": "Claude Haiku 5.5",
+   "portals": [
+     {"kind": "treasurer", "name": "Wayne County Treasurer Property Tax Listing System", "url": "https://pta.waynecounty.com", "access": "free_search", "note": "Opened. Page says lookup is free and you 'may search by Property Address or by Parcel ID.' No owner-name search. Delinquent taxes viewable for all Wayne County municipalities."},
+     {"kind": "recorder", "name": "Wayne County Register of Deeds land records", "url": "https://waynecountylandrecords.forms.govos.com/ng/fa/l4b7xs", "access": "unknown", "note": "Redirect target opened but returned a vendor forms page, not the search. Search fields, fees and account requirements not confirmed."}
+   ],
+   "facts": [],
+   "gaps": [
+     "Ownership history (2017 Wayne County Land Bank transfer, 2018 Crown Enterprises purchase) and 2024 Ford pickup storage come from search snippets only. Crain's (HTTP 403) and Detroit News (HTTP 402) could not be opened, so no quote is available and no fact is recorded.",
+     "No 2025 or 2026 redevelopment news found in this pass; the latest dated item seen was March 2024.",
+     "Wayne County Register of Deeds search not confirmed; no deed, lien or permit record opened.",
+     "Acreage conflict: batch shows 195.7 acres; an undated listing (not opened) describes about 260 acres spanning Trenton and Riverview."
+   ]},
+  {"id": "MID062222997", "name": "BUTTERWORTH #2 LANDFILL", "researcher": "Claude Haiku 5.5",
+   "portals": [
+     {"kind": "assessor", "name": "Kent County Property Search (Treasurer and Equalization data)", "url": "https://app.kentcountymi.gov/PropertySearch/appStart", "access": "free_search", "note": "Opened. Address or parcel-number search; no owner-name search. Page says: 'To search, enter either a parcel number OR an address (including either a street number or range of street numbers).' Parcel-number searches must be exact. An Account Login link exists; login not used. Values are current as of March, changes after that are processed in April."}
+   ],
+   "facts": [
+     {"kind": "other", "summary": "EPA's site profile describes the Butterworth #2 Landfill as a 120-acre site in Grand Rapids. The batch record says 189.9 acres.", "authority": "U.S. EPA (CUMULIS site profile)", "reference": "EPA CUMULIS site profile, Butterworth #2 Landfill", "source_url": "https://cumulis.epa.gov/supercpad/cursites/csitinfo.cfm?id=0502576", "quote": "The 120-acre Butterworth #2 Landfill site is located in Grand Rapids, Michigan."},
+     {"kind": "other", "summary": "EPA completed the fifth five-year review of the site in September 2024. The fetched page does not give the review's conclusion.", "date": "2024-09", "authority": "U.S. EPA (CUMULIS site profile)", "reference": "Fifth five-year review, as noted on EPA CUMULIS site profile", "source_url": "https://cumulis.epa.gov/supercpad/cursites/csitinfo.cfm?id=0502576", "quote": "The fifth five-year review was completed on September 2024."}
+   ],
+   "gaps": [
+     "Kent County GIS parcel mapper not opened, so no parcel-level owner, assessed value or tax record was checked for this site.",
+     "Acreage conflict: EPA says 120 acres; batch says 189.9; a Grand Rapids city page (about 180 acres, city owns about 140) was seen only in a search snippet and not opened.",
+     "PFAS sampling findings on the EGLE page returned HTTP 403; not recorded.",
+     "NPL listing year disputed (1983 in an EPA reuse snapshot; 1986 on city and Crain's pages). Not resolved, so not recorded.",
+     "Kent County Register of Deeds and treasurer not checked."
+   ]}
+]}

@@ -1,0 +1,61 @@
+{"batch": "batch-11", "researcher": "Claude Haiku 5.5", "sites": [
+  {"id": "SCD980558050", "name": "TOWNSEND SAW CHAIN CO.", "researcher": "Claude Haiku 5.5",
+   "portals": [
+     {"kind": "assessor", "name": "Richland County Assessor (links to county Property Search by tax map number, address or owner)", "url": "https://richlandcountysc.gov/Government/Departments/Taxes/Assessor", "access": "unknown", "note": "Assessor page opened. It links to a Property Search page (richlandcountysc.gov/Property-Business/Mapping-and-Records/Property-Search) that was not itself opened."},
+     {"kind": "gis", "name": "Richland County Property Data (Spatialest)", "url": "https://property.spatialest.com/sc/richland#/", "access": "unknown", "note": "Linked from the county assessor page. The page gave no description of its search options and was not otherwise verified."}
+   ],
+   "facts": [
+     {"kind": "other", "date": "2019-10", "summary": "EPA partially deleted the Townsend Saw Chain Co. Superfund Site in Pontiac from the National Priorities List in FY2019; EPA release dated October 29, 2019.", "authority": "U.S. EPA Region 4 news release", "reference": "EPA partial deletion announcement (FY2019)", "source_url": "https://19january2021snapshot.epa.gov/newsreleases/epa-announces-partial-deletion-townsend-saw-chain-co-superfund-site-pontiac-south_.html", "quote": "Townsend Saw Chain Co. Superfund Site in Pontiac, S.C."},
+     {"kind": "transfer", "summary": "EPA reuse snapshot reports that 35.5 of the original 50 acres were sold for commercial development; Centerline Development, LLC owns the remaining 14.5 acres. Undated snapshot.", "authority": "U.S. EPA Superfund Redevelopment reuse snapshot (South Carolina)", "reference": "Superfund Sites in Reuse in South Carolina", "source_url": "https://19january2017snapshot.epa.gov/superfund-redevelopment-initiative/superfund-sites-reuse-south-carolina_.html", "quote": "Of the original 50 acres, 35.5 acres of the site have been sold for commercial development."}
+   ],
+   "gaps": [
+     "Acreage conflicts across sources: 2 acres (1988 proposal narrative in a search snippet), 50 acres (EPA reuse snapshot), 400 acres (the 2019 partial deletion, per a search snippet). Not resolved; the 50-acre figure is the one recorded as a quote.",
+     "Richland County Property Search results and Register of Deeds records were not retrieved; no parcel, deed, lien or tax record was checked for this site.",
+     "The Register of Deeds portal link is referenced on the county assessor page but its URL was not given there and was not recorded.",
+     "EPA Federal Register notice 2019-20345 returned HTTP 403 to the fetch tool, so the deletion text was taken from the EPA release only.",
+     "EPA CUMULIS site profile (ID 0403363, named in a search snippet) was not opened."
+   ]},
+  {"id": "SCD980558316", "name": "CAROLAWN, INC.", "researcher": "Claude Haiku 5.5",
+   "portals": [],
+   "facts": [
+     {"kind": "other", "summary": "EPA reuse snapshot describes Carolawn as a 60-acre Superfund site in Fort Lawn, South Carolina. Acreage is not consistent across sources (see gaps).", "authority": "U.S. EPA Superfund Redevelopment reuse snapshot (South Carolina)", "reference": "Superfund Sites in Reuse in South Carolina", "source_url": "https://19january2017snapshot.epa.gov/superfund-redevelopment-initiative/superfund-sites-reuse-south-carolina_.html", "quote": "The 60-acre Carolawn, Inc. Superfund site is located in Fort Lawn, South Carolina."}
+   ],
+   "gaps": [
+     "Chester County Assessor page (chestercountysc.gov/government/assessor) returned HTTP 403 to the fetch tool. No Chester County assessor, GIS, treasurer or register of deeds portal was verified or recorded.",
+     "Acreage conflicts: one search summary says a 3-acre waste storage and disposal facility near Fishing Creek; EPA reuse snapshot says 60 acres. Only the 60-acre sentence is recorded.",
+     "The EPA reuse snapshot says Circle S Ranch acquired part of the site and a neighboring parcel and built a turkey feed mill (reported as 1996). I only retrieved a paraphrase of the acquisition sentence, so it is not recorded as a fact.",
+     "The 1989 and 1995 EPA decision documents and the 2010 CERCLA cost-payment agreement (CERCLA-04-2010-3753) appeared only in search snippets. No verbatim quote was retrieved, so they are not recorded.",
+     "Street address 5093 Morrison Road appears only in a search snippet of EPA settlement documents, not in an opened page.",
+     "No deed, lien, tax-delinquency or permit records were retrieved."
+   ]},
+  {"id": "SCN000407376", "name": "HENRY'S KNOB", "researcher": "Claude Haiku 5.5",
+   "portals": [],
+   "facts": [
+     {"kind": "other", "date": "2017-08", "summary": "EPA release dated August 1, 2017 describes the 185-acre Henry's Knob Site at Henry Knob Road and State Highway 55 in Clover Township, York County.", "authority": "U.S. EPA Region 4 news release", "reference": "EPA public meeting announcement for Henry's Knob former mine site", "source_url": "https://www.epa.gov/archive/epa/newsreleases/epa-host-public-meeting-regarding-henrys-knob-former-mine-site.html", "quote": "The 185-acre Henry’s Knob Site is located at the corner of Henry Knob Road and State Highway 55"},
+     {"kind": "other", "summary": "The site was an open pit kyanite mine that operated from 1947 to 1970 (no month given).", "authority": "U.S. EPA Region 4 news release", "reference": "EPA public meeting announcement for Henry's Knob former mine site", "source_url": "https://www.epa.gov/archive/epa/newsreleases/epa-host-public-meeting-regarding-henrys-knob-former-mine-site.html", "quote": "The Henry’s Knob Site was an open pit kyanite mine that operated from 1947 to 1970."},
+     {"kind": "litigation", "date": "2026-03", "summary": "A proposed consent decree, published March 24, 2026 with a 30-day comment period, would have ABB, Inc. pay over $471,000 toward past cleanup costs and future expenses at the site.", "authority": "Federal Register notice 2026-05674 (proposed consent decree), as reproduced on policyrisk.com", "reference": "Federal Register public inspection document 2026-05674", "source_url": "https://policyrisk.com/federal-register/2026-05674", "quote": "ABB will pay over $471,000 for past cleanup costs and cover future expenses while carrying out important cleanup work."}
+   ],
+   "gaps": [
+     "The Federal Register original (public-inspection.federalregister.gov/2026-05674.pdf) returned unreadable binary to the fetch tool; the consent decree facts rely on the policyrisk.com reproduction of the notice.",
+     "No York County portal was verified. The York County GIS page (yorkcountygov.com/234/GIS) redirects to yorkcountysc.gov, which returned HTTP 403. The One Map Reports parcel lookup it names was not opened.",
+     "No parcel id, owner or deed record was retrieved. The atlas owner is null.",
+     "A search snippet says the site has been privately owned since York County sold it in 1982; that is not recorded because no verbatim quote was retrieved.",
+     "Groundwater and well-count claims (about 450 homes; nearly 50 wells) came from a children's encyclopedia site and a TV headline and conflict with each other. Not recorded."
+   ]},
+  {"id": "TN1890090003", "name": "OAK RIDGE RESERVATION (USDOE)", "researcher": "Claude Haiku 5.5",
+   "portals": [
+     {"kind": "assessor", "name": "Roane County Assessor of Property (office page)", "url": "https://roanecountytn.gov/assessor-of-property/", "access": "unknown", "note": "Names the assessor (Molly Hartup) and links to the state TPAD property search (assessment.cot.tn.gov/TPAD), which returned HTTP 403 to the fetch tool, and to a county GIS page (roanecountytn.gov/gis/) that was not opened."},
+     {"kind": "assessor", "name": "Anderson County property appraisal link (state assessment selector)", "url": "https://andersoncountytn.gov/?p=250", "access": "unknown", "note": "The county page links 'See my Property Appraisal' to a Tennessee state assessment selector (assessment.cot.tn.gov/RE_Assessment). That linked page returned a hostname/certificate error to the fetch tool and was not opened."}
+   ],
+   "facts": [
+     {"kind": "transfer", "summary": "EM says it has transferred more than 2,500 acres for private-sector reuse (undated page).", "authority": "U.S. DOE Office of Environmental Management", "reference": "Beneficial Reuse and Land Transfers (energy.gov/em/land-transfers-leases)", "source_url": "https://www.energy.gov/em/land-transfers-leases", "quote": "EM has transferred more than 2,500 acres for private-sector reuse."},
+     {"kind": "other", "date": "2025-12", "summary": "EPA and DOE confirmed that more than 16,000 acres of the broader Oak Ridge Reservation need no environmental cleanup.", "authority": "U.S. DOE Office of Environmental Management / U.S. EPA", "reference": "Beneficial Reuse and Land Transfers (energy.gov/em/land-transfers-leases)", "source_url": "https://www.energy.gov/em/land-transfers-leases", "quote": "In December 2025, EPA and DOE confirmed that more than 16,000 acres of the broader Oak Ridge Reservation"},
+     {"kind": "redevelopment_plan", "date": "2025-09", "summary": "DOE's Office of Environmental Management issued a Request for Proposals on September 30, 2025 seeking private partners to build and power AI data centers at the Oak Ridge Reservation.", "authority": "U.S. DOE Office of Environmental Management", "reference": "Beneficial Reuse and Land Transfers (energy.gov/em/land-transfers-leases)", "source_url": "https://www.energy.gov/em/land-transfers-leases", "quote": "seeking private-sector partners to build and power AI data centers at the Oak Ridge Reservation"}
+   ],
+   "gaps": [
+     "Oak Ridge is a federal reservation that spans Roane and Anderson counties. The atlas record has county null and no parcel id. No county parcel record was found for a federal tract, and whether federal tracts appear in county assessor rolls was not verified.",
+     "The Tennessee state property search (TPAD) returned HTTP 403 to the fetch tool, so no parcel search was run.",
+     "Transfers reported only in search snippets are not recorded: 365 acres to CROET (February 2024), a 25-acre transfer to CROET (year unknown) and a 'largest transfer to date' of more than 700 acres (year unknown). No verbatim quote was retrieved for them.",
+     "No deed, lien, tax-delinquency or permit records were retrieved. Register of Deeds portals were not identified for either county."
+   ]}
+]}

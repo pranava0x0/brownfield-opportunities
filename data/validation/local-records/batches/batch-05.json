@@ -1,0 +1,85 @@
+{
+ "batch": "batch-05",
+ "sites": [
+  {
+   "id": "FUDS-G05OH0156",
+   "name": "RIDGEWOOD ARMY WEAPONS PLANT",
+   "program": "fuds",
+   "address": null,
+   "city": "CINCINNATI",
+   "county": "HAMILTON",
+   "state": "OH",
+   "zip": null,
+   "lat": 39.193068,
+   "lon": -84.491035,
+   "acreage": 36.6,
+   "tabs": [
+    "retired"
+   ],
+   "atlas_owner": "Local government \u2014 City City Of Cincinnati",
+   "atlas_owner_source": "USACE FUDS",
+   "atlas_parcel_id": "39061-2390003002800",
+   "state_parcel_layer": true
+  },
+  {
+   "id": "FUDS-I04FL0038",
+   "name": "RICHMOND NAS",
+   "program": "fuds",
+   "address": null,
+   "city": "RICHMOND HEIGHTS",
+   "county": "MIAMI-DADE",
+   "state": "FL",
+   "zip": null,
+   "lat": 25.611901,
+   "lon": -80.398095,
+   "acreage": 2106.5,
+   "tabs": [
+    "nickel"
+   ],
+   "atlas_owner": "Dod: Carl Dokter / Federal \u2014 Nat'l Institute Of Health, Perrine Center., Federal Bureau Of Prisons / Local government \u2014 County Gold Coast Rr Museum. Metro Zoo. ., Miami-Dade County / Private \u2014 University Of Miami South Campus.",
+   "atlas_owner_source": "USACE FUDS",
+   "atlas_parcel_id": "3059360000050",
+   "state_parcel_layer": true
+  },
+  {
+   "id": "FUDS-I04FL0884",
+   "name": "NAS JACKSONVILLE DISPOSED OUTPARCELS",
+   "program": "fuds",
+   "address": null,
+   "city": "JACKSONVILLE",
+   "county": "DUVAL",
+   "state": "FL",
+   "zip": null,
+   "lat": 30.226111,
+   "lon": -81.696944,
+   "acreage": null,
+   "tabs": [
+    "nickel"
+   ],
+   "atlas_owner": "Federal \u2014 Highway, Jax Naval Air Station / State \u2014 Highway, Jax Naval Air Station",
+   "atlas_owner_source": "USACE FUDS",
+   "atlas_parcel_id": "0984050000R",
+   "state_parcel_layer": true
+  },
+  {
+   "id": "FUDS-I04SC0025",
+   "name": "CONWAY BMB&GUNRY RNG",
+   "program": "fuds",
+   "address": null,
+   "city": "CONWAY",
+   "county": "HORRY",
+   "state": "SC",
+   "zip": null,
+   "lat": 33.788294,
+   "lon": -78.853668,
+   "acreage": 55388.5,
+   "tabs": [
+    "solar"
+   ],
+   "atlas_owner": "Private \u2014 Multiple Private Owners, Numerous Private Owners, Private , Residential Development",
+   "atlas_owner_source": "USACE FUDS",
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  }
+ ]
+}

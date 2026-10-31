@@ -1,0 +1,85 @@
+{
+ "batch": "batch-13",
+ "sites": [
+  {
+   "id": "TXD055144539",
+   "name": "GULFCO MARINE MAINTENANCE",
+   "program": "superfund",
+   "address": "BRAZORIA COUNTY RD 756",
+   "city": "FREEPORT",
+   "county": "BRAZORIA",
+   "state": "TX",
+   "zip": "77541",
+   "lat": 28.967653,
+   "lon": -95.28918,
+   "acreage": 40.6,
+   "tabs": [
+    "civilian"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "VA1170024722",
+   "name": "MARINE CORPS COMBAT DEVELOPMENT COMMAND",
+   "program": "superfund",
+   "address": "5TH STREET",
+   "city": "QUANTICO",
+   "county": "PRINCE WILLIAM",
+   "state": "VA",
+   "zip": "22134",
+   "lat": 38.56106,
+   "lon": -77.4255,
+   "acreage": 58880.5,
+   "tabs": [
+    "solar"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "VAD007972482",
+   "name": "L.A. CLARKE & SON",
+   "program": "superfund",
+   "address": "ROUTE 608",
+   "city": "SPOTSYLVANIA",
+   "county": "SPOTSYLVANIA",
+   "state": "VA",
+   "zip": "22408",
+   "lat": 38.234751,
+   "lon": -77.430171,
+   "acreage": 62.9,
+   "tabs": [
+    "civilian"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "VAD071040752",
+   "name": "RENTOKIL, INC. (VIRGINIA WOOD PRESERVING DIVISION)",
+   "program": "superfund",
+   "address": "OAKVIEW AVE & PEYTON STS",
+   "city": "RICHMOND",
+   "county": "HENRICO",
+   "state": "VA",
+   "zip": "23228",
+   "lat": 37.637606,
+   "lon": -77.502968,
+   "acreage": 28.8,
+   "tabs": [
+    "civilian"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  }
+ ]
+}

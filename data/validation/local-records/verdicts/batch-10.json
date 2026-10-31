@@ -1,0 +1,152 @@
+{
+ "batch": "batch-10",
+ "sites": [
+  {
+   "id": "PAD980538763",
+   "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+    {
+     "index": 0,
+     "verdict": "supported",
+     "note": "EPA page: \"Harrisburg International Airport opened on-site in 1967.\" Remains in active use."
+    },
+    {
+     "index": 1,
+     "verdict": "supported",
+     "note": "Page: federal government owned and operated the land 1898 to 1966, Army Camp George Gordon Meade."
+    },
+    {
+     "index": 2,
+     "verdict": "supported",
+     "note": "Page: site includes a Pennsylvania State University campus and a Pennsylvania Air National Guard facility."
+    },
+    {
+     "index": 3,
+     "verdict": "supported",
+     "note": "Page: site is 500 acres."
+    },
+    {
+     "index": 4,
+     "verdict": "supported",
+     "note": "EPA profile: \"The 200-acre Middletown Air Field is located in Middletown in Dauphin County, Pennsylvania.\""
+    }
+   ],
+   "portal_verdicts": [
+    {
+     "url": "https://dauphinpa.devnetwedge.com/",
+     "reachable": true,
+     "note": "Dauphin County Property Tax Inquiry; search by parcel, owner, address."
+    },
+    {
+     "url": "https://deeds.dauphincounty.gov/AcclaimWeb/Search/SearchTypeParcel",
+     "reachable": true,
+     "note": "Recorder of Deeds record search; UPI search format 62-123-456-000-0000."
+    },
+    {
+     "url": "https://gis.dauphincounty.org/dauphincountyparcelviewer",
+     "reachable": false,
+     "note": "JavaScript shell; only the title \"Parcel Viewer Experience Builder 2\" is readable, no search content."
+    }
+   ]
+  },
+  {
+   "id": "PAD980539712",
+   "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+    {
+     "index": 0,
+     "verdict": "supported",
+     "note": "EPA reuse page: Elizabethtown Landfill site is 16 acres."
+    },
+    {
+     "index": 1,
+     "verdict": "supported",
+     "note": "Page: West Donegal Township uses the asphalt cap for its \"National Night Out\"."
+    },
+    {
+     "index": 2,
+     "verdict": "supported",
+     "note": "Page: Water Authority built a water storage tower on-site, outside the capped area."
+    },
+    {
+     "index": 3,
+     "verdict": "supported",
+     "note": "EPA profile: most recent review (2023 link) concluded remedy protective of human health and environment."
+    },
+    {
+     "index": 4,
+     "verdict": "supported",
+     "note": "Profile: inactive landfill about 16 acres at 349 West Ridge Road, West Donegal Township."
+    }
+   ],
+   "portal_verdicts": [
+    {
+     "url": "https://lancastercountypa.maps.arcgis.com/apps/webappviewer/index.html?id=97a16dc9b3ae4648b0419a94a607f375",
+     "reachable": false,
+     "note": "Fetch returned only a browser-support notice for an ArcGIS web app; no viewer content."
+    },
+    {
+     "url": "https://LancasterPa.devnetwedge.com/",
+     "reachable": true,
+     "note": "Lancaster County Property Tax Inquiry; search by parcel, owner, address."
+    },
+    {
+     "url": "https://searchdocs.lancasterdeeds.com/countyweb/login.do?countyname=Lancaster",
+     "reachable": false,
+     "note": "DNS failure: getaddrinfo ENOTFOUND searchdocs.lancasterdeeds.com."
+    }
+   ]
+  },
+  {
+   "id": "PAD980690549",
+   "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+    {
+     "index": 0,
+     "verdict": "supported",
+     "note": "Profile: \"a privately owned, inactive, 10-acre landfill\" in Springettsbury Township, York County."
+    },
+    {
+     "index": 1,
+     "verdict": "supported",
+     "note": "Profile: 2022 review \"concluded that the remedy continues to be protective ... in the short-term.\""
+    }
+   ],
+   "portal_verdicts": [
+    {
+     "url": "https://assessmentpublic.yorkcountypa.gov/",
+     "reachable": true,
+     "note": "York County assessment office property records search (iasWorld); page said system down for maintenance."
+    },
+    {
+     "url": "https://search.yorkdeeds.com/",
+     "reachable": true,
+     "note": "York County Online Record System, Register of Deeds records search."
+    }
+   ]
+  },
+  {
+   "id": "SCD037398120",
+   "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+    {
+     "index": 0,
+     "verdict": "supported",
+     "note": "Profile: Palmetto Recycling site \"has been deleted from the National Priorities List (NPL).\""
+    },
+    {
+     "index": 1,
+     "verdict": "supported",
+     "note": "Profile: no further cleanup anticipated and no additional Five-Year Reviews will be conducted."
+    }
+   ],
+   "portal_verdicts": [
+    {
+     "url": "https://www7.richlandcountysc.gov/AssessorApps/",
+     "reachable": true,
+     "note": "Richland County Assessor Applications: tax forms, exemptions, appeals, value estimate tool; not a parcel search itself."
+    }
+   ]
+  }
+ ]
+}

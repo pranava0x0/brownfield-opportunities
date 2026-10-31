@@ -1,0 +1,60 @@
+{"batch": "batch-01", "researcher": "Claude Haiku 5.5", "sites": [
+  {"id": "ACRES-121721", "name": "Former Salvage Yard", "researcher": "Claude Haiku 5.5",
+   "portals": [
+     {"kind": "assessor", "name": "Lawrence County Auditor (property search and GIS parcel viewer)", "url": "http://www.lawrencecountyauditor.org", "access": "unknown", "note": "URL taken from the caao.org auditor directory. The homepage returned HTTP 403 to the fetcher, so the search tool was not reached and the GIS viewer was not checked. Parcel 39087-36-044-1000.000 was not searched."}
+   ],
+   "facts": [],
+   "gaps": [
+     "3745 South 3rd Street, Ironton, OH was not found in any search result; no property, deed, permit or news item was tied to this address.",
+     "The Lawrence County Auditor site returned HTTP 403, so ownership, transfer and tax records for this parcel could not be checked.",
+     "The 2012 Ironton Tribune article on the former Ironton Iron site (about 20 acres, South Third Street) gives no address or parcel number. It cannot be tied to this record, so it is not cited as a fact.",
+     "The 2026 Ohio Brownfield Remediation Program award list names a 3rd Street gas station and an Ironton Iron project but gives no addresses. It cannot be tied to this record.",
+     "The Lawrence County Treasurer, Lawrence County Recorder and Ohio EPA brownfield inventory were not opened, so tax, lien and deed status are unknown.",
+     "The record has no acreage. No parcel acreage was confirmed from any source."
+   ]},
+  {"id": "ACRES-136961", "name": "Former Commonwealth Steet site", "researcher": "Claude Haiku 5.5",
+   "portals": [
+     {"kind": "assessor", "name": "Madison County Real Estate Assessment Search", "url": "http://reweb1.co.madison.il.us/", "access": "free_search", "note": "Link taken from the Madison County Chief County Assessment Office site navigation. Not opened, and no address search was run."},
+     {"kind": "gis", "name": "Madison County GIS Viewer", "url": "https://gis.co.madison.il.us/webappspublic/madison%20county%20gis%20viewer/index.html", "access": "free_map", "note": "Link taken from the Chief County Assessment Office site navigation. Not opened."},
+     {"kind": "permits", "name": "Illinois EPA Site Remediation Program database", "url": "https://epadata.epa.state.il.us/land/srp/", "access": "free_search", "note": "Named in a search result as the state SRP database. Not opened and not queried for this address."}
+   ],
+   "facts": [],
+   "gaps": [
+     "1162 16th Street, Granite City, IL was not found in any search result; no record or news item was tied to this address.",
+     "The name 'Commonwealth Steet' returned only a Detroit property on Commonwealth Street and Granite City State Street sites (NL/Taracorp at 1557 State Street; Granite City Steel at 1417 State Street). None is on 16th Street, so none is cited.",
+     "The Madison County assessor and GIS links were taken from site navigation. The search tools were not run for this parcel, so ownership, sale and tax status are unknown.",
+     "The Illinois EPA SRP database was not queried for this address.",
+     "Madison County Recorder, Granite City permits and code enforcement were not identified or checked.",
+     "The record has no acreage and no atlas owner. Parcel area and owner are unknown."
+   ]},
+  {"id": "ACRES-230821", "name": "Midland Hotel Site", "researcher": "Claude Haiku 5.5",
+   "portals": [
+     {"kind": "assessor", "name": "Beaver County Property Search (real estate assessment and delinquent tax records)", "url": "https://propertyrecords.beavercountypa.gov/", "access": "free_search", "note": "Linked from the Beaver County Assessment Office page (which the fetcher opened). The search itself was not run."},
+     {"kind": "gis", "name": "Beaver County GIS Atlas", "url": "https://gis.mbakerintl.com/beavercountyinfoatlas/", "access": "free_map", "note": "Listed on the county site under Resources, not on the assessment office page. Not opened."},
+     {"kind": "permits", "name": "PA DEP Land Recycling Program (Act 2) site search", "url": "https://www.pa.gov/agencies/dep/programs-and-services/land/land-recycling-program.html", "access": "free_search", "note": "Program page from a search result, not opened. The LRP site search, which can be filtered by county and municipality, was not reached."}
+   ],
+   "facts": [],
+   "gaps": [
+     "No search result mentioned a Midland Hotel, or any hotel site, on Midland Avenue in Midland Borough, Beaver County. No demolition or brownfield record was found for it.",
+     "A commercial listing at 469 Midland Avenue (Midland Ave at Fifth Street) exists, but it is a different address from the 300 block record and is not cited.",
+     "The Beaver County property search and GIS atlas were not run against this site. The batch has no parcel id (atlas_parcel_id is null), so ownership, sale and tax status are unknown.",
+     "The PA DEP LRP site search was not run for Midland Borough. Any Act 2 or other cleanup history for the site is unknown.",
+     "The Beaver County Recorder of Deeds was not identified or checked.",
+     "The record has no acreage. Parcel area is unknown."
+   ]},
+  {"id": "ACRES-232701", "name": "Spence Field", "researcher": "Claude Haiku 5.5",
+   "portals": [
+     {"kind": "gis", "name": "Michigan EGLE RIDE Mapper", "url": "https://michigan.gov/egle/maps-data/ride-mapper", "access": "free_map", "note": "Named in a search result as the state remediation map, with search by address, site name or location ID. Not opened and not queried for this address. Sites without lat/lon do not display."},
+     {"kind": "planning", "name": "City of Sturgis Brownfield Redevelopment Authority", "url": "https://www.sturgismi.gov/245/Assistance-Incentives", "access": "unknown", "note": "City assistance page opened. It gives the BRA contact as city staff at 269-659-7234 and says contamination questions should go to the BRA. No online site list or parcel search was found."},
+     {"kind": "assessor", "name": "St. Joseph County Equalization Department", "url": "https://stjosephcountymi.gov/", "access": "unknown", "note": "County site reached through search results. The GIS parcel search page was not confirmed. A third-party directory lists a free GIS parcel search. Not used for any claim."}
+   ],
+   "facts": [],
+   "gaps": [
+     "'Spence Field' returned only places in Georgia, Tennessee and South Dakota. No Spence Field in Sturgis, Michigan was found.",
+     "McKee Street, Sturgis, MI 49091 returned only residential and real-estate listing pages. No contamination, permit or redevelopment record was found for 500 McKee Street or 601 N. Centerville Street.",
+     "The record has no acreage and no atlas owner. Parcel area and owner are unknown.",
+     "The RIDE Mapper and the St. Joseph County GIS parcel search were not queried for this address.",
+     "The Sturgis BRA was not asked for a site list, and no BRA project record was checked.",
+     "The St. Joseph County Recorder and treasurer were not identified or checked. Deeds, liens and tax-sale status are unknown."
+   ]}
+]}

@@ -1,0 +1,72 @@
+{"batch": "batch-09", "researcher": "Claude Haiku 5.5", "sites": [
+  {"id": "NCD003446721", "name": "CELANESE CORP. (SHELBY FIBER OPERATIONS)", "researcher": "Claude Haiku 5.5",
+   "portals": [
+     {"kind": "gis", "name": "Cleveland County WebGIS (parcel tab and parcel history search)", "url": "https://www.webgis.net/nc/cleveland/", "access": "free_map", "note": "Map viewer with a Parcel Search tab and a Parcel History page for search by parcel number. The page did not describe the parcel search in detail. GIS department 704.484.4900."},
+     {"kind": "gis", "name": "Cleveland County GIS data downloads (Parcels layer)", "url": "https://www.webgis.net/linkedfiles/nc/cleveland/", "access": "free_map", "note": "Parcels layer offered as an ESRI shapefile zip (121 MB), data date 8/24/2026. Not downloaded."},
+     {"kind": "recorder", "name": "Cleveland County Register of Deeds online search", "url": "https://us5.courthousecomputersystems.com/clevelandnc/", "access": "free_search", "note": "Opens to a disclaimer that must be acknowledged. The county page says records dating back to 1945 are loaded. Search by grantor/grantee was not run for this parcel."},
+     {"kind": "treasurer", "name": "Cleveland County Tax Administrator", "url": "https://clevelandcountytaxes.com/", "access": "unknown", "note": "Page loaded but showed only an accessibility link in my fetch. No parcel or tax-bill search link was confirmed."}
+   ],
+   "facts": [
+     {"kind": "transfer", "date": "2021", "summary": "EPA reports that Forsite Development bought the Shelby facility, with its buildings and infrastructure, from Celanese under a sale/lease-back arrangement in 2021. The developer's project page describes the same deal and gives the facility as 420 acres.", "authority": "U.S. EPA Superfund redevelopment page (secondary to a recorded deed; no deed checked)", "reference": "Superfund Sites in Reuse in North Carolina", "source_url": "https://www.epa.gov/superfund-redevelopment/superfund-sites-reuse-north-carolina", "quote": "under a sale/lease-back arrangement with Celanese in 2021."},
+     {"kind": "other", "date": "2022", "summary": "EPA reports that Forsite demolished much of the plant in 2022 while Ticona manufacturing continued on the site.", "authority": "U.S. EPA Superfund redevelopment page", "reference": "Superfund Sites in Reuse in North Carolina", "source_url": "https://www.epa.gov/superfund-redevelopment/superfund-sites-reuse-north-carolina", "quote": "It demolished much of the plant in 2022; manufacturing by Ticona continued."},
+     {"kind": "permit", "summary": "CNA Holdings (Celanese) applied to renew NPDES wastewater permit NC0004952 for the Shelby Plant. The notice gives comments due June 22, 2026. The notice address (2525 Blacksburg Rd.) differs from the Superfund record (HWY 198), so this is matched by facility name, not address.", "authority": "North Carolina DEQ (public notice)", "reference": "Comment Period Opens: CNA Holdings, LLC NPDES Permit NC0004952 (Celanese Shelby Facility)", "source_url": "https://www.deq.nc.gov/news/events/comment-period-opens-cna-holdings-llc-npdes-wastewater-permit-no-nc0004952-celanese-shelby-facility", "quote": "CNA Holdings, LLC, 2525 Blacksburg Rd., Grover, N.C., has applied for a renewal of its NPDES wastewater permit (NC0004952)"}
+   ],
+   "gaps": [
+     "Current owner not verified. The atlas owner GROVER INVESTMENTS I LLC was not checked against a parcel or deed record, and no parcel id is in the batch.",
+     "No recorded deed for the 2021 Forsite/Celanese sale was located. The Register of Deeds search was not run for this parcel.",
+     "Acreage conflict: EPA gives the Superfund site as 450 acres, Forsite gives the sold facility as 420 acres, and the batch shows 423.2. The sources do not explain the difference.",
+     "Address conflict: the Superfund record says HWY 198 and the DEQ notice says 2525 Blacksburg Rd. The link to this record rests on the facility name.",
+     "Shelby city permits and code enforcement were not searched. No 2022 demolition permit was located.",
+     "The Register of Deeds coverage start date conflicts: the county page says 1945, and an aggregator says the index starts in 1995. The county page was used."
+   ]},
+  {"id": "NCD986175644", "name": "DAVIS PARK ROAD TCE", "researcher": "Claude Haiku 5.5",
+   "portals": [
+     {"kind": "assessor", "name": "Gaston County Tax Office property search (Wedge)", "url": "https://gastonnc.devnetwedge.com/", "access": "free_search", "note": "Single search box for property number, owner name, or address. Advanced search link also present. Not run for parcel 3534-76-4837."},
+     {"kind": "gis", "name": "Gaston County GIS parcel viewer", "url": "https://gis.gastoncountync.gov/Map/Index", "access": "free_map", "note": "Parcel search by parcel number, owner name, address, or street. Property Details panel lists current owners and deed book and page. The fetched capture showed unpopulated template fields."},
+     {"kind": "recorder", "name": "Gaston County Register of Deeds public search (new system since 2026-05-28)", "url": "https://gastonnc.courthousecomputersystems.com/", "access": "free_search", "note": "County says some older records may not be available online and older records are directed to the office. Not searched for this parcel."}
+   ],
+   "facts": [
+     {"kind": "other", "date": "1999", "summary": "EPA added the Davis Park Road TCE site to the National Priorities List in 1999, per EPA's redevelopment page.", "authority": "U.S. EPA Superfund redevelopment page", "reference": "Superfund Sites in Reuse in North Carolina", "source_url": "https://www.epa.gov/superfund-redevelopment/superfund-sites-reuse-north-carolina", "quote": "EPA added the site to the National Priorities List (NPL) in 1999."},
+     {"kind": "other", "summary": "EPA describes the Davis Park Road TCE Superfund site as 20 acres. The batch records 0.8 acres for this record.", "authority": "U.S. EPA Superfund redevelopment page", "reference": "Superfund Sites in Reuse in North Carolina", "source_url": "https://www.epa.gov/superfund-redevelopment/superfund-sites-reuse-north-carolina", "quote": "The 20-acre Davis Park Road TCE Superfund site is in Gastonia, North Carolina."},
+     {"kind": "other", "summary": "EPA reports that an auto repair shop remains in continued use on the site. The EPA page names an auto repair shop as the groundwater source.", "authority": "U.S. EPA Superfund redevelopment page", "reference": "Superfund Sites in Reuse in North Carolina", "source_url": "https://www.epa.gov/superfund-redevelopment/superfund-sites-reuse-north-carolina", "quote": "An auto repair shop remains in continued use on-site."},
+     {"kind": "other", "summary": "EPA reports that the Cedar Oak Park subdivision remains in continued use on the site.", "authority": "U.S. EPA Superfund redevelopment page", "reference": "Superfund Sites in Reuse in North Carolina", "source_url": "https://www.epa.gov/superfund-redevelopment/superfund-sites-reuse-north-carolina", "quote": "The Cedar Oak Park subdivision remains in continued use on-site."},
+     {"kind": "other", "summary": "EPA's site profile says the fifth Five-Year Review was being finalized and was expected to be completed by September 2025. Completion was not confirmed.", "authority": "U.S. EPA Superfund site profile (cumulis)", "reference": "DAVIS PARK ROAD TCE site profile", "source_url": "https://cumulis.epa.gov/supercpad/cursites/csitinfo.cfm?id=0405489", "quote": "The EPA is currently finalizing the fifth Five-Year Review status report."}
+   ],
+   "gaps": [
+     "Owner A TO Z RENTALS LLC and parcel 3534-76-4837 were not searched in the Gaston Tax Office or GIS viewer. The dynamic search was not run.",
+     "Acreage conflict: EPA gives the site as 20 acres and the batch records 0.8 acres for this record. The batch figure may be a single parcel; not reconciled.",
+     "The EPA site profile page does not state an EPA ID. The id 0405489 appears only in the URL parameter.",
+     "Five-Year Review completion (expected September 2025) was not confirmed.",
+     "The Register of Deeds was not searched for deeds or liens. The county says some older records are offline.",
+     "An older EPA snapshot (2017) appears in search results with conflicting NPL listing years (1999 and 2009). I did not open it; the current EPA page says 1999."
+   ]},
+  {"id": "NJD980528996", "name": "DIAMOND ALKALI CO.", "researcher": "Claude Haiku 5.5",
+   "portals": [
+     {"kind": "gis", "name": "NJ Property Explorer (NJOGIS parcel viewer)", "url": "https://njgin.nj.gov/", "access": "unknown", "note": "Listed as the Property Explorer App: 'Search all parcels in NJ by address, county, municipality, block and lot.' The page does not say whether the app needs login or is free. Block and lot for this parcel not searched."}
+   ],
+   "facts": [
+     {"kind": "other", "date": "1969-08", "summary": "EPA's case summary says production at the Diamond Alkali facility ceased in August 1969.", "authority": "U.S. EPA case summary (Office of Enforcement)", "reference": "Case Summary: $165 Million Settlement to Start Cleanup Work on the Passaic River in New Jersey", "source_url": "https://www.epa.gov/enforcement/case-summary-165-million-settlement-start-cleanup-work-passaic-river-new-jersey", "quote": "Production activities at the Diamond Alkali facility ceased in August 1969."},
+     {"kind": "other", "summary": "EPA's case summary says the Diamond Alkali Superfund site includes the former manufacturing facility at 80-120 Lister Avenue in Newark. It also says DDT production began at 80 Lister Avenue in the 1940s.", "authority": "U.S. EPA case summary (Office of Enforcement)", "reference": "Case Summary: $165 Million Settlement to Start Cleanup Work on the Passaic River in New Jersey", "source_url": "https://www.epa.gov/enforcement/case-summary-165-million-settlement-start-cleanup-work-passaic-river-new-jersey", "quote": "The Diamond Alkali Superfund site includes the former manufacturing facility at 80-120 Lister Avenue in Newark, NJ"},
+     {"kind": "other", "date": "2025-01", "summary": "EPA community update (dated January 2025) on the Record of Decision for the OU1 cleanup at 80-120 Lister Avenue. The PDF body text did not extract, so only the title is quoted.", "authority": "U.S. EPA Region 2 community update", "reference": "Community Update January 2025 regarding the Record of Decision for OU1 - 80-120 Lister Avenue cleanup", "source_url": "https://semspub.epa.gov/work/02/747013.pdf", "quote": "COMMUNITY UPDATE JANUARY 2025 REGARDING THE RECORD OF DECISION FOR OU1 - 80-120 LISTER AVENUE CLEANUP FOR THE DIAMOND ALKALI"}
+   ],
+   "gaps": [
+     "Current owner of 80 Lister Avenue not found. The atlas owner is null, and no 2025 deed or title holder was located.",
+     "Essex County parcel search was not verified. taxdatahub.com returned HTTP 404 and was not used. Newark tax assessor records and block and lot 0907_235_31 were not searched.",
+     "Acreage conflict: the batch records 5,158.2 acres for the site. A search summary (not an opened page) gives about 5.8 acres for the two OU1 parcels at 80 and 120 Lister Avenue. Not reconciled.",
+     "The 2025 ROD text and any deed notice could not be read. The EPA PDF body did not extract, and the ourpassaic.org and publicnow pages returned 403 or connection reset.",
+     "The NJ Property Explorer's access terms are not stated on the page."
+   ]},
+  {"id": "NYD980651087", "name": "HOOKER (S AREA)", "researcher": "Claude Haiku 5.5",
+   "portals": [
+     {"kind": "assessor", "name": "Niagara County Pros-GAR (Assessment Information / parcel search)", "url": "https://niagaracounty.prosgar.com/", "access": "free_search", "note": "Welcome text says the system 'provides the capability to search property information for any parcel in Niagara County.' Quick and Advanced Property Search links are present. Municipality dropdown includes Niagara Falls. The search was not run for Buffalo Avenue."},
+     {"kind": "assessor", "name": "Niagara County Real Property (county page)", "url": "https://www.niagaracounty.gov/departments/m-r/real_property/index.php", "access": "free_search", "note": "County page says Pros-GAR is for parcel information and tax amounts. Treasurer's Office for delinquent taxes: 439-7007. Real Property office: 59 Park Avenue, Lockport."}
+   ],
+   "facts": [],
+   "gaps": [
+     "No parcel fact could be verified. The EPA cumulis profile for this site gives the name, EPA ID NYD980651087, and document collections, but no location, address, or acreage. It mentions only a repository address.",
+     "The EPA third Five-Year Review for the S-Area (semspub.epa.gov/work/HQ/179910.pdf) returned binary PDF content in this tool, so its location, size, and remedy statements are unverified.",
+     "No 2024-2026 S-Area documents were found. The Niagara Falls data center coverage (South End, about 53 acres) is not tied to the S-Area by any opened source, so it is not cited.",
+     "Acreage conflict: the batch records 169.5 acres. A court summary seen only in search results describes the S-Area as seven acres. Not reconciled.",
+     "Owner not searched. The atlas owner is null and state_parcel_layer is false. No Pros-GAR, deed, or lien search was run for Buffalo Avenue or the S-Area parcels."
+   ]}
+]}

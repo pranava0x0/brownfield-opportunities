@@ -1,0 +1,75 @@
+[
+ {
+  "id": "FUDS-B07MO0173",
+  "name": "TYSON VALLEY POWDER FARM",
+  "index": 2,
+  "fact": {
+   "kind": "transfer",
+   "summary": "St. Louis County acquired 210 acres in 1955 (year only). The land was part of the Tyson Valley Powder Plant during WWII.",
+   "authority": "Wikipedia, West Tyson County Park. Secondary.",
+   "reference": "West Tyson County Park (Wikipedia)",
+   "source_url": "https://en.wikipedia.org/wiki/West_Tyson_County_Park",
+   "quote": "After the war 210 acres (0.85 km2) were acquired by St. Louis County in 1955.",
+   "code_check": "quote_missing",
+   "verifier": "supported",
+   "status": "disputed",
+   "adjudicated_by": "code"
+  },
+  "verifier_note": "Wikipedia: \"After the war 210 acres (0.85 km2) were acquired by St. Louis County in 1955.\" Part of Tyson Valley Powder Plant in WWII."
+ },
+ {
+  "id": "FUDS-B07MO0173",
+  "name": "TYSON VALLEY POWDER FARM",
+  "index": 3,
+  "fact": {
+   "kind": "transfer",
+   "summary": "St. Louis County acquired an additional 410 acres in 1979 (year only).",
+   "authority": "Wikipedia, West Tyson County Park. Secondary.",
+   "reference": "West Tyson County Park (Wikipedia)",
+   "source_url": "https://en.wikipedia.org/wiki/West_Tyson_County_Park",
+   "quote": "In 1979 an additional 410 acres (1.7 km2) were acquired.",
+   "code_check": "quote_missing",
+   "verifier": "supported",
+   "status": "disputed",
+   "adjudicated_by": "code"
+  },
+  "verifier_note": "Wikipedia: \"In 1979 an additional 410 acres (1.7 km2) were acquired.\""
+ },
+ {
+  "id": "SCN000407376",
+  "name": "HENRY'S KNOB",
+  "index": 0,
+  "fact": {
+   "kind": "other",
+   "date": "2017-08",
+   "summary": "EPA release dated August 1, 2017 describes the 185-acre Henry's Knob Site at Henry Knob Road and State Highway 55 in Clover Township, York County.",
+   "authority": "U.S. EPA Region 4 news release",
+   "reference": "EPA public meeting announcement for Henry's Knob former mine site",
+   "source_url": "https://www.epa.gov/archive/epa/newsreleases/epa-host-public-meeting-regarding-henrys-knob-former-mine-site.html",
+   "quote": "The 185-acre Henry’s Knob Site is located at the corner of Henry Knob Road and State Highway 55",
+   "code_check": "quote_missing",
+   "verifier": "supported",
+   "status": "disputed",
+   "adjudicated_by": "code"
+  },
+  "verifier_note": "EPA release dated Aug 1, 2017: 185-acre site at Henry Knob Road and State Highway 55, Clover Township, York County SC."
+ },
+ {
+  "id": "SCN000407376",
+  "name": "HENRY'S KNOB",
+  "index": 1,
+  "fact": {
+   "kind": "other",
+   "summary": "The site was an open pit kyanite mine that operated from 1947 to 1970 (no month given).",
+   "authority": "U.S. EPA Region 4 news release",
+   "reference": "EPA public meeting announcement for Henry's Knob former mine site",
+   "source_url": "https://www.epa.gov/archive/epa/newsreleases/epa-host-public-meeting-regarding-henrys-knob-former-mine-site.html",
+   "quote": "The Henry’s Knob Site was an open pit kyanite mine that operated from 1947 to 1970.",
+   "code_check": "quote_missing",
+   "verifier": "supported",
+   "status": "disputed",
+   "adjudicated_by": "code"
+  },
+  "verifier_note": "Release: open-pit kyanite mine operated between 1947 and 1970."
+ }
+]

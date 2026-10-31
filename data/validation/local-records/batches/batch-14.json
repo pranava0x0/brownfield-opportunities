@@ -1,0 +1,25 @@
+{
+ "batch": "batch-14",
+ "sites": [
+  {
+   "id": "VAD980539878",
+   "name": "H & H INC., BURN PIT",
+   "program": "superfund",
+   "address": "10 MILES N RTE 33",
+   "city": "FARRINGTON",
+   "county": "HANOVER",
+   "state": "VA",
+   "zip": "23192",
+   "lat": 37.724941,
+   "lon": -77.585463,
+   "acreage": 1.5,
+   "tabs": [
+    "civilian"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  }
+ ]
+}

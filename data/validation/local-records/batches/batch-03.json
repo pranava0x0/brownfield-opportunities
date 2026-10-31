@@ -1,0 +1,85 @@
+{
+ "batch": "batch-03",
+ "sites": [
+  {
+   "id": "CA2570024453",
+   "name": "GEORGE AIR FORCE BASE",
+   "program": "superfund",
+   "address": "AIR BASE RD- NR ST RTE 395",
+   "city": "VICTORVILLE",
+   "county": "SAN BERNARDINO",
+   "state": "CA",
+   "zip": "92392",
+   "lat": 34.588446,
+   "lon": -117.357881,
+   "acreage": 5268.6,
+   "tabs": [
+    "dc"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "FL6170024412",
+   "name": "JACKSONVILLE NAVAL AIR STATION",
+   "program": "superfund",
+   "address": "NAS BLDG 826",
+   "city": "JACKSONVILLE",
+   "county": "DUVAL",
+   "state": "FL",
+   "zip": "32212",
+   "lat": 30.219602,
+   "lon": -81.685421,
+   "acreage": 3803.5,
+   "tabs": [
+    "nickel"
+   ],
+   "atlas_owner": "U S A AIR BASE",
+   "atlas_owner_source": "Florida FDOR/FGIO Statewide Cadastral",
+   "atlas_parcel_id": "0984050000R",
+   "state_parcel_layer": true
+  },
+  {
+   "id": "FLSFN0407002",
+   "name": "JACKSONVILLE ASH SITE",
+   "program": "superfund",
+   "address": "1093 WEST 6TH STREET",
+   "city": "JACKSONVILLE",
+   "county": "DUVAL",
+   "state": "FL",
+   "zip": "32209",
+   "lat": 30.341429,
+   "lon": -81.666719,
+   "acreage": 487.6,
+   "tabs": [
+    "port"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": true
+  },
+  {
+   "id": "FUDS-A04MS0124",
+   "name": "GULFPORT ARMY AIR FIELD",
+   "program": "fuds",
+   "address": null,
+   "city": "GULFPORT",
+   "county": "HARRISON",
+   "state": "MS",
+   "zip": null,
+   "lat": 30.407073,
+   "lon": -89.063013,
+   "acreage": 2465.9,
+   "tabs": [
+    "port"
+   ],
+   "atlas_owner": "Local government \u2014 City , City Of Gulfport / Private \u2014 Multiple Private Owners, Private",
+   "atlas_owner_source": "USACE FUDS",
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  }
+ ]
+}

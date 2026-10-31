@@ -1,0 +1,12 @@
+{"batch": "disputes", "sites": [
+  {"id": "FUDS-B07MO0173", "adjudicator": "Claude Opus 5.5",
+   "decisions": [
+     {"index": 2, "decision": "accept", "reason": "Wikipedia source text: park was part of Tyson Valley Powder Plant in WWII; 210 acres acquired by St. Louis County in 1955. Quote differs only in rendered unit conversion."},
+     {"index": 3, "decision": "accept", "reason": "Wikipedia source text: 'In 1979 an additional 410 acre were acquired.' Quote differs only in the rendered unit conversion; fact and numbers match."}
+   ]},
+  {"id": "SCN000407376", "adjudicator": "Claude Opus 5.5",
+   "decisions": [
+     {"index": 0, "decision": "accept", "reason": "EPA release dated 08/01/2017 states the 185-acre Henry's Knob Site is at Henry Knob Road and State Highway 55, Clover Township, York County SC. Quote check failed on curly apostrophe."},
+     {"index": 1, "decision": "accept", "reason": "Same EPA release: 'The Henry's Knob Site was an open pit kyanite mine that operated from 1947 to 1970.' Matches verbatim apart from the curly apostrophe."}
+   ]}
+]}

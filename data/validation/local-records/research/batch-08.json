@@ -1,0 +1,61 @@
+{"batch": "batch-08", "researcher": "Claude Haiku 5.5", "sites": [
+  {"id": "MID980410617", "name": "BURROWS SANITATION", "researcher": "Claude Haiku 5.5",
+   "portals": [],
+   "facts": [
+     {"kind": "other", "summary": "EPA's site profile places the Burrows Sanitation site in Hartford, Michigan.", "authority": "U.S. EPA (CUMULIS site profile)", "reference": "EPA CUMULIS site profile, Burrows Sanitation", "source_url": "https://cumulis.epa.gov/supercpad/cursites/csitinfo.cfm?id=0502733", "quote": "The Burrows Sanitation site is located in Hartford, Michigan."},
+     {"kind": "other", "summary": "Plating sludges, waste coolants and oils were disposed of at the site from 1970 to 1977, contaminating groundwater, surface water, soils, sediments and lagoons. The page gives a span, so no single event date is recorded.", "authority": "U.S. EPA (CUMULIS site profile)", "reference": "EPA CUMULIS site profile, Burrows Sanitation", "source_url": "https://cumulis.epa.gov/supercpad/cursites/csitinfo.cfm?id=0502733", "quote": "Disposal of plating sludges, waste coolants and oils took place at the site from 1970 to 1977."},
+     {"kind": "other", "summary": "EPA's profile says operations and maintenance activities continue after cleanup. The fetched page does not give the SWRAU or NPL deletion date.", "authority": "U.S. EPA (CUMULIS site profile)", "reference": "EPA CUMULIS site profile, Burrows Sanitation", "source_url": "https://cumulis.epa.gov/supercpad/cursites/csitinfo.cfm?id=0502733", "quote": "Following cleanup, operations and maintenance activities are ongoing."}
+   ],
+   "gaps": [
+     "No Van Buren County assessor, GIS, recorder or treasurer portal was opened.",
+     "Batch address is a PLSS description ('ME1/4 SEC10 R16W T3S'), so no parcel match is possible from the address; the parcel would need to come from county GIS using the coordinates.",
+     "NPL deletion (2015) and the 2008 SWRAU date appear only in search snippets. The Federal Register page redirected to an unblock page and was not read, so neither is recorded as a fact.",
+     "Acreage conflict: EPA notices (per a search snippet) describe about 10 acres; a local news report describes about 15 acres; batch record shows 12.8 acres. Not resolved."
+   ]},
+  {"id": "MID985574227", "name": "LOWER ECORSE CREEK DUMP", "researcher": "Claude Haiku 5.5",
+   "portals": [
+     {"kind": "treasurer", "name": "Wayne County Treasurer Property Tax Listing System", "url": "https://pta.waynecounty.com", "access": "free_search", "note": "Opened. Address or Parcel ID search; no owner-name search; lookup is free. Covers Wayne County municipalities including Wyandotte. Wyandotte city assessor and permit records not checked."}
+   ],
+   "facts": [
+     {"kind": "other", "summary": "EPA added the Lower Ecorse Creek Dump to the NPL in 1994, per EPA's redevelopment profile.", "authority": "U.S. EPA (CUMULIS redevelopment profile)", "reference": "EPA CUMULIS redevelopment profile, Lower Ecorse Creek Dump", "source_url": "https://cumulis.epa.gov/supercpad/SiteProfiles/index.cfm?fuseaction=second.redevelop&id=0506252", "quote": "In 1994, EPA added the site to the Superfund program's National Priorities List (NPL)."},
+     {"kind": "other", "summary": "EPA deleted the site from the NPL in 2005.", "authority": "U.S. EPA (CUMULIS redevelopment profile)", "reference": "EPA CUMULIS redevelopment profile, Lower Ecorse Creek Dump", "source_url": "https://cumulis.epa.gov/supercpad/SiteProfiles/index.cfm?fuseaction=second.redevelop&id=0506252", "quote": "EPA deleted the site from the NPL in 2005."},
+     {"kind": "other", "summary": "EPA's profile says activity and use limitations (institutional controls) are in place at the site.", "authority": "U.S. EPA (CUMULIS redevelopment profile)", "reference": "EPA CUMULIS redevelopment profile, Lower Ecorse Creek Dump", "source_url": "https://cumulis.epa.gov/supercpad/SiteProfiles/index.cfm?fuseaction=second.redevelop&id=0506252", "quote": "At this site, activity and use limitations that EPA calls institutional controls are in place."},
+     {"kind": "other", "summary": "EPA's profile says primarily residential land use continues at the site.", "authority": "U.S. EPA (CUMULIS redevelopment profile)", "reference": "EPA CUMULIS redevelopment profile, Lower Ecorse Creek Dump", "source_url": "https://cumulis.epa.gov/supercpad/SiteProfiles/index.cfm?fuseaction=second.redevelop&id=0506252", "quote": "Primarily residential land use continues at the site."}
+   ],
+   "gaps": [
+     "Batch address is 'Postal Address is unavailable for the Site', so no parcel match from the address. The EPA page covers six residential blocks on the Ecorse River bank and gives no parcel IDs.",
+     "NPL listing year conflict: an older EPA reuse snapshot says 1983; the redevelopment profile says 1994. The profile is recorded.",
+     "The 2002 restrictive covenant recorded with the county register appears in a search snippet only; the register search was not opened.",
+     "No Wyandotte city assessor, permit or code-enforcement portal opened. Batch acreage 25.6 not checked."
+   ]},
+  {"id": "MIN000510362", "name": "DSC MCLOUTH STEEL GIBRALTAR PLANT", "researcher": "Claude Haiku 5.5",
+   "portals": [
+     {"kind": "treasurer", "name": "Wayne County Treasurer Property Tax Listing System", "url": "https://pta.waynecounty.com", "access": "free_search", "note": "Opened. Address or Parcel ID search; lookup is free; covers Gibraltar as a Wayne County municipality. No owner-name search. Parcel ID not in batch, so search by address (28000 West Jefferson Street)."}
+   ],
+   "facts": [
+     {"kind": "zoning", "date": "2026-03", "summary": "Planet Detroit reports the city council passed a one-year data center moratorium on a Monday; the article is dated 2026-03-11. Exact vote date not given; likely 2026-03-09.", "authority": "City of Gibraltar council (as reported by Planet Detroit)", "reference": "Planet Detroit, 'Gibraltar passes data center moratorium: Facility proposed at former McLouth Steel site' (2026-03-11)", "source_url": "https://planetdetroit.org/2026/03/gibraltar-data-center-moratorium/", "quote": "hit a potential roadblock on Monday when the city council passed a one-year data center moratorium"},
+     {"kind": "redevelopment_plan", "date": "2026-03", "summary": "Planet Detroit reports a proposed 100 MW data center at the former McLouth Steel site in Gibraltar.", "authority": "Planet Detroit (developer proposal as reported)", "reference": "Planet Detroit, 'Gibraltar passes data center moratorium' (2026-03-11)", "source_url": "https://planetdetroit.org/2026/03/gibraltar-data-center-moratorium/", "quote": "A proposed 100-megawatt data center at the former McLouth Steel site in Gibraltar"},
+     {"kind": "redevelopment_plan", "date": "2026-03", "summary": "The developer plans a utility substation and equipment on the adjacent Superfund property. The article says the developer does not intend to fully remediate that adjacent Superfund site.", "authority": "Planet Detroit (developer proposal as reported)", "reference": "Planet Detroit, 'Gibraltar passes data center moratorium' (2026-03-11)", "source_url": "https://planetdetroit.org/2026/03/gibraltar-data-center-moratorium/", "quote": "The developer intends to locate a utility substation and some equipment on the adjacent Superfund property"}
+   ],
+   "gaps": [
+     "No Gibraltar city assessor, planning or permit record opened; no deed, lien or tax record checked. No parcel ID in the batch.",
+     "Wayne County Register of Deeds not opened.",
+     "EPA listing history (2015 NPL listing, 2016 interim remedy, 2021 IIJA funding) appears only in search snippets from EPA documents that were not opened; not recorded.",
+     "Acreage conflict: EPA describes 620 acres in a search snippet; batch record shows 651.4 acres.",
+     "The article's date and the moratorium's exact vote date are approximate; the facts above use 2026-03."
+   ]},
+  {"id": "MT0012694970", "name": "FLAT CREEK IMM", "researcher": "Claude Haiku 5.5",
+   "portals": [
+     {"kind": "gis", "name": "Montana Cadastral (state parcel map)", "url": "https://svc.mt.gov/msl/mtcadastral/", "access": "free_map", "note": "Page opened but fetch returned only the title 'Montana Cadastral'. Operator, layers and informational-use disclaimer not confirmed. The batch flags state_parcel_layer=true with owner USA, which is not verified here."}
+   ],
+   "facts": [
+     {"kind": "other", "summary": "EPA's site profile places the Flat Creek IMM site in and around the Town of Superior, Mineral County, Montana.", "authority": "U.S. EPA (CUMULIS site profile)", "reference": "EPA CUMULIS site profile, Flat Creek IMM", "source_url": "https://cumulis.epa.gov/supercpad/cursites/csitinfo.cfm?id=0801914", "quote": "The Flat Creek Iron Mountain Mine and Mill (IMM) site is located in and around the Town of Superior"},
+     {"kind": "other", "summary": "EPA's site profile gives the site location as Flat Creek Road and Hall Gulch Road, Superior, MT 59872, which matches the batch address.", "authority": "U.S. EPA (CUMULIS site profile)", "reference": "EPA CUMULIS site profile, Flat Creek IMM", "source_url": "https://cumulis.epa.gov/supercpad/cursites/csitinfo.cfm?id=0801914", "quote": "FLAT CREEK ROAD AND HALL GULCH ROAD SUPERIOR, MT 59872"}
+   ],
+   "gaps": [
+     "Montana Department of Revenue property search, Mineral County assessor and clerk-and-recorder records not opened; no owner, parcel number, legal description or assessed value checked.",
+     "Batch acreage 10,886.4 acres not confirmed. A search snippet describes the abandoned mine property as about three acres; the ATSDR PDF is binary and could not be read, so the snippet is not recorded.",
+     "The Montana cadastral page returned only its title on fetch, so the state_parcel_layer=true flag and the USA owner are unverified.",
+     "The cumulis profile fetched does not show site acreage or the 2011 time-critical removal action; those were not recorded."
+   ]}
+]}

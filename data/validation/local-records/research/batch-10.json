@@ -1,0 +1,76 @@
+{"batch": "batch-10", "researcher": "Claude Haiku 5.5", "sites": [
+  {"id": "PAD980538763", "name": "MIDDLETOWN AIR FIELD", "researcher": "Claude Haiku 5.5",
+   "portals": [
+     {"kind": "assessor", "name": "Dauphin County Property Tax Inquiry (Devnet)", "url": "https://dauphinpa.devnetwedge.com/", "access": "free_search", "note": "Parcel Number and Owner Name fields plus address search. Municipality filter field was still loading in the fetched page. Requires at least one field. Not run for this site."},
+     {"kind": "recorder", "name": "Dauphin County Recorder of Deeds (UPI search)", "url": "https://deeds.dauphincounty.gov/AcclaimWeb/Search/SearchTypeParcel", "access": "free_search", "note": "Guest access shown, no fee or registration stated. Searches by UPI in the format 62-123-456-000-0000. The batch has no UPI, so the search was not run."},
+     {"kind": "gis", "name": "Dauphin County parcel viewer", "url": "https://gis.dauphincounty.org/dauphincountyparcelviewer", "access": "unknown", "note": "Fetch returned only the page title ('Dauphin County Parcel Viewer Experience Builder 2'). Search fields and access terms were not confirmed."}
+   ],
+   "facts": [
+     {"kind": "other", "date": "1967", "summary": "EPA's reuse page says Harrisburg International Airport opened on the site in 1967 and remains in active use.", "authority": "U.S. EPA Superfund redevelopment page (Pennsylvania)", "reference": "Superfund Sites in Reuse in Pennsylvania", "source_url": "https://www.epa.gov/superfund-redevelopment/superfund-sites-reuse-pennsylvania", "quote": "Harrisburg International Airport opened on-site in 1967."},
+     {"kind": "other", "date": "1966", "summary": "EPA's reuse page says the federal government owned and operated Army Camp George Gordon Meade on the site from 1898 until 1966. The EPA profile gives 1868 as the start year, a conflict noted in gaps.", "authority": "U.S. EPA Superfund redevelopment page (Pennsylvania)", "reference": "Superfund Sites in Reuse in Pennsylvania", "source_url": "https://www.epa.gov/superfund-redevelopment/superfund-sites-reuse-pennsylvania", "quote": "From 1898 to 1966, the federal government owned and operated Army Camp George Gordon Meade"},
+     {"kind": "other", "summary": "EPA's reuse page lists other site uses, including a Pennsylvania State University campus and a Pennsylvania Air National Guard facility. The sentence is truncated in the fetch.", "authority": "U.S. EPA Superfund redevelopment page (Pennsylvania)", "reference": "Superfund Sites in Reuse in Pennsylvania", "source_url": "https://www.epa.gov/superfund-redevelopment/superfund-sites-reuse-pennsylvania", "quote": "Other site uses include a Pennsylvania State University campus, a Pennsylvania Air National Guard facility,"},
+     {"kind": "other", "summary": "EPA's reuse page describes the Superfund site as 500 acres. The EPA profile gives 200 acres. The batch records 1,242.3 acres.", "authority": "U.S. EPA Superfund redevelopment page (Pennsylvania)", "reference": "Superfund Sites in Reuse in Pennsylvania", "source_url": "https://www.epa.gov/superfund-redevelopment/superfund-sites-reuse-pennsylvania", "quote": "The 500-acre Middletown Air Field Superfund site"},
+     {"kind": "other", "summary": "EPA's site profile describes the Middletown Air Field as a 200-acre site in Middletown, Dauphin County.", "authority": "U.S. EPA Superfund site profile (cumulis)", "reference": "MIDDLETOWN AIR FIELD site profile", "source_url": "https://cumulis.epa.gov/supercpad/cursites/csitinfo.cfm?id=0301295", "quote": "The 200-acre Middletown Air Field is located in Middletown in Dauphin County, Pennsylvania."}
+   ],
+   "gaps": [
+     "Owner not verified. The atlas owner is null and state_parcel_layer is false. No Dauphin parcel or deed search was run because the batch has no parcel id or UPI.",
+     "Acreage conflict: the batch records 1,242.3 acres, EPA's profile says 200, and EPA's reuse page says 500. Not reconciled.",
+     "Start-year conflict: the EPA profile says the federal government owned the site from 1868 to 1966. The reuse page says 1898 to 1966.",
+     "PennDOT and Harrisburg International Airport ownership was mentioned in a search summary but not on any opened page. The EPA reuse page does not mention PennDOT. Unverified.",
+     "A 2025 Explanation of Significant Differences (treatment change) was mentioned in a search summary only. Not opened, so not cited.",
+     "The Dauphin parcel viewer returned only its title, so its search fields and access terms are unverified."
+   ]},
+  {"id": "PAD980539712", "name": "ELIZABETHTOWN LANDFILL", "researcher": "Claude Haiku 5.5",
+   "portals": [
+     {"kind": "gis", "name": "LanCo View 2.0 (Lancaster County public parcel viewer)", "url": "https://lancastercountypa.maps.arcgis.com/apps/webappviewer/index.html?id=97a16dc9b3ae4648b0419a94a607f375", "access": "free_map", "note": "County GIS page calls it 'the Lancaster County public and free online application to search Parcel information.' Shows acreage, dimensions, deed reference, and aerial imagery. LanCo View PLUS is a paid subscription and was not used."},
+     {"kind": "assessor", "name": "Lancaster County Property Assessment search (Devnet)", "url": "https://LancasterPa.devnetwedge.com/", "access": "free_search", "note": "Basic search by parcel number. Advanced search covers owner name, street name, municipality, sale price and date, and building criteria. Page disclaimer says it may not reflect the most recent changes."},
+     {"kind": "recorder", "name": "Lancaster County Recorder of Deeds Public Records Search", "url": "https://searchdocs.lancasterdeeds.com/countyweb/login.do?countyname=Lancaster", "access": "unknown", "note": "Linked from the county GIS page as the deed search. Not opened, so access terms and coverage are unverified."}
+   ],
+   "facts": [
+     {"kind": "other", "summary": "EPA's reuse page describes the Elizabethtown Landfill Superfund site as 16 acres. The batch records 30.5 acres.", "authority": "U.S. EPA Superfund redevelopment page (Pennsylvania)", "reference": "Superfund Sites in Reuse in Pennsylvania", "source_url": "https://www.epa.gov/superfund-redevelopment/superfund-sites-reuse-pennsylvania", "quote": "The 16-acre Elizabethtown Landfill Superfund site is near Elizabethtown, Pennsylvania."},
+     {"kind": "other", "summary": "EPA's reuse page says West Donegal Township uses the site's asphalt cap for its National Night Out community event.", "authority": "U.S. EPA Superfund redevelopment page (Pennsylvania)", "reference": "Superfund Sites in Reuse in Pennsylvania", "source_url": "https://www.epa.gov/superfund-redevelopment/superfund-sites-reuse-pennsylvania", "quote": "West Donegal Township uses the site's asphalt cap for its National Night Out, an annual community event."},
+     {"kind": "other", "summary": "EPA's reuse page says the Elizabethtown Area Water Authority built a water storage tower on the site, outside the capped area.", "authority": "U.S. EPA Superfund redevelopment page (Pennsylvania)", "reference": "Superfund Sites in Reuse in Pennsylvania", "source_url": "https://www.epa.gov/superfund-redevelopment/superfund-sites-reuse-pennsylvania", "quote": "The Elizabethtown Area Water Authority built a water storage tower on-site, outside the capped area,"},
+     {"kind": "other", "date": "2023", "summary": "EPA's site profile reports that the 2023 Five-Year Review concluded the remedy is protective of human health and the environment.", "authority": "U.S. EPA Superfund site profile (cumulis)", "reference": "ELIZABETHTOWN LANDFILL site profile", "source_url": "https://cumulis.epa.gov/supercpad/cursites/csitinfo.cfm?id=0301361", "quote": "concluded that the site’s remedy is protective of human health and the environment."},
+     {"kind": "other", "summary": "EPA's site profile describes the landfill as an inactive landfill of about 16 acres at 349 West Ridge Road. That matches the batch address (W Ridge Rd).", "authority": "U.S. EPA Superfund site profile (cumulis)", "reference": "ELIZABETHTOWN LANDFILL site profile", "source_url": "https://cumulis.epa.gov/supercpad/cursites/csitinfo.cfm?id=0301361", "quote": "is an inactive landfill that occupies about 16 acres at 349 West Ridge Road."}
+   ],
+   "gaps": [
+     "Owner not verified. The atlas owner is null and no owner was found. The Devnet search was not run for W Ridge Rd, and the batch has no parcel id.",
+     "Acreage conflict: the batch records 30.5 acres and EPA gives 16 acres. Not reconciled.",
+     "A search summary described a planned residential complex, a Prospective Purchaser Agreement, and a PA DEP document about a data-center power plant. None of these is on the EPA reuse page or any opened page, so none is cited. The DEP claim needs a primary check.",
+     "The Recorder of Deeds search linked from the county GIS page was not opened, so its coverage and access are unverified.",
+     "The 2023 Five-Year Review text itself was not opened. The conclusion is quoted from the EPA profile."
+   ]},
+  {"id": "PAD980690549", "name": "EAST MOUNT ZION", "researcher": "Claude Haiku 5.5",
+   "portals": [
+     {"kind": "assessor", "name": "York County Assessment Office Property Search", "url": "https://assessmentpublic.yorkcountypa.gov/", "access": "free_search", "note": "Basic search by owner, street address, or parcel ID. Advanced/Sales and Map search also offered. Page said the system was unavailable due to maintenance at fetch time. Not run for Dieninger Road."},
+     {"kind": "recorder", "name": "York County Online Record System (deeds)", "url": "https://search.yorkdeeds.com/", "access": "unknown", "note": "Page shows a NameSearch link but does not describe the search options or coverage. No fee or coverage statement found. Not searched."}
+   ],
+   "facts": [
+     {"kind": "other", "summary": "EPA's site profile describes East Mount Zion as a privately owned, inactive, 10-acre landfill in Springettsbury Township. The batch records 14.8 acres.", "authority": "U.S. EPA Superfund site profile (cumulis)", "reference": "EAST MOUNT ZION site profile", "source_url": "https://cumulis.epa.gov/supercpad/cursites/csitinfo.cfm?id=0301426", "quote": "a privately owned, inactive, 10-acre landfill"},
+     {"kind": "other", "summary": "EPA's site profile reports that the most recent five-year review concluded the remedy continues to be protective of human health and the environment in the short-term. The profile does not give the review year on the fetched text.", "authority": "U.S. EPA Superfund site profile (cumulis)", "reference": "EAST MOUNT ZION site profile", "source_url": "https://cumulis.epa.gov/supercpad/cursites/csitinfo.cfm?id=0301426", "quote": "concluded that the remedy continues to be protective of human health and the environment in the short-term."}
+   ],
+   "gaps": [
+     "Owner not verified. The atlas owner is null. EPA says 'privately owned' but gives no owner name. The York assessment search was down for maintenance and was not run for Dieninger Road.",
+     "Acreage conflict: the batch records 14.8 acres and EPA's profile gives 10 acres. Not reconciled.",
+     "Road-name spelling differs across EPA documents (Dieninger vs Deininger). The batch uses DIENINGER ROAD.",
+     "The five-year review year and the capped-landfill and groundwater-plume description come from search summaries, not opened pages. Not cited.",
+     "The York deed search (search.yorkdeeds.com) did not show its search options or coverage, so no recorder claim is made.",
+     "The fifth five-year review report and the RPM contacts were seen in search results only and were not opened."
+   ]},
+  {"id": "SCD037398120", "name": "PALMETTO RECYCLING, INC.", "researcher": "Claude Haiku 5.5",
+   "portals": [
+     {"kind": "assessor", "name": "Richland County Assessor Applications", "url": "https://www7.richlandcountysc.gov/AssessorApps/", "access": "unknown", "note": "County page lists no search options in the fetch. Its Assessor Search link is a placeholder (#). A Spatialest property value link is also offered (external, not opened)."}
+   ],
+   "facts": [
+     {"kind": "other", "summary": "EPA's site profile says the Palmetto Recycling site has been deleted from the National Priorities List.", "authority": "U.S. EPA Superfund site profile (cumulis)", "reference": "PALMETTO RECYCLING, INC. site profile", "source_url": "https://cumulis.epa.gov/supercpad/cursites/csitinfo.cfm?id=0403274", "quote": "This Site has been deleted from the National Priorities List (NPL)."},
+     {"kind": "other", "summary": "EPA's site profile says no further cleanup activities are anticipated and no additional five-year reviews will be conducted.", "authority": "U.S. EPA Superfund site profile (cumulis)", "reference": "PALMETTO RECYCLING, INC. site profile", "source_url": "https://cumulis.epa.gov/supercpad/cursites/csitinfo.cfm?id=0403274", "quote": "No further cleanup activities are anticipated and no additional Five-Year Reviews will be conducted."}
+   ],
+   "gaps": [
+     "The batch lists this record as Superfund, but EPA's profile says it was deleted from the NPL. The batch program label does not match the current status. Flagged for the data owner.",
+     "Owner not verified. The atlas owner is null, and no Richland parcel or deed search was run.",
+     "The EPA SC reuse page has no Palmetto Recycling entry. The Palmetto Wood Preserving entry on that page is a different site and is not cited.",
+     "Acreage conflict: the batch records 1.7 acres and the EPA profile gives no acreage. Not verifiable from the source.",
+     "The Richland County Register of Deeds online search was not found. The county's assessor page gave no searchable options in the fetch.",
+     "The 1979-1983 operating history and 1987 listing were seen in search summaries only and are not cited."
+   ]}
+]}

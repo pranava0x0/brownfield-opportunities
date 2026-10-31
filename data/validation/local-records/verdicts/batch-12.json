@@ -1,0 +1,102 @@
+{
+ "batch": "batch-12",
+ "sites": [
+  {
+   "id": "TND071516959",
+   "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+    {
+     "index": 0,
+     "verdict": "supported",
+     "note": "Release (datelined Oct 29, 2019): EPA deleted \"the Tennessee Products Superfund Site in Chattanooga, Tenn.\" from NPL, FY2019."
+    }
+   ],
+   "portal_verdicts": [
+    {
+     "url": "https://assessor.hamiltontn.gov/",
+     "reachable": true,
+     "note": "Hamilton County Assessor of Property; search by parcel, street, owner."
+    }
+   ]
+  },
+  {
+   "id": "TND098071061",
+   "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+    {
+     "index": 0,
+     "verdict": "supported",
+     "note": "Article: Smokey Mountain Smelters at 1508 Maryville Pike, South Knoxville."
+    },
+    {
+     "index": 1,
+     "verdict": "supported",
+     "note": "Article dated 2023-02-13: EPA set to begin final phase of cleanup that month."
+    },
+    {
+     "index": 2,
+     "verdict": "supported",
+     "note": "Article: Rotary Furnace Inc., aka Smokey Mountain Smelters, ran site until abandoned in 1994."
+    }
+   ],
+   "portal_verdicts": [
+    {
+     "url": "https://property.knoxcounty.org/",
+     "reachable": true,
+     "note": "Knox County TN Property Assessor with Property Lookup tool."
+    },
+    {
+     "url": "https://rod.knoxcounty.org/?p=8017",
+     "reachable": true,
+     "note": "Knox County Register of Deeds; nav lists Legacy Deed Search and Online Records Subscription."
+    }
+   ]
+  },
+  {
+   "id": "TND987768587",
+   "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+    {
+     "index": 0,
+     "verdict": "supported",
+     "note": "EPA release Jan 12, 2016 announces non-time critical cleanup of Clinch River Corporation Site, Harriman TN. Page gives 728 Emory Drive as site tour address, not as a labeled site address."
+    }
+   ],
+   "portal_verdicts": [
+    {
+     "url": "https://roanecountytn.gov/assessor-of-property/",
+     "reachable": true,
+     "note": "Roane County TN Assessor of Property office page."
+    }
+   ]
+  },
+  {
+   "id": "TXD008123168",
+   "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+    {
+     "index": 0,
+     "verdict": "supported",
+     "note": "Page: \"The 5,410-acre Alcoa (Point Comfort)/Lavaca Bay Superfund site is in Calhoun County, Texas.\""
+    },
+    {
+     "index": 1,
+     "verdict": "supported",
+     "note": "Page: \"EPA added the site to the National Priorities List in 1994.\""
+    },
+    {
+     "index": 2,
+     "verdict": "supported",
+     "note": "Page: \"EPA selected the remedy for the site in 2001.\""
+    }
+   ],
+   "portal_verdicts": [
+    {
+     "url": "https://www.calhouncad.org",
+     "reachable": true,
+     "note": "Calhoun CAD Official Site, Port Lavaca TX; Property Search link to esearch.calhouncad.org."
+    }
+   ]
+  }
+ ]
+}
