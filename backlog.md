@@ -301,6 +301,8 @@ Rules the routine follows:
 | 57 | queued | WA1890090078 | Hanford 200-Area (USDOE) | WA | Hanford 200-Area (DOE): shipped 79.8 acres looks far too small for the Central Plateau; Hanford tab covers it | — | — |
 | 58 | queued | WA2890090077 | Hanford 300-Area (USDOE) | WA | Hanford 300-Area (DOE): shipped 53.6 acres to check; Hanford tab dossier unit | — | — |
 | 59 | queued | WA4890090075 | Hanford 1100-Area (USDOE) | WA | Hanford 1100-Area (DOE): shipped 0.1 acres looks like a point artifact; Hanford tab dossier unit | — | — |
+| 60 | queued | MD9210020567 | Fort George G. Meade | MD | Fort George G. Meade: federal-facility NPL site; shipped 13,569 acres to check | — | — |
+| 61 | queued | NC1170027261 | Cherry Point Marine Corps Air Station | NC | Cherry Point MCAS: federal-facility NPL site; shipped 12,141 acres to check | — | — |
 | 50 | done 2026-10-31 | CO5210020769 | Rocky Mountain Arsenal (USARMY) | CO | Rocky Mountain Arsenal: NPL deletions and wildlife refuge; shipped 16,910 acres | 2026-10-31 | 2027-01-29 |
 | 48 | done 2026-10-31 | IA7213820445 | Iowa Army Ammunition Plant | IA | Army ammunition plant on the NPL; shipped 19,690 acres to check | 2026-10-31 | 2027-01-29 |
 | 4 | done 2026-10-30 | ACRES-157082 | Colstrip City Shop | MT | 0.7 mi from Colstrip; NorthWestern data-center agreements (Sabey/Atlas deals are Butte-area, not Colstrip) | 2026-10-30 | 2027-01-28 |
