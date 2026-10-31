@@ -2214,7 +2214,7 @@ def test_search_typeahead_keyboard_navigation(page, base_url):
     page.wait_for_function("window.__APP_READY__ === true", timeout=30000)
     page.locator("#search").click()
     page.locator("#search").fill("harbor")
-    page.wait_for_selector("#search-typeahead:not([hidden])", state="attached", timeout=2000)
+    page.wait_for_selector("#search-typeahead:not([hidden])", state="attached", timeout=10000)
     items = page.locator("#search-typeahead .typeahead-item")
     assert items.count() >= 1
     # ArrowDown → first item is active.
@@ -2223,7 +2223,8 @@ def test_search_typeahead_keyboard_navigation(page, base_url):
     assert "active" in first_active
     # Enter → selects that result.
     page.locator("#search").press("Enter")
-    page.wait_for_selector("#detail:not([hidden])", timeout=3000)
+    # A 3 s budget failed on a loaded CI runner (the full suite takes ~20 min there against ~7 locally).
+    page.wait_for_selector("#detail:not([hidden])", timeout=15000)
 
 
 def test_search_typeahead_hidden_for_short_queries(page, base_url):
