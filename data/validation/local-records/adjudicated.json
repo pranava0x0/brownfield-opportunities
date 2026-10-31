@@ -740,7 +740,6 @@
   "state": "MO",
   "researchers": [
    "Claude Haiku 5.5",
-   "Claude Opus 5.5",
    "Claude Sonnet 5.5"
   ],
   "portals": [],
@@ -2775,7 +2774,6 @@
   "state": "SC",
   "researchers": [
    "Claude Haiku 5.5",
-   "Claude Opus 5.5",
    "Claude Sonnet 5.5"
   ],
   "portals": [],

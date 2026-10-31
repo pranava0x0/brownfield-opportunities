@@ -48,3 +48,8 @@ def test_compare_nothing_in_box_is_ok_only_when_stored_is_beyond_it():
     assert at._compare("c", "x", "f", 12.0, None, 6)["status"] == "OK"
     assert at._compare("c", "x", "f", 2.0, None, 6)["status"] == "MISMATCH"
     assert at._compare("c", "x", "f", None, 3.0, 6)["status"] == "MISMATCH"
+
+
+def test_a_nearest_feature_beyond_the_searched_radius_is_inconclusive_not_a_mismatch():
+    r = at._compare("c", "x", "transmission_230kv_mi", 6.5, 7.07, 6)
+    assert r["status"] == "SKIP"

@@ -135,3 +135,10 @@ def test_a_partial_overpass_answer_is_an_error_not_a_measurement(page: Page, bas
     page.goto(f"{base_url}/verify.html?site={SITE}")
     page.wait_for_function("window.__verifyDone === true", timeout=30_000)
     assert rows_text(page, "Substations (OpenStreetMap)").startswith("source error")
+
+
+def test_a_feature_beyond_the_fully_searched_radius_is_not_called_a_mismatch(page: Page, base_url: str):
+    page.goto(f"{base_url}/verify.html?lat=40&lon=-100&name=probe")
+    r = page.evaluate("() => VerifyGeo.compare(6.5, 7.07, 6)")
+    assert r["cls"] == "warn" and "widen the radius" in r["text"]
+    assert page.evaluate("() => VerifyGeo.compare(6.5, 6.6, 12)")["cls"] == "ok"

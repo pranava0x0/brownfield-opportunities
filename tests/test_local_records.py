@@ -84,14 +84,16 @@ def test_http_portals_are_upgraded_and_bad_facts_are_flagged_not_fatal():
     assert lr.invalid_portal({"kind": "assessor", "name": "Assessor", "url": "https://c.example", "access": "maybe"}) is True
 
 
-def test_a_verdict_cannot_bind_to_a_fact_it_did_not_read():
-    facts = [{"source_url": "https://a.example/1"}, {"source_url": "https://b.example/2"}]
-    echoed = [{"index": 0, "source_url": "https://a.example/1", "verdict": "supported"},
-              {"index": 1, "source_url": "https://WRONG.example/9", "verdict": "supported"}]
-    assert set(lr._bind_verdicts(facts, echoed)) == {0}                       # fact 1 was reordered: ignored
-    legacy = [{"index": 0, "verdict": "supported"}, {"index": 1, "verdict": "supported"}]
-    assert set(lr._bind_verdicts(facts, legacy)) == {0, 1}                    # no echo, same count: trusted
-    assert lr._bind_verdicts(facts + [{"source_url": "https://c.example/3"}], legacy) == {}   # no echo, count changed
+def test_a_verdict_binds_only_to_the_exact_fact_it_was_written_for():
+    a = {"kind": "deed", "summary": "Deed recorded.", "source_url": "https://a.example/x", "quote": "deed recorded 2021"}
+    b = {**a, "summary": "Deed recorded for $1."}                       # same URL and quote, different claim
+    reviewed = {"facts": {"0": lr.fact_fingerprint(a)}}
+    verdicts = [{"index": 0, "verdict": "supported"}]
+    assert set(lr._bind_verdicts([a], verdicts, reviewed)) == {0}
+    assert lr._bind_verdicts([b], verdicts, reviewed) == {}              # summary edited after review: verdict withheld
+    assert lr._bind_verdicts([b, a], verdicts, reviewed) == {}           # reordered: index 0 is now a different fact
+    assert lr._bind_verdicts([a], verdicts, None) == {}                  # never stamped: nothing is trusted
+    assert lr._bind_verdicts([a], [{"index": 0, "source_url": "https://z.example/", "verdict": "supported"}], reviewed) == {}
 
 
 def test_non_parcel_ids_are_found_with_search_not_match():

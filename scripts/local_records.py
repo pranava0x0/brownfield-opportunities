@@ -18,6 +18,7 @@ Workflow (files live under data/validation/local-records/):
   queue        tab-sites.json -> queue.json + batches/batch-NN.json (4 sites each)
   parcels      live parcel-layer re-query for sites in states with a statewide layer
   (agents)     research/<batch>.json  <- Haiku;  verdicts/<batch>.json  <- Sonnet
+  stamp        right after a verifier finishes: ledger of fact fingerprints + research dates
   adjudicate   fetch + quote-check + decide -> adjudicated.json, disputes.json
   (agent)      opus/<batch>.json  <- Opus, for disputes only
   apply-opus   fold the Opus decisions in
@@ -305,27 +306,67 @@ def _load_dir(sub: str) -> dict[str, dict]:
     return out
 
 
+LEDGER = WORK / "reviewed.json"
+
+
+def fact_fingerprint(fact: dict) -> str:
+    """Hash of everything a verifier judges: if any of it changes, an earlier verdict no longer applies."""
+    keys = ("kind", "date", "summary", "authority", "reference", "source_url", "quote")
+    blob = json.dumps({k: fact.get(k) for k in keys}, sort_keys=True, ensure_ascii=False)
+    return hashlib.sha256(blob.encode()).hexdigest()[:16]
+
+
+def _ledger() -> dict:
+    return json.loads(LEDGER.read_text()) if LEDGER.exists() else {}
+
+
+def cmd_stamp(args: argparse.Namespace) -> int:
+    """Record which fact contents each verdict was written for, and when the research happened.
+
+    Run once after a verifier finishes and before anyone edits the research file. A site is stamped
+    only when its verdict file is newer than its research file, so a verdict older than an edit can
+    never be frozen onto changed facts. File mtimes are read once here and kept in the committed
+    ledger, so a fresh checkout (which resets mtimes) does not re-date the research.
+    """
+    ledger, stamped = _ledger(), 0
+    for rf in sorted((WORK / "research").glob("*.json")):
+        vf = WORK / "verdicts" / rf.name
+        if not vf.exists():
+            continue
+        if vf.stat().st_mtime < rf.stat().st_mtime:
+            log.warning("%s: verdict file is older than its research file; not stamped", rf.name)
+            continue
+        date = dt.datetime.fromtimestamp(rf.stat().st_mtime).date().isoformat()
+        verdicts = {x["id"]: x for x in json.loads(vf.read_text()).get("sites", [])}
+        for site in json.loads(rf.read_text()).get("sites", []):
+            if site["id"] in ledger and not args.force:
+                continue
+            judged = {x.get("index") for x in (verdicts.get(site["id"]) or {}).get("fact_verdicts", [])}
+            ledger[site["id"]] = {"researched_at": date, "facts": {str(i): fact_fingerprint(f) for i, f in enumerate(site.get("facts", [])) if i in judged}}
+            stamped += 1
+    LEDGER.write_text(json.dumps(ledger, indent=1, sort_keys=True))
+    log.info("stamped %d sites (%d in the ledger)", stamped, len(ledger))
+    return 0
+
+
 def _research_date(site_id: str) -> str:
-    """Date of the research file that holds this site (a re-publish must not re-date old research)."""
-    for f in sorted((WORK / "research").glob("*.json")):
-        if site_id in {x.get("id") for x in json.loads(f.read_text()).get("sites", [])}:
-            return dt.datetime.fromtimestamp(f.stat().st_mtime).date().isoformat()
-    return dt.date.today().isoformat()
+    return (_ledger().get(site_id) or {}).get("researched_at") or dt.date.today().isoformat()
 
 
-def _bind_verdicts(facts: list[dict], verdicts: list[dict]) -> dict[int, dict]:
-    """Map fact index -> verdict, refusing a verdict that may belong to a different fact.
+def _bind_verdicts(facts: list[dict], verdicts: list[dict], reviewed: Optional[dict] = None) -> dict[int, dict]:
+    """Map fact index -> verdict, only where the verdict was written for this exact fact content.
 
-    A verdict that echoes `source_url` must match the fact at that index. A verdict file that
-    does not echo it (older runs) is trusted only when it covers exactly as many facts as exist,
-    so a re-run research file with added or reordered facts cannot inherit an old "supported".
+    `reviewed` is the site's ledger entry: fact index -> fingerprint at the time the verifier read it.
+    A fact absent from the ledger, or whose content has changed since, gets no verdict and is rejected
+    until a verifier reads it again. A verdict that echoes `source_url` must also match.
     """
     out: dict[int, dict] = {}
-    if any("source_url" not in x for x in verdicts) and len(verdicts) != len(facts):
-        return out
+    fingerprints = (reviewed or {}).get("facts") or {}
     for x in verdicts:
         i = x.get("index")
         if not isinstance(i, int) or not 0 <= i < len(facts):
+            continue
+        if fingerprints.get(str(i)) != fact_fingerprint(facts[i]):
             continue
         if "source_url" in x and https_url(str(x["source_url"])) != https_url(str(facts[i].get("source_url", ""))):
             continue
@@ -340,7 +381,7 @@ def cmd_adjudicate(args: argparse.Namespace) -> int:
     adjudicated, disputes = {}, []
     for sid, r in research.items():
         v = verdicts.get(sid, {})
-        by_index = _bind_verdicts(r.get("facts", []), v.get("fact_verdicts", []))
+        by_index = _bind_verdicts(r.get("facts", []), v.get("fact_verdicts", []), _ledger().get(sid))
         portal_ok = {x["url"]: x for x in v.get("portal_verdicts", [])}
         facts = []
         for i, fact in enumerate(r.get("facts", [])):
@@ -387,13 +428,13 @@ def cmd_adjudicate(args: argparse.Namespace) -> int:
 def cmd_apply_opus(args: argparse.Namespace) -> int:
     adj = json.loads((WORK / "adjudicated.json").read_text())
     disputes = json.loads((WORK / "disputes.json").read_text()) if (WORK / "disputes.json").exists() else []
-    asked = {(d["id"], d["index"]): d["fact"]["quote"] for d in disputes}
+    asked = {(d["id"], d["index"]): fact_fingerprint(d["fact"]) for d in disputes}
     n = 0
     for sid, dec in _load_dir("opus").items():
         for d in dec.get("decisions", []):
             fact = adj[sid]["facts"][d["index"]]
             # The decision belongs to the fact that was put to Opus, not to whatever sits at that index now.
-            if asked.get((sid, d["index"])) != fact["quote"]:
+            if asked.get((sid, d["index"])) != fact_fingerprint(fact):
                 continue
             if fact["status"] == "disputed":
                 fact["status"] = "accepted" if d["decision"] == "accept" else "rejected"
@@ -448,10 +489,11 @@ def main() -> int:
     q.add_argument("--per-screen", type=int, default=None, help="Only sites in the first N rows of any screen.")
     for name in ("parcels", "adjudicate", "apply-opus", "publish", "report"):
         sub.add_parser(name)
+    st = sub.add_parser("stamp"); st.add_argument("--force", action="store_true")
     args = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     return {"queue": cmd_queue, "parcels": cmd_parcels, "adjudicate": cmd_adjudicate, "apply-opus": cmd_apply_opus,
-            "publish": cmd_publish, "report": cmd_report}[args.cmd](args)
+            "publish": cmd_publish, "report": cmd_report, "stamp": cmd_stamp}[args.cmd](args)
 
 
 if __name__ == "__main__":

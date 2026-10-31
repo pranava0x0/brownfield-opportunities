@@ -141,6 +141,8 @@
       return claimed >= radius - 0.6 ? {cls: "ok", text: `beyond the ${radius.toFixed(0)} mi view, as claimed`}
         : {cls: "bad", text: `atlas says ${claimed} mi but nothing within ${radius.toFixed(0)} mi`};
     }
+    // Only a box's inscribed circle is fully searched; a feature found farther out may not be the nearest.
+    if (measured > radius) return {cls: "warn", text: `nearest found is ${measured.toFixed(1)} mi, beyond the ${radius.toFixed(0)} mi fully searched; widen the radius`};
     if (claimed == null) return {cls: "warn", text: "source has one; atlas shows none"};
     const d = Math.abs(measured - claimed);
     return d <= MATCH_MI ? {cls: "ok", text: "matches"} : {cls: "bad", text: `differs by ${d.toFixed(2)} mi`};
@@ -208,7 +210,9 @@
       for (const L_ of LAYERS) { groups[L_.key].clearLayers(); }
       let n = 0;
       await Promise.all(LAYERS.map(async L_ => {
-        const radius = sel === "auto" ? Math.min(MAX_AUTO_RADIUS, Math.max(6, (claims[L_.claim] || 0) * 1.5 + 2)) : Number(sel);
+        // The transmission fetch also serves the voltage-qualified rows, whose nearest line can be much farther.
+        const farthest = L_.key === "transmission" ? Math.max(0, ...[L_.claim, ...KV_CLAIMS.map(k => k[1])].map(k => claims[k] || 0)) : (claims[L_.claim] || 0);
+        const radius = sel === "auto" ? Math.min(MAX_AUTO_RADIUS, Math.max(6, farthest * 1.5 + 2)) : Number(sel);
         const r = rows.get(L_.key);
         try {
           const {features, truncated} = await L_.fetch(lat, lon, radius);

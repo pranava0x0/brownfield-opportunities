@@ -166,6 +166,9 @@ def _bbox_features(url: str, lat: float, lon: float, radius_mi: float, where: st
 
 
 def _compare(check: str, id_: str, field: str, stored: Optional[float], measured: Optional[float], radius: float) -> dict:
+    if measured is not None and measured > radius:
+        # Only the box's inscribed circle is fully searched; something nearer may lie outside it.
+        return row(check, id_, field, "SKIP", f"nearest found {measured:.2f} mi lies beyond the {radius:.0f} mi fully searched")
     if measured is None:
         ok = stored is None or stored >= radius - 0.6
         return row(check, id_, field, "OK" if ok else "MISMATCH", f"stored={stored}, nothing in {radius:.0f} mi box")
@@ -181,7 +184,9 @@ def measure_site(id_: str, lat: float, lon: float, stored: dict, fields: list[st
     for field in fields:
         layer = vas.INFRA_LAYERS[field]
         s = stored.get(field)
-        radius = max(6.0, (s or 0) * 1.6 + 3.0)
+        # The transmission fetch also answers the voltage-qualified rows, so size it by the farthest of them.
+        reach = max([s or 0] + [stored.get(f"transmission_{k}kv_mi") or 0 for k in VOLT_THRESHOLDS]) if field == "transmission_mi" else (s or 0)
+        radius = max(6.0, reach * 1.6 + 3.0)
         if radius > 45:
             out.append(row("lines", id_, field, "SKIP", f"stored={s} needs a box over 45 mi"))
             continue

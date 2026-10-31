@@ -26,6 +26,7 @@ case "${1:-}" in
          "then Sonnet verifiers on research/*.json, then: scripts/validate_tabs.sh adjudicate"
     ;;
   adjudicate)
+    $PY scripts/local_records.py stamp      # only stamps sites whose verdicts are newer than their research
     $PY scripts/local_records.py adjudicate
     if [ -s data/validation/local-records/disputes.json ] && [ "$($PY -c "import json;print(len(json.load(open('data/validation/local-records/disputes.json'))))")" != "0" ]; then
       echo "Disputes exist: run the Opus adjudicator (scripts/local_records_prompts/adjudicator.md), then re-run with APPLY=1"
