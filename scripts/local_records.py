@@ -431,8 +431,13 @@ def cmd_apply_opus(args: argparse.Namespace) -> int:
     asked = {(d["id"], d["index"]): fact_fingerprint(d["fact"]) for d in disputes}
     n = 0
     for sid, dec in _load_dir("opus").items():
+        applied_here = 0
         for d in dec.get("decisions", []):
-            fact = adj[sid]["facts"][d["index"]]
+            facts = (adj.get(sid) or {}).get("facts", [])
+            i = d.get("index")
+            if not isinstance(i, int) or not 0 <= i < len(facts):
+                continue                      # the site or fact no longer exists: an obsolete decision
+            fact = facts[i]
             # The decision belongs to the fact that was put to Opus, not to whatever sits at that index now.
             # The decision must name the fingerprint of the fact Opus read, and that must still be the fact at this index.
             if not d.get("fingerprint") or d["fingerprint"] != asked.get((sid, d["index"])) or d["fingerprint"] != fact_fingerprint(fact):
@@ -441,7 +446,9 @@ def cmd_apply_opus(args: argparse.Namespace) -> int:
                 fact["status"] = "accepted" if d["decision"] == "accept" else "rejected"
                 fact["adjudicated_by"] = "opus"
                 n += 1
-        adj[sid]["researchers"] = sorted(set(adj[sid]["researchers"]) | {dec.get("adjudicator", "Claude Opus 5.5")})
+                applied_here += 1
+        if sid in adj and applied_here:             # credit Opus only where its decision was actually used
+            adj[sid]["researchers"] = sorted(set(adj[sid]["researchers"]) | {dec.get("adjudicator", "Claude Opus 5.5")})
     (WORK / "adjudicated.json").write_text(json.dumps(adj, indent=1, ensure_ascii=False))
     log.info("applied %d Opus decisions", n)
     return 0

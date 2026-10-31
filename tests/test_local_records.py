@@ -117,3 +117,14 @@ def test_an_opus_decision_for_an_earlier_fact_at_the_same_index_is_not_applied(t
     (tmp_path / "opus" / "d.json").write_text(json.dumps(good))
     lr.cmd_apply_opus(None)
     assert json.loads((tmp_path / "adjudicated.json").read_text())["S1"]["facts"][0]["status"] == "accepted"
+
+
+def test_obsolete_opus_decisions_are_skipped_not_fatal(tmp_path, monkeypatch):
+    monkeypatch.setattr(lr, "WORK", tmp_path)
+    (tmp_path / "opus").mkdir()
+    (tmp_path / "adjudicated.json").write_text(json.dumps({"S1": {"researchers": [], "facts": []}}))
+    (tmp_path / "disputes.json").write_text("[]")
+    stale = {"sites": [{"id": "S1", "decisions": [{"index": 0, "fingerprint": "x", "decision": "accept"}]},
+                       {"id": "GONE", "decisions": [{"index": 3, "fingerprint": "x", "decision": "accept"}]}]}
+    (tmp_path / "opus" / "d.json").write_text(json.dumps(stale))
+    assert lr.cmd_apply_opus(None) == 0
