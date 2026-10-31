@@ -1,0 +1,118 @@
+{
+  "batch": "batch-05",
+  "researcher": "Claude Haiku 5.5",
+  "sites": [
+    {
+      "id": "FUDS-G05OH0156",
+      "name": "RIDGEWOOD ARMY WEAPONS PLANT",
+      "researcher": "Claude Haiku 5.5",
+      "portals": [
+        {
+          "kind": "assessor",
+          "name": "Hamilton County Auditor Property Search",
+          "url": "https://wedge1.hcauditor.org/",
+          "access": "free_search",
+          "note": "Opened. The page is titled Property Search and offers parcel number, street address, and owner name search. Fee and login status are not stated on the page. No search was run for parcel 39061-2390003002800 or for the atlas address."
+        }
+      ],
+      "facts": [],
+      "gaps": [
+        "No opened source names a Ridgewood Army Weapons Plant in Hamilton County. The only Ridgewood lead is a National Archives finding-aid entry for Ridgewood Steel Co., Cincinnati, which is a file index and is not tied to this parcel.",
+        "The Hamilton County Auditor search was checked only at the field-list level. Parcel 39061-2390003002800 was not searched, so ownership, transfer and tax status are unknown.",
+        "The Hamilton County Recorder domain did not resolve, so deeds and liens could not be checked.",
+        "The Hamilton County Treasurer page URL returned HTTP 404, so tax and delinquency status could not be checked.",
+        "The City of Cincinnati permit and code-enforcement portals were not opened, so permit and code history is unknown.",
+        "The site record has no address. Matching it to a parcel rests only on the atlas parcel id, which was not tested."
+      ]
+    },
+    {
+      "id": "FUDS-I04FL0038",
+      "name": "RICHMOND NAS",
+      "researcher": "Claude Haiku 5.5",
+      "portals": [
+        {
+          "kind": "assessor",
+          "name": "Miami-Dade Property Appraiser Property Search",
+          "url": "https://www.miamidadepa.gov/pa/real-estate/property-search.page",
+          "access": "free_search",
+          "note": "Opened after a 301 redirect from miamidade.gov/pa. The page describes a search of Miami-Dade properties and offers folio number, address, name and subdivision search. Fee status is not stated. No folio search was run for parcel 3059360000050."
+        }
+      ],
+      "facts": [
+        {
+          "kind": "other",
+          "date": "1948",
+          "summary": "The Wikipedia article on Naval Air Station Richmond says the University of Miami has used the former base as a research facility and storage area since 1948. The article does not name the parcel, so the link to atlas parcel 3059360000050 is unconfirmed.",
+          "authority": "Wikipedia (secondary source on the former Naval Air Station Richmond)",
+          "reference": "Naval Air Station Richmond, Wikipedia",
+          "source_url": "https://en.wikipedia.org/wiki/Naval_Air_Station_Richmond",
+          "quote": "Since 1948, the University of Miami has used it as a research facility and storage area."
+        }
+      ],
+      "gaps": [
+        "The USACE Jacksonville District Richmond NAS page returned HTTP 403, so the official list of current owners could not be read. The current-owner list in the search summary is unverified.",
+        "The USACE Richmond NAS FUDS community relations plan at the USACE digital library returned no readable text.",
+        "No folio search was run in the Miami-Dade Property Appraiser, so the parcel's owner, sale and tax history are unknown.",
+        "Miami-Dade Clerk official records and the Richmond Heights building and zoning records were not opened, so deeds, liens and permits are unknown.",
+        "The search summary said FCI Miami may sit on former base land. The FCI Miami Wikipedia page does not mention the base, so that link is unconfirmed and no fact is recorded.",
+        "Acreage sources conflict (2,100, 2,000 and 2,500 acres in search summaries). None of these was verified against a fetched page, so no acreage fact is recorded."
+      ]
+    },
+    {
+      "id": "FUDS-I04FL0884",
+      "name": "NAS JACKSONVILLE DISPOSED OUTPARCELS",
+      "researcher": "Claude Haiku 5.5",
+      "portals": [
+        {
+          "kind": "assessor",
+          "name": "Duval County Property Appraiser (City of Jacksonville site)",
+          "url": "https://www.jacksonville.gov/departments/property-appraiser",
+          "access": "free_search",
+          "note": "Opened after a 302 redirect from coj.net. The page offers a Basic Search by real estate number, property owner information or property address. Fee status is not stated on the page. The paslapp.duvalpa.com host did not resolve and www.duvalpa.com failed its TLS check, so neither was used."
+        }
+      ],
+      "facts": [],
+      "gaps": [
+        "No fetched source describes an outparcel disposal at NAS Jacksonville. The search results gave only background pages.",
+        "The Duval County Property Appraiser was not searched for parcel 0984050000R, so owner, sale and tax history are unknown.",
+        "The 2005 ATSDR public health assessment PDF returned binary data without readable text, so it could not be checked for disposal or transfer details.",
+        "Acreage sources conflict (3,896 acres in one 2005 report and about 3,400 acres on a state page, both from search summaries). Neither was verified against a fetched page, and the site has no acreage in this record.",
+        "The record has no address or zip, so the match to a parcel rests only on the atlas parcel id, which was not tested."
+      ]
+    },
+    {
+      "id": "FUDS-I04SC0025",
+      "name": "CONWAY BMB&GUNRY RNG",
+      "researcher": "Claude Haiku 5.5",
+      "portals": [
+        {
+          "kind": "assessor",
+          "name": "Horry County Assessor (Land Records applications)",
+          "url": "https://www.horrycountysc.gov/departments/assessor/",
+          "access": "unknown",
+          "note": "Opened. The page says to use the Land Records applications to find a PIN by address or owner name. Fee status is not stated. No search was run."
+        }
+      ],
+      "facts": [
+        {
+          "kind": "other",
+          "date": "2018-08",
+          "summary": "A 2018 news report describes the former Conway Bombing and Gunnery Range as covering more than 55,000 acres, including parts of Carolina Forest. The same report's 'unacceptable risk' finding is attributed to three of four range sites, not named as Conway.",
+          "authority": "My Horry News (regional newspaper)",
+          "reference": "Report: Former Horry County bombing range sites pose unacceptable risk, Aug 9, 2018 (updated Aug 16, 2018)",
+          "source_url": "https://www.myhorrynews.com/news/local/horry_county/report-former-horry-county-bombing-range-sites-pose-unacceptable-risk/article_27a4ac86-9bda-11e8-9c9a-e3a0151e837a.html",
+          "quote": "The former Conway Bombing and Gunnery Range covers more than 55,000 acres, including parts of Carolina Forest."
+        }
+      ],
+      "gaps": [
+        "The USACE Savannah District Conway BGR project page returned HTTP 403, so the Corps' acreage, acquisition, surplus and current-ownership statements could not be read.",
+        "The USACE 2018 Conway BGR fact sheet PDF returned HTTP 403, so it could not be checked.",
+        "The WBTW report on the Corps' plan for no further remediation returned HTTP 403, so the date and munitions response site named in that plan are unknown.",
+        "The 2025 Record of Decision for Range III was found in search results but not opened, so no decision is recorded.",
+        "The Army-versus-Air Force role in the range is unresolved. The search summaries disagree, and neither was verified against a fetched page.",
+        "The atlas owner list (multiple private owners) was not checked against any parcel record, and the atlas parcel id is null. Horry County parcel search was not run, so no owner, sale or tax record is recorded.",
+        "The Horry County plat-notation and impact-safety-zone policy was described in a search summary but was not opened, so it is not recorded as a fact."
+      ]
+    }
+  ]
+}

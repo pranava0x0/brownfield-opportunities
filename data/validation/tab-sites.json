@@ -1,0 +1,2322 @@
+{
+ "generated_at": "2026-10-31T14:53:41+00:00",
+ "top": 10,
+ "corpus_sites": [
+  {
+   "id": "ACRES-121721",
+   "program": "brownfield",
+   "name": "Former Salvage Yard",
+   "address": "3745 South 3rd Street",
+   "city": "Ironton",
+   "county": "Lawrence",
+   "state": "OH",
+   "zip": "45638",
+   "lat": 38.500302,
+   "lon": -82.65591,
+   "acreage": null,
+   "parcel_acreage": 0.03,
+   "current_owner": null,
+   "current_owner_source": "Ohio OGRIP Statewide Parcels (area only)",
+   "parcel_id": "39087-36-044-1000.000",
+   "tabs": [
+    {
+     "tab": "retired",
+     "rank": 4,
+     "via": "GHGRP-1005614"
+    },
+    {
+     "tab": "retired",
+     "rank": 5,
+     "via": "GHGRP-1005615"
+    }
+   ]
+  },
+  {
+   "id": "ACRES-136961",
+   "program": "brownfield",
+   "name": "Former Commonwealth Steet site",
+   "address": "1162 16th Street",
+   "city": "Granite City",
+   "county": "Madison",
+   "state": "IL",
+   "zip": "62040",
+   "lat": 38.698887,
+   "lon": -90.158397,
+   "acreage": null,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "retired",
+     "rank": 10,
+     "via": "GHGRP-1003757"
+    }
+   ]
+  },
+  {
+   "id": "ACRES-230821",
+   "program": "brownfield",
+   "name": "Midland Hotel Site",
+   "address": "300 Block of Midland Avenue",
+   "city": "MIDLAND",
+   "county": "BEAVER",
+   "state": "PA",
+   "zip": "15059",
+   "lat": 40.637218,
+   "lon": -80.453385,
+   "acreage": null,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "retired",
+     "rank": 8,
+     "via": "GHGRP-1004729"
+    }
+   ]
+  },
+  {
+   "id": "ACRES-232701",
+   "program": "brownfield",
+   "name": "Spence Field",
+   "address": "500 McKee St and 601 N. Centerville St",
+   "city": "Sturgis",
+   "county": "SAINT JOSEPH",
+   "state": "MI",
+   "zip": "49091",
+   "lat": 41.805759,
+   "lon": -85.428399,
+   "acreage": null,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "retired",
+     "rank": 1,
+     "via": "GHGRP-1002853"
+    }
+   ]
+  },
+  {
+   "id": "ACRES-48321",
+   "program": "brownfield",
+   "name": "City of Corona Site",
+   "address": "1601 Sherborn Rd",
+   "city": "Corona",
+   "county": "Riverside",
+   "state": "CA",
+   "zip": "92879",
+   "lat": 33.860164,
+   "lon": -117.524161,
+   "acreage": null,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "retired",
+     "rank": 7,
+     "via": "GHGRP-1011361"
+    }
+   ]
+  },
+  {
+   "id": "ACRES-53022",
+   "program": "brownfield",
+   "name": "Riverview Apartments",
+   "address": "1013 Douglas St",
+   "city": "Kingsport",
+   "county": "Sullivan",
+   "state": "TN",
+   "zip": "37662",
+   "lat": 36.53847,
+   "lon": -82.55279,
+   "acreage": null,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "retired",
+     "rank": 2,
+     "via": "GHGRP-1004472"
+    }
+   ]
+  },
+  {
+   "id": "AL7210020742",
+   "program": "superfund",
+   "name": "USARMY/NASA REDSTONE ARSENAL",
+   "address": "Postal Address is unavailable for the Site",
+   "city": "HUNTSVILLE",
+   "county": "MADISON",
+   "state": "AL",
+   "zip": "35808",
+   "lat": 34.629981,
+   "lon": -86.653678,
+   "acreage": 38491.0,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "civilian",
+     "rank": null,
+     "via": "bellefonte-al"
+    }
+   ]
+  },
+  {
+   "id": "ALN000410750",
+   "program": "superfund",
+   "name": "35TH AVENUE",
+   "address": "3500 35TH N.",
+   "city": "BIRMINGHAM",
+   "county": "JEFFERSON",
+   "state": "AL",
+   "zip": "35207",
+   "lat": 33.560637,
+   "lon": -86.801738,
+   "acreage": 601.0,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "dc",
+     "rank": 1,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "CA2570024453",
+   "program": "superfund",
+   "name": "GEORGE AIR FORCE BASE",
+   "address": "AIR BASE RD- NR ST RTE 395",
+   "city": "VICTORVILLE",
+   "county": "SAN BERNARDINO",
+   "state": "CA",
+   "zip": "92392",
+   "lat": 34.588446,
+   "lon": -117.357881,
+   "acreage": 5268.6,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "dc",
+     "rank": 4,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "CA2890090002",
+   "program": "superfund",
+   "name": "LAWRENCE LIVERMORE NATL LAB (SITE 300) (USDOE)",
+   "address": "CORRAL HOLLOW ROAD",
+   "city": "TRACY",
+   "county": "SAN JOAQUIN",
+   "state": "CA",
+   "zip": "95376",
+   "lat": 37.653995,
+   "lon": -121.529707,
+   "acreage": 6809.7,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "dc",
+     "rank": 10,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "FL6170024412",
+   "program": "superfund",
+   "name": "JACKSONVILLE NAVAL AIR STATION",
+   "address": "NAS BLDG 826",
+   "city": "JACKSONVILLE",
+   "county": "DUVAL",
+   "state": "FL",
+   "zip": "32212",
+   "lat": 30.219602,
+   "lon": -81.685421,
+   "acreage": 3803.5,
+   "parcel_acreage": 3511.12,
+   "current_owner": "U S A AIR BASE",
+   "current_owner_source": "Florida FDOR/FGIO Statewide Cadastral",
+   "parcel_id": "0984050000R",
+   "tabs": [
+    {
+     "tab": "nickel",
+     "rank": 2,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "FLD980847016",
+   "program": "superfund",
+   "name": "BROWN'S DUMP",
+   "address": "4300 PEARCE STREET",
+   "city": "JACKSONVILLE",
+   "county": "DUVAL",
+   "state": "FL",
+   "zip": "32209",
+   "lat": 30.366414,
+   "lon": -81.6865,
+   "acreage": 166.4,
+   "parcel_acreage": 14.6,
+   "current_owner": "JABEZ APARTMENTS AND HOMES LLC",
+   "current_owner_source": "Florida FDOR/FGIO Statewide Cadastral",
+   "parcel_id": "0855890000R",
+   "tabs": [
+    {
+     "tab": "port",
+     "rank": 8,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "FLSFN0407002",
+   "program": "superfund",
+   "name": "JACKSONVILLE ASH SITE",
+   "address": "1093 WEST 6TH STREET",
+   "city": "JACKSONVILLE",
+   "county": "DUVAL",
+   "state": "FL",
+   "zip": "32209",
+   "lat": 30.341429,
+   "lon": -81.666719,
+   "acreage": 487.6,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "port",
+     "rank": 4,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "FUDS-A04MS0007",
+   "program": "fuds",
+   "name": "CAMP/FT MCCAIN",
+   "address": null,
+   "city": "GRENADA",
+   "county": "GRENADA",
+   "state": "MS",
+   "zip": null,
+   "lat": 33.695906,
+   "lon": -89.690501,
+   "acreage": 41903.2,
+   "parcel_acreage": null,
+   "current_owner": "Private",
+   "current_owner_source": "USACE FUDS",
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "solar",
+     "rank": 10,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "FUDS-A04MS0124",
+   "program": "fuds",
+   "name": "GULFPORT ARMY AIR FIELD",
+   "address": null,
+   "city": "GULFPORT",
+   "county": "HARRISON",
+   "state": "MS",
+   "zip": null,
+   "lat": 30.407073,
+   "lon": -89.063013,
+   "acreage": 2465.9,
+   "parcel_acreage": null,
+   "current_owner": "Local government — City , City Of Gulfport / Private — Multiple Private Owners, Private",
+   "current_owner_source": "USACE FUDS",
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "port",
+     "rank": 5,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "FUDS-B07MO0138",
+   "program": "fuds",
+   "name": "FT CROWDER",
+   "address": null,
+   "city": "NEOSHO",
+   "county": "NEWTON",
+   "state": "MO",
+   "zip": null,
+   "lat": 36.771368,
+   "lon": -94.298624,
+   "acreage": 42488.9,
+   "parcel_acreage": null,
+   "current_owner": "Local government — City Industrial Park, A Community College, The City Of Neosho And The Missouri Army National Guard. , City Of Neosho, Missouri And Newton And Mcdonald Counties / Private — Industrial Park, A Community College, The City Of Neosho And The",
+   "current_owner_source": "USACE FUDS",
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "solar",
+     "rank": 9,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "FUDS-B07MO0145",
+   "program": "fuds",
+   "name": "JEFFERSON BARRACKS RIF RG",
+   "address": null,
+   "city": "BARNHART",
+   "county": "JEFFERSON",
+   "state": "MO",
+   "zip": null,
+   "lat": 38.339275,
+   "lon": -90.429275,
+   "acreage": 1485.1,
+   "parcel_acreage": null,
+   "current_owner": "Private",
+   "current_owner_source": "USACE FUDS",
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "dc",
+     "rank": 7,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "FUDS-B07MO0173",
+   "program": "fuds",
+   "name": "TYSON VALLEY POWDER FARM",
+   "address": null,
+   "city": "EUREKA",
+   "county": "ST LOUIS",
+   "state": "MO",
+   "zip": null,
+   "lat": 38.522629,
+   "lon": -90.560712,
+   "acreage": 2569.3,
+   "parcel_acreage": null,
+   "current_owner": "Local government — County Saint Louis County-Lone Elk Park And West Tyson Park., St. Louis County / Private — Washington University-Biological Field Station For Research., Washington University",
+   "current_owner_source": "USACE FUDS",
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "nickel",
+     "rank": 4,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "FUDS-B07MO0988",
+   "program": "fuds",
+   "name": "FOREST PARK RECREATION CAMP",
+   "address": null,
+   "city": "SAINT LOUIS",
+   "county": "ST LOUIS",
+   "state": "MO",
+   "zip": null,
+   "lat": 38.638197,
+   "lon": -90.283757,
+   "acreage": 1291.9,
+   "parcel_acreage": null,
+   "current_owner": "Local government — City City Of St. Louis, Missouri",
+   "current_owner_source": "USACE FUDS",
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "nickel",
+     "rank": 9,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "FUDS-B08CO0014",
+   "program": "fuds",
+   "name": "CAMP HALE",
+   "address": null,
+   "city": "WHITE RIVER NF",
+   "county": "EAGLE",
+   "state": "CO",
+   "zip": null,
+   "lat": 39.453638,
+   "lon": -106.309321,
+   "acreage": 145412.7,
+   "parcel_acreage": 139802.0,
+   "current_owner": "Federal / Private — Residences, Residences / Usfs: National Forest",
+   "current_owner_source": "USACE FUDS",
+   "parcel_id": "220317100001",
+   "tabs": [
+    {
+     "tab": "solar",
+     "rank": 1,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "FUDS-B08CO0021",
+   "program": "fuds",
+   "name": "BUCKLEY FIELD",
+   "address": null,
+   "city": "AURORA",
+   "county": "ARAPAHOE",
+   "state": "CO",
+   "zip": null,
+   "lat": 39.651196,
+   "lon": -104.622904,
+   "acreage": 64891.4,
+   "parcel_acreage": null,
+   "current_owner": "Local government — County City Of Aurora And Arapahoe County , City Of Aurora, Colorado / Private — Various / State — Colorado State Land Board",
+   "current_owner_source": "USACE FUDS",
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "solar",
+     "rank": 2,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "FUDS-B08WY0017",
+   "program": "fuds",
+   "name": "POLE MOUNTAIN",
+   "address": null,
+   "city": "LARAMIE",
+   "county": "ALBANY",
+   "state": "WY",
+   "zip": null,
+   "lat": 41.22639,
+   "lon": -105.376626,
+   "acreage": 55308.3,
+   "parcel_acreage": null,
+   "current_owner": "Federal / Usfs: The Property Is Currently Part Of Medicine Bow National Forest And Is Used For Recreation And Grazing.",
+   "current_owner_source": "USACE FUDS",
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "solar",
+     "rank": 6,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "FUDS-C03PA0042",
+   "program": "fuds",
+   "name": "FRANKFORD ARSENAL",
+   "address": null,
+   "city": "PHILADELPHIA",
+   "county": "PHILADELPHIA",
+   "state": "PA",
+   "zip": null,
+   "lat": 40.008607,
+   "lon": -75.06217,
+   "acreage": 108.6,
+   "parcel_acreage": null,
+   "current_owner": "Private — Hankin Management / Pennsylvania Fish Commission. / State — Hankin Management / Pennsylvania Fish Commission.",
+   "current_owner_source": "USACE FUDS",
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "port",
+     "rank": 3,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "FUDS-D01MA0480",
+   "program": "fuds",
+   "name": "FORT WINTHROP",
+   "address": null,
+   "city": "BOSTON",
+   "county": "SUFFOLK",
+   "state": "MA",
+   "zip": null,
+   "lat": 42.350556,
+   "lon": -71.008333,
+   "acreage": null,
+   "parcel_acreage": 2330.43,
+   "current_owner": "Other",
+   "current_owner_source": "USACE FUDS",
+   "parcel_id": "F_792840_2955777",
+   "tabs": [
+    {
+     "tab": "port",
+     "rank": 6,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "FUDS-D01ME0119",
+   "program": "fuds",
+   "name": "FORT LEVETT",
+   "address": null,
+   "city": "CUSHING ISLAND",
+   "county": "CUMBERLAND",
+   "state": "ME",
+   "zip": null,
+   "lat": 43.641688,
+   "lon": -70.196922,
+   "acreage": 122.8,
+   "parcel_acreage": 51.32,
+   "current_owner": "Private — Multiple Private Owners, Private Cushing Island Association,, Cushing Ilsand Trust And Private Owners.",
+   "current_owner_source": "USACE FUDS",
+   "parcel_id": "106C A008",
+   "tabs": [
+    {
+     "tab": "port",
+     "rank": 7,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "FUDS-E05MI1213",
+   "program": "fuds",
+   "name": "CUSTER FIELD OLF",
+   "address": null,
+   "city": null,
+   "county": "MONROE",
+   "state": "MI",
+   "zip": null,
+   "lat": 41.935053,
+   "lon": -83.438525,
+   "acreage": 455.1,
+   "parcel_acreage": null,
+   "current_owner": "Local government — City Munson Park And Monroe-Custer Airport.",
+   "current_owner_source": "USACE FUDS",
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "port",
+     "rank": 10,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "FUDS-E05WI0057",
+   "program": "fuds",
+   "name": "BILLY MITCHELL FIELD",
+   "address": null,
+   "city": "MILWAUKEE",
+   "county": "MILWAUKEE",
+   "state": "WI",
+   "zip": null,
+   "lat": 42.944444,
+   "lon": -87.9,
+   "acreage": null,
+   "parcel_acreage": 1503.82,
+   "current_owner": "Local government — County Airport Milwaukee County.",
+   "current_owner_source": "USACE FUDS",
+   "parcel_id": "6409999120",
+   "tabs": [
+    {
+     "tab": "nickel",
+     "rank": 7,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "FUDS-G05OH0156",
+   "program": "fuds",
+   "name": "RIDGEWOOD ARMY WEAPONS PLANT",
+   "address": null,
+   "city": "CINCINNATI",
+   "county": "HAMILTON",
+   "state": "OH",
+   "zip": null,
+   "lat": 39.193068,
+   "lon": -84.491035,
+   "acreage": 36.6,
+   "parcel_acreage": 5.24,
+   "current_owner": "Local government — City City Of Cincinnati",
+   "current_owner_source": "USACE FUDS",
+   "parcel_id": "39061-2390003002800",
+   "tabs": [
+    {
+     "tab": "retired",
+     "rank": 3,
+     "via": "GHGRP-1005573"
+    }
+   ]
+  },
+  {
+   "id": "FUDS-I04FL0038",
+   "program": "fuds",
+   "name": "RICHMOND NAS",
+   "address": null,
+   "city": "RICHMOND HEIGHTS",
+   "county": "MIAMI-DADE",
+   "state": "FL",
+   "zip": null,
+   "lat": 25.611901,
+   "lon": -80.398095,
+   "acreage": 2106.5,
+   "parcel_acreage": 723.43,
+   "current_owner": "Dod: Carl Dokter / Federal — Nat'l Institute Of Health, Perrine Center., Federal Bureau Of Prisons / Local government — County Gold Coast Rr Museum. Metro Zoo. ., Miami-Dade County / Private — University Of Miami South Campus.",
+   "current_owner_source": "USACE FUDS",
+   "parcel_id": "3059360000050",
+   "tabs": [
+    {
+     "tab": "nickel",
+     "rank": 5,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "FUDS-I04FL0101",
+   "program": "fuds",
+   "name": "FT LAUDERDALE S STRAFING TARGET",
+   "address": null,
+   "city": "PLANTATION",
+   "county": "BROWARD",
+   "state": "FL",
+   "zip": null,
+   "lat": 26.158611,
+   "lon": -80.424444,
+   "acreage": null,
+   "parcel_acreage": 642.49,
+   "current_owner": "State — Water Conservation Area.",
+   "current_owner_source": "USACE FUDS",
+   "parcel_id": "493926000010",
+   "tabs": [
+    {
+     "tab": "port",
+     "rank": 9,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "FUDS-I04FL0285",
+   "program": "fuds",
+   "name": "USAF IMESON AIRPORT",
+   "address": null,
+   "city": "JACKSONVILLE",
+   "county": "DUVAL",
+   "state": "FL",
+   "zip": null,
+   "lat": 30.420072,
+   "lon": -81.63776,
+   "acreage": 1229.3,
+   "parcel_acreage": 8.88,
+   "current_owner": "Private — Light Indrustries Comm.",
+   "current_owner_source": "USACE FUDS",
+   "parcel_id": "1087641700R",
+   "tabs": [
+    {
+     "tab": "nickel",
+     "rank": 10,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "FUDS-I04FL0884",
+   "program": "fuds",
+   "name": "NAS JACKSONVILLE DISPOSED OUTPARCELS",
+   "address": null,
+   "city": "JACKSONVILLE",
+   "county": "DUVAL",
+   "state": "FL",
+   "zip": null,
+   "lat": 30.226111,
+   "lon": -81.696944,
+   "acreage": null,
+   "parcel_acreage": 3511.12,
+   "current_owner": "Federal — Highway, Jax Naval Air Station / State — Highway, Jax Naval Air Station",
+   "current_owner_source": "USACE FUDS",
+   "parcel_id": "0984050000R",
+   "tabs": [
+    {
+     "tab": "nickel",
+     "rank": 3,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "FUDS-I04SC0025",
+   "program": "fuds",
+   "name": "CONWAY BMB&GUNRY RNG",
+   "address": null,
+   "city": "CONWAY",
+   "county": "HORRY",
+   "state": "SC",
+   "zip": null,
+   "lat": 33.788294,
+   "lon": -78.853668,
+   "acreage": 55388.5,
+   "parcel_acreage": null,
+   "current_owner": "Private — Multiple Private Owners, Numerous Private Owners, Private , Residential Development",
+   "current_owner_source": "USACE FUDS",
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "solar",
+     "rank": 5,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "FUDS-J09CA1017",
+   "program": "fuds",
+   "name": "Lake Chabot Machine Gun Range",
+   "address": null,
+   "city": "CASTRO VALLEY",
+   "county": "ALAMEDA",
+   "state": "CA",
+   "zip": null,
+   "lat": 37.752589,
+   "lon": -122.076021,
+   "acreage": 969.3,
+   "parcel_acreage": null,
+   "current_owner": "Local government — City East Bay Municipal Utility District Currently Owns And Keeps The Land Undeveloped Due To A Watershed On Site.",
+   "current_owner_source": "USACE FUDS",
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "dc",
+     "rank": 9,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "FUDS-J09CA7074",
+   "program": "fuds",
+   "name": "ADVANCED BASE DEPOT-RIFLE RANGE",
+   "address": null,
+   "city": "OXNARD",
+   "county": "VENTURA",
+   "state": "CA",
+   "zip": null,
+   "lat": 34.185478,
+   "lon": -119.239527,
+   "acreage": 342.3,
+   "parcel_acreage": null,
+   "current_owner": "Private / State",
+   "current_owner_source": "USACE FUDS",
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "port",
+     "rank": 2,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "FUDS-K06AR0051",
+   "program": "fuds",
+   "name": "SOUTHWESTERN PROV GROUNDS",
+   "address": null,
+   "city": "HOPE",
+   "county": "HEMPSTEAD",
+   "state": "AR",
+   "zip": null,
+   "lat": 33.827213,
+   "lon": -93.673866,
+   "acreage": 50255.4,
+   "parcel_acreage": null,
+   "current_owner": "Local government — City The Airport Is City Owned Property. / Private — Over 200 Private Property Owners Have Been Identified. / State — The Wildlife Management Area Is State Owned Property.",
+   "current_owner_source": "USACE FUDS",
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "solar",
+     "rank": 8,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "FUDS-K06AR0130",
+   "program": "fuds",
+   "name": "VAN BUREN RAILWAY OPERATING BATTALION",
+   "address": null,
+   "city": "VAN BUREN",
+   "county": "CRAWFORD",
+   "state": "AR",
+   "zip": null,
+   "lat": 35.431944,
+   "lon": -94.3375,
+   "acreage": null,
+   "parcel_acreage": null,
+   "current_owner": "Other — Federal Public Housing Administration / Low-Income Housing Project",
+   "current_owner_source": "USACE FUDS",
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "retired",
+     "rank": 9,
+     "via": "GHGRP-1008032"
+    }
+   ]
+  },
+  {
+   "id": "FUDS-K06TX0015",
+   "program": "fuds",
+   "name": "CAMP HOWZE",
+   "address": null,
+   "city": "GAINESVILLE",
+   "county": "COOKE",
+   "state": "TX",
+   "zip": null,
+   "lat": 33.78342,
+   "lon": -97.267542,
+   "acreage": 58702.8,
+   "parcel_acreage": null,
+   "current_owner": "Local government — The City Of Gainesville Owns Moss Lake / Private — Multiple Private Owners, Private Numerous Private Owners",
+   "current_owner_source": "USACE FUDS",
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "solar",
+     "rank": 4,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "GAD980838619",
+   "program": "superfund",
+   "name": "MATHIS BROTHERS LANDFILL (SOUTH MARBLE TOP ROAD)",
+   "address": "S MARBLE TOP RD",
+   "city": "KENSINGTON",
+   "county": "WALKER",
+   "state": "GA",
+   "zip": "30728",
+   "lat": 34.796805,
+   "lon": -85.377298,
+   "acreage": 17.6,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "civilian",
+     "rank": null,
+     "via": "bellefonte-al"
+    }
+   ]
+  },
+  {
+   "id": "ILD096731468",
+   "program": "superfund",
+   "name": "NL INDUSTRIES/TARACORP LEAD SMELTER",
+   "address": "16TH & CLEVELAND BLVD",
+   "city": "GRANITE CITY",
+   "county": "MADISON",
+   "state": "IL",
+   "zip": "62040",
+   "lat": 38.694613,
+   "lon": -90.151948,
+   "acreage": 1367.4,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "nickel",
+     "rank": 8,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "ILN000510192",
+   "program": "superfund",
+   "name": "PEOPLES GAS CRAWFORD STATION FORMER MGP",
+   "address": "3500 S. PULASKI RD (FORMERLY CRAWFORD AV",
+   "city": "CHICAGO",
+   "county": "COOK",
+   "state": "IL",
+   "zip": "60623",
+   "lat": 41.827052,
+   "lon": -87.731361,
+   "acreage": 258.7,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "port",
+     "rank": 1,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "MI0001119106",
+   "program": "superfund",
+   "name": "AIRCRAFT COMPONENTS (D & L SALES)",
+   "address": "671 NORTH SHORE DRIVE",
+   "city": "BENTON HARBOR",
+   "county": "BERRIEN",
+   "state": "MI",
+   "zip": "49022",
+   "lat": 42.126406,
+   "lon": -86.453802,
+   "acreage": 26.0,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "civilian",
+     "rank": null,
+     "via": "palisades-mi"
+    }
+   ]
+  },
+  {
+   "id": "MID000260281",
+   "program": "superfund",
+   "name": "KENTWOOD LANDFILL",
+   "address": "4900 WALMA AVENUE",
+   "city": "KENTWOOD",
+   "county": "KENT",
+   "state": "MI",
+   "zip": "49512",
+   "lat": 42.873563,
+   "lon": -85.591022,
+   "acreage": 113.1,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "dc",
+     "rank": 8,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "MID005107222",
+   "program": "superfund",
+   "name": "BENDIX CORP./ALLIED AUTOMOTIVE",
+   "address": "3737 RED ARROW HIGHWAY",
+   "city": "ST. JOSEPH",
+   "county": "BERRIEN",
+   "state": "MI",
+   "zip": "49085",
+   "lat": 42.052071,
+   "lon": -86.512822,
+   "acreage": 154.5,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "civilian",
+     "rank": null,
+     "via": "palisades-mi"
+    }
+   ]
+  },
+  {
+   "id": "MID017422304",
+   "program": "superfund",
+   "name": "MCLOUTH STEEL CORP",
+   "address": "1491 WEST JEFFERSON AVENUE",
+   "city": "TRENTON",
+   "county": "WAYNE",
+   "state": "MI",
+   "zip": "48183",
+   "lat": 42.162943,
+   "lon": -83.17022,
+   "acreage": 195.7,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "civilian",
+     "rank": null,
+     "via": "fermi-mi"
+    }
+   ]
+  },
+  {
+   "id": "MID062222997",
+   "program": "superfund",
+   "name": "BUTTERWORTH #2 LANDFILL",
+   "address": "1450 BUTTERWORTH ST SW",
+   "city": "GRAND RAPIDS",
+   "county": "KENT",
+   "state": "MI",
+   "zip": "49504",
+   "lat": 42.952602,
+   "lon": -85.699605,
+   "acreage": 189.9,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "dc",
+     "rank": 2,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "MID980410617",
+   "program": "superfund",
+   "name": "BURROWS SANITATION",
+   "address": "ME1/4 SEC10 R16W T3S",
+   "city": "HARTFORD",
+   "county": "VAN BUREN",
+   "state": "MI",
+   "zip": "49057",
+   "lat": 42.223571,
+   "lon": -86.149904,
+   "acreage": 12.8,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "civilian",
+     "rank": null,
+     "via": "palisades-mi"
+    }
+   ]
+  },
+  {
+   "id": "MID985574227",
+   "program": "superfund",
+   "name": "LOWER ECORSE CREEK DUMP",
+   "address": "Postal Address is unavailable for the Site",
+   "city": "WYANDOTTE",
+   "county": "WAYNE",
+   "state": "MI",
+   "zip": "48192",
+   "lat": 42.219249,
+   "lon": -83.165732,
+   "acreage": 25.6,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "civilian",
+     "rank": null,
+     "via": "fermi-mi"
+    }
+   ]
+  },
+  {
+   "id": "MIN000510362",
+   "program": "superfund",
+   "name": "DSC MCLOUTH STEEL GIBRALTAR PLANT",
+   "address": "28000 WEST JEFFERSON STREET",
+   "city": "GIBRALTAR",
+   "county": "WAYNE",
+   "state": "MI",
+   "zip": "48173-9736",
+   "lat": 42.103416,
+   "lon": -83.21135,
+   "acreage": 651.4,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "civilian",
+     "rank": null,
+     "via": "fermi-mi"
+    }
+   ]
+  },
+  {
+   "id": "MOD980633176",
+   "program": "superfund",
+   "name": "ST. LOUIS AIRPORT/HAZELWOOD INTERIM STORAGE/FUTURA COATINGS CO.",
+   "address": "BROWN ROAD N OF AIRPORT",
+   "city": "ST. LOUIS COUNTY",
+   "county": "ST. LOUIS",
+   "state": "MO",
+   "zip": "63145",
+   "lat": 38.71451,
+   "lon": -90.278518,
+   "acreage": 1527.5,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "nickel",
+     "rank": 6,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "MT0012694970",
+   "program": "superfund",
+   "name": "FLAT CREEK IMM",
+   "address": "FLAT CREEK ROAD AND HALL GULCH ROAD",
+   "city": "SUPERIOR",
+   "county": "MINERAL",
+   "state": "MT",
+   "zip": "59872",
+   "lat": 47.229796,
+   "lon": -114.841428,
+   "acreage": 10886.4,
+   "parcel_acreage": null,
+   "current_owner": "USA",
+   "current_owner_source": "Montana Cadastral (MT Dept. of Revenue)",
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "dc",
+     "rank": 3,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "MTD006232276",
+   "program": "superfund",
+   "name": "IDAHO POLE CO.",
+   "address": "CEDAR ST",
+   "city": "BOZEMAN",
+   "county": "GALLATIN",
+   "state": "MT",
+   "zip": "59715",
+   "lat": 45.691413,
+   "lon": -111.02239,
+   "acreage": 103.0,
+   "parcel_acreage": null,
+   "current_owner": "IDAHO POLE CO",
+   "current_owner_source": "Montana Cadastral (MT Dept. of Revenue)",
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "dc",
+     "rank": 6,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "NCD003446721",
+   "program": "superfund",
+   "name": "CELANESE CORP. (SHELBY FIBER OPERATIONS)",
+   "address": "HWY 198",
+   "city": "SHELBY",
+   "county": "CLEVELAND",
+   "state": "NC",
+   "zip": "28150",
+   "lat": 35.20886,
+   "lon": -81.522211,
+   "acreage": 423.2,
+   "parcel_acreage": null,
+   "current_owner": "GROVER INVESTMENTS I LLC",
+   "current_owner_source": "NC OneMap (NC1Map statewide parcels)",
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "civilian",
+     "rank": null,
+     "via": "william-states-lee-sc"
+    }
+   ]
+  },
+  {
+   "id": "NCD986175644",
+   "program": "superfund",
+   "name": "DAVIS PARK ROAD TCE",
+   "address": "2307 DAVIS PARK ROAD",
+   "city": "GASTONIA",
+   "county": "GASTON",
+   "state": "NC",
+   "zip": "28052",
+   "lat": 35.232279,
+   "lon": -81.218952,
+   "acreage": 0.8,
+   "parcel_acreage": 0.8,
+   "current_owner": "A TO Z RENTALS LLC",
+   "current_owner_source": "NC OneMap (NC1Map statewide parcels)",
+   "parcel_id": "3534-76-4837",
+   "tabs": [
+    {
+     "tab": "civilian",
+     "rank": null,
+     "via": "william-states-lee-sc"
+    }
+   ]
+  },
+  {
+   "id": "NJD980528996",
+   "program": "superfund",
+   "name": "DIAMOND ALKALI CO.",
+   "address": "80 LISTER AVE",
+   "city": "NEWARK",
+   "county": "ESSEX",
+   "state": "NJ",
+   "zip": "07105",
+   "lat": 40.759595,
+   "lon": -74.14964,
+   "acreage": 5158.2,
+   "parcel_acreage": 0.06,
+   "current_owner": null,
+   "current_owner_source": "NJOGIS (Parcels & MOD-IV Composite of NJ)",
+   "parcel_id": "0907_235_31",
+   "tabs": [
+    {
+     "tab": "nickel",
+     "rank": 1,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "NYD980651087",
+   "program": "superfund",
+   "name": "HOOKER (S AREA)",
+   "address": "BUFFALO AVE",
+   "city": "NIAGARA FALLS",
+   "county": "NIAGARA",
+   "state": "NY",
+   "zip": "14303",
+   "lat": 43.075283,
+   "lon": -79.004498,
+   "acreage": 169.5,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "dc",
+     "rank": 5,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "PAD980538763",
+   "program": "superfund",
+   "name": "MIDDLETOWN AIR FIELD",
+   "address": "APPROX 1 MLE OFF RTE 230",
+   "city": "MIDDLETOWN",
+   "county": "DAUPHIN",
+   "state": "PA",
+   "zip": "17057",
+   "lat": 40.198172,
+   "lon": -76.759963,
+   "acreage": 1242.3,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "civilian",
+     "rank": null,
+     "via": "three-mile-island-pa"
+    }
+   ]
+  },
+  {
+   "id": "PAD980539712",
+   "program": "superfund",
+   "name": "ELIZABETHTOWN LANDFILL",
+   "address": "W RIDGE RD",
+   "city": "ELIZABETHTOWN",
+   "county": "LANCASTER",
+   "state": "PA",
+   "zip": "17022",
+   "lat": 40.134272,
+   "lon": -76.609986,
+   "acreage": 30.5,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "civilian",
+     "rank": null,
+     "via": "three-mile-island-pa"
+    }
+   ]
+  },
+  {
+   "id": "PAD980690549",
+   "program": "superfund",
+   "name": "EAST MOUNT ZION",
+   "address": "DIENINGER ROAD",
+   "city": "SPRINGETTSBURY TOWNSHIP",
+   "county": "YORK",
+   "state": "PA",
+   "zip": "17402",
+   "lat": 40.006815,
+   "lon": -76.664652,
+   "acreage": 14.8,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "civilian",
+     "rank": null,
+     "via": "three-mile-island-pa"
+    }
+   ]
+  },
+  {
+   "id": "SCD037398120",
+   "program": "superfund",
+   "name": "PALMETTO RECYCLING, INC.",
+   "address": "531 KOON STORE RD",
+   "city": "COLUMBIA",
+   "county": "RICHLAND",
+   "state": "SC",
+   "zip": "29203",
+   "lat": 34.123596,
+   "lon": -81.012046,
+   "acreage": 1.7,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "civilian",
+     "rank": null,
+     "via": "vc-summer-sc"
+    }
+   ]
+  },
+  {
+   "id": "SCD980558050",
+   "program": "superfund",
+   "name": "TOWNSEND SAW CHAIN CO.",
+   "address": "STATE ROUTE 53 & I-20",
+   "city": "PONTIAC",
+   "county": "RICHLAND",
+   "state": "SC",
+   "zip": "29045",
+   "lat": 34.106002,
+   "lon": -80.834541,
+   "acreage": 90.2,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "civilian",
+     "rank": null,
+     "via": "vc-summer-sc"
+    }
+   ]
+  },
+  {
+   "id": "SCD980558316",
+   "program": "superfund",
+   "name": "CAROLAWN, INC.",
+   "address": "S. OF SC HWY 9 ON CO. RD 841",
+   "city": "FORT LAWN",
+   "county": "CHESTER",
+   "state": "SC",
+   "zip": "29714",
+   "lat": 34.688576,
+   "lon": -80.943201,
+   "acreage": 75.7,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "civilian",
+     "rank": null,
+     "via": "vc-summer-sc"
+    }
+   ]
+  },
+  {
+   "id": "SCN000407376",
+   "program": "superfund",
+   "name": "HENRY'S KNOB",
+   "address": "STATE HIGHWAY 55 AND HENRY KNOB ROAD",
+   "city": "CLOVER",
+   "county": "YORK",
+   "state": "SC",
+   "zip": "29710",
+   "lat": 35.136557,
+   "lon": -81.281349,
+   "acreage": 228.8,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "civilian",
+     "rank": null,
+     "via": "william-states-lee-sc"
+    }
+   ]
+  },
+  {
+   "id": "TN1890090003",
+   "program": "superfund",
+   "name": "OAK RIDGE RESERVATION (USDOE)",
+   "address": "BETHEL VALLEY ROAD",
+   "city": "OAK RIDGE",
+   "county": null,
+   "state": "TN",
+   "zip": "37830",
+   "lat": 35.95046,
+   "lon": -84.301174,
+   "acreage": 37429.8,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "civilian",
+     "rank": null,
+     "via": "clinch-river-tn"
+    }
+   ]
+  },
+  {
+   "id": "TND071516959",
+   "program": "superfund",
+   "name": "TENNESSEE PRODUCTS",
+   "address": "Postal Address is unavailable for the Site",
+   "city": "CHATTANOOGA",
+   "county": "HAMILTON",
+   "state": "TN",
+   "zip": "37410",
+   "lat": 34.998148,
+   "lon": -85.30911,
+   "acreage": 47.4,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "civilian",
+     "rank": null,
+     "via": "bellefonte-al"
+    }
+   ]
+  },
+  {
+   "id": "TND098071061",
+   "program": "superfund",
+   "name": "SMOKEY MOUNTAIN SMELTERS",
+   "address": "1508 MARYVILLE PIKE",
+   "city": "KNOXVILLE",
+   "county": "KNOX",
+   "state": "TN",
+   "zip": "37920",
+   "lat": 35.918111,
+   "lon": -83.927367,
+   "acreage": 24.2,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "civilian",
+     "rank": null,
+     "via": "clinch-river-tn"
+    }
+   ]
+  },
+  {
+   "id": "TND987768587",
+   "program": "superfund",
+   "name": "CLINCH RIVER CORPORATION",
+   "address": "728 EMORY DRIVE",
+   "city": "HARRIMAN",
+   "county": "ROANE",
+   "state": "TN",
+   "zip": "37748",
+   "lat": 35.931934,
+   "lon": -84.540723,
+   "acreage": 28.7,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "civilian",
+     "rank": null,
+     "via": "clinch-river-tn"
+    }
+   ]
+  },
+  {
+   "id": "TXD008123168",
+   "program": "superfund",
+   "name": "ALCOA (POINT COMFORT)/LAVACA BAY",
+   "address": "Postal Address is unavailable for the Site",
+   "city": "POINT COMFORT",
+   "county": "CALHOUN",
+   "state": "TX",
+   "zip": "77979",
+   "lat": 28.652066,
+   "lon": -96.551834,
+   "acreage": 5411.3,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "retired",
+     "rank": 6,
+     "via": "GHGRP-1003201"
+    },
+    {
+     "tab": "civilian",
+     "rank": null,
+     "via": "south-texas-tx"
+    }
+   ]
+  },
+  {
+   "id": "TXD055144539",
+   "program": "superfund",
+   "name": "GULFCO MARINE MAINTENANCE",
+   "address": "BRAZORIA COUNTY RD 756",
+   "city": "FREEPORT",
+   "county": "BRAZORIA",
+   "state": "TX",
+   "zip": "77541",
+   "lat": 28.967653,
+   "lon": -95.28918,
+   "acreage": 40.6,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "civilian",
+     "rank": null,
+     "via": "south-texas-tx"
+    }
+   ]
+  },
+  {
+   "id": "UTN000802704",
+   "program": "superfund",
+   "name": "US MAGNESIUM",
+   "address": "15 MILES N OF ROWLEY EXIT ON I-80",
+   "city": "TOOELE COUNTY",
+   "county": "TOOELE",
+   "state": "UT",
+   "zip": "84029",
+   "lat": 40.915581,
+   "lon": -112.734253,
+   "acreage": 50261.5,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "solar",
+     "rank": 7,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "VA1170024722",
+   "program": "superfund",
+   "name": "MARINE CORPS COMBAT DEVELOPMENT COMMAND",
+   "address": "5TH STREET",
+   "city": "QUANTICO",
+   "county": "PRINCE WILLIAM",
+   "state": "VA",
+   "zip": "22134",
+   "lat": 38.56106,
+   "lon": -77.4255,
+   "acreage": 58880.5,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "solar",
+     "rank": 3,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "VAD007972482",
+   "program": "superfund",
+   "name": "L.A. CLARKE & SON",
+   "address": "ROUTE 608",
+   "city": "SPOTSYLVANIA",
+   "county": "SPOTSYLVANIA",
+   "state": "VA",
+   "zip": "22408",
+   "lat": 38.234751,
+   "lon": -77.430171,
+   "acreage": 62.9,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "civilian",
+     "rank": null,
+     "via": "north-anna-va"
+    }
+   ]
+  },
+  {
+   "id": "VAD071040752",
+   "program": "superfund",
+   "name": "RENTOKIL, INC. (VIRGINIA WOOD PRESERVING DIVISION)",
+   "address": "OAKVIEW AVE & PEYTON STS",
+   "city": "RICHMOND",
+   "county": "HENRICO",
+   "state": "VA",
+   "zip": "23228",
+   "lat": 37.637606,
+   "lon": -77.502968,
+   "acreage": 28.8,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "civilian",
+     "rank": null,
+     "via": "north-anna-va"
+    }
+   ]
+  },
+  {
+   "id": "VAD980539878",
+   "program": "superfund",
+   "name": "H & H INC., BURN PIT",
+   "address": "10 MILES N RTE 33",
+   "city": "FARRINGTON",
+   "county": "HANOVER",
+   "state": "VA",
+   "zip": "23192",
+   "lat": 37.724941,
+   "lon": -77.585463,
+   "acreage": 1.5,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "civilian",
+     "rank": null,
+     "via": "north-anna-va"
+    }
+   ]
+  }
+ ],
+ "overlay_sites": [
+  {
+   "screen": "retired",
+   "rank": 1,
+   "id": "GHGRP-1002853",
+   "name": "Abbott Nutrition",
+   "state": "MI",
+   "lat": 41.8095,
+   "lon": -85.426,
+   "county": "St. Joseph County",
+   "met": 3,
+   "total": 3
+  },
+  {
+   "screen": "retired",
+   "rank": 2,
+   "id": "GHGRP-1004472",
+   "name": "Agc Flatglass North America-Kingsport Plant",
+   "state": "TN",
+   "lat": 36.529091,
+   "lon": -82.547524,
+   "county": "Sullivan County",
+   "met": 3,
+   "total": 3
+  },
+  {
+   "screen": "retired",
+   "rank": 3,
+   "id": "GHGRP-1005573",
+   "name": "Air Products And Chemicals, INC",
+   "state": "OH",
+   "lat": 39.18291,
+   "lon": -84.50394,
+   "county": "Hamilton County",
+   "met": 3,
+   "total": 3
+  },
+  {
+   "screen": "retired",
+   "rank": 4,
+   "id": "GHGRP-1005614",
+   "name": "Ak Steel Corp Ashland Works Coke Plant",
+   "state": "KY",
+   "lat": 38.495556,
+   "lon": -82.665556,
+   "county": "Boyd",
+   "met": 3,
+   "total": 3
+  },
+  {
+   "screen": "retired",
+   "rank": 5,
+   "id": "GHGRP-1005615",
+   "name": "Ak Steel Corporation West Works",
+   "state": "KY",
+   "lat": 38.496367,
+   "lon": -82.670282,
+   "county": "Boyd County",
+   "met": 3,
+   "total": 3
+  },
+  {
+   "screen": "retired",
+   "rank": 6,
+   "id": "GHGRP-1003201",
+   "name": "Alcoa World Alumina Atlantic",
+   "state": "TX",
+   "lat": 28.65083,
+   "lon": -96.56222,
+   "county": "Calhoun County",
+   "met": 3,
+   "total": 3
+  },
+  {
+   "screen": "retired",
+   "rank": 7,
+   "id": "GHGRP-1011361",
+   "name": "All American Asphalt",
+   "state": "CA",
+   "lat": 33.86716,
+   "lon": -117.52413,
+   "county": "Riverside County",
+   "met": 3,
+   "total": 3
+  },
+  {
+   "screen": "retired",
+   "rank": 8,
+   "id": "GHGRP-1004729",
+   "name": "Allegheny & Tsingshan Stainless, LLC",
+   "state": "PA",
+   "lat": 40.63537,
+   "lon": -80.44903,
+   "county": "Beaver County",
+   "met": 3,
+   "total": 3
+  },
+  {
+   "screen": "retired",
+   "rank": 9,
+   "id": "GHGRP-1008032",
+   "name": "Allens, INC - Van Buren",
+   "state": "AR",
+   "lat": 35.43104,
+   "lon": -94.34634,
+   "county": "Crawford County",
+   "met": 3,
+   "total": 3
+  },
+  {
+   "screen": "retired",
+   "rank": 10,
+   "id": "GHGRP-1003757",
+   "name": "Amsted Rail Company, INC",
+   "state": "IL",
+   "lat": 38.70316,
+   "lon": -90.158809,
+   "county": "Madison County",
+   "met": 3,
+   "total": 3
+  },
+  {
+   "screen": "coal",
+   "rank": 1,
+   "id": "EIA-6094",
+   "name": "FirstEnergy Bruce Mansfield",
+   "state": "PA",
+   "lat": 40.6348,
+   "lon": -80.4159,
+   "county": "Beaver",
+   "met": 3,
+   "total": 3
+  },
+  {
+   "screen": "coal",
+   "rank": 2,
+   "id": "EIA-2866",
+   "name": "W H Sammis",
+   "state": "OH",
+   "lat": 40.5317,
+   "lon": -80.6319,
+   "county": "Jefferson",
+   "met": 3,
+   "total": 3
+  },
+  {
+   "screen": "coal",
+   "rank": 3,
+   "id": "EIA-2850",
+   "name": "J M Stuart",
+   "state": "OH",
+   "lat": 38.6361,
+   "lon": -83.6939,
+   "county": "Adams",
+   "met": 3,
+   "total": 3
+  },
+  {
+   "screen": "coal",
+   "rank": 4,
+   "id": "EIA-4941",
+   "name": "Navajo",
+   "state": "AZ",
+   "lat": 36.9047,
+   "lon": -111.3886,
+   "county": "Coconino",
+   "met": 3,
+   "total": 3
+  },
+  {
+   "screen": "coal",
+   "rank": 5,
+   "id": "EIA-2840",
+   "name": "Conesville",
+   "state": "OH",
+   "lat": 40.1842,
+   "lon": -81.8811,
+   "county": "Coshocton",
+   "met": 3,
+   "total": 3
+  },
+  {
+   "screen": "coal",
+   "rank": 6,
+   "id": "EIA-3122",
+   "name": "Homer City Generating Station",
+   "state": "PA",
+   "lat": 40.512825,
+   "lon": -79.19611,
+   "county": "Indiana",
+   "met": 3,
+   "total": 3
+  },
+  {
+   "screen": "coal",
+   "rank": 7,
+   "id": "EIA-6147",
+   "name": "Monticello",
+   "state": "TX",
+   "lat": 33.0917,
+   "lon": -95.0417,
+   "county": "Titus",
+   "met": 3,
+   "total": 3
+  },
+  {
+   "screen": "coal",
+   "rank": 8,
+   "id": "EIA-50",
+   "name": "Widows Creek",
+   "state": "AL",
+   "lat": 34.883022,
+   "lon": -85.75525,
+   "county": "Jackson",
+   "met": 3,
+   "total": 3
+  },
+  {
+   "screen": "coal",
+   "rank": 9,
+   "id": "EIA-6052",
+   "name": "Wansley",
+   "state": "GA",
+   "lat": 33.41342,
+   "lon": -85.03233,
+   "county": "Heard",
+   "met": 3,
+   "total": 3
+  },
+  {
+   "screen": "coal",
+   "rank": 10,
+   "id": "EIA-2451",
+   "name": "San Juan",
+   "state": "NM",
+   "lat": 36.8006,
+   "lon": -108.4386,
+   "county": "San Juan",
+   "met": 3,
+   "total": 3
+  },
+  {
+   "screen": "civilian",
+   "rank": 1,
+   "id": "palisades-mi",
+   "name": "Palisades",
+   "state": "MI",
+   "lat": 42.3289,
+   "lon": -86.3217,
+   "county": "Van Buren",
+   "met": 3,
+   "total": 3
+  },
+  {
+   "screen": "civilian",
+   "rank": 2,
+   "id": "three-mile-island-pa",
+   "name": "Three Mile Island Unit 1",
+   "state": "PA",
+   "lat": 40.1532,
+   "lon": -76.7272,
+   "county": "Dauphin",
+   "met": 3,
+   "total": 3
+  },
+  {
+   "screen": "civilian",
+   "rank": 3,
+   "id": "clinch-river-tn",
+   "name": "Clinch River",
+   "state": "TN",
+   "lat": 35.9206,
+   "lon": -84.4986,
+   "county": "Roane",
+   "met": 2,
+   "total": 3
+  },
+  {
+   "screen": "civilian",
+   "rank": 4,
+   "id": "kemmerer-wy",
+   "name": "Kemmerer (Natrium)",
+   "state": "WY",
+   "lat": 41.8006,
+   "lon": -110.5379,
+   "county": "Lincoln",
+   "met": 2,
+   "total": 3
+  },
+  {
+   "screen": "civilian",
+   "rank": 5,
+   "id": "fermi-mi",
+   "name": "Fermi Energy Center",
+   "state": "MI",
+   "lat": 41.9617,
+   "lon": -83.2614,
+   "county": "Monroe",
+   "met": 2,
+   "total": 3
+  },
+  {
+   "screen": "civilian",
+   "rank": 6,
+   "id": "north-anna-va",
+   "name": "North Anna",
+   "state": "VA",
+   "lat": 37.953,
+   "lon": -77.7895,
+   "county": "Louisa",
+   "met": 2,
+   "total": 3
+  },
+  {
+   "screen": "civilian",
+   "rank": 7,
+   "id": "south-texas-tx",
+   "name": "South Texas Project",
+   "state": "TX",
+   "lat": 28.7969,
+   "lon": -96.0447,
+   "county": "Matagorda",
+   "met": 2,
+   "total": 3
+  },
+  {
+   "screen": "civilian",
+   "rank": 8,
+   "id": "william-states-lee-sc",
+   "name": "William States Lee III",
+   "state": "SC",
+   "lat": 35.1686,
+   "lon": -81.4145,
+   "county": "Cherokee",
+   "met": 2,
+   "total": 3
+  },
+  {
+   "screen": "civilian",
+   "rank": 9,
+   "id": "bellefonte-al",
+   "name": "Bellefonte",
+   "state": "AL",
+   "lat": 34.7077,
+   "lon": -85.9385,
+   "county": "Jackson",
+   "met": 2,
+   "total": 3
+  },
+  {
+   "screen": "civilian",
+   "rank": 10,
+   "id": "vc-summer-sc",
+   "name": "V.C. Summer Units 2 & 3",
+   "state": "SC",
+   "lat": 34.3997,
+   "lon": -81.3224,
+   "county": "Fairfield",
+   "met": 2,
+   "total": 3
+  },
+  {
+   "screen": "ap1000",
+   "rank": 1,
+   "id": "fort-campbell-ky",
+   "name": "Fort Campbell",
+   "state": "KY",
+   "lat": 36.463333,
+   "lon": -87.750278,
+   "county": null,
+   "met": 4,
+   "total": 5
+  },
+  {
+   "screen": "ap1000",
+   "rank": 2,
+   "id": "fort-drum-ny",
+   "name": "Fort Drum",
+   "state": "NY",
+   "lat": 44.038333,
+   "lon": -75.675556,
+   "county": null,
+   "met": 4,
+   "total": 5
+  },
+  {
+   "screen": "ap1000",
+   "rank": 3,
+   "id": "redstone-arsenal-al",
+   "name": "Redstone Arsenal",
+   "state": "AL",
+   "lat": 34.629981,
+   "lon": -86.653678,
+   "county": null,
+   "met": 3,
+   "total": 5
+  },
+  {
+   "screen": "ap1000",
+   "rank": 4,
+   "id": "fort-wainwright-ak",
+   "name": "Fort Wainwright",
+   "state": "AK",
+   "lat": 64.605398,
+   "lon": -147.414443,
+   "county": null,
+   "met": 3,
+   "total": 5
+  },
+  {
+   "screen": "ap1000",
+   "rank": 5,
+   "id": "fort-benning-ga",
+   "name": "Fort Benning (Fort Moore)",
+   "state": "GA",
+   "lat": 32.341389,
+   "lon": -84.993611,
+   "county": null,
+   "met": 3,
+   "total": 5
+  },
+  {
+   "screen": "ap1000",
+   "rank": 6,
+   "id": "fort-bragg-nc",
+   "name": "Fort Bragg (Fort Liberty)",
+   "state": "NC",
+   "lat": 35.133333,
+   "lon": -78.983333,
+   "county": null,
+   "met": 3,
+   "total": 5
+  },
+  {
+   "screen": "ap1000",
+   "rank": 7,
+   "id": "holston-aap-tn",
+   "name": "Holston Army Ammunition Plant",
+   "state": "TN",
+   "lat": 36.51,
+   "lon": -82.56,
+   "county": null,
+   "met": 3,
+   "total": 5
+  },
+  {
+   "screen": "ap1000",
+   "rank": 8,
+   "id": "arnold-afb-tn",
+   "name": "Arnold AFB (AEDC)",
+   "state": "TN",
+   "lat": 35.371111,
+   "lon": -86.215556,
+   "county": null,
+   "met": 3,
+   "total": 5
+  },
+  {
+   "screen": "ap1000",
+   "rank": 9,
+   "id": "fort-hood-tx",
+   "name": "Fort Hood (Fort Cavazos)",
+   "state": "TX",
+   "lat": 31.001944,
+   "lon": -97.711111,
+   "county": null,
+   "met": 3,
+   "total": 5
+  },
+  {
+   "screen": "ap1000",
+   "rank": 10,
+   "id": "jbmdl-nj",
+   "name": "JB McGuire-Dix-Lakehurst",
+   "state": "NJ",
+   "lat": 40.029445,
+   "lon": -74.589115,
+   "county": null,
+   "met": 3,
+   "total": 5
+  },
+  {
+   "screen": "ap1000",
+   "rank": 11,
+   "id": "robins-afb-ga",
+   "name": "Robins AFB",
+   "state": "GA",
+   "lat": 32.616522,
+   "lon": -83.582508,
+   "county": null,
+   "met": 2,
+   "total": 5
+  },
+  {
+   "screen": "ap1000",
+   "rank": 12,
+   "id": "edwards-afb-ca",
+   "name": "Edwards AFB",
+   "state": "CA",
+   "lat": 34.889946,
+   "lon": -117.83243,
+   "county": null,
+   "met": 2,
+   "total": 5
+  },
+  {
+   "screen": "ap1000",
+   "rank": 13,
+   "id": "jblm-wa",
+   "name": "Joint Base Lewis-McChord",
+   "state": "WA",
+   "lat": 47.114818,
+   "lon": -122.538349,
+   "county": null,
+   "met": 1,
+   "total": 5
+  },
+  {
+   "screen": "ap1000",
+   "rank": 14,
+   "id": "davis-monthan-afb-az",
+   "name": "Davis-Monthan AFB",
+   "state": "AZ",
+   "lat": 32.165,
+   "lon": -110.8575,
+   "county": null,
+   "met": 1,
+   "total": 5
+  }
+ ]
+}

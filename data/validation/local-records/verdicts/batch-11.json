@@ -1,0 +1,100 @@
+{
+ "batch": "batch-11",
+ "sites": [
+  {
+   "id": "SCD980558050",
+   "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+    {
+     "index": 0,
+     "verdict": "supported",
+     "note": "EPA release dated Oct 29, 2019 lists Townsend Saw Chain Co. in Pontiac, SC among FY2019 partial NPL deletions."
+    },
+    {
+     "index": 1,
+     "verdict": "supported",
+     "note": "Snapshot: \"Of the original 50 acres, 35.5 acres ... sold for commercial development\"; Centerline Development, LLC retains remaining 14.5 acres."
+    }
+   ],
+   "portal_verdicts": [
+    {
+     "url": "https://richlandcountysc.gov/Government/Departments/Taxes/Assessor",
+     "reachable": true,
+     "note": "Richland County Assessor page; site links to Property Search by tax map number, address or owner."
+    },
+    {
+     "url": "https://property.spatialest.com/sc/richland#/",
+     "reachable": false,
+     "note": "JavaScript shell; only title \"Property Record Card\" and cache instructions visible, no search fields."
+    }
+   ]
+  },
+  {
+   "id": "SCD980558316",
+   "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+    {
+     "index": 0,
+     "verdict": "supported",
+     "note": "Snapshot: \"The 60-acre Carolawn, Inc. Superfund site is located in Fort Lawn, South Carolina.\""
+    }
+   ],
+   "portal_verdicts": []
+  },
+  {
+   "id": "SCN000407376",
+   "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+    {
+     "index": 0,
+     "verdict": "supported",
+     "note": "EPA release dated Aug 1, 2017: 185-acre site at Henry Knob Road and State Highway 55, Clover Township, York County SC."
+    },
+    {
+     "index": 1,
+     "verdict": "supported",
+     "note": "Release: open-pit kyanite mine operated between 1947 and 1970."
+    },
+    {
+     "index": 2,
+     "verdict": "supported",
+     "note": "Page: \"ABB will pay over $471,000 for past cleanup costs...\"; Published 3/24/2026; public has 30 days to comment."
+    }
+   ],
+   "portal_verdicts": []
+  },
+  {
+   "id": "TN1890090003",
+   "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+    {
+     "index": 0,
+     "verdict": "supported",
+     "note": "DOE EM page: EM has transferred more than 2,500 acres for private-sector reuse."
+    },
+    {
+     "index": 1,
+     "verdict": "supported",
+     "note": "Page: In December 2025 EPA and DOE confirmed over 16,000 acres of Oak Ridge Reservation need no cleanup."
+    },
+    {
+     "index": 2,
+     "verdict": "supported",
+     "note": "Page: Sept 30, 2025 RFP seeking private partners to build and power AI data centers on the reservation."
+    }
+   ],
+   "portal_verdicts": [
+    {
+     "url": "https://roanecountytn.gov/assessor-of-property/",
+     "reachable": true,
+     "note": "Roane County TN Assessor of Property office page."
+    },
+    {
+     "url": "https://andersoncountytn.gov/?p=250",
+     "reachable": true,
+     "note": "Anderson County TN Assessor of Property page; navigation links to state appraisal lookup."
+    }
+   ]
+  }
+ ]
+}

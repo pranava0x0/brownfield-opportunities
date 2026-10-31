@@ -1,0 +1,85 @@
+{
+ "batch": "batch-01",
+ "sites": [
+  {
+   "id": "ACRES-121721",
+   "name": "Former Salvage Yard",
+   "program": "brownfield",
+   "address": "3745 South 3rd Street",
+   "city": "Ironton",
+   "county": "Lawrence",
+   "state": "OH",
+   "zip": "45638",
+   "lat": 38.500302,
+   "lon": -82.65591,
+   "acreage": null,
+   "tabs": [
+    "retired"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": "Ohio OGRIP Statewide Parcels (area only)",
+   "atlas_parcel_id": "39087-36-044-1000.000",
+   "state_parcel_layer": true
+  },
+  {
+   "id": "ACRES-136961",
+   "name": "Former Commonwealth Steet site",
+   "program": "brownfield",
+   "address": "1162 16th Street",
+   "city": "Granite City",
+   "county": "Madison",
+   "state": "IL",
+   "zip": "62040",
+   "lat": 38.698887,
+   "lon": -90.158397,
+   "acreage": null,
+   "tabs": [
+    "retired"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "ACRES-230821",
+   "name": "Midland Hotel Site",
+   "program": "brownfield",
+   "address": "300 Block of Midland Avenue",
+   "city": "MIDLAND",
+   "county": "BEAVER",
+   "state": "PA",
+   "zip": "15059",
+   "lat": 40.637218,
+   "lon": -80.453385,
+   "acreage": null,
+   "tabs": [
+    "retired"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "ACRES-232701",
+   "name": "Spence Field",
+   "program": "brownfield",
+   "address": "500 McKee St and 601 N. Centerville St",
+   "city": "Sturgis",
+   "county": "SAINT JOSEPH",
+   "state": "MI",
+   "zip": "49091",
+   "lat": 41.805759,
+   "lon": -85.428399,
+   "acreage": null,
+   "tabs": [
+    "retired"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  }
+ ]
+}

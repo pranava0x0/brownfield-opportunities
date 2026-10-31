@@ -1,0 +1,34 @@
+{"batch": "batch-02", "sites": [
+  {"id": "ACRES-48321", "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [],
+   "portal_verdicts": [
+    {"url": "https://ca-riverside-acr.publicaccessnow.com/Home.aspx", "reachable": true, "note": "Riverside County Assessor Online Services home page with a 'Property Search' link; search tool not on this page."},
+    {"url": "https://rivcoview.rivcoacr.org/", "reachable": true, "note": "RivCoView, Riverside County Assessor-Clerk-Recorder map portal; search by APN or address, map layers."},
+    {"url": "https://www.rivcoacr.org/AssessorMaps", "reachable": true, "note": "Page says maps show APNs, boundaries, acreage; 'Street addresses and ownership are not shown on Assessor's maps.'"},
+    {"url": "https://coronaca.gov/departments/city-managers-office/housing/successor-agency-oversight-board", "reachable": true, "note": "Corona Successor Agency/Oversight Board page links 'Long Range Property Management Plan - June 4, 2014'; no Sherborn or APN mention."}
+   ]},
+  {"id": "ACRES-53022", "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [],
+   "portal_verdicts": [
+    {"url": "https://sullivandeeds.com/", "reachable": true, "note": "Sullivan County TN Register of Deeds office site (register, Blountville address); records searched via external US Title Search link."},
+    {"url": "https://ustitlesearch.net/", "reachable": false, "note": "Generic 'US Title Search Network' frameset; no mention of Sullivan County or a Register of Deeds."}
+   ]},
+  {"id": "AL7210020742", "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+    {"index": 0, "verdict": "supported", "note": "Release dated March 6, 2025: 'Cleanup has been completed for 5.3 acres' of the NASA Marshall portion; area deleted from the NPL."},
+    {"index": 1, "verdict": "supported", "note": "Army article (Mar 13, 2026) on inaugural Environmental Restoration Leaders Working Group; meeting date 'Feb. 25' with year only implied; 'bring together key leaders' present."}
+   ],
+   "portal_verdicts": [
+    {"url": "https://www.madisoncountyal.gov/", "reachable": false, "note": "HTTP 403 to fetch; could not open."}
+   ]},
+  {"id": "ALN000410750", "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+    {"index": 0, "verdict": "supported", "note": "EPA profile: 'currently addressing residential soil contamination in three North Birmingham, Alabama neighborhoods'; 'more than 650 properties' remediated across 'four different phases'; ~90,000 tons excavated."},
+    {"index": 1, "verdict": "supported", "note": "WBRC 10/17/2023: neighbors 'living in a Superfund site'; buyout/relocation sought by Charlie Powell (group founder, not stated as resident); city 'continues to work closely with the EPA'."}
+   ],
+   "portal_verdicts": [
+    {"url": "https://www.jccal.org/", "reachable": false, "note": "HTTP 403 to fetch; could not open."},
+    {"url": "https://jeffcoprobatecourt.com/?p=634", "reachable": true, "note": "Jefferson County AL Probate Court page: 'Residents can access important online land records and other pertinent records filed in probate court.'"},
+    {"url": "http://landmarkweb.jccal.org/landmarkweb#new_tab", "reachable": true, "note": "Landmark Web Official Records Search for Jefferson County AL Recording Dept; land records and Probate filings (name, book/page, legal description). Not marriage-only."}
+   ]}
+]}

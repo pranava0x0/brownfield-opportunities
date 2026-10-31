@@ -14,3 +14,4 @@ scratch_logs/
 
 .venv/
 data/cache-backup-*/
+data/validation/*.log

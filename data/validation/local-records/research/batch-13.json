@@ -1,0 +1,72 @@
+{"batch": "batch-13", "researcher": "Claude Haiku 5.5", "sites": [
+  {"id": "TXD055144539", "name": "GULFCO MARINE MAINTENANCE", "researcher": "Claude Haiku 5.5",
+   "portals": [
+     {"kind": "assessor", "name": "Brazoria Central Appraisal District (BCAD) property search", "url": "https://esearch.brazoriacad.org/", "access": "free_search", "note": "Linked from the BCAD homepage, which invites a property search and states no login or fee. The search itself was not opened. Search by owner, address or property ID; the site address is BRAZORIA COUNTY RD 756, so an owner or ID search is likely needed."},
+     {"kind": "gis", "name": "BCAD Interactive Property Map", "url": "https://gis.bisclient.com/brazoriacad/", "access": "unknown", "note": "Linked from the BCAD homepage. Not opened, and the page does not state whether access is free."},
+     {"kind": "recorder", "name": "Brazoria County Clerk, Search and Request Copies of Real Property Records", "url": "https://www.brazoriacountyclerktx.gov/search-records", "access": "unknown", "note": "The clerk page returned HTTP 403 to automated fetch and could not be opened. A search summary says the search needs a free login. Covenant and deed records for the site would be searched here."}
+   ],
+   "facts": [
+     {"kind": "other", "date": "2026-08-05", "summary": "EPA issued the third five-year review for the Gulfco site on August 5, 2026 and determined the site is currently protective in the short term.", "authority": "U.S. EPA Superfund site profile (Cumulis)", "reference": "EPA site profile, Gulfco Marine Maintenance (site id 0602027)", "source_url": "https://cumulis.epa.gov/supercpad/cursites/csitinfo.cfm?id=0602027", "quote": "The Environmental Protection Agency (EPA) issued the Third Five-Year Review Report on August 5, 2026."},
+     {"kind": "other", "summary": "EPA's site profile describes the 40-acre site as located in a primarily undeveloped area in the city of Freeport, with its southeastern edge bordering the Intracoastal Waterway. The page gives no date for this description.", "authority": "U.S. EPA Superfund site profile (Cumulis)", "reference": "EPA site profile, Gulfco Marine Maintenance (site id 0602027)", "source_url": "https://cumulis.epa.gov/supercpad/cursites/csitinfo.cfm?id=0602027", "quote": "The 40-acre Site is located in a primarily undeveloped area in the city of Freeport in Brazoria County, Texas."}
+   ],
+   "gaps": [
+     "No owner of record was established. The EPA profile does not name the current owner, and the atlas owner is null. Ownership needs a BCAD owner or ID search or a clerk deed search.",
+     "No parcel number was matched. The atlas address is a county road (BRAZORIA COUNTY RD 756), and a BCAD search was not run for this site.",
+     "Restrictive covenants on the site parcels are reported to be recorded in Brazoria County deed records, according to a search excerpt of an EPA document. The PDF text could not be extracted, so the recording date and reference were not recorded as facts.",
+     "The NPL listing date (May 2003 in an EPA document excerpt) was not confirmed on an opened page, so it is not recorded as a fact.",
+     "The Brazoria County Clerk search returned HTTP 403 to automated fetch. The search was not run, and access terms are unconfirmed.",
+     "No tax delinquency, tax sale, lien, permit, zoning or code-enforcement record was searched or found for this parcel."
+   ]},
+  {"id": "VA1170024722", "name": "MARINE CORPS COMBAT DEVELOPMENT COMMAND", "researcher": "Claude Haiku 5.5",
+   "portals": [
+     {"kind": "gis", "name": "PWC-County Mapper (Prince William County GIS)", "url": "https://gisweb.pwcva.gov/webapps/CountyMapper", "access": "unknown", "note": "Opened the application page only. The page lists browser requirements and does not say whether access is free. No parcel query was run for this site, and the installation is a federal reservation rather than a county parcel."}
+   ],
+   "facts": [
+     {"kind": "other", "date": "1993-05", "summary": "EPA added the Marine Corps Combat Development Command site to the National Priorities List in May 1993. The site covers about 56,000 acres across Prince William, Stafford and Fauquier counties.", "authority": "U.S. EPA Superfund site profile (Cumulis)", "reference": "EPA site profile, Marine Corps Combat Development Command (site id 0302840)", "source_url": "https://cumulis.epa.gov/supercpad/SiteProfiles/index.cfm?fuseaction=second.cleanup&id=0302840", "quote": "The Site was added to the Superfund program's National Priorities List (NPL) in May 1993."},
+     {"kind": "other", "summary": "The Department of the Navy has the lead role for cleanup. The 2023 five-year review concluded that response actions are in accordance with the EPA-selected remedies. The page gives no date for the lead-role statement.", "authority": "U.S. EPA Superfund site profile (Cumulis)", "reference": "EPA site profile, Marine Corps Combat Development Command (site id 0302840)", "source_url": "https://cumulis.epa.gov/supercpad/SiteProfiles/index.cfm?fuseaction=second.cleanup&id=0302840", "quote": "The Department of the Navy has the lead role for cleaning up the Marine Corps Combat Development Command NPL site."},
+     {"kind": "other", "summary": "EPA's profile says institutional controls at one operable unit (OU 4) include land use controls, groundwater use restrictions and groundwater monitoring. For OU 19 it says land use control measures are being developed. The page is undated.", "authority": "U.S. EPA Superfund site profile (Cumulis)", "reference": "EPA site profile, Marine Corps Combat Development Command (site id 0302840)", "source_url": "https://cumulis.epa.gov/supercpad/SiteProfiles/index.cfm?fuseaction=second.cleanup&id=0302840", "quote": "Institutional controls in place include land use controls, groundwater use restrictions, and groundwater monitoring."}
+   ],
+   "gaps": [
+     "The atlas point (38.56106, -77.4255) is an installation reference point on a federal reservation of about 56,000 acres, not a county parcel. No county parcel, owner or deed record was searched for this site.",
+     "No transfers, liens, permits or tax records were searched. Federal installation land is not expected in county assessment records, but this was not checked against the Prince William assessor.",
+     "The EPA profile says a Redevelopment section exists, but its text was not opened.",
+     "The EPA profile is undated and cites only a 2023 five-year review. Any later cleanup status was not found.",
+     "The atlas owner is null and the record gives no federal agency for the land. The Navy lead is from EPA, not from a land record."
+   ]},
+  {"id": "VAD007972482", "name": "L.A. CLARKE & SON", "researcher": "Claude Haiku 5.5",
+   "portals": [
+     {"kind": "assessor", "name": "Spotsylvania County Real Estate Assessment search", "url": "https://apps.spotsylvaniacountyva.gov/assessment/assessment/index.cfm", "access": "unknown", "note": "The page offers search by physical address (street required) or by parcel ID, and states that the records are public information. It does not say whether an account or fee is required. Valuations are current as of 01/01/2026. The site address is ROUTE 608 with no house number, so a street-level search is needed."},
+     {"kind": "gis", "name": "Spotsylvania Web LoGIStics GIS maps", "url": "https://gis.spotsylvania.va.us/spotsylvania/", "access": "unknown", "note": "Listed on the county GIS pages in a search result. Not opened. A county page reportedly says GIS acreage is based on recorded deeds or plats at the Clerk of the Circuit Court."},
+     {"kind": "recorder", "name": "Spotsylvania Circuit Court Clerk land records (Records & Recordation Services)", "url": "https://www.spotsylvania.va.us/1210/Records-Recordation-Services", "access": "paid", "note": "The county says land records are available online by paid subscription only. Records before January 1996 must be searched in the grantor/grantee index at the clerk's office, which is in person."}
+   ],
+   "facts": [
+     {"kind": "other", "summary": "EPA's 2025 five-year review found the remedies for operable units 1 and 2 protective of human health and the environment in the long term. The OU4 remedy was found protective only in the short term. The page gives no review month.", "authority": "U.S. EPA Superfund site profile (Cumulis)", "reference": "EPA site profile, L.A. Clarke & Son (site id 0302542), citing the 2025 five-year review", "source_url": "https://cumulis.epa.gov/supercpad/cursites/csitinfo.cfm?id=0302542", "quote": "The remedies for OU1 and OU2 are protective of human health and the environment in the long-term, and"},
+     {"kind": "other", "summary": "EPA's profile says wood preservation operations occurred at the 44-acre site from 1937 to 1988. The page gives no date for this history beyond those years.", "authority": "U.S. EPA Superfund site profile (Cumulis)", "reference": "EPA site profile, L.A. Clarke & Son (site id 0302542)", "source_url": "https://cumulis.epa.gov/supercpad/cursites/csitinfo.cfm?id=0302542", "quote": "Wood preservation operations occurred at the site from 1937 to 1988"}
+   ],
+   "gaps": [
+     "No parcel was matched. The atlas parcel id is null, and the address is ROUTE 608 with no house number. The assessor search was not run.",
+     "No owner of record was established. The EPA profile does not name the current owner, and the atlas owner is null.",
+     "Land use and redevelopment status were not found on an opened page. The EPA Redevelopment section was not opened.",
+     "The NPL listing date (June 10, 1986 in a Scorecard excerpt) was not confirmed on an opened EPA page, so it is not recorded as a fact.",
+     "The county online land records are subscription-only. No deed, lien or transfer search was run, and the pre-1996 records need an in-person grantor/grantee index search.",
+     "No tax, permit, code-enforcement or zoning records were searched."
+   ]},
+  {"id": "VAD071040752", "name": "RENTOKIL, INC. (VIRGINIA WOOD PRESERVING DIVISION)", "researcher": "Claude Haiku 5.5",
+   "portals": [
+     {"kind": "assessor", "name": "Henrico County Real Estate Property Search", "url": "https://realestate.henrico.gov/", "access": "free_search", "note": "The search form offers parcel number (GPIN or PID), address, use code and description. It has no owner search box. The page mentions no account, login or fee. Records are described on the page as public under Virginia law."},
+     {"kind": "gis", "name": "Henrico County Map Viewer", "url": "https://portal.henrico.gov/PublicGISViewer/index.html", "access": "unknown", "note": "Linked from the Henrico GIS page. The page does not say whether access is free. Not opened directly beyond the linking page."},
+     {"kind": "recorder", "name": "Henrico Circuit Court Clerk secure remote access (land records index)", "url": "https://www.henricovalandrecords.org/", "access": "unknown", "note": "Not opened. Search results give conflicting terms: the county page says subscription-only, while a 2023 county announcement says the index is publicly accessible online. The recording office is in person at the Courthouse Building, 4309 E. Parham Road. Confirm the current terms with the clerk."}
+   ],
+   "facts": [
+     {"kind": "other", "summary": "EPA's profile places the Rentokil, Inc. site in Richmond, Henrico County, Virginia. The page gives no date for this description.", "authority": "U.S. EPA Superfund site profile (Cumulis)", "reference": "EPA site profile, Rentokil, Inc. (Virginia Wood Preserving Division), site id 0302607", "source_url": "https://cumulis.epa.gov/supercpad/cursites/csitinfo.cfm?id=0302607", "quote": "The Rentokil, Inc. site is located in Richmond, Henrico County, Virginia."},
+     {"kind": "other", "summary": "EPA's profile says the 10-acre former wood-treating plant operated from 1957 to 1990. The page gives no date for this operating history beyond those years.", "authority": "U.S. EPA Superfund site profile (Cumulis)", "reference": "EPA site profile, Rentokil, Inc. (Virginia Wood Preserving Division), site id 0302607", "source_url": "https://cumulis.epa.gov/supercpad/cursites/csitinfo.cfm?id=0302607", "quote": "The 10-acre former wood treating plant operated from 1957 to 1990."},
+     {"kind": "other", "date": "2023-06", "summary": "EPA's June 2023 announcement, citing its fifth five-year review, says cleanup continues to protect human health and the environment.", "authority": "U.S. EPA Superfund site profile (Cumulis)", "reference": "EPA site profile, Rentokil, Inc. (Virginia Wood Preserving Division), site id 0302607", "source_url": "https://cumulis.epa.gov/supercpad/cursites/csitinfo.cfm?id=0302607", "quote": "EPA determines that cleanup continues to protect human health and the environment."}
+   ],
+   "gaps": [
+     "The address conflicts across sources. EPA lists OAKVIEW AVE & PEYTON STS, Richmond 23228. A search excerpt gives 3000 Peyton Street at Ackley Avenue. The Henrico search was not run with either address, so no parcel was matched.",
+     "The NPL status is unresolved. A 2009 Federal Register notice on a proposed partial deletion appears in a search excerpt and was not opened. Aggregator sites still list the site as active. Only the EPA profile's current-status wording is recorded here.",
+     "No owner of record was established. The atlas owner is null, and no deed or transfer record was searched.",
+     "The Henrico Circuit Court Clerk land records search was not run, and its access terms are unconfirmed.",
+     "No tax, lien, permit, code-enforcement or zoning record was searched. The EPA profile's redevelopment section was linked but not opened."
+   ]}
+]}

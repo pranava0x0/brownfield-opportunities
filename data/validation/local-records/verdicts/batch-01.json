@@ -1,0 +1,24 @@
+{"batch": "batch-01", "sites": [
+  {"id": "ACRES-121721", "verifier": "Claude Sonnet 5.5", "fact_verdicts": [],
+   "portal_verdicts": [
+     {"url": "http://www.lawrencecountyauditor.org", "reachable": false, "note": "HTTP 403 Forbidden from the fetcher; page not readable."}
+   ]},
+  {"id": "ACRES-136961", "verifier": "Claude Sonnet 5.5", "fact_verdicts": [],
+   "portal_verdicts": [
+     {"url": "http://reweb1.co.madison.il.us/", "reachable": false, "note": "TLS error: certificate altnames are *.preview.devnetwedge.com, not reweb1.co.madison.il.us. Page not opened."},
+     {"url": "https://gis.co.madison.il.us/webappspublic/madison%20county%20gis%20viewer/index.html", "reachable": false, "note": "Loads only a titled 'ArcGIS Web Application' browser-notice shell; no map or Madison County content readable without JavaScript."},
+     {"url": "https://epadata.epa.state.il.us/land/srp/", "reachable": false, "note": "DNS failure: getaddrinfo ENOTFOUND epadata.epa.state.il.us."}
+   ]},
+  {"id": "ACRES-230821", "verifier": "Claude Sonnet 5.5", "fact_verdicts": [],
+   "portal_verdicts": [
+     {"url": "https://propertyrecords.beavercountypa.gov/", "reachable": true, "note": "Beaver County PA Property Records portal (Assessment Office, tax claim data). Currently shows 'The System is currently unavailable due to maintenance.'"},
+     {"url": "https://gis.mbakerintl.com/beavercountyinfoatlas/", "reachable": false, "note": "Only a notice: 'The Beaver County InfoAtlas has been moved' to https://gis.beavercountypa.gov/geohub. Not the atlas itself."},
+     {"url": "https://www.pa.gov/agencies/dep/programs-and-services/land/land-recycling-program.html", "reachable": true, "note": "PA DEP Land Recycling Program (Act 2) information page. It is a program page; no site search box seen on it."}
+   ]},
+  {"id": "ACRES-232701", "verifier": "Claude Sonnet 5.5", "fact_verdicts": [],
+   "portal_verdicts": [
+     {"url": "https://michigan.gov/egle/maps-data/ride-mapper", "reachable": false, "note": "HTTP 403 Forbidden from the fetcher; page not readable."},
+     {"url": "https://www.sturgismi.gov/245/Assistance-Incentives", "reachable": true, "note": "City of Sturgis Assistance & Incentives page; names the Brownfield Redevelopment Authority and gives 'call us at 269-659-7234'. No online site list."},
+     {"url": "https://stjosephcountymi.gov/", "reachable": true, "note": "St. Joseph County MI site; Government menu lists Equalization with 'Property Records & Tax Search' and a GIS section with 'Interactive Maps'. Search itself not run."}
+   ]}
+]}

@@ -483,7 +483,7 @@
       "water_rights_regime": "prior appropriation + AZ groundwater code",
       "water_rights_class": "unknown",
       "water_rights_note": "Agency/source link identifies a regulatory contact or historical context. No project-specific withdrawal entitlement, supply contract, allocation or approval outcome has been verified.",
-      "water_rights_source_url": "https://www.azwater.gov/ama/tucson-ama"
+      "water_rights_source_url": "https://www.azwater.gov/ama/active-management-area-overview"
     },
     {
       "id": "edwards-afb-ca",
@@ -552,7 +552,7 @@
       "pop_center_pop": 167426,
       "iso_rto": "CAISO (Southern California Edison)",
       "iso_rto_note": "California ISO balancing authority (SCE distribution territory). CAISO interconnection queue exceeds 300 GW; post-FERC Order 2023 reforms target 5-year median timelines, but 1,117 MW nuclear would be a novel CAISO category with multi-year study periods.",
-      "iso_rto_source_url": "https://www.caiso.com/generation/Pages/InterconnectionProcesses/default.aspx",
+      "iso_rto_source_url": "https://www.caiso.com/planning/Pages/GeneratorInterconnection/Default.aspx",
       "usgs_pgam": 0.45,
       "usgs_ss": 1.0,
       "usgs_sdc": "D",
@@ -561,7 +561,7 @@
       "water_rights_regime": "hybrid (CA) \u2014 adjudicated basin",
       "water_rights_class": "unknown",
       "water_rights_note": "Agency/source link identifies a regulatory contact or historical context. No project-specific withdrawal entitlement, supply contract, allocation or approval outcome has been verified.",
-      "water_rights_source_url": "https://www.avek.org/adjudication"
+      "water_rights_source_url": "https://www.avwatermaster.org/"
     },
     {
       "id": "robins-afb-ga",
@@ -581,7 +581,7 @@
       "water_statistic": "annual_mean",
       "water_statistic_source_url": "https://waterservices.usgs.gov/nwis/stat/?format=rdb&sites=02213000&statReportType=annual&statTypeCd=mean&parameterCd=00060",
       "water_note": "Ocmulgee River is mapped along the installation. Upstream Macon gage 02213000 reports a 2012 ANNUAL MEAN of 854.1 cfs; this is not a daily minimum, 7Q10 or firm supply. A 42 cfs withdrawal is approximately 4.9% of that annual mean, which does not establish a permissible withdrawal or drought margin. Site intake, low-flow reliability and allocation remain unassessed.",
-      "water_source_url": "https://waterdata.usgs.gov/monitoring-location/USGS-02213700/",
+      "water_source_url": "https://waterdata.usgs.gov/monitoring-location/USGS-02213000/",
       "fiber": "unknown",
       "fiber_note": "No site-specific carrier, service, capacity or route evidence retained. Fiber availability is unassessed.",
       "seismic_flag": "low",
@@ -626,8 +626,8 @@
       "infra_assessed_lon": -83.582508,
       "infra_coordinate_basis": "borrowed_reference_record",
       "infra_confidence": "low",
-      "supply_flow_cfs": 2680,
-      "supply_gauge": "02213700",
+      "supply_flow_cfs": 2656,
+      "supply_gauge": "02213000",
       "supply_source": "Ocmulgee River",
       "pop_center_mi": 4.4,
       "pop_center_name": "Warner Robins city, GA",
@@ -639,7 +639,7 @@
       "retired_plant_name": "Arkwright",
       "iso_rto": "Non-RTO/SERC (Georgia Power / Southern Company)",
       "iso_rto_note": "Southern Company (Georgia Power) service territory \u2014 SERC region, no ISO/RTO queue. Southern Company has direct AP1000 experience (Vogtle 3 & 4) in this territory. Bilateral agreements; typically faster than PJM/NYISO for large nuclear.",
-      "iso_rto_source_url": "https://www.southerncompany.com/transmission",
+      "iso_rto_source_url": "https://simpl.southernco.com/",
       "usgs_pgam": 0.11,
       "usgs_ss": 0.23,
       "usgs_sdc": "C",
@@ -648,7 +648,7 @@
       "water_rights_regime": "regulated riparian (GA permit)",
       "water_rights_class": "unknown",
       "water_rights_note": "Agency/source link identifies a regulatory contact or historical context. No project-specific withdrawal entitlement, supply contract, allocation or approval outcome has been verified.",
-      "water_rights_source_url": "https://epd.georgia.gov/watershed-protection-branch/water-withdrawal-permits"
+      "water_rights_source_url": "https://epd.georgia.gov/water-withdrawal-permitting"
     },
     {
       "id": "fort-benning-ga",
@@ -716,7 +716,7 @@
       "pop_center_pop": 38509,
       "iso_rto": "Non-RTO/SERC (Georgia Power / Southern Company)",
       "iso_rto_note": "Same Georgia Power / Southern Company territory as Robins AFB \u2014 SERC region, bilateral interconnection. Southern Company's Vogtle AP1000 experience makes this the most nuclear-familiar BA of the 14.",
-      "iso_rto_source_url": "https://www.southerncompany.com/transmission",
+      "iso_rto_source_url": "https://simpl.southernco.com/",
       "usgs_pgam": 0.07,
       "usgs_ss": 0.17,
       "usgs_sdc": "C",
@@ -725,7 +725,7 @@
       "water_rights_regime": "regulated riparian (GA permit)",
       "water_rights_class": "unknown",
       "water_rights_note": "Agency/source link identifies a regulatory contact or historical context. No project-specific withdrawal entitlement, supply contract, allocation or approval outcome has been verified.",
-      "water_rights_source_url": "https://www.supremecourt.gov/opinions/20pdf/142orig_1qm2.pdf"
+      "water_rights_source_url": "https://www.supremecourt.gov/opinions/20pdf/22o142_m648.pdf"
     },
     {
       "id": "fort-bragg-nc",
@@ -949,7 +949,7 @@
       "pop_center_pop": 31990,
       "iso_rto": "NYISO (National Grid / Zone C)",
       "iso_rto_note": "New York ISO, Zone C (Central NY / National Grid territory). NYISO has a structured interconnection queue; NY's Climate Leadership and Community Protection Act creates demand for carbon-free baseload. Queue timelines typically 3-5 years for large projects.",
-      "iso_rto_source_url": "https://www.nyiso.com/generation-interconnection",
+      "iso_rto_source_url": "https://www.nyiso.com/interconnections",
       "usgs_pgam": 0.12,
       "usgs_ss": 0.23,
       "usgs_sdc": "A",
@@ -958,7 +958,7 @@
       "water_rights_regime": "regulated riparian (NY DEC permit)",
       "water_rights_class": "unknown",
       "water_rights_note": "Agency/source link identifies a regulatory contact or historical context. No project-specific withdrawal entitlement, supply contract, allocation or approval outcome has been verified.",
-      "water_rights_source_url": "https://dec.ny.gov/environmental-protection/water/water-withdrawals"
+      "water_rights_source_url": "https://dec.ny.gov/regulatory/permits-licenses/wastewater-stormwater-water-withdrawal/water-withdrawal"
     },
     {
       "id": "fort-hood-tx",
@@ -1025,7 +1025,7 @@
       "pop_center_pop": 160616,
       "iso_rto": "ERCOT",
       "iso_rto_note": "Electric Reliability Council of Texas \u2014 self-contained, no FERC jurisdiction. ERCOT's interconnection queue (~350 GW pending) has moved faster than PJM historically. Texas's deregulated market offers competitive PPA pricing.",
-      "iso_rto_source_url": "https://www.ercot.com/mktrules/guides/interconnection",
+      "iso_rto_source_url": "https://ercot.com/services/rq/integration",
       "usgs_pgam": 0.03,
       "usgs_ss": 0.07,
       "usgs_sdc": "A",
@@ -1103,7 +1103,7 @@
       "infra_assessed_lon": -147.414443,
       "infra_coordinate_basis": "borrowed_reference_record",
       "infra_confidence": "low",
-      "supply_flow_cfs": 41000,
+      "supply_flow_cfs": 24825,
       "supply_gauge": "15515500",
       "supply_source": "Tanana River",
       "pop_center_mi": 17.4,
@@ -1111,7 +1111,7 @@
       "pop_center_pop": 31732,
       "iso_rto": "ASEA Railbelt (GVEA \u2014 no RTO)",
       "iso_rto_note": "Golden Valley Electric Association (GVEA) on the Railbelt grid \u2014 a ~400-mi isolated AC system. No ISO/RTO; project-by-project bilateral. An AP1000's 1,117 MW dwarfs the Railbelt's ~700 MW peak load \u2014 would require behind-the-fence configuration.",
-      "iso_rto_source_url": "https://www.gvea.com/about/our-grid",
+      "iso_rto_source_url": "https://www.gvea.com/",
       "usgs_pgam": 0.46,
       "usgs_ss": 1.05,
       "usgs_sdc": "D",
@@ -1120,7 +1120,7 @@
       "water_rights_regime": "prior appropriation (AK)",
       "water_rights_class": "unknown",
       "water_rights_note": "Agency/source link identifies a regulatory contact or historical context. No project-specific withdrawal entitlement, supply contract, allocation or approval outcome has been verified.",
-      "water_rights_source_url": "https://dnr.alaska.gov/mlw/water/wrfact/"
+      "water_rights_source_url": "https://dnr.alaska.gov/mlw/water/rights/"
     },
     {
       "id": "jblm-wa",
@@ -1179,7 +1179,7 @@
       "infra_assessed_lon": -122.538349,
       "infra_coordinate_basis": "borrowed_reference_record",
       "infra_confidence": "low",
-      "supply_flow_cfs": 2000,
+      "supply_flow_cfs": 1321,
       "supply_gauge": "12089500",
       "supply_source": "Nisqually River",
       "pop_center_mi": 3.4,
@@ -1192,7 +1192,7 @@
       "retired_plant_name": "Pierce Power Station",
       "iso_rto": "Non-RTO/WECC (Puget Sound Energy / BPA)",
       "iso_rto_note": "Puget Sound Energy (PSE) retail territory, Bonneville Power Administration (BPA) transmission grid. WECC without ISO/RTO \u2014 BPA manages bulk transmission. BPA's Columbia River hydro provides abundant balancing reserves. Bilateral process with BPA typically 3-4 years for large projects.",
-      "iso_rto_source_url": "https://www.bpa.gov/energy-and-services/transmission/generator-interconnection",
+      "iso_rto_source_url": "https://bpa.gov/energy-and-services/transmission/interconnection",
       "usgs_pgam": 0.59,
       "usgs_ss": 1.5,
       "usgs_sdc": "D",

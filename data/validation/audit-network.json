@@ -1,0 +1,7485 @@
+[
+ {
+  "check": "lines",
+  "id": "ACRES-121721",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.15 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "ACRES-121721",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.15 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "ACRES-121721",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.15 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "ACRES-121721",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=5.7 measured=5.69 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "ACRES-121721",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "ACRES-121721",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=8.0 measured=8.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "ACRES-121721",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=4.9 measured=4.89 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "ACRES-136961",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "ACRES-136961",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "ACRES-136961",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "ACRES-136961",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=1.4 measured=1.36 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "ACRES-136961",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.03 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "ACRES-136961",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=3.0 measured=3.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "ACRES-136961",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.10 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "ACRES-230821",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.4 measured=0.43 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "ACRES-230821",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.4 measured=0.43 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "ACRES-230821",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.4 measured=0.43 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "ACRES-230821",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.8 measured=0.83 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "ACRES-230821",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.06 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "ACRES-230821",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=5.8 measured=5.77 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "ACRES-230821",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=0.8 measured=0.83 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "ACRES-232701",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=11.7 measured=11.66 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "ACRES-232701",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=11.7 measured=11.66 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "ACRES-232701",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=11.7 measured=11.66 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "ACRES-232701",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=18.7 measured=18.66 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "ACRES-232701",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.20 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "ACRES-232701",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=3.6 measured=3.56 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "ACRES-232701",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=10.9 measured=10.90 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "ACRES-48321",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=4.8 measured=4.79 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "ACRES-48321",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=4.8 measured=4.79 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "ACRES-48321",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=4.8 measured=4.79 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "ACRES-48321",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=5.5 measured=5.50 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "ACRES-48321",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=1.4 measured=1.36 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "ACRES-48321",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=0.7 measured=0.68 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "ACRES-48321",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=1.8 measured=1.78 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "ACRES-53022",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=1.1 measured=1.13 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "ACRES-53022",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=1.1 measured=1.13 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "ACRES-53022",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=1.1 measured=1.13 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "ACRES-53022",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=6.0 measured=5.97 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "ACRES-53022",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "ACRES-53022",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=1.6 measured=1.59 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "ACRES-53022",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=1.0 measured=0.99 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "AL7210020742",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=1.6 measured=1.57 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "AL7210020742",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=1.6 measured=1.57 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "AL7210020742",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=1.6 measured=1.57 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "AL7210020742",
+  "field": "transmission_230kv_mi",
+  "status": "SKIP",
+  "detail": "stored=12.6 beyond the 6 mi box"
+ },
+ {
+  "check": "lines",
+  "id": "AL7210020742",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=1.7 measured=1.71 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "AL7210020742",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=5.2 measured=5.23 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "AL7210020742",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=4.2 measured=4.16 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "ALN000410750",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "ALN000410750",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "ALN000410750",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "ALN000410750",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.4 measured=0.42 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "ALN000410750",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.14 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "ALN000410750",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=1.2 measured=1.18 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "ALN000410750",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=4.4 measured=4.37 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "CA2570024453",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "CA2570024453",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "CA2570024453",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "CA2570024453",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "CA2570024453",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=1.4 measured=1.43 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "CA2570024453",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=4.3 measured=4.32 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "CA2570024453",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=0.8 measured=0.78 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "CA2890090002",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.04 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "CA2890090002",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.04 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "CA2890090002",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.04 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "CA2890090002",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=2.1 measured=2.09 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "CA2890090002",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=3.3 measured=3.32 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "CA2890090002",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=3.4 measured=3.39 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "CA2890090002",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=1.8 measured=1.77 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "FL6170024412",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=3.5 measured=3.51 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "FL6170024412",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=3.5 measured=3.51 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "FL6170024412",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=3.5 measured=3.51 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "FL6170024412",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=4.8 measured=4.79 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "FL6170024412",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=1.0 measured=1.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "FL6170024412",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=1.9 measured=1.95 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "FL6170024412",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=4.0 measured=4.03 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "FLD980847016",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=3.1 measured=3.10 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "FLD980847016",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=3.1 measured=3.10 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "FLD980847016",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=3.1 measured=3.10 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "FLD980847016",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=4.8 measured=4.78 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "FLD980847016",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.10 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "FLD980847016",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=1.0 measured=1.04 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "FLD980847016",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=4.7 measured=4.75 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "FLSFN0407002",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=4.1 measured=4.14 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "FLSFN0407002",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=4.1 measured=4.14 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "FLSFN0407002",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=4.1 measured=4.14 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "FLSFN0407002",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=5.8 measured=5.79 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "FLSFN0407002",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=0.8 measured=0.81 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "FLSFN0407002",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.08 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "FLSFN0407002",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=2.8 measured=2.77 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-A04MS0007",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=3.4 measured=3.43 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-A04MS0007",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=3.4 measured=3.43 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-A04MS0007",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=3.4 measured=3.43 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-A04MS0007",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=6.2 measured=6.25 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-A04MS0007",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=3.4 measured=3.36 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-A04MS0007",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=7.1 measured=7.06 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-A04MS0007",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=5.8 measured=5.82 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-A04MS0124",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=1.3 measured=1.28 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-A04MS0124",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=1.3 measured=1.28 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-A04MS0124",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=1.3 measured=1.28 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-A04MS0124",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=1.9 measured=1.91 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-A04MS0124",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=1.9 measured=1.89 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-A04MS0124",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=2.2 measured=2.19 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-A04MS0124",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=2.2 measured=2.19 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B07MO0138",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=3.3 measured=3.27 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B07MO0138",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=3.3 measured=3.27 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B07MO0138",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=3.3 measured=3.27 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B07MO0138",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=3.3 measured=3.27 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B07MO0138",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=5.1 measured=5.13 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B07MO0138",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=6.9 measured=6.91 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B07MO0138",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=3.0 measured=2.98 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B07MO0145",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.03 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B07MO0145",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.03 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B07MO0145",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.03 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B07MO0145",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=2.5 measured=2.47 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B07MO0145",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=1.8 measured=1.81 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B07MO0145",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=1.6 measured=1.65 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B07MO0145",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=1.5 measured=1.52 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B07MO0173",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=2.7 measured=2.66 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B07MO0173",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=2.7 measured=2.66 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B07MO0173",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=2.7 measured=2.66 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B07MO0173",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=2.7 measured=2.67 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B07MO0173",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=0.8 measured=0.82 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B07MO0173",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=0.8 measured=0.76 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B07MO0173",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=11.9 measured=11.92 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B07MO0988",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=1.1 measured=1.11 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B07MO0988",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=1.1 measured=1.11 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B07MO0988",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=1.1 measured=1.11 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B07MO0988",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=5.4 measured=5.44 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B07MO0988",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=0.6 measured=0.65 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B07MO0988",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=0.5 measured=0.45 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B07MO0988",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=1.1 measured=1.06 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B08CO0014",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.7 measured=0.65 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B08CO0014",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.7 measured=0.65 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B08CO0014",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.7 measured=0.65 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B08CO0014",
+  "field": "transmission_230kv_mi",
+  "status": "SKIP",
+  "detail": "stored=11.9 beyond the 6 mi box"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B08CO0014",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=1.3 measured=1.28 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B08CO0014",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=6.8 measured=6.76 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B08CO0014",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=25.3 measured=25.26 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B08CO0021",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.9 measured=0.91 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B08CO0021",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.9 measured=0.91 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B08CO0021",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.9 measured=0.91 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B08CO0021",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.9 measured=0.92 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B08CO0021",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=6.1 measured=6.08 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B08CO0021",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=5.1 measured=5.12 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B08CO0021",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=3.8 measured=3.84 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B08WY0017",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=7.0 measured=7.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B08WY0017",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=7.0 measured=7.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B08WY0017",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=7.0 measured=7.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B08WY0017",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=7.0 measured=7.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B08WY0017",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=7.5 measured=7.46 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B08WY0017",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=3.2 measured=3.16 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-B08WY0017",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=3.4 measured=3.37 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-C03PA0042",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.3 measured=0.26 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-C03PA0042",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.3 measured=0.26 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-C03PA0042",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.3 measured=0.26 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-C03PA0042",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.3 measured=0.26 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-C03PA0042",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.23 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-C03PA0042",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.12 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-C03PA0042",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=1.8 measured=1.77 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-D01MA0480",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=1.7 measured=1.71 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-D01MA0480",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=1.7 measured=1.71 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-D01MA0480",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=1.7 measured=1.71 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-D01MA0480",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=1.7 measured=1.71 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-D01MA0480",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=1.9 measured=1.95 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-D01MA0480",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=1.0 measured=1.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-D01MA0480",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=3.3 measured=3.35 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-D01ME0119",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=4.9 measured=4.87 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-D01ME0119",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=4.9 measured=4.87 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-D01ME0119",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=4.9 measured=4.87 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-D01ME0119",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=7.8 measured=7.78 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-D01ME0119",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=2.7 measured=2.67 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-D01ME0119",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=3.6 measured=3.60 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-D01ME0119",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=6.6 measured=6.65 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-E05MI1213",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=2.1 measured=2.15 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-E05MI1213",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=2.1 measured=2.15 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-E05MI1213",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=2.1 measured=2.15 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-E05MI1213",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=3.5 measured=3.52 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-E05MI1213",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=1.7 measured=1.67 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-E05MI1213",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=3.9 measured=3.93 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-E05MI1213",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=6.9 measured=6.92 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-E05WI0057",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=1.0 measured=1.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-E05WI0057",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=1.0 measured=1.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-E05WI0057",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=1.0 measured=1.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-E05WI0057",
+  "field": "transmission_230kv_mi",
+  "status": "SKIP",
+  "detail": "stored=7.0 beyond the 6 mi box"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-E05WI0057",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=0.7 measured=0.75 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-E05WI0057",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=0.4 measured=0.41 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-E05WI0057",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=9.6 measured=9.57 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-G05OH0156",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-G05OH0156",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-G05OH0156",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-G05OH0156",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.6 measured=0.60 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-G05OH0156",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.15 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-G05OH0156",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=0.6 measured=0.58 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-G05OH0156",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=6.9 measured=6.86 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-I04FL0038",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=1.0 measured=1.04 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-I04FL0038",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=1.0 measured=1.04 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-I04FL0038",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=1.0 measured=1.04 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-I04FL0038",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=1.1 measured=1.06 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-I04FL0038",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=0.3 measured=0.33 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-I04FL0038",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=1.2 measured=1.21 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-I04FL0038",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=3.0 measured=3.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-I04FL0101",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=1.0 measured=1.03 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-I04FL0101",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=1.0 measured=1.03 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-I04FL0101",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=1.0 measured=1.03 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-I04FL0101",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=1.0 measured=1.03 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-I04FL0101",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=15.8 measured=15.80 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-I04FL0101",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=1.1 measured=1.15 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-I04FL0101",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=14.9 measured=14.92 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-I04FL0285",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.6 measured=0.60 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-I04FL0285",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.6 measured=0.60 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-I04FL0285",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.6 measured=0.60 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-I04FL0285",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=2.4 measured=2.37 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-I04FL0285",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-I04FL0285",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=1.1 measured=1.12 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-I04FL0285",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=8.2 measured=8.23 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-I04FL0884",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=3.4 measured=3.36 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-I04FL0884",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=3.4 measured=3.36 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-I04FL0884",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=3.4 measured=3.36 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-I04FL0884",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=4.1 measured=4.10 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-I04FL0884",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.23 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-I04FL0884",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=2.4 measured=2.36 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-I04FL0884",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=3.3 measured=3.29 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-I04SC0025",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.4 measured=0.35 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-I04SC0025",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.4 measured=0.35 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-I04SC0025",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.4 measured=0.35 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-I04SC0025",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=1.3 measured=1.32 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-I04SC0025",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=5.6 measured=5.65 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-I04SC0025",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=1.9 measured=1.94 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-I04SC0025",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=7.5 measured=7.47 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-J09CA1017",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-J09CA1017",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-J09CA1017",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-J09CA1017",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-J09CA1017",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=4.7 measured=4.70 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-J09CA1017",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=3.7 measured=3.68 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-J09CA1017",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=7.9 measured=7.94 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-J09CA7074",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=1.6 measured=1.57 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-J09CA7074",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=1.6 measured=1.57 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-J09CA7074",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=1.6 measured=1.57 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-J09CA7074",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=1.6 measured=1.57 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-J09CA7074",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=1.8 measured=1.80 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-J09CA7074",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=4.8 measured=4.77 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-J09CA7074",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=6.0 measured=6.04 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-K06AR0051",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=7.2 measured=7.22 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-K06AR0051",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=7.2 measured=7.22 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-K06AR0051",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=7.2 measured=7.22 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-K06AR0051",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=14.3 measured=14.28 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-K06AR0051",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=1.4 measured=1.36 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-K06AR0051",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=9.9 measured=9.90 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-K06AR0051",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=3.9 measured=3.86 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-K06AR0130",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.5 measured=0.45 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-K06AR0130",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.5 measured=0.45 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-K06AR0130",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.5 measured=0.45 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-K06AR0130",
+  "field": "transmission_230kv_mi",
+  "status": "SKIP",
+  "detail": "stored=10.5 beyond the 6 mi box"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-K06AR0130",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-K06AR0130",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.18 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-K06AR0130",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=5.4 measured=5.39 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-K06TX0015",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=2.2 measured=2.24 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-K06TX0015",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=2.2 measured=2.24 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-K06TX0015",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=2.2 measured=2.24 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-K06TX0015",
+  "field": "transmission_230kv_mi",
+  "status": "SKIP",
+  "detail": "stored=17.6 beyond the 7 mi box"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-K06TX0015",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=6.5 measured=6.46 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-K06TX0015",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=7.3 measured=7.29 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "FUDS-K06TX0015",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=3.1 measured=3.06 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "GAD980838619",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.11 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "GAD980838619",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.11 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "GAD980838619",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.11 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "GAD980838619",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.11 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "GAD980838619",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=6.7 measured=6.74 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "GAD980838619",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=9.2 measured=9.20 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "GAD980838619",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=13.7 measured=13.68 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "ILD096731468",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.4 measured=0.39 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "ILD096731468",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.4 measured=0.39 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "ILD096731468",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.4 measured=0.39 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "ILD096731468",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=1.8 measured=1.81 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "ILD096731468",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.24 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "ILD096731468",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=3.2 measured=3.17 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "ILD096731468",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=0.5 measured=0.55 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "ILN000510192",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.11 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "ILN000510192",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.11 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "ILN000510192",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.11 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "ILN000510192",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.11 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "ILN000510192",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.16 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "ILN000510192",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=0.4 measured=0.38 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "ILN000510192",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=1.6 measured=1.56 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "MI0001119106",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.9 measured=0.92 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "MI0001119106",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.9 measured=0.92 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "MI0001119106",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.9 measured=0.92 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "MI0001119106",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=6.2 measured=6.21 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "MI0001119106",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=0.3 measured=0.32 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "MI0001119106",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=3.1 measured=3.11 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "MI0001119106",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=4.4 measured=4.36 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "MID000260281",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.04 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "MID000260281",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.04 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "MID000260281",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.04 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "MID000260281",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=4.3 measured=4.28 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "MID000260281",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=1.7 measured=1.70 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "MID000260281",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=1.5 measured=1.48 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "MID000260281",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=11.3 measured=11.29 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "MID005107222",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=1.7 measured=1.67 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "MID005107222",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=1.7 measured=1.67 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "MID005107222",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=1.7 measured=1.67 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "MID005107222",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=5.2 measured=5.23 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "MID005107222",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.12 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "MID005107222",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=1.0 measured=0.96 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "MID005107222",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=2.9 measured=2.93 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "MID017422304",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.3 measured=0.26 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "MID017422304",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.3 measured=0.26 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "MID017422304",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.3 measured=0.26 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "MID017422304",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=2.8 measured=2.75 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "MID017422304",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.18 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "MID017422304",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=3.7 measured=3.71 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "MID017422304",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=4.2 measured=4.17 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "MID062222997",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "MID062222997",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "MID062222997",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "MID062222997",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=5.7 measured=5.65 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "MID062222997",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=0.5 measured=0.50 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "MID062222997",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=0.3 measured=0.30 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "MID062222997",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=4.3 measured=4.28 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "MID980410617",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=1.4 measured=1.43 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "MID980410617",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=1.4 measured=1.43 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "MID980410617",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=1.4 measured=1.43 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "MID980410617",
+  "field": "transmission_230kv_mi",
+  "status": "SKIP",
+  "detail": "stored=6.6 beyond the 6 mi box"
+ },
+ {
+  "check": "lines",
+  "id": "MID980410617",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=0.8 measured=0.82 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "MID980410617",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=2.0 measured=2.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "MID980410617",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=6.9 measured=6.90 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "MID985574227",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.08 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "MID985574227",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.08 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "MID985574227",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.08 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "MID985574227",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=3.5 measured=3.52 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "MID985574227",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=0.4 measured=0.45 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "MID985574227",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=2.2 measured=2.20 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "MID985574227",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=1.3 measured=1.30 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "MIN000510362",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=1.0 measured=1.04 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "MIN000510362",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=1.0 measured=1.04 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "MIN000510362",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=1.0 measured=1.04 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "MIN000510362",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=1.6 measured=1.58 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "MIN000510362",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.09 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "MIN000510362",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=1.5 measured=1.55 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "MIN000510362",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=6.0 measured=6.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "MOD980633176",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=2.1 measured=2.12 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "MOD980633176",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=2.1 measured=2.12 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "MOD980633176",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=2.1 measured=2.12 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "MOD980633176",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=3.8 measured=3.83 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "MOD980633176",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=0.9 measured=0.94 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "MOD980633176",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=0.4 measured=0.37 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "MOD980633176",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=3.2 measured=3.22 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "MT0012694970",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "MT0012694970",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "MT0012694970",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "MT0012694970",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "MT0012694970",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=3.5 measured=3.49 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "MT0012694970",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=3.4 measured=3.43 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "MT0012694970",
+  "field": "gas_pipeline_mi",
+  "status": "SKIP",
+  "detail": "stored=35.6 needs a box over 45 mi"
+ },
+ {
+  "check": "lines",
+  "id": "MTD006232276",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "MTD006232276",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "MTD006232276",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "MTD006232276",
+  "field": "transmission_230kv_mi",
+  "status": "SKIP",
+  "detail": "stored=19.5 beyond the 6 mi box"
+ },
+ {
+  "check": "lines",
+  "id": "MTD006232276",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=0.3 measured=0.27 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "MTD006232276",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.04 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "MTD006232276",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.12 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "NCD003446721",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.3 measured=0.31 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "NCD003446721",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.3 measured=0.31 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "NCD003446721",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=2.4 measured=2.37 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "NCD003446721",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=2.4 measured=2.37 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "NCD003446721",
+  "field": "rail_mi",
+  "status": "MISMATCH",
+  "detail": "stored=0.1 measured=4.50 delta=4.40"
+ },
+ {
+  "check": "lines",
+  "id": "NCD003446721",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=4.3 measured=4.26 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "NCD003446721",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=1.3 measured=1.32 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "NCD986175644",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.4 measured=0.36 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "NCD986175644",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.4 measured=0.36 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "NCD986175644",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=1.7 measured=1.74 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "NCD986175644",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=1.7 measured=1.74 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "NCD986175644",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=1.2 measured=1.23 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "NCD986175644",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=3.0 measured=3.03 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "NCD986175644",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=3.4 measured=3.38 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "NJD980528996",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=1.2 measured=1.16 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "NJD980528996",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=1.2 measured=1.16 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "NJD980528996",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=1.2 measured=1.16 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "NJD980528996",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=1.2 measured=1.16 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "NJD980528996",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=0.6 measured=0.56 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "NJD980528996",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=0.9 measured=0.89 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "NJD980528996",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=1.2 measured=1.18 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "NYD980651087",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "NYD980651087",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "NYD980651087",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "NYD980651087",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.21 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "NYD980651087",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=0.3 measured=0.27 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "NYD980651087",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=0.7 measured=0.69 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "NYD980651087",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=1.2 measured=1.15 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "PAD980538763",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=2.6 measured=2.60 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "PAD980538763",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=2.6 measured=2.60 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "PAD980538763",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=2.6 measured=2.60 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "PAD980538763",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=2.6 measured=2.60 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "PAD980538763",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "PAD980538763",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.08 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "PAD980538763",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=9.8 measured=9.84 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "PAD980539712",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=1.3 measured=1.34 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "PAD980539712",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=1.3 measured=1.34 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "PAD980539712",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=1.3 measured=1.34 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "PAD980539712",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=1.3 measured=1.34 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "PAD980539712",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=0.8 measured=0.76 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "PAD980539712",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=2.5 measured=2.46 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "PAD980539712",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=4.0 measured=4.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "PAD980690549",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.7 measured=0.66 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "PAD980690549",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.7 measured=0.66 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "PAD980690549",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.7 measured=0.66 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "PAD980690549",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.7 measured=0.69 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "PAD980690549",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=1.6 measured=1.58 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "PAD980690549",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=1.0 measured=1.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "PAD980690549",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=1.2 measured=1.16 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "SCD037398120",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.12 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "SCD037398120",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.12 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "SCD037398120",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.12 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "SCD037398120",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.12 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "SCD037398120",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=3.2 measured=3.20 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "SCD037398120",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=2.8 measured=2.83 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "SCD037398120",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=1.9 measured=1.94 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "SCD980558050",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=2.2 measured=2.18 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "SCD980558050",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=2.2 measured=2.18 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "SCD980558050",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=2.2 measured=2.18 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "SCD980558050",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=2.2 measured=2.18 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "SCD980558050",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=1.9 measured=1.91 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "SCD980558050",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.19 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "SCD980558050",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.14 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "SCD980558316",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.9 measured=0.89 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "SCD980558316",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.9 measured=0.89 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "SCD980558316",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=1.3 measured=1.28 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "SCD980558316",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=1.3 measured=1.28 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "SCD980558316",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.20 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "SCD980558316",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=4.9 measured=4.90 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "SCD980558316",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=2.7 measured=2.66 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "SCN000407376",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=3.7 measured=3.67 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "SCN000407376",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=3.7 measured=3.67 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "SCN000407376",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=4.2 measured=4.21 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "SCN000407376",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=4.2 measured=4.21 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "SCN000407376",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=5.3 measured=5.33 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "SCN000407376",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=6.5 measured=6.50 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "SCN000407376",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=3.8 measured=3.79 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "TN1890090003",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.06 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "TN1890090003",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.06 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "TN1890090003",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.06 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "TN1890090003",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.4 measured=0.39 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "TN1890090003",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=3.6 measured=3.64 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "TN1890090003",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=5.2 measured=5.23 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "TN1890090003",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=2.6 measured=2.64 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "TND071516959",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=1.8 measured=1.85 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "TND071516959",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=1.8 measured=1.85 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "TND071516959",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=1.8 measured=1.85 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "TND071516959",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=3.9 measured=3.86 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "TND071516959",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.22 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "TND071516959",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=1.6 measured=1.64 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "TND071516959",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=6.1 measured=6.09 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "TND098071061",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=1.9 measured=1.93 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "TND098071061",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=1.9 measured=1.93 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "TND098071061",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=1.9 measured=1.93 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "TND098071061",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=6.6 measured=6.62 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "TND098071061",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.06 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "TND098071061",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=2.5 measured=2.53 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "TND098071061",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=1.0 measured=0.98 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "TND987768587",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.9 measured=0.92 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "TND987768587",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.9 measured=0.92 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "TND987768587",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.9 measured=0.92 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "TND987768587",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=2.6 measured=2.65 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "TND987768587",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.03 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "TND987768587",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=2.3 measured=2.30 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "TND987768587",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=5.3 measured=5.32 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "TXD008123168",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.06 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "TXD008123168",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.06 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "TXD008123168",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.06 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "TXD008123168",
+  "field": "transmission_230kv_mi",
+  "status": "SKIP",
+  "detail": "stored=12.7 beyond the 6 mi box"
+ },
+ {
+  "check": "lines",
+  "id": "TXD008123168",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.09 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "TXD008123168",
+  "field": "highway_mi",
+  "status": "SKIP",
+  "detail": "stored=65.9 needs a box over 45 mi"
+ },
+ {
+  "check": "lines",
+  "id": "TXD008123168",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "TXD055144539",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=1.7 measured=1.72 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "TXD055144539",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=1.7 measured=1.72 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "TXD055144539",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=1.7 measured=1.72 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "TXD055144539",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=3.2 measured=3.23 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "TXD055144539",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=1.8 measured=1.82 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "TXD055144539",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=6.2 measured=6.16 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "TXD055144539",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=0.6 measured=0.58 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "UTN000802704",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.13 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "UTN000802704",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.13 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "UTN000802704",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.13 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "UTN000802704",
+  "field": "transmission_230kv_mi",
+  "status": "SKIP",
+  "detail": "stored=32.6 beyond the 6 mi box"
+ },
+ {
+  "check": "lines",
+  "id": "UTN000802704",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.09 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "UTN000802704",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=9.9 measured=9.95 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "UTN000802704",
+  "field": "gas_pipeline_mi",
+  "status": "SKIP",
+  "detail": "stored=38.9 needs a box over 45 mi"
+ },
+ {
+  "check": "lines",
+  "id": "VA1170024722",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=3.8 measured=3.78 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "VA1170024722",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=3.8 measured=3.78 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "VA1170024722",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=3.8 measured=3.78 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "VA1170024722",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=3.8 measured=3.78 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "VA1170024722",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=7.3 measured=7.31 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "VA1170024722",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=4.0 measured=3.98 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "VA1170024722",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=6.0 measured=6.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "VAD007972482",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=1.1 measured=1.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "VAD007972482",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=1.1 measured=1.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "VAD007972482",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=1.1 measured=1.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "VAD007972482",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=1.1 measured=1.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "VAD007972482",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "VAD007972482",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=3.7 measured=3.69 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "VAD007972482",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=9.4 measured=9.36 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "VAD071040752",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.17 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "VAD071040752",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.17 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "VAD071040752",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.17 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "VAD071040752",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=1.7 measured=1.71 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "VAD071040752",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.13 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "VAD071040752",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=2.2 measured=2.21 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "VAD071040752",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=1.4 measured=1.44 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "VAD980539878",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.4 measured=0.42 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "VAD980539878",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.4 measured=0.42 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "VAD980539878",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.4 measured=0.42 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "VAD980539878",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.4 measured=0.42 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "VAD980539878",
+  "field": "rail_mi",
+  "status": "OK",
+  "detail": "stored=5.0 measured=4.97 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "VAD980539878",
+  "field": "highway_mi",
+  "status": "OK",
+  "detail": "stored=3.5 measured=3.53 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "VAD980539878",
+  "field": "gas_pipeline_mi",
+  "status": "OK",
+  "detail": "stored=5.5 measured=5.50 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:arnold-afb-tn",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.8 measured=0.83 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:arnold-afb-tn",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.8 measured=0.83 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:arnold-afb-tn",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.8 measured=0.83 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:arnold-afb-tn",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=2.7 measured=2.73 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:davis-monthan-afb-az",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=1.9 measured=1.94 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:davis-monthan-afb-az",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=1.9 measured=1.94 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:davis-monthan-afb-az",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=1.9 measured=1.94 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:davis-monthan-afb-az",
+  "field": "transmission_230kv_mi",
+  "status": "SKIP",
+  "detail": "stored=6.9 beyond the 6 mi box"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:edwards-afb-ca",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=3.7 measured=3.70 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:edwards-afb-ca",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=3.7 measured=3.70 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:edwards-afb-ca",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=3.7 measured=3.70 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:edwards-afb-ca",
+  "field": "transmission_230kv_mi",
+  "status": "SKIP",
+  "detail": "stored=17.6 beyond the 9 mi box"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:robins-afb-ga",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=1.0 measured=1.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:robins-afb-ga",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=1.0 measured=1.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:robins-afb-ga",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=1.0 measured=1.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:robins-afb-ga",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=3.6 measured=3.60 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:fort-benning-ga",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=1.1 measured=1.11 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:fort-benning-ga",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=1.1 measured=1.11 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:fort-benning-ga",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=1.1 measured=1.11 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:fort-benning-ga",
+  "field": "transmission_230kv_mi",
+  "status": "SKIP",
+  "detail": "stored=9.7 beyond the 6 mi box"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:fort-bragg-nc",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.3 measured=0.31 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:fort-bragg-nc",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.3 measured=0.31 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:fort-bragg-nc",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.3 measured=0.31 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:fort-bragg-nc",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.3 measured=0.31 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:fort-campbell-ky",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=4.2 measured=4.19 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:fort-campbell-ky",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=4.2 measured=4.19 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:fort-campbell-ky",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=4.2 measured=4.19 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:fort-campbell-ky",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=4.2 measured=4.19 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:fort-drum-ny",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.10 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:fort-drum-ny",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.10 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:fort-drum-ny",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.10 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:fort-drum-ny",
+  "field": "transmission_230kv_mi",
+  "status": "SKIP",
+  "detail": "stored=17.5 beyond the 6 mi box"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:fort-hood-tx",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.3 measured=0.30 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:fort-hood-tx",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.3 measured=0.30 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:fort-hood-tx",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.3 measured=0.30 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:fort-hood-tx",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.4 measured=0.43 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:fort-wainwright-ak",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=8.1 measured=8.12 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:fort-wainwright-ak",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=8.1 measured=8.12 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:fort-wainwright-ak",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=8.1 measured=8.12 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:fort-wainwright-ak",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=None, nothing in 16 mi box"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:jblm-wa",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.8 measured=0.75 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:jblm-wa",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.8 measured=0.75 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:jblm-wa",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.8 measured=0.75 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:jblm-wa",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=5.2 measured=5.17 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:jbmdl-nj",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=2.1 measured=2.08 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:jbmdl-nj",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=2.1 measured=2.08 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:jbmdl-nj",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=2.1 measured=2.08 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:jbmdl-nj",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=2.1 measured=2.08 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:holston-aap-tn",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.09 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:holston-aap-tn",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.09 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:holston-aap-tn",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.09 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:holston-aap-tn",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=4.0 measured=4.03 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:redstone-arsenal-al",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=1.6 measured=1.57 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:redstone-arsenal-al",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=1.6 measured=1.57 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:redstone-arsenal-al",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=1.6 measured=1.57 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "ap1000:redstone-arsenal-al",
+  "field": "transmission_230kv_mi",
+  "status": "SKIP",
+  "detail": "stored=12.6 beyond the 6 mi box"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1733",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.07 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1733",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.07 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1733",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.07 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1733",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.07 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6094",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6094",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6094",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6094",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3399",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.11 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3399",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.11 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3399",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.11 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3399",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.24 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6166",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.17 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6166",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.17 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6166",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.17 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6166",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.17 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1378",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.10 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1378",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.10 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1378",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.10 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1378",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.10 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6090",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.22 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6090",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.22 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6090",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.22 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6090",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.22 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2866",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2866",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2866",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2866",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-628",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.09 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-628",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.09 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-628",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.09 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-628",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.09 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2850",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.12 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2850",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.12 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2850",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.12 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2850",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.12 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-4941",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.4 measured=0.36 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-4941",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.4 measured=0.36 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-4941",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.4 measured=0.36 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-4941",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.4 measured=0.36 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2442",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.08 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2442",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.08 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2442",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.08 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2442",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.08 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2840",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.10 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2840",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.10 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2840",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.10 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2840",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.10 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3122",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.07 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3122",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.07 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3122",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.07 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3122",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.07 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6147",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6147",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6147",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6147",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-50",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-50",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-50",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-50",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.15 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6085",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.14 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6085",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.14 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6085",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.14 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6085",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.14 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6052",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6052",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6052",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6052",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-889",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.03 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-889",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.03 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-889",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.03 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-889",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.03 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2451",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2451",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2451",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2451",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-709",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-709",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-709",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-709",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3179",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3179",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3179",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3179",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3407",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.21 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3407",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.21 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3407",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.21 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3407",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=2.5 measured=2.49 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6481",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.04 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6481",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.04 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6481",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.04 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6481",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.04 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2341",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.23 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2341",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.23 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2341",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.23 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2341",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.23 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-470",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.07 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-470",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.07 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-470",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.07 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-470",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.07 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1241",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1241",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1241",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1241",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1710",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1710",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1710",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1710",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1743",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1743",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1743",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1743",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2872",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2872",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2872",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2872",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.23 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3406",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3406",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3406",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3406",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.4 measured=0.36 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6021",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.06 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6021",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.06 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6021",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.06 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6021",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.06 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6019",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6019",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6019",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6019",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-8",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-8",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-8",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-8",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6034",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.15 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6034",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.15 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6034",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.15 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6034",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.15 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-602",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-602",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-602",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-602",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-207",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-207",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-207",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-207",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3797",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3797",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3797",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3797",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-47",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.04 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-47",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.04 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-47",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.04 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-47",
+  "field": "transmission_230kv_mi",
+  "status": "SKIP",
+  "detail": "stored=14.0 beyond the 6 mi box"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-876",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.08 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-876",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.08 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-876",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.08 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-876",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.08 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6249",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6249",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6249",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6249",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-884",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-884",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-884",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-884",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.21 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2837",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2837",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2837",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2837",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3403",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3403",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3403",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3403",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=5.0 measured=4.96 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1573",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1573",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1573",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1573",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6155",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6155",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6155",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6155",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-4041",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.12 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-4041",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.12 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-4041",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.12 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-4041",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.12 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6017",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.13 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6017",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.13 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6017",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.13 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6017",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.13 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6170",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6170",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6170",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6170",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2830",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.04 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2830",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.04 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2830",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.04 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2830",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.04 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3497",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3497",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3497",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3497",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.17 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2718",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2718",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2718",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2718",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6194",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.18 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6194",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.18 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6194",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.18 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6194",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.3 measured=0.33 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-113",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.07 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-113",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.07 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-113",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.07 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-113",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.07 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1619",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.09 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1619",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.09 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1619",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.09 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1619",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.09 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-8023",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-8023",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-8023",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-8023",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3938",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3938",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3938",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3938",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.5 measured=0.50 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-988",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-988",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-988",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-988",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-887",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-887",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-887",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-887",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.3 measured=0.29 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2107",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.06 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2107",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.06 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2107",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.06 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2107",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.17 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6073",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6073",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6073",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6073",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2727",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2727",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2727",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2727",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-52071",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.22 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-52071",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.22 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-52071",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.22 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-52071",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.4 measured=0.44 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-861",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.04 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-861",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.04 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-861",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.04 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-861",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.04 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3393",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3393",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3393",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3393",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=1.0 measured=0.99 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-708",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-708",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-708",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-708",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3396",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3396",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3396",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3396",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.16 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6181",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6181",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6181",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6181",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.3 measured=0.31 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1010",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1010",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1010",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1010",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6177",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.4 measured=0.40 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6177",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.4 measured=0.40 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6177",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.4 measured=0.40 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6177",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.4 measured=0.40 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1353",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.04 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1353",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.04 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1353",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.04 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1353",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.04 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-883",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.06 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-883",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.06 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-883",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.06 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-883",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.4 measured=0.44 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3405",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.15 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3405",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.15 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3405",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.15 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3405",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=1.1 measured=1.14 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-594",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.3 measured=0.27 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-594",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.3 measured=0.27 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-594",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.3 measured=0.27 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-594",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.4 measured=0.36 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-856",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-856",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-856",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-856",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.11 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2549",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2549",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2549",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2549",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1745",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.09 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1745",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.09 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1745",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.09 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1745",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.23 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2836",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2836",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2836",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2836",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6250",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.06 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6250",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.06 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6250",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.06 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6250",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.06 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-65285",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.13 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-65285",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.13 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-65285",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.13 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-65285",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.13 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-7902",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.08 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-7902",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.08 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-7902",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.08 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-7902",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=4.1 measured=4.08 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-51",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.07 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-51",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.07 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-51",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.07 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-51",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.07 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-127",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-127",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-127",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.00 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-127",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.3 measured=0.31 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3947",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.07 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3947",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.07 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3947",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.07 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3947",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.2 measured=0.24 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3161",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.11 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3161",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.11 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3161",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.11 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3161",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.11 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-728",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.06 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-728",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.06 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-728",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.06 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-728",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.06 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2713",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.03 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2713",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.03 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2713",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.03 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2713",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.03 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6031",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.10 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6031",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.10 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6031",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.10 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6031",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.10 delta=0.00"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6082",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.03 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6082",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.03 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6082",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.03 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6082",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.03 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2408",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2408",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2408",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2408",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.01 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1740",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.13 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1740",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.13 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1740",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.13 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1740",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=1.6 measured=1.56 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3803",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3803",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3803",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.02 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-3803",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.09 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2104",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.08 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2104",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.08 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2104",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.08 delta=0.02"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2104",
+  "field": "transmission_230kv_mi",
+  "status": "SKIP",
+  "detail": "stored=7.6 beyond the 6 mi box"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1363",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.11 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1363",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.11 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1363",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.11 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1363",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.11 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6106",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.03 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6106",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.03 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6106",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.03 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-6106",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.03 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-8226",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.04 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-8226",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.04 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-8226",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.04 delta=0.04"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-8226",
+  "field": "transmission_230kv_mi",
+  "status": "SKIP",
+  "detail": "stored=12.6 beyond the 6 mi box"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2324",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.13 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2324",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.13 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2324",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.13 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2324",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.13 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2554",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.03 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2554",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.03 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2554",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.03 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-2554",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.0 measured=0.03 delta=0.03"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1769",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1769",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1769",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.1 measured=0.05 delta=0.05"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-1769",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.6 measured=0.59 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-646",
+  "field": "transmission_mi",
+  "status": "OK",
+  "detail": "stored=0.3 measured=0.31 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-646",
+  "field": "transmission_69kv_mi",
+  "status": "OK",
+  "detail": "stored=0.3 measured=0.31 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-646",
+  "field": "transmission_115kv_mi",
+  "status": "OK",
+  "detail": "stored=0.3 measured=0.31 delta=0.01"
+ },
+ {
+  "check": "lines",
+  "id": "coal:EIA-646",
+  "field": "transmission_230kv_mi",
+  "status": "OK",
+  "detail": "stored=0.3 measured=0.31 delta=0.01"
+ },
+ {
+  "check": "citations",
+  "id": "dc:grid",
+  "field": "https://services1.arcgis.com/Hp6G80Pky0om7QvQ/arcgis/rest/services/Electric_Power_Transmission_Lines/FeatureServer/0",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "dc:land",
+  "field": "https://www.edwards.af.mil/News/Display/Article/4354128/have-questions-about-the-solicitation-for-ai-data-centers-we-got-answers/",
+  "status": "INCONCLUSIVE",
+  "detail": "HTTP 403 (blocked or throttled)"
+ },
+ {
+  "check": "citations",
+  "id": "dc:flood",
+  "field": "https://www.fema.gov/about/glossary/flood-zones",
+  "status": "INCONCLUSIVE",
+  "detail": "HTTP 403 (blocked or throttled)"
+ },
+ {
+  "check": "citations",
+  "id": "dc:road",
+  "field": "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Transportation/MapServer",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "solar:land",
+  "field": "https://www.epa.gov/re-powering/5-data-documentation-mapping-and-screening-criteria-renewable-energy-generation",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "port:port",
+  "field": "https://www.bts.gov/ntad",
+  "status": "INCONCLUSIVE",
+  "detail": "HTTP 403 (blocked or throttled)"
+ },
+ {
+  "check": "citations",
+  "id": "nickel:land",
+  "field": "https://github.com/pranava0x0/brownfield-opportunities/blob/main/research/nickel-refining-siting-2026-09.md",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "nickel:water",
+  "field": "https://waterdata.usgs.gov/",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:pop",
+  "field": "https://www.law.cornell.edu/cfr/text/10/100.3",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:seismic",
+  "field": "https://www.nrc.gov/docs/ML1117/ML11171A430.pdf",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:water",
+  "field": "https://www.energy.gov/sites/default/files/EIS-0476-FEIS_Part1-2012.pdf",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "micro:selected",
+  "field": "https://www.world-nuclear-news.org/articles/us-army-selects-five-microreactor-vendors-to-power-bases",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "micro:grid",
+  "field": "https://www.army.mil/article/294897/army_selects_fort_drum_for_janus_program_microreactor",
+  "status": "INCONCLUSIVE",
+  "detail": "HTTP 403 (blocked or throttled)"
+ },
+ {
+  "check": "citations",
+  "id": "civilian:license",
+  "field": "https://www.nrc.gov/reactors/new-reactors.html",
+  "status": "INCONCLUSIVE",
+  "detail": "HTTP 403 (blocked or throttled)"
+ },
+ {
+  "check": "citations",
+  "id": "coal:retired",
+  "field": "https://www.eia.gov/electricity/data/eia860m/",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "coal:poi",
+  "field": "https://www.ferc.gov/explainer-interconnection-final-rule",
+  "status": "INCONCLUSIVE",
+  "detail": "HTTP 403 (blocked or throttled)"
+ },
+ {
+  "check": "citations",
+  "id": "retired:reason",
+  "field": "https://www.ecfr.gov/current/title-40/chapter-I/subchapter-C/part-98/subpart-A/section-98.2",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "retired:tracked",
+  "field": "https://pranava0x0.github.io/brownfield-opportunities/",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:arnold-afb-tn:acreage_source",
+  "field": "https://tennesseeencyclopedia.net/entries/arnold-engineering-development-center/",
+  "status": "INCONCLUSIVE",
+  "detail": "ConnectionError"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:arnold-afb-tn:water_source_url",
+  "field": "https://www.arnold.af.mil/News/Article-Display/Article/3163926/woods-reservoir-completed-70-years-ago-this-month/",
+  "status": "INCONCLUSIVE",
+  "detail": "HTTP 403 (blocked or throttled)"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:arnold-afb-tn:af_rflp_source_url",
+  "field": "https://sam.gov/workspace/contract/opp/e74af0fe0e03406e80488d7f5c538baa/view",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:arnold-afb-tn:af_rflp_status_url",
+  "field": "https://www.tullahomanews.com/news/breaking-news/2026/06/01/no-ai-data-center-at-arnold/",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:arnold-afb-tn:workforce_source_url",
+  "field": "https://www.travelmath.com/driving-time/from/Tullahoma,+TN/to/Huntsville,+AL",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:arnold-afb-tn:water_rights_source_url",
+  "field": "https://www.tva.com/environment/shoreline-construction-permits",
+  "status": "INCONCLUSIVE",
+  "detail": "HTTP 403 (blocked or throttled)"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:arnold-afb-tn:iso_rto_source_url",
+  "field": "https://www.tva.com/energy/our-power-system/transmission/request-for-transmission-service",
+  "status": "INCONCLUSIVE",
+  "detail": "HTTP 403 (blocked or throttled)"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:davis-monthan-afb-az:acreage_source",
+  "field": "https://en.wikipedia.org/wiki/309th_Aerospace_Maintenance_and_Regeneration_Group",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:davis-monthan-afb-az:water_source_url",
+  "field": "https://www.cap-az.com/water/water-supply/colorado-river-operations-2/",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:davis-monthan-afb-az:water_rights_source_url",
+  "field": "https://www.azwater.gov/ama/tucson-ama",
+  "status": "INCONCLUSIVE",
+  "detail": "HTTP 403 (blocked or throttled)"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:davis-monthan-afb-az:iso_rto_source_url",
+  "field": "https://www.tucsonelectric.com/energy/transmission",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:edwards-afb-ca:acreage_source",
+  "field": "https://en.wikipedia.org/wiki/Edwards_Air_Force_Base",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:edwards-afb-ca:water_source_url",
+  "field": "https://ca.water.usgs.gov/projects/antelope-valley/antelope-valley-land-subsidence.html",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:edwards-afb-ca:water_rights_source_url",
+  "field": "https://www.avek.org/adjudication",
+  "status": "MISMATCH",
+  "detail": "HTTP 404"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:edwards-afb-ca:iso_rto_source_url",
+  "field": "https://www.caiso.com/generation/Pages/InterconnectionProcesses/default.aspx",
+  "status": "MISMATCH",
+  "detail": "HTTP 404"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:robins-afb-ga:acreage_source",
+  "field": "https://en.wikipedia.org/wiki/Robins_Air_Force_Base",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:robins-afb-ga:water_source_url",
+  "field": "https://waterdata.usgs.gov/monitoring-location/USGS-02213700/",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:robins-afb-ga:water_rights_source_url",
+  "field": "https://epd.georgia.gov/watershed-protection-branch/water-withdrawal-permits",
+  "status": "MISMATCH",
+  "detail": "HTTP 404"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:robins-afb-ga:iso_rto_source_url",
+  "field": "https://www.southerncompany.com/transmission",
+  "status": "MISMATCH",
+  "detail": "HTTP 404"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:fort-benning-ga:acreage_source",
+  "field": "https://home.army.mil/benning/About",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:fort-benning-ga:water_source_url",
+  "field": "https://waterdata.usgs.gov/monitoring-location/USGS-02341460/",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:fort-benning-ga:water_rights_source_url",
+  "field": "https://www.supremecourt.gov/opinions/20pdf/142orig_1qm2.pdf",
+  "status": "MISMATCH",
+  "detail": "HTTP 404"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:fort-bragg-nc:acreage_source",
+  "field": "https://www.globalsecurity.org/military/facility/fort-bragg.htm",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:fort-bragg-nc:water_source_url",
+  "field": "https://waterdata.usgs.gov/monitoring-location/USGS-02102500/",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:fort-bragg-nc:water_rights_source_url",
+  "field": "https://www.deq.nc.gov/about/divisions/water-resources/water-planning/water-supply-planning",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:fort-bragg-nc:iso_rto_source_url",
+  "field": "https://www.dukeenergy.com/home/products/electric-transmission",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:fort-campbell-ky:acreage_source",
+  "field": "https://en.wikipedia.org/wiki/Fort_Campbell",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:fort-campbell-ky:water_source_url",
+  "field": "https://waterdata.usgs.gov/monitoring-location/USGS-03431500/",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:fort-campbell-ky:water_rights_source_url",
+  "field": "https://eec.ky.gov/Environmental-Protection/Water/Pages/default.aspx",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:fort-drum-ny:acreage_source",
+  "field": "https://en.wikipedia.org/wiki/Fort_Drum",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:fort-drum-ny:water_source_url",
+  "field": "https://waterdata.usgs.gov/monitoring-location/USGS-04260500/",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:fort-drum-ny:workforce_source_url",
+  "field": "https://www.citypopulation.de/en/usa/metro/48060__watertown_fort_drum/",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:fort-drum-ny:water_rights_source_url",
+  "field": "https://dec.ny.gov/environmental-protection/water/water-withdrawals",
+  "status": "MISMATCH",
+  "detail": "HTTP 404"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:fort-drum-ny:iso_rto_source_url",
+  "field": "https://www.nyiso.com/generation-interconnection",
+  "status": "MISMATCH",
+  "detail": "HTTP 404"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:fort-hood-tx:acreage_source",
+  "field": "https://defensescoop.com/2026/02/06/trump-military-bases-army-lease-land-data-centers/",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:fort-hood-tx:water_source_url",
+  "field": "https://wcid1.org/about-us/",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:fort-hood-tx:water_rights_source_url",
+  "field": "https://www.brazos.org/About-Us/Water-Supply",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:fort-hood-tx:iso_rto_source_url",
+  "field": "https://www.ercot.com/mktrules/guides/interconnection",
+  "status": "MISMATCH",
+  "detail": "HTTP 404"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:fort-wainwright-ak:acreage_source",
+  "field": "https://en.wikipedia.org/wiki/Fort_Wainwright",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:fort-wainwright-ak:water_source_url",
+  "field": "https://waterdata.usgs.gov/monitoring-location/USGS-15514000/",
+  "status": "OK",
+  "detail": "HTTP 202"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:fort-wainwright-ak:water_rights_source_url",
+  "field": "https://dnr.alaska.gov/mlw/water/wrfact/",
+  "status": "MISMATCH",
+  "detail": "HTTP 404"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:fort-wainwright-ak:iso_rto_source_url",
+  "field": "https://www.gvea.com/about/our-grid",
+  "status": "MISMATCH",
+  "detail": "HTTP 404"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:jblm-wa:acreage_source",
+  "field": "https://installations.militaryonesource.mil/in-depth-overview/joint-base-lewis-mcchord",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:jblm-wa:water_source_url",
+  "field": "https://waterdata.usgs.gov/monitoring-location/USGS-12089500/",
+  "status": "OK",
+  "detail": "HTTP 202"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:jblm-wa:water_rights_source_url",
+  "field": "https://ecology.wa.gov/water-shorelines/water-supply/protecting-stream-flows",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:jblm-wa:iso_rto_source_url",
+  "field": "https://www.bpa.gov/energy-and-services/transmission/generator-interconnection",
+  "status": "MISMATCH",
+  "detail": "HTTP 404"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:jbmdl-nj:acreage_source",
+  "field": "https://en.wikipedia.org/wiki/Joint_Base_McGuire%E2%80%93Dix%E2%80%93Lakehurst",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:jbmdl-nj:water_source_url",
+  "field": "https://pinelandsalliance.org/water-supply-aquifer/",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:jbmdl-nj:water_rights_source_url",
+  "field": "https://www.nj.gov/drbc/programs/project/",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:jbmdl-nj:iso_rto_source_url",
+  "field": "https://www.pjm.com/planning/interconnection-agreements",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:holston-aap-tn:acreage_source",
+  "field": "https://tnecd.com/certifiedsite/technology-park-ii-at-holston-army-ammunition-plant/",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:holston-aap-tn:water_source_url",
+  "field": "https://waterservices.usgs.gov/nwis/site/?format=rdb&sites=03487500&siteOutput=expanded",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:redstone-arsenal-al:acreage_source",
+  "field": "https://www.army.mil/article/34408/redstone_plans_to_lease_land_for_growth",
+  "status": "INCONCLUSIVE",
+  "detail": "HTTP 403 (blocked or throttled)"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:redstone-arsenal-al:water_source_url",
+  "field": "https://waterdata.usgs.gov/monitoring-location/03575500/",
+  "status": "OK",
+  "detail": "HTTP 202"
+ },
+ {
+  "check": "citations",
+  "id": "ap1000:redstone-arsenal-al:water_rights_source_url",
+  "field": "https://adeca.alabama.gov/water/",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "civilian:palisades-mi:nrc_url",
+  "field": "https://www.thenationalnews.com/future/technology/2026/09/21/palisades-nuclear-incident-restart-nrc/",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "civilian:three-mile-island-pa:nrc_url",
+  "field": "https://www.federalregister.gov/documents/2026/09/25/2026-19603/constellation-energy-generation-llc-christopher-m-crane-clean-energy-center-environmental-assessment",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "civilian:kemmerer-wy:reference_url",
+  "field": "https://world-nuclear-news.org/articles/nrc-issues-construction-permit-for-first-natrium-plant",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "civilian:kemmerer-wy:nrc_url",
+  "field": "https://www.nrc.gov/reactors/new-reactors/advanced/natrium.html",
+  "status": "INCONCLUSIVE",
+  "detail": "HTTP 403 (blocked or throttled)"
+ },
+ {
+  "check": "citations",
+  "id": "civilian:seadrift-tx:nrc_url",
+  "field": "https://www.nrc.gov/reactors/new-reactors/advanced/xe-100.html",
+  "status": "INCONCLUSIVE",
+  "detail": "HTTP 403 (blocked or throttled)"
+ },
+ {
+  "check": "citations",
+  "id": "civilian:clinch-river-tn:nrc_url",
+  "field": "https://www.nrc.gov/public-involve/public-meetings/pmns/20260617",
+  "status": "INCONCLUSIVE",
+  "detail": "HTTP 403 (blocked or throttled)"
+ },
+ {
+  "check": "citations",
+  "id": "civilian:clinch-river-tn:reference_url",
+  "field": "https://world-nuclear-news.org/articles/first-construction-permit-issued-for-bwrx300-smr-in-us",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "civilian:belews-creek-nc:nrc_url",
+  "field": "https://www.nrc.gov/about-nrc/news-releases/2026/nrc-advisory-nrc-hold-mandatory-hearing-belews-creek-early-site-permit",
+  "status": "INCONCLUSIVE",
+  "detail": "HTTP 403 (blocked or throttled)"
+ },
+ {
+  "check": "citations",
+  "id": "civilian:inl-cfpp-id:nrc_url",
+  "field": "https://www.nrc.gov/reactors/new-reactors/smr/nuscale.html",
+  "status": "INCONCLUSIVE",
+  "detail": "HTTP 403 (blocked or throttled)"
+ },
+ {
+  "check": "citations",
+  "id": "civilian:vc-summer-sc:nrc_url",
+  "field": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/virgil-c-summer.html",
+  "status": "INCONCLUSIVE",
+  "detail": "HTTP 403 (blocked or throttled)"
+ },
+ {
+  "check": "citations",
+  "id": "civilian:vc-summer-sc:reference_url",
+  "field": "https://www.world-nuclear-news.org/articles/brookfield-and-the-nuclear-company-target-vcsummer",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "civilian:turkey-point-fl:nrc_url",
+  "field": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/turkey-point.html",
+  "status": "INCONCLUSIVE",
+  "detail": "HTTP 403 (blocked or throttled)"
+ },
+ {
+  "check": "citations",
+  "id": "civilian:william-states-lee-sc:nrc_url",
+  "field": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/william-states-lee.html",
+  "status": "INCONCLUSIVE",
+  "detail": "HTTP 403 (blocked or throttled)"
+ },
+ {
+  "check": "citations",
+  "id": "civilian:levy-fl:nrc_url",
+  "field": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/levy.html",
+  "status": "INCONCLUSIVE",
+  "detail": "HTTP 403 (blocked or throttled)"
+ },
+ {
+  "check": "citations",
+  "id": "civilian:bellefonte-al:nrc_url",
+  "field": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/bellefonte.html",
+  "status": "INCONCLUSIVE",
+  "detail": "HTTP 403 (blocked or throttled)"
+ },
+ {
+  "check": "citations",
+  "id": "civilian:fermi-mi:nrc_url",
+  "field": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/fermi.html",
+  "status": "INCONCLUSIVE",
+  "detail": "HTTP 403 (blocked or throttled)"
+ },
+ {
+  "check": "citations",
+  "id": "civilian:harris-nc:nrc_url",
+  "field": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/harris.html",
+  "status": "INCONCLUSIVE",
+  "detail": "HTTP 403 (blocked or throttled)"
+ },
+ {
+  "check": "citations",
+  "id": "civilian:south-texas-tx:nrc_url",
+  "field": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/south-texas.html",
+  "status": "INCONCLUSIVE",
+  "detail": "HTTP 403 (blocked or throttled)"
+ },
+ {
+  "check": "citations",
+  "id": "civilian:north-anna-va:nrc_url",
+  "field": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/north-anna.html",
+  "status": "INCONCLUSIVE",
+  "detail": "HTTP 403 (blocked or throttled)"
+ },
+ {
+  "check": "citations",
+  "id": "civilian:comanche-peak-tx:nrc_url",
+  "field": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/comanche-peak.html",
+  "status": "INCONCLUSIVE",
+  "detail": "HTTP 403 (blocked or throttled)"
+ },
+ {
+  "check": "citations",
+  "id": "civilian:river-bend-la:nrc_url",
+  "field": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/river-bend.html",
+  "status": "INCONCLUSIVE",
+  "detail": "HTTP 403 (blocked or throttled)"
+ },
+ {
+  "check": "citations",
+  "id": "civilian:calvert-cliffs-md:nrc_url",
+  "field": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/calvert-cliffs.html",
+  "status": "INCONCLUSIVE",
+  "detail": "HTTP 403 (blocked or throttled)"
+ },
+ {
+  "check": "citations",
+  "id": "civilian:bell-bend-pa:nrc_url",
+  "field": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/bell-bend.html",
+  "status": "INCONCLUSIVE",
+  "detail": "HTTP 403 (blocked or throttled)"
+ },
+ {
+  "check": "citations",
+  "id": "civilian:salem-hope-creek-nj:nrc_url",
+  "field": "https://www.nrc.gov/reactors/new-reactors/esp/hope-creek.html",
+  "status": "INCONCLUSIVE",
+  "detail": "HTTP 403 (blocked or throttled)"
+ },
+ {
+  "check": "citations",
+  "id": "civilian:project-matador-tx:reference_url",
+  "field": "https://investor.fermiamerica.com/fermi-announces-binding-lease-agreement-with-tensorwave",
+  "status": "OK",
+  "detail": "HTTP 200"
+ },
+ {
+  "check": "citations",
+  "id": "civilian:kewaunee-wi:reference_url",
+  "field": "https://www.energysolutions.com/energysolutions-submits-notices-of-intent-to-nrc-kewaunee-power-station-new-nuclear-initiative/",
+  "status": "OK",
+  "detail": "HTTP 200"
+ }
+]

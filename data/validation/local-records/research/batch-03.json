@@ -1,0 +1,277 @@
+{
+ "batch": "batch-03",
+ "researcher": "Claude Haiku 5.5",
+ "sites": [
+  {
+   "id": "CA2570024453",
+   "name": "GEORGE AIR FORCE BASE",
+   "researcher": "Claude Haiku 5.5",
+   "portals": [
+    {
+     "kind": "assessor",
+     "name": "San Bernardino County Assessor Parcel Access (ARC property information)",
+     "url": "https://arc.sbcounty.gov/property-information/",
+     "access": "free_map",
+     "note": "Interactive map for public property searches; the page says to use Chrome or Firefox and that ARC does not provide special query services. The page does not list the search fields, so address and owner search were not confirmed."
+    },
+    {
+     "kind": "recorder",
+     "name": "San Bernardino County Recorder official records index",
+     "url": "https://arc.sbcounty.gov/official-records/",
+     "access": "unknown",
+     "note": "Index covers 1925 to present and is index only (no document images on this site). Copies cost $4 for the first page and $1.50 per additional page. The page says the Recorder does not have owner names by address and sends APN lookups to the Assessor."
+    },
+    {
+     "kind": "treasurer",
+     "name": "San Bernardino County Auditor-Controller/Treasurer/Tax Collector, Tax Collector",
+     "url": "https://www.sbcountyatc.gov/tax-collector",
+     "access": "unknown",
+     "note": "The opened page returned no text, so tax-sale and tax-search details were not verified from this page."
+    }
+   ],
+   "facts": [
+    {
+     "kind": "transfer",
+     "summary": "EPA's redevelopment profile says the Air Force has transferred 4,196 acres to the Southern California Logistics Airport Authority. The page gives no date for this.",
+     "authority": "US EPA (Superfund redevelopment profile)",
+     "reference": "EPA Redevelopment profile, GEORGE AIR FORCE BASE (site id 0902737)",
+     "source_url": "https://cumulis.epa.gov/supercpad/SiteProfiles/index.cfm?fuseaction=second.redevelop&id=0902737",
+     "quote": "The AF has transferred 4,196 acres to Southern California Logistics Airport Authority (SCLAA)."
+    },
+    {
+     "kind": "other",
+     "summary": "Victorville is the local reuse agency for Air Force property leases, and leased parcels stay with it until they can be transferred by deed to new owners. The page gives no date.",
+     "authority": "US EPA (Superfund redevelopment profile)",
+     "reference": "EPA Redevelopment profile, GEORGE AIR FORCE BASE (site id 0902737)",
+     "source_url": "https://cumulis.epa.gov/supercpad/SiteProfiles/index.cfm?fuseaction=second.redevelop&id=0902737",
+     "quote": "Victorville acts as the local reuse agency (LRA) for property leases from the Air Force"
+    },
+    {
+     "kind": "redevelopment_plan",
+     "summary": "The proposed reuse for the former base was an international airport and rail hub. EPA says this proposal is on hold because of economic conditions. The page gives no date.",
+     "authority": "US EPA (Superfund redevelopment profile)",
+     "reference": "EPA Redevelopment profile, GEORGE AIR FORCE BASE (site id 0902737)",
+     "source_url": "https://cumulis.epa.gov/supercpad/SiteProfiles/index.cfm?fuseaction=second.redevelop&id=0902737",
+     "quote": "The proposed reuse for the former George AFB was the development of an international airport and railway hub"
+    },
+    {
+     "kind": "zoning",
+     "summary": "EPA says there are no plans for residential development on former base property, citing the City of Victorville 2030 Specific Plan. The page gives no date for the plan.",
+     "authority": "US EPA, citing City of Victorville 2030 Specific Plan",
+     "reference": "EPA Redevelopment profile, GEORGE AIR FORCE BASE (site id 0902737), Activity and Use Limitations section",
+     "source_url": "https://cumulis.epa.gov/supercpad/SiteProfiles/index.cfm?fuseaction=second.redevelop&id=0902737",
+     "quote": "There are no plans for residential development on former base property"
+    }
+   ],
+   "gaps": [
+    "A Victorville council vote to transfer about 32 city parcels (about 188 acres) to the airport authority appeared only in a search summary. The source page returned HTTP 403, so it is not cited.",
+    "The federal transfer of Parcel K to the Bureau of Prisons and a 1993 Record of Decision appear only in advocacy or AI-generated sources. No official Record of Decision or deed was opened.",
+    "The site point is not matched to any parcel. The atlas owner and parcel ID are null and the state parcel layer is false. No county parcel search was run for this location.",
+    "The county assessor map and recorder index were checked as portal pages only. No search was run on them, so no lien, deed or tax record for this site is shown.",
+    "The Tax Collector page returned no text, so tax delinquency and tax-sale status were not checked.",
+    "No current cleanup status or five-year review was opened for George AFB."
+   ]
+  },
+  {
+   "id": "FL6170024412",
+   "name": "JACKSONVILLE NAVAL AIR STATION",
+   "researcher": "Claude Haiku 5.5",
+   "portals": [
+    {
+     "kind": "assessor",
+     "name": "Duval County Property Appraiser, Basic Search",
+     "url": "https://paopropertysearch.coj.net/Basic/Search.aspx",
+     "access": "free_search",
+     "note": "The Property Appraiser page says the Basic Search can find property by Real Estate Number, Property Owner Information or Property Address. The search itself was not run for this site."
+    },
+    {
+     "kind": "recorder",
+     "name": "Duval County Clerk of Court, Official Records",
+     "url": "https://or.duvalclerk.com/",
+     "access": "free_search",
+     "note": "The Clerk's page says official records recorded since 1988 can be searched and viewed online at no fee. Uncertified copies can be downloaded or printed free. Office copies cost $1 per page."
+    },
+    {
+     "kind": "treasurer",
+     "name": "Duval County Tax Collector, tax sale, certificates and tax deeds",
+     "url": "https://taxcollector.jacksonville.gov/taxes/property-taxes/tax-sale,-certificates,-and-tax-deeds",
+     "access": "unknown",
+     "note": "Information page only. It describes the annual tax certificate sale (2026 sale on May 27, 2026) held online through lienhub.com/duval. Tax deed sales are run by the Clerk of Court. No parcel search was run."
+    }
+   ],
+   "facts": [
+    {
+     "kind": "other",
+     "summary": "EPA's site profile lists NAS Jacksonville as a Final National Priorities List site and a Federal Facility NPL site. The profile gives no date and no street address.",
+     "authority": "US EPA",
+     "reference": "EPA Site profile, JACKSONVILLE NAVAL AIR STATION (EPA ID FL6170024412)",
+     "source_url": "https://cumulis.epa.gov/supercpad/SiteProfiles/index.cfm?fuseaction=second.docdata&id=0401214",
+     "quote": "This is a Federal Facility NPL site."
+    }
+   ],
+   "gaps": [
+    "The EPA profile gives only 'JACKSONVILLE, FL' as the location, with no street address. The batch address (NAS Bldg 826) comes from the batch file and was not checked against a source.",
+    "The 2007 ATSDR public health assessment PDF could not be read because the fetch returned compressed binary text. Its statement that the Navy leases 65-acre Dewey Park to the city and keeps about 3,831 acres is therefore not cited.",
+    "A targeted search on the Dewey Park lease returned nothing, so that lease is unverified.",
+    "The atlas owner 'U S A AIR BASE' is not confirmed by any opened county record. No Duval property search was run for this site.",
+    "Search results on Cecil Field and Cecil Commerce Center concern a different former Navy base and are not used.",
+    "EPA's document list shows 'Key Documents (0 documents)' with no titles or dates. No five-year review or current cleanup status was found."
+   ]
+  },
+  {
+   "id": "FLSFN0407002",
+   "name": "JACKSONVILLE ASH SITE",
+   "researcher": "Claude Haiku 5.5",
+   "portals": [
+    {
+     "kind": "assessor",
+     "name": "Duval County Property Appraiser, Basic Search",
+     "url": "https://paopropertysearch.coj.net/Basic/Search.aspx",
+     "access": "free_search",
+     "note": "The Property Appraiser page says the Basic Search can find property by Real Estate Number, Property Owner Information or Property Address. The search itself was not run for this site."
+    },
+    {
+     "kind": "recorder",
+     "name": "Duval County Clerk of Court, Official Records",
+     "url": "https://or.duvalclerk.com/",
+     "access": "free_search",
+     "note": "The Clerk's page says official records recorded since 1988 can be searched and viewed online at no fee. Uncertified copies can be downloaded or printed free. Office copies cost $1 per page."
+    },
+    {
+     "kind": "treasurer",
+     "name": "Duval County Tax Collector, tax sale, certificates and tax deeds",
+     "url": "https://taxcollector.jacksonville.gov/taxes/property-taxes/tax-sale,-certificates,-and-tax-deeds",
+     "access": "unknown",
+     "note": "Information page only. It describes the annual tax certificate sale held online through lienhub.com/duval. Tax deed sales are run by the Clerk of Court. No parcel search was run."
+    }
+   ],
+   "facts": [
+    {
+     "kind": "other",
+     "summary": "EPA's site profile says the Jacksonville Ash Site has three separate areas: the Forest Street Incinerator, the 5th and Cleveland Incinerator, and Lonnie C. Miller Sr. Park. The profile gives no date.",
+     "authority": "US EPA",
+     "reference": "EPA Site profile, JACKSONVILLE ASH SITE (site id 0407002)",
+     "source_url": "https://cumulis.epa.gov/supercpad/cursites/csitinfo.cfm?id=0407002",
+     "quote": "The Jacksonville Ash Site includes three separate areas in Jacksonville, Duval County, Florida."
+    },
+    {
+     "kind": "redevelopment_plan",
+     "summary": "EPA says future redevelopment is being planned for the Lonnie Miller Park area, including a proposed sports complex with soccer fields, baseball diamonds and basketball courts. The profile gives no date.",
+     "authority": "US EPA",
+     "reference": "EPA Site profile, JACKSONVILLE ASH SITE (site id 0407002)",
+     "source_url": "https://cumulis.epa.gov/supercpad/cursites/csitinfo.cfm?id=0407002",
+     "quote": "Future redevelopment is being planned for the Lonnie Miller Park area of the Jacksonville Ash Site."
+    },
+    {
+     "kind": "other",
+     "date": "2005-08-10",
+     "summary": "EPA's August 5, 2005 release said a public meeting on the proposed cleanup plan would be held on August 10, 2005 at the Emmett Reed Center, 1093 West 6th Street.",
+     "authority": "US EPA news release (8/5/2005)",
+     "reference": "EPA news release, Jacksonville Ash site meeting notice, 2005-08-05",
+     "source_url": "https://www.epa.gov/archive/epapages/newsroom_archive/newsreleases/acc0e9ea379532d9852570d1004e1cb2.html",
+     "quote": "the Jacksonville Ash site meeting will be held on August 10, 2005 at the Emmett Reed Center"
+    },
+    {
+     "kind": "other",
+     "date": "2009-12-15",
+     "summary": "EPA's December 11, 2009 release announced a public meeting on the remedial cleanup for Jacksonville Ash and Brown's Dump, to be held December 15, 2009 at the Emmett Reed Center, 1093 West 6th Street.",
+     "authority": "US EPA news release (12/11/2009)",
+     "reference": "EPA news release, Jacksonville Ash and Brown's Dump remedial cleanup meetings, 2009-12-11",
+     "source_url": "https://www.epa.gov/archive/epapages/newsroom_archive/newsreleases/bf852a196bb7deb285257689006e5638.html",
+     "quote": "On Tuesday, December 15, 2009, a meeting will be held at the Emmett Reed Center on 1093 West 6th Street in Jacksonville."
+    },
+    {
+     "kind": "other",
+     "date": "2009-12-11",
+     "summary": "The same EPA release said remediation was set to begin at the Ash Sites in January 2010. The release covers both Jacksonville Ash and Brown's Dump, so this statement is a plan and does not confirm when work started at this site.",
+     "authority": "US EPA news release (12/11/2009)",
+     "reference": "EPA news release, Jacksonville Ash and Brown's Dump remedial cleanup meetings, 2009-12-11",
+     "source_url": "https://www.epa.gov/archive/epapages/newsroom_archive/newsreleases/bf852a196bb7deb285257689006e5638.html",
+     "quote": "Remediation set to begin at Ash Sites in January 2010"
+    }
+   ],
+   "gaps": [
+    "The EPA profile gives no acreage, NPL or Superfund Alternative Approach status, or current use. A search summary's figure of about 1,140 acres was not confirmed on an opened page.",
+    "The 2024 five-year review PDF (semspub 11209381) is too large for the fetch tool, so its ownership and status statements are not used.",
+    "The 2018 EPA Sites in Reuse document (semspub 100001750) returned no readable Jacksonville Ash text, so it is not used.",
+    "The atlas owner is null. Owners of Lonnie C. Miller Sr. Park and the incinerator areas are not verified in any county record. No Duval property search was run for 1093 West 6th Street.",
+    "An October 2026 news article about cleanup reporting for this site was seen in search results but not opened, so it is not used."
+   ]
+  },
+  {
+   "id": "FUDS-A04MS0124",
+   "name": "GULFPORT ARMY AIR FIELD",
+   "researcher": "Claude Haiku 5.5",
+   "portals": [
+    {
+     "kind": "recorder",
+     "name": "Harrison County Chancery Clerk, Recording and Redemption (Judicial District 1, Gulfport)",
+     "url": "https://www.harrisoncountymschanceryclerk.gov/recording.asp",
+     "access": "in_person",
+     "note": "The Clerk's recording page lists the Gulfport office at (228) 865-4036. It says the Recording Department records deeds, deeds of trust, lis pendens, federal tax liens and similar instruments. Copies cost $0.50 per page, and the page lists no fee for viewing."
+    },
+    {
+     "kind": "recorder",
+     "name": "Harrison County Chancery Clerk, Land Records Online",
+     "url": "https://landrecords.co.harrison.ms.us",
+     "access": "unknown",
+     "note": "Linked from the Clerk's recording page, which was opened. The root returned HTTP 403 to automated fetch, so index coverage and fees are unverified. A search summary describes searches by grantor, grantee and legal description."
+    },
+    {
+     "kind": "assessor",
+     "name": "Harrison County real property search (land roll)",
+     "url": "https://harrison2.co.harrison.ms.us/realproperty/",
+     "access": "unknown",
+     "note": "Listed in search results from the county's tax assessor directory. The page returned HTTP 403 to automated fetch, so it was not opened and no search was run."
+    },
+    {
+     "kind": "zoning",
+     "name": "Gulfport Online Atlas (zoning maps)",
+     "url": "https://gulfport.maps.arcgis.com/apps/instant/basic/index.html?appid=06cbdd8099a14d25b8b0a18fc22d3c44",
+     "access": "free_map",
+     "note": "Linked from the City of Gulfport Planning and Zoning page, which was opened. It is described as the place to view zoning maps. Not checked for parcel ownership."
+    },
+    {
+     "kind": "zoning",
+     "name": "City of Gulfport Planning and Zoning",
+     "url": "https://www.gulfport-ms.gov/departments/urban_development/planning___zoning/index.php",
+     "access": "unknown",
+     "note": "Lists zoning determinations and the official zoning map. No city parcel-owner search was found on this page."
+    }
+   ],
+   "facts": [
+    {
+     "kind": "transfer",
+     "summary": "FortWiki says the city took over the base in 1947 under a special use permit. The date in the fact is left out because the source gives only the year.",
+     "authority": "FortWiki (secondary historical site, not an agency record)",
+     "reference": "FortWiki, Gulfport Army Air Field",
+     "source_url": "https://fortwiki.com/Gulfport_Army_Air_Field",
+     "quote": "In 1947, the city took over the base under a special use permit."
+    },
+    {
+     "kind": "other",
+     "summary": "The Army Corps of Engineers FUDS listing for Gulfport Army Air Field (A04MS0124, Harrison County) shows Eligibility Yes, Hazards Yes, 2 eligible projects, $530 thousand spent to date and $1,594 thousand to complete. The listing is from an older GAO report, and its date is not shown on the fetched text.",
+     "authority": "US GAO, Mississippi FUDS listing (GAO-01-1012SP)",
+     "reference": "GAO-01-1012SP, Mississippi Formerly Used Defense Sites table",
+     "source_url": "https://files.gao.gov/gao-01-1012sp/MS.html",
+     "quote": "GULFPORT ARMY AIR FIELD A04MS0124 HARRISON 5 Yes Yes 2 530 1,594"
+    },
+    {
+     "kind": "other",
+     "summary": "FortWiki says Gulfport International Airport shares the site with Mississippi National Guard components. The page gives no date.",
+     "authority": "FortWiki (secondary historical site, not an agency record)",
+     "reference": "FortWiki, Gulfport Army Air Field, current status section",
+     "source_url": "https://fortwiki.com/Gulfport_Army_Air_Field",
+     "quote": "Gulfport International Airport shares the site with Mississippi National Guard components."
+    }
+   ],
+   "gaps": [
+    "No current cleanup status for the FUDS property was found. The GAO listing is an older report, and its date is not shown on the fetched text.",
+    "A search summary gave a 1949 War Assets transfer to the city. That statement is not in an opened page, so only FortWiki's 1947 special use permit is recorded.",
+    "No acreage or parcel owner was verified for this property. The 2,465.9 acre figure in the batch file was not checked.",
+    "The Harrison County real property search and the Chancery Clerk's land records search both returned HTTP 403 to automated fetch. No search was run on either, so no deed, lien or tax record is shown.",
+    "No City of Gulfport permit, code enforcement or demolition record for this site was found."
+   ]
+  }
+ ]
+}

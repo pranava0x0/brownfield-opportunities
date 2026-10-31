@@ -1,0 +1,352 @@
+{
+ "ACRES-121721": {
+  "atlas_owner": null,
+  "atlas_parcel_id": "39087-36-044-1000.000",
+  "checked_at": "2026-10-31",
+  "status": "owner_not_comparable",
+  "live_owner": null,
+  "live_parcel_id": "39087-36-044-1000.000",
+  "source": "Ohio OGRIP Statewide Parcels (area only)"
+ },
+ "ACRES-136961": {
+  "atlas_owner": null,
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "no_layer"
+ },
+ "ACRES-230821": {
+  "atlas_owner": null,
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "no_layer"
+ },
+ "ACRES-232701": {
+  "atlas_owner": null,
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "no_layer"
+ },
+ "ACRES-48321": {
+  "atlas_owner": null,
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "no_layer"
+ },
+ "ACRES-53022": {
+  "atlas_owner": null,
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "no_layer"
+ },
+ "AL7210020742": {
+  "atlas_owner": null,
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "no_layer"
+ },
+ "ALN000410750": {
+  "atlas_owner": null,
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "no_layer"
+ },
+ "CA2570024453": {
+  "atlas_owner": null,
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "no_layer"
+ },
+ "FL6170024412": {
+  "atlas_owner": "U S A AIR BASE",
+  "atlas_parcel_id": "0984050000R",
+  "checked_at": "2026-10-31",
+  "status": "confirmed",
+  "live_owner": "U S A AIR BASE",
+  "live_parcel_id": "0984050000R",
+  "source": "Florida FDOR/FGIO Statewide Cadastral"
+ },
+ "FLSFN0407002": {
+  "atlas_owner": null,
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "no_match",
+  "source": "Florida FDOR/FGIO Statewide Cadastral"
+ },
+ "FUDS-A04MS0124": {
+  "atlas_owner": "Local government \u2014 City , City Of Gulfport / Private \u2014 Multiple Private Owners, Private",
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "no_layer"
+ },
+ "FUDS-B07MO0173": {
+  "atlas_owner": "Local government \u2014 County Saint Louis County-Lone Elk Park And West Tyson Park., St. Louis County / Private \u2014 Washington University-Biological Field Station For Research., Washington University",
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "no_layer"
+ },
+ "FUDS-B08CO0014": {
+  "atlas_owner": "Federal / Private \u2014 Residences, Residences / Usfs: National Forest",
+  "atlas_parcel_id": "220317100001",
+  "checked_at": "2026-10-31",
+  "status": "atlas_is_category",
+  "live_owner": "EAGLE COUNTY PROPERTY OWNER",
+  "live_parcel_id": "220317100001",
+  "source": "Colorado OIT (Public Parcel Composite)"
+ },
+ "FUDS-B08CO0021": {
+  "atlas_owner": "Local government \u2014 County City Of Aurora And Arapahoe County , City Of Aurora, Colorado / Private \u2014 Various / State \u2014 Colorado State Land Board",
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "atlas_is_category",
+  "live_owner": "COLORADO STATE OF BOARD OF LAND COMMISSIONERS",
+  "live_parcel_id": "2071-00-0-00-098",
+  "source": "Colorado OIT (Public Parcel Composite)"
+ },
+ "FUDS-C03PA0042": {
+  "atlas_owner": "Private \u2014 Hankin Management / Pennsylvania Fish Commission. / State \u2014 Hankin Management / Pennsylvania Fish Commission.",
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "no_layer"
+ },
+ "FUDS-G05OH0156": {
+  "atlas_owner": "Local government \u2014 City City Of Cincinnati",
+  "atlas_parcel_id": "39061-2390003002800",
+  "checked_at": "2026-10-31",
+  "status": "owner_not_comparable",
+  "live_owner": null,
+  "live_parcel_id": "39061-2390003002800",
+  "source": "Ohio OGRIP Statewide Parcels (area only)"
+ },
+ "FUDS-I04FL0038": {
+  "atlas_owner": "Dod: Carl Dokter / Federal \u2014 Nat'l Institute Of Health, Perrine Center., Federal Bureau Of Prisons / Local government \u2014 County Gold Coast Rr Museum. Metro Zoo. ., Miami-Dade County / Private \u2014 University Of Miami South Campus.",
+  "atlas_parcel_id": "3059360000050",
+  "checked_at": "2026-10-31",
+  "status": "atlas_is_category",
+  "live_owner": "MIAMI-DADE COUNTY",
+  "live_parcel_id": "3059360000050",
+  "source": "Florida FDOR/FGIO Statewide Cadastral"
+ },
+ "FUDS-I04FL0884": {
+  "atlas_owner": "Federal \u2014 Highway, Jax Naval Air Station / State \u2014 Highway, Jax Naval Air Station",
+  "atlas_parcel_id": "0984050000R",
+  "checked_at": "2026-10-31",
+  "status": "atlas_is_category",
+  "live_owner": "U S A AIR BASE",
+  "live_parcel_id": "0984050000R",
+  "source": "Florida FDOR/FGIO Statewide Cadastral"
+ },
+ "FUDS-I04SC0025": {
+  "atlas_owner": "Private \u2014 Multiple Private Owners, Numerous Private Owners, Private , Residential Development",
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "no_layer"
+ },
+ "FUDS-J09CA7074": {
+  "atlas_owner": "Private / State",
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "no_layer"
+ },
+ "FUDS-K06TX0015": {
+  "atlas_owner": "Local government \u2014 The City Of Gainesville Owns Moss Lake / Private \u2014 Multiple Private Owners, Private Numerous Private Owners",
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "no_layer"
+ },
+ "GAD980838619": {
+  "atlas_owner": null,
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "no_layer"
+ },
+ "ILN000510192": {
+  "atlas_owner": null,
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "no_layer"
+ },
+ "MI0001119106": {
+  "atlas_owner": null,
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "no_layer"
+ },
+ "MID005107222": {
+  "atlas_owner": null,
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "no_layer"
+ },
+ "MID017422304": {
+  "atlas_owner": null,
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "no_layer"
+ },
+ "MID062222997": {
+  "atlas_owner": null,
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "no_layer"
+ },
+ "MID980410617": {
+  "atlas_owner": null,
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "no_layer"
+ },
+ "MID985574227": {
+  "atlas_owner": null,
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "no_layer"
+ },
+ "MIN000510362": {
+  "atlas_owner": null,
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "no_layer"
+ },
+ "MT0012694970": {
+  "atlas_owner": "USA",
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "error",
+  "source": "RuntimeError: HTTP 200, reply was not JSON"
+ },
+ "NCD003446721": {
+  "atlas_owner": "GROVER INVESTMENTS I LLC",
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "confirmed",
+  "live_owner": "GROVER INVESTMENTS I LLC",
+  "live_parcel_id": "4512",
+  "source": "NC OneMap (NC1Map statewide parcels)"
+ },
+ "NCD986175644": {
+  "atlas_owner": "A TO Z RENTALS LLC",
+  "atlas_parcel_id": "3534-76-4837",
+  "checked_at": "2026-10-31",
+  "status": "confirmed",
+  "live_owner": "A TO Z RENTALS LLC",
+  "live_parcel_id": "3534-76-4837",
+  "source": "NC OneMap (NC1Map statewide parcels)"
+ },
+ "NJD980528996": {
+  "atlas_owner": null,
+  "atlas_parcel_id": "0907_235_31",
+  "checked_at": "2026-10-31",
+  "status": "owner_not_comparable",
+  "live_owner": null,
+  "live_parcel_id": "0907_235_31",
+  "source": "NJOGIS (Parcels & MOD-IV Composite of NJ)"
+ },
+ "NYD980651087": {
+  "atlas_owner": null,
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "no_layer"
+ },
+ "PAD980538763": {
+  "atlas_owner": null,
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "no_layer"
+ },
+ "PAD980539712": {
+  "atlas_owner": null,
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "no_layer"
+ },
+ "PAD980690549": {
+  "atlas_owner": null,
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "no_layer"
+ },
+ "SCD037398120": {
+  "atlas_owner": null,
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "no_layer"
+ },
+ "SCD980558050": {
+  "atlas_owner": null,
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "no_layer"
+ },
+ "SCD980558316": {
+  "atlas_owner": null,
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "no_layer"
+ },
+ "SCN000407376": {
+  "atlas_owner": null,
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "no_layer"
+ },
+ "TN1890090003": {
+  "atlas_owner": null,
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "no_layer"
+ },
+ "TND071516959": {
+  "atlas_owner": null,
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "no_layer"
+ },
+ "TND098071061": {
+  "atlas_owner": null,
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "no_layer"
+ },
+ "TND987768587": {
+  "atlas_owner": null,
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "no_layer"
+ },
+ "TXD008123168": {
+  "atlas_owner": null,
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "no_layer"
+ },
+ "TXD055144539": {
+  "atlas_owner": null,
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "no_layer"
+ },
+ "VA1170024722": {
+  "atlas_owner": null,
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "no_layer"
+ },
+ "VAD007972482": {
+  "atlas_owner": null,
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "no_layer"
+ },
+ "VAD071040752": {
+  "atlas_owner": null,
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "no_layer"
+ },
+ "VAD980539878": {
+  "atlas_owner": null,
+  "atlas_parcel_id": null,
+  "checked_at": "2026-10-31",
+  "status": "no_layer"
+ }
+}

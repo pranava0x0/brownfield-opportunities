@@ -4057,3 +4057,9 @@ details.nickel-caveat li { margin-bottom: 6px; }
 .screen-chip { display: inline-block; margin: 0 6px 3px 0; color: var(--text-soft); white-space: nowrap; }
 .screen-chip[data-status="pass"] { color: var(--readiness-ready); }
 .screen-chip[data-status="fail"] { color: var(--status-final); }
+
+.verify-map-link { margin: 8px 0 0; font-size: 13px; }
+#d-local-block[hidden] { display: none; }
+.local-portals, .local-facts { padding-left: 18px; margin: 4px 0 10px; }
+.local-portals li, .local-facts li { margin-bottom: 6px; }
+.local-gaps { margin: 8px 0; font-size: 13px; }

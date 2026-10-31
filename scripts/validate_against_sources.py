@@ -41,6 +41,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
 import random
@@ -93,7 +94,9 @@ def get_json(url: str, params: dict, label: str) -> Any:
     """GET JSON with a disk cache and a polite inter-request delay."""
     CACHE.mkdir(parents=True, exist_ok=True)
     key = json.dumps([url, params], sort_keys=True)
-    path = CACHE / f"{label}-{abs(hash(key)) & 0xFFFFFFFFFFFF:012x}.json"
+    # hashlib, not hash(): str hashing is randomised per process, so the old key
+    # never hit the cache on a second run.
+    path = CACHE / f"{label}-{hashlib.sha256(key.encode()).hexdigest()[:12]}.json"
     if path.exists():
         return json.loads(path.read_text())
 

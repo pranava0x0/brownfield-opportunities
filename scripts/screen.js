@@ -94,10 +94,32 @@ function main([cmd, a, b]) {
       printEval(site, key);
     }
     if (!found) throw new Error(`unknown site id ${a}`);
+  } else if (cmd === "top" && process.argv.includes("--json")) {
+    // Machine-readable: full site record plus the per-criterion results.
+    const n = Number(b) || 20;
+    const rows = Screens.rank(universe(Screens.SCREENS[a].universe), a).slice(0, n);
+    console.log(JSON.stringify(rows.map((r, i) => ({rank: i + 1, ev: r.ev, site: r.site}))));
   } else if (cmd === "top") {
     const n = Number(b) || 20;
     Screens.rank(universe(Screens.SCREENS[a].universe), a).slice(0, n).forEach((r, i) =>
       console.log(`${String(i + 1).padStart(3)}. ${r.ev.met}/${r.ev.total} (${r.ev.unknown}?) ${String(r.site.id).padEnd(18)} ${r.site.state || ""} ${r.site.name}`));
+  } else if (cmd === "coverage") {
+    // Per criterion: how many in-scope sites pass, fail or are unknown. A
+    // criterion that is unknown for most of its universe says what the tab
+    // cannot tell the user, however good the ranking looks.
+    const out = {};
+    for (const [key, sc] of Object.entries(Screens.SCREENS)) {
+      const rows = Screens.rank(universe(sc.universe), key);
+      out[key] = {scope: rows.length, criteria: {}};
+      for (const c of sc.criteria) out[key].criteria[c.id] = {pass: 0, fail: 0, unknown: 0, rule: c.rule, kind: c.kind};
+      for (const r of rows) for (const x of r.ev.results) out[key].criteria[x.id][x.status]++;
+    }
+    console.log(JSON.stringify(out));
+  } else if (cmd === "sources") {
+    const out = [];
+    for (const [key, sc] of Object.entries(Screens.SCREENS))
+      for (const c of sc.criteria) out.push({screen: key, criterion: c.id, title: c.source.title, url: c.source.url, kind: c.kind});
+    console.log(JSON.stringify(out));
   } else if (cmd === "counts") {
     for (const key of Object.keys(Screens.SCREENS)) {
       const rows = Screens.rank(universe(Screens.SCREENS[key].universe), key);

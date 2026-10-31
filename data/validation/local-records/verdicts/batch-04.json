@@ -1,0 +1,42 @@
+{"batch": "batch-04", "sites": [
+  {"id": "FUDS-B07MO0173", "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+    {"index": 0, "verdict": "supported", "note": "Substack: \"St. Louis County purchased the land in 1947.\""},
+    {"index": 1, "verdict": "supported", "note": "Substack: \"By 1961, however, the government deemed the Tyson Valley Powder Farm unnecessary and put the land up for sale.\""},
+    {"index": 2, "verdict": "supported", "note": "Wikipedia: \"After the war 210 acres (0.85 km2) were acquired by St. Louis County in 1955.\" Part of Tyson Valley Powder Plant in WWII."},
+    {"index": 3, "verdict": "supported", "note": "Wikipedia: \"In 1979 an additional 410 acres (1.7 km2) were acquired.\""},
+    {"index": 4, "verdict": "supported", "note": "Wikipedia: \"obtained Tyson after it had been used by the U.S. Military for ordnance storage in 1963\"; owner Washington University, ~2,000 acres."},
+    {"index": 5, "verdict": "supported", "note": "EPA release dated May 2, 2018; Non-NPL awardee Tyson Valley Powder Farm; hosts Endangered Wolf Center, Lone Elk Park, World Bird Sanctuary."},
+    {"index": 6, "verdict": "supported", "note": "EPA release: Non-NPL Awardee; 2,620-acre facility historically used to support the St. Louis Ordnance Plant."}
+   ],
+   "portal_verdicts": [
+    {"url": "https://services2.arcgis.com/w657bnjzrjguNyOy/ArcGIS/rest/services/STLCO_STC_Parcels_MF/FeatureServer", "reachable": true, "note": "ArcGIS REST directory for STLCO_STC_Parcels_MF, layer STLCO_STC_Parcels_Rev2; copyright St. Louis County Assessor's Office, GIS Service Center. Service endpoint, not a search page."}
+   ]},
+  {"id": "FUDS-B08CO0014", "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+    {"index": 0, "verdict": "supported", "note": "Fact sheet dated Oct 12, 2022: \"The Forest Service will manage the 53,804-acre national monument.\""},
+    {"index": 1, "verdict": "supported", "note": "Fact sheet says laws, regulations and policies the Forest Service follows for grazing permits continue to apply."},
+    {"index": 2, "verdict": "supported", "note": "Army.mil: Omaha District completed April 1998 Inventory Project Report making Camp Hale eligible for FUDS funding."},
+    {"index": 3, "verdict": "supported", "note": "Army.mil: two time-critical removal actions, in 2001 and 2003."},
+    {"index": 4, "verdict": "supported", "note": "Army.mil dated Aug 20, 2014: remedial investigation underway; area reduced from 226,000 to 101,116 acres."}
+   ],
+   "portal_verdicts": [
+    {"url": "https://property.eaglecounty.us/assessor/web/loginPOST.jsp", "reachable": true, "note": "Opened: Eagle County Tax Web Login (Tyler); Public User Login and Registered Users sections; no public search form visible."}
+   ]},
+  {"id": "FUDS-B08CO0021", "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+    {"index": 0, "verdict": "supported", "note": "Sentinel Colorado posted Feb 27, 2015: Buckley AFB compatible use buffer; \"transferring ownership of federally owned and private land to the city of Aurora\"; $13.3M grant informally approved, not announced."},
+    {"index": 1, "verdict": "supported", "note": "EPA release dated Dec 5, 2002 (Buckley Field Arctic Training Center, Echo Lake Mountain Park): two dump areas under one acre, DERP for FUDS, training 1943 and 1944."}
+   ],
+   "portal_verdicts": []},
+  {"id": "FUDS-C03PA0042", "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+    {"index": 0, "verdict": "supported", "note": "WHYY Nov 19, 2012: Casey to write Army Corps urging cleanup; $90M retail megaplex; Hankin's group found oil pockets; 1983 deed said remediated."},
+    {"index": 1, "verdict": "supported", "note": "WHYY May 14, 2014: bill to acquire up to 30 acres on two Fish & Boat Commission parcels; transfer 10 acres to PAID."},
+    {"index": 2, "verdict": "supported", "note": "WHYY Jul 1, 2014: PIDC bought 40 acres for ~$12M; Dietz & Watson paid ~$6M for 22 acres; land owned in part by Hankin, City, Fish & Boat."},
+    {"index": 3, "verdict": "supported", "note": "Hoodline: suits vs PAID and Hankin allege disregarded records and Army Corps findings; glioblastoma cases; experts say proving cause is far from simple. Exact day 07-23 not seen (URL says 2026/07)."}
+   ],
+   "portal_verdicts": [
+    {"url": "https://property.phila.gov/", "reachable": false, "note": "Fetch returned only the title \"Property | phila.gov\"; could not confirm it is a property search."}
+   ]}
+]}

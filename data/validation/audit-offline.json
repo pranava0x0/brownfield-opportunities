@@ -1,0 +1,1864 @@
+[
+ {
+  "check": "coverage",
+  "id": "dc",
+  "field": "grid",
+  "status": "OK",
+  "detail": "41379 pass / 4858 fail / 522 unknown of 46759 (1% unknown) · rule: transmission_115kv_mi ≤ 5 [P]"
+ },
+ {
+  "check": "coverage",
+  "id": "dc",
+  "field": "land",
+  "status": "WARN",
+  "detail": "2779 pass / 7506 fail / 36474 unknown of 46759 (78% unknown) · rule: acreage ≥ 100 [P]"
+ },
+ {
+  "check": "coverage",
+  "id": "dc",
+  "field": "flood",
+  "status": "OK",
+  "detail": "38131 pass / 4418 fail / 4210 unknown of 46759 (9% unknown) · rule: in_sfha = false [R]"
+ },
+ {
+  "check": "coverage",
+  "id": "dc",
+  "field": "road",
+  "status": "OK",
+  "detail": "35904 pass / 9513 fail / 1342 unknown of 46759 (3% unknown) · rule: highway_mi ≤ 10 [P]"
+ },
+ {
+  "check": "coverage",
+  "id": "solar",
+  "field": "land",
+  "status": "WARN",
+  "detail": "3659 pass / 6626 fail / 36474 unknown of 46759 (78% unknown) · rule: acreage ≥ 35 [R]"
+ },
+ {
+  "check": "coverage",
+  "id": "solar",
+  "field": "grid",
+  "status": "OK",
+  "detail": "44137 pass / 2100 fail / 522 unknown of 46759 (1% unknown) · rule: transmission_69kv_mi ≤ 10 [R]"
+ },
+ {
+  "check": "coverage",
+  "id": "solar",
+  "field": "road",
+  "status": "OK",
+  "detail": "35904 pass / 9513 fail / 1342 unknown of 46759 (3% unknown) · rule: highway_mi ≤ 10 [R]"
+ },
+ {
+  "check": "coverage",
+  "id": "solar",
+  "field": "flood",
+  "status": "OK",
+  "detail": "38131 pass / 4418 fail / 4210 unknown of 46759 (9% unknown) · rule: in_sfha = false [R]"
+ },
+ {
+  "check": "coverage",
+  "id": "port",
+  "field": "port",
+  "status": "OK",
+  "detail": "5902 pass / 6304 fail / 0 unknown of 12206 (0% unknown) · rule: port_mi ≤ 10 (to the port area's center) [P]"
+ },
+ {
+  "check": "coverage",
+  "id": "port",
+  "field": "land",
+  "status": "WARN",
+  "detail": "634 pass / 2632 fail / 8940 unknown of 12206 (73% unknown) · rule: acreage ≥ 100 [P]"
+ },
+ {
+  "check": "coverage",
+  "id": "port",
+  "field": "grid",
+  "status": "OK",
+  "detail": "11627 pass / 496 fail / 83 unknown of 12206 (1% unknown) · rule: transmission_115kv_mi ≤ 5 [P]"
+ },
+ {
+  "check": "coverage",
+  "id": "port",
+  "field": "flood",
+  "status": "OK",
+  "detail": "10151 pass / 1506 fail / 549 unknown of 12206 (4% unknown) · rule: in_sfha = false [R]"
+ },
+ {
+  "check": "coverage",
+  "id": "nickel",
+  "field": "land",
+  "status": "WARN",
+  "detail": "2082 pass / 8203 fail / 36474 unknown of 46759 (78% unknown) · rule: acreage ≥ 300 [P]"
+ },
+ {
+  "check": "coverage",
+  "id": "nickel",
+  "field": "rail",
+  "status": "OK",
+  "detail": "31306 pass / 14681 fail / 772 unknown of 46759 (2% unknown) · rule: rail_mi ≤ 1 [P]"
+ },
+ {
+  "check": "coverage",
+  "id": "nickel",
+  "field": "grid",
+  "status": "OK",
+  "detail": "41379 pass / 4858 fail / 522 unknown of 46759 (1% unknown) · rule: transmission_115kv_mi ≤ 5 [P]"
+ },
+ {
+  "check": "coverage",
+  "id": "nickel",
+  "field": "water",
+  "status": "OK",
+  "detail": "30285 pass / 0 fail / 16474 unknown of 46759 (35% unknown) · rule: water_100cfs_gage_mi ≤ 10 [P]"
+ },
+ {
+  "check": "coverage",
+  "id": "nickel",
+  "field": "feed",
+  "status": "OK",
+  "detail": "7861 pass / 34060 fail / 4838 unknown of 46759 (10% unknown) · rule: port_mi ≤ 10 or nickel_feedstock_mi ≤ 100 [P]"
+ },
+ {
+  "check": "coverage",
+  "id": "ap1000",
+  "field": "pop",
+  "status": "OK",
+  "detail": "6 pass / 8 fail / 0 unknown of 14 (0% unknown) · rule: pop_center_mi > 10 (to the city's center point) [P]"
+ },
+ {
+  "check": "coverage",
+  "id": "ap1000",
+  "field": "seismic",
+  "status": "OK",
+  "detail": "10 pass / 4 fail / 0 unknown of 14 (0% unknown) · rule: usgs_pgam ≤ 0.30 [P]"
+ },
+ {
+  "check": "coverage",
+  "id": "ap1000",
+  "field": "water",
+  "status": "OK",
+  "detail": "5 pass / 9 fail / 0 unknown of 14 (0% unknown) · rule: supply_flow_cfs ≥ 100 × 41.5 cfs [P]"
+ },
+ {
+  "check": "coverage",
+  "id": "ap1000",
+  "field": "grid",
+  "status": "OK",
+  "detail": "7 pass / 7 fail / 0 unknown of 14 (0% unknown) · rule: transmission_230kv_mi ≤ 5 [P]"
+ },
+ {
+  "check": "coverage",
+  "id": "ap1000",
+  "field": "land",
+  "status": "OK",
+  "detail": "10 pass / 4 fail / 0 unknown of 14 (0% unknown) · rule: af_rflp_acres or developable_acreage ≥ 500 [P]"
+ },
+ {
+  "check": "coverage",
+  "id": "smr",
+  "field": "pop",
+  "status": "OK",
+  "detail": "6 pass / 8 fail / 0 unknown of 14 (0% unknown) · rule: pop_center_mi > 10 (to the city's center point) [P]"
+ },
+ {
+  "check": "coverage",
+  "id": "smr",
+  "field": "seismic",
+  "status": "OK",
+  "detail": "10 pass / 4 fail / 0 unknown of 14 (0% unknown) · rule: usgs_pgam ≤ 0.30 [P]"
+ },
+ {
+  "check": "coverage",
+  "id": "smr",
+  "field": "water",
+  "status": "OK",
+  "detail": "9 pass / 5 fail / 0 unknown of 14 (0% unknown) · rule: supply_flow_cfs ≥ 100 × 12.3 cfs [P]"
+ },
+ {
+  "check": "coverage",
+  "id": "smr",
+  "field": "grid",
+  "status": "OK",
+  "detail": "13 pass / 1 fail / 0 unknown of 14 (0% unknown) · rule: transmission_115kv_mi ≤ 5 [P]"
+ },
+ {
+  "check": "coverage",
+  "id": "smr",
+  "field": "land",
+  "status": "OK",
+  "detail": "14 pass / 0 fail / 0 unknown of 14 (0% unknown) · rule: af_rflp_acres or developable_acreage ≥ 100 [P]"
+ },
+ {
+  "check": "coverage",
+  "id": "micro",
+  "field": "selected",
+  "status": "OK",
+  "detail": "5 pass / 4 fail / 0 unknown of 9 (0% unknown) · rule: janus_status starts 'Selected' [R]"
+ },
+ {
+  "check": "coverage",
+  "id": "micro",
+  "field": "grid",
+  "status": "OK",
+  "detail": "8 pass / 1 fail / 0 unknown of 9 (0% unknown) · rule: transmission_mi ≤ 5 [P]"
+ },
+ {
+  "check": "coverage",
+  "id": "civilian",
+  "field": "license",
+  "status": "OK",
+  "detail": "11 pass / 57 fail / 0 unknown of 68 (0% unknown) · rule: status is construction permit, COL, construction or restart [R]"
+ },
+ {
+  "check": "coverage",
+  "id": "civilian",
+  "field": "existing",
+  "status": "OK",
+  "detail": "43 pass / 25 fail / 0 unknown of 68 (0% unknown) · rule: status is operating expansion or restart [R]"
+ },
+ {
+  "check": "coverage",
+  "id": "civilian",
+  "field": "pop",
+  "status": "OK",
+  "detail": "59 pass / 9 fail / 0 unknown of 68 (0% unknown) · rule: pop_center_mi > 10 (to the city's center point) [P]"
+ },
+ {
+  "check": "coverage",
+  "id": "coal",
+  "field": "retired",
+  "status": "OK",
+  "detail": "210 pass / 34 fail / 0 unknown of 244 (0% unknown) · rule: status = retired (EIA-860M Retired sheet) [R]"
+ },
+ {
+  "check": "coverage",
+  "id": "coal",
+  "field": "poi",
+  "status": "OK",
+  "detail": "185 pass / 59 fail / 0 unknown of 244 (0% unknown) · rule: other_operating_mw < 50 [P]"
+ },
+ {
+  "check": "coverage",
+  "id": "coal",
+  "field": "grid",
+  "status": "OK",
+  "detail": "189 pass / 55 fail / 0 unknown of 244 (0% unknown) · rule: line_230kv_mi ≤ 2 [P]"
+ },
+ {
+  "check": "coverage",
+  "id": "retired",
+  "field": "reason",
+  "status": "OK",
+  "detail": "603 pass / 55 fail / 0 unknown of 658 (0% unknown) · rule: reporting_status = valid_reason [R]"
+ },
+ {
+  "check": "coverage",
+  "id": "retired",
+  "field": "plant",
+  "status": "OK",
+  "detail": "533 pass / 125 fail / 0 unknown of 658 (0% unknown) · rule: category = Manufacturing [P]"
+ },
+ {
+  "check": "coverage",
+  "id": "retired",
+  "field": "tracked",
+  "status": "OK",
+  "detail": "214 pass / 444 fail / 0 unknown of 658 (0% unknown) · rule: tracked_site_mi ≤ 1 [P]"
+ },
+ {
+  "check": "seismic",
+  "id": "arnold-afb-tn",
+  "field": "usgs_pgam",
+  "status": "OK",
+  "detail": "stored=0.18 live=0.180 delta=0.000 g (limit 0.30 g)"
+ },
+ {
+  "check": "seismic",
+  "id": "davis-monthan-afb-az",
+  "field": "usgs_pgam",
+  "status": "OK",
+  "detail": "stored=0.13 live=0.130 delta=0.000 g (limit 0.30 g)"
+ },
+ {
+  "check": "seismic",
+  "id": "edwards-afb-ca",
+  "field": "usgs_pgam",
+  "status": "OK",
+  "detail": "stored=0.45 live=0.450 delta=0.000 g (limit 0.30 g)"
+ },
+ {
+  "check": "seismic",
+  "id": "robins-afb-ga",
+  "field": "usgs_pgam",
+  "status": "OK",
+  "detail": "stored=0.11 live=0.110 delta=0.000 g (limit 0.30 g)"
+ },
+ {
+  "check": "seismic",
+  "id": "fort-benning-ga",
+  "field": "usgs_pgam",
+  "status": "OK",
+  "detail": "stored=0.07 live=0.074 delta=0.004 g (limit 0.30 g)"
+ },
+ {
+  "check": "seismic",
+  "id": "fort-bragg-nc",
+  "field": "usgs_pgam",
+  "status": "OK",
+  "detail": "stored=0.1 live=0.100 delta=0.000 g (limit 0.30 g)"
+ },
+ {
+  "check": "seismic",
+  "id": "fort-campbell-ky",
+  "field": "usgs_pgam",
+  "status": "OK",
+  "detail": "stored=0.37 live=0.370 delta=0.000 g (limit 0.30 g)"
+ },
+ {
+  "check": "seismic",
+  "id": "fort-drum-ny",
+  "field": "usgs_pgam",
+  "status": "OK",
+  "detail": "stored=0.12 live=0.120 delta=0.000 g (limit 0.30 g)"
+ },
+ {
+  "check": "seismic",
+  "id": "fort-hood-tx",
+  "field": "usgs_pgam",
+  "status": "OK",
+  "detail": "stored=0.03 live=0.032 delta=0.002 g (limit 0.30 g)"
+ },
+ {
+  "check": "seismic",
+  "id": "fort-wainwright-ak",
+  "field": "usgs_pgam",
+  "status": "OK",
+  "detail": "stored=0.46 live=0.460 delta=0.000 g (limit 0.30 g)"
+ },
+ {
+  "check": "seismic",
+  "id": "jblm-wa",
+  "field": "usgs_pgam",
+  "status": "OK",
+  "detail": "stored=0.59 live=0.590 delta=0.000 g (limit 0.30 g)"
+ },
+ {
+  "check": "seismic",
+  "id": "jbmdl-nj",
+  "field": "usgs_pgam",
+  "status": "OK",
+  "detail": "stored=0.12 live=0.120 delta=0.000 g (limit 0.30 g)"
+ },
+ {
+  "check": "seismic",
+  "id": "holston-aap-tn",
+  "field": "usgs_pgam",
+  "status": "OK",
+  "detail": "stored=0.2 live=0.200 delta=0.000 g (limit 0.30 g)"
+ },
+ {
+  "check": "seismic",
+  "id": "redstone-arsenal-al",
+  "field": "usgs_pgam",
+  "status": "OK",
+  "detail": "stored=0.18 live=0.180 delta=0.000 g (limit 0.30 g)"
+ },
+ {
+  "check": "flow",
+  "id": "arnold-afb-tn",
+  "field": "supply_flow_cfs",
+  "status": "OK",
+  "detail": "gauge 03579100: stored=470 cfs, NWIS mean of annual means=490 cfs (4% apart)"
+ },
+ {
+  "check": "flow",
+  "id": "davis-monthan-afb-az",
+  "field": "supply_flow_cfs",
+  "status": "SKIP",
+  "detail": "no supply gauge on record"
+ },
+ {
+  "check": "flow",
+  "id": "edwards-afb-ca",
+  "field": "supply_flow_cfs",
+  "status": "SKIP",
+  "detail": "no supply gauge on record"
+ },
+ {
+  "check": "flow",
+  "id": "robins-afb-ga",
+  "field": "supply_flow_cfs",
+  "status": "OK",
+  "detail": "gauge 02213000: stored=2656 cfs, NWIS mean of annual means=2656 cfs (0% apart)"
+ },
+ {
+  "check": "flow",
+  "id": "fort-benning-ga",
+  "field": "supply_flow_cfs",
+  "status": "OK",
+  "detail": "gauge 02341460: stored=6873 cfs, NWIS mean of annual means=6600 cfs (4% apart)"
+ },
+ {
+  "check": "flow",
+  "id": "fort-bragg-nc",
+  "field": "supply_flow_cfs",
+  "status": "OK",
+  "detail": "gauge 02102500: stored=3224 cfs, NWIS mean of annual means=3224 cfs (0% apart)"
+ },
+ {
+  "check": "flow",
+  "id": "fort-campbell-ky",
+  "field": "supply_flow_cfs",
+  "status": "OK",
+  "detail": "gauge 03431500: stored=23765 cfs, NWIS mean of annual means=23745 cfs (0% apart)"
+ },
+ {
+  "check": "flow",
+  "id": "fort-drum-ny",
+  "field": "supply_flow_cfs",
+  "status": "OK",
+  "detail": "gauge 04260500: stored=4242 cfs, NWIS mean of annual means=4281 cfs (1% apart)"
+ },
+ {
+  "check": "flow",
+  "id": "fort-hood-tx",
+  "field": "supply_flow_cfs",
+  "status": "SKIP",
+  "detail": "no supply gauge on record"
+ },
+ {
+  "check": "flow",
+  "id": "fort-wainwright-ak",
+  "field": "supply_flow_cfs",
+  "status": "OK",
+  "detail": "gauge 15515500: stored=24825 cfs, NWIS mean of annual means=24825 cfs (0% apart)"
+ },
+ {
+  "check": "flow",
+  "id": "jblm-wa",
+  "field": "supply_flow_cfs",
+  "status": "OK",
+  "detail": "gauge 12089500: stored=1321 cfs, NWIS mean of annual means=1321 cfs (0% apart)"
+ },
+ {
+  "check": "flow",
+  "id": "jbmdl-nj",
+  "field": "supply_flow_cfs",
+  "status": "SKIP",
+  "detail": "no supply gauge on record"
+ },
+ {
+  "check": "flow",
+  "id": "holston-aap-tn",
+  "field": "supply_flow_cfs",
+  "status": "OK",
+  "detail": "gauge 03487500: stored=2910 cfs, NWIS mean of annual means=2614 cfs (10% apart)"
+ },
+ {
+  "check": "flow",
+  "id": "redstone-arsenal-al",
+  "field": "supply_flow_cfs",
+  "status": "OK",
+  "detail": "gauge 03575500: stored=41650 cfs, NWIS mean of annual means=43265 cfs (4% apart)"
+ },
+ {
+  "check": "poprings",
+  "id": "arnold-afb-tn",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=16.1 Shelbyville city, TN; recomputed=16.1 Shelbyville city, TN"
+ },
+ {
+  "check": "poprings",
+  "id": "davis-monthan-afb-az",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=1.1 Tucson city, AZ; recomputed=1.1 Tucson city, AZ"
+ },
+ {
+  "check": "poprings",
+  "id": "edwards-afb-ca",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=23.7 Lancaster city, CA; recomputed=23.7 Lancaster city, CA"
+ },
+ {
+  "check": "poprings",
+  "id": "robins-afb-ga",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=4.4 Warner Robins city, GA; recomputed=4.4 Warner Robins city, GA"
+ },
+ {
+  "check": "poprings",
+  "id": "fort-benning-ga",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=8.1 Phenix City city, AL; recomputed=8.1 Phenix City city, AL"
+ },
+ {
+  "check": "poprings",
+  "id": "fort-bragg-nc",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=3.5 Fayetteville city, NC; recomputed=3.5 Fayetteville city, NC"
+ },
+ {
+  "check": "poprings",
+  "id": "fort-campbell-ky",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=23.6 Clarksville city, TN; recomputed=23.6 Clarksville city, TN"
+ },
+ {
+  "check": "poprings",
+  "id": "fort-drum-ny",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=56.9 Rome city, NY; recomputed=56.9 Rome city, NY"
+ },
+ {
+  "check": "poprings",
+  "id": "fort-hood-tx",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=5.4 Killeen city, TX; recomputed=5.4 Killeen city, TX"
+ },
+ {
+  "check": "poprings",
+  "id": "fort-wainwright-ak",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=17.4 Fairbanks city, AK; recomputed=17.4 Fairbanks city, AK"
+ },
+ {
+  "check": "poprings",
+  "id": "jblm-wa",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=3.4 Lakewood city, WA; recomputed=3.4 Lakewood city, WA"
+ },
+ {
+  "check": "poprings",
+  "id": "jbmdl-nj",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=16.3 Trenton city, NJ; recomputed=16.3 Trenton city, NJ"
+ },
+ {
+  "check": "poprings",
+  "id": "holston-aap-tn",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=1.1 Kingsport city, TN; recomputed=1.1 Kingsport city, TN"
+ },
+ {
+  "check": "poprings",
+  "id": "redstone-arsenal-al",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=4.9 Huntsville city, AL; recomputed=4.9 Huntsville city, AL"
+ },
+ {
+  "check": "poprings",
+  "id": "palisades-mi",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=32.3 Holland city, MI; recomputed=32.3 Holland city, MI"
+ },
+ {
+  "check": "poprings",
+  "id": "three-mile-island-pa",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=11.9 Harrisburg city, PA; recomputed=11.9 Harrisburg city, PA"
+ },
+ {
+  "check": "poprings",
+  "id": "duane-arnold-ia",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=11.1 Marion city, IA; recomputed=11.1 Marion city, IA"
+ },
+ {
+  "check": "poprings",
+  "id": "kemmerer-wy",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=67.3 Logan city, UT; recomputed=67.3 Logan city, UT"
+ },
+ {
+  "check": "poprings",
+  "id": "seadrift-tx",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=31.2 Victoria city, TX; recomputed=31.2 Victoria city, TX"
+ },
+ {
+  "check": "poprings",
+  "id": "clinch-river-tn",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=12.1 Oak Ridge city, TN; recomputed=12.1 Oak Ridge city, TN"
+ },
+ {
+  "check": "poprings",
+  "id": "belews-creek-nc",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=12.1 Kernersville town, NC; recomputed=12.1 Kernersville town, NC"
+ },
+ {
+  "check": "poprings",
+  "id": "inl-cfpp-id",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=46.2 Idaho Falls city, ID; recomputed=46.2 Idaho Falls city, ID"
+ },
+ {
+  "check": "poprings",
+  "id": "columbia-wa",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=12.8 Richland city, WA; recomputed=12.8 Richland city, WA"
+ },
+ {
+  "check": "poprings",
+  "id": "vc-summer-sc",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=28.7 Lexington town, SC; recomputed=28.7 Lexington town, SC"
+ },
+ {
+  "check": "poprings",
+  "id": "turkey-point-fl",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=7.3 Homestead city, FL; recomputed=7.3 Homestead city, FL"
+ },
+ {
+  "check": "poprings",
+  "id": "william-states-lee-sc",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=14.0 Gastonia city, NC; recomputed=14.0 Gastonia city, NC"
+ },
+ {
+  "check": "poprings",
+  "id": "levy-fl",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=34.1 Ocala city, FL; recomputed=34.1 Ocala city, FL"
+ },
+ {
+  "check": "poprings",
+  "id": "bellefonte-al",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=41.9 Huntsville city, AL; recomputed=41.9 Huntsville city, AL"
+ },
+ {
+  "check": "poprings",
+  "id": "fermi-mi",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=17.0 Southgate city, MI; recomputed=17.0 Southgate city, MI"
+ },
+ {
+  "check": "poprings",
+  "id": "harris-nc",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=10.4 Sanford city, NC; recomputed=10.4 Sanford city, NC"
+ },
+ {
+  "check": "poprings",
+  "id": "south-texas-tx",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=40.0 Lake Jackson city, TX; recomputed=39.9 Lake Jackson city, TX"
+ },
+ {
+  "check": "poprings",
+  "id": "north-anna-va",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=29.0 Fredericksburg city, VA; recomputed=29.0 Fredericksburg city, VA"
+ },
+ {
+  "check": "poprings",
+  "id": "comanche-peak-tx",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=22.1 Cleburne city, TX; recomputed=22.1 Cleburne city, TX"
+ },
+ {
+  "check": "poprings",
+  "id": "river-bend-la",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=22.1 Central city, LA; recomputed=22.1 Central city, LA"
+ },
+ {
+  "check": "poprings",
+  "id": "calvert-cliffs-md",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=37.4 Annapolis city, MD; recomputed=37.4 Annapolis city, MD"
+ },
+ {
+  "check": "poprings",
+  "id": "callaway-mo",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=25.7 Jefferson City city, MO; recomputed=25.7 Jefferson City city, MO"
+ },
+ {
+  "check": "poprings",
+  "id": "grand-gulf-ms",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=46.8 Clinton city, MS; recomputed=46.8 Clinton city, MS"
+ },
+ {
+  "check": "poprings",
+  "id": "bell-bend-pa",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=18.6 Wilkes-Barre city, PA; recomputed=18.6 Wilkes-Barre city, PA"
+ },
+ {
+  "check": "poprings",
+  "id": "nine-mile-point-ny",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=35.8 Syracuse city, NY; recomputed=35.8 Syracuse city, NY"
+ },
+ {
+  "check": "poprings",
+  "id": "victoria-county-tx",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=8.8 Victoria city, TX; recomputed=8.8 Victoria city, TX"
+ },
+ {
+  "check": "poprings",
+  "id": "salem-hope-creek-nj",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=9.7 Middletown town, DE; recomputed=9.7 Middletown town, DE"
+ },
+ {
+  "check": "poprings",
+  "id": "brunswick-nc",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=17.8 Leland town, NC; recomputed=17.8 Leland town, NC"
+ },
+ {
+  "check": "poprings",
+  "id": "browns-ferry-al",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=10.9 Athens city, AL; recomputed=10.9 Athens city, AL"
+ },
+ {
+  "check": "poprings",
+  "id": "watts-bar-tn",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=29.7 Cleveland city, TN; recomputed=29.7 Cleveland city, TN"
+ },
+ {
+  "check": "poprings",
+  "id": "wolf-creek-ks",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=55.1 Lawrence city, KS; recomputed=55.1 Lawrence city, KS"
+ },
+ {
+  "check": "poprings",
+  "id": "waterford-la",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=13.2 Kenner city, LA; recomputed=13.2 Kenner city, LA"
+ },
+ {
+  "check": "poprings",
+  "id": "cooper-ne",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=56.3 Bellevue city, NE; recomputed=56.3 Bellevue city, NE"
+ },
+ {
+  "check": "poprings",
+  "id": "surry-va",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=11.5 Newport News city, VA; recomputed=11.5 Newport News city, VA"
+ },
+ {
+  "check": "poprings",
+  "id": "point-beach-wi",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=14.4 Manitowoc city, WI; recomputed=14.4 Manitowoc city, WI"
+ },
+ {
+  "check": "poprings",
+  "id": "susquehanna-pa",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=13.5 Hazleton city, PA; recomputed=13.5 Hazleton city, PA"
+ },
+ {
+  "check": "poprings",
+  "id": "vogtle-ga",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=23.8 Augusta-Richmond County consolidated government (balance), GA; recomputed=23.8 Augusta-Richmond County consolidated government (balance), GA"
+ },
+ {
+  "check": "poprings",
+  "id": "hatch-ga",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=43.2 Hinesville city, GA; recomputed=43.2 Hinesville city, GA"
+ },
+ {
+  "check": "poprings",
+  "id": "palo-verde-az",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=13.0 Buckeye city, AZ; recomputed=13.0 Buckeye city, AZ"
+ },
+ {
+  "check": "poprings",
+  "id": "farley-al",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=17.3 Dothan city, AL; recomputed=17.3 Dothan city, AL"
+ },
+ {
+  "check": "poprings",
+  "id": "catawba-sc",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=8.1 Fort Mill town, SC; recomputed=8.1 Fort Mill town, SC"
+ },
+ {
+  "check": "poprings",
+  "id": "oconee-sc",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=18.0 Easley city, SC; recomputed=18.0 Easley city, SC"
+ },
+ {
+  "check": "poprings",
+  "id": "peach-bottom-pa",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=20.0 Lancaster city, PA; recomputed=20.0 Lancaster city, PA"
+ },
+ {
+  "check": "poprings",
+  "id": "st-lucie-fl",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=7.9 Fort Pierce city, FL; recomputed=7.9 Fort Pierce city, FL"
+ },
+ {
+  "check": "poprings",
+  "id": "cook-mi",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=24.2 Michigan City city, IN; recomputed=24.2 Michigan City city, IN"
+ },
+ {
+  "check": "poprings",
+  "id": "ano-ar",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=11.7 Russellville city, AR; recomputed=11.7 Russellville city, AR"
+ },
+ {
+  "check": "poprings",
+  "id": "sequoyah-tn",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=12.8 Cleveland city, TN; recomputed=12.8 Cleveland city, TN"
+ },
+ {
+  "check": "poprings",
+  "id": "robinson-sc",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=25.9 Florence city, SC; recomputed=25.9 Florence city, SC"
+ },
+ {
+  "check": "poprings",
+  "id": "seabrook-nh",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=14.4 Haverhill city, MA; recomputed=14.4 Haverhill city, MA"
+ },
+ {
+  "check": "poprings",
+  "id": "mcguire-nc",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=4.9 Cornelius town, NC; recomputed=4.9 Cornelius town, NC"
+ },
+ {
+  "check": "poprings",
+  "id": "fitzpatrick-ny",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=35.6 Syracuse city, NY; recomputed=35.6 Syracuse city, NY"
+ },
+ {
+  "check": "poprings",
+  "id": "perry-oh",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=12.4 Mentor city, OH; recomputed=12.4 Mentor city, OH"
+ },
+ {
+  "check": "poprings",
+  "id": "ginna-ny",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=17.3 Rochester city, NY; recomputed=17.3 Rochester city, NY"
+ },
+ {
+  "check": "poprings",
+  "id": "beaver-valley-pa",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=27.1 Pittsburgh city, PA; recomputed=27.1 Pittsburgh city, PA"
+ },
+ {
+  "check": "poprings",
+  "id": "davis-besse-oh",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=25.9 Toledo city, OH; recomputed=25.9 Toledo city, OH"
+ },
+ {
+  "check": "poprings",
+  "id": "millstone-ct",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=4.1 New London city, CT; recomputed=4.1 New London city, CT"
+ },
+ {
+  "check": "poprings",
+  "id": "clinton-il",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=21.1 Decatur city, IL; recomputed=21.1 Decatur city, IL"
+ },
+ {
+  "check": "poprings",
+  "id": "lasalle-il",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=34.9 Yorkville city, IL; recomputed=34.9 Yorkville city, IL"
+ },
+ {
+  "check": "poprings",
+  "id": "braidwood-il",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=19.7 Joliet city, IL; recomputed=19.7 Joliet city, IL"
+ },
+ {
+  "check": "poprings",
+  "id": "dresden-il",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=9.4 Joliet city, IL; recomputed=9.4 Joliet city, IL"
+ },
+ {
+  "check": "poprings",
+  "id": "byron-il",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=17.0 Rockford city, IL; recomputed=17.0 Rockford city, IL"
+ },
+ {
+  "check": "poprings",
+  "id": "quad-cities-il",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=13.3 Bettendorf city, IA; recomputed=13.3 Bettendorf city, IA"
+ },
+ {
+  "check": "poprings",
+  "id": "monticello-mn",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=13.6 Elk River city, MN; recomputed=13.6 Elk River city, MN"
+ },
+ {
+  "check": "poprings",
+  "id": "prairie-island-mn",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=19.5 Cottage Grove city, MN; recomputed=19.5 Cottage Grove city, MN"
+ },
+ {
+  "check": "poprings",
+  "id": "diablo-canyon-ca",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=11.2 San Luis Obispo city, CA; recomputed=11.2 San Luis Obispo city, CA"
+ },
+ {
+  "check": "poprings",
+  "id": "limerick-pa",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=14.9 Norristown borough, PA; recomputed=14.9 Norristown borough, PA"
+ },
+ {
+  "check": "poprings",
+  "id": "project-matador-tx",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=8.4 Amarillo city, TX; recomputed=8.4 Amarillo city, TX"
+ },
+ {
+  "check": "poprings",
+  "id": "kewaunee-wi",
+  "field": "pop_center_mi",
+  "status": "OK",
+  "detail": "stored=18.3 Manitowoc city, WI; recomputed=18.3 Manitowoc city, WI"
+ },
+ {
+  "check": "state",
+  "id": "corpus:ACRES-121721",
+  "field": "state",
+  "status": "OK",
+  "detail": "OH contains (38.5003, -82.6559)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:ACRES-136961",
+  "field": "state",
+  "status": "OK",
+  "detail": "IL contains (38.6989, -90.1584)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:ACRES-230821",
+  "field": "state",
+  "status": "OK",
+  "detail": "PA contains (40.6372, -80.4534)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:ACRES-232701",
+  "field": "state",
+  "status": "OK",
+  "detail": "MI contains (41.8058, -85.4284)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:ACRES-48321",
+  "field": "state",
+  "status": "OK",
+  "detail": "CA contains (33.8602, -117.5242)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:ACRES-53022",
+  "field": "state",
+  "status": "OK",
+  "detail": "TN contains (36.5385, -82.5528)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:AL7210020742",
+  "field": "state",
+  "status": "OK",
+  "detail": "AL contains (34.6300, -86.6537)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:ALN000410750",
+  "field": "state",
+  "status": "OK",
+  "detail": "AL contains (33.5606, -86.8017)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:CA2570024453",
+  "field": "state",
+  "status": "OK",
+  "detail": "CA contains (34.5884, -117.3579)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:CA2890090002",
+  "field": "state",
+  "status": "OK",
+  "detail": "CA contains (37.6540, -121.5297)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:FL6170024412",
+  "field": "state",
+  "status": "OK",
+  "detail": "FL contains (30.2196, -81.6854)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:FLD980847016",
+  "field": "state",
+  "status": "OK",
+  "detail": "FL contains (30.3664, -81.6865)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:FLSFN0407002",
+  "field": "state",
+  "status": "OK",
+  "detail": "FL contains (30.3414, -81.6667)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:FUDS-A04MS0007",
+  "field": "state",
+  "status": "OK",
+  "detail": "MS contains (33.6959, -89.6905)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:FUDS-A04MS0124",
+  "field": "state",
+  "status": "OK",
+  "detail": "MS contains (30.4071, -89.0630)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:FUDS-B07MO0138",
+  "field": "state",
+  "status": "OK",
+  "detail": "MO contains (36.7714, -94.2986)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:FUDS-B07MO0145",
+  "field": "state",
+  "status": "OK",
+  "detail": "MO contains (38.3393, -90.4293)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:FUDS-B07MO0173",
+  "field": "state",
+  "status": "OK",
+  "detail": "MO contains (38.5226, -90.5607)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:FUDS-B07MO0988",
+  "field": "state",
+  "status": "OK",
+  "detail": "MO contains (38.6382, -90.2838)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:FUDS-B08CO0014",
+  "field": "state",
+  "status": "OK",
+  "detail": "CO contains (39.4536, -106.3093)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:FUDS-B08CO0021",
+  "field": "state",
+  "status": "OK",
+  "detail": "CO contains (39.6512, -104.6229)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:FUDS-B08WY0017",
+  "field": "state",
+  "status": "OK",
+  "detail": "WY contains (41.2264, -105.3766)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:FUDS-C03PA0042",
+  "field": "state",
+  "status": "OK",
+  "detail": "PA contains (40.0086, -75.0622)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:FUDS-D01MA0480",
+  "field": "state",
+  "status": "OK",
+  "detail": "MA contains (42.3506, -71.0083)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:FUDS-D01ME0119",
+  "field": "state",
+  "status": "MISMATCH",
+  "detail": "stated ME, coordinate falls in None"
+ },
+ {
+  "check": "state",
+  "id": "corpus:FUDS-E05MI1213",
+  "field": "state",
+  "status": "OK",
+  "detail": "MI contains (41.9351, -83.4385)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:FUDS-E05WI0057",
+  "field": "state",
+  "status": "OK",
+  "detail": "WI contains (42.9444, -87.9000)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:FUDS-G05OH0156",
+  "field": "state",
+  "status": "OK",
+  "detail": "OH contains (39.1931, -84.4910)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:FUDS-I04FL0038",
+  "field": "state",
+  "status": "OK",
+  "detail": "FL contains (25.6119, -80.3981)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:FUDS-I04FL0101",
+  "field": "state",
+  "status": "OK",
+  "detail": "FL contains (26.1586, -80.4244)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:FUDS-I04FL0285",
+  "field": "state",
+  "status": "OK",
+  "detail": "FL contains (30.4201, -81.6378)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:FUDS-I04FL0884",
+  "field": "state",
+  "status": "OK",
+  "detail": "FL contains (30.2261, -81.6969)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:FUDS-I04SC0025",
+  "field": "state",
+  "status": "OK",
+  "detail": "SC contains (33.7883, -78.8537)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:FUDS-J09CA1017",
+  "field": "state",
+  "status": "OK",
+  "detail": "CA contains (37.7526, -122.0760)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:FUDS-J09CA7074",
+  "field": "state",
+  "status": "OK",
+  "detail": "within ~1.5 mi of the CA border (polygon is generalised)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:FUDS-K06AR0051",
+  "field": "state",
+  "status": "OK",
+  "detail": "AR contains (33.8272, -93.6739)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:FUDS-K06AR0130",
+  "field": "state",
+  "status": "OK",
+  "detail": "AR contains (35.4319, -94.3375)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:FUDS-K06TX0015",
+  "field": "state",
+  "status": "OK",
+  "detail": "TX contains (33.7834, -97.2675)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:GAD980838619",
+  "field": "state",
+  "status": "OK",
+  "detail": "GA contains (34.7968, -85.3773)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:ILD096731468",
+  "field": "state",
+  "status": "OK",
+  "detail": "IL contains (38.6946, -90.1519)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:ILN000510192",
+  "field": "state",
+  "status": "OK",
+  "detail": "IL contains (41.8271, -87.7314)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:MI0001119106",
+  "field": "state",
+  "status": "OK",
+  "detail": "MI contains (42.1264, -86.4538)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:MID000260281",
+  "field": "state",
+  "status": "OK",
+  "detail": "MI contains (42.8736, -85.5910)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:MID005107222",
+  "field": "state",
+  "status": "OK",
+  "detail": "MI contains (42.0521, -86.5128)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:MID017422304",
+  "field": "state",
+  "status": "OK",
+  "detail": "MI contains (42.1629, -83.1702)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:MID062222997",
+  "field": "state",
+  "status": "OK",
+  "detail": "MI contains (42.9526, -85.6996)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:MID980410617",
+  "field": "state",
+  "status": "OK",
+  "detail": "MI contains (42.2236, -86.1499)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:MID985574227",
+  "field": "state",
+  "status": "OK",
+  "detail": "MI contains (42.2192, -83.1657)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:MIN000510362",
+  "field": "state",
+  "status": "OK",
+  "detail": "MI contains (42.1034, -83.2113)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:MOD980633176",
+  "field": "state",
+  "status": "OK",
+  "detail": "MO contains (38.7145, -90.2785)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:MT0012694970",
+  "field": "state",
+  "status": "OK",
+  "detail": "MT contains (47.2298, -114.8414)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:MTD006232276",
+  "field": "state",
+  "status": "OK",
+  "detail": "MT contains (45.6914, -111.0224)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:NCD003446721",
+  "field": "state",
+  "status": "OK",
+  "detail": "NC contains (35.2089, -81.5222)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:NCD986175644",
+  "field": "state",
+  "status": "OK",
+  "detail": "NC contains (35.2323, -81.2190)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:NJD980528996",
+  "field": "state",
+  "status": "OK",
+  "detail": "NJ contains (40.7596, -74.1496)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:NYD980651087",
+  "field": "state",
+  "status": "OK",
+  "detail": "NY contains (43.0753, -79.0045)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:PAD980538763",
+  "field": "state",
+  "status": "OK",
+  "detail": "PA contains (40.1982, -76.7600)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:PAD980539712",
+  "field": "state",
+  "status": "OK",
+  "detail": "PA contains (40.1343, -76.6100)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:PAD980690549",
+  "field": "state",
+  "status": "OK",
+  "detail": "PA contains (40.0068, -76.6647)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:SCD037398120",
+  "field": "state",
+  "status": "OK",
+  "detail": "SC contains (34.1236, -81.0120)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:SCD980558050",
+  "field": "state",
+  "status": "OK",
+  "detail": "SC contains (34.1060, -80.8345)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:SCD980558316",
+  "field": "state",
+  "status": "OK",
+  "detail": "SC contains (34.6886, -80.9432)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:SCN000407376",
+  "field": "state",
+  "status": "OK",
+  "detail": "SC contains (35.1366, -81.2813)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:TN1890090003",
+  "field": "state",
+  "status": "OK",
+  "detail": "TN contains (35.9505, -84.3012)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:TND071516959",
+  "field": "state",
+  "status": "OK",
+  "detail": "TN contains (34.9981, -85.3091)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:TND098071061",
+  "field": "state",
+  "status": "OK",
+  "detail": "TN contains (35.9181, -83.9274)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:TND987768587",
+  "field": "state",
+  "status": "OK",
+  "detail": "TN contains (35.9319, -84.5407)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:TXD008123168",
+  "field": "state",
+  "status": "OK",
+  "detail": "within ~1.5 mi of the TX border (polygon is generalised)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:TXD055144539",
+  "field": "state",
+  "status": "OK",
+  "detail": "TX contains (28.9677, -95.2892)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:UTN000802704",
+  "field": "state",
+  "status": "OK",
+  "detail": "UT contains (40.9156, -112.7343)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:VA1170024722",
+  "field": "state",
+  "status": "OK",
+  "detail": "VA contains (38.5611, -77.4255)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:VAD007972482",
+  "field": "state",
+  "status": "OK",
+  "detail": "VA contains (38.2348, -77.4302)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:VAD071040752",
+  "field": "state",
+  "status": "OK",
+  "detail": "VA contains (37.6376, -77.5030)"
+ },
+ {
+  "check": "state",
+  "id": "corpus:VAD980539878",
+  "field": "state",
+  "status": "OK",
+  "detail": "VA contains (37.7249, -77.5855)"
+ },
+ {
+  "check": "state",
+  "id": "retired:GHGRP-1002853",
+  "field": "state",
+  "status": "OK",
+  "detail": "MI contains (41.8095, -85.4260)"
+ },
+ {
+  "check": "state",
+  "id": "retired:GHGRP-1004472",
+  "field": "state",
+  "status": "OK",
+  "detail": "TN contains (36.5291, -82.5475)"
+ },
+ {
+  "check": "state",
+  "id": "retired:GHGRP-1005573",
+  "field": "state",
+  "status": "OK",
+  "detail": "OH contains (39.1829, -84.5039)"
+ },
+ {
+  "check": "state",
+  "id": "retired:GHGRP-1005614",
+  "field": "state",
+  "status": "OK",
+  "detail": "within ~1.5 mi of the KY border (polygon is generalised)"
+ },
+ {
+  "check": "state",
+  "id": "retired:GHGRP-1005615",
+  "field": "state",
+  "status": "OK",
+  "detail": "KY contains (38.4964, -82.6703)"
+ },
+ {
+  "check": "state",
+  "id": "retired:GHGRP-1003201",
+  "field": "state",
+  "status": "OK",
+  "detail": "within ~1.5 mi of the TX border (polygon is generalised)"
+ },
+ {
+  "check": "state",
+  "id": "retired:GHGRP-1011361",
+  "field": "state",
+  "status": "OK",
+  "detail": "CA contains (33.8672, -117.5241)"
+ },
+ {
+  "check": "state",
+  "id": "retired:GHGRP-1004729",
+  "field": "state",
+  "status": "OK",
+  "detail": "PA contains (40.6354, -80.4490)"
+ },
+ {
+  "check": "state",
+  "id": "retired:GHGRP-1008032",
+  "field": "state",
+  "status": "OK",
+  "detail": "AR contains (35.4310, -94.3463)"
+ },
+ {
+  "check": "state",
+  "id": "retired:GHGRP-1003757",
+  "field": "state",
+  "status": "OK",
+  "detail": "IL contains (38.7032, -90.1588)"
+ },
+ {
+  "check": "state",
+  "id": "coal:EIA-6094",
+  "field": "state",
+  "status": "OK",
+  "detail": "PA contains (40.6348, -80.4159)"
+ },
+ {
+  "check": "state",
+  "id": "coal:EIA-2866",
+  "field": "state",
+  "status": "OK",
+  "detail": "within ~1.5 mi of the OH border (polygon is generalised)"
+ },
+ {
+  "check": "state",
+  "id": "coal:EIA-2850",
+  "field": "state",
+  "status": "OK",
+  "detail": "within ~1.5 mi of the OH border (polygon is generalised)"
+ },
+ {
+  "check": "state",
+  "id": "coal:EIA-4941",
+  "field": "state",
+  "status": "OK",
+  "detail": "AZ contains (36.9047, -111.3886)"
+ },
+ {
+  "check": "state",
+  "id": "coal:EIA-2840",
+  "field": "state",
+  "status": "OK",
+  "detail": "OH contains (40.1842, -81.8811)"
+ },
+ {
+  "check": "state",
+  "id": "coal:EIA-3122",
+  "field": "state",
+  "status": "OK",
+  "detail": "PA contains (40.5128, -79.1961)"
+ },
+ {
+  "check": "state",
+  "id": "coal:EIA-6147",
+  "field": "state",
+  "status": "OK",
+  "detail": "TX contains (33.0917, -95.0417)"
+ },
+ {
+  "check": "state",
+  "id": "coal:EIA-50",
+  "field": "state",
+  "status": "OK",
+  "detail": "AL contains (34.8830, -85.7553)"
+ },
+ {
+  "check": "state",
+  "id": "coal:EIA-6052",
+  "field": "state",
+  "status": "OK",
+  "detail": "GA contains (33.4134, -85.0323)"
+ },
+ {
+  "check": "state",
+  "id": "coal:EIA-2451",
+  "field": "state",
+  "status": "OK",
+  "detail": "NM contains (36.8006, -108.4386)"
+ },
+ {
+  "check": "state",
+  "id": "civilian:palisades-mi",
+  "field": "state",
+  "status": "OK",
+  "detail": "within ~1.5 mi of the MI border (polygon is generalised)"
+ },
+ {
+  "check": "state",
+  "id": "civilian:three-mile-island-pa",
+  "field": "state",
+  "status": "OK",
+  "detail": "PA contains (40.1532, -76.7272)"
+ },
+ {
+  "check": "state",
+  "id": "civilian:clinch-river-tn",
+  "field": "state",
+  "status": "OK",
+  "detail": "TN contains (35.9206, -84.4986)"
+ },
+ {
+  "check": "state",
+  "id": "civilian:kemmerer-wy",
+  "field": "state",
+  "status": "OK",
+  "detail": "WY contains (41.8006, -110.5379)"
+ },
+ {
+  "check": "state",
+  "id": "civilian:fermi-mi",
+  "field": "state",
+  "status": "OK",
+  "detail": "MI contains (41.9617, -83.2614)"
+ },
+ {
+  "check": "state",
+  "id": "civilian:north-anna-va",
+  "field": "state",
+  "status": "OK",
+  "detail": "VA contains (37.9530, -77.7895)"
+ },
+ {
+  "check": "state",
+  "id": "civilian:south-texas-tx",
+  "field": "state",
+  "status": "OK",
+  "detail": "TX contains (28.7969, -96.0447)"
+ },
+ {
+  "check": "state",
+  "id": "civilian:william-states-lee-sc",
+  "field": "state",
+  "status": "OK",
+  "detail": "within ~1.5 mi of the SC border (polygon is generalised)"
+ },
+ {
+  "check": "state",
+  "id": "civilian:bellefonte-al",
+  "field": "state",
+  "status": "OK",
+  "detail": "AL contains (34.7077, -85.9385)"
+ },
+ {
+  "check": "state",
+  "id": "civilian:vc-summer-sc",
+  "field": "state",
+  "status": "OK",
+  "detail": "SC contains (34.3997, -81.3224)"
+ },
+ {
+  "check": "state",
+  "id": "ap1000:fort-campbell-ky",
+  "field": "state",
+  "status": "MISMATCH",
+  "detail": "stated KY, coordinate falls in Tennessee"
+ },
+ {
+  "check": "state",
+  "id": "ap1000:fort-drum-ny",
+  "field": "state",
+  "status": "OK",
+  "detail": "NY contains (44.0383, -75.6756)"
+ },
+ {
+  "check": "state",
+  "id": "ap1000:redstone-arsenal-al",
+  "field": "state",
+  "status": "OK",
+  "detail": "AL contains (34.6300, -86.6537)"
+ },
+ {
+  "check": "state",
+  "id": "ap1000:fort-wainwright-ak",
+  "field": "state",
+  "status": "OK",
+  "detail": "AK contains (64.6054, -147.4144)"
+ },
+ {
+  "check": "state",
+  "id": "ap1000:fort-benning-ga",
+  "field": "state",
+  "status": "OK",
+  "detail": "GA contains (32.3414, -84.9936)"
+ },
+ {
+  "check": "state",
+  "id": "ap1000:fort-bragg-nc",
+  "field": "state",
+  "status": "OK",
+  "detail": "NC contains (35.1333, -78.9833)"
+ },
+ {
+  "check": "state",
+  "id": "ap1000:holston-aap-tn",
+  "field": "state",
+  "status": "OK",
+  "detail": "TN contains (36.5100, -82.5600)"
+ },
+ {
+  "check": "state",
+  "id": "ap1000:arnold-afb-tn",
+  "field": "state",
+  "status": "OK",
+  "detail": "TN contains (35.3711, -86.2156)"
+ },
+ {
+  "check": "state",
+  "id": "ap1000:fort-hood-tx",
+  "field": "state",
+  "status": "OK",
+  "detail": "TX contains (31.0019, -97.7111)"
+ },
+ {
+  "check": "state",
+  "id": "ap1000:jbmdl-nj",
+  "field": "state",
+  "status": "OK",
+  "detail": "NJ contains (40.0294, -74.5891)"
+ },
+ {
+  "check": "state",
+  "id": "ap1000:robins-afb-ga",
+  "field": "state",
+  "status": "OK",
+  "detail": "GA contains (32.6165, -83.5825)"
+ },
+ {
+  "check": "state",
+  "id": "ap1000:edwards-afb-ca",
+  "field": "state",
+  "status": "OK",
+  "detail": "CA contains (34.8899, -117.8324)"
+ },
+ {
+  "check": "state",
+  "id": "ap1000:jblm-wa",
+  "field": "state",
+  "status": "OK",
+  "detail": "WA contains (47.1148, -122.5383)"
+ },
+ {
+  "check": "state",
+  "id": "ap1000:davis-monthan-afb-az",
+  "field": "state",
+  "status": "OK",
+  "detail": "AZ contains (32.1650, -110.8575)"
+ }
+]

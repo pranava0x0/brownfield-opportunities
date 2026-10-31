@@ -1,0 +1,59 @@
+{"batch": "batch-02", "researcher": "Claude Haiku 5.5", "sites": [
+  {"id": "ACRES-48321", "name": "City of Corona Site", "researcher": "Claude Haiku 5.5",
+   "portals": [
+     {"kind": "assessor", "name": "Riverside County Assessor Online Services (property search)", "url": "https://ca-riverside-acr.publicaccessnow.com/Home.aspx", "access": "free_search", "note": "Linked from rivcoacr.org AssessorServices page as Assessor Online Services; lists Property Search. Not queried for this address."},
+     {"kind": "gis", "name": "RivCoView (Riverside County map-based property data portal)", "url": "https://rivcoview.rivcoacr.org/", "access": "free_map", "note": "Linked from rivcoacr.org as the map-based dashboard for assessment and tax data. Not queried for APN 107-080-012."},
+     {"kind": "gis", "name": "Riverside County Assessor Maps", "url": "https://www.rivcoacr.org/AssessorMaps", "access": "free_map", "note": "Parcel maps show APNs and acreage; the page states street addresses and ownership are not shown on these maps."},
+     {"kind": "planning", "name": "City of Corona Successor Agency / Oversight Board page", "url": "https://coronaca.gov/departments/city-managers-office/housing/successor-agency-oversight-board", "access": "free_search", "note": "Links a Long Range Property Management Plan (June 4, 2014) PDF. The PDF is image/compressed and could not be read as text; the page itself does not mention Sherborn or APN 107-080-012."}
+   ],
+   "facts": [],
+   "gaps": [
+     "Could not confirm 1601 Sherborn Rd is the Sherborn parcel. Search snippets from coronaca.gov list APN 107-080-012 ('Sherborn', 53.72-acre vacant parcel, 2009 sale, 2008 appraisal, Sherborn LLC first right to repurchase under Doc# 2010-0114038, 2013 GIS map 'Pending State DOF approval of transfer'). None of those pages could be opened by the fetch tool (HTTP 404), so no quote was recorded and none of this is cited as a fact.",
+     "The Long Range Property Management Plan PDF (cdn.prod.website-files.com ...DOFPropertyTrackingWorkshe.pdf) was downloaded but contains compressed streams that could not be decoded here. A local pdftotext or pypdf pass is needed to read the Sherborn row.",
+     "No record found on whether the Sherborn LLC repurchase right was exercised or whether the transfer to the City Housing Authority was approved. No 2026 news found.",
+     "Riverside County Assessor-County Clerk-Recorder recorded-document search URL not verified, so no recorder portal is listed. Treasurer-Tax Collector tax-sale list (2026 sale held April 23-28, 2026 via Bid4Assets, per county notices in search snippets) could not be opened; the countytreasurer.org/tc-223 page returned HTTP 403.",
+     "Name match is weak: the atlas name 'City of Corona Site' does not contain 'Sherborn' and the coordinates were not compared with the parcel."
+   ]},
+  {"id": "ACRES-53022", "name": "Riverview Apartments", "researcher": "Claude Haiku 5.5",
+   "portals": [
+     {"kind": "recorder", "name": "Sullivan County Register of Deeds (SullivanDeeds.com)", "url": "https://sullivandeeds.com/", "access": "unknown", "note": "Linked from sullivancountytn.gov Register of Deeds page as the county's online deed records site. Fees and free-search scope not checked."},
+     {"kind": "recorder", "name": "Sullivan County Register of Deeds (ustitlesearch.net)", "url": "https://ustitlesearch.net/", "access": "unknown", "note": "Linked from the same county page as 'Visit Register of Deeds Website'. Not opened beyond the link list."}
+   ],
+   "facts": [],
+   "gaps": [
+     "No page found about 1013 Douglas St, Kingsport, or a 'Riverview Apartments' at that address. Search snippets point to Kingsport Housing and Redevelopment Authority's Riverview Place (285 Louis St, about 38 units), a different address, so it is not cited.",
+     "Assessor/parcel search not verified: the Tennessee TPAD (assessment.cot.tn.gov/TPAD) and sullivancountytn.gov property-assessor pages were only seen in search snippets and were not opened.",
+     "Trustee tax-payment records (secure.tennesseetrustee.org) and Kingsport codes/demolition permit records were not checked for this parcel. The Kingsport demolition bid packets seen in search list other addresses only.",
+     "Deed, lien and tax records for this parcel could not be queried through the fetch tool; the Register of Deeds search may require a fee or a name search."
+   ]},
+  {"id": "AL7210020742", "name": "USARMY/NASA REDSTONE ARSENAL", "researcher": "Claude Haiku 5.5",
+   "portals": [
+     {"kind": "assessor", "name": "Madison County, AL county government site (assessor / parcel viewer, Tax Collector)", "url": "https://www.madisoncountyal.gov/", "access": "unknown", "note": "Homepage returned HTTP 403 to the fetch tool, so no assessor, recorder or tax link was confirmed. A search aggregator names a Madison County Tax Assessor Parcel Viewer; that claim is unverified."}
+   ],
+   "facts": [
+     {"kind": "other", "date": "2025-03-06", "summary": "EPA announced cleanup complete on 5.3 acres of the NASA Marshall Space Flight Center portion of the USARMY/NASA Redstone Arsenal Superfund site and the release says that portion was deleted from the National Priorities List.", "authority": "U.S. EPA Region 4 news release", "reference": "EPA news release, Huntsville, Ala., March 6, 2025", "source_url": "https://epa.gov/newsreleases/epa-marks-major-milestone-partial-deletion-nasa-marshall-space-flight-center-superfund", "quote": "Cleanup has been completed for 5.3 acres of the NASA Marshall Space Flight Center portion of the site"},
+     {"kind": "other", "date": "2026-02-25", "summary": "Army and environmental experts held the inaugural meeting of an Environmental Restoration Leaders Working Group at Redstone Arsenal to coordinate and map out the installation's cleanup process (Army article published March 13, 2026).", "authority": "U.S. Army Garrison Redstone Arsenal / Army public affairs", "reference": "army.mil article 291082, published March 13, 2026", "source_url": "https://www.army.mil/article/291082/redstone_arsenal_leadership_convenes_for_inaugural_restoration_working_group", "quote": "The primary purpose of the Environmental Restoration Leaders Working Group is to bring together key leaders"}
+   ],
+   "gaps": [
+     "Federal installation land is generally not carried on county assessor or deed rolls; no county parcel, deed or tax record was checked for this federal site. That expectation is from general knowledge and was not verified against a Madison County source.",
+     "Army real property and garrison land records (GSA federal real property inventory, RSA Garrison real property office) were not checked.",
+     "Quotes were extracted by a WebFetch summarization pass, not copied from the raw HTML. The checker should re-verify the quote strings against the source pages.",
+     "Snippet-only items not cited: 2000s-era $350M Shaw Environmental cleanup contract; Alabama AHWMMA draft hazardous waste permit modification; Nov 2025 notice inviting community members to form a Restoration Advisory Board; EPA's note that it will monitor the site every five years (the release text was cited only for the partial deletion)."
+   ]},
+  {"id": "ALN000410750", "name": "35TH AVENUE", "researcher": "Claude Haiku 5.5",
+   "portals": [
+     {"kind": "assessor", "name": "Jefferson County, AL Revenue / property search (CAPture)", "url": "https://www.jccal.org/", "access": "unknown", "note": "County homepage returned HTTP 403 to the fetch tool. A search result named a CAPture property search; the host given there (capture.jccal.org) did not resolve, so the search URL is unconfirmed. Address and parcel lookup not performed."},
+     {"kind": "recorder", "name": "Jefferson County Probate Court (online land records)", "url": "https://jeffcoprobatecourt.com/?p=634", "access": "unknown", "note": "Page states residents can access online land records and other probate-filed records. Access fees and search scope not checked."},
+     {"kind": "recorder", "name": "Jefferson County records index linked from probate page (landmarkweb)", "url": "http://landmarkweb.jccal.org/landmarkweb#new_tab", "access": "unknown", "note": "The probate page labels this link 'Search Marriage Licenses', not land records, so it is not confirmed to cover real estate. Listed for follow-up only."}
+   ],
+   "facts": [
+     {"kind": "other", "summary": "EPA's site profile (current, undated on the fetched page) states EPA is currently addressing residential soil contamination in three North Birmingham neighborhoods, with more than 650 properties remediated by EPA's Removal Program across four phases and about 90,000 tons of contaminated soil excavated and sent to an off-site landfill.", "authority": "U.S. EPA SEMS/Superfund site profile (cumulis)", "reference": "EPA Superfund site profile, site ID 0410750 (35th Avenue)", "source_url": "https://cumulis.epa.gov/supercpad/cursites/csitinfo.cfm?id=0410750", "quote": "The EPA is currently addressing residential soil contamination in three North Birmingham, Alabama neighborhoods."},
+     {"kind": "other", "date": "2023-10-17", "summary": "WBRC reported that North Birmingham neighbors described living in the Superfund site and that one resident asked the city to buy out and relocate properties; a city spokesperson said the city continues to work with EPA on residents' concerns.", "authority": "WBRC (Birmingham, AL TV news)", "reference": "WBRC article, Oct 17, 2023, 4:44 PM CDT", "source_url": "https://www.wbrc.com/2023/10/17/neighbors-35th-avenue-superfund-site-asking-help-city", "quote": "The Collegeville, Fairmont, and Harriman Park neighborhoods make up the Superfund Site."}
+   ],
+   "gaps": [
+     "No parcel-level record for 3500 35th Ave N (the Walter Coke facility address, per search snippets) was retrieved. Owner, deed, lien, tax-delinquency and permit records are all unchecked because the Jefferson County property search could not be reached.",
+     "The EPA profile's NPL listing date and last-updated date were not shown on the fetched page; the 2014 proposal and 2013 PRP identifications appear only in search snippets and are not cited.",
+     "The 2021 EPA fact sheet (2,034 properties warranting investigation) and the 2020 WBRC timeline article were seen in search results but not opened, so their figures are not used.",
+     "Quotes were extracted by a WebFetch summarization pass, not copied from the raw HTML. The checker should re-verify the quote strings against the source pages."
+   ]}
+]}

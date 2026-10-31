@@ -1,0 +1,15 @@
+{"batch": "batch-14", "sites": [
+  {"id": "VAD980539878", "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+     {"index": 0, "verdict": "supported", "note": "Page: \"The one-acre H & H Inc., Burn Pit Superfund site is located in Hanover County, Virginia.\""},
+     {"index": 1, "verdict": "supported", "note": "Page: \"Between 1960 and 1976, Haskell Chemical Company, located in Richmond, Virginia, used the area ...\""},
+     {"index": 2, "verdict": "supported", "note": "Second cleanup page: \"a restrictive covenant on the property deed, which prevents the use of contaminated groundwater under the property.\""},
+     {"index": 3, "verdict": "supported", "note": "Second cleanup page: \"In May 2020, EPA issued an amendment to the Record of Decision (ROD)\"; OU2 groundwater remedy changed to enhanced bioremediation."},
+     {"index": 4, "verdict": "supported", "note": "Second cleanup page: \"The site owners operate a timber lot at the site.\""},
+     {"index": 5, "verdict": "supported", "note": "Second cleanup page: \"The next five-year review will be conducted in 2030.\""}
+   ],
+   "portal_verdicts": [
+     {"url": "https://parcelmap.hanovercounty.gov/", "reachable": false, "note": "Fetch returned only the title 'Hanover CivQuest'; JavaScript shell, parcel search not confirmed."},
+     {"url": "https://hanovercountyva-web.tylerhost.net/web/user/disclaimer", "reachable": false, "note": "HTTP 403 Forbidden."}
+   ]}
+]}
