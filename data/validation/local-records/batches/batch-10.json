@@ -1,0 +1,85 @@
+{
+ "batch": "batch-10",
+ "sites": [
+  {
+   "id": "PAD980538763",
+   "name": "MIDDLETOWN AIR FIELD",
+   "program": "superfund",
+   "address": "APPROX 1 MLE OFF RTE 230",
+   "city": "MIDDLETOWN",
+   "county": "DAUPHIN",
+   "state": "PA",
+   "zip": "17057",
+   "lat": 40.198172,
+   "lon": -76.759963,
+   "acreage": 1242.3,
+   "tabs": [
+    "civilian"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "PAD980539712",
+   "name": "ELIZABETHTOWN LANDFILL",
+   "program": "superfund",
+   "address": "W RIDGE RD",
+   "city": "ELIZABETHTOWN",
+   "county": "LANCASTER",
+   "state": "PA",
+   "zip": "17022",
+   "lat": 40.134272,
+   "lon": -76.609986,
+   "acreage": 30.5,
+   "tabs": [
+    "civilian"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "PAD980690549",
+   "name": "EAST MOUNT ZION",
+   "program": "superfund",
+   "address": "DIENINGER ROAD",
+   "city": "SPRINGETTSBURY TOWNSHIP",
+   "county": "YORK",
+   "state": "PA",
+   "zip": "17402",
+   "lat": 40.006815,
+   "lon": -76.664652,
+   "acreage": 14.8,
+   "tabs": [
+    "civilian"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "SCD037398120",
+   "name": "PALMETTO RECYCLING, INC.",
+   "program": "superfund",
+   "address": "531 KOON STORE RD",
+   "city": "COLUMBIA",
+   "county": "RICHLAND",
+   "state": "SC",
+   "zip": "29203",
+   "lat": 34.123596,
+   "lon": -81.012046,
+   "acreage": 1.7,
+   "tabs": [
+    "civilian"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  }
+ ]
+}

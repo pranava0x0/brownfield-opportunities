@@ -1,0 +1,26 @@
+{"batch": "batch-05", "sites": [
+  {"id": "FUDS-G05OH0156", "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [],
+   "portal_verdicts": [
+    {"url": "https://wedge1.hcauditor.org/", "reachable": true, "note": "Hamilton County Auditor Property Search; search by owner name, street address, parcel number; advanced sale/transfer searches."}
+   ]},
+  {"id": "FUDS-I04FL0038", "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+    {"index": 0, "verdict": "supported", "note": "Wikipedia: \"Since 1948, the University of Miami has used it as a research facility and storage area.\""}
+   ],
+   "portal_verdicts": [
+    {"url": "https://www.miamidadepa.gov/pa/real-estate/property-search.page", "reachable": true, "note": "Miami-Dade Property Appraiser Property Search; \"Search by Address, Name, Folio, and Subdivision name.\""}
+   ]},
+  {"id": "FUDS-I04FL0884", "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [],
+   "portal_verdicts": [
+    {"url": "https://www.jacksonville.gov/departments/property-appraiser", "reachable": true, "note": "Duval County Property Appraiser page; links Basic Search by real estate number, owner or address (runs on paopropertysearch.coj.net)."}
+   ]},
+  {"id": "FUDS-I04SC0025", "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+    {"index": 0, "verdict": "supported", "note": "My Horry News Aug 9, 2018 (updated Aug 16): range \"covers more than 55,000 acres, including parts of Carolina Forest\"; unacceptable risk at three of four sites studied."}
+   ],
+   "portal_verdicts": [
+    {"url": "https://www.horrycountysc.gov/departments/assessor/", "reachable": true, "note": "Horry County Assessor's Office page; says use Land Records applications to locate a PIN by address or owner name."}
+   ]}
+]}

@@ -1,0 +1,111 @@
+{
+ "batch": "batch-08",
+ "sites": [
+  {
+   "id": "MID980410617",
+   "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+    {
+     "index": 0,
+     "verdict": "supported",
+     "note": "Page: 'The Burrows Sanitation site is located in Hartford, Michigan.'"
+    },
+    {
+     "index": 1,
+     "verdict": "supported",
+     "note": "Page: 'Disposal of plating sludges, waste coolants and oils took place at the site from 1970 to 1977.'"
+    },
+    {
+     "index": 2,
+     "verdict": "supported",
+     "note": "Page: 'Following cleanup, operations and maintenance activities are ongoing.'"
+    }
+   ],
+   "portal_verdicts": []
+  },
+  {
+   "id": "MID985574227",
+   "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+    {
+     "index": 0,
+     "verdict": "supported",
+     "note": "Page: 'In 1994, EPA added the site to the Superfund program's National Priorities List (NPL).'"
+    },
+    {
+     "index": 1,
+     "verdict": "supported",
+     "note": "Page: 'EPA deleted the site from the NPL in 2005.'"
+    },
+    {
+     "index": 2,
+     "verdict": "supported",
+     "note": "Page: 'activity and use limitations that EPA calls institutional controls are in place.'"
+    },
+    {
+     "index": 3,
+     "verdict": "supported",
+     "note": "Page: 'Primarily residential land use continues at the site.'"
+    }
+   ],
+   "portal_verdicts": [
+    {
+     "url": "https://pta.waynecounty.com",
+     "reachable": true,
+     "note": "Wayne County Treasurer Property Tax Listing System; search by Property Address or Parcel ID, free, all Wayne municipalities; no owner-name search."
+    }
+   ]
+  },
+  {
+   "id": "MIN000510362",
+   "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+    {
+     "index": 0,
+     "verdict": "supported",
+     "note": "Planet Detroit, published March 11, 2026: council 'passed a one-year data center moratorium' on Monday."
+    },
+    {
+     "index": 1,
+     "verdict": "supported",
+     "note": "Page: 'A proposed 100-megawatt data center at the former McLouth Steel site in Gibraltar.'"
+    },
+    {
+     "index": 2,
+     "verdict": "supported",
+     "note": "Page: 'developer intends to locate a utility substation and some equipment on the adjacent Superfund property'; editor's note: does not intend to fully remediate."
+    }
+   ],
+   "portal_verdicts": [
+    {
+     "url": "https://pta.waynecounty.com",
+     "reachable": true,
+     "note": "Wayne County Treasurer Property Tax Listing System; address or parcel ID search, free; no owner-name search."
+    }
+   ]
+  },
+  {
+   "id": "MT0012694970",
+   "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+    {
+     "index": 0,
+     "verdict": "supported",
+     "note": "Page: 'located in and around the Town of Superior in Mineral County, Montana.'"
+    },
+    {
+     "index": 1,
+     "verdict": "supported",
+     "note": "Page lists 'FLAT CREEK ROAD AND HALL GULCH ROAD', Superior, MT 59872."
+    }
+   ],
+   "portal_verdicts": [
+    {
+     "url": "https://svc.mt.gov/msl/mtcadastral/",
+     "reachable": false,
+     "note": "Fetch returned only title 'Montana Cadastral' (JavaScript shell); could not confirm operator or parcel map."
+    }
+   ]
+  }
+ ]
+}

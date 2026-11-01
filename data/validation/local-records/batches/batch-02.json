@@ -1,0 +1,85 @@
+{
+ "batch": "batch-02",
+ "sites": [
+  {
+   "id": "ACRES-48321",
+   "name": "City of Corona Site",
+   "program": "brownfield",
+   "address": "1601 Sherborn Rd",
+   "city": "Corona",
+   "county": "Riverside",
+   "state": "CA",
+   "zip": "92879",
+   "lat": 33.860164,
+   "lon": -117.524161,
+   "acreage": null,
+   "tabs": [
+    "retired"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "ACRES-53022",
+   "name": "Riverview Apartments",
+   "program": "brownfield",
+   "address": "1013 Douglas St",
+   "city": "Kingsport",
+   "county": "Sullivan",
+   "state": "TN",
+   "zip": "37662",
+   "lat": 36.53847,
+   "lon": -82.55279,
+   "acreage": null,
+   "tabs": [
+    "retired"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "AL7210020742",
+   "name": "USARMY/NASA REDSTONE ARSENAL",
+   "program": "superfund",
+   "address": "Postal Address is unavailable for the Site",
+   "city": "HUNTSVILLE",
+   "county": "MADISON",
+   "state": "AL",
+   "zip": "35808",
+   "lat": 34.629981,
+   "lon": -86.653678,
+   "acreage": 38491.0,
+   "tabs": [
+    "civilian"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "ALN000410750",
+   "name": "35TH AVENUE",
+   "program": "superfund",
+   "address": "3500 35TH N.",
+   "city": "BIRMINGHAM",
+   "county": "JEFFERSON",
+   "state": "AL",
+   "zip": "35207",
+   "lat": 33.560637,
+   "lon": -86.801738,
+   "acreage": 601.0,
+   "tabs": [
+    "dc"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  }
+ ]
+}

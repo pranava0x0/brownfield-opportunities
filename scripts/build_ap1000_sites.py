@@ -115,20 +115,21 @@ AF_RFLP_NO_PROPOSAL = {
 }
 
 # Supply river mean annual flow (cfs) at the validated USGS gauge, per
-# ap1000-water-validation.md (2026-06-25, NWIS annual means). None marks a
+# NWIS annual means re-derived 2026-10-31 by scripts/audit_tabs.py (mean of every annual mean on record: Tanana 62 yr, Ocmulgee at Macon 98 yr, Nisqually 68 yr).
+# Earlier values were hand-entered from ap1000-water-validation.md (2026-06-25). None marks a
 # groundwater or reservoir supply with no river flow to compare: Fort Hood
 # (Belton Lake firm yield), JBMDL (Kirkwood-Cohansey aquifer), Edwards and
 # Davis-Monthan (adjudicated / overdrafted groundwater).
 SUPPLY_FLOW = {
     "redstone-arsenal-al":  (41650, "03575500", "Tennessee River"),
-    "fort-wainwright-ak":   (41000, "15515500", "Tanana River"),
+    "fort-wainwright-ak":   (24825, "15515500", "Tanana River"),
     "fort-campbell-ky":     (23765, "03431500", "Cumberland River (~13 mi)"),
     "fort-benning-ga":      (6873, "02341460", "Chattahoochee River"),
     "fort-drum-ny":         (4242, "04260500", "Black River"),
     "fort-bragg-nc":        (3224, "02102500", "Cape Fear River (~10 mi)"),
     "holston-aap-tn":       (2910, "03487500", "South Fork Holston River"),
-    "robins-afb-ga":        (2680, "02213700", "Ocmulgee River"),
-    "jblm-wa":              (2000, "12089500", "Nisqually River"),
+    "robins-afb-ga":        (2656, "02213000", "Ocmulgee River"),
+    "jblm-wa":              (1321, "12089500", "Nisqually River"),
     "arnold-afb-tn":        (470, "03579100", "Elk River / Woods Reservoir"),
     "fort-hood-tx":         (None, None, "Belton Lake (reservoir firm yield)"),
     "jbmdl-nj":             (None, None, "Kirkwood-Cohansey aquifer"),
@@ -263,7 +264,7 @@ SITES = [
         "water_statistic": "annual_mean",
         "water_statistic_source_url": "https://waterservices.usgs.gov/nwis/stat/?format=rdb&sites=02213000&statReportType=annual&statTypeCd=mean&parameterCd=00060",
         "water_note": "Ocmulgee River is mapped along the installation. Upstream Macon gage 02213000 reports a 2012 ANNUAL MEAN of 854.1 cfs; this is not a daily minimum, 7Q10 or firm supply. A 42 cfs withdrawal is approximately 4.9% of that annual mean, which does not establish a permissible withdrawal or drought margin. Site intake, low-flow reliability and allocation remain unassessed.",
-        "water_source_url": "https://waterdata.usgs.gov/monitoring-location/USGS-02213700/",
+        "water_source_url": "https://waterdata.usgs.gov/monitoring-location/USGS-02213000/",
         "fiber": "unknown",
         "fiber_note": "No site-specific carrier, service, capacity or route evidence retained. Fiber availability is unassessed.",
         "seismic_flag": "low", "flood_flag": "moderate",
@@ -465,7 +466,7 @@ GRID_OPERATOR = {
             "target 5-year median timelines, but 1,117 MW nuclear would be a novel "
             "CAISO category with multi-year study periods."
         ),
-        "source": "https://www.caiso.com/generation/Pages/InterconnectionProcesses/default.aspx",
+        "source": "https://www.caiso.com/planning/Pages/GeneratorInterconnection/Default.aspx",
     },
     "robins-afb-ga": {
         "rto": "Non-RTO/SERC (Georgia Power / Southern Company)",
@@ -474,7 +475,7 @@ GRID_OPERATOR = {
             "Southern Company has direct AP1000 experience (Vogtle 3 & 4) in this territory. "
             "Bilateral agreements; typically faster than PJM/NYISO for large nuclear."
         ),
-        "source": "https://www.southerncompany.com/transmission",
+        "source": "https://simpl.southernco.com/",
     },
     "fort-benning-ga": {
         "rto": "Non-RTO/SERC (Georgia Power / Southern Company)",
@@ -483,7 +484,7 @@ GRID_OPERATOR = {
             "SERC region, bilateral interconnection. Southern Company's Vogtle AP1000 "
             "experience makes this the most nuclear-familiar BA of the 14."
         ),
-        "source": "https://www.southerncompany.com/transmission",
+        "source": "https://simpl.southernco.com/",
     },
     "fort-bragg-nc": {
         "rto": "Non-RTO/SERC (Duke Energy Carolinas)",
@@ -511,7 +512,7 @@ GRID_OPERATOR = {
             "Community Protection Act creates demand for carbon-free baseload. "
             "Queue timelines typically 3-5 years for large projects."
         ),
-        "source": "https://www.nyiso.com/generation-interconnection",
+        "source": "https://www.nyiso.com/interconnections",
     },
     "fort-hood-tx": {
         "rto": "ERCOT",
@@ -520,7 +521,7 @@ GRID_OPERATOR = {
             "ERCOT's interconnection queue (~350 GW pending) has moved faster than PJM "
             "historically. Texas's deregulated market offers competitive PPA pricing."
         ),
-        "source": "https://www.ercot.com/mktrules/guides/interconnection",
+        "source": "https://ercot.com/services/rq/integration",
     },
     "fort-wainwright-ak": {
         "rto": "ASEA Railbelt (GVEA — no RTO)",
@@ -530,7 +531,7 @@ GRID_OPERATOR = {
             "An AP1000's 1,117 MW dwarfs the Railbelt's ~700 MW peak load — "
             "would require behind-the-fence configuration."
         ),
-        "source": "https://www.gvea.com/about/our-grid",
+        "source": "https://www.gvea.com/",
     },
     "jblm-wa": {
         "rto": "Non-RTO/WECC (Puget Sound Energy / BPA)",
@@ -540,7 +541,7 @@ GRID_OPERATOR = {
             "BPA's Columbia River hydro provides abundant balancing reserves. "
             "Bilateral process with BPA typically 3-4 years for large projects."
         ),
-        "source": "https://www.bpa.gov/energy-and-services/transmission/generator-interconnection",
+        "source": "https://bpa.gov/energy-and-services/transmission/interconnection",
     },
     "jbmdl-nj": {
         "rto": "PJM (PSE&G / JCP&L)",
@@ -616,22 +617,22 @@ WATER_RIGHTS = {
     "davis-monthan-afb-az": {
         "regime": "prior appropriation + AZ groundwater code", "cls": "unknown",
         "note": "Agency/source link identifies a regulatory contact or historical context. No project-specific withdrawal entitlement, supply contract, allocation or approval outcome has been verified.",
-        "source": "https://www.azwater.gov/ama/tucson-ama",
+        "source": "https://www.azwater.gov/ama/active-management-area-overview",
     },
     "edwards-afb-ca": {
         "regime": "hybrid (CA) — adjudicated basin", "cls": "unknown",
         "note": "Agency/source link identifies a regulatory contact or historical context. No project-specific withdrawal entitlement, supply contract, allocation or approval outcome has been verified.",
-        "source": "https://www.avek.org/adjudication",
+        "source": "https://www.avwatermaster.org/",
     },
     "robins-afb-ga": {
         "regime": "regulated riparian (GA permit)", "cls": "unknown",
         "note": "Agency/source link identifies a regulatory contact or historical context. No project-specific withdrawal entitlement, supply contract, allocation or approval outcome has been verified.",
-        "source": "https://epd.georgia.gov/watershed-protection-branch/water-withdrawal-permits",
+        "source": "https://epd.georgia.gov/water-withdrawal-permitting",
     },
     "fort-benning-ga": {
         "regime": "regulated riparian (GA permit)", "cls": "unknown",
         "note": "Agency/source link identifies a regulatory contact or historical context. No project-specific withdrawal entitlement, supply contract, allocation or approval outcome has been verified.",
-        "source": "https://www.supremecourt.gov/opinions/20pdf/142orig_1qm2.pdf",
+        "source": "https://www.supremecourt.gov/opinions/20pdf/22o142_m648.pdf",
     },
     "fort-bragg-nc": {
         "regime": "regulated riparian (NC)", "cls": "unknown",
@@ -646,7 +647,7 @@ WATER_RIGHTS = {
     "fort-drum-ny": {
         "regime": "regulated riparian (NY DEC permit)", "cls": "unknown",
         "note": "Agency/source link identifies a regulatory contact or historical context. No project-specific withdrawal entitlement, supply contract, allocation or approval outcome has been verified.",
-        "source": "https://dec.ny.gov/environmental-protection/water/water-withdrawals",
+        "source": "https://dec.ny.gov/regulatory/permits-licenses/wastewater-stormwater-water-withdrawal/water-withdrawal",
     },
     "fort-hood-tx": {
         "regime": "hybrid (TX) — appropriated surface water", "cls": "unknown",
@@ -656,7 +657,7 @@ WATER_RIGHTS = {
     "fort-wainwright-ak": {
         "regime": "prior appropriation (AK)", "cls": "unknown",
         "note": "Agency/source link identifies a regulatory contact or historical context. No project-specific withdrawal entitlement, supply contract, allocation or approval outcome has been verified.",
-        "source": "https://dnr.alaska.gov/mlw/water/wrfact/",
+        "source": "https://dnr.alaska.gov/mlw/water/rights/",
     },
     "jblm-wa": {
         "regime": "prior appropriation (WA)", "cls": "unknown",

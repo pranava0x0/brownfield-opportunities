@@ -1,0 +1,86 @@
+{
+ "batch": "batch-12",
+ "sites": [
+  {
+   "id": "TND071516959",
+   "name": "TENNESSEE PRODUCTS",
+   "program": "superfund",
+   "address": "Postal Address is unavailable for the Site",
+   "city": "CHATTANOOGA",
+   "county": "HAMILTON",
+   "state": "TN",
+   "zip": "37410",
+   "lat": 34.998148,
+   "lon": -85.30911,
+   "acreage": 47.4,
+   "tabs": [
+    "civilian"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "TND098071061",
+   "name": "SMOKEY MOUNTAIN SMELTERS",
+   "program": "superfund",
+   "address": "1508 MARYVILLE PIKE",
+   "city": "KNOXVILLE",
+   "county": "KNOX",
+   "state": "TN",
+   "zip": "37920",
+   "lat": 35.918111,
+   "lon": -83.927367,
+   "acreage": 24.2,
+   "tabs": [
+    "civilian"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "TND987768587",
+   "name": "CLINCH RIVER CORPORATION",
+   "program": "superfund",
+   "address": "728 EMORY DRIVE",
+   "city": "HARRIMAN",
+   "county": "ROANE",
+   "state": "TN",
+   "zip": "37748",
+   "lat": 35.931934,
+   "lon": -84.540723,
+   "acreage": 28.7,
+   "tabs": [
+    "civilian"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "TXD008123168",
+   "name": "ALCOA (POINT COMFORT)/LAVACA BAY",
+   "program": "superfund",
+   "address": "Postal Address is unavailable for the Site",
+   "city": "POINT COMFORT",
+   "county": "CALHOUN",
+   "state": "TX",
+   "zip": "77979",
+   "lat": 28.652066,
+   "lon": -96.551834,
+   "acreage": 5411.3,
+   "tabs": [
+    "civilian",
+    "retired"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  }
+ ]
+}

@@ -1,0 +1,462 @@
+{
+ "generated_at": "2026-10-31T11:18:40-0400",
+ "max_clicks": 4,
+ "viewports": {
+  "mobile": {
+   "load": {
+    "dcl": 2321,
+    "load": 2321,
+    "lcp": 2455,
+    "longTaskMs": 6127,
+    "requests": 23,
+    "rawBytes": 39010589,
+    "wireBytes": 4134630,
+    "nodes": 1462,
+    "readyMs": 26401,
+    "readyBudgetMs": 12000,
+    "overBudget": true
+   },
+   "tasks": [
+    {
+     "task": "screens-top-dc",
+     "what": "See the best data-center sites and the checks each meets",
+     "clicks": 0,
+     "ms": 7,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    },
+    {
+     "task": "screens-switch-use",
+     "what": "Switch to the nickel-refinery ranking",
+     "clicks": 1,
+     "ms": 498,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    },
+    {
+     "task": "screens-cited-rule",
+     "what": "Read the cited source behind a ranking rule",
+     "clicks": 0,
+     "ms": 5,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    },
+    {
+     "task": "screens-site-evidence",
+     "what": "Open a ranked site's evidence and its verify-on-map link",
+     "clicks": 1,
+     "ms": 145,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    },
+    {
+     "task": "nuclear-rank",
+     "what": "See installations ranked for a large reactor",
+     "clicks": 1,
+     "ms": 886,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    },
+    {
+     "task": "nuclear-source",
+     "what": "Open one installation's evidence and reach a cited source",
+     "clicks": 3,
+     "ms": 1032,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    },
+    {
+     "task": "nuclear-verify",
+     "what": "Reach the verify-on-map link for an installation",
+     "clicks": 2,
+     "ms": 949,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    },
+    {
+     "task": "nuclear-other-class",
+     "what": "Re-rank for a small modular reactor and open a row",
+     "clicks": 3,
+     "ms": 1053,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    },
+    {
+     "task": "coal-rank",
+     "what": "See coal plants ranked for reuse",
+     "clicks": 1,
+     "ms": 523,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    },
+    {
+     "task": "coal-verify",
+     "what": "Reach the map that re-measures a coal plant's grid distance",
+     "clicks": 1,
+     "ms": 535,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    },
+    {
+     "task": "retired-rank",
+     "what": "See retired industrial sites ranked",
+     "clicks": 1,
+     "ms": 863,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    },
+    {
+     "task": "retired-verify",
+     "what": "Reach the EPA record and the verify map for a retired facility",
+     "clicks": 1,
+     "ms": 865,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    },
+    {
+     "task": "doe-fit-matrix",
+     "what": "Read why a DOE land unit fits or fails a facility type",
+     "clicks": 2,
+     "ms": 964,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    },
+    {
+     "task": "doe-switch-site",
+     "what": "Switch to another DOE site and open a unit",
+     "clicks": 3,
+     "ms": 1267,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    },
+    {
+     "task": "methods-sources",
+     "what": "Find the data sources and methods",
+     "clicks": 1,
+     "ms": 181,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    }
+   ]
+  },
+  "tablet": {
+   "load": {
+    "dcl": 973,
+    "load": 973,
+    "lcp": 1042,
+    "longTaskMs": 2903,
+    "requests": 23,
+    "rawBytes": 39015974,
+    "wireBytes": 4136063,
+    "nodes": 1466,
+    "readyMs": 11150,
+    "readyBudgetMs": 9000,
+    "overBudget": true
+   },
+   "tasks": [
+    {
+     "task": "screens-top-dc",
+     "what": "See the best data-center sites and the checks each meets",
+     "clicks": 0,
+     "ms": 3,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    },
+    {
+     "task": "screens-switch-use",
+     "what": "Switch to the nickel-refinery ranking",
+     "clicks": 1,
+     "ms": 276,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    },
+    {
+     "task": "screens-cited-rule",
+     "what": "Read the cited source behind a ranking rule",
+     "clicks": 0,
+     "ms": 3,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    },
+    {
+     "task": "screens-site-evidence",
+     "what": "Open a ranked site's evidence and its verify-on-map link",
+     "clicks": 1,
+     "ms": 88,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    },
+    {
+     "task": "nuclear-rank",
+     "what": "See installations ranked for a large reactor",
+     "clicks": 1,
+     "ms": 305,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    },
+    {
+     "task": "nuclear-source",
+     "what": "Open one installation's evidence and reach a cited source",
+     "clicks": 3,
+     "ms": 432,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    },
+    {
+     "task": "nuclear-verify",
+     "what": "Reach the verify-on-map link for an installation",
+     "clicks": 2,
+     "ms": 380,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    },
+    {
+     "task": "nuclear-other-class",
+     "what": "Re-rank for a small modular reactor and open a row",
+     "clicks": 3,
+     "ms": 439,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    },
+    {
+     "task": "coal-rank",
+     "what": "See coal plants ranked for reuse",
+     "clicks": 1,
+     "ms": 288,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    },
+    {
+     "task": "coal-verify",
+     "what": "Reach the map that re-measures a coal plant's grid distance",
+     "clicks": 1,
+     "ms": 274,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    },
+    {
+     "task": "retired-rank",
+     "what": "See retired industrial sites ranked",
+     "clicks": 1,
+     "ms": 334,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    },
+    {
+     "task": "retired-verify",
+     "what": "Reach the EPA record and the verify map for a retired facility",
+     "clicks": 1,
+     "ms": 336,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    },
+    {
+     "task": "doe-fit-matrix",
+     "what": "Read why a DOE land unit fits or fails a facility type",
+     "clicks": 2,
+     "ms": 412,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    },
+    {
+     "task": "doe-switch-site",
+     "what": "Switch to another DOE site and open a unit",
+     "clicks": 3,
+     "ms": 505,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    },
+    {
+     "task": "methods-sources",
+     "what": "Find the data sources and methods",
+     "clicks": 1,
+     "ms": 138,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    }
+   ]
+  },
+  "desktop": {
+   "load": {
+    "dcl": 190,
+    "load": 190,
+    "lcp": 165,
+    "longTaskMs": 448,
+    "requests": 23,
+    "rawBytes": 39015885,
+    "wireBytes": 4136059,
+    "nodes": 1466,
+    "readyMs": 1738,
+    "readyBudgetMs": 4000,
+    "overBudget": false
+   },
+   "tasks": [
+    {
+     "task": "screens-top-dc",
+     "what": "See the best data-center sites and the checks each meets",
+     "clicks": 0,
+     "ms": 2,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    },
+    {
+     "task": "screens-switch-use",
+     "what": "Switch to the nickel-refinery ranking",
+     "clicks": 1,
+     "ms": 586,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    },
+    {
+     "task": "screens-cited-rule",
+     "what": "Read the cited source behind a ranking rule",
+     "clicks": 0,
+     "ms": 2,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    },
+    {
+     "task": "screens-site-evidence",
+     "what": "Open a ranked site's evidence and its verify-on-map link",
+     "clicks": 1,
+     "ms": 2841,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    },
+    {
+     "task": "nuclear-rank",
+     "what": "See installations ranked for a large reactor",
+     "clicks": 1,
+     "ms": 92,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    },
+    {
+     "task": "nuclear-source",
+     "what": "Open one installation's evidence and reach a cited source",
+     "clicks": 3,
+     "ms": 226,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    },
+    {
+     "task": "nuclear-verify",
+     "what": "Reach the verify-on-map link for an installation",
+     "clicks": 2,
+     "ms": 168,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    },
+    {
+     "task": "nuclear-other-class",
+     "what": "Re-rank for a small modular reactor and open a row",
+     "clicks": 3,
+     "ms": 227,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    },
+    {
+     "task": "coal-rank",
+     "what": "See coal plants ranked for reuse",
+     "clicks": 1,
+     "ms": 112,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    },
+    {
+     "task": "coal-verify",
+     "what": "Reach the map that re-measures a coal plant's grid distance",
+     "clicks": 1,
+     "ms": 98,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    },
+    {
+     "task": "retired-rank",
+     "what": "See retired industrial sites ranked",
+     "clicks": 1,
+     "ms": 120,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    },
+    {
+     "task": "retired-verify",
+     "what": "Reach the EPA record and the verify map for a retired facility",
+     "clicks": 1,
+     "ms": 106,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    },
+    {
+     "task": "doe-fit-matrix",
+     "what": "Read why a DOE land unit fits or fails a facility type",
+     "clicks": 2,
+     "ms": 159,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    },
+    {
+     "task": "doe-switch-site",
+     "what": "Switch to another DOE site and open a unit",
+     "clicks": 3,
+     "ms": 256,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    },
+    {
+     "task": "methods-sources",
+     "what": "Find the data sources and methods",
+     "clicks": 1,
+     "ms": 93,
+     "reached": true,
+     "error": null,
+     "tooDeep": false
+    }
+   ]
+  }
+ }
+}

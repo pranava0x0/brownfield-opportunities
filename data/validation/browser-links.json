@@ -1,0 +1,281 @@
+[
+ {
+  "url": "https://www.edwards.af.mil/News/Display/Article/4354128/have-questions-about-the-solicitation-for-ai-data-centers-we-got-answers/",
+  "verdict": "BLOCKED",
+  "status": 403,
+  "title": "Access Denied",
+  "h1": "Access Denied",
+  "final_url": "https://www.edwards.af.mil/News/Display/Article/4354128/have-questions-about-the-solicitation-for-ai-data-centers-we-got-answers/",
+  "owner": "dc:land"
+ },
+ {
+  "url": "https://www.fema.gov/about/glossary/flood-zones",
+  "verdict": "OK",
+  "status": 200,
+  "title": "Flood Zones | FEMA.gov",
+  "h1": "Flood Zones",
+  "final_url": "https://www.fema.gov/about/glossary/flood-zones",
+  "owner": "dc:flood"
+ },
+ {
+  "url": "https://www.bts.gov/ntad",
+  "verdict": "BLOCKED",
+  "status": 403,
+  "title": "Access Denied",
+  "h1": "Access Denied",
+  "final_url": "https://www.bts.gov/ntad",
+  "owner": "port:port"
+ },
+ {
+  "url": "https://www.army.mil/article/294897/army_selects_fort_drum_for_janus_program_microreactor",
+  "verdict": "OK",
+  "status": 200,
+  "title": "Army selects Fort Drum for Janus Program microreactor | Article | The United States Army",
+  "h1": "Army selects Fort Drum for Janus Program microreactor",
+  "final_url": "https://www.army.mil/article/294897/army_selects_fort_drum_for_janus_program_microreactor",
+  "owner": "micro:grid"
+ },
+ {
+  "url": "https://www.nrc.gov/reactors/new-reactors.html",
+  "verdict": "OK",
+  "status": 200,
+  "title": "New Reactors | Nuclear Regulatory Commission",
+  "h1": "New Reactors",
+  "final_url": "https://www.nrc.gov/facilities-safety/new-reactors",
+  "owner": "civilian:license"
+ },
+ {
+  "url": "https://www.ferc.gov/explainer-interconnection-final-rule",
+  "verdict": "OK",
+  "status": 200,
+  "title": "Explainer on the Interconnection Final Rule | Federal Energy Regulatory Commission",
+  "h1": "Explainer on the Interconnection Final Rule",
+  "final_url": "https://www.ferc.gov/explainer-interconnection-final-rule",
+  "owner": "coal:poi"
+ },
+ {
+  "url": "https://tennesseeencyclopedia.net/entries/arnold-engineering-development-center/",
+  "verdict": "OK",
+  "status": 200,
+  "title": "Arnold Engineering Development Center (AEDC) | Tennessee Encyclopedia",
+  "h1": "Arnold Engineering Development Center (AEDC)",
+  "final_url": "https://tennesseeencyclopedia.net/entries/arnold-engineering-development-center/",
+  "owner": "ap1000:arnold-afb-tn:acreage_source"
+ },
+ {
+  "url": "https://www.arnold.af.mil/News/Article-Display/Article/3163926/woods-reservoir-completed-70-years-ago-this-month/",
+  "verdict": "BLOCKED",
+  "status": 403,
+  "title": "Access Denied",
+  "h1": "Access Denied",
+  "final_url": "https://www.arnold.af.mil/News/Article-Display/Article/3163926/woods-reservoir-completed-70-years-ago-this-month/",
+  "owner": "ap1000:arnold-afb-tn:water_source_url"
+ },
+ {
+  "url": "https://www.tva.com/environment/shoreline-construction-permits",
+  "verdict": "OK",
+  "status": 200,
+  "title": "Shoreline & Dock Permits",
+  "h1": "Shoreline and Dock Permits",
+  "final_url": "https://www.tva.com/environment/shoreline-construction-permits",
+  "owner": "ap1000:arnold-afb-tn:water_rights_source_url"
+ },
+ {
+  "url": "https://www.tva.com/energy/our-power-system/transmission/request-for-transmission-service",
+  "verdict": "BLOCKED",
+  "status": 403,
+  "title": "Just a moment...",
+  "h1": "www.tva.com",
+  "final_url": "https://www.tva.com/energy/our-power-system/transmission/request-for-transmission-service",
+  "owner": "ap1000:arnold-afb-tn:iso_rto_source_url"
+ },
+ {
+  "url": "https://www.azwater.gov/ama/tucson-ama",
+  "verdict": "DEAD",
+  "status": 404,
+  "title": "Page not found | Arizona Department of Water Resources",
+  "h1": "",
+  "final_url": "https://www.azwater.gov/ama/tucson-ama",
+  "owner": "ap1000:davis-monthan-afb-az:water_rights_source_url"
+ },
+ {
+  "url": "https://www.army.mil/article/34408/redstone_plans_to_lease_land_for_growth",
+  "verdict": "OK",
+  "status": 200,
+  "title": "Redstone Plans To Lease Land For Growth | Article | The United States Army",
+  "h1": "Redstone Plans To Lease Land For Growth",
+  "final_url": "https://www.army.mil/article/34408/redstone_plans_to_lease_land_for_growth",
+  "owner": "ap1000:redstone-arsenal-al:acreage_source"
+ },
+ {
+  "url": "https://www.nrc.gov/reactors/new-reactors/advanced/natrium.html",
+  "verdict": "DEAD",
+  "status": 503,
+  "title": "Page Not Found | NRC.gov",
+  "h1": "",
+  "final_url": "https://www.nrc.gov/reactors/new-reactors/advanced/natrium.html",
+  "owner": "civilian:kemmerer-wy:nrc_url"
+ },
+ {
+  "url": "https://www.nrc.gov/reactors/new-reactors/advanced/xe-100.html",
+  "verdict": "DEAD",
+  "status": 404,
+  "title": "Page not found | Nuclear Regulatory Commission",
+  "h1": "Page not found",
+  "final_url": "https://www.nrc.gov/reactors/new-reactors/advanced/xe-100.html",
+  "owner": "civilian:seadrift-tx:nrc_url"
+ },
+ {
+  "url": "https://www.nrc.gov/public-involve/public-meetings/pmns/20260617",
+  "verdict": "OK",
+  "status": 200,
+  "title": "Mandatory Hearing for Tennessee Valley Authority's Construction Permit Application for the Clinch River Nuclear Site | N",
+  "h1": "Mandatory Hearing for Tennessee Valley Authority's Construction Permit Application for the Clinch River Nuclear Site",
+  "final_url": "https://www.nrc.gov/public-meetings-hearings/public-meeting-schedule/20260617",
+  "owner": "civilian:clinch-river-tn:nrc_url"
+ },
+ {
+  "url": "https://www.nrc.gov/about-nrc/news-releases/2026/nrc-advisory-nrc-hold-mandatory-hearing-belews-creek-early-site-permit",
+  "verdict": "OK",
+  "status": 200,
+  "title": "NRC Advisory: NRC to Hold Mandatory Hearing on Belews Creek Early Site Permit | Nuclear Regulatory Commission",
+  "h1": "NRC Advisory: NRC to Hold Mandatory Hearing on Belews Creek Early Site Permit",
+  "final_url": "https://www.nrc.gov/about-nrc/news-releases/2026/nrc-advisory-nrc-hold-mandatory-hearing-belews-creek-early-site-permit",
+  "owner": "civilian:belews-creek-nc:nrc_url"
+ },
+ {
+  "url": "https://www.nrc.gov/reactors/new-reactors/smr/nuscale.html",
+  "verdict": "OK",
+  "status": 200,
+  "title": "NuScale | NRC.gov",
+  "h1": "Design Certification - NuScale US600",
+  "final_url": "https://www.nrc.gov/reactors/new-reactors/smr/nuscale.html",
+  "owner": "civilian:inl-cfpp-id:nrc_url"
+ },
+ {
+  "url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/virgil-c-summer.html",
+  "verdict": "DEAD",
+  "status": 404,
+  "title": "Page not found | Nuclear Regulatory Commission",
+  "h1": "Page not found",
+  "final_url": "https://www.nrc.gov/facilities-safety/new-reactors/large-light-water-reactors/combined-license-applications-for-new-reactors/virgil-c-summer.html",
+  "owner": "civilian:vc-summer-sc:nrc_url"
+ },
+ {
+  "url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/turkey-point.html",
+  "verdict": "OK",
+  "status": 200,
+  "title": "Turkey Point, Units 6 and 7 Application | Nuclear Regulatory Commission",
+  "h1": "Turkey Point, Units 6 and 7 Application",
+  "final_url": "https://www.nrc.gov/facilities-safety/new-reactors/large-light-water-reactors/combined-license-applications-for-new-reactors/turkey-point-units-6-7",
+  "owner": "civilian:turkey-point-fl:nrc_url"
+ },
+ {
+  "url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/william-states-lee.html",
+  "verdict": "DEAD",
+  "status": 404,
+  "title": "Page not found | Nuclear Regulatory Commission",
+  "h1": "Page not found",
+  "final_url": "https://www.nrc.gov/facilities-safety/new-reactors/large-light-water-reactors/combined-license-applications-for-new-reactors/william-states-lee.html",
+  "owner": "civilian:william-states-lee-sc:nrc_url"
+ },
+ {
+  "url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/levy.html",
+  "verdict": "OK",
+  "status": 200,
+  "title": "Levy Nuclear Plant, Units 1 and 2 Application | Nuclear Regulatory Commission",
+  "h1": "Levy Nuclear Plant, Units 1 and 2 Application",
+  "final_url": "https://www.nrc.gov/facilities-safety/new-reactors/large-light-water-reactors/combined-license-applications-for-new-reactors/levy-county-units-1-and-2",
+  "owner": "civilian:levy-fl:nrc_url"
+ },
+ {
+  "url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/bellefonte.html",
+  "verdict": "OK",
+  "status": 200,
+  "title": "Bellefonte Nuclear Station, Units 3 and 4 Application | Nuclear Regulatory Commission",
+  "h1": "Bellefonte Nuclear Station, Units 3 and 4 Application",
+  "final_url": "https://www.nrc.gov/facilities-safety/new-reactors/large-light-water-reactors/combined-license-applications-for-new-reactors/bellefonte-units-3-4",
+  "owner": "civilian:bellefonte-al:nrc_url"
+ },
+ {
+  "url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/fermi.html",
+  "verdict": "OK",
+  "status": 200,
+  "title": "Fermi, Unit 3 Application | Nuclear Regulatory Commission",
+  "h1": "Fermi, Unit 3 Application",
+  "final_url": "https://www.nrc.gov/facilities-safety/new-reactors/large-light-water-reactors/combined-license-applications-for-new-reactors/fermi-unit-3",
+  "owner": "civilian:fermi-mi:nrc_url"
+ },
+ {
+  "url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/harris.html",
+  "verdict": "OK",
+  "status": 200,
+  "title": "Shearon Harris Nuclear Site, Units 2 and 3 Application | Nuclear Regulatory Commission",
+  "h1": "Shearon Harris Nuclear Site, Units 2 and 3 Application",
+  "final_url": "https://www.nrc.gov/facilities-safety/new-reactors/large-light-water-reactors/combined-license-applications-for-new-reactors/shearon-harris-units-2-3",
+  "owner": "civilian:harris-nc:nrc_url"
+ },
+ {
+  "url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/south-texas.html",
+  "verdict": "DEAD",
+  "status": 503,
+  "title": "Page Not Found | NRC.gov",
+  "h1": "",
+  "final_url": "https://www.nrc.gov/facilities-safety/new-reactors/large-light-water-reactors/combined-license-applications-for-new-reactors/south-texas.html",
+  "owner": "civilian:south-texas-tx:nrc_url"
+ },
+ {
+  "url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/north-anna.html",
+  "verdict": "OK",
+  "status": 200,
+  "title": "North Anna, Unit 3 Application | Nuclear Regulatory Commission",
+  "h1": "North Anna, Unit 3 Application",
+  "final_url": "https://www.nrc.gov/facilities-safety/new-reactors/large-light-water-reactors/combined-license-applications-for-new-reactors/north-anna-unit-3",
+  "owner": "civilian:north-anna-va:nrc_url"
+ },
+ {
+  "url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/comanche-peak.html",
+  "verdict": "OK",
+  "status": 200,
+  "title": "Comanche Peak Nuclear Power Plant, Units 3 and 4 Application | Nuclear Regulatory Commission",
+  "h1": "Comanche Peak Nuclear Power Plant, Units 3 and 4 Application",
+  "final_url": "https://www.nrc.gov/facilities-safety/new-reactors/large-light-water-reactors/combined-license-applications-for-new-reactors/comanche-peak-units-3-4",
+  "owner": "civilian:comanche-peak-tx:nrc_url"
+ },
+ {
+  "url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/river-bend.html",
+  "verdict": "OK",
+  "status": 200,
+  "title": "River Bend Station, Unit 3 Application | Nuclear Regulatory Commission",
+  "h1": "River Bend Station, Unit 3 Application",
+  "final_url": "https://www.nrc.gov/facilities-safety/new-reactors/large-light-water-reactors/combined-license-applications-for-new-reactors/river-bend-station-unit-3",
+  "owner": "civilian:river-bend-la:nrc_url"
+ },
+ {
+  "url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/calvert-cliffs.html",
+  "verdict": "OK",
+  "status": 200,
+  "title": "Calvert Cliffs, Unit 3 Application | Nuclear Regulatory Commission",
+  "h1": "Calvert Cliffs, Unit 3 Application",
+  "final_url": "https://www.nrc.gov/facilities-safety/new-reactors/large-light-water-reactors/combined-license-applications-for-new-reactors/calvert-cliffs-unit-3",
+  "owner": "civilian:calvert-cliffs-md:nrc_url"
+ },
+ {
+  "url": "https://www.nrc.gov/reactors/new-reactors/large-lwr/col/bell-bend.html",
+  "verdict": "OK",
+  "status": 200,
+  "title": "Bell Bend Nuclear Power Plant Application | Nuclear Regulatory Commission",
+  "h1": "Bell Bend Nuclear Power Plant Application",
+  "final_url": "https://www.nrc.gov/facilities-safety/new-reactors/large-light-water-reactors/combined-license-applications-for-new-reactors/bell-bend",
+  "owner": "civilian:bell-bend-pa:nrc_url"
+ },
+ {
+  "url": "https://www.nrc.gov/reactors/new-reactors/esp/hope-creek.html",
+  "verdict": "DEAD",
+  "status": 404,
+  "title": "Page not found | Nuclear Regulatory Commission",
+  "h1": "Page not found",
+  "final_url": "https://www.nrc.gov/reactors/new-reactors/esp/hope-creek.html",
+  "owner": "civilian:salem-hope-creek-nj:nrc_url"
+ }
+]

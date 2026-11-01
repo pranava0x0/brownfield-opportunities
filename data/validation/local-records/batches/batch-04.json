@@ -1,0 +1,85 @@
+{
+ "batch": "batch-04",
+ "sites": [
+  {
+   "id": "FUDS-B07MO0173",
+   "name": "TYSON VALLEY POWDER FARM",
+   "program": "fuds",
+   "address": null,
+   "city": "EUREKA",
+   "county": "ST LOUIS",
+   "state": "MO",
+   "zip": null,
+   "lat": 38.522629,
+   "lon": -90.560712,
+   "acreage": 2569.3,
+   "tabs": [
+    "nickel"
+   ],
+   "atlas_owner": "Local government \u2014 County Saint Louis County-Lone Elk Park And West Tyson Park., St. Louis County / Private \u2014 Washington University-Biological Field Station For Research., Washington University",
+   "atlas_owner_source": "USACE FUDS",
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "FUDS-B08CO0014",
+   "name": "CAMP HALE",
+   "program": "fuds",
+   "address": null,
+   "city": "WHITE RIVER NF",
+   "county": "EAGLE",
+   "state": "CO",
+   "zip": null,
+   "lat": 39.453638,
+   "lon": -106.309321,
+   "acreage": 145412.7,
+   "tabs": [
+    "solar"
+   ],
+   "atlas_owner": "Federal / Private \u2014 Residences, Residences / Usfs: National Forest",
+   "atlas_owner_source": "USACE FUDS",
+   "atlas_parcel_id": "220317100001",
+   "state_parcel_layer": true
+  },
+  {
+   "id": "FUDS-B08CO0021",
+   "name": "BUCKLEY FIELD",
+   "program": "fuds",
+   "address": null,
+   "city": "AURORA",
+   "county": "ARAPAHOE",
+   "state": "CO",
+   "zip": null,
+   "lat": 39.651196,
+   "lon": -104.622904,
+   "acreage": 64891.4,
+   "tabs": [
+    "solar"
+   ],
+   "atlas_owner": "Local government \u2014 County City Of Aurora And Arapahoe County , City Of Aurora, Colorado / Private \u2014 Various / State \u2014 Colorado State Land Board",
+   "atlas_owner_source": "USACE FUDS",
+   "atlas_parcel_id": null,
+   "state_parcel_layer": true
+  },
+  {
+   "id": "FUDS-C03PA0042",
+   "name": "FRANKFORD ARSENAL",
+   "program": "fuds",
+   "address": null,
+   "city": "PHILADELPHIA",
+   "county": "PHILADELPHIA",
+   "state": "PA",
+   "zip": null,
+   "lat": 40.008607,
+   "lon": -75.06217,
+   "acreage": 108.6,
+   "tabs": [
+    "port"
+   ],
+   "atlas_owner": "Private \u2014 Hankin Management / Pennsylvania Fish Commission. / State \u2014 Hankin Management / Pennsylvania Fish Commission.",
+   "atlas_owner_source": "USACE FUDS",
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  }
+ ]
+}
