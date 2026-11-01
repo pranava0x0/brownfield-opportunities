@@ -298,11 +298,9 @@ Rules the routine follows:
 
 | # | Status | Site id | Name | St | Why queued | Last researched | Next due |
 |---|---|---|---|---|---|---|---|
-| 34 | retry | CA2170023533 | Camp Pendleton Marine Corps Base | CA | DoD federal-facility NPL site; 2026-10-18 attempt: EPA profile says 125,000 ac (unverifiable vs shipped); Navy 5th five-year review notice (2025-10-28) PDF and Navy pages returned 403, so no development could be cited. Retry with a browser/other fetch path; 2026-10-30: 2026-10-30: Navy/base pages 403, FYR PDFs too large to read; EPA Cumulis says 125,000 ac vs shipped 121,626 (boundary unstated); no development citable | — | — |
-| 35 | retry | NC6170022580 | Camp Lejeune Military Res. (USNAVY) | NC | DoD federal-facility NPL site; 2026-10-18 attempt: EPA profile says 156,000-ac base (unverifiable vs shipped); April 2026 RAB minutes, FY2026 SMP and UXO-28 ROD (2026-09-09) were 403/timeout, so no development could be cited. Retry with a browser/other fetch path; Camp Lejeune Justice Act litigation | — | — |
+| 34 | retry | CA2170023533 | Camp Pendleton Marine Corps Base | CA | DoD federal-facility NPL site; 2026-10-18 attempt: EPA profile says 125,000 ac (unverifiable vs shipped); Navy 5th five-year review notice (2025-10-28) PDF and Navy pages returned 403, so no development could be cited. Retry with a browser/other fetch path; 2026-10-30: 2026-10-30: Navy/base pages 403, FYR PDFs too large to read; EPA Cumulis says 125,000 ac vs shipped 121,626 (boundary unstated); no development citable; 2026-11-01: 2026-11-01: not attempted, Navy sources still 403 on 3 attempts; try a different fetch path or skip | — | — |
+| 35 | retry | NC6170022580 | Camp Lejeune Military Res. (USNAVY) | NC | DoD federal-facility NPL site; 2026-10-18 attempt: EPA profile says 156,000-ac base (unverifiable vs shipped); April 2026 RAB minutes, FY2026 SMP and UXO-28 ROD (2026-09-09) were 403/timeout, so no development could be cited. Retry with a browser/other fetch path; Camp Lejeune Justice Act litigation; 2026-11-01: 2026-11-01: not attempted, Navy sources still 403 on 3 attempts; try a different fetch path or skip | — | — |
 | 51 | queued | GU6571999519 | Andersen Air Force Base | GU | Andersen Air Force Base (GU): federal-facility NPL site; shipped 17,610 acres to check | — | — |
-| 52 | queued | LA0213820533 | Louisiana Army Ammunition Plant | LA | Louisiana Army Ammunition Plant: federal-facility NPL site; shipped 14,967 acres to check | — | — |
-| 53 | queued | IL3210020803 | Savanna Army Depot Activity | IL | Savanna Army Depot Activity: closed depot with reuse; shipped 14,843 acres to check | — | — |
 | 54 | queued | AL3210020027 | Anniston Army Depot (Southeast Industrial Area) | AL | Anniston Army Depot (Southeast Industrial Area): shipped 14,718 acres to check | — | — |
 | 55 | queued | IL0210090049 | Joliet Army Ammunition Plant (Load-Assembly-Packing Area) | IL | Joliet Army Ammunition Plant (LAP Area): Midway reuse area; shipped 14,452 acres to check | — | — |
 | 56 | queued | AK8570028649 | Elmendorf Air Force Base | AK | Elmendorf Air Force Base: shipped 13,318 acres; JBER Air Force lease offer | — | — |
@@ -311,6 +309,9 @@ Rules the routine follows:
 | 59 | queued | WA4890090075 | Hanford 1100-Area (USDOE) | WA | Hanford 1100-Area (DOE): shipped 0.1 acres looks like a point artifact; Hanford tab dossier unit | — | — |
 | 60 | queued | MD9210020567 | Fort George G. Meade | MD | Fort George G. Meade: federal-facility NPL site; shipped 13,569 acres to check | — | — |
 | 61 | queued | NC1170027261 | Cherry Point Marine Corps Air Station | NC | Cherry Point MCAS: federal-facility NPL site; shipped 12,141 acres to check | — | — |
+| 62 | queued | MOD980686281 | Oronogo-Duenweg Mining Belt | MO | Oronogo-Duenweg Mining Belt: shipped 154,081 acres looks like a mining-belt outline, not a site boundary; check against EPA | — | — |
+| 53 | done 2026-11-01 | IL3210020803 | Savanna Army Depot Activity | IL | Savanna Army Depot Activity: closed depot with reuse; shipped 14,843 acres to check | 2026-11-01 | 2027-01-30 |
+| 52 | done 2026-11-01 | LA0213820533 | Louisiana Army Ammunition Plant | LA | Louisiana Army Ammunition Plant: federal-facility NPL site; shipped 14,967 acres to check | 2026-11-01 | 2027-01-30 |
 | 50 | done 2026-10-31 | CO5210020769 | Rocky Mountain Arsenal (USARMY) | CO | Rocky Mountain Arsenal: NPL deletions and wildlife refuge; shipped 16,910 acres | 2026-10-31 | 2027-01-29 |
 | 48 | done 2026-10-31 | IA7213820445 | Iowa Army Ammunition Plant | IA | Army ammunition plant on the NPL; shipped 19,690 acres to check | 2026-10-31 | 2027-01-29 |
 | 4 | done 2026-10-30 | ACRES-157082 | Colstrip City Shop | MT | 0.7 mi from Colstrip; NorthWestern data-center agreements (Sabey/Atlas deals are Butte-area, not Colstrip) | 2026-10-30 | 2027-01-28 |
@@ -387,6 +388,8 @@ Rules the routine follows:
 - 2026-10-29 · SC1890008989, CA8170024261 · 0 developments (SRS lease still unsigned per NNSA; Barstow none found) · 2 field differences (SRS 198,046 vs 234,032 ac; Barstow EPA 5,687 vs 25,106 ac) · 7 checker corrections applied · 0 comments · PR #44 open
 - 2026-10-30 · Colstrip City Shop, Camp Pendleton (retry) · 0 developments in window · 0 field differences (Pendleton 125,000 vs 121,626 ac unlike boundary, unverifiable) · 0 corrections · 0 comments · PR #44 open
 - 2026-10-31 · Iowa AAP, Rocky Mountain Arsenal · 5 developments (IA), 0 (CO) · 2 field differences (IA location vs DNR, CO acreage vs Army 16,111.63) · 5 citation corrections · 0 comments · PR #44 open; Pendleton/Lejeune skipped (403 retries)
+- 2026-11-01 · Louisiana AAP, Savanna Army Depot · 1 development (EPA 7th FYR independent finding 2026-07-15) · 3 field differences (both acreages, Savanna county) · 1 wording softened · 0 comments · PR #44 open
+- 2026-11-01 · Louisiana AAP, Savanna Army Depot · 1 development (EPA 7th FYR independent finding 2026-07-15) · 3 field differences (both acreages, Savanna county) · 1 wording softened · 0 comments · PR #44 open
 
 ## 7. Decisions needed from Pranava
 
