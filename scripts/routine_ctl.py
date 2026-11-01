@@ -58,6 +58,48 @@ def age_days(pr: dict) -> float:
     return (dt.datetime.now(dt.timezone.utc) - created).total_seconds() / 86400
 
 
+DOSSIERS = "docs/data/site-research.json"
+
+
+def _dossiers(rev: str) -> dict[str, dict]:
+    return {d["id"]: d for d in json.loads(git("show", f"{rev}:{DOSSIERS}", cwd=WT))["sites"]}
+
+
+def resolve_merge_conflict(base: str) -> str:
+    """The dossier file is one JSON line, so any two edits to it conflict even
+    when they touch different sites (PR #44, 2026-10-19). Take main's file and
+    re-add the branch's changed dossiers through site_research.py, which merges
+    by site id. Any other conflicting file is a human decision: abort and say so."""
+    unmerged = set(git("diff", "--name-only", "--diff-filter=U", cwd=WT).split())
+    if unmerged != {DOSSIERS}:
+        git("merge", "--abort", check=False, cwd=WT)
+        return f"MERGE CONFLICT in {sorted(unmerged)}: aborted; the PR stays conflicting, report it"
+    ours, theirs_base = _dossiers("HEAD"), _dossiers(base)
+    changed = [d for i, d in ours.items() if d != theirs_base.get(i)]
+    main_now = _dossiers("MERGE_HEAD")
+    both = sorted(d["id"] for d in changed if main_now.get(d["id"]) != theirs_base.get(d["id"]))
+    if both:
+        # site_research.merge() lets the incoming copy win on equal dates, which would
+        # silently revert a same-day correction on main (PR #44 review).
+        git("merge", "--abort", check=False, cwd=WT)
+        return f"MERGE CONFLICT: main and the branch both changed {both}: aborted; resolve those dossiers deliberately"
+    git("checkout", "--theirs", DOSSIERS, cwd=WT)
+    tmp = WT / ".routine-merge"
+    tmp.mkdir(exist_ok=True)
+    files = []
+    for d in changed:
+        f = tmp / f"{d['id']}.json"
+        f.write_text(json.dumps(d))
+        files.append(str(f))
+    if files:
+        run(PY, "scripts/site_research.py", "add", *files, cwd=WT)
+    for f in files:
+        Path(f).unlink()
+    git("add", DOSSIERS, cwd=WT)
+    git("commit", "-m", "Merge origin/main into routine/site-research (union of dossiers)", cwd=WT)
+    return f"merged origin/main; re-added {len(changed)} dossiers over main's file"
+
+
 def sync() -> dict:
     git("fetch", "origin", "--prune", cwd=MAIN)
     if not WT.exists():
@@ -72,9 +114,9 @@ def sync() -> dict:
     pr = open_pr()
     git("checkout", BRANCH)
     if pr:
+        base = git("merge-base", "HEAD", "origin/main")
         if subprocess.run([GIT, "-C", str(WT), "merge", "--no-edit", "origin/main"], capture_output=True).returncode:
-            git("merge", "--abort", check=False)
-            action = "merge conflict with origin/main: aborted, continuing on the current base"
+            action = resolve_merge_conflict(base)
         else:
             action = "merged origin/main into the PR branch"
     elif subprocess.run([GIT, "-C", str(WT), "merge", "--ff-only", "origin/main"], capture_output=True).returncode == 0:
