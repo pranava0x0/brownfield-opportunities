@@ -84,3 +84,12 @@ def test_news_researcher_notes_are_shown_with_the_land_record_notes(page: Page, 
     block = page.locator("#d-local-block")
     block.locator("> summary").click()
     assert news["gaps"][0] in block.locator(".local-gaps").text_content()   # the notes sit in a closed <details>
+
+
+def test_a_failed_news_file_does_not_hide_land_records_that_downloaded(page: Page, base_url: str):
+    rich, _ = _sample()
+    page.route("**/data/local-news.json", lambda route: route.fulfill(status=500, body="nope"))
+    _ready(page, base_url)
+    page.evaluate("(id) => window.__selectSite(id)", rich["id"])
+    page.wait_for_function("document.getElementById('d-local-block') && !document.getElementById('d-local-block').hidden", timeout=30_000)
+    assert page.locator("#d-local-block").locator(".local-facts").first.locator("li").count() == len(rich["facts"])

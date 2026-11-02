@@ -1411,8 +1411,16 @@ function loadLocalFile(url, into) {
 }
 function ensureLocalRecordsLoaded() {
   if (localRecordsPromise) return localRecordsPromise;
-  localRecordsPromise = Promise.all([loadLocalFile(LOCAL_RECORDS_URL, localRecordsById), loadLocalFile(LOCAL_NEWS_URL, localNewsById)])
-    .catch((err) => { console.error("Local records load failed:", err); localRecordsPromise = null; });
+  // Wait for both files to settle: one failing must not resolve the load while the other is still
+  // downloading (the detail panel's final re-render would run before its records exist).
+  localRecordsPromise = Promise.allSettled([loadLocalFile(LOCAL_RECORDS_URL, localRecordsById), loadLocalFile(LOCAL_NEWS_URL, localNewsById)])
+    .then((results) => {
+      const failed = results.filter((r) => r.status === "rejected");
+      if (failed.length) {
+        for (const r of failed) console.error("Local records load failed:", r.reason);
+        localRecordsPromise = null;   // a later site selection retries
+      }
+    });
   return localRecordsPromise;
 }
 // How much checking stands behind a shipped fact. The status alone is not enough: an Opus-resolved dispute
