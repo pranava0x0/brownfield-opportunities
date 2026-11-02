@@ -65,3 +65,13 @@ def test_screen_still_ranks_when_a_required_join_has_nothing_to_apply(page: Page
     page.locator('[data-cand-lens="port"]').click()
     expect(page.locator("#candidates-stats")).not_to_contain_text("Loading", timeout=30_000)
     assert page.locator("#candidates-skeleton").is_hidden()
+
+
+def test_reselecting_the_current_lens_leaves_nothing_marked_busy(page: Page, base_url: str):
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=60_000)
+    expect(page.locator("#candidates-table tbody tr").first).to_be_visible(timeout=30_000)
+    page.locator('[data-cand-lens="dc"]').click()          # already the active lens
+    assert page.locator("#candidates-wrap").get_attribute("aria-busy") == "false"
+    page.evaluate("""() => { document.querySelector('[data-cand-lens="solar"]').click(); document.querySelector('[data-cand-lens="dc"]').click(); }""")
+    page.wait_for_function("document.getElementById('candidates-wrap').getAttribute('aria-busy') === 'false'", timeout=10_000)

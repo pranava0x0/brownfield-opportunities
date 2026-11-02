@@ -7203,11 +7203,14 @@ function wireCandidatesFilters() {
       syncUrl();
       loadScreenData();
       if (el("view-candidates").classList.contains("active")) {
-        el("candidates-wrap")?.setAttribute("aria-busy", "true");
         const lens = candidatesState.lens;
+        const settleBusy = () => el("candidates-wrap")?.setAttribute("aria-busy", screenDataState(candidatesState.lens).pending.length ? "true" : "false");
+        if (candidatesBuiltLens === lens) { settleBusy(); return; }   // this lens is already on screen: nothing to rank
+        el("candidates-wrap")?.setAttribute("aria-busy", "true");
         requestAnimationFrame(() => setTimeout(() => {
           // Skip when this lens was already built (a loader refresh can get there first) or the user moved on.
           if (candidatesState.lens === lens && candidatesBuiltLens !== lens) buildCandidatesView();
+          else settleBusy();
         }, 0));
       }
     });
