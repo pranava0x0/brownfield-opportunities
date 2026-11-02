@@ -106,6 +106,8 @@ for fname, key, field in [
     ("ports.json", "sites", "source_url"),
     ("shipyards.json", "sites", "source_url"),
     ("nickel-anchors.json", "sites", "source_url"),
+    ("manufacturing-facilities.json", "sites", "source_url"),
+    ("manufacturing-facilities.json", "requirements", "source_url"),
 ] + [(f, "parcels", "source_url") for f in DOE_SITE_FILES]:
     payload = json.loads((Path("docs/data") / fname).read_text())
     for rec in payload.get(key, []):

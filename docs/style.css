@@ -4081,3 +4081,33 @@ details.nickel-caveat li { margin-bottom: 6px; }
   .cand-filter, .tab { min-height: 44px; }
   .cand-filter { padding: 8px 14px; font-size: 13px; }
 }
+
+/* ----- Manufacturing plants (▲) ------------------------------------------
+   Rules target the icon class itself (marker lesson in CLAUDE.md). One hue
+   per sector, each with a dark-theme pair. */
+:root {
+  --mfg-robotics: #0e6f8a; --mfg-turbine: #8a3b0e; --mfg-transformer: #5a3d9a; --mfg-minerals: #4d6b12;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --mfg-robotics: #5cc8e6; --mfg-turbine: #f0a070; --mfg-transformer: #b8a0f0; --mfg-minerals: #b5d86a;
+  }
+}
+:root[data-theme="dark"] {
+  --mfg-robotics: #5cc8e6; --mfg-turbine: #f0a070; --mfg-transformer: #b8a0f0; --mfg-minerals: #b5d86a;
+}
+.mfg-icon {
+  font-size: 13px;
+  line-height: 14px;
+  text-align: center;
+  text-shadow: 0 0 2px var(--surface), 0 0 3px var(--surface);
+}
+.mfg-robotics { color: var(--mfg-robotics); }
+.mfg-turbine { color: var(--mfg-turbine); }
+.mfg-transformer { color: var(--mfg-transformer); }
+.mfg-minerals { color: var(--mfg-minerals); }
+.mfg-evidence { margin-top: 10px; }
+.mfg-evidence summary { cursor: pointer; font-weight: 600; min-height: 28px; }
+.mfg-evidence h4 { margin: 10px 0 4px; font-size: 13px; }
+.mfg-evidence ul { margin: 0; padding-left: 18px; }
+.mfg-evidence li { margin: 3px 0; line-height: 1.4; overflow-wrap: anywhere; }

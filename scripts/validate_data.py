@@ -100,6 +100,7 @@ OVERLAY_FILES = [
     "shipyards.json",
     "streamgages.json",
     "nickel-anchors.json",
+    "manufacturing-facilities.json",
     "site-research.json",
     "local-records.json",
     "local-news.json",
@@ -1752,6 +1753,7 @@ OVERLAY_SCHEMA_FILES = {
     "shipyards.json": ("Shipyard", "sites"),
     "streamgages.json": ("Streamgage", "sites"),
     "nickel-anchors.json": ("NickelAnchor", "sites"),
+    "manufacturing-facilities.json": ("ManufacturingFacility", "sites"),
 }
 
 # Curated overlays whose every row must carry the provenance pair
@@ -1769,6 +1771,7 @@ CURATED_PROVENANCE_FILES = {
     "shipyards.json": ("sites", "source_url", "verified_at"),
     "streamgages.json": ("sites", "source_url", "verified_at"),
     "nickel-anchors.json": ("sites", "source_url", "verified_at"),
+    "manufacturing-facilities.json": ("sites", "source_url", "verified_at"),
 }
 
 
