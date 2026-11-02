@@ -1,0 +1,14 @@
+{"batch": "batch-03", "sites": [
+ {"id": "FUDS-I04FL0884", "verifier": "Claude Sonnet 5.5", "fact_verdicts": [], "portal_verdicts": []},
+ {"id": "FUDS-J09CA7074", "verifier": "Claude Sonnet 5.5", "fact_verdicts": [], "portal_verdicts": []},
+ {"id": "ILN000510192", "verifier": "Claude Sonnet 5.5",
+  "fact_verdicts": [
+   {"index": 0, "source_url": "https://www.epa.gov/newsreleases/work-start-september-peoples-gas-crawford-station-chicago", "verdict": "supported", "note": "Dated Aug 11, 2021: Peoples Gas to clean up G and V parcels, former MGP at 4358 W. 35th Place; 'removing the top 4-8 feet of soil and disposing it offsite'; rest treated in place. No reuse claim."}
+  ], "portal_verdicts": []},
+ {"id": "MID062222997", "verifier": "Claude Sonnet 5.5",
+  "fact_verdicts": [
+   {"index": 0, "source_url": "https://www.grandrapidsmi.gov/departments/sustainability/city-initiatives/municipal-energy/butterworth-solar-array/", "verdict": "supported", "note": "Page: 'pursuing a nearly 2MW solar array that maximizes behind-the-meter delivery'; timeline: July 2026 est. start of construction, 2027 expected in service."},
+   {"index": 1, "source_url": "https://www.grandrapidsmi.gov/departments/sustainability/city-initiatives/municipal-energy/butterworth-solar-array/", "verdict": "supported", "note": "Timeline '2026: Enerlogics selected to complete solar installation'; 2015 developer secured, 2016 'became insolvent', unnamed. No page date shown (a 2026 timeline entry exists)."},
+   {"index": 2, "source_url": "https://www.michiganpublic.org/environment-climate-change/2024-10-09/a-former-superfund-landfill-site-in-grand-rapids-is-closer-to-providing-solar-power", "verdict": "supported", "note": "Oct 9, 2024: 'The state is providing three million dollars to Grand Rapids'; cap prevents building into site; no developer/date. Butterworth named only in share summary, not body."}
+  ], "portal_verdicts": []}
+]}

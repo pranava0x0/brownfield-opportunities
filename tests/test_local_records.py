@@ -128,3 +128,22 @@ def test_obsolete_opus_decisions_are_skipped_not_fatal(tmp_path, monkeypatch):
                        {"id": "GONE", "decisions": [{"index": 3, "fingerprint": "x", "decision": "accept"}]}]}
     (tmp_path / "opus" / "d.json").write_text(json.dumps(stale))
     assert lr.cmd_apply_opus(None) == 0
+
+
+def test_news_kinds_are_valid_fact_kinds():
+    from schema import LocalFact
+    for kind in ("news", "development_project", "community_benefit", "developer", "incentive"):
+        LocalFact.model_validate({"kind": kind, "summary": "A proposed solar project was announced.", "source_url": "https://example.gov/a",
+                                  "quote": "proposed solar project"})
+
+
+def test_news_run_uses_its_own_work_dir_and_output_file():
+    saved = (lr.WORK, lr.LEDGER, lr.OUTPUT, lr.SOURCE_LABEL)
+    try:
+        lr.use_work("news")
+        assert lr.WORK.name == "local-news" and lr.LEDGER.parent == lr.WORK
+        assert lr.OUTPUT.name == "local-news.json" and "news" in lr.SOURCE_LABEL.lower()
+        with pytest.raises(SystemExit):
+            lr.use_work("bogus")
+    finally:
+        lr.WORK, lr.LEDGER, lr.OUTPUT, lr.SOURCE_LABEL = saved

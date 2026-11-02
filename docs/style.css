@@ -4063,3 +4063,25 @@ details.nickel-caveat li { margin-bottom: 6px; }
 .local-portals, .local-facts { padding-left: 18px; margin: 4px 0 10px; }
 .local-portals li, .local-facts li { margin-bottom: 6px; }
 .local-gaps { margin: 8px 0; font-size: 13px; }
+
+
+/* Placeholder cards while the Screens inputs download: the layout is there from the first frame, so
+   rows arriving do not shove anything down, and a slow load reads as loading rather than broken. */
+.skeleton-list { display: grid; gap: 8px; padding: 8px 0; }
+.skeleton-list[hidden] { display: none; }
+.skeleton-card { display: grid; gap: 10px; padding: 18px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
+.skeleton-card i { display: block; height: 12px; border-radius: 6px; background: linear-gradient(90deg, var(--border) 25%, var(--surface-2, var(--border)) 50%, var(--border) 75%); background-size: 200% 100%; animation: skeleton-shimmer 1.4s linear infinite; }
+.skeleton-card i:nth-child(1) { width: 55%; height: 16px; }
+.skeleton-card i:nth-child(2) { width: 85%; }
+.skeleton-card i:nth-child(3) { width: 40%; }
+@keyframes skeleton-shimmer { to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { .skeleton-card i { animation: none; } }
+/* Fingers need 44 px targets; mouse users keep the compact pills. */
+@media (pointer: coarse) {
+  .cand-filter, .tab { min-height: 44px; }
+  .cand-filter { padding: 8px 14px; font-size: 13px; }
+}
+/* Rows scrolled far off screen skip layout and paint until they are near the viewport. */
+@media (max-width: 900px) {
+  #candidates-table tbody tr { content-visibility: auto; contain-intrinsic-size: auto 190px; }
+}
