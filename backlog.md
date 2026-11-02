@@ -310,6 +310,8 @@ Rules the routine follows:
 | 60 | queued | MD9210020567 | Fort George G. Meade | MD | Fort George G. Meade: federal-facility NPL site; shipped 13,569 acres to check | — | — |
 | 61 | queued | NC1170027261 | Cherry Point Marine Corps Air Station | NC | Cherry Point MCAS: federal-facility NPL site; shipped 12,141 acres to check | — | — |
 | 62 | queued | MOD980686281 | Oronogo-Duenweg Mining Belt | MO | Oronogo-Duenweg Mining Belt: shipped 154,081 acres looks like a mining-belt outline, not a site boundary; check against EPA | — | — |
+| 10 | done 2026-11-02 | AK6210022426 | Fort Wainwright | AK | Army Janus microreactor finalist (no vendor yet); shipped 919,896 acres | 2026-11-02 | 2026-12-02 |
+| 9 | done 2026-11-02 | MID980994354 | Tittabawassee River, Saginaw River & Bay | MI | Shipped 726,763 acres looks like a boundary artifact | 2026-11-02 | 2027-01-31 |
 | 53 | done 2026-11-01 | IL3210020803 | Savanna Army Depot Activity | IL | Savanna Army Depot Activity: closed depot with reuse; shipped 14,843 acres to check | 2026-11-01 | 2027-01-30 |
 | 52 | done 2026-11-01 | LA0213820533 | Louisiana Army Ammunition Plant | LA | Louisiana Army Ammunition Plant: federal-facility NPL site; shipped 14,967 acres to check | 2026-11-01 | 2027-01-30 |
 | 50 | done 2026-10-31 | CO5210020769 | Rocky Mountain Arsenal (USARMY) | CO | Rocky Mountain Arsenal: NPL deletions and wildlife refuge; shipped 16,910 acres | 2026-10-31 | 2027-01-29 |
@@ -351,8 +353,6 @@ Rules the routine follows:
 | 8 | done 2026-10-09 | ACRES-111146 | G & R Auto Sales | NC | 0.2 mi from Meta's Forest City campus | 2026-10-09 | 2027-01-07 |
 | 19 | done 2026-10-08 | NDD980716963 | Arsenic Trioxide Site | ND | Shipped 597,025 acres looks like a boundary artifact | 2026-10-08 | 2027-01-06 |
 | 11 | done 2026-10-04 | ACRES-137763 | Universal Transmission | PA | 1.4 mi from NorthPoint Keystone Trade Center campus | 2026-10-04 | 2027-01-02 |
-| 9 | done 2026-10-03 | MID980994354 | Tittabawassee River, Saginaw River & Bay | MI | Shipped 726,763 acres looks like a boundary artifact | 2026-10-03 | 2026-11-02 |
-| 10 | done 2026-10-03 | AK6210022426 | Fort Wainwright | AK | Army Janus microreactor finalist (no vendor yet); shipped 919,896 acres | 2026-10-03 | 2026-11-02 |
 | 7 | done 2026-10-02 | ACRES-118982 | Watercrest/Cheswick Business Park | PA | 0.7 mi from Cheswick Generating Station | 2026-10-02 | 2026-12-31 |
 | 5 | done 2026-10-01 | WI0001954841 | Fox River NRDA/PCB Releases | WI | Shipped 1,129,744 acres looks like a boundary artifact | 2026-10-01 | 2026-12-30 |
 | 6 | done 2026-10-01 | WA3890090076 | Hanford 100-Area (USDOE) | WA | Hanford reuse projects (Cereza solar sale, Cascade Xe-100) | 2026-10-01 | 2026-12-30 |
@@ -390,6 +390,7 @@ Rules the routine follows:
 - 2026-10-31 · Iowa AAP, Rocky Mountain Arsenal · 5 developments (IA), 0 (CO) · 2 field differences (IA location vs DNR, CO acreage vs Army 16,111.63) · 5 citation corrections · 0 comments · PR #44 open; Pendleton/Lejeune skipped (403 retries)
 - 2026-11-01 · Louisiana AAP, Savanna Army Depot · 1 development (EPA 7th FYR independent finding 2026-07-15) · 3 field differences (both acreages, Savanna county) · 1 wording softened · 0 comments · PR #44 open
 - 2026-11-01 · Louisiana AAP, Savanna Army Depot · 1 development (EPA 7th FYR independent finding 2026-07-15) · 3 field differences (both acreages, Savanna county) · 1 wording softened · 0 comments · PR #44 open
+- 2026-11-02 · AK6210022426, MID980994354 · 0 developments (both no_new_developments) · 2 field differences (Wainwright acreage ~900,000 vs 919,896; Tittabawassee NPL status unverifiable) · 1 correction (NPL finding differs to unverifiable) · 0 comments · no PR yet
 
 ## 7. Decisions needed from Pranava
 
