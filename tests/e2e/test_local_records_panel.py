@@ -28,7 +28,7 @@ def test_block_renders_portals_facts_and_gaps_for_a_researched_site(page: Page, 
     expect(block).to_be_visible()
     block.locator("> summary").click()
     assert block.locator(".local-portals li").count() == len(rich["portals"])
-    assert block.locator(".local-facts li").count() == len(rich["facts"])
+    assert block.locator(".local-facts").first.locator("li").count() == len(rich["facts"])
     assert block.locator("a[href^='https://']").count() >= len(rich["portals"])
     assert "not absence of a record" in block.inner_text()
 
@@ -48,3 +48,48 @@ def test_every_shipped_fact_is_https_and_has_a_quote_and_a_second_reader(page: P
             assert f["source_url"].startswith("https://") and len(f["quote"]) >= 8
             assert f["status"] in ("accepted", "accepted_code_only", "accepted_model_only"), (site["id"], f)
             assert f.get("verifier") or f.get("adjudicated_by") == "opus", ("no second reader", site["id"], f["source_url"])
+
+
+NEWS = Path(__file__).resolve().parents[2] / "docs" / "data" / "local-news.json"
+
+
+def test_news_block_lists_local_news_with_sources_for_a_site_that_has_it(page: Page, base_url: str):
+    news = next(s for s in json.loads(NEWS.read_text())["sites"] if s["facts"])
+    _ready(page, base_url)
+    page.evaluate("(id) => window.__selectSite(id)", news["id"])
+    page.wait_for_function("document.getElementById('d-local-block') && !document.getElementById('d-local-block').hidden", timeout=30_000)
+    block = page.locator("#d-local-block")
+    block.locator("> summary").click()
+    expect(block.locator("h4", has_text="Local news, developers and community benefits")).to_be_visible()
+    items = block.locator(".local-facts").last.locator("li")
+    assert items.count() == len(news["facts"])
+    assert block.locator(".local-facts").last.locator("a[href^='https://']").count() >= len(news["facts"])
+
+
+def test_every_shipped_news_fact_has_a_quote_a_second_reader_and_a_news_kind():
+    from_schema = {"news", "development_project", "community_benefit", "developer", "incentive", "brownfield_grant",
+                   "redevelopment_plan", "litigation", "zoning"}
+    for site in json.loads(NEWS.read_text())["sites"]:
+        for f in site["facts"]:
+            assert f["kind"] in from_schema, (site["id"], f["kind"])
+            assert f["source_url"].startswith("https://") and len(f["quote"]) >= 8
+            assert f.get("verifier") or f.get("adjudicated_by") == "opus", ("no second reader", site["id"], f["source_url"])
+
+
+def test_news_researcher_notes_are_shown_with_the_land_record_notes(page: Page, base_url: str):
+    news = next(s for s in json.loads(NEWS.read_text())["sites"] if s.get("gaps"))
+    _ready(page, base_url)
+    page.evaluate("(id) => window.__selectSite(id)", news["id"])
+    page.wait_for_function("document.getElementById('d-local-block') && !document.getElementById('d-local-block').hidden", timeout=30_000)
+    block = page.locator("#d-local-block")
+    block.locator("> summary").click()
+    assert news["gaps"][0] in block.locator(".local-gaps").text_content()   # the notes sit in a closed <details>
+
+
+def test_a_failed_news_file_does_not_hide_land_records_that_downloaded(page: Page, base_url: str):
+    rich, _ = _sample()
+    page.route("**/data/local-news.json", lambda route: route.fulfill(status=500, body="nope"))
+    _ready(page, base_url)
+    page.evaluate("(id) => window.__selectSite(id)", rich["id"])
+    page.wait_for_function("document.getElementById('d-local-block') && !document.getElementById('d-local-block').hidden", timeout=30_000)
+    assert page.locator("#d-local-block").locator(".local-facts").first.locator("li").count() == len(rich["facts"])

@@ -1,0 +1,58 @@
+{"batch": "batch-02", "researcher": "Claude Haiku 5.5", "sites": [
+  {"id": "FUDS-B08CO0014", "name": "CAMP HALE", "researcher": "Claude Haiku 5.5", "portals": [],
+   "facts": [
+     {"kind": "redevelopment_plan", "date": "2015-03-20",
+      "summary": "A 2015 Vail Daily report on a proposed Forest Service-led restoration of Camp Hale wetlands and floodplain, backed by the National Forest Foundation. The project manager said wetlands fell from about 450 acres to 150 acres after the camp was built, and the project could restore up to 350 acres. This is an ecological restoration proposal, not a development project. The article does not say it was funded or built.",
+      "authority": "Vail Daily",
+      "reference": "Project proposed to restore Camp Hale (Melanie Wong, 2015-03-20)",
+      "source_url": "https://www.vaildaily.com/news/project-proposed-to-restore-camp-hale/",
+      "quote": "A proposed project would help restore Camp Hale to look a bit more like it did before it had military uses."}
+   ],
+   "gaps": [
+     "Searched for a solar project at Camp Hale and found none. The solar results were unrelated (a Clark County, Nevada project and an Eagle County maintenance-building array in Gypsum).",
+     "The Federal Register notice withdrawing the Camp Hale Restoration and Enhancement Project EIS notice of intent (91 FR 31404, 2026-05-27) appeared in search results, but federalregister.gov redirected to an access page and the Justia mirror returned 403. Not cited. A secondary summary says the withdrawal was to re-evaluate resource needs; verify on the Federal Register itself.",
+     "No 2026 local news on the withdrawal or a replacement timeline was found."]},
+  {"id": "FUDS-B08CO0021", "name": "BUCKLEY FIELD", "researcher": "Claude Haiku 5.5", "portals": [],
+   "facts": [],
+   "gaps": [
+     "Searched Buckley Field and Buckley Space Force Base solar. Results on the on-base solar arrays (2009 to 2020 reports) were not cited: the FUDS record's 64,891-acre footprint is not confirmed to be the active base, and the sources disagree on output share.",
+     "Lead, not cited: Arapahoe County File 24-515 proposes a 5.0 MW solar facility on a 106.5-acre parcel north of E. Hampden Avenue and west of E-470 (applicant USS High Plains Solar LLC; owner Lowry Environmental Protection Cleanup Trust Fund), on former Lowry Bombing and Gunnery Range land. I did not open the Legistar page, could not confirm that the parcel falls within the Buckley Field FUDS record, and found no status after filing.",
+     "No other news on the Buckley Field property was found."]},
+  {"id": "FUDS-C03PA0042", "name": "FRANKFORD ARSENAL", "researcher": "Claude Haiku 5.5", "portals": [],
+   "facts": [
+     {"kind": "litigation", "date": "2025-12",
+      "summary": "Police officers filed a lawsuit in the Philadelphia Court of Common Pleas over illnesses they attribute to the site. It names the Philadelphia Authority for Industrial Development Cooperation, developer Mark Hankin, and Hankin's businesses. These are the plaintiffs' allegations, not findings. The article gives only 'Monday' as the filing day, so the month is taken from the 2025-12-09 publication date.",
+      "authority": "Philadelphia Inquirer (reposted by McMonagle Perri)",
+      "reference": "The Frankford Arsenal once housed Philly's narcotics unit (2025-12-09)",
+      "source_url": "https://www.mpmpc.com/case-news/the-frankford-arsenal-once-housed-phillys-narcotics-unit-the-site-gave-officers-brain-cancer-lawsuits-say",
+      "quote": "The lawsuit, filed Monday in the Philadelphia Court of Common Pleas,"},
+     {"kind": "development_project", "date": "2018-08-06",
+      "summary": "Alliance Partners HSP reported in 2018 that it had bought six of the buildings and was restoring them as creative flex space for commercial and light-industrial tenants. The article gives square footage but no price. Current status is not confirmed.",
+      "authority": "Philadelphia Magazine",
+      "reference": "The Frankford Arsenal Takes the First Steps in Its Third Life (Sandy Smith, 2018-08-06)",
+      "source_url": "https://www.phillymag.com/property/2018/08/06/frankford-arsenal-renovation/",
+      "quote": "Alliance Partners HSP, which has acquired six of the buildings at the Arsenal site"},
+     {"kind": "development_project", "date": "2010-07-28",
+      "summary": "A 2010 report that Hankin Management Co. planned a 500,000-square-foot retail center with a $50 million development price tag. The headline says demolition was clearing the way. The article names no tenant. This is a reported plan, and no later status was found.",
+      "authority": "Commercial Property Executive",
+      "reference": "Demolition Paves Way for 500,000-SF Shopping Center at Former Arsenal in Philly (2010-07-28)",
+      "source_url": "https://www.commercialsearch.com/news/demolition-paves-way-for-500000-sf-shopping-center-at-former-arsenal-in-philly/",
+      "quote": "Hankin Management Co. is behind the 500,000-square-foot retail project"},
+     {"kind": "news", "date": "2014-04-25",
+      "summary": "In 2014, Councilman Bobby Henon, the Commerce Department and the Philadelphia Industrial Development Corporation were in talks with an unnamed potential industrial tenant for the former Frankford Arsenal waterfront site. PIDC described it as a manufacturing project. The tenant was not named, and no outcome was found.",
+      "authority": "WHYY",
+      "reference": "City courting industrial tenant for Frankford Arsenal site in Bridesburg (2014-04-25)",
+      "source_url": "https://whyy.org/articles/city-courting-industrial-tenant-for-frankford-arsenal-site-in-bridesburg/",
+      "quote": "The proposal is for a manufacturing project, said John Grady, executive director of PIDC."}
+   ],
+   "gaps": [
+     "Found 2021 coverage of Weizer Management buying Buildings 38 and 39 for shared kitchens (Northeast Times and Star News). Both pages returned 403 and the search snippets are not quotes, so nothing is cited. Verify on those pages.",
+     "A 2025 PHILADELPHIA.Today coworking-kitchen article was in search results but was not opened. Not cited.",
+     "No 2025 or 2026 coverage of Hankin's current plans for the campus was found. The 2010 retail plan and the 2014 tenant talks are the latest development plans found. Not confirmed as current."]},
+  {"id": "FUDS-G05OH0156", "name": "RIDGEWOOD ARMY WEAPONS PLANT", "researcher": "Claude Haiku 5.5", "portals": [],
+   "facts": [],
+   "gaps": [
+     "Searched Ridgewood Army Weapons Plant with Cincinnati and found no coverage of this site.",
+     "Lead, not cited: WCPO reported the Army backing out of a deal for an Army Reserve property at 1620 Seymour Ave. in Roselawn (about 14 acres, GCRA funds of roughly $4.75 million reallocated to nearby neighborhoods). The article does not mention Ridgewood or a former name, so it is not evidence for this FUDS record. Its date is not shown on the page. Verify whether 1620 Seymour Ave. is the same property.",
+     "Other Seymour Avenue results (Cincinnati Gardens, the Port's Seymour Plaza and 1682 Seymour sites) are different properties and were not cited."]}
+]}

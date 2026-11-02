@@ -1,0 +1,85 @@
+{
+ "batch": "batch-01",
+ "sites": [
+  {
+   "id": "ACRES-232701",
+   "name": "Spence Field",
+   "program": "brownfield",
+   "address": "500 McKee St and 601 N. Centerville St",
+   "city": "Sturgis",
+   "county": "SAINT JOSEPH",
+   "state": "MI",
+   "zip": "49091",
+   "lat": 41.805759,
+   "lon": -85.428399,
+   "acreage": null,
+   "tabs": [
+    "retired"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "ACRES-53022",
+   "name": "Riverview Apartments",
+   "program": "brownfield",
+   "address": "1013 Douglas St",
+   "city": "Kingsport",
+   "county": "Sullivan",
+   "state": "TN",
+   "zip": "37662",
+   "lat": 36.53847,
+   "lon": -82.55279,
+   "acreage": null,
+   "tabs": [
+    "retired"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "ALN000410750",
+   "name": "35TH AVENUE",
+   "program": "superfund",
+   "address": "3500 35TH N.",
+   "city": "BIRMINGHAM",
+   "county": "JEFFERSON",
+   "state": "AL",
+   "zip": "35207",
+   "lat": 33.560637,
+   "lon": -86.801738,
+   "acreage": 601.0,
+   "tabs": [
+    "dc"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "FL6170024412",
+   "name": "JACKSONVILLE NAVAL AIR STATION",
+   "program": "superfund",
+   "address": "NAS BLDG 826",
+   "city": "JACKSONVILLE",
+   "county": "DUVAL",
+   "state": "FL",
+   "zip": "32212",
+   "lat": 30.219602,
+   "lon": -81.685421,
+   "acreage": 3803.5,
+   "tabs": [
+    "nickel"
+   ],
+   "atlas_owner": "U S A AIR BASE",
+   "atlas_owner_source": "Florida FDOR/FGIO Statewide Cadastral",
+   "atlas_parcel_id": "0984050000R",
+   "state_parcel_layer": true
+  }
+ ]
+}

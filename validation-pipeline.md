@@ -28,6 +28,15 @@ scripts/validate_tabs.sh uat             # click depth and performance
 
 Agent concurrency is capped by `.claude/agent-cap` (default 2). Raise it only deliberately; the Haiku and Sonnet runs are the cost.
 
+## Local news, developers and community benefits
+
+Same pipeline, second work directory: every `local_records.py` command takes `--work news`
+(`data/validation/local-news/`, published to `docs/data/local-news.json`). Researcher prompt:
+`researcher-news.md` (fact kinds `development_project`, `developer`, `community_benefit`, `incentive`, `news`).
+The verifier prompt is the same with the research and verdict paths changed. Queue the ranked sites only:
+`local_records.py --work news queue --per-screen 3 --ranked-only`. The detail panel shows the shipped
+facts under "Local news, developers and community benefits".
+
 ## Adjudication table
 
 | Code finds the quote | Sonnet says | Result |
@@ -52,3 +61,20 @@ Reports are in `data/validation/`: `audit-offline.json`, `audit-network.json`, `
 - **Parcels.** 41 of 53 researched sites are in states with no statewide parcel layer. For 8 of 14 FUDS sites in covered states the atlas shows a USACE ownership category while the layer names the owner.
 - **Local records.** 53 sites researched; 68 portals and 90 facts shipped; 35 facts held back. County recorder and assessor systems were mostly unreadable, so few transfers surfaced (9 transfer facts, 1 deed).
 - **Click depth and load.** All 14 leaf tasks need 3 clicks or fewer on phone, tablet and desktop. First-load "ready" is 1.7 s desktop, 11.2 s tablet and 26.4 s phone under throttling, against budgets of 4, 9 and 12 s.
+
+## Load performance (2026-11-02, throttled phone profile)
+
+| Measure | Before | After |
+| --- | --- | --- |
+| First contentful paint | 0.86 s | 0.80 s |
+| Largest contentful paint | 2.5 s | 2.5 s |
+| Main-thread long tasks | 6.8 s | 3.4 s |
+| App ready | 27.0 s | 23.8 s |
+| Desktop app ready | 1.7 s | 1.2 s |
+
+Ready is bandwidth-bound on the phone profile: 3.9 MB gzipped at 1.6 Mbps is a 19.5 s floor. What moved was CPU. The
+ranking re-ran after every download (10 times); it now runs once, after the last required input lands, and the sort
+computes tie values once per site. Preloading the data files from `<head>` was tried and reverted: on the throttled
+HTTP/1.1 dev server it starved `app.js` (LCP 2.5 s to 7.4 s) and moved the ready time by less than the CPU fix.
+The remaining lever is bytes: a slim program file (id, program, name, state, county, city, lat, lon) is 0.99 MB gzipped
+against 1.56 MB for `epa-acres.json`, and 0.26 MB against 0.55 MB for `dod-fuds.json`. See backlog.

@@ -1,0 +1,65 @@
+{
+ "batch": "batch-04",
+ "sites": [
+  {
+   "id": "MT0012694970",
+   "name": "FLAT CREEK IMM",
+   "program": "superfund",
+   "address": "FLAT CREEK ROAD AND HALL GULCH ROAD",
+   "city": "SUPERIOR",
+   "county": "MINERAL",
+   "state": "MT",
+   "zip": "59872",
+   "lat": 47.229796,
+   "lon": -114.841428,
+   "acreage": 10886.4,
+   "tabs": [
+    "dc"
+   ],
+   "atlas_owner": "USA",
+   "atlas_owner_source": "Montana Cadastral (MT Dept. of Revenue)",
+   "atlas_parcel_id": null,
+   "state_parcel_layer": true
+  },
+  {
+   "id": "NJD980528996",
+   "name": "DIAMOND ALKALI CO.",
+   "program": "superfund",
+   "address": "80 LISTER AVE",
+   "city": "NEWARK",
+   "county": "ESSEX",
+   "state": "NJ",
+   "zip": "07105",
+   "lat": 40.759595,
+   "lon": -74.14964,
+   "acreage": 5158.2,
+   "tabs": [
+    "nickel"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": "NJOGIS (Parcels & MOD-IV Composite of NJ)",
+   "atlas_parcel_id": "0907_235_31",
+   "state_parcel_layer": true
+  },
+  {
+   "id": "VA1170024722",
+   "name": "MARINE CORPS COMBAT DEVELOPMENT COMMAND",
+   "program": "superfund",
+   "address": "5TH STREET",
+   "city": "QUANTICO",
+   "county": "PRINCE WILLIAM",
+   "state": "VA",
+   "zip": "22134",
+   "lat": 38.56106,
+   "lon": -77.4255,
+   "acreage": 58880.5,
+   "tabs": [
+    "solar"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  }
+ ]
+}

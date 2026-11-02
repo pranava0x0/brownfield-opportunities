@@ -1,0 +1,85 @@
+{
+ "batch": "batch-03",
+ "sites": [
+  {
+   "id": "FUDS-I04FL0884",
+   "name": "NAS JACKSONVILLE DISPOSED OUTPARCELS",
+   "program": "fuds",
+   "address": null,
+   "city": "JACKSONVILLE",
+   "county": "DUVAL",
+   "state": "FL",
+   "zip": null,
+   "lat": 30.226111,
+   "lon": -81.696944,
+   "acreage": null,
+   "tabs": [
+    "nickel"
+   ],
+   "atlas_owner": "Federal \u2014 Highway, Jax Naval Air Station / State \u2014 Highway, Jax Naval Air Station",
+   "atlas_owner_source": "USACE FUDS",
+   "atlas_parcel_id": "0984050000R",
+   "state_parcel_layer": true
+  },
+  {
+   "id": "FUDS-J09CA7074",
+   "name": "ADVANCED BASE DEPOT-RIFLE RANGE",
+   "program": "fuds",
+   "address": null,
+   "city": "OXNARD",
+   "county": "VENTURA",
+   "state": "CA",
+   "zip": null,
+   "lat": 34.185478,
+   "lon": -119.239527,
+   "acreage": 342.3,
+   "tabs": [
+    "port"
+   ],
+   "atlas_owner": "Private / State",
+   "atlas_owner_source": "USACE FUDS",
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "ILN000510192",
+   "name": "PEOPLES GAS CRAWFORD STATION FORMER MGP",
+   "program": "superfund",
+   "address": "3500 S. PULASKI RD (FORMERLY CRAWFORD AV",
+   "city": "CHICAGO",
+   "county": "COOK",
+   "state": "IL",
+   "zip": "60623",
+   "lat": 41.827052,
+   "lon": -87.731361,
+   "acreage": 258.7,
+   "tabs": [
+    "port"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "MID062222997",
+   "name": "BUTTERWORTH #2 LANDFILL",
+   "program": "superfund",
+   "address": "1450 BUTTERWORTH ST SW",
+   "city": "GRAND RAPIDS",
+   "county": "KENT",
+   "state": "MI",
+   "zip": "49504",
+   "lat": 42.952602,
+   "lon": -85.699605,
+   "acreage": 189.9,
+   "tabs": [
+    "dc"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  }
+ ]
+}

@@ -181,7 +181,12 @@
         <label class="screen-allmet"><input type="checkbox" id="screen-all-met"> Only sites that meet every check</label>
       </div>
     </div>
-    <div id="candidates-wrap">
+    <div id="candidates-wrap" aria-busy="true">
+      <div id="candidates-skeleton" class="skeleton-list" aria-hidden="true">
+        <div class="skeleton-card"><i></i><i></i><i></i></div>
+        <div class="skeleton-card"><i></i><i></i><i></i></div>
+        <div class="skeleton-card"><i></i><i></i><i></i></div>
+      </div>
       <table id="candidates-table" class="evidence-table screen-table">
         <thead><tr id="candidates-head"><th scope="col">Site</th></tr></thead>
         <tbody><!-- rows injected by buildCandidatesView() --></tbody>

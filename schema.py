@@ -1214,7 +1214,9 @@ class SiteResearchPayload(BaseModel):
 # ---------------------------------------------------------------------------
 
 LOCAL_FACT_KINDS = ("transfer", "deed", "lien", "tax_delinquency", "foreclosure", "permit", "code_enforcement",
-                    "zoning", "brownfield_grant", "redevelopment_plan", "litigation", "other")
+                    "zoning", "brownfield_grant", "redevelopment_plan", "litigation", "other",
+                    # Local news and public statements (data/validation/local-news, same checks as the land records).
+                    "news", "development_project", "community_benefit", "developer", "incentive")
 LOCAL_PORTAL_KINDS = ("assessor", "gis", "recorder", "treasurer", "permits", "code", "zoning", "planning", "state_sales")
 LOCAL_ACCESS = ("free_search", "free_map", "paid", "in_person", "unknown")
 
@@ -1238,9 +1240,9 @@ class LocalFact(BaseModel):
 
     kind: Literal[LOCAL_FACT_KINDS]
     date: Optional[str] = Field(default=None, pattern=ISO_DAY_OR_MONTH)
-    summary: str = Field(min_length=10, max_length=400, description="One or two sentences in our words.")
+    summary: str = Field(min_length=10, max_length=600, description="One to three sentences in our words.")
     authority: Optional[str] = Field(default=None, max_length=120)
-    reference: Optional[str] = Field(default=None, max_length=80, description="Deed book/page, permit or case number.")
+    reference: Optional[str] = Field(default=None, max_length=200, description="Deed book/page, permit or case number, or an article title.")
     source_url: str = Field(pattern=r"^https://")
     quote: str = Field(min_length=8, max_length=500, description="Verbatim text from the source that states the fact.")
     # Set by scripts/local_records.py adjudicate, never by a researcher.

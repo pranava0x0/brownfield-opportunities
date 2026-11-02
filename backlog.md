@@ -97,6 +97,10 @@ Priorities: **high** = next, **med** = soon, **low** = nice-to-have. Last update
 22. **[med]** Wire `scripts/pr_gate.sh` and `check_upstream_freshness.py --markdown` into CI; add site-research citations to the gate's liveness step.
 23. **[low]** Port distance is to the port polygon's bounding-box center; some principal-port polygons span 70+ mi. Measure to the polygon edge in `build_ports_overlay.py` / `port_proximity.py`.
 
+- **Slim the startup program files (perf, medium).** Mobile app-ready is bandwidth-bound (3.9 MB gzipped, 19.5 s at 1.6 Mbps). A core file per program with only id, program, name, state, county, city, lat, lon (and acreage) is 0.99 MB for ACRES (now 1.56 MB) and 0.26 MB for FUDS (now 0.55 MB), about 0.85 MB saved, with the rest loading with the site panel like `infra-proximity.json`. Same pattern as `build_infra_core.py`. `profile_url` alone is 75 bytes x 36k ACRES rows and can be rebuilt from the id.
+- **Local news for the rest of the tab sites (data, medium).** 15 ranked sites were researched (17 facts shipped). The other ~45 queued sites and the overlay rows (coal plants, retired industry) have none yet. Run `local_records.py --work news queue --per-screen 10`, then Haiku researchers and Sonnet verifiers, two at a time.
+- **Show a progressive Screens ranking (perf, low).** Rows currently appear only when every input has loaded. A preview ranking from Superfund plus infrastructure, labeled as partial, would give content at ~3 s on a phone, at the cost of rows moving when the rest lands.
+
 ## 3. Next (this quarter)
 
 0. **[med]** `routine_ctl.resolve_merge_conflict` replay cannot delete items: when the branch removes a wrong development from a dossier and main edits a different site, the `site_research.merge()` union restores it (PR #44 review 2026-10-28). Needs an explicit removal path.

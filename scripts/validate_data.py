@@ -102,6 +102,7 @@ OVERLAY_FILES = [
     "nickel-anchors.json",
     "site-research.json",
     "local-records.json",
+    "local-news.json",
 ]
 
 STATES = set(
@@ -1994,42 +1995,43 @@ def c_site_research_contract(c: Corpus):
 def c_local_records_contract(c: Corpus):
     """County, city and state records: schema-valid, keyed to shipped ids, https sources only, and every
     shipped fact reproduces its status from the recorded checks (written only by scripts/local_records.py publish)."""
-    payload = c.raw.get("local-records.json")
-    if payload is None:
-        yield Finding("local-records-contract", "struct", "PASS", 0, 0, "local-records.json not generated yet")
-        return
-    sys.path.insert(0, str(ROOT))
-    sys.path.insert(0, str(ROOT / "scripts"))
-    from schema import LocalRecordsPayload
-    from local_records import SHIPPED_STATUSES, decide
-    bad, examples = 0, []
-    try:
-        LocalRecordsPayload.model_validate(payload)
-    except Exception as exc:  # noqa: BLE001 - the pydantic message is the finding
-        bad += 1
-        examples.append(str(exc)[:200])
-    if payload.get("count") != len(payload.get("sites", []) or []):
-        bad += 1
-        examples.append("count does not match the number of sites")
-    for site in payload.get("sites", []) or []:
-        if site.get("id") not in c.universe:
+    for fname in ("local-records.json", "local-news.json"):
+        payload = c.raw.get(fname)
+        if payload is None:
+            yield Finding("local-records-contract", "struct", "PASS", 0, 0, f"{fname} not generated yet")
+            continue
+        sys.path.insert(0, str(ROOT))
+        sys.path.insert(0, str(ROOT / "scripts"))
+        from schema import LocalRecordsPayload
+        from local_records import SHIPPED_STATUSES, decide
+        bad, examples = 0, []
+        try:
+            LocalRecordsPayload.model_validate(payload)
+        except Exception as exc:  # noqa: BLE001 - the pydantic message is the finding
             bad += 1
-            examples.append(f"{site.get('id')}: not a shipped site id")
-        for f in site.get("facts", []):
-            if f.get("status") not in SHIPPED_STATUSES:
+            examples.append(str(exc)[:200])
+        if payload.get("count") != len(payload.get("sites", []) or []):
+            bad += 1
+            examples.append("count does not match the number of sites")
+        for site in payload.get("sites", []) or []:
+            if site.get("id") not in c.universe:
                 bad += 1
-                examples.append(f"{site.get('id')}: fact shipped without adjudication ({f.get('status')})")
-            elif f.get("adjudicated_by") == "opus":
-                # Only a fact that was genuinely disputed (script and verifier disagreed) can have gone to Opus.
-                if f.get("status") != "accepted" or not f.get("verifier") or not f.get("code_check") \
-                        or decide(f["code_check"], f["verifier"])[0] != "disputed":
+                examples.append(f"{site.get('id')}: not a shipped site id")
+            for f in site.get("facts", []):
+                if f.get("status") not in SHIPPED_STATUSES:
                     bad += 1
-                    examples.append(f"{site.get('id')}: Opus decision is inconsistent with the recorded checks")
-            elif not f.get("verifier") or not f.get("code_check") or decide(f["code_check"], f["verifier"])[0] != f.get("status"):
-                bad += 1
-                examples.append(f"{site.get('id')}: status {f.get('status')} does not follow from code_check={f.get('code_check')} verifier={f.get('verifier')}")
-    yield Finding("local-records-contract", "struct", verdict(bad), len(payload.get("sites", []) or []), bad,
-                  "local records validate, key to shipped ids and reproduce each fact's status from its checks", examples[:50])
+                    examples.append(f"{site.get('id')}: fact shipped without adjudication ({f.get('status')})")
+                elif f.get("adjudicated_by") == "opus":
+                    # Only a fact that was genuinely disputed (script and verifier disagreed) can have gone to Opus.
+                    if f.get("status") != "accepted" or not f.get("verifier") or not f.get("code_check") \
+                            or decide(f["code_check"], f["verifier"])[0] != "disputed":
+                        bad += 1
+                        examples.append(f"{site.get('id')}: Opus decision is inconsistent with the recorded checks")
+                elif not f.get("verifier") or not f.get("code_check") or decide(f["code_check"], f["verifier"])[0] != f.get("status"):
+                    bad += 1
+                    examples.append(f"{site.get('id')}: status {f.get('status')} does not follow from code_check={f.get('code_check')} verifier={f.get('verifier')}")
+        yield Finding("local-records-contract", "struct", verdict(bad), len(payload.get("sites", []) or []), bad,
+                      f"{fname}: records validate, key to shipped ids and reproduce each fact's status from its checks", examples[:50])
 
 
 @check("site-research-overdue", "derived")

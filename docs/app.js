@@ -23,6 +23,7 @@ const PARCEL_OWNER_URL = "data/parcel-owner.json";
 const AI_SUMMARY_URL = "data/ai-summary.json";
 const SITE_RESEARCH_URL = "data/site-research.json";
 const LOCAL_RECORDS_URL = "data/local-records.json";
+const LOCAL_NEWS_URL = "data/local-news.json";
 const ACRES_CLEANUP_URL = "data/acres-cleanup.json";
 const RETIRED_PLANTS_URL = "data/eia-retired-plants.json";
 const REFERENCE_CAMPUSES_URL = "data/reference-campuses.json";
@@ -1395,18 +1396,31 @@ function ensureSiteResearchLoaded() {
 // page by code before it ships. Id-keyed like the dossiers: looked up at render
 // time, never joined onto site objects, and it does not drive the header date.
 const localRecordsById = new Map();
+const localNewsById = new Map();
 window.__localRecords = localRecordsById;
+window.__localNews = localNewsById;
 let localRecordsPromise = null;
-function ensureLocalRecordsLoaded() {
-  if (localRecordsPromise) return localRecordsPromise;
-  localRecordsPromise = fetch(LOCAL_RECORDS_URL, { priority: "low" })
+function loadLocalFile(url, into) {
+  return fetch(url, { priority: "low" })
     .then((r) => {
       if (r.status === 404) return { sites: [] };
       if (!r.ok) throw new Error("HTTP " + r.status);
       return r.json();
     })
-    .then((payload) => { for (const rec of payload.sites || []) localRecordsById.set(rec.id, rec); })
-    .catch((err) => { console.error("Local records load failed:", err); localRecordsPromise = null; });
+    .then((payload) => { for (const rec of payload.sites || []) into.set(rec.id, rec); });
+}
+function ensureLocalRecordsLoaded() {
+  if (localRecordsPromise) return localRecordsPromise;
+  // Wait for both files to settle: one failing must not resolve the load while the other is still
+  // downloading (the detail panel's final re-render would run before its records exist).
+  localRecordsPromise = Promise.allSettled([loadLocalFile(LOCAL_RECORDS_URL, localRecordsById), loadLocalFile(LOCAL_NEWS_URL, localNewsById)])
+    .then((results) => {
+      const failed = results.filter((r) => r.status === "rejected");
+      if (failed.length) {
+        for (const r of failed) console.error("Local records load failed:", r.reason);
+        localRecordsPromise = null;   // a later site selection retries
+      }
+    });
   return localRecordsPromise;
 }
 // How much checking stands behind a shipped fact. The status alone is not enough: an Opus-resolved dispute
@@ -1422,7 +1436,8 @@ const LOCAL_PORTAL_LABEL = { assessor: "Assessor", gis: "GIS parcel map", record
   permits: "Permits", code: "Code enforcement", zoning: "Zoning", planning: "Planning", state_sales: "State sales records" };
 const LOCAL_FACT_LABEL = { transfer: "Transfer", deed: "Deed", lien: "Lien", tax_delinquency: "Tax delinquency", foreclosure: "Foreclosure",
   permit: "Permit", code_enforcement: "Code enforcement", zoning: "Zoning", brownfield_grant: "Brownfield grant",
-  redevelopment_plan: "Redevelopment plan", litigation: "Litigation", other: "Record" };
+  redevelopment_plan: "Redevelopment plan", litigation: "Litigation", other: "Record",
+  news: "News", development_project: "Project", community_benefit: "Community benefit", developer: "Developer", incentive: "Incentive" };
 const LOCAL_PARCEL_TEXT = {
   confirmed: "The state parcel layer returns the same owner as this record (and the same parcel id where this record has one).",
   owner_not_comparable: "The state parcel layer or this record names no owner, so the owners could not be compared.",
@@ -1432,11 +1447,18 @@ const LOCAL_PARCEL_TEXT = {
   no_match: "The state parcel layer has no parcel at this point.", error: "The parcel layer could not be reached at check time.",
 };
 
+function localFactHtml(f) {
+  return `<li><p class="ri-head">${f.date ? `<span class="ri-date">${escapeHtml(researchDate(f.date))}</span>` : ""}<span class="ri-kind">${escapeHtml(LOCAL_FACT_LABEL[f.kind] || f.kind)}</span>${escapeHtml(f.summary)}</p>`
+    + `<p class="muted-cell">${[f.authority, f.reference].filter(Boolean).map(escapeHtml).join(" · ")}${f.authority || f.reference ? " · " : ""}${researchLink(f.source_url, "source")}`
+    + ` · ${escapeHtml(LOCAL_FACT_BASIS(f))}</p></li>`;
+}
+
 function renderLocalRecords(s) {
   const block = el("d-local-block"), body = el("d-local-body");
   if (!block || !body) return;
-  const r = localRecordsById.get(s.id);
-  if (!r) { block.hidden = true; body.replaceChildren(); return; }
+  const land = localRecordsById.get(s.id), news = localNewsById.get(s.id);
+  if (!land && !news) { block.hidden = true; body.replaceChildren(); return; }
+  const r = land || { portals: [], facts: [], gaps: [], researchers: [], researched_at: news.researched_at };
   const parts = [];
   if (r.parcel) {
     const p = r.parcel;
@@ -1448,17 +1470,19 @@ function renderLocalRecords(s) {
       `<li>${researchLink(p.url, p.name)} <span class="muted-cell">${escapeHtml(LOCAL_PORTAL_LABEL[p.kind] || p.kind)} · ${escapeHtml(LOCAL_ACCESS_LABEL[p.access] || p.access)}</span>${p.note ? `<br><span class="muted-cell">${escapeHtml(p.note)}</span>` : ""}</li>`).join("") + `</ul>`);
   }
   if ((r.facts || []).length) {
-    parts.push(`<h4>Records found</h4><ul class="local-facts">` + r.facts.map(f =>
-      `<li><p class="ri-head">${f.date ? `<span class="ri-date">${escapeHtml(researchDate(f.date))}</span>` : ""}<span class="ri-kind">${escapeHtml(LOCAL_FACT_LABEL[f.kind] || f.kind)}</span>${escapeHtml(f.summary)}</p>`
-      + `<p class="muted-cell">${[f.authority, f.reference].filter(Boolean).map(escapeHtml).join(" · ")}${f.authority || f.reference ? " · " : ""}${researchLink(f.source_url, "source")}`
-      + ` · ${escapeHtml(LOCAL_FACT_BASIS(f))}</p></li>`).join("") + `</ul>`);
+    parts.push(`<h4>Records found</h4><ul class="local-facts">` + r.facts.map(localFactHtml).join("") + `</ul>`);
   }
-  if ((r.gaps || []).length) {
-    parts.push(`<details class="local-gaps"><summary>Researcher's notes on what was not found (${r.gaps.length}; not independently checked)</summary><ul>${r.gaps.map(g => `<li>${escapeHtml(g)}</li>`).join("")}</ul></details>`);
+  if (news && (news.facts || []).length) {
+    parts.push(`<h4>Local news, developers and community benefits</h4><ul class="local-facts">` + news.facts.map(localFactHtml).join("") + `</ul>`);
   }
-  parts.push(`<p class="muted-cell">Researched ${escapeHtml(researchDate(r.researched_at))} by ${escapeHtml((r.researchers || []).join(", "))}. County and state records are mostly not searchable on the open web; absence here is not absence of a record.</p>`);
+  const gaps = [...(r.gaps || []), ...((news && news.gaps) || [])];
+  if (gaps.length) {
+    parts.push(`<details class="local-gaps"><summary>Researcher's notes on what was not found (${gaps.length}; not independently checked)</summary><ul>${gaps.map(g => `<li>${escapeHtml(g)}</li>`).join("")}</ul></details>`);
+  }
+  const researchers = [...new Set([...(r.researchers || []), ...((news && news.researchers) || [])])];
+  parts.push(`<p class="muted-cell">Researched ${escapeHtml(researchDate(r.researched_at))}${news && land && news.researched_at !== land.researched_at ? ` (news ${escapeHtml(researchDate(news.researched_at))})` : ""} by ${escapeHtml(researchers.join(", "))}. County and state records are mostly not searchable on the open web; absence here is not absence of a record.</p>`);
   body.innerHTML = parts.join("");
-  el("d-local-count").textContent = `(${(r.portals || []).length} portals, ${(r.facts || []).length} records)`;
+  el("d-local-count").textContent = `(${(r.portals || []).length} portals, ${(r.facts || []).length + ((news && news.facts) || []).length} records)`;
   block.hidden = false;
 }
 
@@ -1753,6 +1777,7 @@ function ensurePortProximityLoaded() {
         [acresLoadingPromise, fudsLoadingPromise, bracLoadingPromise].filter(Boolean)
       );
       applyPortProximityJoin({ refresh: true });
+      maybeRefreshCandidates();   // the input is now ready even when the join applied nothing
     })
     .catch((err) => {
       console.error("Port-proximity enrichment load failed:", err);
@@ -2293,6 +2318,7 @@ function ensureWaterProximityLoaded() {
         [acresLoadingPromise, fudsLoadingPromise, bracLoadingPromise].filter(Boolean)
       );
       applyWaterProximityJoin({ refresh: true });
+      maybeRefreshCandidates();   // the input is now ready even when the join applied nothing
     })
     .catch((err) => {
       console.error("Water proximity load failed:", err);
@@ -2374,6 +2400,7 @@ function ensureNickelAnchorProxLoaded() {
         [acresLoadingPromise, fudsLoadingPromise, bracLoadingPromise].filter(Boolean)
       );
       applyNickelAnchorJoin({ refresh: true });
+      maybeRefreshCandidates();   // the input is now ready even when the join applied nothing
     })
     .catch((err) => {
       console.error("Nickel anchor proximity load failed:", err);
@@ -7045,7 +7072,7 @@ function screenDataState(key) {
     ...Object.fromEntries(programs.map(([p, label]) => [label, () => programLoadErrors.has(p)]))};
   const failed = inputs.filter(([n]) => coreFailed[n] ? coreFailed[n]() : nickelDataErrors.has(n)).map(([n]) => n);
   const pending = inputs.filter(([n, ready]) => !ready() && !failed.includes(n)).map(([n]) => n);
-  return {pending, failed};
+  return {pending, failed, total: inputs.length};
 }
 // Until the acreage flags load, program acreage may be a county or a plume;
 // until location flags load, parcel area may belong to a shared geocode.
@@ -7056,13 +7083,22 @@ function withholdUncheckedLand(s) {
   const dropParcel = !coordQualityLoaded && s.parcel_acreage != null;
   return dropAcreage || dropParcel ? {...s, ...(dropAcreage && {acreage: null}), ...(dropParcel && {parcel_acreage: null})} : s;
 }
+let candidatesBuiltLens = null;   // the lens whose ranking is on screen
 function buildCandidatesView() {
+  candidatesBuiltLens = candidatesState.lens;
   const screen = SiteScreens.SCREENS[candidatesState.lens];
   const allMet = el("screen-all-met")?.checked;
-  const pool = tableState.filtered.map(sanitizeGeographicEvidence).map(withholdUncheckedLand);
   // Without the coordinate manifest (loading or failed), some joins may
   // describe a site's old location; rank nothing rather than rank stale evidence.
-  let rows = invalidationsLoaded ? SiteScreens.rank(pool, candidatesState.lens) : [];
+  // Rank only once every input has landed: a ranking over a partial corpus is not a result, and
+  // re-ranking ~47k sites after each of ten downloads was most of the main-thread time at load.
+  const data = screenDataState(candidatesState.lens);
+  const waiting = data.pending.length > 0;
+  let rows = [];
+  if (invalidationsLoaded && !waiting) {
+    const pool = tableState.filtered.map(sanitizeGeographicEvidence).map(withholdUncheckedLand);
+    rows = SiteScreens.rank(pool, candidatesState.lens);
+  }
   const inScope = rows.length;
   if (allMet) rows = rows.filter(r => r.ev.met === r.ev.total);
   candidatesState.sorted = rows;
@@ -7071,7 +7107,9 @@ function buildCandidatesView() {
   if (method) method.innerHTML = screenMethodHtml(screen);
   const full = rows.filter(r => r.ev.met === r.ev.total).length;
   const stats = el("candidates-stats");
-  const data = screenDataState(candidatesState.lens);
+  const skeleton = el("candidates-skeleton");
+  if (skeleton) skeleton.hidden = !waiting;
+  el("candidates-wrap")?.setAttribute("aria-busy", waiting ? "true" : "false");
   if (stats && data.failed.length) {
     stats.innerHTML = `Couldn’t load ${escapeHtml(data.failed.join(", "))} data, so these checks read “?”. <button type="button" class="text-btn" id="screen-retry">Retry</button>`;
     el("screen-retry").addEventListener("click", () => {
@@ -7089,7 +7127,7 @@ function buildCandidatesView() {
       buildCandidatesView();
     });
   } else if (stats && data.pending.length) {
-    stats.textContent = `Loading ${data.pending.join(", ")} data…`;
+    stats.textContent = `Loading ${data.pending.join(", ")} data (${data.total - data.pending.length} of ${data.total} ready)…`;
   } else if (stats) {
     stats.textContent = `${full.toLocaleString()} of ${inScope.toLocaleString()} sites meet every check`
       + (screen.scope ? ` (${screen.scope})` : "") + (filtersActive() || filterState.q ? " · filters applied" : "");
@@ -7159,19 +7197,39 @@ function wireCandidatesFilters() {
   document.querySelectorAll("[data-cand-lens]").forEach((btn) => {
     btn.addEventListener("click", () => {
       candidatesState.lens = btn.dataset.candLens;
+      // Paint the pressed state first, then rank: the tap answers within a frame and the
+      // ~0.3-1 s ranking runs after it, not before it.
       refreshCandLensButtons();
       syncUrl();
       loadScreenData();
-      if (el("view-candidates").classList.contains("active")) buildCandidatesView();
+      if (el("view-candidates").classList.contains("active")) {
+        const lens = candidatesState.lens;
+        const settleBusy = () => el("candidates-wrap")?.setAttribute("aria-busy", screenDataState(candidatesState.lens).pending.length ? "true" : "false");
+        if (candidatesBuiltLens === lens) { settleBusy(); return; }   // this lens is already on screen: nothing to rank
+        el("candidates-wrap")?.setAttribute("aria-busy", "true");
+        requestAnimationFrame(() => setTimeout(() => {
+          // Skip when this lens was already built (a loader refresh can get there first) or the user moved on.
+          if (candidatesState.lens === lens && candidatesBuiltLens !== lens) buildCandidatesView();
+          else settleBusy();
+        }, 0));
+      }
     });
   });
   el("screen-all-met")?.addEventListener("change", buildCandidatesView);
   refreshCandLensButtons();
 }
 
+// A load fires several refreshes back to back (every download, then the port, nickel and micro
+// joins). Each rebuild re-ranks ~47k sites, so requests made in the same task run as one.
+let candidatesRefreshQueued = false;
 function maybeRefreshCandidates() {
   const view = el("view-candidates");
-  if (view && view.classList.contains("active")) buildCandidatesView();
+  if (!view || !view.classList.contains("active") || candidatesRefreshQueued) return;
+  candidatesRefreshQueued = true;
+  queueMicrotask(() => {
+    candidatesRefreshQueued = false;
+    if (view.classList.contains("active")) buildCandidatesView();
+  });
 }
 
 // Port, water and nickel joins land after first paint; the Screens view

@@ -280,14 +280,22 @@
   }
 
   // Order: criteria met (desc), unknown (asc), tie-breaker, then name.
+  // The tie value and name are computed once per site (not once per comparison)
+  // and names compare through one shared Collator: the ranking runs over ~47k
+  // sites and was the largest block of main-thread time at load. The order is
+  // identical to the per-comparison version.
+  const collator = new Intl.Collator();
   function rank(sites, key) {
     const screen = SCREENS[key];
     const tb = screen.tieBreak;
-    const rows = sites.filter(s => !screen.applies || screen.applies(s)).map(site => ({site, ev: evaluate(site, key)}));
-    rows.sort((a, b) => b.ev.met - a.ev.met || a.ev.unknown - b.ev.unknown
-      || (tb ? tieValue(tb, a.site) - tieValue(tb, b.site) : 0)
-      || String(a.site.name || a.site.id).localeCompare(String(b.site.name || b.site.id)));
-    return rows;
+    const keyed = [];
+    for (const site of sites) {
+      if (screen.applies && !screen.applies(site)) continue;
+      keyed.push({row: {site, ev: evaluate(site, key)}, tv: tb ? tieValue(tb, site) : 0, nm: String(site.name || site.id)});
+    }
+    keyed.sort((a, b) => b.row.ev.met - a.row.ev.met || a.row.ev.unknown - b.row.ev.unknown
+      || (a.tv - b.tv) || collator.compare(a.nm, b.nm));
+    return keyed.map(k => k.row);
   }
   // Ascending sort key; a missing value sorts last.
   function tieValue(tb, s) {

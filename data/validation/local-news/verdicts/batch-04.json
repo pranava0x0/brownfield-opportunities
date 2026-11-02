@@ -1,0 +1,17 @@
+{"batch": "batch-04", "sites": [
+  {"id": "MT0012694970", "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+     {"index": 0, "source_url": "https://www.mtenvironmentaltrust.org/doe-seeks-public-comment-flat-creek-iron-mountain-mine/", "verdict": "supported", "note": "Posted Jan 21 2016; Jan 14 meeting; EE/CA for tailings on USFS and former ASARCO lands; site four miles northeast of Superior; no reuse mentioned. DEQ, USFS and EPA co-held."},
+     {"index": 1, "source_url": "https://www.doi.gov/restoration/draft-restoration-plan-released-black-pine-mine-flat-creekiron-mountain-mine-and-mill", "verdict": "supported", "note": "Title names Flat Creek/Iron Mountain Mine and Mill Superfund Site, MT; 30-day comment Mar 19-Apr 18 2026; 'Service is seeking public comment on a Draft Restoration Plan'."}
+   ],
+   "portal_verdicts": []},
+  {"id": "NJD980528996", "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+     {"index": 0, "source_url": "https://19january2025snapshot.epa.gov/newsreleases/epa-issues-final-cleanup-plan-lister-ave-portion-diamond-alkali-superfund-site-newark", "verdict": "supported", "note": "Final plan (OU1 ROD) announced Jan 17 2025; continues existing remedy, repairs existing cap; no redevelopment mentioned. September 2024 proposal not restated here."},
+     {"index": 1, "source_url": "https://www.epa.gov/newsreleases/epa-invites-community-feedback-proposed-final-cleanup-plan-lister-ave-portion-diamond", "verdict": "supported", "note": "Updated Sep 10 2024; comments to Oct 10; meeting Sep 19; 'reinstalling and reactivating a total of seven groundwater pumps'; goal to protect people of Newark and Passaic River communities."}
+   ],
+   "portal_verdicts": []},
+  {"id": "VA1170024722", "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [],
+   "portal_verdicts": []}
+]}
