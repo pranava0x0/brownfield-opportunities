@@ -51,7 +51,8 @@ def test_plant_distance_is_shown_and_never_counted_when_missing(page: Page, base
 def test_site_drawer_lists_the_manufacturing_screens(page: Page, base_url: str):
     _pick(page, base_url, "turbine")
     page.locator("#candidates-table tbody tr .site-evidence-open").first.click()
-    page.wait_for_function("document.querySelectorAll('#d-suit-dc .screen-summary tr').length >= 8", timeout=30_000)
+    # The port screen applies only within 25 mi of a port, so count labels, not rows.
+    page.wait_for_function("(document.querySelector('#d-suit-dc .screen-summary')?.textContent || '').includes('Critical mineral processing')", timeout=30_000)
     text = page.locator("#d-suit-dc .screen-summary").text_content()
     for label in ("Robot / physical-AI assembly", "Gas turbine plant", "Power transformer plant", "Critical mineral processing"):
         assert label in text

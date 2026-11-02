@@ -29,7 +29,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "docs" / "data"
 OUT = ROOT / "data" / "validation" / "tab-sites.json"
-CORPUS_SCREENS = ("dc", "solar", "port", "nickel")
+CORPUS_SCREENS = ("dc", "solar", "port", "nickel", "robotics", "turbine", "transformer", "minerals")
 OVERLAY_SCREENS = {"ap1000": "ap1000", "smr": "ap1000", "micro": "ap1000",
                    "civilian": "civilian", "coal": "coal", "retired": "retired"}
 SITE_FIELDS = ("id", "program", "name", "address", "city", "county", "state", "zip", "lat", "lon",

@@ -42,7 +42,8 @@ from local_records import SHIPPED_STATUSES, code_check_for, decide, https_url  #
 WORK = ROOT / "data" / "validation" / "manufacturing"
 OUTPUT = ROOT / "docs" / "data" / "manufacturing-facilities.json"
 TOPIC_SECTOR = {"robotics": "robotics", "turbine": "turbine", "transformer": "transformer",
-                "minerals": "minerals", "doe_minerals": "minerals"}
+                "minerals": "minerals", "doe_minerals": "minerals", "doe_awards": "minerals"}
+AWARD_TOPICS = {"doe_minerals", "doe_awards"}
 CORRECTABLE = {"name", "company", "product", "status", "city", "state", "address", "investment_usd", "jobs", "acres",
                "announced", "doe_award", "brownfield", "former_use", "published", "quote", "source_title",
                "claim", "value", "factor"}
@@ -50,7 +51,13 @@ CORRECTABLE = {"name", "company", "product", "status", "city", "state", "address
 PLACE_SUFFIXES = ("city", "town", "village", "CDP", "borough", "municipality", "city and borough",
                   "consolidated government (balance)", "metro government (balance)", "urban county", "")
 # A plant in a place the Gazetteer does not list: the nearest listed place, disclosed in `locality`.
-LOCALITY_OVERRIDES: dict[tuple[str, str], str] = {}
+LOCALITY_OVERRIDES: dict[tuple[str, str], str] = {
+    ("PA", "Lyndora"): "Homeacre-Lyndora",   # Census lists the combined CDP
+}
+# Researchers name factors freely; map the common synonyms onto the schema's list.
+FACTOR_ALIASES = {"brownfield": "reuse", "site_reuse": "reuse", "existing_building": "reuse", "heavy_lift": "heavy_haul",
+                  "electricity": "power", "natural_gas": "gas", "labor": "workforce", "jobs": "workforce", "logistics": "road",
+                  "highway": "road", "incentives": "other", "funding": "other", "status": "other", "site": "land", "size": "land"}
 log = logging.getLogger("manufacturing_catalog")
 
 
@@ -183,7 +190,8 @@ def to_facility(sector: str, row: dict, status: str, gaz: dict, today: str) -> t
 
 def to_requirement(sector: str, row: dict, status: str, today: str) -> tuple[Optional[dict], Optional[str]]:
     from schema import ManufacturingRequirement
-    rec = {"sector": sector, "factor": str(row.get("factor") or "").strip().lower().replace("-", "_").replace(" ", "_"), "claim": str(row.get("claim") or "")[:300],
+    factor = str(row.get("factor") or "").strip().lower().replace("-", "_").replace(" ", "_")
+    rec = {"sector": sector, "factor": FACTOR_ALIASES.get(factor, factor), "claim": str(row.get("claim") or "")[:300],
            "value": (str(row["value"])[:120] if row.get("value") else None), "source_url": row["source_url"],
            "source_title": row.get("source_title") or None, "published": row.get("published") or None,
            "quote": str(row.get("quote")).strip()[:400], "check": status, "verified_at": today}
@@ -193,12 +201,20 @@ def to_requirement(sector: str, row: dict, status: str, today: str) -> tuple[Opt
         return None, str(exc).splitlines()[0][:160]
 
 
+def plant_key(rec: dict) -> tuple:
+    """Same sector, same town, same company (first word): one plant reported by two topics."""
+    company = re.sub(r"[^a-z0-9 ]", "", str(rec.get("company") or rec.get("name") or "").lower()).split()
+    return (rec["sector"], (company or [""])[0], rec["city"].lower(), rec["state"])
+
+
 def cmd_build(args: argparse.Namespace) -> int:
     from schema import ManufacturingCatalog
     adjudicated = json.loads((WORK / "adjudicated.json").read_text())
     gaz, today = _gazetteer(), dt.date.today().isoformat()
-    sites, reqs, held, seen = [], [], 0, set()
-    for topic, rows in adjudicated.items():
+    sites, reqs, held, seen, by_key, merged = [], [], 0, set(), {}, 0
+    # Plant topics first, award topics last, so a plant's own page (status, reuse) is the row kept and
+    # an award found separately is attached to it rather than replacing it.
+    for topic, rows in sorted(adjudicated.items(), key=lambda kv: (kv[0] in AWARD_TOPICS, kv[0])):
         sector = TOPIC_SECTOR.get(topic)
         if sector is None:
             log.warning("unknown topic %s skipped", topic)
@@ -211,7 +227,15 @@ def cmd_build(args: argparse.Namespace) -> int:
                 rec, why = to_requirement(sector, a["row"], a["status"], today)
             else:
                 rec, why = to_facility(sector, a["row"], a["status"], gaz, today)
-                if rec and rec["id"] in seen:          # the same plant from two topics (doe_minerals and minerals)
+                key = plant_key(rec) if rec else None
+                if rec and (rec["id"] in seen or key in by_key):
+                    # The same plant from two topics (a minerals row and a DOE-award row): keep the first
+                    # and carry the award, with its own source, onto it.
+                    first = by_key.get(key)
+                    if first is not None and rec.get("federal_award") and not first.get("federal_award"):
+                        first.update(federal_award=rec["federal_award"], award_source_url=rec["source_url"],
+                                     award_quote=rec["quote"])
+                        merged += 1
                     rec, why = None, "duplicate"
             if rec is None:
                 held += 1
@@ -221,6 +245,7 @@ def cmd_build(args: argparse.Namespace) -> int:
                 reqs.append(rec)
             else:
                 seen.add(rec["id"])
+                by_key[plant_key(rec)] = rec
                 sites.append(rec)
     sites.sort(key=lambda r: (r["sector"], r["state"], r["name"]))
     payload = {"generated_at": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -229,7 +254,8 @@ def cmd_build(args: argparse.Namespace) -> int:
                "count": len(sites), "sites": sites, "requirements": reqs, "held_back": held}
     ManufacturingCatalog.model_validate(payload)
     OUTPUT.write_text(json.dumps(payload, separators=(",", ":"), ensure_ascii=False))
-    log.info("wrote %s: %d plants, %d requirements, %d held back", OUTPUT, len(sites), len(reqs), held)
+    log.info("wrote %s: %d plants, %d requirements, %d held back, %d awards merged onto existing plants",
+             OUTPUT, len(sites), len(reqs), held, merged)
     return 0
 
 

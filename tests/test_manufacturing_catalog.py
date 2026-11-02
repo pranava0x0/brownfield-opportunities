@@ -107,3 +107,23 @@ def test_stamp_takes_the_nearest_active_plant_and_uses_real_coordinates():
     assert out[1]["mfg_turbine_mi"] == pytest.approx(min(_haversine(61.2, -149.9, 34.85, -82.39),
                                                          _haversine(61.2, -149.9, 42.8, -73.9)), abs=0.06)
     assert out[0]["mfg_robotics_mi"] is None                       # no plant of that sector: unknown, not zero
+
+
+def test_build_merges_one_plant_reported_by_two_topics(tmp_path, monkeypatch):
+    plant = {"name": "Syrah Vidalia anode plant", "company": "Syrah Technologies", "product": "graphite anode", "status": "operating",
+             "city": "Vidalia", "state": "LA", "source_url": "https://example.com/plant", "quote": "the Vidalia plant makes anode material"}
+    award = {**plant, "name": "Syrah Technologies Vidalia facility", "source_url": "https://example.com/award",
+             "quote": "DOE grant of up to $220 million for Vidalia",
+             "doe_award": {"program": "Battery Materials Processing", "agency": "DOE", "amount_usd": 220e6}}
+    row = lambda r: {"kind": "facility", "index": 0, "row": r, "status": "accepted"}
+    work = tmp_path / "work"; work.mkdir()
+    (work / "adjudicated.json").write_text(json.dumps({"minerals": [row(plant)], "doe_awards": [row(award)]}))
+    monkeypatch.setattr(mc, "WORK", work)
+    monkeypatch.setattr(mc, "OUTPUT", tmp_path / "out.json")
+    monkeypatch.setattr(mc, "_gazetteer", lambda: {("LA", "Vidalia town"): (31.56, -91.43)})
+    assert mc.cmd_build(None) == 0
+    out = json.loads((tmp_path / "out.json").read_text())
+    assert out["count"] == 1
+    s = out["sites"][0]
+    assert s["source_url"] == "https://example.com/plant" and s["award_source_url"] == "https://example.com/award"
+    assert s["federal_award"]["amount_usd"] == 220e6

@@ -152,13 +152,11 @@
   const MFG_MEMO = "https://github.com/pranava0x0/brownfield-opportunities/blob/main/research/manufacturing-siting-2026-11.md";
   const MFG = {
     robotics: {title: "Robot and physical-AI plants: sizes and locations (research memo)", url: MFG_MEMO + "#robotics"},
-    turbine: {title: "Gas turbine plants: heavy parts, test gas, sizes (research memo)", url: MFG_MEMO + "#gas-turbines"},
+    turbine: {title: "Gas turbine plants: heavy parts and plant sizes (research memo)", url: MFG_MEMO + "#gas-turbines"},
     transformer: {title: "Power transformer plants: heavy haul, test power, sizes (research memo)", url: MFG_MEMO + "#transformers"},
     minerals: {title: "Critical mineral processing plants: land, power, water, rail (research memo)", url: MFG_MEMO + "#critical-minerals"},
     catalog: {title: "US plant catalog (docs/data/manufacturing-facilities.json)",
       url: "https://github.com/pranava0x0/brownfield-opportunities/blob/main/docs/data/manufacturing-facilities.json"},
-    hifldGas: {title: "HIFLD natural gas pipelines",
-      url: "https://services2.arcgis.com/FiaPA4ga0iQKduv3/arcgis/rest/services/Natural_Gas_Interstate_and_Intrastate_Pipelines_1/FeatureServer/0"},
   };
   const MFG_SECTORS = ["robotics", "turbine", "transformer", "minerals"];
   const MFG_ACTIVE = ["operating", "under_construction", "announced", "expansion"];
@@ -212,7 +210,9 @@
     label: "Robot / physical-AI assembly", universe: "corpus", sector: "robotics",
     method: "Robot and physical-AI assembly plants are light-industrial buildings near engineers and suppliers. No agency threshold exists; ours come from built plants.",
     criteria: [
-      {id: "land", label: "Land ≥20 acres", rule: "acreage ≥ 20", kind: "P", source: MFG.robotics, test: landAtLeast(20), show: landShow},
+      {id: "land", label: "Land ≥20 acres", rule: "acreage ≥ 20", kind: "P", source: MFG.robotics,
+        note: "Built robot plants run 70,000 to 800,000 sq ft of floor; 20 acres fits the middle of that range with parking and yard.",
+        test: landAtLeast(20), show: landShow},
       {id: "road", label: "Primary road within 5 mi", rule: "highway_mi ≤ 5", kind: "P", source: SRC.tiger,
         test: atMost("highway_mi", 5), show: s => miles(s.highway_mi)},
       floodCheck,
@@ -223,13 +223,11 @@
 
   define("turbine", {
     label: "Gas turbine plant", universe: "corpus", sector: "turbine",
-    method: "Turbine casings and rotors ship by rail or heavy-haul road, and finished units are fired on natural gas before shipment.",
+    method: "Turbine casings and rotors leave by rail, heavy-haul trailer or barge, and the plants that make them are large campuses. Test-stand gas supply is not assessed.",
     criteria: [
-      {id: "land", label: "Land ≥50 acres", rule: "acreage ≥ 50", kind: "P", source: MFG.turbine, test: landAtLeast(50), show: landShow},
+      {id: "land", label: "Land ≥50 acres", rule: "acreage ≥ 50", kind: "P", source: MFG.turbine,
+        note: "Caterpillar's Lafayette engine campus is 1.6 million sq ft, about 37 acres of floor.", test: landAtLeast(50), show: landShow},
       railCheck(1),
-      {id: "gas", label: "Gas pipeline within 5 mi", rule: "gas_pipeline_mi ≤ 5", kind: "P", source: MFG.hifldGas,
-        note: "Test stands burn natural gas; a pipeline nearby is a proxy for supply, not a tap agreement.",
-        test: atMost("gas_pipeline_mi", 5), show: s => miles(s.gas_pipeline_mi)},
       gridCheck(115, 5, MFG.turbine),
       floodCheck,
     ],
@@ -238,11 +236,12 @@
 
   define("transformer", {
     label: "Power transformer plant", universe: "corpus", sector: "transformer",
-    method: "Large power transformers weigh hundreds of tons and leave by rail; test bays draw high power from the grid.",
+    method: "Large power transformers weigh hundreds of tons and leave by rail; extra-high-voltage plants test units at up to 765 kV, so a 230 kV or higher line nearby is our proxy for test power.",
     criteria: [
-      {id: "land", label: "Land ≥40 acres", rule: "acreage ≥ 40", kind: "P", source: MFG.transformer, test: landAtLeast(40), show: landShow},
+      {id: "land", label: "Land ≥40 acres", rule: "acreage ≥ 40", kind: "P", source: MFG.transformer,
+        note: "Eaton's Jonesville transformer plant reuses an 861,000 sq ft building (about 20 acres of floor).", test: landAtLeast(40), show: landShow},
       railCheck(1),
-      gridCheck(115, 5, MFG.transformer),
+      gridCheck(230, 5, MFG.transformer),
       floodCheck,
     ],
     tieBreak: {label: "nearest transformer plant", value: s => s.mfg_transformer_mi},
@@ -252,7 +251,8 @@
     label: "Critical mineral processing", universe: "corpus", sector: "minerals",
     method: "Refining and separation plants need land for process and tailings areas, high power, process water, and rail for reagents and product.",
     criteria: [
-      {id: "land", label: "Land ≥100 acres", rule: "acreage ≥ 100", kind: "P", source: MFG.minerals, test: landAtLeast(100), show: landShow},
+      {id: "land", label: "Land ≥100 acres", rule: "acreage ≥ 100", kind: "P", source: MFG.minerals,
+        note: "Albemarle's Kings Mountain lithium site is 1,200 acres; a magnet plant (e-VAC Sumter) took 85.", test: landAtLeast(100), show: landShow},
       railCheck(1),
       gridCheck(115, 5, MFG.minerals),
       {id: "water", label: "Gaged river ≥100 cfs within 10 mi", rule: "water_100cfs_gage_mi ≤ 10", kind: "P", source: SRC.usgs,

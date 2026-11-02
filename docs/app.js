@@ -2435,7 +2435,8 @@ function fmtUsd(v) {
 function mfgPopupHtml(f) {
   const meta = [MFG_SECTOR_LABEL[f.sector], MFG_STATUS_LABEL[f.status], f.investment_usd ? fmtUsd(f.investment_usd) : "",
     f.jobs ? `${f.jobs.toLocaleString("en-US")} jobs` : ""].filter(Boolean);
-  const award = f.federal_award ? `<div class="ref-campus-company">${escapeHtml(f.federal_award.agency)}: ${escapeHtml(f.federal_award.program)}${f.federal_award.amount_usd ? " · " + fmtUsd(f.federal_award.amount_usd) : ""}</div>` : "";
+  const award = f.federal_award ? `<div class="ref-campus-company">${escapeHtml(f.federal_award.agency)}: ${escapeHtml(f.federal_award.program)}${f.federal_award.amount_usd ? " · " + fmtUsd(f.federal_award.amount_usd) : ""}`
+    + (f.award_source_url ? ` <a href="${escapeAttr(f.award_source_url)}" target="_blank" rel="noopener">award source ↗</a>` : "") + `</div>` : "";
   const reuse = f.brownfield === true ? `<div class="ref-campus-company">Reused site${f.former_use ? ": " + escapeHtml(f.former_use) : ""}</div>` : "";
   return `<div class="ref-campus-popup"><strong>${escapeHtml(f.name)}</strong>`
     + `<div class="ref-campus-meta">${meta.map(m => `<span>${escapeHtml(m)}</span>`).join("")}</div>`

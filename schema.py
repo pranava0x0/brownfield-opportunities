@@ -1337,6 +1337,9 @@ class ManufacturingFacility(BaseModel):
     acres: Optional[float] = Field(default=None, gt=0)
     announced: Optional[str] = Field(default=None, pattern=ISO_DAY_OR_MONTH)
     federal_award: Optional[FederalAward] = None
+    award_source_url: Optional[str] = Field(default=None, pattern=r"^https://",
+                                            description="Page for the award when it differs from source_url (merged rows).")
+    award_quote: Optional[str] = Field(default=None, max_length=400)
     brownfield: Optional[bool] = None
     former_use: Optional[str] = Field(default=None, max_length=200)
     source_url: str = Field(pattern=r"^https://")
@@ -1354,7 +1357,7 @@ class ManufacturingRequirement(BaseModel):
 
     sector: MfgSector
     factor: Literal["land", "building", "power", "rail", "road", "port", "water", "gas",
-                    "workforce", "flood", "heavy_haul", "reagents", "permitting", "community", "other"]
+                    "workforce", "flood", "heavy_haul", "reagents", "permitting", "community", "reuse", "other"]
     claim: str = Field(min_length=8, max_length=300)
     value: Optional[str] = Field(default=None, max_length=120)
     source_url: str = Field(pattern=r"^https://")
