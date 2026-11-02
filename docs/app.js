@@ -1467,11 +1467,12 @@ function renderLocalRecords(s) {
   if (news && (news.facts || []).length) {
     parts.push(`<h4>Local news, developers and community benefits</h4><ul class="local-facts">` + news.facts.map(localFactHtml).join("") + `</ul>`);
   }
-  if ((r.gaps || []).length) {
-    parts.push(`<details class="local-gaps"><summary>Researcher's notes on what was not found (${r.gaps.length}; not independently checked)</summary><ul>${r.gaps.map(g => `<li>${escapeHtml(g)}</li>`).join("")}</ul></details>`);
+  const gaps = [...(r.gaps || []), ...((news && news.gaps) || [])];
+  if (gaps.length) {
+    parts.push(`<details class="local-gaps"><summary>Researcher's notes on what was not found (${gaps.length}; not independently checked)</summary><ul>${gaps.map(g => `<li>${escapeHtml(g)}</li>`).join("")}</ul></details>`);
   }
   const researchers = [...new Set([...(r.researchers || []), ...((news && news.researchers) || [])])];
-  parts.push(`<p class="muted-cell">Researched ${escapeHtml(researchDate(r.researched_at))} by ${escapeHtml(researchers.join(", "))}. County and state records are mostly not searchable on the open web; absence here is not absence of a record.</p>`);
+  parts.push(`<p class="muted-cell">Researched ${escapeHtml(researchDate(r.researched_at))}${news && land && news.researched_at !== land.researched_at ? ` (news ${escapeHtml(researchDate(news.researched_at))})` : ""} by ${escapeHtml(researchers.join(", "))}. County and state records are mostly not searchable on the open web; absence here is not absence of a record.</p>`);
   body.innerHTML = parts.join("");
   el("d-local-count").textContent = `(${(r.portals || []).length} portals, ${(r.facts || []).length + ((news && news.facts) || []).length} records)`;
   block.hidden = false;
@@ -1768,6 +1769,7 @@ function ensurePortProximityLoaded() {
         [acresLoadingPromise, fudsLoadingPromise, bracLoadingPromise].filter(Boolean)
       );
       applyPortProximityJoin({ refresh: true });
+      maybeRefreshCandidates();   // the input is now ready even when the join applied nothing
     })
     .catch((err) => {
       console.error("Port-proximity enrichment load failed:", err);
@@ -2308,6 +2310,7 @@ function ensureWaterProximityLoaded() {
         [acresLoadingPromise, fudsLoadingPromise, bracLoadingPromise].filter(Boolean)
       );
       applyWaterProximityJoin({ refresh: true });
+      maybeRefreshCandidates();   // the input is now ready even when the join applied nothing
     })
     .catch((err) => {
       console.error("Water proximity load failed:", err);
@@ -2389,6 +2392,7 @@ function ensureNickelAnchorProxLoaded() {
         [acresLoadingPromise, fudsLoadingPromise, bracLoadingPromise].filter(Boolean)
       );
       applyNickelAnchorJoin({ refresh: true });
+      maybeRefreshCandidates();   // the input is now ready even when the join applied nothing
     })
     .catch((err) => {
       console.error("Nickel anchor proximity load failed:", err);
@@ -7071,17 +7075,22 @@ function withholdUncheckedLand(s) {
   const dropParcel = !coordQualityLoaded && s.parcel_acreage != null;
   return dropAcreage || dropParcel ? {...s, ...(dropAcreage && {acreage: null}), ...(dropParcel && {parcel_acreage: null})} : s;
 }
+let candidatesBuiltLens = null;   // the lens whose ranking is on screen
 function buildCandidatesView() {
+  candidatesBuiltLens = candidatesState.lens;
   const screen = SiteScreens.SCREENS[candidatesState.lens];
   const allMet = el("screen-all-met")?.checked;
-  const pool = tableState.filtered.map(sanitizeGeographicEvidence).map(withholdUncheckedLand);
   // Without the coordinate manifest (loading or failed), some joins may
   // describe a site's old location; rank nothing rather than rank stale evidence.
   // Rank only once every input has landed: a ranking over a partial corpus is not a result, and
   // re-ranking ~47k sites after each of ten downloads was most of the main-thread time at load.
   const data = screenDataState(candidatesState.lens);
   const waiting = data.pending.length > 0;
-  let rows = invalidationsLoaded && !waiting ? SiteScreens.rank(pool, candidatesState.lens) : [];
+  let rows = [];
+  if (invalidationsLoaded && !waiting) {
+    const pool = tableState.filtered.map(sanitizeGeographicEvidence).map(withholdUncheckedLand);
+    rows = SiteScreens.rank(pool, candidatesState.lens);
+  }
   const inScope = rows.length;
   if (allMet) rows = rows.filter(r => r.ev.met === r.ev.total);
   candidatesState.sorted = rows;
@@ -7188,7 +7197,10 @@ function wireCandidatesFilters() {
       if (el("view-candidates").classList.contains("active")) {
         el("candidates-wrap")?.setAttribute("aria-busy", "true");
         const lens = candidatesState.lens;
-        requestAnimationFrame(() => setTimeout(() => { if (candidatesState.lens === lens) buildCandidatesView(); }, 0));
+        requestAnimationFrame(() => setTimeout(() => {
+          // Skip when this lens was already built (a loader refresh can get there first) or the user moved on.
+          if (candidatesState.lens === lens && candidatesBuiltLens !== lens) buildCandidatesView();
+        }, 0));
       }
     });
   });

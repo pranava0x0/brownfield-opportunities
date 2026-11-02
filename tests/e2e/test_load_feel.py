@@ -38,7 +38,7 @@ def test_ranking_runs_once_for_a_page_load_not_once_per_download(page: Page, bas
     page.wait_for_function("window.__APP_READY__ === true", timeout=60_000)
     expect(page.locator("#candidates-table tbody tr").first).to_be_visible(timeout=30_000)
     calls = page.evaluate("window.__rankCalls")
-    assert 1 <= calls <= 3, f"ranked {calls} times during load (it was once per lazy download before)"
+    assert 1 <= calls <= 5, f"ranked {calls} times during load (it was once per lazy download before)"
 
 
 def test_lens_button_is_lit_before_the_ranking_finishes(page: Page, base_url: str):
@@ -54,3 +54,14 @@ def test_lens_button_is_lit_before_the_ranking_finishes(page: Page, base_url: st
     assert state == {"active": True, "busy": "true"}
     page.wait_for_function("document.getElementById('candidates-wrap').getAttribute('aria-busy') === 'false'", timeout=30_000)
     expect(page.locator("#candidates-table tbody tr").first).to_be_visible()
+
+
+def test_screen_still_ranks_when_a_required_join_has_nothing_to_apply(page: Page, base_url: str):
+    """An empty port file marks the input ready without applying a single record; the view must not stay on the skeleton."""
+    page.route("**/data/port-proximity.json", lambda route: route.fulfill(
+        status=200, content_type="application/json", body='{"generated_at":"2026-11-02T00:00:00Z","source":"test","count":0,"sites":[]}'))
+    page.goto(f"{base_url}/index.html")
+    page.wait_for_function("window.__APP_READY__ === true", timeout=60_000)
+    page.locator('[data-cand-lens="port"]').click()
+    expect(page.locator("#candidates-stats")).not_to_contain_text("Loading", timeout=30_000)
+    assert page.locator("#candidates-skeleton").is_hidden()

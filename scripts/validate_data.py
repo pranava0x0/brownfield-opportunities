@@ -2031,7 +2031,7 @@ def c_local_records_contract(c: Corpus):
                     bad += 1
                     examples.append(f"{site.get('id')}: status {f.get('status')} does not follow from code_check={f.get('code_check')} verifier={f.get('verifier')}")
         yield Finding("local-records-contract", "struct", verdict(bad), len(payload.get("sites", []) or []), bad,
-                      "local records validate, key to shipped ids and reproduce each fact's status from its checks", examples[:50])
+                      f"{fname}: records validate, key to shipped ids and reproduce each fact's status from its checks", examples[:50])
 
 
 @check("site-research-overdue", "derived")

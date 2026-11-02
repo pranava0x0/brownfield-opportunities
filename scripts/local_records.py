@@ -24,7 +24,7 @@ Workflow (files live under data/validation/local-records/):
   apply-opus   fold the Opus decisions in
   publish      write docs/data/local-records.json (accepted facts only)
 
-Every command takes `--work news`: the same pipeline over local news, developer and community-benefit
+Every command takes the top-level flag `--work news` (before the subcommand: `local_records.py --work news queue`): the same pipeline over local news, developer and community-benefit
 research, kept in data/validation/local-news/ and published to docs/data/local-news.json.
   report       one-screen summary
 

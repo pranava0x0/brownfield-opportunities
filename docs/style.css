@@ -4081,7 +4081,3 @@ details.nickel-caveat li { margin-bottom: 6px; }
   .cand-filter, .tab { min-height: 44px; }
   .cand-filter { padding: 8px 14px; font-size: 13px; }
 }
-/* Rows scrolled far off screen skip layout and paint until they are near the viewport. */
-@media (max-width: 900px) {
-  #candidates-table tbody tr { content-visibility: auto; contain-intrinsic-size: auto 190px; }
-}

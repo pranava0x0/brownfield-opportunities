@@ -74,3 +74,13 @@ def test_every_shipped_news_fact_has_a_quote_a_second_reader_and_a_news_kind():
             assert f["kind"] in from_schema, (site["id"], f["kind"])
             assert f["source_url"].startswith("https://") and len(f["quote"]) >= 8
             assert f.get("verifier") or f.get("adjudicated_by") == "opus", ("no second reader", site["id"], f["source_url"])
+
+
+def test_news_researcher_notes_are_shown_with_the_land_record_notes(page: Page, base_url: str):
+    news = next(s for s in json.loads(NEWS.read_text())["sites"] if s.get("gaps"))
+    _ready(page, base_url)
+    page.evaluate("(id) => window.__selectSite(id)", news["id"])
+    page.wait_for_function("document.getElementById('d-local-block') && !document.getElementById('d-local-block').hidden", timeout=30_000)
+    block = page.locator("#d-local-block")
+    block.locator("> summary").click()
+    assert news["gaps"][0] in block.locator(".local-gaps").text_content()   # the notes sit in a closed <details>
