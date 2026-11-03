@@ -37,6 +37,32 @@ The verifier prompt is the same with the research and verdict paths changed. Que
 `local_records.py --work news queue --per-screen 3 --ranked-only`. The detail panel shows the shipped
 facts under "Local news, developers and community benefits".
 
+## News runs, 2026-11-02
+
+The tab manifest now includes the four manufacturing screens; news covers ranks 1-5 of each corpus screen:
+52 facts across 44 sites, 9 held back. Run order per batch: research (Haiku), verify (Sonnet), then
+`stamp`, `adjudicate`, `apply-opus`, `publish`. The usual reason for a held-back fact is a place-name
+match that the page does not tie to the atlas site (an airport named for a former air station, a rail park
+named for a camp).
+
+## Manufacturing catalog (robots, gas turbines, transformers, critical minerals)
+
+Third work directory, own script: `data/validation/manufacturing/` and `scripts/manufacturing_catalog.py`.
+Haiku researchers write `research/<topic>.json` from `RESEARCH_BRIEF.md` (topics `robotics`, `turbine`,
+`transformer`, `minerals`, `doe_minerals`; the last two both land in sector `minerals`). Sonnet verifiers write
+`verdicts/<topic>.json` from `VERIFIER_BRIEF.md`; a verdict binds to its row by index AND `source_url`. Then:
+
+```bash
+python3 scripts/manufacturing_catalog.py adjudicate   # code quote check + the table below; disputes.json
+python3 scripts/manufacturing_catalog.py build        # accepted rows -> docs/data/manufacturing-facilities.json
+python3 scripts/manufacturing_catalog.py memo         # research/manufacturing-siting-2026-11.md, generated part
+```
+
+Opus decisions on disputes go in `opus.json` keyed `<topic>:<kind>:<index>` with a reason. A plant with no
+city on its page is held back: it cannot be mapped. Plants sit at their town's Census place point; the four
+manufacturing screens compute each site's distance to the nearest plant of a sector in the browser and in
+`scripts/screen.js` with the same function (`screens.js stampManufacturing`), so there is no join file to go stale.
+
 ## Adjudication table
 
 | Code finds the quote | Sonnet says | Result |

@@ -1,0 +1,85 @@
+{
+ "batch": "batch-10",
+ "sites": [
+  {
+   "id": "FUDS-I04NC0594",
+   "name": "WINSTON-SALEM ARPT",
+   "program": "fuds",
+   "address": null,
+   "city": "WINSTON-SALEM",
+   "county": "FORSYTH",
+   "state": "NC",
+   "zip": null,
+   "lat": 36.138611,
+   "lon": -80.225278,
+   "acreage": null,
+   "tabs": [
+    "turbine"
+   ],
+   "atlas_owner": "Local government \u2014 County Winston Salem Airport",
+   "atlas_owner_source": "USACE FUDS",
+   "atlas_parcel_id": "6837-80-8891.00",
+   "state_parcel_layer": true
+  },
+  {
+   "id": "FUDS-I04SC0025",
+   "name": "CONWAY BMB&GUNRY RNG",
+   "program": "fuds",
+   "address": null,
+   "city": "CONWAY",
+   "county": "HORRY",
+   "state": "SC",
+   "zip": null,
+   "lat": 33.788294,
+   "lon": -78.853668,
+   "acreage": 55388.5,
+   "tabs": [
+    "solar"
+   ],
+   "atlas_owner": "Private \u2014 Multiple Private Owners, Numerous Private Owners, Private , Residential Development",
+   "atlas_owner_source": "USACE FUDS",
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "FUDS-K06TX0015",
+   "name": "CAMP HOWZE",
+   "program": "fuds",
+   "address": null,
+   "city": "GAINESVILLE",
+   "county": "COOKE",
+   "state": "TX",
+   "zip": null,
+   "lat": 33.78342,
+   "lon": -97.267542,
+   "acreage": 58702.8,
+   "tabs": [
+    "solar"
+   ],
+   "atlas_owner": "Local government \u2014 The City Of Gainesville Owns Moss Lake / Private \u2014 Multiple Private Owners, Private Numerous Private Owners",
+   "atlas_owner_source": "USACE FUDS",
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "IA7213820445",
+   "name": "IOWA ARMY AMMUNITION PLANT",
+   "program": "superfund",
+   "address": "HWY 79 OFF MIDDLETOWN RD",
+   "city": "MIDDLETOWN",
+   "county": "DES MOINES",
+   "state": "IA",
+   "zip": "52638",
+   "lat": 40.771028,
+   "lon": -91.233969,
+   "acreage": 19690.3,
+   "tabs": [
+    "minerals"
+   ],
+   "atlas_owner": "UNITED STATES OF AMERICA",
+   "atlas_owner_source": "Iowa HSEMD Statewide Parcels (2017 vintage)",
+   "atlas_parcel_id": null,
+   "state_parcel_layer": true
+  }
+ ]
+}

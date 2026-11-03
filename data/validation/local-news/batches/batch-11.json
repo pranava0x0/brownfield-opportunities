@@ -1,0 +1,85 @@
+{
+ "batch": "batch-11",
+ "sites": [
+  {
+   "id": "NYD980651087",
+   "name": "HOOKER (S AREA)",
+   "program": "superfund",
+   "address": "BUFFALO AVE",
+   "city": "NIAGARA FALLS",
+   "county": "NIAGARA",
+   "state": "NY",
+   "zip": "14303",
+   "lat": 43.075283,
+   "lon": -79.004498,
+   "acreage": 169.5,
+   "tabs": [
+    "dc"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "TND987790300",
+   "name": "SIXTY ONE INDUSTRIAL PARK",
+   "program": "superfund",
+   "address": "5607 HWY 61 SOUTH",
+   "city": "MEMPHIS",
+   "county": "SHELBY",
+   "state": "TN",
+   "zip": "38107",
+   "lat": 34.998015,
+   "lon": -90.128042,
+   "acreage": 69.2,
+   "tabs": [
+    "transformer"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "TNSFN0407047",
+   "name": "NATIONAL FIREWORKS",
+   "program": "superfund",
+   "address": "9400-9600 MACON ROAD",
+   "city": "CORDOVA",
+   "county": "SHELBY",
+   "state": "TN",
+   "zip": "38016",
+   "lat": 35.16042,
+   "lon": -89.75094,
+   "acreage": 256.7,
+   "tabs": [
+    "transformer"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "TXD008083404",
+   "name": "MANY DIVERSIFIED INTERESTS, INC.",
+   "program": "superfund",
+   "address": "3617 BAER STREET",
+   "city": "HOUSTON",
+   "county": "HARRIS",
+   "state": "TX",
+   "zip": "77020",
+   "lat": 29.769336,
+   "lon": -95.332262,
+   "acreage": 155.8,
+   "tabs": [
+    "robotics"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  }
+ ]
+}

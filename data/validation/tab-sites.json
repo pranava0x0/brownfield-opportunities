@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-31T14:53:41+00:00",
+ "generated_at": "2026-11-02T23:51:09+00:00",
  "top": 10,
  "corpus_sites": [
   {
@@ -195,6 +195,30 @@
     {
      "tab": "dc",
      "rank": 1,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "AZ7570028582",
+   "program": "superfund",
+   "name": "WILLIAMS AIR FORCE BASE",
+   "address": "WILLIAMS AFB",
+   "city": "CHANDLER",
+   "county": "MARICOPA",
+   "state": "AZ",
+   "zip": "85224",
+   "lat": 33.307346,
+   "lon": -111.660133,
+   "acreage": 4024.5,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "robotics",
+     "rank": 7,
      "via": null
     }
    ]
@@ -436,6 +460,11 @@
      "tab": "nickel",
      "rank": 4,
      "via": null
+    },
+    {
+     "tab": "transformer",
+     "rank": 8,
+     "via": null
     }
    ]
   },
@@ -536,6 +565,54 @@
    ]
   },
   {
+   "id": "FUDS-C02NY0017",
+   "program": "fuds",
+   "name": "ROTTERDAM INDUST. PARK",
+   "address": null,
+   "city": "ROTTERDAM",
+   "county": "SCHENECTADY",
+   "state": "NY",
+   "zip": null,
+   "lat": 42.786847,
+   "lon": -73.987847,
+   "acreage": 331.3,
+   "parcel_acreage": null,
+   "current_owner": "Private — Rotterdam Ventures, Inc.",
+   "current_owner_source": "USACE FUDS",
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "turbine",
+     "rank": 6,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "FUDS-C02NY0750",
+   "program": "fuds",
+   "name": "US NAV SUP DEPOT",
+   "address": null,
+   "city": "GLENVILLE",
+   "county": "SCHENECTADY",
+   "state": "NY",
+   "zip": null,
+   "lat": 42.841102,
+   "lon": -73.988504,
+   "acreage": 331.1,
+   "parcel_acreage": null,
+   "current_owner": "Local government — City Us Navy Reserve Center / Defense Logistics Agency / Scotia/glenville School District / Schenectady Economic Development Corporation / Burgess International / Scotia Industrial Park, Inc. (galisi Group). / Private — Us Navy Reserve Center",
+   "current_owner_source": "USACE FUDS",
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "turbine",
+     "rank": 9,
+     "via": null
+    }
+   ]
+  },
+  {
    "id": "FUDS-C03PA0042",
    "program": "fuds",
    "name": "FRANKFORD ARSENAL",
@@ -584,6 +661,54 @@
    ]
   },
   {
+   "id": "FUDS-D01ME0031",
+   "program": "fuds",
+   "name": "AMMO INDUSTRIAL PARK",
+   "address": null,
+   "city": "BANGOR",
+   "county": "PENOBSCOT",
+   "state": "ME",
+   "zip": null,
+   "lat": 44.772781,
+   "lon": -68.822872,
+   "acreage": 224.7,
+   "parcel_acreage": 262.24,
+   "current_owner": "Private — Residential",
+   "current_owner_source": "USACE FUDS",
+   "parcel_id": "10-0-056",
+   "tabs": [
+    {
+     "tab": "turbine",
+     "rank": 10,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "FUDS-D01ME0114",
+   "program": "fuds",
+   "name": "DOW AFB FAM HOU AX #2",
+   "address": null,
+   "city": "BANGOR",
+   "county": "PENOBSCOT",
+   "state": "ME",
+   "zip": null,
+   "lat": 44.782222,
+   "lon": -68.833333,
+   "acreage": null,
+   "parcel_acreage": 94.24,
+   "current_owner": "Local government — City / Private",
+   "current_owner_source": "USACE FUDS",
+   "parcel_id": "R10-002-A",
+   "tabs": [
+    {
+     "tab": "turbine",
+     "rank": 7,
+     "via": null
+    }
+   ]
+  },
+  {
    "id": "FUDS-D01ME0119",
    "program": "fuds",
    "name": "FORT LEVETT",
@@ -603,6 +728,30 @@
     {
      "tab": "port",
      "rank": 7,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "FUDS-E05IL0102",
+   "program": "fuds",
+   "name": "SANGAMON ORDNANCE PLANT",
+   "address": null,
+   "city": "ILLIOPOLIS",
+   "county": "SANGAMON",
+   "state": "IL",
+   "zip": null,
+   "lat": 39.854401,
+   "lon": -89.294098,
+   "acreage": 18913.6,
+   "parcel_acreage": null,
+   "current_owner": "Local government — City Varied. / Other — Multple Owners Have Been Identified For This Site. The List Of Owners Can Be Found In Frmd At E05il010206_01.06_0500 / Private — Varied.",
+   "current_owner_source": "USACE FUDS",
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "minerals",
+     "rank": 5,
      "via": null
     }
    ]
@@ -652,6 +801,35 @@
      "tab": "nickel",
      "rank": 7,
      "via": null
+    },
+    {
+     "tab": "robotics",
+     "rank": 6,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "FUDS-E05WI3067",
+   "program": "fuds",
+   "name": "NIKE SITE M-64",
+   "address": null,
+   "city": null,
+   "county": "WAUKESHA",
+   "state": "WI",
+   "zip": null,
+   "lat": 42.920907,
+   "lon": -88.14931,
+   "acreage": 41.7,
+   "parcel_acreage": null,
+   "current_owner": "Private — Residential",
+   "current_owner_source": "USACE FUDS",
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "robotics",
+     "rank": 9,
+     "via": null
     }
    ]
   },
@@ -676,6 +854,54 @@
      "tab": "retired",
      "rank": 3,
      "via": "GHGRP-1005573"
+    }
+   ]
+  },
+  {
+   "id": "FUDS-I04AL0120",
+   "program": "fuds",
+   "name": "GUNTER AIR FORCE STATION",
+   "address": null,
+   "city": "MONTGOMERY",
+   "county": "MONTGOMERY",
+   "state": "AL",
+   "zip": null,
+   "lat": 32.407178,
+   "lon": -86.231132,
+   "acreage": 806.9,
+   "parcel_acreage": null,
+   "current_owner": "Local government — City Industrial Park And Recreation",
+   "current_owner_source": "USACE FUDS",
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "transformer",
+     "rank": 1,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "FUDS-I04AL3227",
+   "program": "fuds",
+   "name": "CAMP SHERIDAN",
+   "address": null,
+   "city": "MONTGOMERY",
+   "county": "MONTGOMERY",
+   "state": "AL",
+   "zip": null,
+   "lat": 32.41877,
+   "lon": -86.284044,
+   "acreage": 3790.2,
+   "parcel_acreage": null,
+   "current_owner": "Local government — City Calhoun Community College, Residential / Private — Calhoun Community College, Residential",
+   "current_owner_source": "USACE FUDS",
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "transformer",
+     "rank": 2,
+     "via": null
     }
    ]
   },
@@ -776,6 +1002,150 @@
    ]
   },
   {
+   "id": "FUDS-I04GA0033",
+   "program": "fuds",
+   "name": "CAMP WHEELER",
+   "address": null,
+   "city": "MACON",
+   "county": "BIBB",
+   "state": "GA",
+   "zip": null,
+   "lat": 32.790611,
+   "lon": -83.541499,
+   "acreage": 14867.1,
+   "parcel_acreage": null,
+   "current_owner": "Private — Multiple Private Owners, Private Private",
+   "current_owner_source": "USACE FUDS",
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "minerals",
+     "rank": 9,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "FUDS-I04GA0939",
+   "program": "fuds",
+   "name": "NAS ATLANTA",
+   "address": null,
+   "city": "ATLANTA",
+   "county": "DE KALB",
+   "state": "GA",
+   "zip": null,
+   "lat": 33.875277,
+   "lon": -84.302092,
+   "acreage": 412.0,
+   "parcel_acreage": null,
+   "current_owner": "Local government — County Dekalb-Peachtree Airport",
+   "current_owner_source": "USACE FUDS",
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "turbine",
+     "rank": 1,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "FUDS-I04GA0975",
+   "program": "fuds",
+   "name": "CP GORDON",
+   "address": null,
+   "city": "ATLANTA",
+   "county": "DE KALB",
+   "state": "GA",
+   "zip": null,
+   "lat": 33.880586,
+   "lon": -84.31108,
+   "acreage": 2591.0,
+   "parcel_acreage": null,
+   "current_owner": "Private — Business And Commercial Property",
+   "current_owner_source": "USACE FUDS",
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "turbine",
+     "rank": 2,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "FUDS-I04NC0019",
+   "program": "fuds",
+   "name": "LAURINBURG-MAXTON AB",
+   "address": null,
+   "city": "LAURINBURG",
+   "county": "SCOTLAND",
+   "state": "NC",
+   "zip": null,
+   "lat": 34.779961,
+   "lon": -79.374426,
+   "acreage": 4948.3,
+   "parcel_acreage": 2972.59,
+   "current_owner": "Local government — City Local Airport And Industrial Park",
+   "current_owner_source": "USACE FUDS",
+   "parcel_id": "010262 01003  A",
+   "tabs": [
+    {
+     "tab": "transformer",
+     "rank": 6,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "FUDS-I04NC0485",
+   "program": "fuds",
+   "name": "CHARLOTTE ARMY MIS PL",
+   "address": null,
+   "city": "CHARLOTTE",
+   "county": "MECKLENBURG",
+   "state": "NC",
+   "zip": null,
+   "lat": 35.248461,
+   "lon": -80.831817,
+   "acreage": 76.3,
+   "parcel_acreage": 21.87,
+   "current_owner": "Private — Commercial",
+   "current_owner_source": "USACE FUDS",
+   "parcel_id": "07903101",
+   "tabs": [
+    {
+     "tab": "turbine",
+     "rank": 4,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "FUDS-I04NC0594",
+   "program": "fuds",
+   "name": "WINSTON-SALEM ARPT",
+   "address": null,
+   "city": "WINSTON-SALEM",
+   "county": "FORSYTH",
+   "state": "NC",
+   "zip": null,
+   "lat": 36.138611,
+   "lon": -80.225278,
+   "acreage": null,
+   "parcel_acreage": 525.15,
+   "current_owner": "Local government — County Winston Salem Airport",
+   "current_owner_source": "USACE FUDS",
+   "parcel_id": "6837-80-8891.00",
+   "tabs": [
+    {
+     "tab": "turbine",
+     "rank": 5,
+     "via": null
+    }
+   ]
+  },
+  {
    "id": "FUDS-I04SC0025",
    "program": "fuds",
    "name": "CONWAY BMB&GUNRY RNG",
@@ -795,6 +1165,30 @@
     {
      "tab": "solar",
      "rank": 5,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "FUDS-J09AZ0377",
+   "program": "fuds",
+   "name": "GILBERT AF AUXILIARY FIELD",
+   "address": null,
+   "city": "MESA",
+   "county": "MARICOPA",
+   "state": "AZ",
+   "zip": null,
+   "lat": 33.388748,
+   "lon": -111.66964,
+   "acreage": 595.0,
+   "parcel_acreage": null,
+   "current_owner": "Local",
+   "current_owner_source": "USACE FUDS",
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "robotics",
+     "rank": 2,
      "via": null
     }
    ]
@@ -896,6 +1290,30 @@
    ]
   },
   {
+   "id": "FUDS-K06OK0025",
+   "program": "fuds",
+   "name": "OKLAHOMA ORDNANCE WORKS",
+   "address": null,
+   "city": "PRYOR",
+   "county": "MAYES",
+   "state": "OK",
+   "zip": null,
+   "lat": 36.213219,
+   "lon": -95.284142,
+   "acreage": 15770.3,
+   "parcel_acreage": null,
+   "current_owner": "Private — Currently Used As An Industrial Park And For Residential Purposes.",
+   "current_owner_source": "USACE FUDS",
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "minerals",
+     "rank": 7,
+     "via": null
+    }
+   ]
+  },
+  {
    "id": "FUDS-K06TX0015",
    "program": "fuds",
    "name": "CAMP HOWZE",
@@ -944,6 +1362,54 @@
    ]
   },
   {
+   "id": "IA7213820445",
+   "program": "superfund",
+   "name": "IOWA ARMY AMMUNITION PLANT",
+   "address": "HWY 79 OFF MIDDLETOWN RD",
+   "city": "MIDDLETOWN",
+   "county": "DES MOINES",
+   "state": "IA",
+   "zip": "52638",
+   "lat": 40.771028,
+   "lon": -91.233969,
+   "acreage": 19690.3,
+   "parcel_acreage": null,
+   "current_owner": "UNITED STATES OF AMERICA",
+   "current_owner_source": "Iowa HSEMD Statewide Parcels (2017 vintage)",
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "minerals",
+     "rank": 4,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "IL3210020803",
+   "program": "superfund",
+   "name": "SAVANNA ARMY DEPOT ACTIVITY",
+   "address": "7MI N OF SAVANNA ON RTE 84",
+   "city": "SAVANNA",
+   "county": "JO DAVIESS",
+   "state": "IL",
+   "zip": "61074",
+   "lat": 42.226656,
+   "lon": -90.328573,
+   "acreage": 14842.7,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "minerals",
+     "rank": 10,
+     "via": null
+    }
+   ]
+  },
+  {
    "id": "ILD096731468",
    "program": "superfund",
    "name": "NL INDUSTRIES/TARACORP LEAD SMELTER",
@@ -987,6 +1453,78 @@
     {
      "tab": "port",
      "rank": 1,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "IND980997639",
+   "program": "superfund",
+   "name": "TIPPECANOE SANITARY LANDFILL, INC.",
+   "address": "2801 NORTH 9TH RD, 1/2 MI N OF US 52",
+   "city": "LAFAYETTE",
+   "county": "TIPPECANOE",
+   "state": "IN",
+   "zip": "47905",
+   "lat": 40.456339,
+   "lon": -86.871352,
+   "acreage": 83.7,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "turbine",
+     "rank": 8,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "KSD980741862",
+   "program": "superfund",
+   "name": "CHEROKEE COUNTY",
+   "address": "SOUTHEAST PORTION OF THE  STATE OF KS",
+   "city": "CHEROKEE COUNTY",
+   "county": "CHEROKEE",
+   "state": "KS",
+   "zip": "66739",
+   "lat": 37.132078,
+   "lon": -94.752047,
+   "acreage": 99524.4,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "minerals",
+     "rank": 1,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "LA0213820533",
+   "program": "superfund",
+   "name": "LOUISIANA ARMY AMMUNITION PLANT",
+   "address": "HWY 80 E/PO BOX 30059",
+   "city": "DOYLINE",
+   "county": "WEBSTER",
+   "state": "LA",
+   "zip": "71130",
+   "lat": 32.561459,
+   "lon": -93.398067,
+   "acreage": 14966.7,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "minerals",
+     "rank": 8,
      "via": null
     }
    ]
@@ -1107,6 +1645,30 @@
     {
      "tab": "dc",
      "rank": 2,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "MID072569510",
+   "program": "superfund",
+   "name": "MUSKEGON CHEMICAL CO.",
+   "address": "1725 WARNER ST",
+   "city": "WHITEHALL",
+   "county": "MUSKEGON",
+   "state": "MI",
+   "zip": "49461",
+   "lat": 43.386021,
+   "lon": -86.339005,
+   "acreage": 203.8,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "turbine",
+     "rank": 3,
      "via": null
     }
    ]
@@ -1273,9 +1835,38 @@
    "parcel_id": null,
    "tabs": [
     {
+     "tab": "transformer",
+     "rank": 10,
+     "via": null
+    },
+    {
      "tab": "civilian",
      "rank": null,
      "via": "william-states-lee-sc"
+    }
+   ]
+  },
+  {
+   "id": "NCD986172526",
+   "program": "superfund",
+   "name": "GURLEY PESTICIDE BURIAL",
+   "address": "719 E. PRESTON STREET",
+   "city": "SELMA",
+   "county": "JOHNSTON",
+   "state": "NC",
+   "zip": "27576",
+   "lat": 35.528507,
+   "lon": -78.277927,
+   "acreage": 102.9,
+   "parcel_acreage": 99.48,
+   "current_owner": "NSEW CORPORATION",
+   "current_owner_source": "NC OneMap (NC1Map statewide parcels)",
+   "parcel_id": "261406-47-8660",
+   "tabs": [
+    {
+     "tab": "transformer",
+     "rank": 7,
+     "via": null
     }
    ]
   },
@@ -1300,6 +1891,30 @@
      "tab": "civilian",
      "rank": null,
      "via": "william-states-lee-sc"
+    }
+   ]
+  },
+  {
+   "id": "NESFN0703481",
+   "program": "superfund",
+   "name": "OMAHA LEAD",
+   "address": "INTERSECTION I480 & ABBOTT DRIVE",
+   "city": "OMAHA",
+   "county": "DOUGLAS",
+   "state": "NE",
+   "zip": "68102",
+   "lat": 41.257019,
+   "lon": -95.955403,
+   "acreage": 17302.3,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "minerals",
+     "rank": 6,
+     "via": null
     }
    ]
   },
@@ -1347,6 +1962,54 @@
     {
      "tab": "dc",
      "rank": 5,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "OR6213820917",
+   "program": "superfund",
+   "name": "UMATILLA ARMY DEPOT (LAGOONS)",
+   "address": "I-84 & EXIT 178",
+   "city": "HERMISTON",
+   "county": "MORROW",
+   "state": "OR",
+   "zip": "97844",
+   "lat": 45.836197,
+   "lon": -119.444406,
+   "acreage": 33130.2,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "minerals",
+     "rank": 3,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "PAD980508816",
+   "program": "superfund",
+   "name": "OHIO RIVER PARK",
+   "address": "GRAND AVE",
+   "city": "NEVILLE ISLAND",
+   "county": "ALLEGHENY",
+   "state": "PA",
+   "zip": "15225",
+   "lat": 40.5187,
+   "lon": -80.152881,
+   "acreage": 42.8,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "transformer",
+     "rank": 9,
      "via": null
     }
    ]
@@ -1568,6 +2231,30 @@
    ]
   },
   {
+   "id": "TND073540783",
+   "program": "superfund",
+   "name": "ILLINOIS CENTRAL RAILROAD COMPANY'S JOHNSTON YARD SUPERFUND SITE",
+   "address": "2921 HORN LAKE ROAD",
+   "city": "MEMPHIS",
+   "county": "SHELBY",
+   "state": "TN",
+   "zip": "38109",
+   "lat": 35.070586,
+   "lon": -90.076448,
+   "acreage": 353.3,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "transformer",
+     "rank": 3,
+     "via": null
+    }
+   ]
+  },
+  {
    "id": "TND098071061",
    "program": "superfund",
    "name": "SMOKEY MOUNTAIN SMELTERS",
@@ -1612,6 +2299,78 @@
      "tab": "civilian",
      "rank": null,
      "via": "clinch-river-tn"
+    }
+   ]
+  },
+  {
+   "id": "TND987790300",
+   "program": "superfund",
+   "name": "SIXTY ONE INDUSTRIAL PARK",
+   "address": "5607 HWY 61 SOUTH",
+   "city": "MEMPHIS",
+   "county": "SHELBY",
+   "state": "TN",
+   "zip": "38107",
+   "lat": 34.998015,
+   "lon": -90.128042,
+   "acreage": 69.2,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "transformer",
+     "rank": 4,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "TNSFN0407047",
+   "program": "superfund",
+   "name": "NATIONAL FIREWORKS",
+   "address": "9400-9600 MACON ROAD",
+   "city": "CORDOVA",
+   "county": "SHELBY",
+   "state": "TN",
+   "zip": "38016",
+   "lat": 35.16042,
+   "lon": -89.75094,
+   "acreage": 256.7,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "transformer",
+     "rank": 5,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "TXD008083404",
+   "program": "superfund",
+   "name": "MANY DIVERSIFIED INTERESTS, INC.",
+   "address": "3617 BAER STREET",
+   "city": "HOUSTON",
+   "county": "HARRIS",
+   "state": "TX",
+   "zip": "77020",
+   "lat": 29.769336,
+   "lon": -95.332262,
+   "acreage": 155.8,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "robotics",
+     "rank": 4,
+     "via": null
     }
    ]
   },
@@ -1665,6 +2424,102 @@
      "tab": "civilian",
      "rank": null,
      "via": "south-texas-tx"
+    }
+   ]
+  },
+  {
+   "id": "TXD980810386",
+   "program": "superfund",
+   "name": "SOUTH CAVALCADE STREET",
+   "address": "SE OF CAVALCADE AND MAURY/BTWN BH&T RR",
+   "city": "HOUSTON",
+   "county": "HARRIS",
+   "state": "TX",
+   "zip": "77020",
+   "lat": 29.798501,
+   "lon": -95.348171,
+   "acreage": 67.6,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "robotics",
+     "rank": 1,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "TXD980873327",
+   "program": "superfund",
+   "name": "SOL LYNN/INDUSTRIAL TRANSFORMERS",
+   "address": "1415, 1417, 1419 S LOOP WEST",
+   "city": "HOUSTON",
+   "county": "HARRIS",
+   "state": "TX",
+   "zip": "77054",
+   "lat": 29.68024,
+   "lon": -95.398505,
+   "acreage": 20.3,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "robotics",
+     "rank": 8,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "TXD980873343",
+   "program": "superfund",
+   "name": "NORTH CAVALCADE STREET",
+   "address": "NE OF CAVALCADE AND MAURY/BTWN BH&T RR",
+   "city": "HOUSTON",
+   "county": "HARRIS",
+   "state": "TX",
+   "zip": "77009",
+   "lat": 29.807599,
+   "lon": -95.34923,
+   "acreage": 26.5,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "robotics",
+     "rank": 3,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "UTD070926811",
+   "program": "superfund",
+   "name": "KENNECOTT (NORTH ZONE)",
+   "address": "12000 WEST 2100 SOUTH",
+   "city": "MAGNA",
+   "county": "SALT LAKE",
+   "state": "UT",
+   "zip": "84044",
+   "lat": 40.704941,
+   "lon": -112.128626,
+   "acreage": 33670.0,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "minerals",
+     "rank": 2,
+     "via": null
     }
    ]
   },
@@ -1785,6 +2640,54 @@
      "tab": "civilian",
      "rank": null,
      "via": "north-anna-va"
+    }
+   ]
+  },
+  {
+   "id": "WID000713180",
+   "program": "superfund",
+   "name": "MUSKEGO SANITARY LANDFILL",
+   "address": "HIGHWAY 24 & CROWBAR ROAD",
+   "city": "MUSKEGO",
+   "county": "WAUKESHA",
+   "state": "WI",
+   "zip": "53150",
+   "lat": 42.886779,
+   "lon": -88.173972,
+   "acreage": 1340.9,
+   "parcel_acreage": null,
+   "current_owner": null,
+   "current_owner_source": null,
+   "parcel_id": null,
+   "tabs": [
+    {
+     "tab": "robotics",
+     "rank": 10,
+     "via": null
+    }
+   ]
+  },
+  {
+   "id": "WID980901227",
+   "program": "superfund",
+   "name": "FADROWSKI DRUM DISPOSAL",
+   "address": "6800 S 27TH ST",
+   "city": "FRANKLIN",
+   "county": "MILWAUKEE",
+   "state": "WI",
+   "zip": "53132",
+   "lat": 42.920844,
+   "lon": -87.953411,
+   "acreage": 21.8,
+   "parcel_acreage": 11.45,
+   "current_owner": "MENARD INC",
+   "current_owner_source": "WI V8 Statewide Parcels (WI DOA)",
+   "parcel_id": "7389974005",
+   "tabs": [
+    {
+     "tab": "robotics",
+     "rank": 5,
+     "via": null
     }
    ]
   }

@@ -1,0 +1,6 @@
+{"batch": "disputes", "sites": [
+  {"id": "KSD980741862", "adjudicator": "Claude Opus 5.5",
+   "decisions": [
+     {"index": 1, "fingerprint": "f04cd62ead23eaf5", "decision": "reject", "reason": "The quote is on the page, but the summary adds 'limits reuse of OU5 for housing', which the page does not say; the verifier marked it unsupported."}
+   ]}
+]}

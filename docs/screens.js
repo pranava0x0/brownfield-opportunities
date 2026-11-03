@@ -142,6 +142,128 @@
     tieBreak: {label: "largest acreage", dir: "desc", value: siteAcres},
   });
 
+  // ---- Manufacturing screens (2026-11-02) ----
+  // Thresholds come from named plants and cited requirement statements in
+  // docs/data/manufacturing-facilities.json; research memo:
+  // research/manufacturing-siting-2026-11.md. Distance to the nearest
+  // existing plant of the same sector (mfg_<sector>_mi) is computed from the
+  // site's current coordinates by stampManufacturing(), not read from a join
+  // file. Plant points are Census place points, good to a few miles.
+  const MFG_MEMO = "https://github.com/pranava0x0/brownfield-opportunities/blob/main/research/manufacturing-siting-2026-11.md";
+  const MFG = {
+    robotics: {title: "Robot and physical-AI plants: sizes and locations (research memo)", url: MFG_MEMO + "#robotics"},
+    turbine: {title: "Gas turbine plants: heavy parts and plant sizes (research memo)", url: MFG_MEMO + "#gas-turbines"},
+    transformer: {title: "Power transformer plants: heavy haul, test power, sizes (research memo)", url: MFG_MEMO + "#transformers"},
+    minerals: {title: "Critical mineral processing plants: land, power, water, rail (research memo)", url: MFG_MEMO + "#critical-minerals"},
+    catalog: {title: "US plant catalog (docs/data/manufacturing-facilities.json)",
+      url: "https://github.com/pranava0x0/brownfield-opportunities/blob/main/docs/data/manufacturing-facilities.json"},
+  };
+  const MFG_SECTORS = ["robotics", "turbine", "transformer", "minerals"];
+  const MFG_ACTIVE = ["operating", "under_construction", "announced", "expansion"];
+  const EARTH_MI = 3958.8;
+  function haversineMi(a1, o1, a2, o2) {
+    const r = Math.PI / 180, dp = (a2 - a1) * r, dl = (o2 - o1) * r;
+    const h = Math.sin(dp / 2) ** 2 + Math.cos(a1 * r) * Math.cos(a2 * r) * Math.sin(dl / 2) ** 2;
+    return 2 * EARTH_MI * Math.asin(Math.min(1, Math.sqrt(h)));
+  }
+  // Writes mfg_<sector>_mi and mfg_<sector>_name on each site: the nearest
+  // operating, building or announced plant of that sector. Uses the real
+  // coordinates of inset-remapped sites (Alaska, Hawaii, territories).
+  // Cancelled and paused plants are excluded. `version` lets a caller skip
+  // sites already stamped against the same catalog.
+  function stampManufacturing(sites, facilities, version = 1) {
+    const bySector = {};
+    for (const sector of MFG_SECTORS) {
+      bySector[sector] = (facilities || []).filter(f => f.sector === sector && MFG_ACTIVE.includes(f.status)
+        && num(f.lat) && num(f.lon));
+    }
+    for (const s of sites) {
+      if (s._mfgStamped === version) continue;
+      const lat = num(s.lat_real) ? s.lat_real : s.lat, lon = num(s.lon_real) ? s.lon_real : s.lon;
+      for (const sector of MFG_SECTORS) {
+        let best = null, name = null;
+        if (num(lat) && num(lon)) {
+          for (const f of bySector[sector]) {
+            const d = haversineMi(lat, lon, f.lat, f.lon);
+            if (best === null || d < best) { best = d; name = f.name; }
+          }
+        }
+        s[`mfg_${sector}_mi`] = best === null ? null : Math.round(best * 10) / 10;
+        s[`mfg_${sector}_name`] = name;
+      }
+      s._mfgStamped = version;
+    }
+    return sites;
+  }
+  const clusterCheck = (sector, mi, label) => ({id: "cluster", label, rule: `mfg_${sector}_mi ≤ ${mi}`, kind: "P",
+    note: "Distance to a Census place point for the nearest operating, building or announced plant of this kind: a proxy "
+      + "for suppliers and trained workers nearby. Plant points are good to a few miles.",
+    source: MFG.catalog, test: atMost(`mfg_${sector}_mi`, mi),
+    show: s => num(s[`mfg_${sector}_mi`]) ? `${Math.round(s[`mfg_${sector}_mi`])} mi · ${s[`mfg_${sector}_name`] || ""}` : "unknown"});
+  const railCheck = mi => ({id: "rail", label: `Rail within ${mi} mi`, rule: `rail_mi ≤ ${mi}`, kind: "P", source: SRC.tiger,
+    test: atMost("rail_mi", mi), show: s => miles(s.rail_mi)});
+  const gridCheck = (kv, mi, source) => ({id: "grid", label: `Line ≥${kv} kV within ${mi} mi`, rule: `transmission_${kv}kv_mi ≤ ${mi}`,
+    kind: "P", source, test: lineAtLeast(kv, mi), show: lineShow(kv)});
+  const floodCheck = {id: "flood", label: "Outside flood zone", rule: "in_sfha = false", kind: "R", source: SRC.fema, test: notFlood, show: floodShow};
+
+  define("robotics", {
+    label: "Robot / physical-AI assembly", universe: "corpus", sector: "robotics",
+    method: "Robot and physical-AI assembly plants are light-industrial buildings near engineers and suppliers. No agency threshold exists; ours come from built plants.",
+    criteria: [
+      {id: "land", label: "Land ≥20 acres", rule: "acreage ≥ 20", kind: "P", source: MFG.robotics,
+        note: "Built robot plants run 70,000 to 800,000 sq ft of floor; 20 acres fits the middle of that range with parking and yard.",
+        test: landAtLeast(20), show: landShow},
+      {id: "road", label: "Primary road within 5 mi", rule: "highway_mi ≤ 5", kind: "P", source: SRC.tiger,
+        test: atMost("highway_mi", 5), show: s => miles(s.highway_mi)},
+      floodCheck,
+      clusterCheck("robotics", 100, "Robot or AI-hardware plant within 100 mi"),
+    ],
+    tieBreak: {label: "nearest robot or AI-hardware plant", value: s => s.mfg_robotics_mi},
+  });
+
+  define("turbine", {
+    label: "Gas turbine plant", universe: "corpus", sector: "turbine",
+    method: "Turbine casings and rotors leave by rail, heavy-haul trailer or barge, and the plants that make them are large campuses. Test-stand gas supply is not assessed.",
+    criteria: [
+      {id: "land", label: "Land ≥50 acres", rule: "acreage ≥ 50", kind: "P", source: MFG.turbine,
+        note: "Caterpillar's Lafayette engine campus is 1.6 million sq ft, about 37 acres of floor.", test: landAtLeast(50), show: landShow},
+      railCheck(1),
+      gridCheck(115, 5, MFG.turbine),
+      floodCheck,
+    ],
+    tieBreak: {label: "nearest turbine plant", value: s => s.mfg_turbine_mi},
+  });
+
+  define("transformer", {
+    label: "Power transformer plant", universe: "corpus", sector: "transformer",
+    method: "Large power transformers weigh hundreds of tons and leave by rail; extra-high-voltage plants test units at up to 765 kV, so a 230 kV or higher line nearby is our proxy for test power.",
+    criteria: [
+      {id: "land", label: "Land ≥40 acres", rule: "acreage ≥ 40", kind: "P", source: MFG.transformer,
+        note: "Eaton's Jonesville transformer plant reuses an 861,000 sq ft building (about 20 acres of floor).", test: landAtLeast(40), show: landShow},
+      railCheck(1),
+      gridCheck(230, 5, MFG.transformer),
+      floodCheck,
+    ],
+    tieBreak: {label: "nearest transformer plant", value: s => s.mfg_transformer_mi},
+  });
+
+  define("minerals", {
+    label: "Critical mineral processing", universe: "corpus", sector: "minerals",
+    method: "Refining and separation plants need land for process and tailings areas, high power, process water, and rail for reagents and product.",
+    criteria: [
+      {id: "land", label: "Land ≥100 acres", rule: "acreage ≥ 100", kind: "P", source: MFG.minerals,
+        note: "Albemarle's Kings Mountain lithium site is 1,200 acres; a magnet plant (e-VAC Sumter) took 85.", test: landAtLeast(100), show: landShow},
+      railCheck(1),
+      gridCheck(115, 5, MFG.minerals),
+      {id: "water", label: "Gaged river ≥100 cfs within 10 mi", rule: "water_100cfs_gage_mi ≤ 10", kind: "P", source: SRC.usgs,
+        note: "Distance to a USGS gage on a river of that size, not a water right. No qualifying gage nearby is unknown, never a fail.",
+        test: s => num(s.water_100cfs_gage_mi) && s.water_100cfs_gage_mi <= 10 ? true : null,
+        show: s => num(s.water_100cfs_flow_cfs) ? `${Math.round(s.water_100cfs_flow_cfs).toLocaleString("en-US")} cfs · ${miles(s.water_100cfs_gage_mi)}` : "unknown"},
+      floodCheck,
+    ],
+    tieBreak: {label: "largest acreage", dir: "desc", value: siteAcres},
+  });
+
   // ---- Nuclear screens: 14 curated military installations ----
   const NUC = {
     pop: {title: "10 CFR 100.3: population center of about 25,000 residents", url: "https://www.law.cornell.edu/cfr/text/10/100.3"},
@@ -304,8 +426,8 @@
     return tb.dir === "desc" ? -v : v;
   }
 
-  const api = {VERSION, SCREENS, evaluate, rank, siteAcres, miles, acres, define,
-    helpers: {num, atMost, atLeast, notFlood}};
+  const api = {VERSION, SCREENS, evaluate, rank, siteAcres, miles, acres, define, stampManufacturing, MFG_SECTORS, MFG_ACTIVE,
+    helpers: {num, atMost, atLeast, notFlood, haversineMi}};
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (root) root.SiteScreens = api;
 })(typeof window !== "undefined" ? window : null);

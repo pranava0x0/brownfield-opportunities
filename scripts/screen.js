@@ -21,7 +21,7 @@ const PROGRAM_FILES = ["sites.json", "epa-acres.json", "dod-fuds.json", "dod-bra
 const ENRICHMENT_FILES = ["infra-proximity.json", "water-proximity.json", "port-proximity.json",
   "nickel-anchor-proximity.json", "parcel-owner.json", "eia-retired-plants.json",
   "planned-retirements-proximity.json", "fema-nri.json",
-  "acreage-flags.json", "coord-quality.json"];
+  "acreage-flags.json", "coord-quality.json", "manufacturing-facilities.json"];
 const read = f => JSON.parse(fs.readFileSync(path.join(DATA, f), "utf8"));
 
 function loadCorpus() {
@@ -48,7 +48,11 @@ function loadCorpus() {
     for (const f of x.clear_fields || []) delete s[f];
     Object.assign(s, x.restore_core_fields || {});
   }
-  return [...byId.values()];
+  // Manufacturing screens read the distance to the nearest plant of a sector,
+  // computed from current coordinates exactly as the browser does.
+  const sites = [...byId.values()];
+  Screens.stampManufacturing(sites, read("manufacturing-facilities.json").sites);
+  return sites;
 }
 
 // Each screen ranks one population (screens.js `universe`).

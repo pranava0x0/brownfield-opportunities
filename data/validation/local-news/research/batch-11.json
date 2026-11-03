@@ -1,0 +1,33 @@
+{"batch": "batch-11", "researcher": "Claude Haiku 5.5", "sites": [
+  {"id": "NYD980651087", "name": "HOOKER (S AREA)", "researcher": "Claude Haiku 5.5", "portals": [], "facts": [],
+   "gaps": [
+     "Searched 'Hooker S-Area' with Love Canal, Hooker and Occidental terms, and the Buffalo Avenue address. No development project, developer, incentive or zoning action on the S-Area was found.",
+     "EPA describes the S-Area as an 8-acre landfill on the Buffalo Avenue Plant property owned by Occidental Chemical. No news ties a redevelopment of that property to the S-Area.",
+     "A WKBW story reports that Occidental Chemical will shutter its Buffalo Avenue manufacturing operation, affecting about 150 workers. It was not used as a fact: the article never names the S-Area, gives no date, and 'Buffalo Avenue' alone is not a unique place match.",
+     "The 305 Buffalo Avenue RFEI (ESD, 2018) is a different parcel near Goat Island and was excluded."]},
+  {"id": "TND987790300", "name": "SIXTY ONE INDUSTRIAL PARK", "researcher": "Claude Haiku 5.5", "portals": [], "facts": [],
+   "gaps": [
+     "Searched 'Sixty One Industrial Park', 'Sixty-One Industrial Park' and '5607 Highway 61' in Memphis. No page names this park or this address.",
+     "Results were a Walls, MS park at Highway 61 and Star Landing Road, a retail building at 5226 Highway 61, and the Memphis Depot and Port of Memphis parks. None is this site.",
+     "A 2018 Commercial Appeal piece on the former Firestone plant surfaced, but that plant is in Frayser, not on Highway 61 South, so it was excluded. The article was also blocked (HTTP 403).",
+     "No news or development record found. Parcel and owner records (Shelby County Assessor) would be the next check."]},
+  {"id": "TNSFN0407047", "name": "NATIONAL FIREWORKS", "researcher": "Claude Haiku 5.5", "portals": [],
+   "facts": [
+     {"kind": "redevelopment_plan", "date": null, "summary": "EPA's Superfund site page says the former National Fireworks site is now called the Cordova Industrial Park, with distributors, offices, storage, repair and production uses on the site. This describes existing reuse, not a new project. The page gives 9509 Macon Road as the address and says a remedial investigation is in progress, managed by the potentially responsible party. The page has no dated update.", "authority": "U.S. EPA (National Fireworks Superfund site profile)", "reference": "National Fireworks Site (EPA response profile)", "source_url": "https://response.epa.gov/nationalfireworksou2", "quote": "The National Fireworks Site is currently called the Cordova Industrial Park (CIP)."}],
+   "gaps": [
+     "Searched 'National Fireworks' with Macon Road, Cordova, data center and battery storage. No news or development filing ties this parcel to a new project.",
+     "A Cordova listing at 9528 Macon Rd describes data-center or battery-storage suitability, but it does not name National Fireworks and is a different address, so it was excluded.",
+     "The atlas address range (9400-9600 Macon Road) contains EPA's 9509 Macon Road. Parcel and owner records were not checked.",
+     "EPA's page shows the 2001 site inspection and 2004 expanded inspection, with a remedial investigation in progress. No dated cleanup milestone or local coverage was found."]},
+  {"id": "TXD008083404", "name": "MANY DIVERSIFIED INTERESTS, INC.", "researcher": "Claude Haiku 5.5", "portals": [],
+   "facts": [
+     {"kind": "developer", "date": "2006-11-09", "summary": "A 2006 EPA site-ceremony notice for the MDI Superfund site (Operable Unit 1) lists Clinton Gregg Investments, Inc as an invited participant, alongside the Fifth Ward community. The notice does not state the company's role or the purchase terms.", "authority": "U.S. EPA (MDI site ceremony announcement, hosted on chron.com)", "reference": "Many Diversified Interests Inc (MDI) Tesco Superfund Site, ceremony notice", "source_url": "https://extras.chron.com/banners/Misc/e/epa/110206/epa_ceremony.htm", "quote": "Clinton Gregg Investments, Inc at a site ceremony"},
+     {"kind": "redevelopment_plan", "date": "2006-11-09", "summary": "The same EPA ceremony notice says the MDI site was to be cleaned up for redevelopment by a private party. It does not name residential or other end uses.", "authority": "U.S. EPA (MDI site ceremony announcement, hosted on chron.com)", "reference": "Many Diversified Interests Inc (MDI) Tesco Superfund Site, ceremony notice", "source_url": "https://extras.chron.com/banners/Misc/e/epa/110206/epa_ceremony.htm", "quote": "to be cleaned up for redevelopment by a private party"},
+     {"kind": "redevelopment_plan", "date": "2018-01-17", "summary": "EPA's January 2018 Superfund redevelopment focus list release includes the MDI site in Houston, described as a former foundry. The release says these sites have significant redevelopment potential but names no buyer or specific reuse plan for MDI. It also says the site was removed from the NPL in 2010, which conflicts with a 2010 partial-deletion notice.", "authority": "U.S. EPA (news release)", "reference": "EPA Releases Superfund Redevelopment Focus List Includes MDI Site Houston", "source_url": "https://www.epa.gov/archive/epa/newsreleases/epa-releases-superfund-redevelopment-focus-list-includes-mdi-site-houston.html", "quote": "The list includes the Many Diversified Interests, Inc., (MDI) site in Houston, a former foundry"}],
+   "gaps": [
+     "The 2006 quotes came from a fetched text extract of the ceremony notice, not a raw copy. Re-check the exact wording against the page before shipping.",
+     "The 2006 agreed order and the 2006 non-liable-party agreement with Clinton Gregg Investments were found in search results, but eponline.com returned HTTP 403, so no quote was taken from it.",
+     "No dated local news on current occupancy, residential reuse or cleanup completion was found.",
+     "EPA's current site profile (response.epa.gov/MDI) describes the site as inactive and gives no NPL status or reuse sentence. The second five-year review (May 2018) is the latest found.",
+     "The Texas Observer and an undated community report say lead and arsenic remain a concern. Those are advocacy views, conflict with EPA's protectiveness finding, and were not used as facts."]}
+]}

@@ -1,0 +1,16 @@
+{"batch": "batch-06", "sites": [
+{"id": "FUDS-J09AZ0377", "verifier": "Claude Sonnet 5.5", "fact_verdicts": [], "portal_verdicts": []},
+{"id": "KSD980741862", "verifier": "Claude Sonnet 5.5", "fact_verdicts": [
+ {"index": 0, "source_url": "https://www.epa.gov/node/280280", "verdict": "supported", "note": "Cherokee County KS NPL page, Jan 2023 update (page updated Dec 8, 2025): 'If new residential development is identified within the site boundary, EPA will test the residential yards'."},
+ {"index": 1, "source_url": "https://www.epa.gov/node/280280", "verdict": "unsupported", "note": "Page says 'The OU5 remedy does not address the potential future residential development of the area.' and ICs 'limit land use on capped waste areas' (OU3/4/6). 'Limits reuse of OU5 for housing' is the researcher's inference."},
+ {"index": 2, "source_url": "https://19january2021snapshot.epa.gov/superfund-redevelopment-initiative/superfund-sites-reuse-kansas_.html", "verdict": "supported", "note": "Cherokee entry: 'The 12-acre Work Area #1 ... used by the landowner for farming cash crops like wheat and soybeans.' 'More than 2,700 acres ... restored as agricultural, livestock use and wildlife habitat.' 'Last updated September 2019'."}
+], "portal_verdicts": []},
+{"id": "MID072569510", "verifier": "Claude Sonnet 5.5", "fact_verdicts": [], "portal_verdicts": []},
+{"id": "OR6213820917", "verifier": "Claude Sonnet 5.5", "fact_verdicts": [
+ {"index": 0, "source_url": "https://eastoregonian.com/?p=572174", "verdict": "supported", "note": "'The counties and ports plan to develop industrial areas on the 9,511 acres the CDA now own'; ceremony Wed July 12, 2023; CDA ownership 'back in March'. Scope: whole depot; lagoons not mentioned."},
+ {"index": 1, "source_url": "https://lagrandeobserver.com/2022/09/29/columbia-development-authority-director-to-sign-paperwork-transferring-depot-land-from-army", "verdict": "supported", "note": "Sep 29, 2022: 'The CDA at long last is about to become the owner of the former Umatilla Chemical Depot'; 'nearly 10,000 acres'; director on being 'strategic and thoughtful'. Whole depot; lagoons not mentioned."},
+ {"index": 2, "source_url": "https://bluemountaineagle.com/?p=179432", "verdict": "supported", "note": "Mar 30, 2023: 'Obsidian's map showed the depot as its Oregon hub'; Obsidian (Lake Oswego solar) applied to DOE Nov 2022; PNW Hydrogen Association applied; no hub acreage given. Whole depot; no lagoons."},
+ {"index": 3, "source_url": "https://www.epa.gov/superfund-redevelopment/epa-region-10-howard-orlean-excellence-site-reuse-award", "verdict": "supported", "note": "2024 award; 'The authority designated 5,500 acres of this land as a wildlife refuge'; Tribes received title to 4,000 acres, 'an important cultural site'. EPA names the Umatilla Army Depot Superfund site; no lagoons mention."},
+ {"index": 4, "source_url": "https://www.dvidshub.net/news/printable/261908", "verdict": "supported", "note": "Signed Nov 27, 2017 by Oregon Adjutant General and USACE: 'dedicates 7,500 acres of the former depot's 19,729 acres as a new Oregon National Guard Training Center'; posted Jan 11, 2018. Whole depot; no lagoons."}
+], "portal_verdicts": []}
+]}

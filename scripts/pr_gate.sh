@@ -62,7 +62,7 @@ seen = set()
 # House network ethics: >=1.5s between requests to any single host, and a
 # throttling answer (429/403) is INCONCLUSIVE, never a dead citation — a
 # rate-limited GEM wiki must not block every PR (Codex review round 2).
-INCONCLUSIVE_HTTP = {403, 429}
+INCONCLUSIVE_HTTP = {403, 429, 502, 503, 504}  # bot blocks and server errors say nothing about the page
 last_hit: dict[str, float] = {}
 
 def check(fname: str, url: str) -> None:
@@ -88,6 +88,17 @@ def check(fname: str, url: str) -> None:
                 break        # don't hammer a throttling host with the GET retry
         except Exception:
             status = None    # network-level failure — inconclusive
+    if status in (502, 503, 504):
+        # A server error may be a blip: one GET retry after a pause. A host still failing is
+        # reported as unreachable (manual check), never silently passed.
+        time.sleep(5)
+        try:
+            with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "brownfield-pr-gate"}), timeout=10) as r:
+                status = r.status
+        except urllib.error.HTTPError as e:
+            status = e.code
+        except Exception:
+            status = None
     last_hit[host] = time.monotonic()
     if status is None or status in INCONCLUSIVE_HTTP:
         unreachable += 1
@@ -106,6 +117,9 @@ for fname, key, field in [
     ("ports.json", "sites", "source_url"),
     ("shipyards.json", "sites", "source_url"),
     ("nickel-anchors.json", "sites", "source_url"),
+    ("manufacturing-facilities.json", "sites", "source_url"),
+    ("manufacturing-facilities.json", "requirements", "source_url"),
+    ("manufacturing-facilities.json", "sites", "award_source_url"),
 ] + [(f, "parcels", "source_url") for f in DOE_SITE_FILES]:
     payload = json.loads((Path("docs/data") / fname).read_text())
     for rec in payload.get(key, []):

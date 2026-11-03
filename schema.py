@@ -1291,3 +1291,89 @@ class LocalRecordsPayload(BaseModel):
     source: str
     count: int = Field(ge=0)
     sites: list[LocalRecordSet]
+
+
+# ── Manufacturing catalog (scripts/build_manufacturing_catalog.py, 2026-11-02) ─
+#
+# Named US plants and cited site requirements for four manufacturing uses:
+# robot / physical-AI assembly, gas turbines, power transformers and critical
+# mineral processing. Researched by Haiku agents, re-read by Sonnet agents,
+# quote re-fetched by code. An overlay, not a SiteRecord set: the browser and
+# scripts/screen.js compute each site's distance to the nearest plant of a
+# sector from current coordinates (screens.js stampManufacturing), so no
+# per-site join file exists to go stale.
+
+MFG_SECTORS = ("robotics", "turbine", "transformer", "minerals")
+MfgSector = Literal["robotics", "turbine", "transformer", "minerals"]
+
+
+class FederalAward(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    program: str = Field(min_length=3, max_length=200)
+    agency: str = Field(min_length=2, max_length=40)
+    amount_usd: Optional[float] = Field(default=None, ge=0)
+
+
+class ManufacturingFacility(BaseModel):
+    """One named US plant. Coordinates are a Census place point, never a facility point."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    id: str = Field(pattern=r"^MFG-[a-z0-9-]+$")
+    sector: MfgSector
+    name: str = Field(min_length=3, max_length=160)
+    company: Optional[str] = Field(default=None, max_length=120)
+    product: Optional[str] = Field(default=None, max_length=200)
+    status: Literal["operating", "under_construction", "announced", "expansion", "cancelled", "paused"]
+    city: str
+    state: str = Field(pattern=r"^[A-Z]{2}$")
+    lat: float
+    lon: float
+    coord_precision: Literal["locality"] = "locality"
+    locality: str = Field(description="Census Gazetteer place whose internal point is used.")
+    investment_usd: Optional[float] = Field(default=None, ge=0)
+    jobs: Optional[int] = Field(default=None, ge=0)
+    acres: Optional[float] = Field(default=None, gt=0)
+    announced: Optional[str] = Field(default=None, pattern=ISO_DAY_OR_MONTH)
+    federal_award: Optional[FederalAward] = None
+    award_source_url: Optional[str] = Field(default=None, pattern=r"^https://",
+                                            description="Page for the award when it differs from source_url (merged rows).")
+    award_quote: Optional[str] = Field(default=None, max_length=400)
+    brownfield: Optional[bool] = None
+    former_use: Optional[str] = Field(default=None, max_length=200)
+    source_url: str = Field(pattern=r"^https://")
+    source_title: Optional[str] = Field(default=None, max_length=240)
+    published: Optional[str] = Field(default=None, pattern=ISO_DAY_OR_MONTH)
+    quote: str = Field(min_length=12, max_length=400)
+    check: Literal["accepted", "accepted_code_only", "accepted_model_only"]
+    verified_at: str = Field(pattern=ISO_DAY)
+
+
+class ManufacturingRequirement(BaseModel):
+    """A cited statement of what a plant of this sector needs from a site."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    sector: MfgSector
+    factor: Literal["land", "building", "power", "rail", "road", "port", "water", "gas",
+                    "workforce", "flood", "heavy_haul", "reagents", "permitting", "community", "reuse", "other"]
+    claim: str = Field(min_length=8, max_length=300)
+    value: Optional[str] = Field(default=None, max_length=120)
+    source_url: str = Field(pattern=r"^https://")
+    source_title: Optional[str] = Field(default=None, max_length=240)
+    published: Optional[str] = Field(default=None, pattern=ISO_DAY_OR_MONTH)
+    quote: str = Field(min_length=12, max_length=400)
+    check: Literal["accepted", "accepted_code_only", "accepted_model_only"]
+    verified_at: str = Field(pattern=ISO_DAY)
+
+
+class ManufacturingCatalog(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    generated_at: str
+    source: str
+    count: int = Field(ge=0)
+    sites: list[ManufacturingFacility]
+    requirements: list[ManufacturingRequirement]
+    held_back: int = Field(ge=0, description="Rows the second reader or the quote check did not accept.")

@@ -50,6 +50,7 @@ const PORTS_URL = "data/ports.json";
 const WATER_PROXIMITY_URL = "data/water-proximity.json";
 const NICKEL_ANCHOR_PROX_URL = "data/nickel-anchor-proximity.json";
 const NICKEL_ANCHORS_URL = "data/nickel-anchors.json";
+const MFG_FACILITIES_URL = "data/manufacturing-facilities.json";
 const SHIPYARDS_URL = "data/shipyards.json";
 // Vector basemap: US states (always) + US counties (lazy at zoom ≥ COUNTY_MIN_ZOOM).
 // No tiles — Canada/Mexico literally don't exist on the map. Choropleth-style
@@ -552,7 +553,7 @@ const TAX_STATUS_NOTE = {
 
 // ----- State -----
 let sites = [];
-let map, markerLayer, referenceCampusLayer, retiredIndustrialLayer, plannedRetirementLayer, nuclearSiteLayer, coalConversionLayer, federalCleanEnergyLayer, portLayer, shipyardLayer, nickelAnchorLayer;
+let map, markerLayer, referenceCampusLayer, retiredIndustrialLayer, plannedRetirementLayer, nuclearSiteLayer, coalConversionLayer, federalCleanEnergyLayer, portLayer, shipyardLayer, nickelAnchorLayer, mfgLayer;
 const markersById = new Map(); // id -> Leaflet marker
 const tableRowsById = new Map(); // id -> tr
 const sitesById = new Map();
@@ -669,6 +670,12 @@ let waterProximityLoadingPromise = null;
 let siteEvidencePilotsLoadingPromise = null;
 let nickelAnchorProxLoadingPromise = null;
 let nickelAnchorsLoadingPromise = null;
+let mfgFacilitiesPromise = null;
+// Manufacturing plant catalog (robots, gas turbines, transformers, critical minerals).
+let mfgCatalog = null;
+let mfgStampVersion = 0;
+let mfgLoadFailed = false;      // a failed download is retried by the screen picker or Retry, not by every site opened
+const mfgEvidenceOpen = {};     // sector -> the plant list disclosure was open
 let portsLoadingPromise = null;
 let shipyardsLoadingPromise = null;
 
@@ -2411,6 +2418,102 @@ function ensureNickelAnchorProxLoaded() {
   return nickelAnchorProxLoadingPromise;
 }
 
+// Manufacturing plants (▲): named US robot, gas-turbine, transformer and
+// critical-mineral plants with cited sources (scripts/manufacturing_catalog.py).
+// Loaded when a manufacturing screen is picked, a site is opened, or the map
+// overlays are requested; never at first paint. Does not drive the header
+// date (reference-campuses rule: a loader that may never run must not).
+const MFG_SECTOR_LABEL = {robotics: "Robot / physical-AI", turbine: "Gas turbine", transformer: "Power transformer",
+  minerals: "Critical minerals"};
+const MFG_STATUS_LABEL = {operating: "Operating", under_construction: "Under construction", announced: "Announced",
+  expansion: "Expansion", cancelled: "Cancelled", paused: "Paused"};
+const MFG_CHECK_LABEL = {accepted: "Quote found on the page and confirmed by a second reader",
+  accepted_code_only: "Quote found on the page; the second reader could not judge it",
+  accepted_model_only: "Confirmed by a second reader; the page could not be read by code"};
+function fmtUsd(v) {
+  if (v == null) return "";
+  return v >= 1e9 ? `$${(v / 1e9).toFixed(v % 1e9 ? 2 : 0)}B` : v >= 1e6 ? `$${Math.round(v / 1e6)}M` : `$${Math.round(v).toLocaleString("en-US")}`;
+}
+function mfgPopupHtml(f) {
+  const meta = [MFG_SECTOR_LABEL[f.sector], MFG_STATUS_LABEL[f.status], f.investment_usd ? fmtUsd(f.investment_usd) : "",
+    f.jobs ? `${f.jobs.toLocaleString("en-US")} jobs` : ""].filter(Boolean);
+  const award = f.federal_award ? `<div class="ref-campus-company">${escapeHtml(f.federal_award.agency)}: ${escapeHtml(f.federal_award.program)}${f.federal_award.amount_usd ? " · " + fmtUsd(f.federal_award.amount_usd) : ""}`
+    + (f.award_source_url ? ` <a href="${escapeAttr(f.award_source_url)}" target="_blank" rel="noopener">award source ↗</a>` : "") + `</div>` : "";
+  const reuse = f.brownfield === true ? `<div class="ref-campus-company">Reused site${f.former_use ? ": " + escapeHtml(f.former_use) : ""}</div>` : "";
+  return `<div class="ref-campus-popup"><strong>${escapeHtml(f.name)}</strong>`
+    + `<div class="ref-campus-meta">${meta.map(m => `<span>${escapeHtml(m)}</span>`).join("")}</div>`
+    + `<div class="ref-campus-company">${escapeHtml([f.company, f.product].filter(Boolean).join(" · "))}</div>`
+    + award + reuse
+    + `<div class="ref-campus-company"><span class="micro-note">Placed at ${escapeHtml(f.locality)}, ${escapeHtml(f.state)}, not the plant</span></div>`
+    + `<p class="ref-campus-note">“${escapeHtml(f.quote)}”</p>`
+    + `<div class="ref-campus-company"><span class="micro-note">${escapeHtml(MFG_CHECK_LABEL[f.check] || "")}</span></div>`
+    + `<a href="${escapeAttr(f.source_url)}" target="_blank" rel="noopener" class="ref-campus-link">${escapeHtml(f.source_title || "Source")} ↗</a></div>`;
+}
+function ensureMfgFacilitiesLoaded() {
+  if (mfgFacilitiesPromise) return mfgFacilitiesPromise;
+  mfgFacilitiesPromise = fetch(MFG_FACILITIES_URL, { priority: "low" })
+    .then((r) => {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then((payload) => {
+      nickelDataErrors.delete("plant catalog");
+      mfgLoadFailed = false;
+      mfgCatalog = payload;
+      mfgStampVersion += 1;
+    })
+    .catch((err) => {
+      console.error("Manufacturing catalog load failed:", err);
+      nickelDataErrors.add("plant catalog");
+      mfgLoadFailed = true;
+      mfgFacilitiesPromise = null;
+    })
+    // Drawing is separate from loading: an error here is logged, never reported as a failed download.
+    .then(() => { try { drawMfgMarkers(); } catch (err) { console.error("Manufacturing markers failed:", err); } })
+    .then(() => {
+      maybeRefreshCandidates();
+      if (mfgCatalog && selectedId && sitesById.has(selectedId)) renderSuitability(sitesById.get(selectedId));
+    });
+  return mfgFacilitiesPromise;
+}
+function drawMfgMarkers() {
+  if (!mfgCatalog || !mfgLayer) return;
+  mfgLayer.clearLayers();
+  for (const f of mfgCatalog.sites || []) {
+    // Markers get inset-remapped copies; the catalog keeps real coordinates for distances.
+    const m = {...f};
+    applyInsetRemap(m);
+    const icon = L.divIcon({className: `mfg-icon mfg-${f.sector}`, html: "▲", iconSize: [14, 14], iconAnchor: [7, 7], popupAnchor: [0, -7]});
+    mfgLayer.addLayer(L.marker([m.lat, m.lon], {icon, zIndexOffset: 280}).bindPopup(mfgPopupHtml(f), {maxWidth: 320}));
+  }
+  rerenderLegend();
+}
+// Distances to the nearest plant of each sector, from the site's current
+// coordinates (screens.js stampManufacturing). Skips sites already stamped
+// against this catalog.
+function stampMfg(sites) {
+  if (mfgCatalog) SiteScreens.stampManufacturing(sites, mfgCatalog.sites, mfgStampVersion);
+}
+// Existing plants and cited requirements under a manufacturing screen's method.
+function mfgEvidenceHtml(sector) {
+  if (!mfgCatalog) return "";
+  const plants = mfgCatalog.sites.filter(f => f.sector === sector);
+  const active = plants.filter(f => SiteScreens.MFG_ACTIVE.includes(f.status)).length;
+  const reqs = mfgCatalog.requirements.filter(r => r.sector === sector);
+  const plantRows = plants.map(f => `<li><a href="${escapeAttr(f.source_url)}" target="_blank" rel="noopener">${escapeHtml(f.name)}</a>`
+    + ` <span class="micro-sub">${escapeHtml(f.city)}, ${escapeHtml(f.state)} · ${escapeHtml(MFG_STATUS_LABEL[f.status])}`
+    + `${f.investment_usd ? " · " + fmtUsd(f.investment_usd) : ""}${f.federal_award ? " · " + escapeHtml(f.federal_award.agency) + " award" : ""}`
+    + `${f.brownfield === true ? " · reused site" : ""}${f.check === "accepted_model_only" ? " · quote not checked by code" : ""}</span></li>`).join("");
+  const reqRows = reqs.map(r => `<li><strong>${escapeHtml(r.factor.replace(/_/g, " "))}</strong>: ${escapeHtml(r.claim)}`
+    + ` <a href="${escapeAttr(r.source_url)}" target="_blank" rel="noopener" title="${escapeAttr("“" + r.quote + "”")}">source ↗</a></li>`).join("");
+  const n = (k, word) => `${k} ${word}${k === 1 ? "" : "s"}`;
+  const inactive = plants.length - active;
+  return `<details class="mfg-evidence" data-sector="${sector}"${mfgEvidenceOpen[sector] ? " open" : ""}><summary>${n(active, "US plant")} operating, building or announced${inactive ? ` (${inactive} cancelled or paused)` : ""} and ${n(reqs.length, "cited requirement")}</summary>`
+    + (reqRows ? `<h4>What a site needs</h4><ul class="mfg-reqs">${reqRows}</ul>` : "")
+    + (plantRows ? `<h4>Plants</h4><ul class="mfg-plants">${plantRows}</ul>` : "")
+    + `<p class="method-foot">Each row was found by one model and re-read by a second; code looked for its quote on the page wherever it could read the page. Plants are mapped at their town's Census point.</p></details>`;
+}
+
 // Nickel supply-chain anchors (◈) — map overlay for the Nickel Refining tab.
 // Feedstock, offtake, bulk acid, and the one site in the country that has
 // actually been a nickel refinery before. Curated, each row cited; see
@@ -3112,6 +3215,7 @@ function initMap() {
   // Principal ports (⚓) and curated shipyards (⚒) — Maritime Siting tab.
   portLayer = L.layerGroup().addTo(map);
   nickelAnchorLayer = L.layerGroup().addTo(map);
+  mfgLayer = L.layerGroup().addTo(map);
   shipyardLayer = L.layerGroup().addTo(map);
 
   // The first visible Map activation fits the overview. Do not register a
@@ -3481,6 +3585,7 @@ function addLegend() {
     _appendLegendGlyphRow(div, foot, "⚓", "Principal port", portLayer);
     _appendLegendGlyphRow(div, foot, "⚒", "Shipyard", shipyardLayer);
     _appendLegendGlyphRow(div, foot, "◈", "Nickel supply chain", nickelAnchorLayer);
+    _appendLegendGlyphRow(div, foot, "▲", "Manufacturing plant", mfgLayer);
     const disclosure = document.createElement("details");
     disclosure.className = "legend-disclosure";
     disclosure.open = legendExpanded;
@@ -6996,7 +7101,7 @@ function wireMicroControls() {
 // the screen (`?lens=`) and the every-check toggle (`?allmet=1`). Rebuilt on
 // tab activation, every applyFilter(), and when a lazy join lands.
 const CANDIDATES_PAGE = 50;
-const SCREEN_KEYS = ["dc", "solar", "port", "nickel"];
+const SCREEN_KEYS = ["dc", "solar", "port", "nickel", "robotics", "turbine", "transformer", "minerals"];
 const candidatesState = {
   sorted:   [],   // [{site, ev}] in rank order
   rendered: 0,
@@ -7047,6 +7152,10 @@ function makeCandidateRow(row, rank) {
 const SCREEN_LOADERS = {
   port: () => [ensurePortProximityLoaded()],
   nickel: () => [ensurePortProximityLoaded(), ensureNickelAnchorProxLoaded(), ensureWaterProximityLoaded()],
+  robotics: () => [ensureMfgFacilitiesLoaded()],
+  turbine: () => [ensureMfgFacilitiesLoaded()],
+  transformer: () => [ensureMfgFacilitiesLoaded()],
+  minerals: () => [ensureMfgFacilitiesLoaded(), ensureWaterProximityLoaded()],
 };
 // Called on screen pick and tab activation only, never from a rebuild: a
 // loader that fails clears its promise and refreshes the view, so calling
@@ -7057,7 +7166,10 @@ function loadScreenData() { SCREEN_LOADERS[candidatesState.lens]?.(); }
 // ranking is never presented as a result while its inputs are missing.
 function screenDataState(key) {
   const extra = {port: [["port", () => portProximityRecords]],
-    nickel: [["port", () => portProximityRecords], ["supply chain", () => nickelAnchorRecords], ["water", () => waterProximityRecords]]}[key] || [];
+    nickel: [["port", () => portProximityRecords], ["supply chain", () => nickelAnchorRecords], ["water", () => waterProximityRecords]],
+    robotics: [["plant catalog", () => mfgCatalog]], turbine: [["plant catalog", () => mfgCatalog]],
+    transformer: [["plant catalog", () => mfgCatalog]],
+    minerals: [["plant catalog", () => mfgCatalog], ["water", () => waterProximityRecords]]}[key] || [];
   // Each enabled program (Superfund ships with the page) must be loaded too,
   // or the ranking covers a partial corpus.
   const programs = [["brownfield", "ACRES brownfield"], ["fuds", "FUDS"], ["brac", "BRAC"]]
@@ -7096,6 +7208,7 @@ function buildCandidatesView() {
   const waiting = data.pending.length > 0;
   let rows = [];
   if (invalidationsLoaded && !waiting) {
+    if (screen.sector) stampMfg(tableState.filtered);
     const pool = tableState.filtered.map(sanitizeGeographicEvidence).map(withholdUncheckedLand);
     rows = SiteScreens.rank(pool, candidatesState.lens);
   }
@@ -7104,7 +7217,11 @@ function buildCandidatesView() {
   candidatesState.sorted = rows;
   updateFilterChip(); syncUrl();
   const method = el("screen-method");
-  if (method) method.innerHTML = screenMethodHtml(screen);
+  if (method) {
+    const prev = method.querySelector(".mfg-evidence");
+    if (prev) mfgEvidenceOpen[prev.dataset.sector] = prev.open;   // remembered per sector, so it never carries to another screen
+    method.innerHTML = screenMethodHtml(screen) + (screen.sector ? mfgEvidenceHtml(screen.sector) : "");
+  }
   const full = rows.filter(r => r.ev.met === r.ev.total).length;
   const stats = el("candidates-stats");
   const skeleton = el("candidates-skeleton");
@@ -7464,7 +7581,7 @@ function ensureMapOverlayData() {
     ensurePlannedRetirementsLoaded(), ensureCoalConversionsLoaded(),
     ensureFederalCleanEnergyLoaded(), ensureNuclearSitesLoaded(),
     ensureMicroFleetLoaded(), ensureHanfordLoaded(), ensurePortsLoaded(),
-    ensureShipyardsLoaded(), ensureNickelAnchorsLoaded(),
+    ensureShipyardsLoaded(), ensureNickelAnchorsLoaded(), ensureMfgFacilitiesLoaded(),
   ]);
 }
 
@@ -8911,6 +9028,8 @@ function renderSuitability(s) {
   // Screens first (the answer), then the per-category evidence (the why).
   const node = el("d-suit-dc");
   if (node) {
+    // Manufacturing checks need the plant catalog; it loads here and re-renders this block when it lands.
+    if (!mfgCatalog && !mfgLoadFailed) ensureMfgFacilitiesLoaded(); else stampMfg([s]);
     const rows = !invalidationsLoaded ? "" : SCREEN_KEYS.map(key => {
       const sc = SiteScreens.SCREENS[key];
       if (sc.applies && !sc.applies(s)) return "";
