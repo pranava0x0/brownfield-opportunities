@@ -123,12 +123,41 @@
   },
   "researched_at": "2026-11-02"
  },
+ "FUDS-I04NC0594": {
+  "facts": {
+   "0": "b38ef457c6111730"
+  },
+  "researched_at": "2026-11-02"
+ },
+ "FUDS-I04SC0025": {
+  "facts": {
+   "0": "ccc8f11e94f7464b",
+   "1": "413a5a66b26abddf"
+  },
+  "researched_at": "2026-11-02"
+ },
  "FUDS-J09AZ0377": {
   "facts": {},
   "researched_at": "2026-11-02"
  },
  "FUDS-J09CA7074": {
   "facts": {},
+  "researched_at": "2026-11-02"
+ },
+ "FUDS-K06TX0015": {
+  "facts": {
+   "0": "3710e81fe7f84c0c",
+   "1": "b3a2f89163174869",
+   "2": "dadaff5eabe2aea4"
+  },
+  "researched_at": "2026-11-02"
+ },
+ "IA7213820445": {
+  "facts": {
+   "0": "edf3f2c95d645f60",
+   "1": "9b77a374b58a3c8d",
+   "2": "6df8209f296e333b"
+  },
   "researched_at": "2026-11-02"
  },
  "ILN000510192": {

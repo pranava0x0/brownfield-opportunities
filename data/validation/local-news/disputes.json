@@ -58,5 +58,105 @@
    "adjudicated_by": "code"
   },
   "verifier_note": "Rezoning of 72-acre Camp North End, 1,500 apartments, 1.5M sq ft office are on the page. But 'county landmark record names this site Charlotte Area Missile Plant at 300 Camp Road' is not; page names neither."
+ },
+ {
+  "id": "FUDS-I04NC0594",
+  "name": "WINSTON-SALEM ARPT",
+  "index": 0,
+  "fingerprint": "b38ef457c6111730",
+  "fact": {
+   "kind": "development_project",
+   "date": "2025-08-14",
+   "summary": "Signature Aviation reopened a renovated fixed-base operator (FBO) of about 3,000 sq ft in the airport terminal, which dates to 1941. The reconstruction took two years. The article reports a completed tenant renovation, not a redevelopment of former Army airfield land. The FUDS record name is Winston-Salem Airport, matched here to Smith Reynolds Airport by name and airport history.",
+   "authority": "AIN (Aviation International News)",
+   "reference": "Signature Debuts Updated North Carolina FBO",
+   "source_url": "https://www.ainonline.com/aviation-news/2025-08-14/signature-debuts-updated-north-carolina-fbo",
+   "quote": "celebrating the grand reopening of its renovated FBO this week at Smith Reynolds Airport (KINT)",
+   "code_check": "quote_found",
+   "verifier": "unsupported",
+   "status": "disputed",
+   "adjudicated_by": "code"
+  },
+  "verifier_note": "Page says Signature reopened renovated FBO at Smith Reynolds Airport (KINT), 2025-08-14, ~3,000 sq ft, terminal 1941. No Army/FUDS mention; link to the FUDS record rests on name only."
+ },
+ {
+  "id": "FUDS-K06TX0015",
+  "name": "CAMP HOWZE",
+  "index": 0,
+  "fingerprint": "3710e81fe7f84c0c",
+  "fact": {
+   "kind": "development_project",
+   "date": "2026-06-18",
+   "summary": "KXII reports the groundbreaking of Camp Howze Industrial Rail Park on June 18, 2026. KXII gives 480 acres; the developer's release gives 489 acres. The developer's release says the park is planned for up to 7 million square feet across 14 buildings. The park is a part of the former camp, not the whole 58,702-acre FUDS property.",
+   "authority": "KXII",
+   "reference": "Groundbreaking held for Camp Howze Industrial Rail Park in Gainesville",
+   "source_url": "https://www.kxii.com/2026/06/18/groundbreaking-held-camp-howze-industrial-rail-park-gainesville/",
+   "quote": "480-acre development just off Interstate 35 in northwest Gainesville.",
+   "code_check": "quote_found",
+   "verifier": "unsupported",
+   "status": "disputed",
+   "adjudicated_by": "code"
+  },
+  "verifier_note": "Page gives 480 acres off I-35, groundbreaking 2026-06-18. No mention of the former Camp Howze or military history, so 'part of the former camp' is not shown."
+ },
+ {
+  "id": "FUDS-K06TX0015",
+  "name": "CAMP HOWZE",
+  "index": 1,
+  "fingerprint": "b3a2f89163174869",
+  "fact": {
+   "kind": "developer",
+   "date": "2026-06-22",
+   "summary": "Stream Realty Partners is leasing the Camp Howze Industrial Rail Park on behalf of B-29 Investments in partnership with Hughes Commercial, according to the release. The release calls the park a 489-acre master-planned industrial development in Gainesville.",
+   "authority": "Stream Realty Partners",
+   "reference": "Camp Howze Industrial Rail Park breaks ground in Gainesville, Texas",
+   "source_url": "https://streamrealty.com/camp-howze-industrial-rail-park-breaks-ground-in-gainesville-texas/",
+   "quote": "are leading leasing efforts for the project on behalf of B-29 Investments in partnership with Hughes Commercial",
+   "code_check": "quote_found",
+   "verifier": "unsupported",
+   "status": "disputed",
+   "adjudicated_by": "code"
+  },
+  "verifier_note": "Release (2026-06-22): Stream leasing for B-29 Investments with Hughes Commercial, 489 acres, 7M sq ft, 14 buildings. Does not mention the former Camp Howze military site."
+ },
+ {
+  "id": "FUDS-K06TX0015",
+  "name": "CAMP HOWZE",
+  "index": 2,
+  "fingerprint": "dadaff5eabe2aea4",
+  "fact": {
+   "kind": "community_benefit",
+   "date": "2026-06-18",
+   "summary": "KXII reports one anchor tenant has signed, with potential for up to 2,000 jobs. The tenant is not named, and the article presents the jobs as potential, not a commitment. The first industrial partner is named as Buzzi's, which is targeting the same year but has not broken ground.",
+   "authority": "KXII",
+   "reference": "Groundbreaking held for Camp Howze Industrial Rail Park in Gainesville",
+   "source_url": "https://www.kxii.com/2026/06/18/groundbreaking-held-camp-howze-industrial-rail-park-gainesville/",
+   "quote": "One anchor tenant is already signed on, with potential for up to 2,000 jobs.",
+   "code_check": "quote_found",
+   "verifier": "unsupported",
+   "status": "disputed",
+   "adjudicated_by": "code"
+  },
+  "verifier_note": "Page: 'One anchor tenant is already signed on, with potential for up to 2,000 jobs'; Buzzi's first industrial partner, targeting 2027. Content right, but link to the FUDS property is by park name only."
+ },
+ {
+  "id": "IA7213820445",
+  "name": "IOWA ARMY AMMUNITION PLANT",
+  "index": 2,
+  "fingerprint": "6df8209f296e333b",
+  "fact": {
+   "kind": "redevelopment_plan",
+   "date": "2016-06-27",
+   "summary": "The Commerce Center of Southeast Iowa is a 152.9-acre certified industrial site on federal land inside the plant, near Middletown. An act of Congress raised the land lease from 25 to 50 years to allow the site. The site is also BNSF rail-served certified. Partners named in the 2016 certification are the Iowa Economic Development Authority, the Greater Burlington Partnership and American Ordnance.",
+   "authority": "RC Reader",
+   "reference": "Burlington-area site joins 11 sites in Iowa that are part of the Iowa Certified Site program",
+   "source_url": "https://www.rcreader.com/node/40457",
+   "quote": "it took an act of Congress to increase the lease duration on the land from the normal 25 years to 50 years.",
+   "code_check": "quote_found",
+   "verifier": "unsupported",
+   "status": "disputed",
+   "adjudicated_by": "code"
+  },
+  "verifier_note": "Page supports 152.9 acres, federal land in plant, Congress lease 25 to 50 yrs. But BNSF rail, Greater Burlington Partnership and American Ordnance do not appear on the page, which the fact asserts."
  }
 ]

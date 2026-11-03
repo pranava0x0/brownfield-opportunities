@@ -1,0 +1,13 @@
+{"batch": "disputes", "sites": [
+  {"id": "FUDS-I04NC0594", "adjudicator": "Claude Opus 5.5",
+   "decisions": [{"index": 0, "fingerprint": "b38ef457c6111730", "decision": "reject",
+     "reason": "The article covers an FBO renovation at Smith Reynolds Airport and never mentions the defense site; the match rests on the airport name alone."}]},
+  {"id": "FUDS-K06TX0015", "adjudicator": "Claude Opus 5.5",
+   "decisions": [
+     {"index": 0, "fingerprint": "3710e81fe7f84c0c", "decision": "reject", "reason": "The rail park carries the Camp Howze name, but neither page places it on the former camp's land; the FUDS property is 58,702 acres and the park 480."},
+     {"index": 1, "fingerprint": "b3a2f89163174869", "decision": "reject", "reason": "Same as index 0: no page ties the park to the defense site's land."},
+     {"index": 2, "fingerprint": "dadaff5eabe2aea4", "decision": "reject", "reason": "Same as index 0: no page ties the park to the defense site's land."}]},
+  {"id": "IA7213820445", "adjudicator": "Claude Opus 5.5",
+   "decisions": [{"index": 2, "fingerprint": "6df8209f296e333b", "decision": "reject",
+     "reason": "152.9 acres and the lease extension are on the page; BNSF service and the named partners are not."}]}
+]}
