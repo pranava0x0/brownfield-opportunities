@@ -18,5 +18,45 @@
    "adjudicated_by": "code"
   },
   "verifier_note": "Page says 'The OU5 remedy does not address the potential future residential development of the area.' and ICs 'limit land use on capped waste areas' (OU3/4/6). 'Limits reuse of OU5 for housing' is the researcher's inference."
+ },
+ {
+  "id": "FUDS-E05IL0102",
+  "name": "SANGAMON ORDNANCE PLANT",
+  "index": 0,
+  "fingerprint": "728c08f7099b5fc9",
+  "fact": {
+   "kind": "news",
+   "date": "2005-05",
+   "summary": "Illinois EPA fact sheet 4 (May 2005) on the Formosa Plastics site west of Illiopolis, the former Borden PVC plant within the ordnance plant land. The state did not yet know the extent of the chemicals left on site, and it said the remedial investigation would not fully start until demolition was complete. The sheet is about 20 years old, and no later agency status was found.",
+   "authority": "Illinois EPA",
+   "reference": "Formosa Plastics site, Illiopolis: Illinois EPA fact sheet 4",
+   "source_url": "https://epa.illinois.gov/topics/community-relations/sites/formosa-plastics/fact-sheet-4.html",
+   "quote": "The Illinois EPA does not yet know the extent of chemicals that remain.",
+   "code_check": "quote_found",
+   "verifier": "unsupported",
+   "status": "disputed",
+   "adjudicated_by": "code"
+  },
+  "verifier_note": "Page is May 2005 IEPA fact sheet 4 on the Formosa Plastics plant, Illiopolis; both quotes present. But it never mentions Borden or the Sangamon Ordnance Plant, so link to this FUDS site is not shown."
+ },
+ {
+  "id": "FUDS-I04NC0485",
+  "name": "CHARLOTTE ARMY MIS PL",
+  "index": 1,
+  "fingerprint": "a1d2445ec4f89ee6",
+  "fact": {
+   "kind": "development_project",
+   "date": "2017-09",
+   "summary": "Charlotte City Council approved a rezoning for the 72-acre Camp North End development in September 2017. The county landmark record names this site the Charlotte Area Missile Plant at 300 Camp Road. At the time, ATCO's plans called for up to 1,500 apartments and 1.5 million square feet of office space.",
+   "authority": "WFAE",
+   "reference": "Council approves 72-acre Camp North End rezoning",
+   "source_url": "https://www.wfae.org/local-news/2017-09-19/council-approves-72-acre-camp-north-end-rezoning",
+   "quote": "The Charlotte City Council on Monday approved a rezoning for the 72-acre Camp North End development",
+   "code_check": "quote_found",
+   "verifier": "unsupported",
+   "status": "disputed",
+   "adjudicated_by": "code"
+  },
+  "verifier_note": "Rezoning of 72-acre Camp North End, 1,500 apartments, 1.5M sq ft office are on the page. But 'county landmark record names this site Charlotte Area Missile Plant at 300 Camp Road' is not; page names neither."
  }
 ]

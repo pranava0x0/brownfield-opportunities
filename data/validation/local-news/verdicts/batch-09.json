@@ -1,0 +1,26 @@
+{"batch": "batch-09", "sites": [
+  {"id": "FUDS-B07MO0173", "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+    {"index": 0, "source_url": "https://www.epa.gov/archive/epa/newsreleases/tyson-valley-powder-farm-eureka-mo-wins-national-federal-facility-excellence-site-reuse.html", "verdict": "supported", "note": "Same site (Tyson Valley Powder Farm, Eureka, MO). Dated May 2, 2018; lists it as non-NPL awardee; 'Now, the site hosts the Washington University Tyson Research Center's Endangered Wolf Center, Lone Elk Park'."}
+   ],
+   "portal_verdicts": []},
+  {"id": "FUDS-E05IL0102", "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+    {"index": 0, "source_url": "https://epa.illinois.gov/topics/community-relations/sites/formosa-plastics/fact-sheet-4.html", "verdict": "unsupported", "note": "Page is May 2005 IEPA fact sheet 4 on the Formosa Plastics plant, Illiopolis; both quotes present. But it never mentions Borden or the Sangamon Ordnance Plant, so link to this FUDS site is not shown."}
+   ],
+   "portal_verdicts": []},
+  {"id": "FUDS-I04FL0038", "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+    {"index": 0, "source_url": "https://www.miamitodaynews.com/?p=5659", "verdict": "supported", "note": "Same site (former Richmond Naval Air Station, South Dade, FL). Dated July 13, 2000; Portico Group to plan Metrozoo and the base; $12M 1996 Safe Neighborhood Park bond; final plan expected April 2001."}
+   ],
+   "portal_verdicts": []},
+  {"id": "FUDS-I04NC0485", "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+    {"index": 0, "source_url": "https://www.wfae.org/post/former-model-t-missile-factory-redevelopment-part-camp-north-end", "verdict": "supported", "note": "July 10, 2017. 'bought the 75-acre site last December for about $17 million'; keep buildings; rezoning pending. Site is the former Army missile factory (Camp North End project); page does not give 300 Camp Road."},
+    {"index": 1, "source_url": "https://www.wfae.org/local-news/2017-09-19/council-approves-72-acre-camp-north-end-rezoning", "verdict": "unsupported", "note": "Rezoning of 72-acre Camp North End, 1,500 apartments, 1.5M sq ft office are on the page. But 'county landmark record names this site Charlotte Area Missile Plant at 300 Camp Road' is not; page names neither."},
+    {"index": 2, "source_url": "https://wsoctv.com/news/local/work-first-apartments-coming-camp-north-end-begins/SIDHTBHZP5GTDFHAXGM5I3VEZQ", "verdict": "supported", "note": "May 25, 2023. Kinship at Camp North End: 301 units, two buildings, 240,390 sq ft, early-2025 completion, up to 1,800 total units. Page does not name the missile plant or street address."},
+    {"index": 3, "source_url": "https://rebusinessonline.com/jamestown-joins-ownership-group-at-76-acre-camp-north-end-campus-in-charlotte/", "verdict": "supported", "note": "Feb 16, 2026. Jamestown general partner; ATCO and Shorenstein remain partners; amount not disclosed; PointBlank Ventures hired for JV equity. Camp North End, Charlotte; no missile-plant mention."},
+    {"index": 4, "source_url": "https://www.wfae.org/business/2026-02-19/changes-in-ownership-at-camp-north-end", "verdict": "supported", "note": "Feb 19, 2026. 'The property is entitled for up to 3.2 million square feet of additional development.' Owners want more housing, retail, food and beverage. Camp North End; no address."}
+   ],
+   "portal_verdicts": []}
+]}

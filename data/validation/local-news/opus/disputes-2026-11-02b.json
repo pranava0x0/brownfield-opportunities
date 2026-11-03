@@ -1,0 +1,8 @@
+{"batch": "disputes", "sites": [
+  {"id": "FUDS-E05IL0102", "adjudicator": "Claude Opus 5.5",
+   "decisions": [{"index": 0, "fingerprint": "728c08f7099b5fc9", "decision": "reject",
+     "reason": "The page is about the Formosa Plastics plant in Illiopolis and never mentions Borden or the Sangamon Ordnance Plant; the link to this site is the researcher's, not the page's."}]},
+  {"id": "FUDS-I04NC0485", "adjudicator": "Claude Opus 5.5",
+   "decisions": [{"index": 1, "fingerprint": "a1d2445ec4f89ee6", "decision": "reject",
+     "reason": "The rezoning facts are on the page, but the summary also asserts a county landmark record the page does not contain; the other four Camp North End facts carry the site."}]}
+]}

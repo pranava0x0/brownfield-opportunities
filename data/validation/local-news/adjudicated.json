@@ -972,5 +972,367 @@
    }
   ],
   "parcel": null
+ },
+ "ACRES-121721": {
+  "researched_at": "2026-11-02",
+  "id": "ACRES-121721",
+  "name": "Former Salvage Yard",
+  "gaps": [
+   "Searched the site name, the street address (3745 South 3rd Street, Ironton) and Ironton redevelopment terms. No news, council, or agency item names this address or a salvage yard at it.",
+   "The Ohio Round 11 brownfield list (May 2026) and the Ironton coverage of it name a Lawrence County Port Authority project 'Ironton Iron' ($90,000 cleanup). The Tribune and WSAZ say it is a former iron foundry and give no street address, so it is not matched to this site and is left out.",
+   "The same May 2026 coverage names a '3rd Street BiLo #44' former gas station in Ironton, with no address. Not matched and left out.",
+   "The EPA-cited Wilson Glove Building (1603 S. 3rd St.) on the 3rd Street corridor is a different property and is left out.",
+   "Directory listings (for example, Ohio Valley Crash Parts at 3217 S 3rd St) are aggregators and were not used as evidence."
+  ],
+  "county": "Lawrence",
+  "state": "OH",
+  "researchers": [
+   "Claude Haiku 5.5",
+   "Claude Sonnet 5.5"
+  ],
+  "portals": [],
+  "facts": [],
+  "parcel": null
+ },
+ "CA2570024453": {
+  "researched_at": "2026-11-02",
+  "id": "CA2570024453",
+  "name": "GEORGE AIR FORCE BASE",
+  "gaps": [
+   "Searched George AFB with data center, 2026 and redevelopment terms. No data center proposal, developer, or news was found for this site.",
+   "The Air Force data center solicitations found in search (Edwards AFB, Tucson, Alaska sites) are other bases and are left out.",
+   "An Air Force Civil Engineer Center article on the logistics redevelopment at George AFB returned HTTP 403 to both the fetch and the web reader, so it is not cited.",
+   "San Bernardino County and City of Victorville council records were not searched; the tools available here do not reach those systems."
+  ],
+  "county": "SAN BERNARDINO",
+  "state": "CA",
+  "researchers": [
+   "Claude Haiku 5.5",
+   "Claude Sonnet 5.5"
+  ],
+  "portals": [],
+  "facts": [
+   {
+    "kind": "redevelopment_plan",
+    "summary": "EPA's redevelopment profile says the proposed reuse was an international airport and railway hub, plus commercial, industrial and business park development. EPA says this is on hold because of economic conditions. The page is undated.",
+    "authority": "U.S. EPA",
+    "reference": "EPA Superfund redevelopment profile, GEORGE AIR FORCE BASE (id 0902737)",
+    "source_url": "https://cumulis.epa.gov/supercpad/SiteProfiles/index.cfm?fuseaction=second.redevelop&id=0902737",
+    "quote": "this is on hold due to economic conditions",
+    "code_check": "quote_found",
+    "verifier": "supported",
+    "status": "accepted",
+    "adjudicated_by": "code"
+   },
+   {
+    "kind": "development_project",
+    "summary": "EPA's profile says current reuse is commercial and industrial: 17 aviation-related businesses, an aircraft mechanics training program, manufacturing and distribution centers, a multi-million dollar power plant, and a 900-acre federal prison complex. These are existing uses, not new projects. The page is undated.",
+    "authority": "U.S. EPA",
+    "reference": "EPA Superfund redevelopment profile, GEORGE AIR FORCE BASE (id 0902737)",
+    "source_url": "https://cumulis.epa.gov/supercpad/SiteProfiles/index.cfm?fuseaction=second.redevelop&id=0902737",
+    "quote": "17 aviation-related businesses",
+    "code_check": "quote_found",
+    "verifier": "supported",
+    "status": "accepted",
+    "adjudicated_by": "code"
+   }
+  ],
+  "parcel": null
+ },
+ "FLSFN0407002": {
+  "researched_at": "2026-11-02",
+  "id": "FLSFN0407002",
+  "name": "JACKSONVILLE ASH SITE",
+  "gaps": [
+   "Searched the site name, the 1093 West 6th Street address and Lonnie Miller Park terms. The news pieces name the park, not the street address. The address is tied to the Lonnie Miller area by the EPA profile, which lists 1093 West 6th Street for this site.",
+   "An August 2026 story on a shooting near a game at the park is about safety, not redevelopment, and is left out.",
+   "No news found on whether the sports complex named in the EPA profile is funded or approved. The city's Capital Projects page and the EPA remedial project manager were not reached.",
+   "The EPA profile is undated, so the redevelopment-plan fact carries no date."
+  ],
+  "county": "DUVAL",
+  "state": "FL",
+  "researchers": [
+   "Claude Haiku 5.5",
+   "Claude Sonnet 5.5"
+  ],
+  "portals": [],
+  "facts": [
+   {
+    "kind": "redevelopment_plan",
+    "summary": "EPA's site profile says future redevelopment is planned for the Lonnie Miller Park area, including a proposed sports complex with soccer fields, baseball diamonds and basketball courts. The profile gives no timeline, funding or approval status, and no date.",
+    "authority": "U.S. EPA",
+    "reference": "EPA Superfund site profile, JACKSONVILLE ASH SITE (id 0407002)",
+    "source_url": "https://cumulis.epa.gov/supercpad/cursites/csitinfo.cfm?id=0407002",
+    "quote": "sports complex with soccer fields, baseball diamonds, and basketball courts",
+    "code_check": "quote_found",
+    "verifier": "supported",
+    "status": "accepted",
+    "adjudicated_by": "code"
+   },
+   {
+    "kind": "news",
+    "date": "2024-12-19",
+    "summary": "The city plans to clean up Lonnie C. Miller Park, which was once used to dump incinerator ash. The city then gave summer 2025 as the goal for finishing the ash cleanup. This is a News4JAX story republished by Jacksonville Today.",
+    "authority": "Jacksonville Today (News4JAX story)",
+    "reference": "Jacksonville plans cleanup at park once used as dump site",
+    "source_url": "https://jaxtoday.org/2024/12/19/lonnie-miller-park-cleanup/",
+    "quote": "The city says the goal is to get the contaminated ash site cleaned up by the summer of 2025",
+    "code_check": "quote_found",
+    "verifier": "supported",
+    "status": "accepted",
+    "adjudicated_by": "code"
+   },
+   {
+    "kind": "news",
+    "date": "2024-12-20",
+    "summary": "Residents said the city was slow to start removing the hazardous material. The city said the cleanup would take about a year. Phase two, the park remodel, was projected to cost over $12 million.",
+    "authority": "Action News Jax",
+    "reference": "Residents express frustration over delayed ash cleanup at Jacksonville's Lonnie Miller Park",
+    "source_url": "https://www.actionnewsjax.com/news/local/residents-express-frustration-over-delayed-ash-cleanup-jacksonvilles-lonnie-miller-park/ZSL4QQANLNATLLQJOYLOMAWHJY/",
+    "quote": "Phase two, which includes park remodeling, is projected to cost over $12 million",
+    "code_check": "quote_found",
+    "verifier": "supported",
+    "status": "accepted",
+    "adjudicated_by": "code"
+   },
+   {
+    "kind": "developer",
+    "date": "2026-03-15",
+    "summary": "The City of Jacksonville is running the cleanup and upgrade of the park. The city split the project into two phases so part of the park can reopen sooner.",
+    "authority": "News4JAX",
+    "reference": "City invests more than $22M for cleanup, upgrades at Lonnie C. Miller Regional Park in NW Jacksonville",
+    "source_url": "https://www.news4jax.com/news/local/2026/03/15/city-invests-more-than-22m-for-cleanup-upgrades-at-lonnie-c-miller-regional-park-in-nw-jacksonville/",
+    "quote": "The city divided the project into two phases to allow part of the park to reopen sooner",
+    "code_check": "quote_found",
+    "verifier": "supported",
+    "status": "accepted",
+    "adjudicated_by": "code"
+   },
+   {
+    "kind": "development_project",
+    "date": "2026-03-15",
+    "summary": "The city puts more than $22 million into removing the old incinerator ash and upgrading the park. Plans include athletic fields, trails, pavilion space and parking. The city expects completion by the end of 2026, later than the summer 2025 goal given in December 2024.",
+    "authority": "News4JAX",
+    "reference": "City invests more than $22M for cleanup, upgrades at Lonnie C. Miller Regional Park in NW Jacksonville",
+    "source_url": "https://www.news4jax.com/news/local/2026/03/15/city-invests-more-than-22m-for-cleanup-upgrades-at-lonnie-c-miller-regional-park-in-nw-jacksonville/",
+    "quote": "remediation costs totaling more than $22 million",
+    "code_check": "quote_found",
+    "verifier": "supported",
+    "status": "accepted",
+    "adjudicated_by": "code"
+   }
+  ],
+  "parcel": null
+ },
+ "FUDS-A04MS0124": {
+  "researched_at": "2026-11-02",
+  "id": "FUDS-A04MS0124",
+  "name": "GULFPORT ARMY AIR FIELD",
+  "gaps": [
+   "Searched the field name and Gulfport former airfield redevelopment for 2025 and 2026. No redevelopment plan, developer, incentive or news was found for the former field.",
+   "The 2019 USACE FUDS information guide (A04MS0124) describes the former field and its skeet range, including lead shot. It names no reuse plan and is not news, so it is not cited as a fact.",
+   "Gulfport Harbor lease (October 2026) and the downtown Channel South project (March 2026) are other properties and are left out.",
+   "The Gulfport-Biloxi International Airport is a joint-use airport with an Air National Guard base. It is an existing use, not a redevelopment, and no source here ties it to a reuse decision for the former field."
+  ],
+  "county": "HARRISON",
+  "state": "MS",
+  "researchers": [
+   "Claude Haiku 5.5",
+   "Claude Sonnet 5.5"
+  ],
+  "portals": [],
+  "facts": [],
+  "parcel": null
+ },
+ "FUDS-B07MO0173": {
+  "researched_at": "2026-11-02",
+  "id": "FUDS-B07MO0173",
+  "name": "TYSON VALLEY POWDER FARM",
+  "gaps": [
+   "Searched the site name, Eureka, and Lone Elk Park with 2025 and 2026 terms. No news, county, or developer item on a current project, sale, or cleanup at the Powder Farm was found.",
+   "The Powder Farm is also called Lone Elk Park and West Tyson County Park. The park items found are undated (a radio segment and a bison-calf item with no year), so none are cited.",
+   "The 2018 EPA award is the most recent dated item found, and it names no county. St. Louis County parks releases and Army Corps FUDS records were not checked."
+  ],
+  "county": "ST LOUIS",
+  "state": "MO",
+  "researchers": [
+   "Claude Haiku 5.5",
+   "Claude Sonnet 5.5"
+  ],
+  "portals": [],
+  "facts": [
+   {
+    "kind": "redevelopment_plan",
+    "date": "2018-05-02",
+    "summary": "EPA Region 7's 2018 release says the Tyson Valley Powder Farm won a national Federal Facility Excellence in Site Reuse award in the non-NPL category. It describes reuse already in place: the Washington University Tyson Research Center's Endangered Wolf Center, Lone Elk Park and a World Bird Sanctuary. This recognizes existing reuse, not a new project.",
+    "authority": "U.S. EPA Region 7",
+    "reference": "Tyson Valley Powder Farm in Eureka, Mo., Wins National Federal Facility Excellence in Site Reuse Award",
+    "source_url": "https://www.epa.gov/archive/epa/newsreleases/tyson-valley-powder-farm-eureka-mo-wins-national-federal-facility-excellence-site-reuse.html",
+    "quote": "Now, the site hosts the Washington University Tyson Research Center's Endangered Wolf Center",
+    "code_check": "quote_found",
+    "verifier": "supported",
+    "status": "accepted",
+    "adjudicated_by": "code"
+   }
+  ],
+  "parcel": null
+ },
+ "FUDS-E05IL0102": {
+  "researched_at": "2026-11-02",
+  "id": "FUDS-E05IL0102",
+  "name": "SANGAMON ORDNANCE PLANT",
+  "gaps": [
+   "Searched the site name, Illiopolis, the water tower, and Formosa Plastics cleanup for 2024 to 2026. No redevelopment, developer, incentive, or cleanup news for the ordnance plant land was found. The 2024 to 2025 Formosa hits concern a St. James Parish, Louisiana project and are excluded.",
+   "A 2024 News-Gazette column (Tom Kacich) reports that most of the land has returned to farming and that the Illiopolis water tower was designated a county landmark. Opening it returned HTTP 429, so nothing from it is cited. Verify before use.",
+   "An Illinois Times item on a proposed landmark for the water tower is undated in the results and was not opened, so it is not cited.",
+   "The only agency cleanup record opened is the May 2005 fact sheet. Groundwater, soil, and dioxin remedy status after 2005 is not verified."
+  ],
+  "county": "SANGAMON",
+  "state": "IL",
+  "researchers": [
+   "Claude Haiku 5.5",
+   "Claude Opus 5.5",
+   "Claude Sonnet 5.5"
+  ],
+  "portals": [],
+  "facts": [
+   {
+    "kind": "news",
+    "date": "2005-05",
+    "summary": "Illinois EPA fact sheet 4 (May 2005) on the Formosa Plastics site west of Illiopolis, the former Borden PVC plant within the ordnance plant land. The state did not yet know the extent of the chemicals left on site, and it said the remedial investigation would not fully start until demolition was complete. The sheet is about 20 years old, and no later agency status was found.",
+    "authority": "Illinois EPA",
+    "reference": "Formosa Plastics site, Illiopolis: Illinois EPA fact sheet 4",
+    "source_url": "https://epa.illinois.gov/topics/community-relations/sites/formosa-plastics/fact-sheet-4.html",
+    "quote": "The Illinois EPA does not yet know the extent of chemicals that remain.",
+    "code_check": "quote_found",
+    "verifier": "unsupported",
+    "status": "rejected",
+    "adjudicated_by": "opus"
+   }
+  ],
+  "parcel": null
+ },
+ "FUDS-I04FL0038": {
+  "researched_at": "2026-11-02",
+  "id": "FUDS-I04FL0038",
+  "name": "RICHMOND NAS",
+  "gaps": [
+   "Searched the site name, Richmond Heights, Chapman Field, and Zoo Miami or Metrozoo planning for 2024 and 2025. No current development project, developer, incentive, or cleanup news for the former air station land was found.",
+   "Most 'Richmond' results were other places (Richmond VA Navy Hill, Richmond Heights MO, Richmond Heights OH) and are excluded.",
+   "A search result mentions an April 2024 approval for a historical marker at the Miami-Dade Military Museum, in the former station headquarters building. It was not opened and is a museum item, so it is not cited.",
+   "Whether the 2000 master plan was completed is not verified."
+  ],
+  "county": "MIAMI-DADE",
+  "state": "FL",
+  "researchers": [
+   "Claude Haiku 5.5",
+   "Claude Sonnet 5.5"
+  ],
+  "portals": [],
+  "facts": [
+   {
+    "kind": "redevelopment_plan",
+    "date": "2000-07",
+    "summary": "Miami Today reported in July 2000 that Portico Group was selected to create a new master plan for Metrozoo and the former Richmond Naval Air Station in South Dade. The plan was to be covered by $12 million in 1996 Safe Neighborhood Park bond funds, with a final document expected in April 2001. The article covers planning only, not reuse of the base, and no outcome was found.",
+    "authority": "Miami Today",
+    "reference": "Firm Named To Redesign Plan For Zoo Richmond Base",
+    "source_url": "https://www.miamitodaynews.com/?p=5659",
+    "quote": "to create a new master plan for Metrozoo and the former Richmond Naval Air Station in South Dade.",
+    "code_check": "quote_found",
+    "verifier": "supported",
+    "status": "accepted",
+    "adjudicated_by": "code"
+   }
+  ],
+  "parcel": null
+ },
+ "FUDS-I04NC0485": {
+  "researched_at": "2026-11-02",
+  "id": "FUDS-I04NC0485",
+  "name": "CHARLOTTE ARMY MIS PL",
+  "gaps": [
+   "Matched to this site because the Mecklenburg County landmark record identifies the Charlotte Quartermaster Depot / Charlotte Area Missile Plant at 300 Camp Road as 'the Camp Road property now comprising Camp North End'. News coverage uses the Hercules Industrial Park and Camp North End names.",
+   "The Axios February 2026 article on Jamestown returned HTTP 403 and was not opened. Nothing from it is cited.",
+   "No dated, opened source was found for the phase-two plans beyond the 2026 entitlement figure. The WSOC next-phase headline was not opened in full.",
+   "Kinship's completion date is not verified from an opened page.",
+   "Acreage differs by source (72 acres in the rezoning story, 75 to 76 acres for the site). Not resolved.",
+   "No community benefit, incentive, or cleanup item was found in news for this site."
+  ],
+  "county": "MECKLENBURG",
+  "state": "NC",
+  "researchers": [
+   "Claude Haiku 5.5",
+   "Claude Opus 5.5",
+   "Claude Sonnet 5.5"
+  ],
+  "portals": [],
+  "facts": [
+   {
+    "kind": "developer",
+    "date": "2017-07-10",
+    "summary": "WFAE reported in July 2017 that ATCO bought the roughly 75-acre site in December 2016 for about $17 million. The new owners planned to keep the historic plant buildings and make the site resemble its 1920s look. The rezoning from general industrial to mixed-use was still pending then.",
+    "authority": "WFAE",
+    "reference": "Former Model T missile factory: redevelopment part of Camp North End",
+    "source_url": "https://www.wfae.org/post/former-model-t-missile-factory-redevelopment-part-camp-north-end",
+    "quote": "ATCO, which bought the 75-acre site last December for about $17 million.",
+    "code_check": "quote_found",
+    "verifier": "supported",
+    "status": "accepted",
+    "adjudicated_by": "code"
+   },
+   {
+    "kind": "development_project",
+    "date": "2017-09",
+    "summary": "Charlotte City Council approved a rezoning for the 72-acre Camp North End development in September 2017. The county landmark record names this site the Charlotte Area Missile Plant at 300 Camp Road. At the time, ATCO's plans called for up to 1,500 apartments and 1.5 million square feet of office space.",
+    "authority": "WFAE",
+    "reference": "Council approves 72-acre Camp North End rezoning",
+    "source_url": "https://www.wfae.org/local-news/2017-09-19/council-approves-72-acre-camp-north-end-rezoning",
+    "quote": "The Charlotte City Council on Monday approved a rezoning for the 72-acre Camp North End development",
+    "code_check": "quote_found",
+    "verifier": "unsupported",
+    "status": "rejected",
+    "adjudicated_by": "opus"
+   },
+   {
+    "kind": "development_project",
+    "date": "2023-05-25",
+    "summary": "WSOC reported in May 2023 that work was underway on Atco Properties' first apartment community at Camp North End, Kinship. It is a two-building, 240,390-square-foot project with 301 units and an estimated completion in early 2025. The article quotes plans to eventually develop up to 1,800 total units on the site. Completion was not verified.",
+    "authority": "WSOC",
+    "reference": "Work first apartments coming to Camp North End begins",
+    "source_url": "https://wsoctv.com/news/local/work-first-apartments-coming-camp-north-end-begins/SIDHTBHZP5GTDFHAXGM5I3VEZQ",
+    "quote": "Work is underway on Atco Properties’ first apartment community at Camp North End.",
+    "code_check": "quote_found",
+    "verifier": "supported",
+    "status": "accepted",
+    "adjudicated_by": "code"
+   },
+   {
+    "kind": "developer",
+    "date": "2026-02-16",
+    "summary": "Atlanta-based Jamestown joined the ownership of the 76-acre Camp North End as general partner and lead asset manager. ATCO remains a partner, and Shorenstein remains a partner in a portion of the project. The investment amount was not disclosed. PointBlank Ventures was retained to raise joint-venture equity for the next phases.",
+    "authority": "REBusiness Online",
+    "reference": "Jamestown Joins Ownership Group at 76-Acre Camp North End Campus in Charlotte",
+    "source_url": "https://rebusinessonline.com/jamestown-joins-ownership-group-at-76-acre-camp-north-end-campus-in-charlotte/",
+    "quote": "Jamestown has partnered with existing ownership to recapitalize Camp North End",
+    "code_check": "quote_found",
+    "verifier": "supported",
+    "status": "accepted",
+    "adjudicated_by": "code"
+   },
+   {
+    "kind": "development_project",
+    "date": "2026-02-19",
+    "summary": "WFAE reported in February 2026 that the property is entitled for up to 3.2 million square feet of additional development. The new owners said they want more housing, retail, and food and beverage tenants. The article gives no phase plan or unit count.",
+    "authority": "WFAE",
+    "reference": "Changes in ownership at Camp North End",
+    "source_url": "https://www.wfae.org/business/2026-02-19/changes-in-ownership-at-camp-north-end",
+    "quote": "The property is entitled for up to 3.2 million square feet of additional development.",
+    "code_check": "quote_found",
+    "verifier": "supported",
+    "status": "accepted",
+    "adjudicated_by": "code"
+   }
+  ],
+  "parcel": null
  }
 }

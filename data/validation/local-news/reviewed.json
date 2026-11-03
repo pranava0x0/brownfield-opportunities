@@ -1,4 +1,8 @@
 {
+ "ACRES-121721": {
+  "facts": {},
+  "researched_at": "2026-11-02"
+ },
  "ACRES-232701": {
   "facts": {},
   "researched_at": "2026-11-02"
@@ -17,9 +21,36 @@
   },
   "researched_at": "2026-11-02"
  },
+ "CA2570024453": {
+  "facts": {
+   "0": "32364fe335969c27",
+   "1": "4b747411cdcf6fbf"
+  },
+  "researched_at": "2026-11-02"
+ },
  "FL6170024412": {
   "facts": {
    "0": "af63bfe203c7744d"
+  },
+  "researched_at": "2026-11-02"
+ },
+ "FLSFN0407002": {
+  "facts": {
+   "0": "3c5bad0aa0d05612",
+   "1": "645c034c1dd01ccd",
+   "2": "f08a91552d37f318",
+   "3": "c60199dc2b380f66",
+   "4": "23a7aed539277173"
+  },
+  "researched_at": "2026-11-02"
+ },
+ "FUDS-A04MS0124": {
+  "facts": {},
+  "researched_at": "2026-11-02"
+ },
+ "FUDS-B07MO0173": {
+  "facts": {
+   "0": "aa3da207f4547c78"
   },
   "researched_at": "2026-11-02"
  },
@@ -42,6 +73,12 @@
   },
   "researched_at": "2026-11-02"
  },
+ "FUDS-E05IL0102": {
+  "facts": {
+   "0": "728c08f7099b5fc9"
+  },
+  "researched_at": "2026-11-02"
+ },
  "FUDS-G05OH0156": {
   "facts": {},
   "researched_at": "2026-11-02"
@@ -52,6 +89,12 @@
  },
  "FUDS-I04AL3227": {
   "facts": {},
+  "researched_at": "2026-11-02"
+ },
+ "FUDS-I04FL0038": {
+  "facts": {
+   "0": "dd89351728df702b"
+  },
   "researched_at": "2026-11-02"
  },
  "FUDS-I04FL0884": {
@@ -68,6 +111,16 @@
  },
  "FUDS-I04GA0975": {
   "facts": {},
+  "researched_at": "2026-11-02"
+ },
+ "FUDS-I04NC0485": {
+  "facts": {
+   "0": "7b8a586a2da5d8db",
+   "1": "a1d2445ec4f89ee6",
+   "2": "65264b061edb3487",
+   "3": "0665f299a9f0c5b1",
+   "4": "2f1d8cbf3dc99621"
+  },
   "researched_at": "2026-11-02"
  },
  "FUDS-J09AZ0377": {
