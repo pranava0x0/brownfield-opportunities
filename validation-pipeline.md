@@ -37,6 +37,14 @@ The verifier prompt is the same with the research and verdict paths changed. Que
 `local_records.py --work news queue --per-screen 3 --ranked-only`. The detail panel shows the shipped
 facts under "Local news, developers and community benefits".
 
+## News runs, 2026-11-02
+
+The tab manifest now includes the four manufacturing screens; news covers ranks 1-5 of each corpus screen:
+52 facts across 44 sites, 9 held back. Run order per batch: research (Haiku), verify (Sonnet), then
+`stamp`, `adjudicate`, `apply-opus`, `publish`. The usual reason for a held-back fact is a place-name
+match that the page does not tie to the atlas site (an airport named for a former air station, a rail park
+named for a camp).
+
 ## Manufacturing catalog (robots, gas turbines, transformers, critical minerals)
 
 Third work directory, own script: `data/validation/manufacturing/` and `scripts/manufacturing_catalog.py`.
