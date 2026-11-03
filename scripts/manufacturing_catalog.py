@@ -228,14 +228,37 @@ def _name_words(rec: dict) -> set:
     return {w for w in re.sub(r"[^a-z0-9 ]", " ", str(rec.get("name") or "").lower()).split() if w not in skip and len(w) > 1}
 
 
-def same_plant(a: dict, b: dict, only_one: bool = False) -> bool:
-    """Two rows describe one plant when, beyond company and town, their names share at least half their words.
-    A company's lithium concentrator and its conversion plant in the same town stay two plants."""
-    wa, wb = _name_words(a), _name_words(b)
+def name_overlap(stored: dict, incoming: dict) -> float:
+    """Share of name words two rows have in common beyond company and town (Jaccard)."""
+    wa, wb = _name_words(stored), _name_words(incoming)
     if not wa or not wb:
-        # A bare name ("Albemarle Kings Mountain") is the company's only plant in town, or ambiguous.
-        return wa == wb or only_one
-    return len(wa & wb) / len(wa | wb) >= 0.5
+        return 0.0
+    return len(wa & wb) / len(wa | wb)
+
+
+def match_plant(candidates: list, incoming: dict) -> Optional[dict]:
+    """The stored plant an incoming row describes, or None.
+
+    Merge into the single best match sharing at least half the name words. A tie at the top is ambiguous
+    (an award naming only "lithium" against a company's concentrator and conversion plant), so the row stays
+    its own plant rather than crediting money to an arbitrary one. A bare incoming name ("Albemarle Kings
+    Mountain") merges only when the company has exactly one plant in that town; a bare STORED name never
+    absorbs a named plant.
+    """
+    if not candidates:
+        return None
+    if not _name_words(incoming):
+        return candidates[0] if len(candidates) == 1 else None
+    scored = sorted(((name_overlap(c, incoming), i) for i, c in enumerate(candidates)), reverse=True)
+    best, i = scored[0]
+    if best < 0.5 or (len(scored) > 1 and scored[1][0] == best):
+        return None
+    return candidates[i]
+
+
+def same_plant(a: dict, b: dict) -> bool:
+    """Whether row b describes the plant already stored as a (b is the incoming row)."""
+    return match_plant([a], b) is a
 
 
 def cmd_build(args: argparse.Namespace) -> int:
@@ -260,7 +283,7 @@ def cmd_build(args: argparse.Namespace) -> int:
                 rec, why = to_facility(sector, a["row"], a["status"], gaz, today)
                 key = plant_key(rec) if rec else None
                 candidates = by_key.get(key, []) if rec else []
-                first = next((c for c in candidates if same_plant(c, rec, only_one=len(candidates) == 1)), None)
+                first = match_plant(candidates, rec) if rec else None
                 if rec and (rec["id"] in seen or first is not None):
                     # The same plant from two topics (a minerals row and a DOE-award row): keep the first
                     # and carry the award, with its own source, onto it.

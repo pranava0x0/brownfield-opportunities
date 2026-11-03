@@ -182,4 +182,14 @@ def test_a_third_row_is_compared_with_every_plant_sharing_its_key(tmp_path, monk
 def test_a_bare_name_merges_only_when_the_company_has_one_plant_in_town():
     base = {"sector": "minerals", "company": "Albemarle", "city": "Kings Mountain", "state": "NC"}
     bare, named = {**base, "name": "Albemarle Kings Mountain"}, {**base, "name": "Albemarle Kings Mountain lithium concentrator"}
-    assert mc.same_plant(named, bare, only_one=True) and not mc.same_plant(named, bare, only_one=False)
+    assert mc.match_plant([named], bare) is named                       # bare incoming, one plant: merge
+    assert mc.match_plant([named, dict(named, name="Albemarle Kings Mountain lithium conversion")], bare) is None
+    assert mc.match_plant([bare], named) is None                        # a bare stored row never absorbs a named one
+
+
+def test_an_award_that_ties_between_two_plants_is_attached_to_neither():
+    base = {"sector": "minerals", "company": "Albemarle", "city": "Kings Mountain", "state": "NC"}
+    a = {**base, "name": "Albemarle Kings Mountain lithium concentrator"}
+    b = {**base, "name": "Albemarle Kings Mountain lithium conversion"}
+    assert mc.match_plant([a, b], {**base, "name": "Albemarle Kings Mountain lithium grant"}) is None
+    assert mc.match_plant([a, b], {**base, "name": "Albemarle Kings Mountain lithium concentrator grant"}) is a
