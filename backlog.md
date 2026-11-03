@@ -316,6 +316,7 @@ Rules the routine follows:
 | 60 | queued | MD9210020567 | Fort George G. Meade | MD | Fort George G. Meade: federal-facility NPL site; shipped 13,569 acres to check | — | — |
 | 61 | queued | NC1170027261 | Cherry Point Marine Corps Air Station | NC | Cherry Point MCAS: federal-facility NPL site; shipped 12,141 acres to check | — | — |
 | 62 | queued | MOD980686281 | Oronogo-Duenweg Mining Belt | MO | Oronogo-Duenweg Mining Belt: shipped 154,081 acres looks like a mining-belt outline, not a site boundary; check against EPA | — | — |
+| 63 | queued | GUD980637649 | Ordot Landfill | GU | Ordot Landfill (GU): the other Guam NPL site; any 2026 closure, consent-decree or reuse milestone; check shipped acreage | — | — |
 | 51 | done 2026-11-03 | GU6571999519 | Andersen Air Force Base | GU | Andersen Air Force Base (GU): federal-facility NPL site; shipped 17,610 acres to check | 2026-11-03 | 2027-02-01 |
 | 10 | done 2026-11-02 | AK6210022426 | Fort Wainwright | AK | Army Janus microreactor finalist (no vendor yet); shipped 919,896 acres | 2026-11-02 | 2026-12-02 |
 | 9 | done 2026-11-02 | MID980994354 | Tittabawassee River, Saginaw River & Bay | MI | Shipped 726,763 acres looks like a boundary artifact | 2026-11-02 | 2027-01-31 |
