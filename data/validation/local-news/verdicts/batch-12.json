@@ -1,0 +1,11 @@
+{
+ "batch": "batch-12",
+ "sites": [
+  {
+   "id": "WID980901227",
+   "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [],
+   "portal_verdicts": []
+  }
+ ]
+}

@@ -1,0 +1,19 @@
+{"topic": "doe_minerals", "verifier": "claude-sonnet-5-5", "rows": [
+  {"kind": "requirement", "index": 0, "source_url": "https://netl.doe.gov/node/13087", "verdict": "supported",
+   "corrections": {"claim": "DOE's battery materials processing and manufacturing funding opportunity (DE-FOA-0003099) includes a Community Benefits Plan, and Amendment 000004 updated its page limit"},
+   "reason": "page states the amendment updates the page limit for the Community Benefits Plan; it does not say every battery-materials solicitation requires a plan, so the claim was narrowed to this FOA (opened 2023-11-15, closed 2024-03-19)"},
+  {"kind": "requirement", "index": 1, "source_url": "https://www.cirbasolutions.com/cirba-solutions-selected-for-200-million-award-negotiations-for-critical-materials-refining/", "verdict": "supported",
+   "corrections": {"claim": "Cirba Solutions (Sept 2024) was selected to enter award negotiation with DOE for up to $200 million, so the funding was not final at selection"},
+   "reason": "page (2024-09-20) states selection to enter into award negotiation for up to $200 million under the Bipartisan Infrastructure Law; the label 'Round 2' is not on the page"},
+  {"kind": "requirement", "index": 2, "source_url": "https://www.utilitydive.com/news/department-energy-project-grants-cancelled-battery-manufacturing-trump/803347/", "verdict": "supported",
+   "corrections": {}, "reason": "page (2025-10-21) states DOE's Office of Manufacturing and Energy Supply Chains canceled more than $700 million in grants, citing 'missed milestones' and projects that 'were not economically viable'"},
+  {"kind": "facility", "index": 0, "source_url": "https://www.cirbasolutions.com/cirba-solutions-selected-for-200-million-award-negotiations-for-critical-materials-refining/", "verdict": "supported",
+   "corrections": {"doe_award": {"program": "Bipartisan Infrastructure Law, DOE Office of Manufacturing and Energy Supply Chains (selected for award negotiation; program round not named on page)", "amount_usd": 200000000, "agency": "DOE"}},
+   "reason": "page (2024-09-20, Charlotte NC dateline) states selection for up to $200 million for a lithium-ion processing facility in Columbia, South Carolina making battery-grade salts; one search for cancelled/terminated found no Cirba-specific cancellation, but the award was only a negotiation selection and the search did not reach a DOE termination list entry"},
+  {"kind": "facility", "index": 1, "source_url": "https://www.wkyufm.org/news/2025-03-04/ev-battery-materials-manufacturer-pumps-the-brakes-on-hopkinsville-facility", "verdict": "contradicted",
+   "corrections": {},
+   "reason": "cited page (2025-03-04) says the $316 million pCAM grant remains active, but electrive (2025-10-21, https://www.electrive.com/es/2025/10/21/us-cancels-funding-for-ascend-elements-and-other-battery-companies/) reports DOE cancelled the $316 million Ascend Elements grant for the Hopkinsville KY plant in October 2025 (about $206 million already disbursed, about $110 million remaining) and a 2026-04-13 teaser headline reports Ascend insolvency; the cited page does not support a status correction"},
+  {"kind": "facility", "index": 2, "source_url": "https://www.utilitydive.com/news/department-energy-project-grants-cancelled-battery-manufacturing-trump/803347/", "verdict": "supported",
+   "corrections": {"doe_award": {"program": "DOE Office of Manufacturing and Energy Supply Chains grant (specific program not named on page); cancelled October 2025", "amount_usd": 197000000, "agency": "DOE"}},
+   "reason": "page (2025-10-21) states ICL Specialty Products 'had received a $197 million grant' for a battery plant near its existing one in St. Louis, cancelled with the October 2025 DOE cuts; search also found St. Louis Public Radio (2025-11-12) reporting ICL formally cancelled the plant, consistent with status cancelled"}
+]}

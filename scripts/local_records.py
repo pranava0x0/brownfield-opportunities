@@ -23,6 +23,9 @@ Workflow (files live under data/validation/local-records/):
   (agent)      opus/<batch>.json  <- Opus, for disputes only
   apply-opus   fold the Opus decisions in
   publish      write docs/data/local-records.json (accepted facts only)
+
+Every command takes the top-level flag `--work news` (before the subcommand: `local_records.py --work news queue`): the same pipeline over local news, developer and community-benefit
+research, kept in data/validation/local-news/ and published to docs/data/local-news.json.
   report       one-screen summary
 
 Usage:
@@ -204,7 +207,8 @@ def cmd_queue(args: argparse.Namespace) -> int:
     sites = manifest["corpus_sites"]
     if args.per_screen:
         # Sites in the first N rows of a screen, plus those listed beside civilian nuclear sites (unranked).
-        sites = [s for s in sites if (_best_rank(s) or 10**6) <= args.per_screen or any(t["tab"] == "civilian" for t in s["tabs"])]
+        sites = [s for s in sites if (_best_rank(s) or 10**6) <= args.per_screen
+                 or (not args.ranked_only and any(t["tab"] == "civilian" for t in s["tabs"]))]
     if args.limit:
         sites = sites[: args.limit]
     for sub in ("batches", "research", "verdicts", "opus"):
@@ -486,20 +490,35 @@ def cmd_report(args: argparse.Namespace) -> int:
     return 0
 
 
+def use_work(name: str) -> None:
+    """Point the pipeline at another work directory. `news` is the local-news run, published to its own file."""
+    global WORK, LEDGER, OUTPUT, SOURCE_LABEL
+    if name == "news":
+        WORK = ROOT / "data" / "validation" / "local-news"
+        LEDGER = WORK / "reviewed.json"
+        OUTPUT = ROOT / "docs" / "data" / "local-news.json"
+        SOURCE_LABEL = "Local news, developers and community benefits for tab sites (researched, verified, adjudicated)"
+    elif name != "records":
+        raise SystemExit(f"unknown --work {name!r}: use records or news")
+
+
 def _now() -> str:
     return dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
 
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--work", default="records", help="records (land records, default) or news (local news and developments).")
     sub = ap.add_subparsers(dest="cmd", required=True)
     q = sub.add_parser("queue"); q.add_argument("--batch-size", type=int, default=4); q.add_argument("--limit", type=int, default=None)
     q.add_argument("--per-screen", type=int, default=None, help="Only sites in the first N rows of any screen.")
+    q.add_argument("--ranked-only", action="store_true", help="With --per-screen, drop the unranked brownfields listed beside civilian nuclear sites.")
     for name in ("parcels", "adjudicate", "apply-opus", "publish", "report"):
         sub.add_parser(name)
     st = sub.add_parser("stamp"); st.add_argument("--force", action="store_true")
     args = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(message)s")
+    use_work(args.work)
     return {"queue": cmd_queue, "parcels": cmd_parcels, "adjudicate": cmd_adjudicate, "apply-opus": cmd_apply_opus,
             "publish": cmd_publish, "report": cmd_report, "stamp": cmd_stamp}[args.cmd](args)
 

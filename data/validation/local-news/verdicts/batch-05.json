@@ -1,0 +1,10 @@
+{"batch": "batch-05", "sites": [
+{"id": "FUDS-I04AL0120", "verifier": "Claude Sonnet 5.5", "fact_verdicts": [], "portal_verdicts": []},
+{"id": "FUDS-I04AL3227", "verifier": "Claude Sonnet 5.5", "fact_verdicts": [], "portal_verdicts": []},
+{"id": "FUDS-I04GA0939", "verifier": "Claude Sonnet 5.5", "fact_verdicts": [
+ {"index": 0, "source_url": "https://dekalbcountyga.gov/news/dekalb-county-boc-approves-hangar-development-reposition-flights-and-provide-revenue-community", "verdict": "supported", "note": "Page: 'Tuesday, Nov.18, in a 6-1 vote ... approved a $45 million development'; 8 hangars on 12.8 acres east side; $576M over 50 years, $66M to PDK; 'no financial appropriation from the county'. Site match: PDK is the former NAS Atlanta (page does not say so; established by the batch note)."},
+ {"index": 1, "source_url": "https://dekalbcountyga.gov/news/dekalb-county-boc-approves-hangar-development-reposition-flights-and-provide-revenue-community", "verdict": "supported", "note": "Page: 'Sky Harbour, a home-based operator for business aircraft at DeKalb-Peachtree Airport (PDK)'. The AvWeb 'Sky Harbour Group' wording was not checked here; summary correctly says entity not confirmed."},
+ {"index": 2, "source_url": "https://roughdraftatlanta.com/2025/12/10/residents-upset-pdk-expansion/", "verdict": "supported", "note": "Town hall Tue Dec 9 on the approved $45M hangar expansion; concerns 'noise and environmental pollution'; Terry 'plans to propose' a moratorium on new hangar development until master plan updated, plus FAA night-flight ban."}
+], "portal_verdicts": []},
+{"id": "FUDS-I04GA0975", "verifier": "Claude Sonnet 5.5", "fact_verdicts": [], "portal_verdicts": []}
+]}

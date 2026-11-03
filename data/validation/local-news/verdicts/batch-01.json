@@ -1,0 +1,20 @@
+{"batch": "batch-01", "sites": [
+  {"id": "ACRES-232701", "verifier": "Claude Sonnet 5.5", "fact_verdicts": [], "portal_verdicts": []},
+  {"id": "ACRES-53022", "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+     {"index": 0, "source_url": "https://livingnewdeal.org/?p=53488", "verdict": "supported", "note": "Location lists 1013 Douglas Street, Kingsport, Tennessee 37660; \"The facility was demolished in 2008 in order to construct new housing.\""}
+   ],
+   "portal_verdicts": []},
+  {"id": "ALN000410750", "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+     {"index": 0, "source_url": "https://www.wbrc.com/2020/01/22/new-timeline-released-cleaning-up-th-ave-superfund-site", "verdict": "supported", "note": "WBRC, Jan 22 2020, 35th Avenue Superfund site: \"the remainder of work is expected to take in 2 to 3 years\"; about 185 properties still on the list."},
+     {"index": 1, "source_url": "https://www.wbrc.com/2020/01/22/new-timeline-released-cleaning-up-th-ave-superfund-site", "verdict": "supported", "note": "Same article: EPA \"estimates they'll spend a total of $40 million by the end of the project.\""},
+     {"index": 2, "source_url": "https://19january2025snapshot.epa.gov/superfund-redevelopment/superfund-sites-reuse-alabama", "verdict": "supported", "note": "35th Avenue entry: \"To date, the EPA has cleaned up over 650 properties.\" Archived snapshot URL is dated Jan 2025."}
+   ],
+   "portal_verdicts": []},
+  {"id": "FL6170024412", "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+     {"index": 0, "source_url": "https://wokv.com/news/local/navy-working-bring-solar-power-nas-jax-community/cAvwtztqfIbfDc5fIOe0IP", "verdict": "supported", "note": "WOKV, Aug 17 2016: deal between the Navy and the unnamed utility \"would develop 50 acres of the Yellow Water Creek property\"; about 5 MW."}
+   ],
+   "portal_verdicts": []}
+]}

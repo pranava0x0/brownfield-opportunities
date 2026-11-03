@@ -1,0 +1,61 @@
+{
+ "batch": "batch-11",
+ "sites": [
+  {
+   "id": "NYD980651087",
+   "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [],
+   "portal_verdicts": []
+  },
+  {
+   "id": "TND987790300",
+   "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [],
+   "portal_verdicts": []
+  },
+  {
+   "id": "TNSFN0407047",
+   "verifier": "Claude Sonnet 5.5",
+   "site_match": "confirmed",
+   "fact_verdicts": [
+    {
+     "index": 0,
+     "source_url": "https://response.epa.gov/nationalfireworksou2",
+     "verdict": "supported",
+     "site_match": "confirmed",
+     "note": "EPA page: 'The National Fireworks Site is currently called the Cordova Industrial Park (CIP).' 9509 Macon Road, Cordova TN 38016; distributors, offices, storage, repair, production; PRP-run RI."
+    }
+   ],
+   "portal_verdicts": []
+  },
+  {
+   "id": "TXD008083404",
+   "verifier": "Claude Sonnet 5.5",
+   "site_match": "confirmed",
+   "fact_verdicts": [
+    {
+     "index": 0,
+     "source_url": "https://extras.chron.com/banners/Misc/e/epa/110206/epa_ceremony.htm",
+     "verdict": "supported",
+     "site_match": "confirmed",
+     "note": "MDI (Tesco) Superfund Site, Fifth Ward, Houston, ceremony 9 Nov 2006; lists 'Clinton Gregg Investments, Inc' as invited participant. No role stated."
+    },
+    {
+     "index": 1,
+     "source_url": "https://extras.chron.com/banners/Misc/e/epa/110206/epa_ceremony.htm",
+     "verdict": "supported",
+     "site_match": "confirmed",
+     "note": "Page: first active Superfund site 'to be cleaned up for redevelopment by a private party'; no end use named."
+    },
+    {
+     "index": 2,
+     "source_url": "https://www.epa.gov/archive/epa/newsreleases/epa-releases-superfund-redevelopment-focus-list-includes-mdi-site-houston.html",
+     "verdict": "supported",
+     "site_match": "confirmed",
+     "note": "Jan 17, 2018 release: 'The list includes the Many Diversified Interests, Inc., (MDI) site in Houston, a former foundry'; page says removed from NPL in 2010; no MDI-specific reuse."
+    }
+   ],
+   "portal_verdicts": []
+  }
+ ]
+}

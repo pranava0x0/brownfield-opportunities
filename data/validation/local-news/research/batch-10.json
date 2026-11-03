@@ -1,0 +1,139 @@
+{
+ "batch": "batch-10",
+ "researcher": "Claude Haiku 5.5",
+ "sites": [
+  {
+   "id": "FUDS-I04NC0594",
+   "name": "WINSTON-SALEM ARPT",
+   "researcher": "Claude Haiku 5.5",
+   "portals": [],
+   "facts": [
+    {
+     "kind": "development_project",
+     "date": "2025-08-14",
+     "summary": "Signature Aviation reopened a renovated fixed-base operator (FBO) of about 3,000 sq ft in the airport terminal, which dates to 1941. The reconstruction took two years. The article reports a completed tenant renovation, not a redevelopment of former Army airfield land. The FUDS record name is Winston-Salem Airport, matched here to Smith Reynolds Airport by name and airport history.",
+     "authority": "AIN (Aviation International News)",
+     "reference": "Signature Debuts Updated North Carolina FBO",
+     "source_url": "https://www.ainonline.com/aviation-news/2025-08-14/signature-debuts-updated-north-carolina-fbo",
+     "quote": "celebrating the grand reopening of its renovated FBO this week at Smith Reynolds Airport (KINT)"
+    }
+   ],
+   "gaps": [
+    "Searched the Winston-Salem airport and Smith Reynolds with redevelopment and former Army airfield terms. Found the 2025 FBO renovation and a 2025 terminal renovation, but no redevelopment of the former military land.",
+    "The match between the FUDS record and Smith Reynolds Airport rests on name and wartime history, not a boundary match. The record's acreage is null.",
+    "The Smith Reynolds site plan (SRA_Site_Plan_5.pdf) describes available land for lease. It was seen in search and not opened, so no lease or development fact is cited from it."
+   ]
+  },
+  {
+   "id": "FUDS-I04SC0025",
+   "name": "CONWAY BMB&GUNRY RNG",
+   "researcher": "Claude Haiku 5.5",
+   "portals": [],
+   "facts": [
+    {
+     "kind": "news",
+     "summary": "WBTW reports that the Army Corps of Engineers plans to propose no additional remediation on nearly 56,000 acres of the former Conway Bombing and Gunnery Range. The proposal follows a 2018 Corps report that found no longer any explosive hazards or human-health or environmental risks on the property. The page shows no publication date ('3 years ago' only).",
+     "authority": "WBTW",
+     "reference": "Army Corps of Engineers plans no more remediation at site of former Conway Bombing and Gunnery Range",
+     "source_url": "https://www.wbtw.com/news/grand-strand/horry-county/army-corps-of-engineers-plans-no-more-remediation-at-site-of-former-conway-bombing-and-gunnery-range/amp",
+     "quote": "plans to propose that no additional remediation take place on nearly 56,000 acres of land"
+    },
+    {
+     "kind": "zoning",
+     "date": "2018-08-09",
+     "summary": "My Horry News reports that Horry County requires range properties to be identified in public records, a policy updated in 2003. Anyone pulling a construction permit inside the former bombing range must acknowledge that the property sits within an impact safety zone. The article reports three flagged areas (296, 1,525 and 495 acres) totaling about 2,316 acres, which the federal report found hold explosives.",
+     "authority": "My Horry News",
+     "reference": "Report: former Horry County bombing range sites pose unacceptable risk",
+     "source_url": "https://www.myhorrynews.com/news/local/horry_county/report-former-horry-county-bombing-range-sites-pose-unacceptable-risk/article_27a4ac86-9bda-11e8-9c9a-e3a0151e837a.html",
+     "quote": "county officials require that range properties be identified in public records"
+    }
+   ],
+   "gaps": [
+    "Searched the Conway range with solar, development and cleanup terms. Found no solar project or other development sited on the range itself. The Bucksport solar farm near Conway is not tied to the range by any source found.",
+    "The 2018 article refers to 'a former Horry County bombing range'. I did not confirm that it names the Conway Bombing and Gunnery Range by name, so the match rests on the county-wide range identity.",
+    "A Corps focus on a 455-acre site in Carolina Forest surfaced in search but its page was not opened, so no fact is cited from it."
+   ]
+  },
+  {
+   "id": "FUDS-K06TX0015",
+   "name": "CAMP HOWZE",
+   "researcher": "Claude Haiku 5.5",
+   "portals": [],
+   "facts": [
+    {
+     "kind": "development_project",
+     "date": "2026-06-18",
+     "summary": "KXII reports the groundbreaking of Camp Howze Industrial Rail Park on June 18, 2026. KXII gives 480 acres; the developer's release gives 489 acres. The developer's release says the park is planned for up to 7 million square feet across 14 buildings. The park is a part of the former camp, not the whole 58,702-acre FUDS property.",
+     "authority": "KXII",
+     "reference": "Groundbreaking held for Camp Howze Industrial Rail Park in Gainesville",
+     "source_url": "https://www.kxii.com/2026/06/18/groundbreaking-held-camp-howze-industrial-rail-park-gainesville/",
+     "quote": "480-acre development just off Interstate 35 in northwest Gainesville."
+    },
+    {
+     "kind": "developer",
+     "date": "2026-06-22",
+     "summary": "Stream Realty Partners is leasing the Camp Howze Industrial Rail Park on behalf of B-29 Investments in partnership with Hughes Commercial, according to the release. The release calls the park a 489-acre master-planned industrial development in Gainesville.",
+     "authority": "Stream Realty Partners",
+     "reference": "Camp Howze Industrial Rail Park breaks ground in Gainesville, Texas",
+     "source_url": "https://streamrealty.com/camp-howze-industrial-rail-park-breaks-ground-in-gainesville-texas/",
+     "quote": "are leading leasing efforts for the project on behalf of B-29 Investments in partnership with Hughes Commercial"
+    },
+    {
+     "kind": "community_benefit",
+     "date": "2026-06-18",
+     "summary": "KXII reports one anchor tenant has signed, with potential for up to 2,000 jobs. The tenant is not named, and the article presents the jobs as potential, not a commitment. The first industrial partner is named as Buzzi's, which is targeting the same year but has not broken ground.",
+     "authority": "KXII",
+     "reference": "Groundbreaking held for Camp Howze Industrial Rail Park in Gainesville",
+     "source_url": "https://www.kxii.com/2026/06/18/groundbreaking-held-camp-howze-industrial-rail-park-gainesville/",
+     "quote": "One anchor tenant is already signed on, with potential for up to 2,000 jobs."
+    }
+   ],
+   "gaps": [
+    "Searched Camp Howze with solar, rail park and development terms. Found no solar project on the camp grounds. North Gainesville Solar is a separate plant on N. Weaver Street and is not tied to the camp by any source found.",
+    "The rail park is one 480 to 489-acre part of the 58,702-acre FUDS property. Facts here describe that part only.",
+    "The developer's release page was opened. The page does not give a construction start date beyond the June 2026 groundbreaking.",
+    "No incentive (tax abatement, TIF, grant) coverage was found in the pages opened. The incentive search was not completed."
+   ]
+  },
+  {
+   "id": "IA7213820445",
+   "name": "IOWA ARMY AMMUNITION PLANT",
+   "researcher": "Claude Haiku 5.5",
+   "portals": [],
+   "facts": [
+    {
+     "kind": "development_project",
+     "date": "2026-07",
+     "summary": "The U.S. Army marked a July 15 groundbreaking for the Future Artillery Complex at the Iowa Army Ammunition Plant, a multi-million-dollar expansion of the Army's artillery production base for end-to-end production of 155 mm melt-pour ammunition. The article is dated July 22, 2026 and is an Army release, which does not name a private developer.",
+     "authority": "U.S. Army (army.mil)",
+     "reference": "Army breaks ground on state-of-the-art ammunition plant in Iowa",
+     "source_url": "https://www.army.mil/article/294057",
+     "quote": "officially launched the construction of the Future Artillery Complex"
+    },
+    {
+     "kind": "development_project",
+     "date": "2016-06-15",
+     "summary": "Tri-States Public Radio reports that the state certified part of the plant as the 12th Iowa Certified Site and that the property is 'ready for development'. IEDA head Debi Durham made the statement. American Ordnance, the plant's operator, is named in the story. The certified site is the Commerce Center described in the next fact.",
+     "authority": "Tri-States Public Radio (tspr.org)",
+     "reference": "Iowa Army Ammo Plant deemed 'Ready for Development'",
+     "source_url": "https://www.tspr.org/tspr-local/2016-06-15/iowa-army-ammo-plant-deemed-ready-for-development",
+     "quote": "the property is ready for development"
+    },
+    {
+     "kind": "redevelopment_plan",
+     "date": "2016-06-27",
+     "summary": "The Commerce Center of Southeast Iowa is a 152.9-acre certified industrial site on federal land inside the plant, near Middletown. An act of Congress raised the land lease from 25 to 50 years to allow the site. The site is also BNSF rail-served certified. Partners named in the 2016 certification are the Iowa Economic Development Authority, the Greater Burlington Partnership and American Ordnance.",
+     "authority": "RC Reader",
+     "reference": "Burlington-area site joins 11 sites in Iowa that are part of the Iowa Certified Site program",
+     "source_url": "https://www.rcreader.com/node/40457",
+     "quote": "it took an act of Congress to increase the lease duration on the land from the normal 25 years to 50 years."
+    }
+   ],
+   "gaps": [
+    "Searched IAAAP redevelopment and the Commerce Center. Found the July 2026 Army groundbreaking and the 2016 Commerce Center certification. No news on Commerce Center tenants, occupancy or sales since 2016 was found.",
+    "A 2014 Tri-States piece on commercial development possibilities at the plant and a 2026 report of a temporary plant closure for a safety review were seen in search and not opened.",
+    "No community benefit, host payment or cleanup-to-residents commitment was found."
+   ]
+  }
+ ]
+}

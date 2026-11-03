@@ -1,0 +1,9 @@
+{"batch": "batch-12", "researcher": "Claude Haiku 5.5", "sites": [
+  {"id": "WID980901227", "name": "FADROWSKI DRUM DISPOSAL", "researcher": "Claude Haiku 5.5", "portals": [], "facts": [],
+   "gaps": [
+     "Found EPA Region 5's 2007 reuse fact sheet (title: 'Fadrowski Drum Disposal Superfund Site Reuse Fact Sheet'), which describes recreational and commercial reuse over about 12 capped acres. The PDF body is scanned and could not be read, so no verbatim quote was available and it was not used as a fact.",
+     "A search summary attributes the purchase to Menard, Inc. of Eau Claire and cites a 1992 remedial design for Menard. The EPA document it cites (semspub.epa.gov/src/document/05/923390) is scanned and unreadable, so this was not used as a fact. The atlas parcel record lists the owner as MENARD INC (WI V8 parcels).",
+     "EPA's 2005 direct final deletion notice (Federal Register, 2005-07-06) was found but its PDF is unreadable, so the deletion status is unconfirmed here.",
+     "The Region 5 site profile (epa.gov/region5/superfund/npl/wisconsin/WID980901227.htm) returned HTTP 404.",
+     "No news, permit, hearing or development project for the 6800 S 27th St parcel was found from 2015 onward. Franklin plan-commission and Milwaukee County records would be the next check."]}
+]}

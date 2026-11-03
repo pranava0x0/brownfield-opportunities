@@ -1,0 +1,85 @@
+{
+ "batch": "batch-07",
+ "sites": [
+  {
+   "id": "TND073540783",
+   "name": "ILLINOIS CENTRAL RAILROAD COMPANY'S JOHNSTON YARD SUPERFUND SITE",
+   "program": "superfund",
+   "address": "2921 HORN LAKE ROAD",
+   "city": "MEMPHIS",
+   "county": "SHELBY",
+   "state": "TN",
+   "zip": "38109",
+   "lat": 35.070586,
+   "lon": -90.076448,
+   "acreage": 353.3,
+   "tabs": [
+    "transformer"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "TXD980810386",
+   "name": "SOUTH CAVALCADE STREET",
+   "program": "superfund",
+   "address": "SE OF CAVALCADE AND MAURY/BTWN BH&T RR",
+   "city": "HOUSTON",
+   "county": "HARRIS",
+   "state": "TX",
+   "zip": "77020",
+   "lat": 29.798501,
+   "lon": -95.348171,
+   "acreage": 67.6,
+   "tabs": [
+    "robotics"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "TXD980873343",
+   "name": "NORTH CAVALCADE STREET",
+   "program": "superfund",
+   "address": "NE OF CAVALCADE AND MAURY/BTWN BH&T RR",
+   "city": "HOUSTON",
+   "county": "HARRIS",
+   "state": "TX",
+   "zip": "77009",
+   "lat": 29.807599,
+   "lon": -95.34923,
+   "acreage": 26.5,
+   "tabs": [
+    "robotics"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "UTD070926811",
+   "name": "KENNECOTT (NORTH ZONE)",
+   "program": "superfund",
+   "address": "12000 WEST 2100 SOUTH",
+   "city": "MAGNA",
+   "county": "SALT LAKE",
+   "state": "UT",
+   "zip": "84044",
+   "lat": 40.704941,
+   "lon": -112.128626,
+   "acreage": 33670.0,
+   "tabs": [
+    "minerals"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  }
+ ]
+}

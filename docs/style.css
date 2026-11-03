@@ -4063,3 +4063,51 @@ details.nickel-caveat li { margin-bottom: 6px; }
 .local-portals, .local-facts { padding-left: 18px; margin: 4px 0 10px; }
 .local-portals li, .local-facts li { margin-bottom: 6px; }
 .local-gaps { margin: 8px 0; font-size: 13px; }
+
+
+/* Placeholder cards while the Screens inputs download: the layout is there from the first frame, so
+   rows arriving do not shove anything down, and a slow load reads as loading rather than broken. */
+.skeleton-list { display: grid; gap: 8px; padding: 8px 0; }
+.skeleton-list[hidden] { display: none; }
+.skeleton-card { display: grid; gap: 10px; padding: 18px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
+.skeleton-card i { display: block; height: 12px; border-radius: 6px; background: linear-gradient(90deg, var(--border) 25%, var(--surface-2, var(--border)) 50%, var(--border) 75%); background-size: 200% 100%; animation: skeleton-shimmer 1.4s linear infinite; }
+.skeleton-card i:nth-child(1) { width: 55%; height: 16px; }
+.skeleton-card i:nth-child(2) { width: 85%; }
+.skeleton-card i:nth-child(3) { width: 40%; }
+@keyframes skeleton-shimmer { to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { .skeleton-card i { animation: none; } }
+/* Fingers need 44 px targets; mouse users keep the compact pills. */
+@media (pointer: coarse) {
+  .cand-filter, .tab { min-height: 44px; }
+  .cand-filter { padding: 8px 14px; font-size: 13px; }
+}
+
+/* ----- Manufacturing plants (▲) ------------------------------------------
+   Rules target the icon class itself (marker lesson in CLAUDE.md). One hue
+   per sector, each with a dark-theme pair. */
+:root {
+  --mfg-robotics: #0e6f8a; --mfg-turbine: #8a3b0e; --mfg-transformer: #5a3d9a; --mfg-minerals: #4d6b12;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --mfg-robotics: #5cc8e6; --mfg-turbine: #f0a070; --mfg-transformer: #b8a0f0; --mfg-minerals: #b5d86a;
+  }
+}
+:root[data-theme="dark"] {
+  --mfg-robotics: #5cc8e6; --mfg-turbine: #f0a070; --mfg-transformer: #b8a0f0; --mfg-minerals: #b5d86a;
+}
+.mfg-icon {
+  font-size: 13px;
+  line-height: 14px;
+  text-align: center;
+  text-shadow: 0 0 2px var(--surface), 0 0 3px var(--surface);
+}
+.mfg-robotics { color: var(--mfg-robotics); }
+.mfg-turbine { color: var(--mfg-turbine); }
+.mfg-transformer { color: var(--mfg-transformer); }
+.mfg-minerals { color: var(--mfg-minerals); }
+.mfg-evidence { margin-top: 10px; }
+.mfg-evidence summary { cursor: pointer; font-weight: 600; min-height: 28px; }
+.mfg-evidence h4 { margin: 10px 0 4px; font-size: 13px; }
+.mfg-evidence ul { margin: 0; padding-left: 18px; }
+.mfg-evidence li { margin: 3px 0; line-height: 1.4; overflow-wrap: anywhere; }

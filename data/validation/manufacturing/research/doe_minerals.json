@@ -1,0 +1,126 @@
+{
+  "topic": "doe_minerals",
+  "researched_at": "2026-11-02",
+  "requirements": [
+    {
+      "factor": "other",
+      "claim": "DOE battery-materials solicitations require a Community Benefits Plan, and DOE amended its page limit",
+      "value": null,
+      "source_url": "https://netl.doe.gov/node/13087",
+      "source_title": "NETL: DOE battery funding page (Community Benefits Plan amendment)",
+      "published": null,
+      "quote": "The purpose of this amendment is to update the page limit for the Community Benefits Plan."
+    },
+    {
+      "factor": "other",
+      "claim": "Round 2 (Sept 2024) battery selections were selected for award negotiation, so the funding was not final until negotiation closed",
+      "value": "selected for award negotiation, up to $200 million (not finalized at selection)",
+      "source_url": "https://www.cirbasolutions.com/cirba-solutions-selected-for-200-million-award-negotiations-for-critical-materials-refining/",
+      "source_title": "Cirba Solutions: selected for $200 million award negotiations for critical materials refining",
+      "published": "2024-09-20",
+      "quote": "selected to enter into award negotiation with the U.S. Department of Energy for up to $200 million"
+    },
+    {
+      "factor": "other",
+      "claim": "In October 2025 DOE cancelled more than $700 million in manufacturing and battery grants, saying the projects had missed milestones and were not economically viable",
+      "value": "more than $700 million cancelled",
+      "source_url": "https://www.utilitydive.com/news/department-energy-project-grants-cancelled-battery-manufacturing-trump/803347/",
+      "source_title": "Utility Dive: DOE cancels battery and manufacturing grants",
+      "published": "2025-10-21",
+      "quote": "These projects had missed milestones"
+    }
+  ],
+  "facilities": [
+    {
+      "name": "Cirba Solutions lithium-ion processing facility (Columbia, SC)",
+      "company": "Cirba Solutions",
+      "product": "battery-grade salts from recycled lithium-ion batteries",
+      "status": "announced",
+      "city": "Columbia",
+      "state": "SC",
+      "address": null,
+      "investment_usd": null,
+      "jobs": null,
+      "acres": null,
+      "announced": "2024-09",
+      "doe_award": {
+        "program": "Bipartisan Infrastructure Law Battery Materials Processing, Round 2 (selected for award negotiation)",
+        "amount_usd": 200000000,
+        "agency": "DOE"
+      },
+      "brownfield": null,
+      "former_use": null,
+      "source_url": "https://www.cirbasolutions.com/cirba-solutions-selected-for-200-million-award-negotiations-for-critical-materials-refining/",
+      "source_title": "Cirba Solutions: selected for $200 million award negotiations for critical materials refining",
+      "published": "2024-09-20",
+      "quote": "selected to enter into award negotiation with the U.S. Department of Energy for up to $200 million"
+    },
+    {
+      "name": "Ascend Elements Hopkinsville battery materials complex (Hopkinsville, KY)",
+      "company": "Ascend Elements",
+      "product": "EV battery materials (pCAM)",
+      "status": "announced",
+      "city": "Hopkinsville",
+      "state": "KY",
+      "address": null,
+      "investment_usd": null,
+      "jobs": null,
+      "acres": null,
+      "announced": "2022-10",
+      "doe_award": {
+        "program": "Bipartisan Infrastructure Law pCAM grant (Round 1, Oct 2022)",
+        "amount_usd": 316000000,
+        "agency": "DOE"
+      },
+      "brownfield": null,
+      "former_use": null,
+      "source_url": "https://www.wkyufm.org/news/2025-03-04/ev-battery-materials-manufacturer-pumps-the-brakes-on-hopkinsville-facility",
+      "source_title": "WKU Public Radio: EV battery materials manufacturer pumps the brakes on Hopkinsville facility",
+      "published": "2025-03-04",
+      "quote": "The $316 million federal grant to produce pCAM remains active."
+    },
+    {
+      "name": "ICL Specialty Products battery plant (St. Louis)",
+      "company": "ICL Specialty Products",
+      "product": null,
+      "status": "cancelled",
+      "city": "St. Louis",
+      "state": "MO",
+      "address": null,
+      "investment_usd": null,
+      "jobs": null,
+      "acres": null,
+      "announced": null,
+      "doe_award": {
+        "program": "DOE manufacturing grant (program not named on page); cancelled in October 2025 DOE cuts",
+        "amount_usd": 197000000,
+        "agency": "DOE"
+      },
+      "brownfield": null,
+      "former_use": null,
+      "source_url": "https://www.utilitydive.com/news/department-energy-project-grants-cancelled-battery-manufacturing-trump/803347/",
+      "source_title": "Utility Dive: DOE cancels battery and manufacturing grants",
+      "published": "2025-10-21",
+      "quote": "ICL Specialty Products had received a $197 million grant"
+    }
+  ],
+  "notes": [
+    "Coverage: about 29 tool calls. Pages opened and quoted: energy.gov/node/4817264, nsenergybusiness.com (Thacker Pass), techcrunch.com (2025-10-20), utilitydive.com (2025-10-21), wastedive.com (2024-09-24), cirbasolutions.com (2024-09-20), wkyufm.org (2025-03-04), netl.doe.gov/node/13087, and the DOE Round 3 selections page. Quotes from pages that WebFetch returned as an extract are the extract's wording and were not checked against raw HTML.",
+    "City rule: no facility row was built where the page gives only a state or region. Rows that fail that rule are listed here.",
+    "DOE Round 3 selections page (battery materials processing and manufacturing/recycling, selections announced 2026-08-20 per the page timeline): Princeton NuEnergy Inc. (Commerce, GA) $50 million federal share; Coreshell Technologies Inc. (San Leandro, CA) $50 million federal share; Nth Cycle, Inc. $100 million (location: southeastern US, no city); Arcanum Ventures, LLC $50 million (location TBD); Elevated Materials, LLC $50 million (location TBD). The table is an extract, so these are not quoted as facility rows. The page says 'MDO announced $500 million across seven selected projects' but lists five totaling $300 million, which is unreconciled.",
+    "DOE Round 2 (selections 2024-09-20; 25 projects, prior round $1.82 billion for 14 projects): Waste Dive (2024-09-24) lists American Battery Technology Co. $150 million for a South Carolina facility (city not named); Clarios Circular Solutions $150 million for an existing South Carolina facility (city not named); Li Industries $55.2 million to convert a former manufacturing plant (location not stated); Ascend Elements $125 million for recycled graphite production in Kentucky (city not named on that page); Blue Whale Materials $55.2 million for a recycling facility in Oklahoma (city not named). DOE's own selections page lists Round 2 without recipient names.",
+    "DOE Round 1 (announced 2022-10-19): energy.gov/node/4817264 states 'DOE has awarded a total of $1.82 billion to 14 projects' and links to a separate selections page, which was not opened.",
+    "Lithium Americas Thacker Pass (DOE ATVM loan, closed Oct 2024): NS Energy (2024-10-29) quotes 'has closed a $2.26bn loan from the US Department of Energy's (DOE) Loan Programs Office' and 'Located in Humboldt County, Nevada, the Thacker Pass project'. No city is given, so no facility row. GM acquires a 38% asset-level stake. Search snippets (not opened, unverified): first advance $435.0 million on 2025-10-20, second $432 million on 2026-02-24.",
+    "Ascend Elements: the WKU page (2025-03-04) quotes 'to cancel a $164 million federal grant for its mega factory in Hopkinsville' (CAM grant, cancelled by mutual agreement; the $316 million pCAM grant 'remains active'). Utility Dive (2025-10-21) says the October 2025 cuts 'targeted battery and manufacturing projects in development by Ascend Elements' but gives no amount. Utility Dive also reports a '$1 billion facility in Kentucky' for the Round 1 award. Search snippets (not opened): the remaining Oct 2025 cut was about $110 million, and Ascend filed Chapter 11 on 2026-04-09. Those are unverified.",
+    "Cancellations (Oct 2025): Utility Dive (2025-10-21) names ICL Specialty Products ($197 million, a 'new battery plant in St. Louis'; the wider project 'in doubt'), American Battery Technology (CEO says it 'recently lost a $57.7 million grant'; the company will proceed without it), Anovion ($117 million for synthetic graphite anode material; location not stated), and LuxWall ($31.7 million, 'a factory on the site of an old coal plant near Detroit'; glass, not battery materials, so not a facility row). The stated reasons were 'missed milestones' and 'were not economically viable'. ABTC's $57.7 million loss does not reconcile with its $150 million Round 2 award; the Round 2 figure is from Waste Dive and the loss figure from Utility Dive. TechCrunch (2025-10-20) quotes 'In October 2022, the company was awarded $316 million toward a $1 billion facility in Kentucky' for Ascend.",
+    "Status 'cancelled' is set only for ICL, on the basis of the Utility Dive cancellation list. The Ascend row stays 'announced' because WKU says the $164 million grant was cancelled but the $316 million pCAM grant remains active. Neither source says the facility itself was cancelled.",
+    "Nova Minerals / Alaska Range Resources: Defense Production Act Title III award of $43.4 million (Oct 2025) for antimony trisulfide at the Estelle project, Alaska (search snippets from Mining Weekly and the Department of War release title; not opened). The Port MacKenzie refinery link comes only from a Kalkine article (search snippet), so it is not verified and there is no facility row. Ownership is inconsistent: Northern Miner says 85%, Nova's announcement says 100%. A SmallCaps headline says $65.5 million, which conflicts with $43.4 million.",
+    "Electra Battery Materials: DoD DPA award of $20 million for a cobalt sulfate refinery (search snippet; not opened). The refinery is in Ontario, Canada, so it is not a US facility.",
+    "Other DPA Title III awards seen only in search snippets, not opened: NioCorp Elk Creek (scandium, feasibility work, up to $10 million); Global Advanced Metals ($26.40 million, niobium oxide, Pennsylvania, 2024 IRA-funded awards, city not seen); The Metals Company (application only, $9 million for a domestic nodule refinery, not an award).",
+    "Critical Minerals and Materials Accelerator: a $69 million NOFO issued 2026-04-07 by the Advanced Materials and Manufacturing Technologies Office and the Office of Geothermal, with mine-tailings recovery in Sub-topic 1C (search snippet from Holland & Knight, not opened). A University of Wisconsin notice lists the application deadline as 2026-05-26, so the window had closed by 2026-11-02. The separate 'Mines & Metals Capacity Expansion' program (about $250 million, Fossil Energy and Carbon Management) has no verified status.",
+    "Loan Programs Office, not opened: ioneer Rhyolite Ridge (Tonopah area, NV) $996 million ATVM loan closed Jan 2025 per search snippets; first funding is conditioned on an equity partner and a final investment decision targeted for 2H 2026 (SEC 424B3 snippet). Redwood Materials (McCarran, NV) $2 billion conditional commitment, Feb 2023 (search snippet); no 2025-2026 status found. Neither has a verified city in an opened page.",
+    "Requirements gap: no page opened states DOE site-readiness criteria, brownfield or energy-community preference, or land, power, rail, water, gas, or workforce needs for these awards. The DOE applicant webinar PDF for FOA DE-FOA-0003099 returned HTTP 404 on one retry. Search snippets (not opened) describe Round 1's 'equity plan' Community Benefits Plan at 20% of the score and Round 2's full applications due 2024-03-19. Round 3 notice of intent (Jan 2025): about $725 million; the full FOA was expected in spring 2025, status unknown.",
+    "Blocked or failed fetches: businesswire.com (Lithium Americas closing release) returned HTTP 403, so the NS Energy article was used instead. aol.com (Nova Minerals) returned HTTP 404. energy.gov/node/4817265 was not opened.",
+    "Round 2 and Round 3 totals and recipient counts are unreconciled across sources. Treat amounts from these notes as leads until a DOE page or a company release is opened and quoted."
+  ]
+}

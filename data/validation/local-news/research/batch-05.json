@@ -1,0 +1,87 @@
+{
+  "batch": "batch-05",
+  "researcher": "Claude Haiku 5.5",
+  "sites": [
+    {
+      "id": "FUDS-I04AL0120",
+      "name": "GUNTER AIR FORCE STATION",
+      "researcher": "Claude Haiku 5.5",
+      "portals": [],
+      "facts": [],
+      "gaps": [
+        "Searched 'Gunter Annex' with Montgomery, redevelopment, land lease, 2026 news and Montgomery Advertiser terms. No local news found on a current development, lease, or reuse of Gunter Annex land.",
+        "Maxwell AFB article 'Wing shares developments at Gunter' (maxwell.af.mil, article 420185) returned HTTP 403 and could not be read, so it is not cited.",
+        "City of Montgomery project page for 1501 Maxwell Boulevard returned HTTP 403 and could not be read. The search snippet says it asks for feasible reuse proposals, but it is not confirmed as Gunter Annex land.",
+        "Wikipedia Gunter Annex page is background only and not cited as news: the 1940 War Department lease and the 1971 return of nearly 800 acres to Montgomery. It does not describe any current redevelopment.",
+        "The atlas record shows 806.9 acres. No source ties that acreage to a named project."
+      ]
+    },
+    {
+      "id": "FUDS-I04AL3227",
+      "name": "CAMP SHERIDAN",
+      "researcher": "Claude Haiku 5.5",
+      "portals": [],
+      "facts": [],
+      "gaps": [
+        "Searched Camp Sheridan with Montgomery, development, Calhoun Community College, and Kilby site plan terms. No current development, developer, or site plan found for the Camp Sheridan footprint.",
+        "Found a UPI article dated 1986-04-10 about a planned homes and offices development on the former Kilby Prison land in Montgomery (agent Mickey Griffin of Aronov Realty). It names Kilby, not Camp Sheridan, so it is not cited. A local history source says Camp Sheridan land became the Kilby reservation; that link is unconfirmed and needs a check before use.",
+        "The Calhoun Community College hit is a Decatur, Alabama expansion. It is not connected to Montgomery or Camp Sheridan."
+      ]
+    },
+    {
+      "id": "FUDS-I04GA0939",
+      "name": "NAS ATLANTA",
+      "researcher": "Claude Haiku 5.5",
+      "portals": [],
+      "facts": [
+        {
+          "kind": "development_project",
+          "date": "2025-11-18",
+          "summary": "DeKalb County commissioners voted 6-1 on Nov. 18, 2025 to approve a $45 million Sky Harbour hangar development on about 12.8 acres on the east side of DeKalb-Peachtree Airport (PDK). The plan is eight hangars under a 50-year ground lease with no county appropriation. The county projects a $576 million financial impact over the lease term, including $66 million in direct ground-lease revenue to PDK. This is an approval, not a report that construction has begun.",
+          "authority": "DeKalb County Government",
+          "reference": "DeKalb County news: BOC approves hangar development at PDK (item dated Dec. 1, 2025)",
+          "source_url": "https://dekalbcountyga.gov/news/dekalb-county-boc-approves-hangar-development-reposition-flights-and-provide-revenue-community",
+          "quote": "On Tuesday, Nov.18, in a 6-1 vote, the DeKalb County Board of Commissioners approved a $45 million development"
+        },
+        {
+          "kind": "developer",
+          "date": "2025-11-18",
+          "summary": "The county names Sky Harbour as the developer, described as a home-based operator for business aircraft at PDK. AvWeb reports the board advanced the 'Sky Harbour Group' development, so the printed entity name differs between sources. The exact legal entity was not confirmed.",
+          "authority": "DeKalb County Government",
+          "reference": "DeKalb County news: BOC approves hangar development at PDK (item dated Dec. 1, 2025)",
+          "source_url": "https://dekalbcountyga.gov/news/dekalb-county-boc-approves-hangar-development-reposition-flights-and-provide-revenue-community",
+          "quote": "by Sky Harbour, a home-based operator for business aircraft at DeKalb-Peachtree Airport (PDK),"
+        },
+        {
+          "kind": "news",
+          "date": "2025-12-10",
+          "summary": "After the approval, residents raised noise and environmental-pollution concerns about the PDK hangar expansion at a Dec. 9 town hall. Commissioner Ted Terry proposed a moratorium on all new hangar development until the PDK master plan is updated, plus an FAA ban on night flights except for emergencies. The article reports these as proposals.",
+          "authority": "Rough Draft Atlanta",
+          "reference": "Rough Draft Atlanta: residents upset over PDK expansion (Dec. 10, 2025)",
+          "source_url": "https://roughdraftatlanta.com/2025/12/10/residents-upset-pdk-expansion/",
+          "quote": "a moratorium on all new hangar development until the PDK master plan is updated"
+        }
+      ],
+      "gaps": [
+        "Matched on the airport identity: the FUDS record is the former Naval Air Station Atlanta, which is now DeKalb-Peachtree Airport. The atlas's 412 acres is smaller than the airport footprint, and the project is 12.8 acres (county) or 13 acres (AvWeb). The match is by airport name, not by parcel.",
+        "Sky Harbour's Request for Proposals 22-500625 (Eastside Aviation Development on PDK, issued Aug. 2022) and the April 2024 Operations Committee recommendation of Sky Harbour as sole proposer were found only in search snippets. The county PDF links returned HTTP 404, so they are not cited.",
+        "Operations Committee agendas and minutes from 2024 and 2025 show the item continuing. The county PDFs for those returned HTTP 404 and are not cited.",
+        "The Chamblee citywide data center moratorium (Urbanize Atlanta, July 2026) is not about PDK and is not cited. Whether PDK sits inside Chamblee city limits was not verified.",
+        "Not verified: the pending FAA approval and the groundbreaking target of Q3 2027 that appear in an AIN search snippet, because the AIN page was not opened.",
+        "Only one council-level opposition item was opened. The Ted Terry proposal is cited as a proposal, and its outcome was not found."
+      ]
+    },
+    {
+      "id": "FUDS-I04GA0975",
+      "name": "CP GORDON",
+      "researcher": "Claude Haiku 5.5",
+      "portals": [],
+      "facts": [],
+      "gaps": [
+        "Searched 'CP Gordon', 'Camp Gordon' with Chamblee, Atlanta, DeKalb and development terms. No news found on a current project at the Camp Gordon WWI site near Chamblee.",
+        "Search results were unrelated Chamblee projects: Chamblee City Center, Marlowe Chamblee (Greystar, March 2025), Chamblee Park (Toll Brothers), and The Frazier at Olde Towne Gordon. None names Camp Gordon or this site.",
+        "Historical background only, not cited as news: Camp Gordon was a WWI training camp in Chamblee, abandoned in 1921. DeKalb County bought land from the former camp in 1940 for an airport, which became DeKalb-Peachtree Airport. The CP Gordon atlas point is about 0.6 mile from PDK, so it may be part of the same former camp footprint; this is not confirmed."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,86 @@
+{
+ "batch": "batch-09",
+ "sites": [
+  {
+   "id": "FUDS-B07MO0173",
+   "name": "TYSON VALLEY POWDER FARM",
+   "program": "fuds",
+   "address": null,
+   "city": "EUREKA",
+   "county": "ST LOUIS",
+   "state": "MO",
+   "zip": null,
+   "lat": 38.522629,
+   "lon": -90.560712,
+   "acreage": 2569.3,
+   "tabs": [
+    "nickel",
+    "transformer"
+   ],
+   "atlas_owner": "Local government \u2014 County Saint Louis County-Lone Elk Park And West Tyson Park., St. Louis County / Private \u2014 Washington University-Biological Field Station For Research., Washington University",
+   "atlas_owner_source": "USACE FUDS",
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "FUDS-E05IL0102",
+   "name": "SANGAMON ORDNANCE PLANT",
+   "program": "fuds",
+   "address": null,
+   "city": "ILLIOPOLIS",
+   "county": "SANGAMON",
+   "state": "IL",
+   "zip": null,
+   "lat": 39.854401,
+   "lon": -89.294098,
+   "acreage": 18913.6,
+   "tabs": [
+    "minerals"
+   ],
+   "atlas_owner": "Local government \u2014 City Varied. / Other \u2014 Multple Owners Have Been Identified For This Site. The List Of Owners Can Be Found In Frmd At E05il010206_01.06_0500 / Private \u2014 Varied.",
+   "atlas_owner_source": "USACE FUDS",
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "FUDS-I04FL0038",
+   "name": "RICHMOND NAS",
+   "program": "fuds",
+   "address": null,
+   "city": "RICHMOND HEIGHTS",
+   "county": "MIAMI-DADE",
+   "state": "FL",
+   "zip": null,
+   "lat": 25.611901,
+   "lon": -80.398095,
+   "acreage": 2106.5,
+   "tabs": [
+    "nickel"
+   ],
+   "atlas_owner": "Dod: Carl Dokter / Federal \u2014 Nat'l Institute Of Health, Perrine Center., Federal Bureau Of Prisons / Local government \u2014 County Gold Coast Rr Museum. Metro Zoo. ., Miami-Dade County / Private \u2014 University Of Miami South Campus.",
+   "atlas_owner_source": "USACE FUDS",
+   "atlas_parcel_id": "3059360000050",
+   "state_parcel_layer": true
+  },
+  {
+   "id": "FUDS-I04NC0485",
+   "name": "CHARLOTTE ARMY MIS PL",
+   "program": "fuds",
+   "address": null,
+   "city": "CHARLOTTE",
+   "county": "MECKLENBURG",
+   "state": "NC",
+   "zip": null,
+   "lat": 35.248461,
+   "lon": -80.831817,
+   "acreage": 76.3,
+   "tabs": [
+    "turbine"
+   ],
+   "atlas_owner": "Private \u2014 Commercial",
+   "atlas_owner_source": "USACE FUDS",
+   "atlas_parcel_id": "07903101",
+   "state_parcel_layer": true
+  }
+ ]
+}

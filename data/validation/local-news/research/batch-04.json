@@ -1,0 +1,52 @@
+{"batch": "batch-04", "researcher": "Claude Haiku 5.5", "sites": [
+  {"id": "MT0012694970", "name": "FLAT CREEK IMM", "researcher": "Claude Haiku 5.5", "portals": [],
+   "facts": [
+     {"kind": "news", "date": "2016-01",
+      "summary": "Montana DEQ held a public comment meeting on Thursday, January 14, 2016, on an engineering evaluation and cost analysis for mine tailings at the Flat Creek-Iron Mountain Mine NPL site, four miles northeast of Superior. The notice covers alternatives for tailings on USFS and former ASARCO lands. It does not mention redevelopment, reuse or land transfer.",
+      "authority": "Montana Environmental Trust Group",
+      "reference": "Montana Environmental Trust Group, DOE Seeks public comment on Flat Creek-Iron Mountain Mine (posted 2016-01-21)",
+      "source_url": "https://www.mtenvironmentaltrust.org/doe-seeks-public-comment-flat-creek-iron-mountain-mine/",
+      "quote": "regarding an Engineering Evaluation and Cost Analysis (EE/CA) for the Flat Creek-Iron Mountain Mine"},
+     {"kind": "news", "date": "2026-03-19",
+      "summary": "The U.S. Fish and Wildlife Service opened a 30-day public comment period, March 19 to April 18, 2026, on a draft restoration plan for natural resource injuries from historic mining. The page title names the Flat Creek/Iron Mountain Mine and Mill Superfund site together with Black Pine Mine. The quoted text does not name Flat Creek, so the link to this site rests on the page title. This is a federal natural resource notice, not a redevelopment action.",
+      "authority": "U.S. Department of the Interior, U.S. Fish and Wildlife Service",
+      "reference": "DOI, Draft Restoration Plan Released for Black Pine Mine and Flat Creek/Iron Mountain Mine and Mill Superfund Site, MT (2026-03-19)",
+      "source_url": "https://www.doi.gov/restoration/draft-restoration-plan-released-black-pine-mine-flat-creekiron-mountain-mine-and-mill",
+      "quote": "The U.S. Fish and Wildlife Service (Service) is seeking public comment on a Draft Restoration Plan to address injuries"}
+   ],
+   "gaps": [
+     "No developer, buyer, incentive, redevelopment project or community benefit agreement found for Flat Creek IMM in Superior. Searched the site name with Superior and Montana plus redevelopment, and the site name with 2025 cleanup news.",
+     "EPA Region 8 superfund reuse page lists 'Flat Creek IMM (Superior, MT)', but the fetched page showed no entry text for it. Not cited.",
+     "No 2025 or later cleanup news found. The EPA and Montana pages found are older documents, so the current cleanup status is not verified.",
+     "A search snippet attributed a site employment figure to an EPA economic case study. The case study was not opened, so the figure is not cited."
+   ]},
+  {"id": "NJD980528996", "name": "DIAMOND ALKALI CO.", "researcher": "Claude Haiku 5.5", "portals": [],
+   "facts": [
+     {"kind": "news", "date": "2025-01-17",
+      "summary": "EPA finalized the cleanup plan for the 80-120 Lister Ave. portion of the Diamond Alkali Superfund site on January 17, 2025, after a September 2024 proposal. The final plan continues the existing remedy and makes repairs to the cap over contaminated materials. EPA's release does not mention redevelopment or new development on the parcels.",
+      "authority": "U.S. Environmental Protection Agency, Region 2",
+      "reference": "EPA, Issues Final Cleanup Plan for Lister Ave. Portion of Diamond Alkali Superfund Site, Newark (2025-01-17 release, archived on EPA's 19january2025 snapshot site)",
+      "source_url": "https://19january2025snapshot.epa.gov/newsreleases/epa-issues-final-cleanup-plan-lister-ave-portion-diamond-alkali-superfund-site-newark",
+      "quote": "The U.S. Environmental Protection Agency finalized its cleanup plan for the 80-120 Lister Ave. portion"},
+     {"kind": "news", "date": "2024-09-10",
+      "summary": "EPA proposed a permanent cleanup plan for the Lister Avenue portion on September 10, 2024, with a 30-day comment period to October 10, 2024 and a public meeting on September 19, 2024. The proposal keeps the existing cap and groundwater system and reactivates seven groundwater pumps. The page states the goal of protecting the people of Newark and Passaic River communities from toxic contamination.",
+      "authority": "U.S. Environmental Protection Agency, Region 2",
+      "reference": "EPA, Invites community feedback on proposed final cleanup plan for Lister Ave. portion of Diamond Alkali Superfund site (last updated 2024-09-10)",
+      "source_url": "https://www.epa.gov/newsreleases/epa-invites-community-feedback-proposed-final-cleanup-plan-lister-ave-portion-diamond",
+      "quote": "with improvements including reinstalling and reactivating a total of seven groundwater pumps"}
+   ],
+   "gaps": [
+     "No developer, buyer, incentive, redevelopment plan or community benefit agreement found for 80 or 120 Lister Ave. Searched the address, the site name, Newark Riverfront Park and 2025 news.",
+     "An EPA Superfund Redevelopment document says cleanup paved the way for redevelopment of this property into Newark Riverfront Park. The excerpt did not confirm which parcel that refers to, so it is not cited.",
+     "East Newark Riverfront Park (ribbon-cutting May 9, 2025; 2022 DOJ interim settlement tied to Diamond Alkali) is a different property in East Newark. The NJBIZ article does not name 80 or 120 Lister Avenue, so it is not cited.",
+     "No local news found on hearings, votes, opposition or lawsuits for the Lister Avenue parcels in the search results."
+   ]},
+  {"id": "VA1170024722", "name": "MARINE CORPS COMBAT DEVELOPMENT COMMAND", "researcher": "Claude Haiku 5.5", "portals": [],
+   "facts": [],
+   "gaps": [
+     "No solar project, developer, incentive or redevelopment news found for the Marine Corps Combat Development Command Superfund site at Quantico. Searched the name with Superfund, solar and cleanup news.",
+     "EPA's 'Alternative Energy at Superfund Sites: Status Update and Highlights from Across the Country - 2024' (created 2024-12-02, semspub.epa.gov HQ/100003555) appears in search results with this site in a technology-type column marked by an asterisk. The row was not readable: no PDF text tool is installed here, and the HTML view was truncated before the table. The technology type is unconfirmed, so nothing is cited from it.",
+     "The Marine Corps article on solar at Quantico (quantico.marines.mil) could not be fetched (DNS failure). Search snippets describe a 2012 array on a Marine Helicopter Squadron 1 hangar, not an MCCDC facility. Not cited.",
+     "ProPublica's Quantico installation page lists cleanup spending for Quantico sites. It was not opened, so nothing is cited from it."
+   ]}
+]}

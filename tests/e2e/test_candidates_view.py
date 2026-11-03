@@ -17,7 +17,8 @@ def test_screen_picker_and_method_card_lead_the_default_tab(page, base_url):
     """Screens is the default tab: a picker with one button per screen and a
     method card naming every check and its source, above the ranked list."""
     _ready(page, base_url)
-    assert page.locator("[data-cand-lens]").count() == 4
+    keys = page.evaluate("()=>Object.values(SiteScreens.SCREENS).filter(s=>s.universe==='corpus').map(s=>s.key)")
+    assert sorted(page.evaluate("()=>[...document.querySelectorAll('[data-cand-lens]')].map(b=>b.dataset.candLens)")) == sorted(keys)
     card = page.locator("#screen-method")
     expect(card).to_contain_text("Method.")
     assert card.locator(".method-list li").count() == 4

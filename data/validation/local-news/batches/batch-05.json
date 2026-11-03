@@ -1,0 +1,85 @@
+{
+ "batch": "batch-05",
+ "sites": [
+  {
+   "id": "FUDS-I04AL0120",
+   "name": "GUNTER AIR FORCE STATION",
+   "program": "fuds",
+   "address": null,
+   "city": "MONTGOMERY",
+   "county": "MONTGOMERY",
+   "state": "AL",
+   "zip": null,
+   "lat": 32.407178,
+   "lon": -86.231132,
+   "acreage": 806.9,
+   "tabs": [
+    "transformer"
+   ],
+   "atlas_owner": "Local government \u2014 City Industrial Park And Recreation",
+   "atlas_owner_source": "USACE FUDS",
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "FUDS-I04AL3227",
+   "name": "CAMP SHERIDAN",
+   "program": "fuds",
+   "address": null,
+   "city": "MONTGOMERY",
+   "county": "MONTGOMERY",
+   "state": "AL",
+   "zip": null,
+   "lat": 32.41877,
+   "lon": -86.284044,
+   "acreage": 3790.2,
+   "tabs": [
+    "transformer"
+   ],
+   "atlas_owner": "Local government \u2014 City Calhoun Community College, Residential / Private \u2014 Calhoun Community College, Residential",
+   "atlas_owner_source": "USACE FUDS",
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "FUDS-I04GA0939",
+   "name": "NAS ATLANTA",
+   "program": "fuds",
+   "address": null,
+   "city": "ATLANTA",
+   "county": "DE KALB",
+   "state": "GA",
+   "zip": null,
+   "lat": 33.875277,
+   "lon": -84.302092,
+   "acreage": 412.0,
+   "tabs": [
+    "turbine"
+   ],
+   "atlas_owner": "Local government \u2014 County Dekalb-Peachtree Airport",
+   "atlas_owner_source": "USACE FUDS",
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "FUDS-I04GA0975",
+   "name": "CP GORDON",
+   "program": "fuds",
+   "address": null,
+   "city": "ATLANTA",
+   "county": "DE KALB",
+   "state": "GA",
+   "zip": null,
+   "lat": 33.880586,
+   "lon": -84.31108,
+   "acreage": 2591.0,
+   "tabs": [
+    "turbine"
+   ],
+   "atlas_owner": "Private \u2014 Business And Commercial Property",
+   "atlas_owner_source": "USACE FUDS",
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  }
+ ]
+}

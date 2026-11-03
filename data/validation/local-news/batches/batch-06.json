@@ -1,0 +1,85 @@
+{
+ "batch": "batch-06",
+ "sites": [
+  {
+   "id": "FUDS-J09AZ0377",
+   "name": "GILBERT AF AUXILIARY FIELD",
+   "program": "fuds",
+   "address": null,
+   "city": "MESA",
+   "county": "MARICOPA",
+   "state": "AZ",
+   "zip": null,
+   "lat": 33.388748,
+   "lon": -111.66964,
+   "acreage": 595.0,
+   "tabs": [
+    "robotics"
+   ],
+   "atlas_owner": "Local",
+   "atlas_owner_source": "USACE FUDS",
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "KSD980741862",
+   "name": "CHEROKEE COUNTY",
+   "program": "superfund",
+   "address": "SOUTHEAST PORTION OF THE  STATE OF KS",
+   "city": "CHEROKEE COUNTY",
+   "county": "CHEROKEE",
+   "state": "KS",
+   "zip": "66739",
+   "lat": 37.132078,
+   "lon": -94.752047,
+   "acreage": 99524.4,
+   "tabs": [
+    "minerals"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "MID072569510",
+   "name": "MUSKEGON CHEMICAL CO.",
+   "program": "superfund",
+   "address": "1725 WARNER ST",
+   "city": "WHITEHALL",
+   "county": "MUSKEGON",
+   "state": "MI",
+   "zip": "49461",
+   "lat": 43.386021,
+   "lon": -86.339005,
+   "acreage": 203.8,
+   "tabs": [
+    "turbine"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  },
+  {
+   "id": "OR6213820917",
+   "name": "UMATILLA ARMY DEPOT (LAGOONS)",
+   "program": "superfund",
+   "address": "I-84 & EXIT 178",
+   "city": "HERMISTON",
+   "county": "MORROW",
+   "state": "OR",
+   "zip": "97844",
+   "lat": 45.836197,
+   "lon": -119.444406,
+   "acreage": 33130.2,
+   "tabs": [
+    "minerals"
+   ],
+   "atlas_owner": null,
+   "atlas_owner_source": null,
+   "atlas_parcel_id": null,
+   "state_parcel_layer": false
+  }
+ ]
+}

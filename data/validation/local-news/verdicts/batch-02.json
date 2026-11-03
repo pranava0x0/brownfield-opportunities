@@ -1,0 +1,13 @@
+{"batch": "batch-02", "sites": [
+ {"id": "FUDS-B08CO0014", "verifier": "Claude Sonnet 5.5", "fact_verdicts": [
+  {"index": 0, "source_url": "https://www.vaildaily.com/news/project-proposed-to-restore-camp-hale/", "verdict": "supported", "note": "Melanie Wong, 2015-03-20: Forest Service project backed by NFF; wetlands 450 to 150 acres, could restore up to 350. Article does not say what happened afterward."}
+ ], "portal_verdicts": []},
+ {"id": "FUDS-B08CO0021", "verifier": "Claude Sonnet 5.5", "fact_verdicts": [], "portal_verdicts": []},
+ {"id": "FUDS-C03PA0042", "verifier": "Claude Sonnet 5.5", "fact_verdicts": [
+  {"index": 0, "source_url": "https://www.mpmpc.com/case-news/the-frankford-arsenal-once-housed-phillys-narcotics-unit-the-site-gave-officers-brain-cancer-lawsuits-say", "verdict": "supported", "note": "Dated 2025-12-09 (Inquirer repost): 'The lawsuit, filed Monday in the Philadelphia Court of Common Pleas, accuses the Philadelphia Authority...'; names Hankin and his businesses."},
+  {"index": 1, "source_url": "https://www.phillymag.com/property/2018/08/06/frankford-arsenal-renovation/", "verdict": "supported", "note": "Sandy Smith, 8/6/2018: Alliance Partners HSP 'has acquired six of the buildings at the Arsenal site'; flex space; 208,000 sq ft; no price."},
+  {"index": 2, "source_url": "https://www.commercialsearch.com/news/demolition-paves-way-for-500000-sf-shopping-center-at-former-arsenal-in-philly/", "verdict": "supported", "note": "July 28, 2010: 'Hankin Management Co. is behind the 500,000-square-foot retail project', $50M price tag, demolition of building 149; no tenant named."},
+  {"index": 3, "source_url": "https://whyy.org/articles/city-courting-industrial-tenant-for-frankford-arsenal-site-in-bridesburg/", "verdict": "supported", "note": "April 25, 2014: Henon, Commerce, PIDC in talks with unnamed industrial user; 'The proposal is for a manufacturing project, said John Grady'."}
+ ], "portal_verdicts": []},
+ {"id": "FUDS-G05OH0156", "verifier": "Claude Sonnet 5.5", "fact_verdicts": [], "portal_verdicts": []}
+]}

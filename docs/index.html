@@ -174,6 +174,10 @@
         <button class="cand-filter" data-cand-lens="solar">Solar farm</button>
         <button class="cand-filter" data-cand-lens="port">Port industry</button>
         <button class="cand-filter" data-cand-lens="nickel">Nickel refinery</button>
+        <button class="cand-filter" data-cand-lens="robotics">Robot assembly</button>
+        <button class="cand-filter" data-cand-lens="turbine">Gas turbines</button>
+        <button class="cand-filter" data-cand-lens="transformer">Transformers</button>
+        <button class="cand-filter" data-cand-lens="minerals">Critical minerals</button>
       </div>
       <div class="method-card" id="screen-method" aria-live="polite"></div>
       <div class="screen-bar">
@@ -181,7 +185,12 @@
         <label class="screen-allmet"><input type="checkbox" id="screen-all-met"> Only sites that meet every check</label>
       </div>
     </div>
-    <div id="candidates-wrap">
+    <div id="candidates-wrap" aria-busy="true">
+      <div id="candidates-skeleton" class="skeleton-list" aria-hidden="true">
+        <div class="skeleton-card"><i></i><i></i><i></i></div>
+        <div class="skeleton-card"><i></i><i></i><i></i></div>
+        <div class="skeleton-card"><i></i><i></i><i></i></div>
+      </div>
       <table id="candidates-table" class="evidence-table screen-table">
         <thead><tr id="candidates-head"><th scope="col">Site</th></tr></thead>
         <tbody><!-- rows injected by buildCandidatesView() --></tbody>
