@@ -38,5 +38,15 @@
  "transformer2:facility:8": {
   "status": "rejected",
   "reason": "Page never says grain-oriented electrical steel is made at Zanesville; the quote only mentions possible future investment."
+ },
+ "minerals2:facility:4": {
+  "status": "rejected",
+  "reason": "Cited 2021 page says planned; the plant came online in Sept 2024 (Augusta Press). Stale status, same rule as other plants whose cited page predates a status change."
+ },
+ "minerals2:facility:5": {
+  "remove_fields": [
+   "doe_award"
+  ],
+  "reason": "The $117M DOE grant on the cited page was among those DOE cancelled on 2025-10-20 (about $13.8M had been released, per battery-tech.net); the plant row stays, the award is struck so it is not shown as live funding."
  }
 }

@@ -1,0 +1,65 @@
+{"batch": "batch-08", "researcher": "Claude Haiku 5.5", "sites": [
+  {"id": "ACRES-121721", "name": "Former Salvage Yard", "researcher": "Claude Haiku 5.5", "portals": [],
+   "facts": [],
+   "gaps": [
+     "Searched the site name, the street address (3745 South 3rd Street, Ironton) and Ironton redevelopment terms. No news, council, or agency item names this address or a salvage yard at it.",
+     "The Ohio Round 11 brownfield list (May 2026) and the Ironton coverage of it name a Lawrence County Port Authority project 'Ironton Iron' ($90,000 cleanup). The Tribune and WSAZ say it is a former iron foundry and give no street address, so it is not matched to this site and is left out.",
+     "The same May 2026 coverage names a '3rd Street BiLo #44' former gas station in Ironton, with no address. Not matched and left out.",
+     "The EPA-cited Wilson Glove Building (1603 S. 3rd St.) on the 3rd Street corridor is a different property and is left out.",
+     "Directory listings (for example, Ohio Valley Crash Parts at 3217 S 3rd St) are aggregators and were not used as evidence."
+   ]},
+  {"id": "CA2570024453", "name": "GEORGE AIR FORCE BASE", "researcher": "Claude Haiku 5.5", "portals": [],
+   "facts": [
+     {"kind": "redevelopment_plan", "summary": "EPA's redevelopment profile says the proposed reuse was an international airport and railway hub, plus commercial, industrial and business park development. EPA says this is on hold because of economic conditions. The page is undated.",
+      "authority": "U.S. EPA", "reference": "EPA Superfund redevelopment profile, GEORGE AIR FORCE BASE (id 0902737)",
+      "source_url": "https://cumulis.epa.gov/supercpad/SiteProfiles/index.cfm?fuseaction=second.redevelop&id=0902737",
+      "quote": "this is on hold due to economic conditions"},
+     {"kind": "development_project", "summary": "EPA's profile says current reuse is commercial and industrial: 17 aviation-related businesses, an aircraft mechanics training program, manufacturing and distribution centers, a multi-million dollar power plant, and a 900-acre federal prison complex. These are existing uses, not new projects. The page is undated.",
+      "authority": "U.S. EPA", "reference": "EPA Superfund redevelopment profile, GEORGE AIR FORCE BASE (id 0902737)",
+      "source_url": "https://cumulis.epa.gov/supercpad/SiteProfiles/index.cfm?fuseaction=second.redevelop&id=0902737",
+      "quote": "17 aviation-related businesses"}
+   ],
+   "gaps": [
+     "Searched George AFB with data center, 2026 and redevelopment terms. No data center proposal, developer, or news was found for this site.",
+     "The Air Force data center solicitations found in search (Edwards AFB, Tucson, Alaska sites) are other bases and are left out.",
+     "An Air Force Civil Engineer Center article on the logistics redevelopment at George AFB returned HTTP 403 to both the fetch and the web reader, so it is not cited.",
+     "San Bernardino County and City of Victorville council records were not searched; the tools available here do not reach those systems."
+   ]},
+  {"id": "FLSFN0407002", "name": "JACKSONVILLE ASH SITE", "researcher": "Claude Haiku 5.5", "portals": [],
+   "facts": [
+     {"kind": "redevelopment_plan", "summary": "EPA's site profile says future redevelopment is planned for the Lonnie Miller Park area, including a proposed sports complex with soccer fields, baseball diamonds and basketball courts. The profile gives no timeline, funding or approval status, and no date.",
+      "authority": "U.S. EPA", "reference": "EPA Superfund site profile, JACKSONVILLE ASH SITE (id 0407002)",
+      "source_url": "https://cumulis.epa.gov/supercpad/cursites/csitinfo.cfm?id=0407002",
+      "quote": "sports complex with soccer fields, baseball diamonds, and basketball courts"},
+     {"kind": "news", "date": "2024-12-19", "summary": "The city plans to clean up Lonnie C. Miller Park, which was once used to dump incinerator ash. The city then gave summer 2025 as the goal for finishing the ash cleanup. This is a News4JAX story republished by Jacksonville Today.",
+      "authority": "Jacksonville Today (News4JAX story)", "reference": "Jacksonville plans cleanup at park once used as dump site",
+      "source_url": "https://jaxtoday.org/2024/12/19/lonnie-miller-park-cleanup/",
+      "quote": "The city says the goal is to get the contaminated ash site cleaned up by the summer of 2025"},
+     {"kind": "news", "date": "2024-12-20", "summary": "Residents said the city was slow to start removing the hazardous material. The city said the cleanup would take about a year. Phase two, the park remodel, was projected to cost over $12 million.",
+      "authority": "Action News Jax", "reference": "Residents express frustration over delayed ash cleanup at Jacksonville's Lonnie Miller Park",
+      "source_url": "https://www.actionnewsjax.com/news/local/residents-express-frustration-over-delayed-ash-cleanup-jacksonvilles-lonnie-miller-park/ZSL4QQANLNATLLQJOYLOMAWHJY/",
+      "quote": "Phase two, which includes park remodeling, is projected to cost over $12 million"},
+     {"kind": "developer", "date": "2026-03-15", "summary": "The City of Jacksonville is running the cleanup and upgrade of the park. The city split the project into two phases so part of the park can reopen sooner.",
+      "authority": "News4JAX", "reference": "City invests more than $22M for cleanup, upgrades at Lonnie C. Miller Regional Park in NW Jacksonville",
+      "source_url": "https://www.news4jax.com/news/local/2026/03/15/city-invests-more-than-22m-for-cleanup-upgrades-at-lonnie-c-miller-regional-park-in-nw-jacksonville/",
+      "quote": "The city divided the project into two phases to allow part of the park to reopen sooner"},
+     {"kind": "development_project", "date": "2026-03-15", "summary": "The city puts more than $22 million into removing the old incinerator ash and upgrading the park. Plans include athletic fields, trails, pavilion space and parking. The city expects completion by the end of 2026, later than the summer 2025 goal given in December 2024.",
+      "authority": "News4JAX", "reference": "City invests more than $22M for cleanup, upgrades at Lonnie C. Miller Regional Park in NW Jacksonville",
+      "source_url": "https://www.news4jax.com/news/local/2026/03/15/city-invests-more-than-22m-for-cleanup-upgrades-at-lonnie-c-miller-regional-park-in-nw-jacksonville/",
+      "quote": "remediation costs totaling more than $22 million"}
+   ],
+   "gaps": [
+     "Searched the site name, the 1093 West 6th Street address and Lonnie Miller Park terms. The news pieces name the park, not the street address. The address is tied to the Lonnie Miller area by the EPA profile, which lists 1093 West 6th Street for this site.",
+     "An August 2026 story on a shooting near a game at the park is about safety, not redevelopment, and is left out.",
+     "No news found on whether the sports complex named in the EPA profile is funded or approved. The city's Capital Projects page and the EPA remedial project manager were not reached.",
+     "The EPA profile is undated, so the redevelopment-plan fact carries no date."
+   ]},
+  {"id": "FUDS-A04MS0124", "name": "GULFPORT ARMY AIR FIELD", "researcher": "Claude Haiku 5.5", "portals": [],
+   "facts": [],
+   "gaps": [
+     "Searched the field name and Gulfport former airfield redevelopment for 2025 and 2026. No redevelopment plan, developer, incentive or news was found for the former field.",
+     "The 2019 USACE FUDS information guide (A04MS0124) describes the former field and its skeet range, including lead shot. It names no reuse plan and is not news, so it is not cited as a fact.",
+     "Gulfport Harbor lease (October 2026) and the downtown Channel South project (March 2026) are other properties and are left out.",
+     "The Gulfport-Biloxi International Airport is a joint-use airport with an Air National Guard base. It is an existing use, not a redevelopment, and no source here ties it to a reuse decision for the former field."
+   ]}
+]}

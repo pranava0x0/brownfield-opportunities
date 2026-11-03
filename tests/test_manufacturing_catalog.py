@@ -127,3 +127,19 @@ def test_build_merges_one_plant_reported_by_two_topics(tmp_path, monkeypatch):
     s = out["sites"][0]
     assert s["source_url"] == "https://example.com/plant" and s["award_source_url"] == "https://example.com/award"
     assert s["federal_award"]["amount_usd"] == 220e6
+
+
+def test_opus_can_strike_a_cancelled_award_but_not_add_one(tmp_path, monkeypatch):
+    row = {**FAC, "doe_award": {"program": "BIL", "agency": "DOE", "amount_usd": 117e6}}
+    work = tmp_path / "work"
+    for sub in ("research", "verdicts"):
+        (work / sub).mkdir(parents=True)
+    (work / "research" / "minerals.json").write_text(json.dumps(research(row)))
+    (work / "verdicts" / "minerals.json").write_text(json.dumps({"rows": [
+        {"kind": "facility", "index": 0, "source_url": FAC["source_url"], "verdict": "supported"}]}))
+    (work / "opus.json").write_text(json.dumps({"minerals:facility:0": {"remove_fields": ["doe_award"], "reason": "grant cancelled"}}))
+    monkeypatch.setattr(mc, "WORK", work)
+    monkeypatch.setattr(mc, "code_check_for", lambda u, q: "quote_found")
+    assert mc.cmd_adjudicate(None) == 0
+    a = json.loads((work / "adjudicated.json").read_text())["minerals"][0]
+    assert a["status"] == "accepted" and "doe_award" not in a["row"] and a["decided_by"] == "opus"

@@ -42,7 +42,7 @@ from local_records import SHIPPED_STATUSES, code_check_for, decide, https_url  #
 WORK = ROOT / "data" / "validation" / "manufacturing"
 OUTPUT = ROOT / "docs" / "data" / "manufacturing-facilities.json"
 TOPIC_SECTOR = {"robotics": "robotics", "turbine": "turbine", "transformer": "transformer",
-                "minerals": "minerals", "doe_minerals": "minerals", "doe_awards": "minerals", "robotics2": "robotics", "transformer2": "transformer"}
+                "minerals": "minerals", "doe_minerals": "minerals", "doe_awards": "minerals", "robotics2": "robotics", "transformer2": "transformer", "minerals2": "minerals"}
 AWARD_TOPICS = {"doe_minerals", "doe_awards"}
 CORRECTABLE = {"name", "company", "product", "status", "city", "state", "address", "investment_usd", "jobs", "acres",
                "announced", "doe_award", "brownfield", "former_use", "published", "quote", "source_title",
@@ -84,8 +84,9 @@ def apply_corrections(row: dict, corrections: Optional[dict]) -> dict:
     return out
 
 
-def adjudicate_rows(research: dict, verdicts: Optional[dict], check=code_check_for) -> list[dict]:
-    """Every research row with its verdict, code check and decision. Pure except `check`."""
+def adjudicate_rows(research: dict, verdicts: Optional[dict], check=None) -> list[dict]:
+    """Every research row with its verdict, code check and decision. Pure except `check` (default: fetch the page)."""
+    check = check or code_check_for
     by_index = {}
     for v in (verdicts or {}).get("rows", []):
         by_index[(v.get("kind"), v.get("index"))] = v
@@ -119,6 +120,11 @@ def cmd_adjudicate(args: argparse.Namespace) -> int:
             key = row_key(topic, a["kind"], a["index"])
             if a["status"] == "disputed" and key in opus:
                 a["status"], a["decided_by"], a["reason"] = opus[key]["status"], "opus", opus[key].get("reason")
+            # Opus may also strike a field a verifier accepted, when later evidence shows it is no longer true
+            # (an award cancelled after the cited page). Only fields can be removed, never invented.
+            for field in (opus.get(key) or {}).get("remove_fields", []):
+                if a["row"].pop(field, None) is not None:
+                    a["decided_by"], a["reason"] = "opus", opus[key].get("reason")
             if a["status"] == "disputed":
                 disputes.append({"key": key, **a})
         adjudicated[topic] = rows

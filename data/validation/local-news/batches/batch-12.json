@@ -1,0 +1,25 @@
+{
+ "batch": "batch-12",
+ "sites": [
+  {
+   "id": "WID980901227",
+   "name": "FADROWSKI DRUM DISPOSAL",
+   "program": "superfund",
+   "address": "6800 S 27TH ST",
+   "city": "FRANKLIN",
+   "county": "MILWAUKEE",
+   "state": "WI",
+   "zip": "53132",
+   "lat": 42.920844,
+   "lon": -87.953411,
+   "acreage": 21.8,
+   "tabs": [
+    "robotics"
+   ],
+   "atlas_owner": "MENARD INC",
+   "atlas_owner_source": "WI V8 Statewide Parcels (WI DOA)",
+   "atlas_parcel_id": "7389974005",
+   "state_parcel_layer": true
+  }
+ ]
+}

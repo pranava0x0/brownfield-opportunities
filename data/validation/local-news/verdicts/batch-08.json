@@ -1,0 +1,19 @@
+{"batch": "batch-08", "sites": [
+  {"id": "ACRES-121721", "verifier": "Claude Sonnet 5.5", "fact_verdicts": [], "portal_verdicts": []},
+  {"id": "CA2570024453", "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+     {"index": 0, "source_url": "https://cumulis.epa.gov/supercpad/SiteProfiles/index.cfm?fuseaction=second.redevelop&id=0902737", "verdict": "supported", "note": "Page is the EPA profile for George Air Force Base, Victorville CA (id 0902737): 'development of an international airport and railway hub'; business park reuse 'on hold due to economic conditions'. No date on page."},
+     {"index": 1, "source_url": "https://cumulis.epa.gov/supercpad/SiteProfiles/index.cfm?fuseaction=second.redevelop&id=0902737", "verdict": "supported", "note": "Same George AFB profile: 'home to 17 aviation-related businesses', aircraft mechanics program, 'multi-million dollar power plant and a 900-acre federal prison complex'. Undated; existing uses as the fact says."}
+   ],
+   "portal_verdicts": []},
+  {"id": "FLSFN0407002", "verifier": "Claude Sonnet 5.5",
+   "fact_verdicts": [
+     {"index": 0, "source_url": "https://cumulis.epa.gov/supercpad/cursites/csitinfo.cfm?id=0407002", "verdict": "supported", "note": "EPA profile for Jacksonville Ash Site, 1093 West 6th Street, Jacksonville FL 32209: 'Future redevelopment is being planned for the Lonnie Miller Park area'; sports complex with soccer fields, baseball diamonds, basketball courts. No date or timeline."},
+     {"index": 1, "source_url": "https://jaxtoday.org/2024/12/19/lonnie-miller-park-cleanup/", "verdict": "supported", "note": "Dec 19, 2024 News4JAX story by Aaron Farrar republished on Jacksonville Today: park in NW Jacksonville used for incinerator ash; 'goal is to get the contaminated ash site cleaned up by the summer of 2025'. Park name matches the EPA profile's Lonnie Miller Park area."},
+     {"index": 2, "source_url": "https://www.actionnewsjax.com/news/local/residents-express-frustration-over-delayed-ash-cleanup-jacksonvilles-lonnie-miller-park/ZSL4QQANLNATLLQJOYLOMAWHJY/", "verdict": "supported", "note": "Dec 20, 2024: residents frustrated ('After all of these years, why now?'); 'cleanup ... expected to take about a year'; 'Phase two, which includes park remodeling, is projected to cost over $12 million.'"},
+     {"index": 3, "source_url": "https://www.news4jax.com/news/local/2026/03/15/city-invests-more-than-22m-for-cleanup-upgrades-at-lonnie-c-miller-regional-park-in-nw-jacksonville/", "verdict": "supported", "note": "Mar 15, 2026: 'The city divided the project into two phases to allow part of the park to reopen sooner.' City-run project; page gives no street address, ties to the park only by name."},
+     {"index": 4, "source_url": "https://www.news4jax.com/news/local/2026/03/15/city-invests-more-than-22m-for-cleanup-upgrades-at-lonnie-c-miller-regional-park-in-nw-jacksonville/", "verdict": "supported", "note": "'remediation costs totaling more than $22 million'; plans include athletic fields, trails, pavilion space, parking; finish expected by end of 2026 (city Solid Waste Division). Summary says $22M covers ash removal and upgrades; page calls it remediation costs."}
+   ],
+   "portal_verdicts": []},
+  {"id": "FUDS-A04MS0124", "verifier": "Claude Sonnet 5.5", "fact_verdicts": [], "portal_verdicts": []}
+]}
