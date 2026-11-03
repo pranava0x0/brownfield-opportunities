@@ -1,0 +1,100 @@
+{
+  "batch": "batch-07",
+  "researcher": "Claude Haiku 5.5",
+  "sites": [
+    {
+      "id": "TND073540783",
+      "name": "ILLINOIS CENTRAL RAILROAD COMPANY'S JOHNSTON YARD SUPERFUND SITE",
+      "researcher": "Claude Haiku 5.5",
+      "portals": [],
+      "facts": [
+        {
+          "kind": "development_project",
+          "date": "2006-04-20",
+          "summary": "Progressive Railroading (April 20, 2006) reported that Canadian National would spend $100 million to rebuild and upgrade Johnston Yard in Memphis, with completion planned for late 2008. This is an upgrade of an operating rail yard, not a redevelopment for other uses. The article gives no street address, so the link to this Superfund site rests on the matching yard name and city.",
+          "authority": "Progressive Railroading",
+          "reference": "CN to rebuild century-old Memphis yard",
+          "source_url": "https://progressiverailroading.com/rail_industry_trends/news/CN-to-rebuild-centuryold-Memphis-yard--7877",
+          "quote": "it will spend $100 million to rebuild and upgrade Johnston Yard in Memphis, Tenn."
+        }
+      ],
+      "gaps": [
+        "Searched Johnston Yard, Harrison Yard, Horn Lake Road and redevelopment terms. No 2025-2026 coverage of a reuse, sale or new tenant for the yard was found.",
+        "Found but not cited: CN completed a $100 million Memphis yard reconstruction (American Journal of Transportation, Sept. 2009) and renamed it Harrison Yard. The page I opened does not name Johnston Yard, and its address (297 Rivergate Road) differs from the Superfund address (2921 Horn Lake Road), so I could not confirm the match.",
+        "An EPA reuse page (search snippet only, not opened) says an intermodal cargo transfer facility operated on the site until 2006. Not cited: it is historical use, not a development project.",
+        "Current operating status of the yard was not verified."
+      ]
+    },
+    {
+      "id": "TXD980810386",
+      "name": "SOUTH CAVALCADE STREET",
+      "researcher": "Claude Haiku 5.5",
+      "portals": [],
+      "facts": [
+        {
+          "kind": "development_project",
+          "date": "2013-11-30",
+          "summary": "Houston Chronicle (Nov. 30, 2013) reported that the Harris County Toll Road Authority planned a $350 million extension of the Hardy Toll Road into downtown through part of the 66-acre site south of Cavalcade, with construction expected to begin in 2020. This was a 2013 proposal. I found no 2024-2026 coverage tying the extension to this site. A March 2024 ABC13 article on the approved extension does not mention Cavalcade or the Superfund site.",
+          "authority": "Houston Chronicle",
+          "reference": "Superfund cleanup to move at nature's pace",
+          "source_url": "https://preview-prod.w.houstonchronicle.com/us-world/science-environment/article/superfund-cleanup-to-move-at-nature-s-pace-5024843.php",
+          "quote": "is planning a $350 million extension of the Hardy Toll Road into downtown through part of the site."
+        }
+      ],
+      "gaps": [
+        "Searched Cavalcade and Maury Street with redevelopment, toll road and 2025-2026 terms. No 2025-2026 news of a reuse or development project for this site was found.",
+        "ABC13 report on residents' groundwater worries and EPA institutional-control statements (abc13.com/archive/9000197) has no date on the page, so it is not cited.",
+        "ABC13 article of March 28, 2024 on the Hardy Toll Road downtown extension approval does not mention Cavalcade, the Superfund site or a construction start. Not cited.",
+        "The Houston Chronicle quote came from a model-processed page extract, not the raw page text. Check the exact wording against the live page before relying on it.",
+        "The Maury Street search returned only a commercial listing for 2206 Maury St, with no link to the site."
+      ]
+    },
+    {
+      "id": "TXD980873343",
+      "name": "NORTH CAVALCADE STREET",
+      "researcher": "Claude Haiku 5.5",
+      "portals": [],
+      "facts": [],
+      "gaps": [
+        "Searched North Cavalcade with news, development and 2025 terms. No development project, developer, incentive or redevelopment news was found.",
+        "Houston Chronicle (Nov. 30, 2013) mentions a wood-treatment plant north of Cavalcade added to the cleanup list, but the article does not name North Cavalcade. Not cited.",
+        "The undated ABC13 institutional-controls report (see South Cavalcade) is not cited.",
+        "The EPA 2018 five-year review (an agency document, not news) says the remedy is protective. Not cited here."
+      ]
+    },
+    {
+      "id": "UTD070926811",
+      "name": "KENNECOTT (NORTH ZONE)",
+      "researcher": "Claude Haiku 5.5",
+      "portals": [],
+      "facts": [
+        {
+          "kind": "news",
+          "date": "2008-08-26",
+          "summary": "KSL (Aug. 26, 2008) reported that the North Zone, like the South Zone, was placed on the proposed Superfund list in 1994, and that Kennecott officials hoped the North Zone would be taken off the proposed list in the coming years. The article is mainly about the South Zone's expected removal. The sources I found show the North Zone still on the proposed list.",
+          "authority": "KSL.com",
+          "reference": "Kennecott site to stay off Superfund list",
+          "source_url": "https://www.ksl.com/article/4105655",
+          "quote": "Kennecott officials are hoping the North Zone will be taken off the proposed list in the coming years."
+        },
+        {
+          "kind": "news",
+          "date": "2025-10-01",
+          "summary": "A U.S. EPA Region 8 hearing clerk filing dated Oct. 1, 2025 lists an Administrative Settlement Agreement and Order on Consent for the Kennecott North Zone Site, docket CERCLA-08-2026-0001 (the docket year is 2026, the filing date 2025). The attached PDF names operable units OU22 and OU23. The page does not state the order's purpose or terms, so this is a dated cleanup-enforcement record, not a redevelopment commitment.",
+          "authority": "U.S. EPA Region 8 Regional Hearing Clerk",
+          "reference": "Administrative Settlement Agreement and Order on Consent, CERCLA-08-2026-0001",
+          "source_url": "https://yosemite.epa.gov/OA/RHC/EPAAdmin.nsf/Filings/7696DEF2A774323A85258D160080825C",
+          "quote": "Kennecott North Zone Site (CERCLA-08-2026-0001)."
+        }
+      ],
+      "gaps": [
+        "Searched Kennecott North Zone, Magna, 2100 South and 12000 West with data center, West Bench and redevelopment terms. No 2025-2026 local news about a project at or near this site was found.",
+        "12000 West and 2100 South falls outside Magna's core street grid according to one source. The exact parcel is not confirmed as a redevelopment site.",
+        "A September 2026 Salt Lake Tribune data center story is about Juab County (Nebo North LLC, near Mona), not Magna. Not cited.",
+        "A 2023 Salt Lake Tribune story on Rio Tinto's Bingham Canyon tailings expansion is not tied to the North Zone in the text I read. Not cited.",
+        "Kennecott Land's West Bench residential plans (from a 2008 KSL search snippet, not opened) are not cited.",
+        "Utah DEQ's proposed-sites page lists the North Zone as a proposed NPL site. It is an undated agency page, not news, so it is not cited as a fact."
+      ]
+    }
+  ]
+}

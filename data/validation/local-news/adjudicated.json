@@ -524,5 +524,453 @@
   "portals": [],
   "facts": [],
   "parcel": null
+ },
+ "FUDS-I04AL0120": {
+  "researched_at": "2026-11-02",
+  "id": "FUDS-I04AL0120",
+  "name": "GUNTER AIR FORCE STATION",
+  "gaps": [
+   "Searched 'Gunter Annex' with Montgomery, redevelopment, land lease, 2026 news and Montgomery Advertiser terms. No local news found on a current development, lease, or reuse of Gunter Annex land.",
+   "Maxwell AFB article 'Wing shares developments at Gunter' (maxwell.af.mil, article 420185) returned HTTP 403 and could not be read, so it is not cited.",
+   "City of Montgomery project page for 1501 Maxwell Boulevard returned HTTP 403 and could not be read. The search snippet says it asks for feasible reuse proposals, but it is not confirmed as Gunter Annex land.",
+   "Wikipedia Gunter Annex page is background only and not cited as news: the 1940 War Department lease and the 1971 return of nearly 800 acres to Montgomery. It does not describe any current redevelopment.",
+   "The atlas record shows 806.9 acres. No source ties that acreage to a named project."
+  ],
+  "county": "MONTGOMERY",
+  "state": "AL",
+  "researchers": [
+   "Claude Haiku 5.5",
+   "Claude Sonnet 5.5"
+  ],
+  "portals": [],
+  "facts": [],
+  "parcel": null
+ },
+ "FUDS-I04AL3227": {
+  "researched_at": "2026-11-02",
+  "id": "FUDS-I04AL3227",
+  "name": "CAMP SHERIDAN",
+  "gaps": [
+   "Searched Camp Sheridan with Montgomery, development, Calhoun Community College, and Kilby site plan terms. No current development, developer, or site plan found for the Camp Sheridan footprint.",
+   "Found a UPI article dated 1986-04-10 about a planned homes and offices development on the former Kilby Prison land in Montgomery (agent Mickey Griffin of Aronov Realty). It names Kilby, not Camp Sheridan, so it is not cited. A local history source says Camp Sheridan land became the Kilby reservation; that link is unconfirmed and needs a check before use.",
+   "The Calhoun Community College hit is a Decatur, Alabama expansion. It is not connected to Montgomery or Camp Sheridan."
+  ],
+  "county": "MONTGOMERY",
+  "state": "AL",
+  "researchers": [
+   "Claude Haiku 5.5",
+   "Claude Sonnet 5.5"
+  ],
+  "portals": [],
+  "facts": [],
+  "parcel": null
+ },
+ "FUDS-I04GA0939": {
+  "researched_at": "2026-11-02",
+  "id": "FUDS-I04GA0939",
+  "name": "NAS ATLANTA",
+  "gaps": [
+   "Matched on the airport identity: the FUDS record is the former Naval Air Station Atlanta, which is now DeKalb-Peachtree Airport. The atlas's 412 acres is smaller than the airport footprint, and the project is 12.8 acres (county) or 13 acres (AvWeb). The match is by airport name, not by parcel.",
+   "Sky Harbour's Request for Proposals 22-500625 (Eastside Aviation Development on PDK, issued Aug. 2022) and the April 2024 Operations Committee recommendation of Sky Harbour as sole proposer were found only in search snippets. The county PDF links returned HTTP 404, so they are not cited.",
+   "Operations Committee agendas and minutes from 2024 and 2025 show the item continuing. The county PDFs for those returned HTTP 404 and are not cited.",
+   "The Chamblee citywide data center moratorium (Urbanize Atlanta, July 2026) is not about PDK and is not cited. Whether PDK sits inside Chamblee city limits was not verified.",
+   "Not verified: the pending FAA approval and the groundbreaking target of Q3 2027 that appear in an AIN search snippet, because the AIN page was not opened.",
+   "Only one council-level opposition item was opened. The Ted Terry proposal is cited as a proposal, and its outcome was not found."
+  ],
+  "county": "DE KALB",
+  "state": "GA",
+  "researchers": [
+   "Claude Haiku 5.5",
+   "Claude Sonnet 5.5"
+  ],
+  "portals": [],
+  "facts": [
+   {
+    "kind": "development_project",
+    "date": "2025-11-18",
+    "summary": "DeKalb County commissioners voted 6-1 on Nov. 18, 2025 to approve a $45 million Sky Harbour hangar development on about 12.8 acres on the east side of DeKalb-Peachtree Airport (PDK). The plan is eight hangars under a 50-year ground lease with no county appropriation. The county projects a $576 million financial impact over the lease term, including $66 million in direct ground-lease revenue to PDK. This is an approval, not a report that construction has begun.",
+    "authority": "DeKalb County Government",
+    "reference": "DeKalb County news: BOC approves hangar development at PDK (item dated Dec. 1, 2025)",
+    "source_url": "https://dekalbcountyga.gov/news/dekalb-county-boc-approves-hangar-development-reposition-flights-and-provide-revenue-community",
+    "quote": "On Tuesday, Nov.18, in a 6-1 vote, the DeKalb County Board of Commissioners approved a $45 million development",
+    "code_check": "quote_found",
+    "verifier": "supported",
+    "status": "accepted",
+    "adjudicated_by": "code"
+   },
+   {
+    "kind": "developer",
+    "date": "2025-11-18",
+    "summary": "The county names Sky Harbour as the developer, described as a home-based operator for business aircraft at PDK. AvWeb reports the board advanced the 'Sky Harbour Group' development, so the printed entity name differs between sources. The exact legal entity was not confirmed.",
+    "authority": "DeKalb County Government",
+    "reference": "DeKalb County news: BOC approves hangar development at PDK (item dated Dec. 1, 2025)",
+    "source_url": "https://dekalbcountyga.gov/news/dekalb-county-boc-approves-hangar-development-reposition-flights-and-provide-revenue-community",
+    "quote": "by Sky Harbour, a home-based operator for business aircraft at DeKalb-Peachtree Airport (PDK),",
+    "code_check": "quote_found",
+    "verifier": "supported",
+    "status": "accepted",
+    "adjudicated_by": "code"
+   },
+   {
+    "kind": "news",
+    "date": "2025-12-10",
+    "summary": "After the approval, residents raised noise and environmental-pollution concerns about the PDK hangar expansion at a Dec. 9 town hall. Commissioner Ted Terry proposed a moratorium on all new hangar development until the PDK master plan is updated, plus an FAA ban on night flights except for emergencies. The article reports these as proposals.",
+    "authority": "Rough Draft Atlanta",
+    "reference": "Rough Draft Atlanta: residents upset over PDK expansion (Dec. 10, 2025)",
+    "source_url": "https://roughdraftatlanta.com/2025/12/10/residents-upset-pdk-expansion/",
+    "quote": "a moratorium on all new hangar development until the PDK master plan is updated",
+    "code_check": "quote_found",
+    "verifier": "supported",
+    "status": "accepted",
+    "adjudicated_by": "code"
+   }
+  ],
+  "parcel": null
+ },
+ "FUDS-I04GA0975": {
+  "researched_at": "2026-11-02",
+  "id": "FUDS-I04GA0975",
+  "name": "CP GORDON",
+  "gaps": [
+   "Searched 'CP Gordon', 'Camp Gordon' with Chamblee, Atlanta, DeKalb and development terms. No news found on a current project at the Camp Gordon WWI site near Chamblee.",
+   "Search results were unrelated Chamblee projects: Chamblee City Center, Marlowe Chamblee (Greystar, March 2025), Chamblee Park (Toll Brothers), and The Frazier at Olde Towne Gordon. None names Camp Gordon or this site.",
+   "Historical background only, not cited as news: Camp Gordon was a WWI training camp in Chamblee, abandoned in 1921. DeKalb County bought land from the former camp in 1940 for an airport, which became DeKalb-Peachtree Airport. The CP Gordon atlas point is about 0.6 mile from PDK, so it may be part of the same former camp footprint; this is not confirmed."
+  ],
+  "county": "DE KALB",
+  "state": "GA",
+  "researchers": [
+   "Claude Haiku 5.5",
+   "Claude Sonnet 5.5"
+  ],
+  "portals": [],
+  "facts": [],
+  "parcel": null
+ },
+ "FUDS-J09AZ0377": {
+  "researched_at": "2026-11-02",
+  "id": "FUDS-J09AZ0377",
+  "name": "GILBERT AF AUXILIARY FIELD",
+  "gaps": [
+   "Searched 'Gilbert AF Auxiliary Field Mesa Arizona redevelopment', 'Gilbert auxiliary field Ellsworth Ray Road land sale' and 'Gilbert Auxiliary Army Airfield surplus disposal'. No news about this field, its address area, or a sale or reuse was found.",
+   "Results about Falcon Field, Phoenix-Mesa Gateway (former Williams AFB), Town of Gilbert auction parcels near Ray Road and Santan Village Parkway, and Ellsworth Road listings concern other properties and were excluded.",
+   "Freeman airfield index names Gilbert Aux AAF #1 (built 1943) with no later-use detail. Williams AFB Wikipedia snippet mentions a former auxiliary field south of US 60 in Gilbert now housing, but does not name the field, so not cited.",
+   "The FUDS record is a 595-acre property per the atlas; no local news links it to any post-military use."
+  ],
+  "county": "MARICOPA",
+  "state": "AZ",
+  "researchers": [
+   "Claude Haiku 5.5",
+   "Claude Sonnet 5.5"
+  ],
+  "portals": [],
+  "facts": [],
+  "parcel": null
+ },
+ "KSD980741862": {
+  "researched_at": "2026-11-02",
+  "id": "KSD980741862",
+  "name": "CHEROKEE COUNTY",
+  "gaps": [
+   "Searched Cherokee County Kansas Superfund with chat piles, lead zinc and redevelopment news. No local news from Joplin or Kansas outlets on chat-pile reuse or redevelopment in the results.",
+   "The Treece subsite / OU4 Work Area #1 identification came from a search snippet of an EPA profile I did not open. The cited Kansas reuse entry does not name Treece, so the 12-acre parcel's identity is not confirmed on the cited page.",
+   "The Kansas reuse entry is dated September 2019 (data as of December 2019), so its reuse figures may be out of date.",
+   "The 2006 EPA chat-reuse proposal (transportation and concrete use, about 100 million tons of chat in the district) is regional and not tied to this site, so not cited.",
+   "The two fact-sheet facts come from a federal fact sheet rather than local coverage; no dated news on residential or other development was found."
+  ],
+  "county": "CHEROKEE",
+  "state": "KS",
+  "researchers": [
+   "Claude Haiku 5.5",
+   "Claude Opus 5.5",
+   "Claude Sonnet 5.5"
+  ],
+  "portals": [],
+  "facts": [
+   {
+    "kind": "community_benefit",
+    "date": "2023-01",
+    "summary": "EPA's Cherokee County NPL site fact sheet (dated January 2023, page last updated December 2025) commits that if new residential development is identified within the site boundary, EPA will test the residential yards. This is a commitment to residents, not a development project.",
+    "authority": "U.S. EPA",
+    "reference": "Cherokee County NPL Superfund Site (Kansas), EPA site page",
+    "source_url": "https://www.epa.gov/node/280280",
+    "quote": "If new residential development is identified within the site boundary, EPA will test the residential yards",
+    "code_check": "quote_found",
+    "verifier": "supported",
+    "status": "accepted",
+    "adjudicated_by": "code"
+   },
+   {
+    "kind": "redevelopment_plan",
+    "date": "2023-01",
+    "summary": "The same EPA fact sheet says the OU5 cleanup remedy does not address potential future residential development in that area, which limits reuse of OU5 for housing under the current remedy. Institutional controls limit land use on capped waste areas.",
+    "authority": "U.S. EPA",
+    "reference": "Cherokee County NPL Superfund Site (Kansas), EPA site page",
+    "source_url": "https://www.epa.gov/node/280280",
+    "quote": "The OU5 remedy does not address the potential future residential development of the area.",
+    "code_check": "quote_found",
+    "verifier": "unsupported",
+    "status": "rejected",
+    "adjudicated_by": "opus"
+   },
+   {
+    "kind": "redevelopment_plan",
+    "date": "2019-09",
+    "summary": "EPA's Superfund redevelopment listing for Kansas (archived January 2021 snapshot; Cherokee entry last updated September 2019) reports that the 12-acre Work Area #1 is farmed by the landowner for cash crops. The same entry says more than 2,700 acres of the site have been restored for agricultural, livestock and wildlife use. This is an agency-reported reuse fact, not a new project.",
+    "authority": "U.S. EPA Superfund Redevelopment Initiative",
+    "reference": "Superfund Sites in Reuse in Kansas (EPA archived snapshot, Cherokee County entry)",
+    "source_url": "https://19january2021snapshot.epa.gov/superfund-redevelopment-initiative/superfund-sites-reuse-kansas_.html",
+    "quote": "The 12-acre Work Area #1 at the site is used by the landowner for farming cash crops like wheat and soybeans.",
+    "code_check": "quote_found",
+    "verifier": "supported",
+    "status": "accepted",
+    "adjudicated_by": "code"
+   }
+  ],
+  "parcel": null
+ },
+ "MID072569510": {
+  "researched_at": "2026-11-02",
+  "id": "MID072569510",
+  "name": "MUSKEGON CHEMICAL CO.",
+  "gaps": [
+   "Searched 'Muskegon Chemical Whitehall Michigan Superfund redevelopment' and 'Muskegon Chemical Company Whitehall site reuse news Muskegon Chronicle'. No redevelopment, reuse, development or coverage for 1725 Warner St was found.",
+   "Muskegon Chronicle and rapidgrowth results concern the Whitehall Leather tannery on White Lake, a different site, and were excluded. The Ott/Story/Cordova site's Muskegon County Business and Industrial Park is also a separate site.",
+   "The EPA five-year review snippet (the fourth, following an April 4, 2008 review) reports construction completion, state lead, and Koch Remediation O&M contractor. I did not open it, so no fact is recorded from it.",
+   "EGLE's PFAS page says to contact the site lead (Nicolas Dawson) for current status and warns that the page may not be routinely updated. No dated news was found."
+  ],
+  "county": "MUSKEGON",
+  "state": "MI",
+  "researchers": [
+   "Claude Haiku 5.5",
+   "Claude Sonnet 5.5"
+  ],
+  "portals": [],
+  "facts": [],
+  "parcel": null
+ },
+ "OR6213820917": {
+  "researched_at": "2026-11-02",
+  "id": "OR6213820917",
+  "name": "UMATILLA ARMY DEPOT (LAGOONS)",
+  "gaps": [
+   "Searched 'Umatilla Army Depot lagoons Hermiston redevelopment news' and depot-name variants. No news from 2024 to 2026 about the lagoon remediation itself or the hydrogen hub was found.",
+   "The facts describe the 19,729-acre depot, of which the lagoons are a small part. None of the coverage names the lagoons or Explosives Washout Lagoons specifically.",
+   "The EPA 2023 five-year review (Explosives Washout Lagoons groundwater OU, not yet at unrestricted use) appeared in search snippets. I did not open it, so no cleanup-status fact is recorded.",
+   "The hydrogen hub is a proposal in a DOE funding application. No later approval, award or construction was found.",
+   "A search summary mentioned Army Corps clearing of 416 acres in November 2025 for the Oregon National Guard. I could not verify it in an opened source, so it is not cited.",
+   "The EPA award fact gives the year 2024 only, so it has no date."
+  ],
+  "county": "MORROW",
+  "state": "OR",
+  "researchers": [
+   "Claude Haiku 5.5",
+   "Claude Sonnet 5.5"
+  ],
+  "portals": [],
+  "facts": [
+   {
+    "kind": "redevelopment_plan",
+    "date": "2023-07-12",
+    "summary": "East Oregonian report of the July 12, 2023 land transfer ceremony. Per the article, the former Umatilla Chemical Depot became the property of the Columbia Development Authority in March 2023, and the CDA owns 9,511 acres. Counties and ports plan to develop industrial areas there; these are plans, not completed projects.",
+    "authority": "East Oregonian",
+    "reference": "Depot land transfer ceremony highlights collaboration",
+    "source_url": "https://eastoregonian.com/?p=572174",
+    "quote": "The counties and ports plan to develop industrial areas on the 9,511 acres the CDA now own,",
+    "code_check": "quote_found",
+    "verifier": "supported",
+    "status": "accepted",
+    "adjudicated_by": "code"
+   },
+   {
+    "kind": "redevelopment_plan",
+    "date": "2022-09-29",
+    "summary": "La Grande Observer reported on September 29, 2022 that the Columbia Development Authority was about to take ownership of the former Umatilla Chemical Depot, receiving nearly 10,000 acres from the Army, with signing set for that day. The article quotes the director on strategic future use. The transfer itself is confirmed in the July 2023 report.",
+    "authority": "La Grande Observer",
+    "reference": "Columbia Development Authority director to sign paperwork transferring depot land from Army",
+    "source_url": "https://lagrandeobserver.com/2022/09/29/columbia-development-authority-director-to-sign-paperwork-transferring-depot-land-from-army",
+    "quote": "The Columbia Development Authority at long last is about to become the owner of the former Umatilla Chemical Depot.",
+    "code_check": "quote_found",
+    "verifier": "supported",
+    "status": "accepted",
+    "adjudicated_by": "code"
+   },
+   {
+    "kind": "development_project",
+    "date": "2023-03-30",
+    "summary": "East Oregonian article (reprinted by Blue Mountain Eagle) reports that the depot could be the site of a Northwest hydrogen hub. Obsidian Renewables, a Lake Oswego solar company, applied to the US Department of Energy, and the Pacific Northwest Hydrogen Association also applied for funding. This is a proposal in a funding application, not an approved or built project. The article gives no hydrogen-hub acreage.",
+    "authority": "East Oregonian (via Blue Mountain Eagle)",
+    "reference": "Land of opportunity: Former Umatilla Chemical Depot could become regional hydrogen hub",
+    "source_url": "https://bluemountaineagle.com/?p=179432",
+    "quote": "Obsidian's map showed the depot as its Oregon hub, with another near Moses Lake, Washington.",
+    "code_check": "quote_found",
+    "verifier": "supported",
+    "status": "accepted",
+    "adjudicated_by": "code"
+   },
+   {
+    "kind": "redevelopment_plan",
+    "summary": "EPA Region 10 recognized the Umatilla Army Depot Superfund site in 2024 with its Howard Orlean Excellence in Site Reuse Award. The EPA page says the authority designated 5,500 acres of the land as a wildlife refuge, and the Confederated Tribes of the Umatilla Indian Reservation obtained 4,000 of the acres, which the page describes as an important cultural site. The page gives only the year, so no date is recorded.",
+    "authority": "U.S. EPA Region 10",
+    "reference": "EPA Region 10 Howard Orlean Excellence in Site Reuse Award",
+    "source_url": "https://www.epa.gov/superfund-redevelopment/epa-region-10-howard-orlean-excellence-site-reuse-award",
+    "quote": "The authority designated 5,500 acres of this land as a wildlife refuge.",
+    "code_check": "quote_found",
+    "verifier": "supported",
+    "status": "accepted",
+    "adjudicated_by": "code"
+   },
+   {
+    "kind": "redevelopment_plan",
+    "date": "2017-11-27",
+    "summary": "On November 27, 2017 the Oregon Adjutant General and the US Army Corps of Engineers signed a license dedicating 7,500 of the depot's 19,729 excess acres as a new Oregon National Guard Training Center. The DVIDS article was posted January 11, 2018. This is a land-use designation, not a development project.",
+    "authority": "DVIDS (Oregon National Guard article)",
+    "reference": "Big changes for Camp Umatilla",
+    "source_url": "https://www.dvidshub.net/news/printable/261908",
+    "quote": "that dedicates 7,500 acres of the former depot's 19,729 acres as a new Oregon National Guard Training Center.",
+    "code_check": "quote_found",
+    "verifier": "supported",
+    "status": "accepted",
+    "adjudicated_by": "code"
+   }
+  ],
+  "parcel": null
+ },
+ "TND073540783": {
+  "researched_at": "2026-11-02",
+  "id": "TND073540783",
+  "name": "ILLINOIS CENTRAL RAILROAD COMPANY'S JOHNSTON YARD SUPERFUND SITE",
+  "gaps": [
+   "Searched Johnston Yard, Harrison Yard, Horn Lake Road and redevelopment terms. No 2025-2026 coverage of a reuse, sale or new tenant for the yard was found.",
+   "Found but not cited: CN completed a $100 million Memphis yard reconstruction (American Journal of Transportation, Sept. 2009) and renamed it Harrison Yard. The page I opened does not name Johnston Yard, and its address (297 Rivergate Road) differs from the Superfund address (2921 Horn Lake Road), so I could not confirm the match.",
+   "An EPA reuse page (search snippet only, not opened) says an intermodal cargo transfer facility operated on the site until 2006. Not cited: it is historical use, not a development project.",
+   "Current operating status of the yard was not verified."
+  ],
+  "county": "SHELBY",
+  "state": "TN",
+  "researchers": [
+   "Claude Haiku 5.5",
+   "Claude Sonnet 5.5"
+  ],
+  "portals": [],
+  "facts": [
+   {
+    "kind": "development_project",
+    "date": "2006-04-20",
+    "summary": "Progressive Railroading (April 20, 2006) reported that Canadian National would spend $100 million to rebuild and upgrade Johnston Yard in Memphis, with completion planned for late 2008. This is an upgrade of an operating rail yard, not a redevelopment for other uses. The article gives no street address, so the link to this Superfund site rests on the matching yard name and city.",
+    "authority": "Progressive Railroading",
+    "reference": "CN to rebuild century-old Memphis yard",
+    "source_url": "https://progressiverailroading.com/rail_industry_trends/news/CN-to-rebuild-centuryold-Memphis-yard--7877",
+    "quote": "it will spend $100 million to rebuild and upgrade Johnston Yard in Memphis, Tenn.",
+    "code_check": "quote_found",
+    "verifier": "supported",
+    "status": "accepted",
+    "adjudicated_by": "code"
+   }
+  ],
+  "parcel": null
+ },
+ "TXD980810386": {
+  "researched_at": "2026-11-02",
+  "id": "TXD980810386",
+  "name": "SOUTH CAVALCADE STREET",
+  "gaps": [
+   "Searched Cavalcade and Maury Street with redevelopment, toll road and 2025-2026 terms. No 2025-2026 news of a reuse or development project for this site was found.",
+   "ABC13 report on residents' groundwater worries and EPA institutional-control statements (abc13.com/archive/9000197) has no date on the page, so it is not cited.",
+   "ABC13 article of March 28, 2024 on the Hardy Toll Road downtown extension approval does not mention Cavalcade, the Superfund site or a construction start. Not cited.",
+   "The Houston Chronicle quote came from a model-processed page extract, not the raw page text. Check the exact wording against the live page before relying on it.",
+   "The Maury Street search returned only a commercial listing for 2206 Maury St, with no link to the site."
+  ],
+  "county": "HARRIS",
+  "state": "TX",
+  "researchers": [
+   "Claude Haiku 5.5",
+   "Claude Sonnet 5.5"
+  ],
+  "portals": [],
+  "facts": [
+   {
+    "kind": "development_project",
+    "date": "2013-11-30",
+    "summary": "Houston Chronicle (Nov. 30, 2013) reported that the Harris County Toll Road Authority planned a $350 million extension of the Hardy Toll Road into downtown through part of the 66-acre site south of Cavalcade, with construction expected to begin in 2020. This was a 2013 proposal. I found no 2024-2026 coverage tying the extension to this site. A March 2024 ABC13 article on the approved extension does not mention Cavalcade or the Superfund site.",
+    "authority": "Houston Chronicle",
+    "reference": "Superfund cleanup to move at nature's pace",
+    "source_url": "https://preview-prod.w.houstonchronicle.com/us-world/science-environment/article/superfund-cleanup-to-move-at-nature-s-pace-5024843.php",
+    "quote": "is planning a $350 million extension of the Hardy Toll Road into downtown through part of the site.",
+    "code_check": "quote_found",
+    "verifier": "supported",
+    "status": "accepted",
+    "adjudicated_by": "code"
+   }
+  ],
+  "parcel": null
+ },
+ "TXD980873343": {
+  "researched_at": "2026-11-02",
+  "id": "TXD980873343",
+  "name": "NORTH CAVALCADE STREET",
+  "gaps": [
+   "Searched North Cavalcade with news, development and 2025 terms. No development project, developer, incentive or redevelopment news was found.",
+   "Houston Chronicle (Nov. 30, 2013) mentions a wood-treatment plant north of Cavalcade added to the cleanup list, but the article does not name North Cavalcade. Not cited.",
+   "The undated ABC13 institutional-controls report (see South Cavalcade) is not cited.",
+   "The EPA 2018 five-year review (an agency document, not news) says the remedy is protective. Not cited here."
+  ],
+  "county": "HARRIS",
+  "state": "TX",
+  "researchers": [
+   "Claude Haiku 5.5",
+   "Claude Sonnet 5.5"
+  ],
+  "portals": [],
+  "facts": [],
+  "parcel": null
+ },
+ "UTD070926811": {
+  "researched_at": "2026-11-02",
+  "id": "UTD070926811",
+  "name": "KENNECOTT (NORTH ZONE)",
+  "gaps": [
+   "Searched Kennecott North Zone, Magna, 2100 South and 12000 West with data center, West Bench and redevelopment terms. No 2025-2026 local news about a project at or near this site was found.",
+   "12000 West and 2100 South falls outside Magna's core street grid according to one source. The exact parcel is not confirmed as a redevelopment site.",
+   "A September 2026 Salt Lake Tribune data center story is about Juab County (Nebo North LLC, near Mona), not Magna. Not cited.",
+   "A 2023 Salt Lake Tribune story on Rio Tinto's Bingham Canyon tailings expansion is not tied to the North Zone in the text I read. Not cited.",
+   "Kennecott Land's West Bench residential plans (from a 2008 KSL search snippet, not opened) are not cited.",
+   "Utah DEQ's proposed-sites page lists the North Zone as a proposed NPL site. It is an undated agency page, not news, so it is not cited as a fact."
+  ],
+  "county": "SALT LAKE",
+  "state": "UT",
+  "researchers": [
+   "Claude Haiku 5.5",
+   "Claude Sonnet 5.5"
+  ],
+  "portals": [],
+  "facts": [
+   {
+    "kind": "news",
+    "date": "2008-08-26",
+    "summary": "KSL (Aug. 26, 2008) reported that the North Zone, like the South Zone, was placed on the proposed Superfund list in 1994, and that Kennecott officials hoped the North Zone would be taken off the proposed list in the coming years. The article is mainly about the South Zone's expected removal. The sources I found show the North Zone still on the proposed list.",
+    "authority": "KSL.com",
+    "reference": "Kennecott site to stay off Superfund list",
+    "source_url": "https://www.ksl.com/article/4105655",
+    "quote": "Kennecott officials are hoping the North Zone will be taken off the proposed list in the coming years.",
+    "code_check": "quote_found",
+    "verifier": "supported",
+    "status": "accepted",
+    "adjudicated_by": "code"
+   },
+   {
+    "kind": "news",
+    "date": "2025-10-01",
+    "summary": "A U.S. EPA Region 8 hearing clerk filing dated Oct. 1, 2025 lists an Administrative Settlement Agreement and Order on Consent for the Kennecott North Zone Site, docket CERCLA-08-2026-0001 (the docket year is 2026, the filing date 2025). The attached PDF names operable units OU22 and OU23. The page does not state the order's purpose or terms, so this is a dated cleanup-enforcement record, not a redevelopment commitment.",
+    "authority": "U.S. EPA Region 8 Regional Hearing Clerk",
+    "reference": "Administrative Settlement Agreement and Order on Consent, CERCLA-08-2026-0001",
+    "source_url": "https://yosemite.epa.gov/OA/RHC/EPAAdmin.nsf/Filings/7696DEF2A774323A85258D160080825C",
+    "quote": "Kennecott North Zone Site (CERCLA-08-2026-0001).",
+    "code_check": "quote_found",
+    "verifier": "supported",
+    "status": "accepted",
+    "adjudicated_by": "code"
+   }
+  ],
+  "parcel": null
  }
 }

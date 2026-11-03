@@ -1,0 +1,134 @@
+{
+ "batch": "batch-06",
+ "researcher": "Claude Haiku 5.5",
+ "sites": [
+  {
+   "id": "FUDS-J09AZ0377",
+   "name": "GILBERT AF AUXILIARY FIELD",
+   "researcher": "Claude Haiku 5.5",
+   "portals": [],
+   "facts": [],
+   "gaps": [
+    "Searched 'Gilbert AF Auxiliary Field Mesa Arizona redevelopment', 'Gilbert auxiliary field Ellsworth Ray Road land sale' and 'Gilbert Auxiliary Army Airfield surplus disposal'. No news about this field, its address area, or a sale or reuse was found.",
+    "Results about Falcon Field, Phoenix-Mesa Gateway (former Williams AFB), Town of Gilbert auction parcels near Ray Road and Santan Village Parkway, and Ellsworth Road listings concern other properties and were excluded.",
+    "Freeman airfield index names Gilbert Aux AAF #1 (built 1943) with no later-use detail. Williams AFB Wikipedia snippet mentions a former auxiliary field south of US 60 in Gilbert now housing, but does not name the field, so not cited.",
+    "The FUDS record is a 595-acre property per the atlas; no local news links it to any post-military use."
+   ]
+  },
+  {
+   "id": "KSD980741862",
+   "name": "CHEROKEE COUNTY",
+   "researcher": "Claude Haiku 5.5",
+   "portals": [],
+   "facts": [
+    {
+     "kind": "community_benefit",
+     "date": "2023-01",
+     "summary": "EPA's Cherokee County NPL site fact sheet (dated January 2023, page last updated December 2025) commits that if new residential development is identified within the site boundary, EPA will test the residential yards. This is a commitment to residents, not a development project.",
+     "authority": "U.S. EPA",
+     "reference": "Cherokee County NPL Superfund Site (Kansas), EPA site page",
+     "source_url": "https://www.epa.gov/node/280280",
+     "quote": "If new residential development is identified within the site boundary, EPA will test the residential yards"
+    },
+    {
+     "kind": "redevelopment_plan",
+     "date": "2023-01",
+     "summary": "The same EPA fact sheet says the OU5 cleanup remedy does not address potential future residential development in that area, which limits reuse of OU5 for housing under the current remedy. Institutional controls limit land use on capped waste areas.",
+     "authority": "U.S. EPA",
+     "reference": "Cherokee County NPL Superfund Site (Kansas), EPA site page",
+     "source_url": "https://www.epa.gov/node/280280",
+     "quote": "The OU5 remedy does not address the potential future residential development of the area."
+    },
+    {
+     "kind": "redevelopment_plan",
+     "date": "2019-09",
+     "summary": "EPA's Superfund redevelopment listing for Kansas (archived January 2021 snapshot; Cherokee entry last updated September 2019) reports that the 12-acre Work Area #1 is farmed by the landowner for cash crops. The same entry says more than 2,700 acres of the site have been restored for agricultural, livestock and wildlife use. This is an agency-reported reuse fact, not a new project.",
+     "authority": "U.S. EPA Superfund Redevelopment Initiative",
+     "reference": "Superfund Sites in Reuse in Kansas (EPA archived snapshot, Cherokee County entry)",
+     "source_url": "https://19january2021snapshot.epa.gov/superfund-redevelopment-initiative/superfund-sites-reuse-kansas_.html",
+     "quote": "The 12-acre Work Area #1 at the site is used by the landowner for farming cash crops like wheat and soybeans."
+    }
+   ],
+   "gaps": [
+    "Searched Cherokee County Kansas Superfund with chat piles, lead zinc and redevelopment news. No local news from Joplin or Kansas outlets on chat-pile reuse or redevelopment in the results.",
+    "The Treece subsite / OU4 Work Area #1 identification came from a search snippet of an EPA profile I did not open. The cited Kansas reuse entry does not name Treece, so the 12-acre parcel's identity is not confirmed on the cited page.",
+    "The Kansas reuse entry is dated September 2019 (data as of December 2019), so its reuse figures may be out of date.",
+    "The 2006 EPA chat-reuse proposal (transportation and concrete use, about 100 million tons of chat in the district) is regional and not tied to this site, so not cited.",
+    "The two fact-sheet facts come from a federal fact sheet rather than local coverage; no dated news on residential or other development was found."
+   ]
+  },
+  {
+   "id": "MID072569510",
+   "name": "MUSKEGON CHEMICAL CO.",
+   "researcher": "Claude Haiku 5.5",
+   "portals": [],
+   "facts": [],
+   "gaps": [
+    "Searched 'Muskegon Chemical Whitehall Michigan Superfund redevelopment' and 'Muskegon Chemical Company Whitehall site reuse news Muskegon Chronicle'. No redevelopment, reuse, development or coverage for 1725 Warner St was found.",
+    "Muskegon Chronicle and rapidgrowth results concern the Whitehall Leather tannery on White Lake, a different site, and were excluded. The Ott/Story/Cordova site's Muskegon County Business and Industrial Park is also a separate site.",
+    "The EPA five-year review snippet (the fourth, following an April 4, 2008 review) reports construction completion, state lead, and Koch Remediation O&M contractor. I did not open it, so no fact is recorded from it.",
+    "EGLE's PFAS page says to contact the site lead (Nicolas Dawson) for current status and warns that the page may not be routinely updated. No dated news was found."
+   ]
+  },
+  {
+   "id": "OR6213820917",
+   "name": "UMATILLA ARMY DEPOT (LAGOONS)",
+   "researcher": "Claude Haiku 5.5",
+   "portals": [],
+   "facts": [
+    {
+     "kind": "redevelopment_plan",
+     "date": "2023-07-12",
+     "summary": "East Oregonian report of the July 12, 2023 land transfer ceremony. Per the article, the former Umatilla Chemical Depot became the property of the Columbia Development Authority in March 2023, and the CDA owns 9,511 acres. Counties and ports plan to develop industrial areas there; these are plans, not completed projects.",
+     "authority": "East Oregonian",
+     "reference": "Depot land transfer ceremony highlights collaboration",
+     "source_url": "https://eastoregonian.com/?p=572174",
+     "quote": "The counties and ports plan to develop industrial areas on the 9,511 acres the CDA now own,"
+    },
+    {
+     "kind": "redevelopment_plan",
+     "date": "2022-09-29",
+     "summary": "La Grande Observer reported on September 29, 2022 that the Columbia Development Authority was about to take ownership of the former Umatilla Chemical Depot, receiving nearly 10,000 acres from the Army, with signing set for that day. The article quotes the director on strategic future use. The transfer itself is confirmed in the July 2023 report.",
+     "authority": "La Grande Observer",
+     "reference": "Columbia Development Authority director to sign paperwork transferring depot land from Army",
+     "source_url": "https://lagrandeobserver.com/2022/09/29/columbia-development-authority-director-to-sign-paperwork-transferring-depot-land-from-army",
+     "quote": "The Columbia Development Authority at long last is about to become the owner of the former Umatilla Chemical Depot."
+    },
+    {
+     "kind": "development_project",
+     "date": "2023-03-30",
+     "summary": "East Oregonian article (reprinted by Blue Mountain Eagle) reports that the depot could be the site of a Northwest hydrogen hub. Obsidian Renewables, a Lake Oswego solar company, applied to the US Department of Energy, and the Pacific Northwest Hydrogen Association also applied for funding. This is a proposal in a funding application, not an approved or built project. The article gives no hydrogen-hub acreage.",
+     "authority": "East Oregonian (via Blue Mountain Eagle)",
+     "reference": "Land of opportunity: Former Umatilla Chemical Depot could become regional hydrogen hub",
+     "source_url": "https://bluemountaineagle.com/?p=179432",
+     "quote": "Obsidian's map showed the depot as its Oregon hub, with another near Moses Lake, Washington."
+    },
+    {
+     "kind": "redevelopment_plan",
+     "summary": "EPA Region 10 recognized the Umatilla Army Depot Superfund site in 2024 with its Howard Orlean Excellence in Site Reuse Award. The EPA page says the authority designated 5,500 acres of the land as a wildlife refuge, and the Confederated Tribes of the Umatilla Indian Reservation obtained 4,000 of the acres, which the page describes as an important cultural site. The page gives only the year, so no date is recorded.",
+     "authority": "U.S. EPA Region 10",
+     "reference": "EPA Region 10 Howard Orlean Excellence in Site Reuse Award",
+     "source_url": "https://www.epa.gov/superfund-redevelopment/epa-region-10-howard-orlean-excellence-site-reuse-award",
+     "quote": "The authority designated 5,500 acres of this land as a wildlife refuge."
+    },
+    {
+     "kind": "redevelopment_plan",
+     "date": "2017-11-27",
+     "summary": "On November 27, 2017 the Oregon Adjutant General and the US Army Corps of Engineers signed a license dedicating 7,500 of the depot's 19,729 excess acres as a new Oregon National Guard Training Center. The DVIDS article was posted January 11, 2018. This is a land-use designation, not a development project.",
+     "authority": "DVIDS (Oregon National Guard article)",
+     "reference": "Big changes for Camp Umatilla",
+     "source_url": "https://www.dvidshub.net/news/printable/261908",
+     "quote": "that dedicates 7,500 acres of the former depot's 19,729 acres as a new Oregon National Guard Training Center."
+    }
+   ],
+   "gaps": [
+    "Searched 'Umatilla Army Depot lagoons Hermiston redevelopment news' and depot-name variants. No news from 2024 to 2026 about the lagoon remediation itself or the hydrogen hub was found.",
+    "The facts describe the 19,729-acre depot, of which the lagoons are a small part. None of the coverage names the lagoons or Explosives Washout Lagoons specifically.",
+    "The EPA 2023 five-year review (Explosives Washout Lagoons groundwater OU, not yet at unrestricted use) appeared in search snippets. I did not open it, so no cleanup-status fact is recorded.",
+    "The hydrogen hub is a proposal in a DOE funding application. No later approval, award or construction was found.",
+    "A search summary mentioned Army Corps clearing of 416 acres in November 2025 for the Oregon National Guard. I could not verify it in an opened source, so it is not cited.",
+    "The EPA award fact gives the year 2024 only, so it has no date."
+   ]
+  }
+ ]
+}

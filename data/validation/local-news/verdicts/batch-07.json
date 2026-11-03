@@ -1,0 +1,16 @@
+{"batch": "batch-07", "sites": [
+{"id": "TND073540783", "verifier": "Claude Sonnet 5.5",
+ "fact_verdicts": [{"index": 0, "source_url": "https://progressiverailroading.com/rail_industry_trends/news/CN-to-rebuild-centuryold-Memphis-yard--7877", "verdict": "supported", "note": "Dated 4/20/2006: CN \"will spend $100 million to rebuild and upgrade Johnston Yard in Memphis, Tenn.\", late 2008 completion. No address; site match rests on the yard name (IC Johnston Yard), same as the atlas lists."}],
+ "portal_verdicts": []},
+{"id": "TXD980810386", "verifier": "Claude Sonnet 5.5",
+ "fact_verdicts": [{"index": 0, "source_url": "https://preview-prod.w.houstonchronicle.com/us-world/science-environment/article/superfund-cleanup-to-move-at-nature-s-pace-5024843.php", "verdict": "supported", "note": "Nov 30, 2013: HCTRA \"planning a $350 million extension of the Hardy Toll Road into downtown through part of the site\"; article calls it the 66-acre site south of Cavalcade (South Cavalcade). Construction 2020 not checked."}],
+ "portal_verdicts": []},
+{"id": "TXD980873343", "verifier": "Claude Sonnet 5.5",
+ "fact_verdicts": [],
+ "portal_verdicts": []},
+{"id": "UTD070926811", "verifier": "Claude Sonnet 5.5",
+ "fact_verdicts": [
+  {"index": 0, "source_url": "https://www.ksl.com/article/4105655", "verdict": "supported", "note": "KSL Aug 26, 2008: South Zone and North Zone both proposed 1994; \"Kennecott officials are hoping the North Zone will be taken off the proposed list in the coming years.\" Names the North Zone."},
+  {"index": 1, "source_url": "https://yosemite.epa.gov/OA/RHC/EPAAdmin.nsf/Filings/7696DEF2A774323A85258D160080825C", "verdict": "supported", "note": "Filing date 10/01/2025, Kennecott North Zone Site, CERCLA-08-2026-0001, ASAOC; OU22 and OU23 appear only in the PDF filename. Page gives no terms, as summary says."}],
+ "portal_verdicts": []}
+]}

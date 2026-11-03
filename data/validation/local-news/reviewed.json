@@ -46,7 +46,31 @@
   "facts": {},
   "researched_at": "2026-11-02"
  },
+ "FUDS-I04AL0120": {
+  "facts": {},
+  "researched_at": "2026-11-02"
+ },
+ "FUDS-I04AL3227": {
+  "facts": {},
+  "researched_at": "2026-11-02"
+ },
  "FUDS-I04FL0884": {
+  "facts": {},
+  "researched_at": "2026-11-02"
+ },
+ "FUDS-I04GA0939": {
+  "facts": {
+   "0": "757b1a6f7e84467a",
+   "1": "96f163d31b7f55d1",
+   "2": "420094dc6eff5439"
+  },
+  "researched_at": "2026-11-02"
+ },
+ "FUDS-I04GA0975": {
+  "facts": {},
+  "researched_at": "2026-11-02"
+ },
+ "FUDS-J09AZ0377": {
   "facts": {},
   "researched_at": "2026-11-02"
  },
@@ -60,12 +84,24 @@
   },
   "researched_at": "2026-11-02"
  },
+ "KSD980741862": {
+  "facts": {
+   "0": "204453ce56283992",
+   "1": "f04cd62ead23eaf5",
+   "2": "86d96bd33d110ec5"
+  },
+  "researched_at": "2026-11-02"
+ },
  "MID062222997": {
   "facts": {
    "0": "1592baa9acc7aeea",
    "1": "30da2c3c64bb1f56",
    "2": "738d5c5be5bc3415"
   },
+  "researched_at": "2026-11-02"
+ },
+ "MID072569510": {
+  "facts": {},
   "researched_at": "2026-11-02"
  },
  "MT0012694970": {
@@ -79,6 +115,39 @@
   "facts": {
    "0": "4089386352701125",
    "1": "8f7caf9ca9ea3ed9"
+  },
+  "researched_at": "2026-11-02"
+ },
+ "OR6213820917": {
+  "facts": {
+   "0": "04f76cefc5ea5c55",
+   "1": "358c9bba4b5b1c32",
+   "2": "657efa52a74caba9",
+   "3": "e12969c5c6b0de1e",
+   "4": "d1161ecaae1c8278"
+  },
+  "researched_at": "2026-11-02"
+ },
+ "TND073540783": {
+  "facts": {
+   "0": "6635698c9b81622f"
+  },
+  "researched_at": "2026-11-02"
+ },
+ "TXD980810386": {
+  "facts": {
+   "0": "044002ed1b869aa3"
+  },
+  "researched_at": "2026-11-02"
+ },
+ "TXD980873343": {
+  "facts": {},
+  "researched_at": "2026-11-02"
+ },
+ "UTD070926811": {
+  "facts": {
+   "0": "95ec09a6405f4f81",
+   "1": "c4e0c3e78e3ab9bf"
   },
   "researched_at": "2026-11-02"
  },

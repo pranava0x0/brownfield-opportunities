@@ -1,1 +1,22 @@
-[]
+[
+ {
+  "id": "KSD980741862",
+  "name": "CHEROKEE COUNTY",
+  "index": 1,
+  "fingerprint": "f04cd62ead23eaf5",
+  "fact": {
+   "kind": "redevelopment_plan",
+   "date": "2023-01",
+   "summary": "The same EPA fact sheet says the OU5 cleanup remedy does not address potential future residential development in that area, which limits reuse of OU5 for housing under the current remedy. Institutional controls limit land use on capped waste areas.",
+   "authority": "U.S. EPA",
+   "reference": "Cherokee County NPL Superfund Site (Kansas), EPA site page",
+   "source_url": "https://www.epa.gov/node/280280",
+   "quote": "The OU5 remedy does not address the potential future residential development of the area.",
+   "code_check": "quote_found",
+   "verifier": "unsupported",
+   "status": "disputed",
+   "adjudicated_by": "code"
+  },
+  "verifier_note": "Page says 'The OU5 remedy does not address the potential future residential development of the area.' and ICs 'limit land use on capped waste areas' (OU3/4/6). 'Limits reuse of OU5 for housing' is the researcher's inference."
+ }
+]
