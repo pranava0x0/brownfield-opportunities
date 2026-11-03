@@ -2444,6 +2444,7 @@ function mfgPopupHtml(f) {
     + award + reuse
     + `<div class="ref-campus-company"><span class="micro-note">Placed at ${escapeHtml(f.locality)}, ${escapeHtml(f.state)}, not the plant</span></div>`
     + `<p class="ref-campus-note">“${escapeHtml(f.quote)}”</p>`
+    + `<div class="ref-campus-company"><span class="micro-note">${escapeHtml(MFG_CHECK_LABEL[f.check] || "")}</span></div>`
     + `<a href="${escapeAttr(f.source_url)}" target="_blank" rel="noopener" class="ref-campus-link">${escapeHtml(f.source_title || "Source")} ↗</a></div>`;
 }
 function ensureMfgFacilitiesLoaded() {
@@ -2457,27 +2458,31 @@ function ensureMfgFacilitiesLoaded() {
       nickelDataErrors.delete("plant catalog");
       mfgCatalog = payload;
       mfgStampVersion += 1;
-      if (mfgLayer) {
-        mfgLayer.clearLayers();
-        for (const f of payload.sites || []) {
-          // Markers get inset-remapped copies; the catalog keeps real coordinates for distances.
-          const m = {...f};
-          applyInsetRemap(m);
-          const icon = L.divIcon({className: `mfg-icon mfg-${f.sector}`, html: "▲", iconSize: [14, 14], iconAnchor: [7, 7], popupAnchor: [0, -7]});
-          mfgLayer.addLayer(L.marker([m.lat, m.lon], {icon, zIndexOffset: 280}).bindPopup(mfgPopupHtml(f), {maxWidth: 320}));
-        }
-        rerenderLegend();
-      }
-      maybeRefreshCandidates();
-      if (selectedId && sitesById.has(selectedId)) renderSuitability(sitesById.get(selectedId));
     })
     .catch((err) => {
       console.error("Manufacturing catalog load failed:", err);
       nickelDataErrors.add("plant catalog");
       mfgFacilitiesPromise = null;
+    })
+    // Drawing is separate from loading: an error here is logged, never reported as a failed download.
+    .then(() => { try { drawMfgMarkers(); } catch (err) { console.error("Manufacturing markers failed:", err); } })
+    .then(() => {
       maybeRefreshCandidates();
+      if (mfgCatalog && selectedId && sitesById.has(selectedId)) renderSuitability(sitesById.get(selectedId));
     });
   return mfgFacilitiesPromise;
+}
+function drawMfgMarkers() {
+  if (!mfgCatalog || !mfgLayer) return;
+  mfgLayer.clearLayers();
+  for (const f of mfgCatalog.sites || []) {
+    // Markers get inset-remapped copies; the catalog keeps real coordinates for distances.
+    const m = {...f};
+    applyInsetRemap(m);
+    const icon = L.divIcon({className: `mfg-icon mfg-${f.sector}`, html: "▲", iconSize: [14, 14], iconAnchor: [7, 7], popupAnchor: [0, -7]});
+    mfgLayer.addLayer(L.marker([m.lat, m.lon], {icon, zIndexOffset: 280}).bindPopup(mfgPopupHtml(f), {maxWidth: 320}));
+  }
+  rerenderLegend();
 }
 // Distances to the nearest plant of each sector, from the site's current
 // coordinates (screens.js stampManufacturing). Skips sites already stamped
@@ -2489,18 +2494,20 @@ function stampMfg(sites) {
 function mfgEvidenceHtml(sector) {
   if (!mfgCatalog) return "";
   const plants = mfgCatalog.sites.filter(f => f.sector === sector);
+  const active = plants.filter(f => SiteScreens.MFG_ACTIVE.includes(f.status)).length;
   const reqs = mfgCatalog.requirements.filter(r => r.sector === sector);
   const plantRows = plants.map(f => `<li><a href="${escapeAttr(f.source_url)}" target="_blank" rel="noopener">${escapeHtml(f.name)}</a>`
     + ` <span class="micro-sub">${escapeHtml(f.city)}, ${escapeHtml(f.state)} · ${escapeHtml(MFG_STATUS_LABEL[f.status])}`
     + `${f.investment_usd ? " · " + fmtUsd(f.investment_usd) : ""}${f.federal_award ? " · " + escapeHtml(f.federal_award.agency) + " award" : ""}`
-    + `${f.brownfield === true ? " · reused site" : ""}</span></li>`).join("");
+    + `${f.brownfield === true ? " · reused site" : ""}${f.check === "accepted_model_only" ? " · quote not checked by code" : ""}</span></li>`).join("");
   const reqRows = reqs.map(r => `<li><strong>${escapeHtml(r.factor.replace(/_/g, " "))}</strong>: ${escapeHtml(r.claim)}`
     + ` <a href="${escapeAttr(r.source_url)}" target="_blank" rel="noopener" title="${escapeAttr("“" + r.quote + "”")}">source ↗</a></li>`).join("");
   const n = (k, word) => `${k} ${word}${k === 1 ? "" : "s"}`;
-  return `<details class="mfg-evidence"><summary>${n(plants.length, "existing US plant")} and ${n(reqs.length, "cited requirement")}</summary>`
+  const inactive = plants.length - active;
+  return `<details class="mfg-evidence"><summary>${n(active, "US plant")} operating, building or announced${inactive ? ` (${inactive} cancelled or paused)` : ""} and ${n(reqs.length, "cited requirement")}</summary>`
     + (reqRows ? `<h4>What a site needs</h4><ul class="mfg-reqs">${reqRows}</ul>` : "")
     + (plantRows ? `<h4>Plants</h4><ul class="mfg-plants">${plantRows}</ul>` : "")
-    + `<p class="method-foot">Each row was found by one model, re-read by a second, and its quote looked up on the page by code. Plants are mapped at their town's Census point.</p></details>`;
+    + `<p class="method-foot">Each row was found by one model and re-read by a second; code looked for its quote on the page wherever it could read the page. Plants are mapped at their town's Census point.</p></details>`;
 }
 
 // Nickel supply-chain anchors (◈) — map overlay for the Nickel Refining tab.
@@ -7206,7 +7213,11 @@ function buildCandidatesView() {
   candidatesState.sorted = rows;
   updateFilterChip(); syncUrl();
   const method = el("screen-method");
-  if (method) method.innerHTML = screenMethodHtml(screen) + (screen.sector ? mfgEvidenceHtml(screen.sector) : "");
+  if (method) {
+    const wasOpen = method.querySelector(".mfg-evidence")?.open;
+    method.innerHTML = screenMethodHtml(screen) + (screen.sector ? mfgEvidenceHtml(screen.sector) : "");
+    if (wasOpen) { const d = method.querySelector(".mfg-evidence"); if (d) d.open = true; }
+  }
   const full = rows.filter(r => r.ev.met === r.ev.total).length;
   const stats = el("candidates-stats");
   const skeleton = el("candidates-skeleton");

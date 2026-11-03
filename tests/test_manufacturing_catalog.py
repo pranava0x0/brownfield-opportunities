@@ -112,7 +112,7 @@ def test_stamp_takes_the_nearest_active_plant_and_uses_real_coordinates():
 def test_build_merges_one_plant_reported_by_two_topics(tmp_path, monkeypatch):
     plant = {"name": "Syrah Vidalia anode plant", "company": "Syrah Technologies", "product": "graphite anode", "status": "operating",
              "city": "Vidalia", "state": "LA", "source_url": "https://example.com/plant", "quote": "the Vidalia plant makes anode material"}
-    award = {**plant, "name": "Syrah Technologies Vidalia facility", "source_url": "https://example.com/award",
+    award = {**plant, "name": "Syrah Vidalia anode facility expansion", "source_url": "https://example.com/award",
              "quote": "DOE grant of up to $220 million for Vidalia",
              "doe_award": {"program": "Battery Materials Processing", "agency": "DOE", "amount_usd": 220e6}}
     row = lambda r: {"kind": "facility", "index": 0, "row": r, "status": "accepted"}
@@ -137,9 +137,23 @@ def test_opus_can_strike_a_cancelled_award_but_not_add_one(tmp_path, monkeypatch
     (work / "research" / "minerals.json").write_text(json.dumps(research(row)))
     (work / "verdicts" / "minerals.json").write_text(json.dumps({"rows": [
         {"kind": "facility", "index": 0, "source_url": FAC["source_url"], "verdict": "supported"}]}))
-    (work / "opus.json").write_text(json.dumps({"minerals:facility:0": {"remove_fields": ["doe_award"], "reason": "grant cancelled"}}))
+    (work / "opus.json").write_text(json.dumps({"minerals:facility:0": {"remove_fields": ["doe_award"], "reason": "grant cancelled",
+                                                                 "source_url": FAC["source_url"]}}))
     monkeypatch.setattr(mc, "WORK", work)
     monkeypatch.setattr(mc, "code_check_for", lambda u, q: "quote_found")
     assert mc.cmd_adjudicate(None) == 0
     a = json.loads((work / "adjudicated.json").read_text())["minerals"][0]
     assert a["status"] == "accepted" and "doe_award" not in a["row"] and a["decided_by"] == "opus"
+
+
+def test_two_plants_of_one_company_in_one_town_stay_two():
+    base = {"sector": "minerals", "company": "Albemarle", "city": "Kings Mountain", "state": "NC"}
+    assert not mc.same_plant({**base, "name": "Albemarle Kings Mountain lithium concentrator"},
+                             {**base, "name": "Albemarle Kings Mountain lithium conversion facility and former mine"})
+    assert mc.same_plant({**base, "name": "Albemarle Kings Mountain lithium concentrator"},
+                         {**base, "name": "Albemarle Kings Mountain lithium concentrator expansion"})
+
+
+def test_a_verdict_or_decision_without_a_url_binds_to_nothing():
+    v = {"rows": [{"kind": "facility", "index": 0, "verdict": "supported"}]}
+    assert mc.adjudicate_rows(research(FAC), v, check=lambda u, q: "quote_found")[0]["status"] == "rejected"

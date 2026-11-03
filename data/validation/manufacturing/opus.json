@@ -1,52 +1,64 @@
 {
  "robotics:facility:2": {
   "status": "rejected",
-  "reason": "Page gives Figure's San Jose headquarters, not BotQ's location; a plant without a place cannot be mapped."
+  "reason": "Page gives Figure's San Jose headquarters, not BotQ's location; a plant without a place cannot be mapped.",
+  "source_url": "https://www.therobotreport.com/figure-ai-unveils-botq-high-volume-humanoid-manufacturing-facility/"
  },
  "robotics:facility:6": {
   "status": "rejected",
-  "reason": "Page says only 'near Rickenbacker International Airport south of Columbus'; no city to place it at."
+  "reason": "Page says only 'near Rickenbacker International Airport south of Columbus'; no city to place it at.",
+  "source_url": "https://industryweek.com/leadership/news/55261459/anduril-industries-to-build-5-million-square-foot-manufacturing-facility-in-ohio"
  },
  "turbine:requirement:4": {
   "status": "accepted_model_only",
-  "reason": "AJC paywall hides the article text from code; 220 jobs is stated in the Georgia Department of Economic Development release (georgia.org/press-releases/2026/mitsubishi-power-doubles-footprint-chatham-county) and WTOC."
+  "reason": "AJC paywall hides the article text from code; 220 jobs is stated in the Georgia Department of Economic Development release (georgia.org/press-releases/2026/mitsubishi-power-doubles-footprint-chatham-county) and WTOC.",
+  "source_url": "https://www.ajc.com/news/2026/10/georgia-power-turbine-plant-mitsubishi/"
  },
  "turbine:facility:8": {
   "status": "accepted_model_only",
-  "reason": "AJC paywall hides the text from code; $490M and 450,000 sq ft are stated in the Georgia Department of Economic Development release and Turbomachinery Magazine (Oct 2026)."
+  "reason": "AJC paywall hides the text from code; $490M and 450,000 sq ft are stated in the Georgia Department of Economic Development release and Turbomachinery Magazine (Oct 2026).",
+  "source_url": "https://www.ajc.com/news/2026/10/georgia-power-turbine-plant-mitsubishi/"
  },
  "doe_minerals:facility:1": {
   "status": "rejected",
-  "reason": "Cited March 2025 page says the grant 'remains active'; DOE cancelled the Ascend Elements Hopkinsville grant on 2025-10-20 (Hoptown Chronicle, electrive), with reported amounts of $100M, $164M or $316M. Shipping the row would state a cancelled award as active."
+  "reason": "Cited March 2025 page says the grant 'remains active'; DOE cancelled the Ascend Elements Hopkinsville grant on 2025-10-20 (Hoptown Chronicle, electrive), with reported amounts of $100M, $164M or $316M. Shipping the row would state a cancelled award as active.",
+  "source_url": "https://www.wkyufm.org/news/2025-03-04/ev-battery-materials-manufacturer-pumps-the-brakes-on-hopkinsville-facility"
  },
  "doe_awards:facility:3": {
   "status": "rejected",
-  "reason": "The $2B LPO conditional commitment never closed: Redwood ended the agreement in 2024 without drawing funds (Waste Dive, 2025-04) and DOE listed it among commitments 'previously cancelled by the company' (May 2025). The row's subject is the award, so it would state a dead loan as live."
+  "reason": "The $2B LPO conditional commitment never closed: Redwood ended the agreement in 2024 without drawing funds (Waste Dive, 2025-04) and DOE listed it among commitments 'previously cancelled by the company' (May 2025). The row's subject is the award, so it would state a dead loan as live.",
+  "source_url": "https://canarymedia.com/articles/batteries/redwood-materials-wins-2b-doe-loan-to-recycle-ev-batteries"
  },
  "robotics2:facility:0": {
   "status": "rejected",
-  "reason": "Page names Fremont but no state; a place we cannot confirm from the page is not mapped."
+  "reason": "Page names Fremont but no state; a place we cannot confirm from the page is not mapped.",
+  "source_url": "https://www.notateslaapp.com/news/4866/tesla-officially-begins-optimus-robot-production"
  },
  "robotics2:facility:3": {
   "status": "rejected",
-  "reason": "AI server plant, not robot production, and the cited page's 'planned' status is stale (opened July 2026 per DataCenterDynamics). Out of scope for the robot screen."
+  "reason": "AI server plant, not robot production, and the cited page's 'planned' status is stale (opened July 2026 per DataCenterDynamics). Out of scope for the robot screen.",
+  "source_url": "https://www.hillwood.com/newsroom/news-articles/nvidia-partner-wistron-confirms-fort-worth-supercomputer-plants-750-million-plus-investment/"
  },
  "robotics2:facility:4": {
   "status": "rejected",
-  "reason": "AI server plant, not robot production, and the cited page's 2026 opening is stale (shipping since Oct 2025). Out of scope for the robot screen."
+  "reason": "AI server plant, not robot production, and the cited page's 2026 opening is stale (shipping since Oct 2025). Out of scope for the robot screen.",
+  "source_url": "https://enr.com/articles/60343-apple-plans-houston-plant-to-produce-ai-servers"
  },
  "transformer2:facility:8": {
   "status": "rejected",
-  "reason": "Page never says grain-oriented electrical steel is made at Zanesville; the quote only mentions possible future investment."
+  "reason": "Page never says grain-oriented electrical steel is made at Zanesville; the quote only mentions possible future investment.",
+  "source_url": "https://clevelandcliffs.com/news/news-releases/detail/633/cleveland-cliffs-applauds-does-final-transformer"
  },
  "minerals2:facility:4": {
   "status": "rejected",
-  "reason": "Cited 2021 page says planned; the plant came online in Sept 2024 (Augusta Press). Stale status, same rule as other plants whose cited page predates a status change."
+  "reason": "Cited 2021 page says planned; the plant came online in Sept 2024 (Augusta Press). Stale status, same rule as other plants whose cited page predates a status change.",
+  "source_url": "https://georgia.org/press-release/aurubis-open-state-art-recycling-and-copper-smelting-facility-augusta"
  },
  "minerals2:facility:5": {
   "remove_fields": [
    "doe_award"
   ],
-  "reason": "The $117M DOE grant on the cited page was among those DOE cancelled on 2025-10-20 (about $13.8M had been released, per battery-tech.net); the plant row stays, the award is struck so it is not shown as live funding."
+  "reason": "The $117M DOE grant on the cited page was among those DOE cancelled on 2025-10-20 (about $13.8M had been released, per battery-tech.net); the plant row stays, the award is struck so it is not shown as live funding.",
+  "source_url": "https://www.manufacturingdive.com/news/anovion-technologies-800m-facility-in-georgia/650808/"
  }
 }

@@ -33,7 +33,7 @@ Robot and physical-AI assembly plants are light-industrial buildings near engine
 - Outside flood zone (`in_sfha = false`, agency).
 - Robot or AI-hardware plant within 100 mi (`mfg_robotics_mi ≤ 100`, ours). Distance to a Census place point for the nearest operating, building or announced plant of this kind: a proxy for suppliers and trained workers nearby. Plant points are good to a few miles.
 
-**What built plants show** (quotes are verbatim from the linked page)
+**What built plants show** (quotes as copied by the researcher; rows marked accepted_model_only were not matched on the page by code)
 
 - land: Agility Robotics' humanoid robot factory is a 70,000 square foot building in Salem, Oregon — "Initial construction of Agility’s 70,000 square foot robot factory began last year, and it is set to open later this year." ([source](https://agilityrobotics.com/content/opening-robofab-worlds-first-factory-for-humanoid-robots))
 - land: Waymo and Magna's Mesa, Arizona vehicle integration plant is a 239,000 square foot facility — "the recently built 239,000-square-foot facility" ([source](https://www.azfamily.com/2025/05/06/waymo-plans-expand-car-fleet-through-new-mesa-factory))
@@ -76,7 +76,7 @@ Turbine casings and rotors leave by rail, heavy-haul trailer or barge, and the p
 - Line ≥115 kV within 5 mi (`transmission_115kv_mi ≤ 5`, ours).
 - Outside flood zone (`in_sfha = false`, agency).
 
-**What built plants show** (quotes are verbatim from the linked page)
+**What built plants show** (quotes as copied by the researcher; rows marked accepted_model_only were not matched on the page by code)
 
 - port: Large gas turbines are delivered by barge into an inland port and unloaded by heavy-lift crane — "The gas turbine arrives at the Port of Catoosa from Savannah by barge." ([source](https://www.barnhartcrane.com/projects/turbine-transport/))
 - heavy haul: Steam turbines are moved by heavy-lift crane, then by self-propelled modular trailer to a laydown area, then loaded onto rail cars — "hauled to the laydown area on a Goldhofer trailer." ([source](https://www.barnhartcrane.com/projects/turbine-transport/))
@@ -114,7 +114,7 @@ Large power transformers weigh hundreds of tons and leave by rail; extra-high-vo
 - Line ≥230 kV within 5 mi (`transmission_230kv_mi ≤ 5`, ours).
 - Outside flood zone (`in_sfha = false`, agency).
 
-**What built plants show** (quotes are verbatim from the linked page)
+**What built plants show** (quotes as copied by the researcher; rows marked accepted_model_only were not matched on the page by code)
 
 - heavy haul: Large power transformers weighing about 208.8 tons (460,300 lb) each were discharged from a ship directly onto rail cars and moved by rail — "each 460,300 Lbs (abt 208,8 tons)" ([source](https://www.ajot.com/news/heavy-transformers-travel-through-usa))
 - rail: Heavy transformers were delivered by rail to a siding about 20 miles short of the final site, with the last leg by road — "transported by rail to a rail siding 20 miles from the final destination" ([source](https://www.ajot.com/news/heavy-transformers-travel-through-usa))
@@ -168,7 +168,7 @@ Refining and separation plants need land for process and tailings areas, high po
 - Gaged river ≥100 cfs within 10 mi (`water_100cfs_gage_mi ≤ 10`, ours). Distance to a USGS gage on a river of that size, not a water right. No qualifying gage nearby is unknown, never a fail.
 - Outside flood zone (`in_sfha = false`, agency).
 
-**What built plants show** (quotes are verbatim from the linked page)
+**What built plants show** (quotes as copied by the researcher; rows marked accepted_model_only were not matched on the page by code)
 
 - land: MP Materials began building a 200,000 sq ft rare earth metal and magnet plant in Fort Worth in April 2022 — "began building the 200,000-SF plant" ([source](https://dallasinnovates.com/in-u-s-milestone-mp-materials-begins-producing-rare-earth-magnets-at-fort-worth-facility/))
 - land: Novonix converted an existing former GE nuclear turbine manufacturing building in Chattanooga into its synthetic graphite plant (a retrofit rather than a greenfield build) — "a former GE nuclear turbine manufacturing facility" ([source](https://www.power-eng.com/energy-storage/batteries/in-win-for-battery-supply-chain-u-s-s-first-anode-plant-opens-in-tennessee/))
@@ -194,7 +194,8 @@ Refining and separation plants need land for process and tailings areas, high po
 | Syrah Vidalia active anode material plant | Vidalia, LA | operating |  | DOE $220M | [link](https://www.mining-technology.com/news/syrah-begins-producing-active-anode) |
 | ICL Specialty Products battery plant (St. Louis) | St. Louis, MO | cancelled |  | DOE $197M | [link](https://www.utilitydive.com/news/department-energy-project-grants-cancelled-battery-manufacturing-trump/803347/) |
 | U.S. Antimony smelter, Thompson Falls (Sanders County) | Thompson Falls, MT | expansion | $15M |  | [link](https://www.dailymontanan.com/?p=33119) |
-| Albemarle Kings Mountain lithium conversion facility and former mine | Kings Mountain, NC | operating |  | DOE $150M | [link](https://www.albemarle.com/us/en/news/kings-mountain-all-elements-lithium-ecosystem) |
+| Albemarle Kings Mountain lithium concentrator | Kings Mountain, NC | announced |  | DOE $150M | [link](https://www.albemarle.com/hu/en/news/albemarle-secures-doe-grant-us-based-lithium-facility-support-domestic-ev-supply-chain) |
+| Albemarle Kings Mountain lithium conversion facility and former mine | Kings Mountain, NC | operating |  |  | [link](https://www.albemarle.com/us/en/news/kings-mountain-all-elements-lithium-ecosystem) |
 | Vulcan Elements magnet plant, Benson (Johnston County) | Benson, NC | announced | $1.00B |  | [link](https://researchtriangle.org/news/vulcan-elements-selects-johnston-county-for-1000-job-magnet-factory/) |
 | Blue Whale Materials Bartlesville lithium-ion battery recycling facility expansion | Bartlesville, OK | expansion |  | DOE $55M | [link](https://www.okcommerce.gov/blue-whale-materials-awarded-55-million-doe-grant-to-expand-bartlesville-ok-lithium-ion-battery-recycling-facility/) |
 | Stardust Power lithium refinery, Southside Industrial Park | Muskogee, OK | under construction | $1.20B |  | [link](https://www.northernminer.com/news/stardust-power-breaks-ground-on-us1-2b-lithium-refinery-in-oklahoma/1003875050) |

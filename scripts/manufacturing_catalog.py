@@ -95,7 +95,8 @@ def adjudicate_rows(research: dict, verdicts: Optional[dict], check=None) -> lis
         for i, raw in enumerate(rows):
             v = by_index.get((kind, i))
             # A verdict is bound to its row by index AND url: a reordered file must not borrow another row's verdict.
-            if v and v.get("source_url") and https_url(v["source_url"]) != https_url(str(raw.get("source_url", ""))):
+            # and a verdict that does not name a URL binds to nothing.
+            if v and (not v.get("source_url") or https_url(v["source_url"]) != https_url(str(raw.get("source_url", "")))):
                 v = None
             row = apply_corrections(raw, v.get("corrections") if v else None)
             row["source_url"] = https_url(str(row.get("source_url", "")))
@@ -118,13 +119,17 @@ def cmd_adjudicate(args: argparse.Namespace) -> int:
         rows = adjudicate_rows(r, verdicts.get(topic))
         for a in rows:
             key = row_key(topic, a["kind"], a["index"])
-            if a["status"] == "disputed" and key in opus:
-                a["status"], a["decided_by"], a["reason"] = opus[key]["status"], "opus", opus[key].get("reason")
+            decision = opus.get(key)
+            # An Opus decision names the source it was made about; on any other row at this index it is ignored.
+            if decision and https_url(str(decision.get("source_url", ""))) != a["row"]["source_url"]:
+                decision = None
+            if a["status"] == "disputed" and decision:
+                a["status"], a["decided_by"], a["reason"] = decision["status"], "opus", decision.get("reason")
             # Opus may also strike a field a verifier accepted, when later evidence shows it is no longer true
             # (an award cancelled after the cited page). Only fields can be removed, never invented.
-            for field in (opus.get(key) or {}).get("remove_fields", []):
+            for field in (decision or {}).get("remove_fields", []):
                 if a["row"].pop(field, None) is not None:
-                    a["decided_by"], a["reason"] = "opus", opus[key].get("reason")
+                    a["decided_by"], a["reason"] = "opus", decision.get("reason")
             if a["status"] == "disputed":
                 disputes.append({"key": key, **a})
         adjudicated[topic] = rows
@@ -207,10 +212,28 @@ def to_requirement(sector: str, row: dict, status: str, today: str) -> tuple[Opt
         return None, str(exc).splitlines()[0][:160]
 
 
+NAME_NOISE = {"plant", "facility", "factory", "expansion", "site", "campus", "the", "and", "of", "for", "in", "at",
+              "new", "us", "u.s.", "manufacturing", "production", "proposed", "further", "investment"}
+
+
 def plant_key(rec: dict) -> tuple:
-    """Same sector, same town, same company (first word): one plant reported by two topics."""
+    """Same sector, same town, same company (first word): the candidates for one plant reported twice."""
     company = re.sub(r"[^a-z0-9 ]", "", str(rec.get("company") or rec.get("name") or "").lower()).split()
     return (rec["sector"], (company or [""])[0], rec["city"].lower(), rec["state"])
+
+
+def _name_words(rec: dict) -> set:
+    skip = NAME_NOISE | set(re.sub(r"[^a-z0-9 ]", " ", f"{rec.get('company') or ''} {rec['city']} {rec['state']}".lower()).split())
+    return {w for w in re.sub(r"[^a-z0-9 ]", " ", str(rec.get("name") or "").lower()).split() if w not in skip and len(w) > 1}
+
+
+def same_plant(a: dict, b: dict) -> bool:
+    """Two rows describe one plant when, beyond company and town, their names share at least half their words.
+    A company's lithium concentrator and its conversion plant in the same town stay two plants."""
+    wa, wb = _name_words(a), _name_words(b)
+    if not wa or not wb:
+        return wa == wb
+    return len(wa & wb) / len(wa | wb) >= 0.5
 
 
 def cmd_build(args: argparse.Namespace) -> int:
@@ -234,7 +257,7 @@ def cmd_build(args: argparse.Namespace) -> int:
             else:
                 rec, why = to_facility(sector, a["row"], a["status"], gaz, today)
                 key = plant_key(rec) if rec else None
-                if rec and (rec["id"] in seen or key in by_key):
+                if rec and (rec["id"] in seen or (key in by_key and same_plant(by_key[key], rec))):
                     # The same plant from two topics (a minerals row and a DOE-award row): keep the first
                     # and carry the award, with its own source, onto it.
                     first = by_key.get(key)
@@ -303,7 +326,7 @@ def cmd_memo(args: argparse.Namespace) -> int:
         for c in screens[sector]["criteria"]:
             out.append(f"- {c['label']} (`{c['rule']}`, {'agency' if c['kind'] == 'R' else 'ours'}). {c['note']}".rstrip())
         reqs = [r for r in cat["requirements"] if r["sector"] == sector]
-        out.append("\n**What built plants show** (quotes are verbatim from the linked page)\n")
+        out.append("\n**What built plants show** (quotes as copied by the researcher; rows marked accepted_model_only were not matched on the page by code)\n")
         for r in reqs:
             out.append(f"- {r['factor'].replace('_', ' ')}: {r['claim']} — \"{r['quote']}\" ([source]({r['source_url']}))")
         if not reqs:

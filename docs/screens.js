@@ -426,7 +426,7 @@
     return tb.dir === "desc" ? -v : v;
   }
 
-  const api = {VERSION, SCREENS, evaluate, rank, siteAcres, miles, acres, define, stampManufacturing, MFG_SECTORS,
+  const api = {VERSION, SCREENS, evaluate, rank, siteAcres, miles, acres, define, stampManufacturing, MFG_SECTORS, MFG_ACTIVE,
     helpers: {num, atMost, atLeast, notFlood, haversineMi}};
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (root) root.SiteScreens = api;
