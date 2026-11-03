@@ -22,5 +22,21 @@
  "doe_awards:facility:3": {
   "status": "rejected",
   "reason": "The $2B LPO conditional commitment never closed: Redwood ended the agreement in 2024 without drawing funds (Waste Dive, 2025-04) and DOE listed it among commitments 'previously cancelled by the company' (May 2025). The row's subject is the award, so it would state a dead loan as live."
+ },
+ "robotics2:facility:0": {
+  "status": "rejected",
+  "reason": "Page names Fremont but no state; a place we cannot confirm from the page is not mapped."
+ },
+ "robotics2:facility:3": {
+  "status": "rejected",
+  "reason": "AI server plant, not robot production, and the cited page's 'planned' status is stale (opened July 2026 per DataCenterDynamics). Out of scope for the robot screen."
+ },
+ "robotics2:facility:4": {
+  "status": "rejected",
+  "reason": "AI server plant, not robot production, and the cited page's 2026 opening is stale (shipping since Oct 2025). Out of scope for the robot screen."
+ },
+ "transformer2:facility:8": {
+  "status": "rejected",
+  "reason": "Page never says grain-oriented electrical steel is made at Zanesville; the quote only mentions possible future investment."
  }
 }

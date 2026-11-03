@@ -62,7 +62,7 @@ seen = set()
 # House network ethics: >=1.5s between requests to any single host, and a
 # throttling answer (429/403) is INCONCLUSIVE, never a dead citation — a
 # rate-limited GEM wiki must not block every PR (Codex review round 2).
-INCONCLUSIVE_HTTP = {403, 429}
+INCONCLUSIVE_HTTP = {403, 429, 502, 503, 504}  # bot blocks and server errors say nothing about the page
 last_hit: dict[str, float] = {}
 
 def check(fname: str, url: str) -> None:

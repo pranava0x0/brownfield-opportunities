@@ -42,7 +42,7 @@ from local_records import SHIPPED_STATUSES, code_check_for, decide, https_url  #
 WORK = ROOT / "data" / "validation" / "manufacturing"
 OUTPUT = ROOT / "docs" / "data" / "manufacturing-facilities.json"
 TOPIC_SECTOR = {"robotics": "robotics", "turbine": "turbine", "transformer": "transformer",
-                "minerals": "minerals", "doe_minerals": "minerals", "doe_awards": "minerals"}
+                "minerals": "minerals", "doe_minerals": "minerals", "doe_awards": "minerals", "robotics2": "robotics", "transformer2": "transformer"}
 AWARD_TOPICS = {"doe_minerals", "doe_awards"}
 CORRECTABLE = {"name", "company", "product", "status", "city", "state", "address", "investment_usd", "jobs", "acres",
                "announced", "doe_award", "brownfield", "former_use", "published", "quote", "source_title",
