@@ -213,7 +213,8 @@ def to_requirement(sector: str, row: dict, status: str, today: str) -> tuple[Opt
 
 
 NAME_NOISE = {"plant", "facility", "factory", "expansion", "site", "campus", "the", "and", "of", "for", "in", "at",
-              "new", "us", "u.s.", "manufacturing", "production", "proposed", "further", "investment"}
+              "new", "us", "u.s.", "manufacturing", "production", "proposed", "further", "investment",
+              "project", "grant", "award", "loan", "program", "funding", "doe", "federal", "operations"}
 
 
 def plant_key(rec: dict) -> tuple:
@@ -227,12 +228,13 @@ def _name_words(rec: dict) -> set:
     return {w for w in re.sub(r"[^a-z0-9 ]", " ", str(rec.get("name") or "").lower()).split() if w not in skip and len(w) > 1}
 
 
-def same_plant(a: dict, b: dict) -> bool:
+def same_plant(a: dict, b: dict, only_one: bool = False) -> bool:
     """Two rows describe one plant when, beyond company and town, their names share at least half their words.
     A company's lithium concentrator and its conversion plant in the same town stay two plants."""
     wa, wb = _name_words(a), _name_words(b)
     if not wa or not wb:
-        return wa == wb
+        # A bare name ("Albemarle Kings Mountain") is the company's only plant in town, or ambiguous.
+        return wa == wb or only_one
     return len(wa & wb) / len(wa | wb) >= 0.5
 
 
@@ -257,10 +259,11 @@ def cmd_build(args: argparse.Namespace) -> int:
             else:
                 rec, why = to_facility(sector, a["row"], a["status"], gaz, today)
                 key = plant_key(rec) if rec else None
-                if rec and (rec["id"] in seen or (key in by_key and same_plant(by_key[key], rec))):
+                candidates = by_key.get(key, []) if rec else []
+                first = next((c for c in candidates if same_plant(c, rec, only_one=len(candidates) == 1)), None)
+                if rec and (rec["id"] in seen or first is not None):
                     # The same plant from two topics (a minerals row and a DOE-award row): keep the first
                     # and carry the award, with its own source, onto it.
-                    first = by_key.get(key)
                     if first is not None and rec.get("federal_award") and not first.get("federal_award"):
                         first.update(federal_award=rec["federal_award"], award_source_url=rec["source_url"],
                                      award_quote=rec["quote"])
@@ -274,7 +277,7 @@ def cmd_build(args: argparse.Namespace) -> int:
                 reqs.append(rec)
             else:
                 seen.add(rec["id"])
-                by_key[plant_key(rec)] = rec
+                by_key.setdefault(plant_key(rec), []).append(rec)
                 sites.append(rec)
     sites.sort(key=lambda r: (r["sector"], r["state"], r["name"]))
     payload = {"generated_at": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),

@@ -157,3 +157,29 @@ def test_two_plants_of_one_company_in_one_town_stay_two():
 def test_a_verdict_or_decision_without_a_url_binds_to_nothing():
     v = {"rows": [{"kind": "facility", "index": 0, "verdict": "supported"}]}
     assert mc.adjudicate_rows(research(FAC), v, check=lambda u, q: "quote_found")[0]["status"] == "rejected"
+
+
+def test_a_third_row_is_compared_with_every_plant_sharing_its_key(tmp_path, monkeypatch):
+    base = {"company": "Albemarle", "city": "Kings Mountain", "state": "NC", "status": "operating",
+            "product": "lithium", "quote": "the plant in Kings Mountain makes lithium"}
+    row = lambda r: {"kind": "facility", "index": 0, "row": r, "status": "accepted"}
+    plants = [dict(base, name="Albemarle Kings Mountain lithium concentrator", source_url="https://example.com/a"),
+              dict(base, name="Albemarle Kings Mountain lithium conversion facility", source_url="https://example.com/b")]
+    award = dict(base, name="Albemarle Kings Mountain lithium concentrator grant", source_url="https://example.com/c",
+                 doe_award={"program": "BIL", "agency": "DOE", "amount_usd": 1.5e8})
+    work = tmp_path / "work"; work.mkdir()
+    (work / "adjudicated.json").write_text(json.dumps({"minerals": [row(p) for p in plants], "doe_awards": [row(award)]}))
+    monkeypatch.setattr(mc, "WORK", work)
+    monkeypatch.setattr(mc, "OUTPUT", tmp_path / "out.json")
+    monkeypatch.setattr(mc, "_gazetteer", lambda: {("NC", "Kings Mountain city"): (35.24, -81.34)})
+    assert mc.cmd_build(None) == 0
+    out = {s["source_url"]: s for s in json.loads((tmp_path / "out.json").read_text())["sites"]}
+    assert set(out) == {"https://example.com/a", "https://example.com/b"}       # no third marker
+    assert out["https://example.com/a"]["award_source_url"] == "https://example.com/c"
+    assert "federal_award" not in out["https://example.com/b"]
+
+
+def test_a_bare_name_merges_only_when_the_company_has_one_plant_in_town():
+    base = {"sector": "minerals", "company": "Albemarle", "city": "Kings Mountain", "state": "NC"}
+    bare, named = {**base, "name": "Albemarle Kings Mountain"}, {**base, "name": "Albemarle Kings Mountain lithium concentrator"}
+    assert mc.same_plant(named, bare, only_one=True) and not mc.same_plant(named, bare, only_one=False)

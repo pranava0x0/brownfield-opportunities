@@ -674,6 +674,8 @@ let mfgFacilitiesPromise = null;
 // Manufacturing plant catalog (robots, gas turbines, transformers, critical minerals).
 let mfgCatalog = null;
 let mfgStampVersion = 0;
+let mfgLoadFailed = false;      // a failed download is retried by the screen picker or Retry, not by every site opened
+const mfgEvidenceOpen = {};     // sector -> the plant list disclosure was open
 let portsLoadingPromise = null;
 let shipyardsLoadingPromise = null;
 
@@ -2456,12 +2458,14 @@ function ensureMfgFacilitiesLoaded() {
     })
     .then((payload) => {
       nickelDataErrors.delete("plant catalog");
+      mfgLoadFailed = false;
       mfgCatalog = payload;
       mfgStampVersion += 1;
     })
     .catch((err) => {
       console.error("Manufacturing catalog load failed:", err);
       nickelDataErrors.add("plant catalog");
+      mfgLoadFailed = true;
       mfgFacilitiesPromise = null;
     })
     // Drawing is separate from loading: an error here is logged, never reported as a failed download.
@@ -2504,7 +2508,7 @@ function mfgEvidenceHtml(sector) {
     + ` <a href="${escapeAttr(r.source_url)}" target="_blank" rel="noopener" title="${escapeAttr("“" + r.quote + "”")}">source ↗</a></li>`).join("");
   const n = (k, word) => `${k} ${word}${k === 1 ? "" : "s"}`;
   const inactive = plants.length - active;
-  return `<details class="mfg-evidence"><summary>${n(active, "US plant")} operating, building or announced${inactive ? ` (${inactive} cancelled or paused)` : ""} and ${n(reqs.length, "cited requirement")}</summary>`
+  return `<details class="mfg-evidence" data-sector="${sector}"${mfgEvidenceOpen[sector] ? " open" : ""}><summary>${n(active, "US plant")} operating, building or announced${inactive ? ` (${inactive} cancelled or paused)` : ""} and ${n(reqs.length, "cited requirement")}</summary>`
     + (reqRows ? `<h4>What a site needs</h4><ul class="mfg-reqs">${reqRows}</ul>` : "")
     + (plantRows ? `<h4>Plants</h4><ul class="mfg-plants">${plantRows}</ul>` : "")
     + `<p class="method-foot">Each row was found by one model and re-read by a second; code looked for its quote on the page wherever it could read the page. Plants are mapped at their town's Census point.</p></details>`;
@@ -7214,9 +7218,9 @@ function buildCandidatesView() {
   updateFilterChip(); syncUrl();
   const method = el("screen-method");
   if (method) {
-    const wasOpen = method.querySelector(".mfg-evidence")?.open;
+    const prev = method.querySelector(".mfg-evidence");
+    if (prev) mfgEvidenceOpen[prev.dataset.sector] = prev.open;   // remembered per sector, so it never carries to another screen
     method.innerHTML = screenMethodHtml(screen) + (screen.sector ? mfgEvidenceHtml(screen.sector) : "");
-    if (wasOpen) { const d = method.querySelector(".mfg-evidence"); if (d) d.open = true; }
   }
   const full = rows.filter(r => r.ev.met === r.ev.total).length;
   const stats = el("candidates-stats");
@@ -9025,7 +9029,7 @@ function renderSuitability(s) {
   const node = el("d-suit-dc");
   if (node) {
     // Manufacturing checks need the plant catalog; it loads here and re-renders this block when it lands.
-    if (!mfgCatalog) ensureMfgFacilitiesLoaded(); else stampMfg([s]);
+    if (!mfgCatalog && !mfgLoadFailed) ensureMfgFacilitiesLoaded(); else stampMfg([s]);
     const rows = !invalidationsLoaded ? "" : SCREEN_KEYS.map(key => {
       const sc = SiteScreens.SCREENS[key];
       if (sc.applies && !sc.applies(s)) return "";
