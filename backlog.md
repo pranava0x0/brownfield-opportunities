@@ -316,6 +316,7 @@ Rules the routine follows:
 | 64 | queued | PRN000204694 | Atlantic Fleet Weapons Training Area | PR | Atlantic Fleet Weapons Training Area (PR): shipped 25,864 acres to check; Vieques reuse or cleanup milestones | — | — |
 | 65 | queued | HI7210090026 | Schofield Barracks (USARMY) | HI | Schofield Barracks (HI): federal-facility NPL site; shipped 11,814 acres to check | — | — |
 | 66 | queued | MD2210020036 | Aberdeen Proving Ground (Edgewood Area) | MD | Aberdeen Proving Ground (Edgewood Area): shipped 11,247 acres to check; any 2026 cleanup or reuse milestone | — | — |
+| 67 | queued | KSD980741862 | Cherokee County | KS | Cherokee County KS (Tar Creek-area mining): shipped 99,524 ac; check boundary vs EPA/KDHE and redevelopment | — | — |
 | 56 | done 2026-11-05 | AK8570028649 | Elmendorf Air Force Base | AK | Elmendorf Air Force Base: shipped 13,318 acres; JBER Air Force lease offer | 2026-11-05 | 2027-02-03 |
 | 55 | done 2026-11-05 | IL0210090049 | Joliet Army Ammunition Plant (Load-Assembly-Packing Area) | IL | Joliet Army Ammunition Plant (LAP Area): Midway reuse area; shipped 14,452 acres to check | 2026-11-05 | 2027-02-03 |
 | 63 | done 2026-11-04 | GUD980637649 | Ordot Landfill | GU | Ordot Landfill (GU): the other Guam NPL site; any 2026 closure, consent-decree or reuse milestone; check shipped acreage | 2026-11-04 | 2027-02-02 |
