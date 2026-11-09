@@ -306,7 +306,6 @@ Rules the routine follows:
 
 | # | Status | Site id | Name | St | Why queued | Last researched | Next due |
 |---|---|---|---|---|---|---|---|
-| 58 | queued | WA2890090077 | Hanford 300-Area (USDOE) | WA | Hanford 300-Area (DOE): shipped 53.6 acres to check; Hanford tab dossier unit | — | — |
 | 59 | queued | WA4890090075 | Hanford 1100-Area (USDOE) | WA | Hanford 1100-Area (DOE): shipped 0.1 acres looks like a point artifact; Hanford tab dossier unit | — | — |
 | 61 | queued | NC1170027261 | Cherry Point Marine Corps Air Station | NC | Cherry Point MCAS: federal-facility NPL site; shipped 12,141 acres to check | — | — |
 | 62 | queued | MOD980686281 | Oronogo-Duenweg Mining Belt | MO | Oronogo-Duenweg Mining Belt: shipped 154,081 acres looks like a mining-belt outline, not a site boundary; check against EPA | — | — |
@@ -317,6 +316,8 @@ Rules the routine follows:
 | 68 | queued | CA7170024528 | Concord Naval Weapons Station | CA | Concord Naval Weapons Station: closed base with City of Concord reuse plan; shipped 10,932 acres to check (EPA/city sources, not Navy) | — | — |
 | 69 | queued | NY0213820830 | Seneca Army Depot | NY | Seneca Army Depot: closed depot with county IDA reuse; shipped 9,783 acres to check | — | — |
 | 70 | queued | ID3572124557 | Mountain Home Air Force Base | ID | Mountain Home Air Force Base: federal-facility NPL site; shipped 10,834 acres to check | — | — |
+| 58 | done 2026-11-09 | WA2890090077 | Hanford 300-Area (USDOE) | WA | Hanford 300-Area (DOE): shipped 53.6 acres to check; Hanford tab dossier unit | 2026-11-09 | 2027-02-07 |
+| 13 | done 2026-11-09 | TX4890110527 | Pantex Plant (USDOE) | TX | DOE/NNSA site; energy and land-use activity nearby | 2026-11-09 | 2026-12-09 |
 | 24 | done 2026-11-08 | AL7210020742 | USArmy/NASA Redstone Arsenal | AL | DoD/NASA federal-facility NPL site; Huntsville energy and data-center activity | 2026-11-08 | 2026-12-08 |
 | 22 | done 2026-11-08 | OH6890008976 | Feed Materials Production Center (USDOE) | OH | DOE federal-facility NPL site (Fernald); reuse activity | 2026-11-08 | 2026-12-08 |
 | 35 | done 2026-11-07 | NC6170022580 | Camp Lejeune Military Res. (USNAVY) | NC | DoD federal-facility NPL site; 2026-10-18 attempt: EPA profile says 156,000-ac base (unverifiable vs shipped); April 2026 RAB minutes, FY2026 SMP and UXO-28 ROD (2026-09-09) were 403/timeout, so no development could be cited. Retry with a browser/other fetch path; Camp Lejeune Justice Act litigation; 2026-11-01: 2026-11-01: not attempted, Navy sources still 403 on 3 attempts; try a different fetch path or skip; 2026-11-03: 2026-11-03: not attempted (Navy 403 x3); skipped for Andersen; 2026-11-04: 2026-11-04: Navy 403 x4 over four runs; skipped again. Try non-Navy sources (EPA, ATSDR, local news) or deprioritize; 2026-11-05: 2026-11-05: Navy 403 x4 over five runs; skipped for Joliet/Elmendorf. Try non-Navy sources (EPA, ATSDR, local news) or deprioritize; 2026-11-06: 2026-11-06: Navy 403 x4 over six runs; skipped for Hanford 200/Fort Meade. Try non-Navy sources or deprioritize; 2026-11-06: 2026-11-06: Navy 403 x4 over six runs; skipped for Hanford 200/Fort Meade. Try non-Navy sources or deprioritize | 2026-11-07 | 2027-02-05 |
@@ -363,7 +364,6 @@ Rules the routine follows:
 | 20 | done 2026-10-09 | MON000705443 | Southwest Jefferson County Mining | MO | Shipped 423,155 acres looks like a boundary artifact | 2026-10-09 | 2027-01-07 |
 | 21 | done 2026-10-09 | CO7890010526 | Rocky Flats Plant (USDOE) | CO | DOE federal-facility NPL site; wildlife refuge and nearby land-use activity | 2026-10-09 | 2027-01-07 |
 | 23 | done 2026-10-09 | CA1570024504 | Edwards Air Force Base | CA | Air Force AI data-center lease base (AFCEC-26-R-0002); Nuclear Siting tab row; shipped 305,104 acres | 2026-10-09 | 2027-01-07 |
-| 13 | done 2026-10-09 | TX4890110527 | Pantex Plant (USDOE) | TX | DOE/NNSA site; energy and land-use activity nearby | 2026-10-09 | 2026-11-08 |
 | 14 | done 2026-10-09 | NVD980813646 | Carson River Mercury Site | NV | Shipped 411,014 acres looks like a boundary artifact | 2026-10-09 | 2027-01-07 |
 | 12 | done 2026-10-09 | FUDS-C03VA1071 | Ordnance General Supply | VA | 1.4 mi from the QTS Richmond campus | 2026-10-09 | 2027-01-07 |
 | 8 | done 2026-10-09 | ACRES-111146 | G & R Auto Sales | NC | 0.2 mi from Meta's Forest City campus | 2026-10-09 | 2027-01-07 |
@@ -413,6 +413,7 @@ Rules the routine follows:
 - 2026-11-06 · Hanford 200-Area (WA1890090078), Fort Meade (MD9210020567) · 1 development (DOE 200 West tank-farm infrastructure, 2026-04-28) · 1 field difference (Hanford 200 79.8 ac shipped vs EPA 79 sq mi, likely units; backlog item 24) · Fort Meade acreage unverifiable (EPA gives installation acreage, not NPL boundary) · corrections: site-wide FY2026 budget item dropped, Meade acreage differs→unverifiable, unverified CERCLA clause trimmed · 0 comments · no open PR
 - 2026-11-07 · Camp Pendleton (CA2170023533), Camp Lejeune (NC6170022580), after seven retry runs, using EPA Cumulis and local news instead of blocked Navy pages · 2 developments (Lejeune: DOJ $175M CLJA settlements 2026-03; UXO-28/29 public meeting 2026-01) · 0 field differences · 3 citation-check corrections (Pendleton federal_facility now unverifiable; Lejeune settlement wording; meeting attribution) · 0 comments · PR #52 open, 1 day
 - 2026-11-08 · Redstone Arsenal (AL7210020742), Fernald (OH6890008976) re-review · 1 development (AFCEC advance notice, ~$4B Space Command facility, 2026-10-13) · 0 field differences · 0 citation corrections · 0 comments · PR #52 open 2 days
+- 2026-11-09 · Pantex (TX4890110527), Hanford 300-Area (WA2890090077) · 2 developments (Pantex Analytical Gas Laboratory halfway, 2026-11; 300-FF-2 ROD amendment finalized 2026-06-17) · 2 field differences (Pantex 9,031 ac vs EPA ~16,000; Hanford 300 53.6 ac vs EPA '53-square-mile' profile wording) · 4 citation-check corrections (300-Area no_new_developments reversed; acreage note de-speculated; Pantex NPL current status → unverifiable; item date → month) · 0 comments · PR #52
 
 ## 7. Decisions needed from Pranava
 
