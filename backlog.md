@@ -314,6 +314,8 @@ Rules the routine follows:
 | 68 | queued | CA7170024528 | Concord Naval Weapons Station | CA | Concord Naval Weapons Station: closed base with City of Concord reuse plan; shipped 10,932 acres to check (EPA/city sources, not Navy) | — | — |
 | 69 | queued | NY0213820830 | Seneca Army Depot | NY | Seneca Army Depot: closed depot with county IDA reuse; shipped 9,783 acres to check | — | — |
 | 70 | queued | ID3572124557 | Mountain Home Air Force Base | ID | Mountain Home Air Force Base: federal-facility NPL site; shipped 10,834 acres to check | — | — |
+| 71 | queued | IL7213820460 | Joliet Army Ammunition Plant (Manufacturing Area) | IL | Joliet AAP manufacturing area: federal NPL with industrial reuse; shipped 8,945 acres and redevelopment status to check | — | — |
+| 72 | queued | MA7210025154 | Fort Devens | MA | Fort Devens: federal NPL under MassDevelopment reuse; shipped 9,264 acres and current projects to check | — | — |
 | 61 | done 2026-11-10 | NC1170027261 | Cherry Point Marine Corps Air Station | NC | Cherry Point MCAS: federal-facility NPL site; shipped 12,141 acres to check | 2026-11-10 | 2026-12-10 |
 | 59 | done 2026-11-10 | WA4890090075 | Hanford 1100-Area (USDOE) | WA | Hanford 1100-Area (DOE): shipped 0.1 acres looks like a point artifact; Hanford tab dossier unit | 2026-11-10 | 2027-02-08 |
 | 58 | done 2026-11-09 | WA2890090077 | Hanford 300-Area (USDOE) | WA | Hanford 300-Area (DOE): shipped 53.6 acres to check; Hanford tab dossier unit | 2026-11-09 | 2027-02-07 |
