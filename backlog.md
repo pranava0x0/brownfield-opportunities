@@ -315,6 +315,8 @@ Rules the routine follows:
 | 70 | queued | ID3572124557 | Mountain Home Air Force Base | ID | Mountain Home Air Force Base: federal-facility NPL site; shipped 10,834 acres to check | — | — |
 | 71 | queued | IL7213820460 | Joliet Army Ammunition Plant (Manufacturing Area) | IL | Joliet AAP manufacturing area: federal NPL with industrial reuse; shipped 8,945 acres and redevelopment status to check | — | — |
 | 72 | queued | MA7210025154 | Fort Devens | MA | Fort Devens: federal NPL under MassDevelopment reuse; shipped 9,264 acres and current projects to check | — | — |
+| 73 | queued | MON000705842 | Washington County Lead District - Furnace Creek | MO | Washington County Lead District - Furnace Creek (MO): shipped 341,887 acres is a district outline; EPA extent and 2026 yard-cleanup milestones | — | — |
+| 74 | queued | SCD003354412 | Sangamo Weston, Inc./Twelve-Mile Creek/Lake Hartwell Pcb Contamination | SC | Shipped acreage flagged as a boundary artifact; check EPA-stated extent and 2026 cleanup or reuse milestones | — | — |
 | 62 | done 2026-11-11 | MOD980686281 | Oronogo-Duenweg Mining Belt | MO | Oronogo-Duenweg Mining Belt: shipped 154,081 acres looks like a mining-belt outline, not a site boundary; check against EPA | 2026-11-11 | 2026-12-11 |
 | 61 | done 2026-11-10 | NC1170027261 | Cherry Point Marine Corps Air Station | NC | Cherry Point MCAS: federal-facility NPL site; shipped 12,141 acres to check | 2026-11-10 | 2026-12-10 |
 | 59 | done 2026-11-10 | WA4890090075 | Hanford 1100-Area (USDOE) | WA | Hanford 1100-Area (DOE): shipped 0.1 acres looks like a point artifact; Hanford tab dossier unit | 2026-11-10 | 2027-02-08 |
