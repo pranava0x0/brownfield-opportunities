@@ -306,8 +306,7 @@ Rules the routine follows:
 
 | # | Status | Site id | Name | St | Why queued | Last researched | Next due |
 |---|---|---|---|---|---|---|---|
-| 62 | queued | MOD980686281 | Oronogo-Duenweg Mining Belt | MO | Oronogo-Duenweg Mining Belt: shipped 154,081 acres looks like a mining-belt outline, not a site boundary; check against EPA | — | — |
-| 64 | queued | PRN000204694 | Atlantic Fleet Weapons Training Area | PR | Atlantic Fleet Weapons Training Area (PR): shipped 25,864 acres to check; Vieques reuse or cleanup milestones | — | — |
+| 64 | retry | PRN000204694 | Atlantic Fleet Weapons Training Area | PR | Atlantic Fleet Weapons Training Area (PR): shipped 25,864 acres to check; Vieques reuse or cleanup milestones; 2026-11-11: navfac.navy.mil Vieques pages return 403 to fetches; no readable in-window source. Try semspub EPA Region 2 docs for the UXO 6/11 proposed plan (Jun 2026) | — | — |
 | 65 | queued | HI7210090026 | Schofield Barracks (USARMY) | HI | Schofield Barracks (HI): federal-facility NPL site; shipped 11,814 acres to check | — | — |
 | 66 | queued | MD2210020036 | Aberdeen Proving Ground (Edgewood Area) | MD | Aberdeen Proving Ground (Edgewood Area): shipped 11,247 acres to check; any 2026 cleanup or reuse milestone | — | — |
 | 67 | queued | KSD980741862 | Cherokee County | KS | Cherokee County KS (Tar Creek-area mining): shipped 99,524 ac; check boundary vs EPA/KDHE and redevelopment | — | — |
@@ -316,6 +315,7 @@ Rules the routine follows:
 | 70 | queued | ID3572124557 | Mountain Home Air Force Base | ID | Mountain Home Air Force Base: federal-facility NPL site; shipped 10,834 acres to check | — | — |
 | 71 | queued | IL7213820460 | Joliet Army Ammunition Plant (Manufacturing Area) | IL | Joliet AAP manufacturing area: federal NPL with industrial reuse; shipped 8,945 acres and redevelopment status to check | — | — |
 | 72 | queued | MA7210025154 | Fort Devens | MA | Fort Devens: federal NPL under MassDevelopment reuse; shipped 9,264 acres and current projects to check | — | — |
+| 62 | done 2026-11-11 | MOD980686281 | Oronogo-Duenweg Mining Belt | MO | Oronogo-Duenweg Mining Belt: shipped 154,081 acres looks like a mining-belt outline, not a site boundary; check against EPA | 2026-11-11 | 2026-12-11 |
 | 61 | done 2026-11-10 | NC1170027261 | Cherry Point Marine Corps Air Station | NC | Cherry Point MCAS: federal-facility NPL site; shipped 12,141 acres to check | 2026-11-10 | 2026-12-10 |
 | 59 | done 2026-11-10 | WA4890090075 | Hanford 1100-Area (USDOE) | WA | Hanford 1100-Area (DOE): shipped 0.1 acres looks like a point artifact; Hanford tab dossier unit | 2026-11-10 | 2027-02-08 |
 | 58 | done 2026-11-09 | WA2890090077 | Hanford 300-Area (USDOE) | WA | Hanford 300-Area (DOE): shipped 53.6 acres to check; Hanford tab dossier unit | 2026-11-09 | 2027-02-07 |
@@ -417,6 +417,7 @@ Rules the routine follows:
 - 2026-11-08 · Redstone Arsenal (AL7210020742), Fernald (OH6890008976) re-review · 1 development (AFCEC advance notice, ~$4B Space Command facility, 2026-10-13) · 0 field differences · 0 citation corrections · 0 comments · PR #52 open 2 days
 - 2026-11-09 · Pantex (TX4890110527), Hanford 300-Area (WA2890090077) · 2 developments (Pantex Analytical Gas Laboratory halfway, 2026-11; 300-FF-2 ROD amendment finalized 2026-06-17) · 2 field differences (Pantex 9,031 ac vs EPA ~16,000; Hanford 300 53.6 ac vs EPA '53-square-mile' profile wording) · 4 citation-check corrections (300-Area no_new_developments reversed; acreage note de-speculated; Pantex NPL current status → unverifiable; item date → month) · 0 comments · PR #52
 - 2026-11-10 · Hanford 1100-Area, Cherry Point MCAS · 1 development (PRE PFAS report 2026-09) · 2 acreage differences (Hanford 0.1 ac vs 768 ac sale report/EPA 120 sq mi; Cherry Point 12,141 vs EPA 13,164 ac) · 3 checker corrections · 0 comments · PR #52 (4 days)
+- 2026-11-11 · Oronogo-Duenweg (MO) done, Vieques AFWTA retry · 2 developments (Sixth FYR announced 2026-10-05; residential yard removal from 2026-07-27) · 0 field differences (Newton Co. part noted; acreage unstated by EPA) · 3 checker fixes (FYR wording, unreadable PDF item removed, unsourced open question removed) · 0 comments · new PR
 
 ## 7. Decisions needed from Pranava
 
