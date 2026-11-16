@@ -306,8 +306,6 @@ Rules the routine follows:
 
 | # | Status | Site id | Name | St | Why queued | Last researched | Next due |
 |---|---|---|---|---|---|---|---|
-| 67 | queued | KSD980741862 | Cherokee County | KS | Cherokee County KS (Tar Creek-area mining): shipped 99,524 ac; check boundary vs EPA/KDHE and redevelopment | — | — |
-| 68 | queued | CA7170024528 | Concord Naval Weapons Station | CA | Concord Naval Weapons Station: closed base with City of Concord reuse plan; shipped 10,932 acres to check (EPA/city sources, not Navy) | — | — |
 | 69 | queued | NY0213820830 | Seneca Army Depot | NY | Seneca Army Depot: closed depot with county IDA reuse; shipped 9,783 acres to check | — | — |
 | 70 | queued | ID3572124557 | Mountain Home Air Force Base | ID | Mountain Home Air Force Base: federal-facility NPL site; shipped 10,834 acres to check | — | — |
 | 71 | queued | IL7213820460 | Joliet Army Ammunition Plant (Manufacturing Area) | IL | Joliet AAP manufacturing area: federal NPL with industrial reuse; shipped 8,945 acres and redevelopment status to check | — | — |
@@ -316,6 +314,11 @@ Rules the routine follows:
 | 74 | queued | SCD003354412 | Sangamo Weston, Inc./Twelve-Mile Creek/Lake Hartwell Pcb Contamination | SC | Shipped acreage flagged as a boundary artifact; check EPA-stated extent and 2026 cleanup or reuse milestones | — | — |
 | 75 | queued | HI4170090076 | Pearl Harbor Naval Complex | HI | Pearl Harbor Naval Complex (HI): Oahu Navy NPL site near Schofield; shipped 8,541 acres to check; Red Hill fuel and cleanup milestones | — | — |
 | 76 | queued | ME8170022018 | Brunswick Naval Air Station | ME | Brunswick Naval Air Station (ME): closed BRAC base under redevelopment (Brunswick Landing); shipped 3,134 acres to check; reuse and PFAS milestones | — | — |
+| 77 | queued | CA1170090087 | Hunters Point Naval Shipyard | CA | Hunters Point Naval Shipyard: Parcel transfers and retesting controversy; check acreage, transfer status, developer plans | — | — |
+| 78 | queued | CA2170023236 | Alameda Naval Air Station | CA | Alameda NAS: Alameda Point reuse; check transferred parcels, development phases, NPL status | — | — |
+| 79 | queued | CA5570024575 | Travis Air Force Base | CA | Travis AFB: active base on NPL; check cleanup milestones, PFAS actions, any energy/land lease | — | — |
+| 68 | done 2026-11-16 | CA7170024528 | Concord Naval Weapons Station | CA | Concord Naval Weapons Station: closed base with City of Concord reuse plan; shipped 10,932 acres to check (EPA/city sources, not Navy) | 2026-11-16 | 2027-02-14 |
+| 67 | done 2026-11-16 | KSD980741862 | Cherokee County | KS | Cherokee County KS (Tar Creek-area mining): shipped 99,524 ac; check boundary vs EPA/KDHE and redevelopment | 2026-11-16 | 2026-12-16 |
 | 66 | done 2026-11-15 | MD2210020036 | Aberdeen Proving Ground (Edgewood Area) | MD | Aberdeen Proving Ground (Edgewood Area): shipped 11,247 acres to check; any 2026 cleanup or reuse milestone | 2026-11-15 | 2027-02-13 |
 | 30 | done 2026-11-15 | NY7890008975 | Brookhaven National Laboratory (USDOE) | NY | DOE federal-facility NPL site; Long Island energy and land-use activity | 2026-11-15 | 2027-02-13 |
 | 65 | done 2026-11-14 | HI7210090026 | Schofield Barracks (USARMY) | HI | Schofield Barracks (HI): federal-facility NPL site; shipped 11,814 acres to check | 2026-11-14 | 2027-02-12 |
@@ -426,6 +429,7 @@ Rules the routine follows:
 - 2026-11-13 · 2026-11-13 · Fort Ord (CA7210020676) re-review, Atlantic Fleet Weapons Training Area (PRN000204694) retry · 1 development (Fort Ord: Oct 2026 Barloy Canyon Road work access for Unit 17 munitions cleanup) · field notes: Fort Ord acreage 27,744.5 vs EPA 27,827; Cumulis still shows the 2021 partial deletion as proposed · citation check: 4 corrections (detonation-log claim removed, status 'in progress'→'announced', Fort Ord NPL differs→confirmed, Vieques NPL unverifiable→confirmed 2005) · Vieques not merged (open question) · 0 comments · PR #53 open, 2 days
 - 2026-11-14 · Atlantic Fleet Weapons Training Area (PRN000204694) retry, Schofield Barracks (HI7210090026) · 6 developments (Vieques: Jun 2026 UXO 6/11 proposed plan, Jul/Aug 2026 UXO 2/4/7/8 feasibility studies, Oct 2026 SIA after-action report; Schofield: May 2026 deep-wells EA/FONSI, Jul 2026 water-plant failures) · field notes: Schofield acreage 11,814 vs EPA 17,725 · citation check: Vieques NPL unverifiable→confirmed 2005, Schofield water-outage overstatement corrected, HNN date fixed, EA source relabeled · navfac.navy.mil read via the browser pane (403 to fetch) · 0 comments · PR #53 open, 3 days
 - 2026-11-15 · Brookhaven (NY7890008975), Aberdeen Edgewood (MD2210020036) · 0 developments · 2 field differences (BNL 5,266.3 ac shipped vs EPA 5,265; Edgewood 11,246.5 shipped vs EPA 13,000 incl. Gunpowder Neck, Pooles/Carroll Islands, Graces Quarters) · citation check: 2 contradicted claims corrected (Edgewood acreage note and open question) · 0 review comments · PR #53 open, 4 days old
+- 2026-11-16 · Cherokee County KS, Concord NWS CA · 3 developments (EPA Willow Creek post-ROD change Oct 2026; Galena landfill class action Jun 2026; Concord Navy term sheet May 2026) · 2 acreage differences (EPA 115 sq mi vs 99,524 ac; EPA 12,800 ac vs 10,932 ac) · 4 checker corrections · 0 comments · PR new
 
 ## 7. Decisions needed from Pranava
 
