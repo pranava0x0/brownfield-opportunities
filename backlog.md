@@ -306,8 +306,7 @@ Rules the routine follows:
 
 | # | Status | Site id | Name | St | Why queued | Last researched | Next due |
 |---|---|---|---|---|---|---|---|
-| 69 | queued | NY0213820830 | Seneca Army Depot | NY | Seneca Army Depot: closed depot with county IDA reuse; shipped 9,783 acres to check | — | — |
-| 70 | queued | ID3572124557 | Mountain Home Air Force Base | ID | Mountain Home Air Force Base: federal-facility NPL site; shipped 10,834 acres to check | — | — |
+| 70 | retry | ID3572124557 | Mountain Home Air Force Base | ID | Mountain Home Air Force Base: federal-facility NPL site; shipped 10,834 acres to check; 2026-11-17: EPA profile, base press releases and AF PFAS snapshot unreadable (403/scans); window not fully searched | — | — |
 | 71 | queued | IL7213820460 | Joliet Army Ammunition Plant (Manufacturing Area) | IL | Joliet AAP manufacturing area: federal NPL with industrial reuse; shipped 8,945 acres and redevelopment status to check | — | — |
 | 72 | queued | MA7210025154 | Fort Devens | MA | Fort Devens: federal NPL under MassDevelopment reuse; shipped 9,264 acres and current projects to check | — | — |
 | 73 | queued | MON000705842 | Washington County Lead District - Furnace Creek | MO | Washington County Lead District - Furnace Creek (MO): shipped 341,887 acres is a district outline; EPA extent and 2026 yard-cleanup milestones | — | — |
@@ -317,6 +316,9 @@ Rules the routine follows:
 | 77 | queued | CA1170090087 | Hunters Point Naval Shipyard | CA | Hunters Point Naval Shipyard: Parcel transfers and retesting controversy; check acreage, transfer status, developer plans | — | — |
 | 78 | queued | CA2170023236 | Alameda Naval Air Station | CA | Alameda NAS: Alameda Point reuse; check transferred parcels, development phases, NPL status | — | — |
 | 79 | queued | CA5570024575 | Travis Air Force Base | CA | Travis AFB: active base on NPL; check cleanup milestones, PFAS actions, any energy/land lease | — | — |
+| 80 | queued | ME9570024522 | Loring Air Force Base | ME | Loring Air Force Base: closed base with Loring Development Authority reuse; shipped 8,596 acres to check | — | — |
+| 81 | queued | TX6213820529 | Longhorn Army Ammunition Plant | TX | Longhorn Army Ammunition Plant: closed plant transferred to Caddo Lake NWR; shipped 8,344 acres to check | — | — |
+| 69 | done 2026-11-17 | NY0213820830 | Seneca Army Depot | NY | Seneca Army Depot: closed depot with county IDA reuse; shipped 9,783 acres to check | 2026-11-17 | 2027-02-15 |
 | 68 | done 2026-11-16 | CA7170024528 | Concord Naval Weapons Station | CA | Concord Naval Weapons Station: closed base with City of Concord reuse plan; shipped 10,932 acres to check (EPA/city sources, not Navy) | 2026-11-16 | 2027-02-14 |
 | 67 | done 2026-11-16 | KSD980741862 | Cherokee County | KS | Cherokee County KS (Tar Creek-area mining): shipped 99,524 ac; check boundary vs EPA/KDHE and redevelopment | 2026-11-16 | 2026-12-16 |
 | 66 | done 2026-11-15 | MD2210020036 | Aberdeen Proving Ground (Edgewood Area) | MD | Aberdeen Proving Ground (Edgewood Area): shipped 11,247 acres to check; any 2026 cleanup or reuse milestone | 2026-11-15 | 2027-02-13 |
@@ -430,6 +432,7 @@ Rules the routine follows:
 - 2026-11-14 · Atlantic Fleet Weapons Training Area (PRN000204694) retry, Schofield Barracks (HI7210090026) · 6 developments (Vieques: Jun 2026 UXO 6/11 proposed plan, Jul/Aug 2026 UXO 2/4/7/8 feasibility studies, Oct 2026 SIA after-action report; Schofield: May 2026 deep-wells EA/FONSI, Jul 2026 water-plant failures) · field notes: Schofield acreage 11,814 vs EPA 17,725 · citation check: Vieques NPL unverifiable→confirmed 2005, Schofield water-outage overstatement corrected, HNN date fixed, EA source relabeled · navfac.navy.mil read via the browser pane (403 to fetch) · 0 comments · PR #53 open, 3 days
 - 2026-11-15 · Brookhaven (NY7890008975), Aberdeen Edgewood (MD2210020036) · 0 developments · 2 field differences (BNL 5,266.3 ac shipped vs EPA 5,265; Edgewood 11,246.5 shipped vs EPA 13,000 incl. Gunpowder Neck, Pooles/Carroll Islands, Graces Quarters) · citation check: 2 contradicted claims corrected (Edgewood acreage note and open question) · 0 review comments · PR #53 open, 4 days old
 - 2026-11-16 · Cherokee County KS, Concord NWS CA · 3 developments (EPA Willow Creek post-ROD change Oct 2026; Galena landfill class action Jun 2026; Concord Navy term sheet May 2026) · 2 acreage differences (EPA 115 sq mi vs 99,524 ac; EPA 12,800 ac vs 10,932 ac) · 4 checker corrections · 0 comments · PR new
+- 2026-11-17 · Seneca Army Depot (done), Mountain Home AFB (retry) · 2 developments (ROD 2026-07-08, notice 2026-08-12) · 1 field difference (EPA 10,587 ac vs 9,783.2 shipped) · 0 corrections · 0 comments · PR #54 open 1 day
 
 ## 7. Decisions needed from Pranava
 
