@@ -306,8 +306,6 @@ Rules the routine follows:
 
 | # | Status | Site id | Name | St | Why queued | Last researched | Next due |
 |---|---|---|---|---|---|---|---|
-| 70 | retry | ID3572124557 | Mountain Home Air Force Base | ID | Mountain Home Air Force Base: federal-facility NPL site; shipped 10,834 acres to check; 2026-11-17: EPA profile, base press releases and AF PFAS snapshot unreadable (403/scans); window not fully searched | — | — |
-| 71 | queued | IL7213820460 | Joliet Army Ammunition Plant (Manufacturing Area) | IL | Joliet AAP manufacturing area: federal NPL with industrial reuse; shipped 8,945 acres and redevelopment status to check | — | — |
 | 72 | queued | MA7210025154 | Fort Devens | MA | Fort Devens: federal NPL under MassDevelopment reuse; shipped 9,264 acres and current projects to check | — | — |
 | 73 | queued | MON000705842 | Washington County Lead District - Furnace Creek | MO | Washington County Lead District - Furnace Creek (MO): shipped 341,887 acres is a district outline; EPA extent and 2026 yard-cleanup milestones | — | — |
 | 74 | queued | SCD003354412 | Sangamo Weston, Inc./Twelve-Mile Creek/Lake Hartwell Pcb Contamination | SC | Shipped acreage flagged as a boundary artifact; check EPA-stated extent and 2026 cleanup or reuse milestones | — | — |
@@ -318,6 +316,8 @@ Rules the routine follows:
 | 79 | queued | CA5570024575 | Travis Air Force Base | CA | Travis AFB: active base on NPL; check cleanup milestones, PFAS actions, any energy/land lease | — | — |
 | 80 | queued | ME9570024522 | Loring Air Force Base | ME | Loring Air Force Base: closed base with Loring Development Authority reuse; shipped 8,596 acres to check | — | — |
 | 81 | queued | TX6213820529 | Longhorn Army Ammunition Plant | TX | Longhorn Army Ammunition Plant: closed plant transferred to Caddo Lake NWR; shipped 8,344 acres to check | — | — |
+| 71 | done 2026-11-19 | IL7213820460 | Joliet Army Ammunition Plant (Manufacturing Area) | IL | Joliet AAP manufacturing area: federal NPL with industrial reuse; shipped 8,945 acres and redevelopment status to check | 2026-11-19 | 2027-02-17 |
+| 70 | done 2026-11-19 | ID3572124557 | Mountain Home Air Force Base | ID | Mountain Home Air Force Base: federal-facility NPL site; shipped 10,834 acres to check; 2026-11-17: EPA profile, base press releases and AF PFAS snapshot unreadable (403/scans); window not fully searched | 2026-11-19 | 2027-02-17 |
 | 41 | done 2026-11-18 | AK1570028646 | Eielson Air Force Base | AK | DoD federal-facility NPL site; shipped 24,760 acres; Eielson microreactor commitment; 2026-10-19: 2026-10-19 pass: EPA Cumulis gives 19,780 ac (shipped 24,760.4); 2026 Air Force microreactor fact sheet, PFAS open house and Alaska DEC pages returned 403; the Oklo notice of intent (reported 2025-06) predates the window | 2026-11-18 | 2026-12-18 |
 | 32 | done 2026-11-18 | CA2890090002 | Lawrence Livermore Natl Lab (Site 300) (USDOE) | CA | DOE federal-facility NPL site; 6,810 acres to check against DOE. EPA says 11 sq mi (about 7,040 ac) vs shipped 6,809.7 | 2026-11-18 | 2027-02-16 |
 | 69 | done 2026-11-17 | NY0213820830 | Seneca Army Depot | NY | Seneca Army Depot: closed depot with county IDA reuse; shipped 9,783 acres to check | 2026-11-17 | 2027-02-15 |
@@ -434,6 +434,7 @@ Rules the routine follows:
 - 2026-11-16 · Cherokee County KS, Concord NWS CA · 3 developments (EPA Willow Creek post-ROD change Oct 2026; Galena landfill class action Jun 2026; Concord Navy term sheet May 2026) · 2 acreage differences (EPA 115 sq mi vs 99,524 ac; EPA 12,800 ac vs 10,932 ac) · 4 checker corrections · 0 comments · PR new
 - 2026-11-17 · Seneca Army Depot (done), Mountain Home AFB (retry) · 2 developments (ROD 2026-07-08, notice 2026-08-12) · 1 field difference (EPA 10,587 ac vs 9,783.2 shipped) · 0 corrections · 0 comments · PR #54 open 1 day
 - 2026-11-18 · Eielson AFB (AK1570028646), LLNL Site 300 (CA2890090002) re-reviews · 0 developments in window · 1 field difference carried (Eielson 19,780 vs 24,760 ac) · citation check: 1 correction (Eielson federal-facility note downgraded to unverifiable) · review comments: none · PR #54 open, 2 days old
+- 2026-11-19 · Mountain Home AFB, Joliet AAP (MA) · 0 developments · 0 field differences after boundary-layer check (both shown acreages match EPA's mapped boundary; text sizes smaller, open questions logged) · 3 checker-driven edits (dropped Army 'published' date, added boundary-layer + Region 5 notes, NPL listing year) · 0 comments · PR #54 3 days
 
 ## 7. Decisions needed from Pranava
 
