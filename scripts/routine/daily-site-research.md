@@ -54,6 +54,9 @@ CITATION CHECKER (model "sonnet"):
 
 Apply the result: for every claim not "supported", apply the checker's correction (with a URL it opened), remove the claim, or drop the site and mark it `retry`. Where the two disagree on a fact that matters, open the page yourself. Never ship a claim neither could support.
 
+### 3b. Acreage differences (required whenever a validation note says acreage "differs")
+Query EPA's boundary layer yourself (`.../FAC_Superfund_Site_Boundaries_EPA_Public/FeatureServer/0/query?where=EPA_ID%3D%27<ID>%27&outFields=EPA_ID,SITE_NAME,GIS_AREA,GIS_AREA_UNITS,SITE_FEATURE_DESCRIPTION&returnGeometry=false&f=json`) to see where the shown figure comes from. Then use the citation checker (model "sonnet") or direct web searches to find the stated size in primary sources: the live EPA site or fact-sheet page, the Five-Year Review, the NPL narrative, and agency or city reuse pages. Write one validation note per figure (`acreage`, `acreage (EPA boundary layer)`, `acreage (<other source>)`), each with its own source_url that states the figure, and open the page yourself before shipping it. Put any gap no source explains in open_questions; do not guess at a cause.
+
 ## 4. Merge and validate (in $WT)
 ```
 "$PY" scripts/site_research.py add "$TMP"/<ID>.json ...   # derives next_review
