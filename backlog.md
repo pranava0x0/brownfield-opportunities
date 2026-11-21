@@ -306,16 +306,21 @@ Rules the routine follows:
 
 | # | Status | Site id | Name | St | Why queued | Last researched | Next due |
 |---|---|---|---|---|---|---|---|
-| 72 | queued | MA7210025154 | Fort Devens | MA | Fort Devens: federal NPL under MassDevelopment reuse; shipped 9,264 acres and current projects to check | — | — |
-| 73 | queued | MON000705842 | Washington County Lead District - Furnace Creek | MO | Washington County Lead District - Furnace Creek (MO): shipped 341,887 acres is a district outline; EPA extent and 2026 yard-cleanup milestones | — | — |
-| 74 | queued | SCD003354412 | Sangamo Weston, Inc./Twelve-Mile Creek/Lake Hartwell Pcb Contamination | SC | Shipped acreage flagged as a boundary artifact; check EPA-stated extent and 2026 cleanup or reuse milestones | — | — |
-| 75 | queued | HI4170090076 | Pearl Harbor Naval Complex | HI | Pearl Harbor Naval Complex (HI): Oahu Navy NPL site near Schofield; shipped 8,541 acres to check; Red Hill fuel and cleanup milestones | — | — |
 | 76 | queued | ME8170022018 | Brunswick Naval Air Station | ME | Brunswick Naval Air Station (ME): closed BRAC base under redevelopment (Brunswick Landing); shipped 3,134 acres to check; reuse and PFAS milestones | — | — |
 | 77 | queued | CA1170090087 | Hunters Point Naval Shipyard | CA | Hunters Point Naval Shipyard: Parcel transfers and retesting controversy; check acreage, transfer status, developer plans | — | — |
 | 78 | queued | CA2170023236 | Alameda Naval Air Station | CA | Alameda NAS: Alameda Point reuse; check transferred parcels, development phases, NPL status | — | — |
 | 79 | queued | CA5570024575 | Travis Air Force Base | CA | Travis AFB: active base on NPL; check cleanup milestones, PFAS actions, any energy/land lease | — | — |
 | 80 | queued | ME9570024522 | Loring Air Force Base | ME | Loring Air Force Base: closed base with Loring Development Authority reuse; shipped 8,596 acres to check | — | — |
 | 81 | queued | TX6213820529 | Longhorn Army Ammunition Plant | TX | Longhorn Army Ammunition Plant: closed plant transferred to Caddo Lake NWR; shipped 8,344 acres to check | — | — |
+| 82 | queued | MOD098633415 | Madison County Mines | MO | Madison County Mines (MO): shipped 327,043 acres exceeds Madison County; EPA extent and current OU status | — | — |
+| 83 | queued | NYD980763841 | Hudson River Pcbs | NY | Hudson River PCBs (NY): 88,234 acres is a river corridor; EPA extent, 2026 five-year review and upper-river dredging decisions | — | — |
+| 84 | queued | MN7213820908 | New Brighton/Arden Hills/Tcaap (USARMY) | MN | Former Twin Cities Army Ammunition Plant (Arden Hills, MN); check shipped 6,915 acres and Rice Creek Commons redevelopment status | — | — |
+| 85 | queued | AL6210020008 | Alabama Army Ammunition Plant | AL | Alabama Army Ammunition Plant (Childersburg, AL); check shipped 8,912 acres, NPL status and industrial reuse of the transferred land | — | — |
+| 86 | queued | NE2213820234 | Cornhusker Army Ammunition Plant | NE | Cornhusker Army Ammunition Plant (Grand Island, NE); check shipped 7,318 acres, groundwater cleanup and land reuse | — | — |
+| 75 | done 2026-11-21 | HI4170090076 | Pearl Harbor Naval Complex | HI | Pearl Harbor Naval Complex (HI): Oahu Navy NPL site near Schofield; shipped 8,541 acres to check; Red Hill fuel and cleanup milestones | 2026-11-21 | 2027-02-19 |
+| 74 | done 2026-11-21 | SCD003354412 | Sangamo Weston, Inc./Twelve-Mile Creek/Lake Hartwell Pcb Contamination | SC | Shipped acreage flagged as a boundary artifact; check EPA-stated extent and 2026 cleanup or reuse milestones | 2026-11-21 | 2027-02-19 |
+| 73 | done 2026-11-20 | MON000705842 | Washington County Lead District - Furnace Creek | MO | Washington County Lead District - Furnace Creek (MO): shipped 341,887 acres is a district outline; EPA extent and 2026 yard-cleanup milestones | 2026-11-20 | 2027-02-18 |
+| 72 | done 2026-11-20 | MA7210025154 | Fort Devens | MA | Fort Devens: federal NPL under MassDevelopment reuse; shipped 9,264 acres and current projects to check | 2026-11-20 | 2027-02-18 |
 | 71 | done 2026-11-19 | IL7213820460 | Joliet Army Ammunition Plant (Manufacturing Area) | IL | Joliet AAP manufacturing area: federal NPL with industrial reuse; shipped 8,945 acres and redevelopment status to check | 2026-11-19 | 2027-02-17 |
 | 70 | done 2026-11-19 | ID3572124557 | Mountain Home Air Force Base | ID | Mountain Home Air Force Base: federal-facility NPL site; shipped 10,834 acres to check; 2026-11-17: EPA profile, base press releases and AF PFAS snapshot unreadable (403/scans); window not fully searched | 2026-11-19 | 2027-02-17 |
 | 41 | done 2026-11-18 | AK1570028646 | Eielson Air Force Base | AK | DoD federal-facility NPL site; shipped 24,760 acres; Eielson microreactor commitment; 2026-10-19: 2026-10-19 pass: EPA Cumulis gives 19,780 ac (shipped 24,760.4); 2026 Air Force microreactor fact sheet, PFAS open house and Alaska DEC pages returned 403; the Oklo notice of intent (reported 2025-06) predates the window | 2026-11-18 | 2026-12-18 |
@@ -435,6 +440,8 @@ Rules the routine follows:
 - 2026-11-17 · Seneca Army Depot (done), Mountain Home AFB (retry) · 2 developments (ROD 2026-07-08, notice 2026-08-12) · 1 field difference (EPA 10,587 ac vs 9,783.2 shipped) · 0 corrections · 0 comments · PR #54 open 1 day
 - 2026-11-18 · Eielson AFB (AK1570028646), LLNL Site 300 (CA2890090002) re-reviews · 0 developments in window · 1 field difference carried (Eielson 19,780 vs 24,760 ac) · citation check: 1 correction (Eielson federal-facility note downgraded to unverifiable) · review comments: none · PR #54 open, 2 days old
 - 2026-11-19 · Mountain Home AFB, Joliet AAP (MA) · 0 developments · 0 field differences after boundary-layer check (both shown acreages match EPA's mapped boundary; text sizes smaller, open questions logged) · 3 checker-driven edits (dropped Army 'published' date, added boundary-layer + Region 5 notes, NPL listing year) · 0 comments · PR #54 3 days
+- 2026-11-20 · Fort Devens, Furnace Creek · 2 developments (Devens housing sales/loan) · 0 field differences (boundary-layer acreage confirmed for both; Devens location reclassified confirmed) · 3 citation corrections (announcement dates labelled, unsupported 'differs' fixed, excavation claim confirmed on profile) · 0 comments · no open PR
+- 2026-11-21 · Sangamo Weston/Lake Hartwell, Pearl Harbor Naval Complex · 0 developments · 2 acreage differences (Sangamo boundary artifact 99,147 ac; Pearl Harbor 8,541 vs EPA 12,600 ac) · 0 citation-check corrections (Sangamo partial deletions added) · 0 comments · PR #55 open 1 day
 
 ## 7. Decisions needed from Pranava
 
