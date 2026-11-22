@@ -106,6 +106,7 @@ Priorities: **high** = next, **med** = soon, **low** = nice-to-have. Last update
 
 ## 3. Next (this quarter)
 
+- Routine source access: Navy BRAC PMO pages (bracpmo.navy.mil) and media.defense.gov PDFs return 403 to WebFetch and curl, but bracpmo pages open in the in-app browser pane (verified 2026-11-22; PDFs still download-only). Give the routine a sanctioned PDF-text path (e.g. pypdf in the venv) so Navy RAB slides and fact sheets can be read for BRAC sites. Priority: medium.
 0. **[med]** `routine_ctl.resolve_merge_conflict` replay cannot delete items: when the branch removes a wrong development from a dossier and main edits a different site, the `site_research.merge()` union restores it (PR #44 review 2026-10-28). Needs an explicit removal path.
 
 1. **[med]** Research routine phase 2: dossiers for curated entities (coal plants, DOE parcels, civilian nuclear sites, microreactor commitments), not only corpus sites, so a tab row can show its latest cited developments. Today those rows are corrected by hand through their builder scripts (the 2026-09-25 fact-check changed eight of them).
@@ -306,8 +307,6 @@ Rules the routine follows:
 
 | # | Status | Site id | Name | St | Why queued | Last researched | Next due |
 |---|---|---|---|---|---|---|---|
-| 76 | queued | ME8170022018 | Brunswick Naval Air Station | ME | Brunswick Naval Air Station (ME): closed BRAC base under redevelopment (Brunswick Landing); shipped 3,134 acres to check; reuse and PFAS milestones | — | — |
-| 77 | queued | CA1170090087 | Hunters Point Naval Shipyard | CA | Hunters Point Naval Shipyard: Parcel transfers and retesting controversy; check acreage, transfer status, developer plans | — | — |
 | 78 | queued | CA2170023236 | Alameda Naval Air Station | CA | Alameda NAS: Alameda Point reuse; check transferred parcels, development phases, NPL status | — | — |
 | 79 | queued | CA5570024575 | Travis Air Force Base | CA | Travis AFB: active base on NPL; check cleanup milestones, PFAS actions, any energy/land lease | — | — |
 | 80 | queued | ME9570024522 | Loring Air Force Base | ME | Loring Air Force Base: closed base with Loring Development Authority reuse; shipped 8,596 acres to check | — | — |
@@ -317,6 +316,10 @@ Rules the routine follows:
 | 84 | queued | MN7213820908 | New Brighton/Arden Hills/Tcaap (USARMY) | MN | Former Twin Cities Army Ammunition Plant (Arden Hills, MN); check shipped 6,915 acres and Rice Creek Commons redevelopment status | — | — |
 | 85 | queued | AL6210020008 | Alabama Army Ammunition Plant | AL | Alabama Army Ammunition Plant (Childersburg, AL); check shipped 8,912 acres, NPL status and industrial reuse of the transferred land | — | — |
 | 86 | queued | NE2213820234 | Cornhusker Army Ammunition Plant | NE | Cornhusker Army Ammunition Plant (Grand Island, NE); check shipped 7,318 acres, groundwater cleanup and land reuse | — | — |
+| 87 | queued | MA2170022022 | South Weymouth Naval Air Station | MA | South Weymouth NAS (MA): closed BRAC base redeveloped as Union Point; check transfer status, developer plans and 1,444 shipped acres | — | — |
+| 88 | queued | RI6170022036 | Davisville Naval Construction Battalion Center | RI | Davisville NCBC (RI): closed Seabee base at Quonset Business Park; check reuse, offshore-wind port activity and 1,346 shipped acres | — | — |
+| 77 | done 2026-11-22 | CA1170090087 | Hunters Point Naval Shipyard | CA | Hunters Point Naval Shipyard: Parcel transfers and retesting controversy; check acreage, transfer status, developer plans | 2026-11-22 | 2026-12-22 |
+| 76 | done 2026-11-22 | ME8170022018 | Brunswick Naval Air Station | ME | Brunswick Naval Air Station (ME): closed BRAC base under redevelopment (Brunswick Landing); shipped 3,134 acres to check; reuse and PFAS milestones | 2026-11-22 | 2027-02-20 |
 | 75 | done 2026-11-21 | HI4170090076 | Pearl Harbor Naval Complex | HI | Pearl Harbor Naval Complex (HI): Oahu Navy NPL site near Schofield; shipped 8,541 acres to check; Red Hill fuel and cleanup milestones | 2026-11-21 | 2027-02-19 |
 | 74 | done 2026-11-21 | SCD003354412 | Sangamo Weston, Inc./Twelve-Mile Creek/Lake Hartwell Pcb Contamination | SC | Shipped acreage flagged as a boundary artifact; check EPA-stated extent and 2026 cleanup or reuse milestones | 2026-11-21 | 2027-02-19 |
 | 73 | done 2026-11-20 | MON000705842 | Washington County Lead District - Furnace Creek | MO | Washington County Lead District - Furnace Creek (MO): shipped 341,887 acres is a district outline; EPA extent and 2026 yard-cleanup milestones | 2026-11-20 | 2027-02-18 |
@@ -442,6 +445,7 @@ Rules the routine follows:
 - 2026-11-19 · Mountain Home AFB, Joliet AAP (MA) · 0 developments · 0 field differences after boundary-layer check (both shown acreages match EPA's mapped boundary; text sizes smaller, open questions logged) · 3 checker-driven edits (dropped Army 'published' date, added boundary-layer + Region 5 notes, NPL listing year) · 0 comments · PR #54 3 days
 - 2026-11-20 · Fort Devens, Furnace Creek · 2 developments (Devens housing sales/loan) · 0 field differences (boundary-layer acreage confirmed for both; Devens location reclassified confirmed) · 3 citation corrections (announcement dates labelled, unsupported 'differs' fixed, excavation claim confirmed on profile) · 0 comments · no open PR
 - 2026-11-21 · Sangamo Weston/Lake Hartwell, Pearl Harbor Naval Complex · 0 developments · 2 acreage differences (Sangamo boundary artifact 99,147 ac; Pearl Harbor 8,541 vs EPA 12,600 ac) · 0 citation-check corrections (Sangamo partial deletions added) · 0 comments · PR #55 open 1 day
+- 2026-11-22 · Brunswick NAS, Hunters Point · 9 developments · 1 acreage difference (Hunters Point boundary layer has no area) · 2 citation corrections · 0 comments · PR #55 2 days old
 
 ## 7. Decisions needed from Pranava
 
