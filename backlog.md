@@ -317,6 +317,7 @@ Rules the routine follows:
 | 90 | queued | CA4570024527 | March Air Force Base | CA | March Air Force Base: former base with March JPA reuse and warehouse development; shipped 8,180 acres to check | — | — |
 | 91 | queued | WA9571924647 | Fairchild Air Force Base (4 Waste Areas) | WA | Fairchild Air Force Base: active base, PFAS groundwater action; shipped 9,336 acres to check | — | — |
 | 92 | queued | NJ7170023744 | Naval Air Engineering Center | NJ | Naval Air Engineering Center (Lakehurst): part of Joint Base McGuire-Dix-Lakehurst, an AF AI data-center lease site; shipped 7,385 acres to check | — | — |
+| 93 | queued | MOD981126899 | Big River Mine Tailings/St. Joe Minerals Corp. | MO | Big River Mine Tailings (MO): shipped 281,697 acres is 86% of Ste. Genevieve County; EPA extent and current OU status | — | — |
 | 83 | done 2026-11-25 | NYD980763841 | Hudson River Pcbs | NY | Hudson River PCBs (NY): 88,234 acres is a river corridor; EPA extent, 2026 five-year review and upper-river dredging decisions | 2026-11-25 | 2027-02-23 |
 | 82 | done 2026-11-25 | MOD098633415 | Madison County Mines | MO | Madison County Mines (MO): shipped 327,043 acres exceeds Madison County; EPA extent and current OU status | 2026-11-25 | 2027-02-23 |
 | 81 | done 2026-11-24 | TX6213820529 | Longhorn Army Ammunition Plant | TX | Longhorn Army Ammunition Plant: closed plant transferred to Caddo Lake NWR; shipped 8,344 acres to check | 2026-11-24 | 2027-02-22 |
