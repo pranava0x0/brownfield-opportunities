@@ -308,16 +308,23 @@ Rules the routine follows:
 
 | # | Status | Site id | Name | St | Why queued | Last researched | Next due |
 |---|---|---|---|---|---|---|---|
-| 80 | queued | ME9570024522 | Loring Air Force Base | ME | Loring Air Force Base: closed base with Loring Development Authority reuse; shipped 8,596 acres to check | — | — |
-| 81 | queued | TX6213820529 | Longhorn Army Ammunition Plant | TX | Longhorn Army Ammunition Plant: closed plant transferred to Caddo Lake NWR; shipped 8,344 acres to check | — | — |
-| 82 | queued | MOD098633415 | Madison County Mines | MO | Madison County Mines (MO): shipped 327,043 acres exceeds Madison County; EPA extent and current OU status | — | — |
-| 83 | queued | NYD980763841 | Hudson River Pcbs | NY | Hudson River PCBs (NY): 88,234 acres is a river corridor; EPA extent, 2026 five-year review and upper-river dredging decisions | — | — |
-| 84 | queued | MN7213820908 | New Brighton/Arden Hills/Tcaap (USARMY) | MN | Former Twin Cities Army Ammunition Plant (Arden Hills, MN); check shipped 6,915 acres and Rice Creek Commons redevelopment status | — | — |
-| 85 | queued | AL6210020008 | Alabama Army Ammunition Plant | AL | Alabama Army Ammunition Plant (Childersburg, AL); check shipped 8,912 acres, NPL status and industrial reuse of the transferred land | — | — |
 | 86 | queued | NE2213820234 | Cornhusker Army Ammunition Plant | NE | Cornhusker Army Ammunition Plant (Grand Island, NE); check shipped 7,318 acres, groundwater cleanup and land reuse | — | — |
 | 87 | queued | MA2170022022 | South Weymouth Naval Air Station | MA | South Weymouth NAS (MA): closed BRAC base redeveloped as Union Point; check transfer status, developer plans and 1,444 shipped acres | — | — |
 | 88 | queued | RI6170022036 | Davisville Naval Construction Battalion Center | RI | Davisville NCBC (RI): closed Seabee base at Quonset Business Park; check reuse, offshore-wind port activity and 1,346 shipped acres | — | — |
 | 89 | queued | CA6170023208 | El Toro Marine Corps Air Station | CA | El Toro MCAS: Great Park reuse; check remaining Navy parcels, transfers, Five-Year Review | — | — |
+| 90 | queued | CA4570024527 | March Air Force Base | CA | March Air Force Base: former base with March JPA reuse and warehouse development; shipped 8,180 acres to check | — | — |
+| 91 | queued | WA9571924647 | Fairchild Air Force Base (4 Waste Areas) | WA | Fairchild Air Force Base: active base, PFAS groundwater action; shipped 9,336 acres to check | — | — |
+| 92 | queued | NJ7170023744 | Naval Air Engineering Center | NJ | Naval Air Engineering Center (Lakehurst): part of Joint Base McGuire-Dix-Lakehurst, an AF AI data-center lease site; shipped 7,385 acres to check | — | — |
+| 93 | queued | MOD981126899 | Big River Mine Tailings/St. Joe Minerals Corp. | MO | Big River Mine Tailings (MO): shipped 281,697 acres is 86% of Ste. Genevieve County; EPA extent and current OU status | — | — |
+| 94 | queued | CA7210020759 | Riverbank Army Ammunition Plant | CA | Riverbank Army Ammunition Plant (Riverbank, CA); check shipped 163 acres against the plant footprint and the industrial reuse of the transferred land | — | — |
+| 95 | queued | TX7213821831 | Lone Star Army Ammunition Plant | TX | Lone Star Army Ammunition Plant (Texarkana, TX); check shipped 17 acres against the ~15,500-acre installation and current redevelopment of the land | — | — |
+| 96 | queued | MO5210021288 | Weldon Spring Former Army Ordnance Works | MO | Weldon Spring Former Army Ordnance Works (St. Charles County, MO); check shipped 3,839 acres and cleanup or reuse status | — | — |
+| 85 | done 2026-11-26 | AL6210020008 | Alabama Army Ammunition Plant | AL | Alabama Army Ammunition Plant (Childersburg, AL); check shipped 8,912 acres, NPL status and industrial reuse of the transferred land | 2026-11-26 | 2027-02-24 |
+| 84 | done 2026-11-26 | MN7213820908 | New Brighton/Arden Hills/Tcaap (USARMY) | MN | Former Twin Cities Army Ammunition Plant (Arden Hills, MN); check shipped 6,915 acres and Rice Creek Commons redevelopment status | 2026-11-26 | 2027-02-24 |
+| 83 | done 2026-11-25 | NYD980763841 | Hudson River Pcbs | NY | Hudson River PCBs (NY): 88,234 acres is a river corridor; EPA extent, 2026 five-year review and upper-river dredging decisions | 2026-11-25 | 2027-02-23 |
+| 82 | done 2026-11-25 | MOD098633415 | Madison County Mines | MO | Madison County Mines (MO): shipped 327,043 acres exceeds Madison County; EPA extent and current OU status | 2026-11-25 | 2027-02-23 |
+| 81 | done 2026-11-24 | TX6213820529 | Longhorn Army Ammunition Plant | TX | Longhorn Army Ammunition Plant: closed plant transferred to Caddo Lake NWR; shipped 8,344 acres to check | 2026-11-24 | 2027-02-22 |
+| 80 | done 2026-11-24 | ME9570024522 | Loring Air Force Base | ME | Loring Air Force Base: closed base with Loring Development Authority reuse; shipped 8,596 acres to check | 2026-11-24 | 2027-02-22 |
 | 79 | done 2026-11-23 | CA5570024575 | Travis Air Force Base | CA | Travis AFB: active base on NPL; check cleanup milestones, PFAS actions, any energy/land lease | 2026-11-23 | 2027-02-21 |
 | 78 | done 2026-11-23 | CA2170023236 | Alameda Naval Air Station | CA | Alameda NAS: Alameda Point reuse; check transferred parcels, development phases, NPL status | 2026-11-23 | 2027-02-21 |
 | 77 | done 2026-11-22 | CA1170090087 | Hunters Point Naval Shipyard | CA | Hunters Point Naval Shipyard: Parcel transfers and retesting controversy; check acreage, transfer status, developer plans | 2026-11-22 | 2026-12-22 |
@@ -449,6 +456,9 @@ Rules the routine follows:
 - 2026-11-21 · Sangamo Weston/Lake Hartwell, Pearl Harbor Naval Complex · 0 developments · 2 acreage differences (Sangamo boundary artifact 99,147 ac; Pearl Harbor 8,541 vs EPA 12,600 ac) · 0 citation-check corrections (Sangamo partial deletions added) · 0 comments · PR #55 open 1 day
 - 2026-11-22 · Brunswick NAS, Hunters Point · 9 developments · 1 acreage difference (Hunters Point boundary layer has no area) · 2 citation corrections · 0 comments · PR #55 2 days old
 - 2026-11-23 · Alameda NAS, Travis AFB · 3 developments · acreage differs on both (EPA 2,806/6,368 ac), Travis city · checker: 1 unsupported title fixed, county/NPL upgraded from proposed plan · 0 comments · PR #55 open 3 days
+- 2026-11-24 · Loring AFB, Longhorn AAP · 2 developments (Loring data center, LD 307 veto) · acreage: Longhorn EPA page 8,416 vs boundary layer 8,343.7; Loring confirmed (~9,000) · 3 citation corrections · 0 comments · PR new
+- 2026-11-25 · Madison County Mines, Hudson River PCBs · 1 development (NY DOH fish advice, Apr 2026) · acreage explained by EPA boundary layer for both · 4 checker corrections (Hudson settlement party, sampling, date, PCBs) · Longhorn comment not changed (DENIX shows dossier figures) · PR #56 open 1 day
+- 2026-11-26 · TCAAP (MN), Alabama AAP (AL) · 3 developments (Childersburg data-center zoning Ordinance #1156, 486-acre land agreement in principle, resident remarks) · AL acreage: EPA profile 5,170 ac vs boundary layer 8,912 ac; MN boundary 6,915 ac includes off-site areas vs 427-ac redevelopment · 5 citation corrections · 0 comments · PR #56 open 2 days
 
 ## 7. Decisions needed from Pranava
 
