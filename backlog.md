@@ -308,8 +308,6 @@ Rules the routine follows:
 
 | # | Status | Site id | Name | St | Why queued | Last researched | Next due |
 |---|---|---|---|---|---|---|---|
-| 84 | queued | MN7213820908 | New Brighton/Arden Hills/Tcaap (USARMY) | MN | Former Twin Cities Army Ammunition Plant (Arden Hills, MN); check shipped 6,915 acres and Rice Creek Commons redevelopment status | — | — |
-| 85 | queued | AL6210020008 | Alabama Army Ammunition Plant | AL | Alabama Army Ammunition Plant (Childersburg, AL); check shipped 8,912 acres, NPL status and industrial reuse of the transferred land | — | — |
 | 86 | queued | NE2213820234 | Cornhusker Army Ammunition Plant | NE | Cornhusker Army Ammunition Plant (Grand Island, NE); check shipped 7,318 acres, groundwater cleanup and land reuse | — | — |
 | 87 | queued | MA2170022022 | South Weymouth Naval Air Station | MA | South Weymouth NAS (MA): closed BRAC base redeveloped as Union Point; check transfer status, developer plans and 1,444 shipped acres | — | — |
 | 88 | queued | RI6170022036 | Davisville Naval Construction Battalion Center | RI | Davisville NCBC (RI): closed Seabee base at Quonset Business Park; check reuse, offshore-wind port activity and 1,346 shipped acres | — | — |
@@ -318,6 +316,8 @@ Rules the routine follows:
 | 91 | queued | WA9571924647 | Fairchild Air Force Base (4 Waste Areas) | WA | Fairchild Air Force Base: active base, PFAS groundwater action; shipped 9,336 acres to check | — | — |
 | 92 | queued | NJ7170023744 | Naval Air Engineering Center | NJ | Naval Air Engineering Center (Lakehurst): part of Joint Base McGuire-Dix-Lakehurst, an AF AI data-center lease site; shipped 7,385 acres to check | — | — |
 | 93 | queued | MOD981126899 | Big River Mine Tailings/St. Joe Minerals Corp. | MO | Big River Mine Tailings (MO): shipped 281,697 acres is 86% of Ste. Genevieve County; EPA extent and current OU status | — | — |
+| 85 | done 2026-11-26 | AL6210020008 | Alabama Army Ammunition Plant | AL | Alabama Army Ammunition Plant (Childersburg, AL); check shipped 8,912 acres, NPL status and industrial reuse of the transferred land | 2026-11-26 | 2027-02-24 |
+| 84 | done 2026-11-26 | MN7213820908 | New Brighton/Arden Hills/Tcaap (USARMY) | MN | Former Twin Cities Army Ammunition Plant (Arden Hills, MN); check shipped 6,915 acres and Rice Creek Commons redevelopment status | 2026-11-26 | 2027-02-24 |
 | 83 | done 2026-11-25 | NYD980763841 | Hudson River Pcbs | NY | Hudson River PCBs (NY): 88,234 acres is a river corridor; EPA extent, 2026 five-year review and upper-river dredging decisions | 2026-11-25 | 2027-02-23 |
 | 82 | done 2026-11-25 | MOD098633415 | Madison County Mines | MO | Madison County Mines (MO): shipped 327,043 acres exceeds Madison County; EPA extent and current OU status | 2026-11-25 | 2027-02-23 |
 | 81 | done 2026-11-24 | TX6213820529 | Longhorn Army Ammunition Plant | TX | Longhorn Army Ammunition Plant: closed plant transferred to Caddo Lake NWR; shipped 8,344 acres to check | 2026-11-24 | 2027-02-22 |
@@ -455,6 +455,7 @@ Rules the routine follows:
 - 2026-11-23 · Alameda NAS, Travis AFB · 3 developments · acreage differs on both (EPA 2,806/6,368 ac), Travis city · checker: 1 unsupported title fixed, county/NPL upgraded from proposed plan · 0 comments · PR #55 open 3 days
 - 2026-11-24 · Loring AFB, Longhorn AAP · 2 developments (Loring data center, LD 307 veto) · acreage: Longhorn EPA page 8,416 vs boundary layer 8,343.7; Loring confirmed (~9,000) · 3 citation corrections · 0 comments · PR new
 - 2026-11-25 · Madison County Mines, Hudson River PCBs · 1 development (NY DOH fish advice, Apr 2026) · acreage explained by EPA boundary layer for both · 4 checker corrections (Hudson settlement party, sampling, date, PCBs) · Longhorn comment not changed (DENIX shows dossier figures) · PR #56 open 1 day
+- 2026-11-26 · TCAAP (MN), Alabama AAP (AL) · 3 developments (Childersburg data-center zoning Ordinance #1156, 486-acre land agreement in principle, resident remarks) · AL acreage: EPA profile 5,170 ac vs boundary layer 8,912 ac; MN boundary 6,915 ac includes off-site areas vs 427-ac redevelopment · 5 citation corrections · 0 comments · PR #56 open 2 days
 
 ## 7. Decisions needed from Pranava
 
